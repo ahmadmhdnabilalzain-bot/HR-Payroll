@@ -32,8 +32,8 @@ source-cited, with an open API and Arabic from the start.
   block at the top of the design doc).
 - Advisor's proof written (`docs/superpowers/specs/2026-11-25-advisor-proof.md`);
   **waiting for the owner to review it.**
-- Code: **none yet.** The owner set this gate. The master feature list is the
-  current approval gate to Plan 1.
+- Code: **none yet.** The owner set this gate. The master feature list is approved;
+  Plan 1 (payroll engine) is being written and built.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Next step

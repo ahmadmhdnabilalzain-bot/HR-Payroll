@@ -1,6 +1,6 @@
 # Master Feature List (the gate to Plan 1)
 
-Merges the parity list with about 80 raw uniqueness ideas into 31 items, each
+Merges the parity list with about 80 raw uniqueness ideas into 32 items, each
 grouped by the capability it depends on. **This is the document the owner
 approves before Plan 1.** Nothing is built yet.
 
@@ -123,6 +123,11 @@ own milestone.
 | ID | Item | Raw ideas | Base that exists | Tags | Lands with |
 |---|---|---|---|---|---|
 | UQ31 | Trips and money: trip readiness gate (visa, passport, ID), per-diem split, trip card auto-reconcile, who-is-where map, card limits that follow employment state, earned-wage access, salary cards and remittance, pay-proof cash-out | T2, T5, T6, T7, U7, G8, W8 | Zoho Expense, Qashio, Alaan, Keka travel desk; salary cards (Al Fardan, Edenred) | BET, P, licensing | Cards, spend, trips (M4) |
+
+### 12. Social media integrations (owner addition, 25 Nov 2026)
+| ID | Item | Raw ideas | Base that exists | Tags | Lands with |
+|---|---|---|---|---|---|
+| UQ32 | Connect company pages (Instagram, TikTok, Snapchat, X, LinkedIn) and show insights inside the product: followers, reach, engagement, audience; employer-brand and recruitment-campaign results tied to hiring numbers; company reputation signals | owner request | Social tools (Zoho Social and others); to be confirmed | BET, **access risk**: each platform's API approval, cost and data rules (research in progress) | Recruiting and intranet (M3 to M4) |
 
 ## Plan 1 demo (unique items inside the first thing you run)
 

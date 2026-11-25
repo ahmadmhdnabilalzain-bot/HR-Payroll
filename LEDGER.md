@@ -25,6 +25,8 @@ them apart is deliberate.
 | 2026-11-25 | On the six uniqueness candidates: "You can add all those, but definitely not enough." The six are accepted into the plan; the owner wants more ideas. |
 | 2026-11-25 | "Think of stuff related to KPIs, hiring, training, company guidelines, approvals flow, audit readiness, etc." More uniqueness ideas wanted in these areas and beyond. |
 | 2026-11-25 | "Emails integrations, tasks list, scheduling, progress, budgeting, business trips and flight tickets and similar ideas and features to add." More ideas wanted in these areas. |
+| 2026-11-25 | "All approved." The master feature list (`docs/superpowers/specs/2026-11-25-master-feature-list.md`) is approved as the gate; Plan 1 and the build proceed. |
+| 2026-11-25 | "I wanna add integration to social media pages with insights: Instagram, TikTok, Snapchat, X, LinkedIn." Added to scope; feasibility research in progress. |
 | 2026-11-25 | Asked for the combined list of all competitors' features (`docs/superpowers/specs/2026-11-25-combined-feature-list.md`). |
 
 ## 2. Standing instructions (the owner's words)
@@ -67,7 +69,7 @@ Each item gets its own plan under `docs/superpowers/plans/`.
 5. Later: M2 and M3 items; then adjacent modules (expenses, tasks,
    intranet and chat), then finance modules (accounts payable, spend,
    cards, project billing) which need licensed partners.
-6. The master feature list (`docs/superpowers/specs/2026-11-25-master-feature-list.md`, 31 unique items) is the gate to Plan 1; awaiting the owner's approval.
+6. The master feature list (`docs/superpowers/specs/2026-11-25-master-feature-list.md`, 31 unique items) is the gate to Plan 1; approved by the owner.
 
 ## 5. Open items
 
