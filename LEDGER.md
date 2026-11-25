@@ -22,6 +22,7 @@ them apart is deliberate.
 | 2026-11-25 | "We are doing HR and payroll. Not a full ERP." (also recorded in section 2) |
 | 2026-11-25 | "What about Keka": Keka is added to the competitor set. |
 | 2026-11-25 | "We won't exclude these except insurance": expense management, accounts payable and spend, corporate cards, project billing, task manager, intranet and chat are **in scope**; insurance stays out. Supersedes the HR-and-payroll-only fence. |
+| 2026-11-25 | On the six uniqueness candidates: "You can add all those, but definitely not enough." The six are accepted into the plan; the owner wants more ideas. |
 | 2026-11-25 | Asked for the combined list of all competitors' features (`docs/superpowers/specs/2026-11-25-combined-feature-list.md`). |
 
 ## 2. Standing instructions (the owner's words)
@@ -47,7 +48,7 @@ them apart is deliberate.
 | 2026-11-25 | Real customer payroll and any "verified compliant" claim wait until the rules are sourced. The owner decides when. | Wrong pay harms real employees. |
 | 2026-11-25 | Files-only v1 (no salary payments), mainland UAE first, TypeScript and PostgreSQL. | See design doc sections 4 and 6. |
 | 2026-11-25 | Develop on branch `claude/quirky-wozniak-b7xkvr`; no pull request unless asked. | Session branch rule. |
-| 2026-11-25 | Advisor's uniqueness candidates recorded as proposals only; none enters the plan until the owner picks. (`docs/superpowers/specs/2026-11-25-unique-candidates.md`) | Owner asked what could make us unique. |
+| 2026-11-25 | Advisor's uniqueness candidates: the six are now accepted by the owner (see section 1); they remain bets until each is demoed. | Owner asked what could make us unique. |
 | 2026-11-25 | Superseded: the HR-and-payroll-only fence and the F17 expense cut are reversed. New order: core first, HR-adjacent next, finance modules last. | Cards and payments need licensed partners, so they come last and depend on partnerships. |
 | 2026-11-25 | Correction: Zoho People includes leave management from its second plan and attendance from its third, at low per-user prices. The earlier "Zoho gates leave and attendance" differentiator is withdrawn. | Read from Zoho's own pricing page. |
 
@@ -61,7 +62,11 @@ Each item gets its own plan under `docs/superpowers/plans/`.
    from two or more documents that agree.
 3. Plan 3: data model, API, tenancy and security baseline.
 4. Plan 4: web app (Arabic and English).
-5. Later: items marked M2 and M3 in the advisor's proof.
+5. Later: M2 and M3 items; then adjacent modules (expenses, tasks,
+   intranet and chat), then finance modules (accounts payable, spend,
+   cards, project billing) which need licensed partners.
+6. A master feature list (parity, adjacent modules, unique items) is the
+   gate to Plan 1; the owner is shaping it with more ideas.
 
 ## 5. Open items
 

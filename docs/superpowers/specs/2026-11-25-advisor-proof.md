@@ -92,7 +92,8 @@ comparison), Zoho People (global pricing page), ZenHR (UAE page), NeuralHR.AI
 
 - **O1 Paying salaries through a bank.** Bayzat advertises bank connections
   for direct transfers and host-to-host payments [PAGE]. Needs a licensed
-  partner. Not planned.
+  partner. Corporate cards and payouts are now in scope by owner decision, and would
+  use the same partner; the owner decides whether salary payment joins them.
 - **O2 Insurance brokerage.** Bayzat's core business [PAGE]. Not planned.
 - **O3 Security certifications** (ISO 27001, SOC 2). Needs time and money;
   Bayzat holds both [PAGE].

@@ -37,6 +37,9 @@ What the verification changed: **Bayzat is a serious incumbent, not a thin one.*
 - Moving or holding salary money (files-only; risk R1). Note Bayzat advertises payments, so this is a gap we accept and revisit.
 - Group health insurance brokerage, accounts payable, spend management.
 - Recruiting and performance management at launch (reasons in section 7).
+- Expense, spend, cards, project billing, tasks, intranet: **in scope by later
+  owner decision**, built after the core (see the advisor proof). Insurance
+  stays out.
 - Saudi Arabia and other GCC countries; native mobile app.
 
 **Anti-goals**

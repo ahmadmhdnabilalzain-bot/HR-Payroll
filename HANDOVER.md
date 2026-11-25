@@ -5,6 +5,8 @@ of state. Last updated: 2026-11-25.
 
 ## What this project is
 
+(Scope: HR and payroll first, then adjacent modules, then finance modules; insurance is out.)
+
 An HR and payroll product for UAE SMEs (about 10 to 250 employees,
 mainland first). The edge: payroll that is correct, explainable and
 source-cited, with an open API and Arabic from the start.

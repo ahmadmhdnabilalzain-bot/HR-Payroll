@@ -1,7 +1,9 @@
 # What Could Make Us Unique: Advisor Candidates (proposals only)
 
-Asked by the owner on 2026-11-25. **Nothing here is in the plan yet.** The
-owner picks. Every item is a bet until a demo proves it. "Not found" means
+Asked by the owner on 2026-11-25. **The six candidates below are accepted
+by the owner** (ledger). The owner wants more; a second round of ideas is
+collected in a master list. Cards and payouts are now in scope, so
+payment-dependent ideas are candidates again, tagged "needs partner". Every item is a bet until a demo proves it. "Not found" means
 not found on the pages read or in one search, never "nobody has it".
 
 ## Honest starting point
@@ -44,7 +46,8 @@ and an accuracy track record. The candidates below follow from that engine.
    exports to produce the parallel-run report. Aims at the spreadsheet users
    the market research found. [BET]
 
-Keep out: earned-wage access and salary cards (payments, licensing).
+Earned-wage access, salary cards and payouts: now candidates, tagged
+"needs partner" (licensed card issuer or payment provider).
 
 ## Two leads on rival correctness (check in a trial; do not assert)
 
