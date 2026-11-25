@@ -32,6 +32,7 @@ them apart is deliberate.
 | 2026-11-25 | "The code built in an organized way, no long lines, it should be always easy to debug, and always the repo should be updated with a ready handover." (`docs/engineering-standards.md`, `HANDOVER.md`) |
 | 2026-11-25 | "All my decisions and instructions and future plan goes to the ledger." |
 | 2026-11-25 | Use Firecrawl by default for external data and research tasks when suitable. (Not saved to memory: no memory tool in this session.) |
+| 2026-11-25 | "We are doing HR and payroll. Not a full ERP." Scope fence recorded in the advisor's proof. |
 
 ## 3. Claude's calls (the owner can overrule)
 
@@ -42,6 +43,7 @@ them apart is deliberate.
 | 2026-11-25 | Real customer payroll and any "verified compliant" claim wait until the rules are sourced. The owner decides when. | Wrong pay harms real employees. |
 | 2026-11-25 | Files-only v1 (no salary payments), mainland UAE first, TypeScript and PostgreSQL. | See design doc sections 4 and 6. |
 | 2026-11-25 | Develop on branch `claude/quirky-wozniak-b7xkvr`; no pull request unless asked. | Session branch rule. |
+| 2026-11-25 | To apply the HR-and-payroll scope: expense management removed from feature F17; out-of-scope modules are integrated or exported, never built. | Follows the owner's scope decision. |
 | 2026-11-25 | Correction: Zoho People includes leave management from its second plan and attendance from its third, at low per-user prices. The earlier "Zoho gates leave and attendance" differentiator is withdrawn. | Read from Zoho's own pricing page. |
 
 ## 4. Future plan (current)

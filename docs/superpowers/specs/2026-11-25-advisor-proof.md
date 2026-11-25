@@ -17,6 +17,23 @@ would have to be true and sets targets, not predictions.
 - "Not on the pages we read" never means "the rival cannot". We have not
   used any rival product.
 
+## Scope fence (owner decision: HR and payroll, not an ERP)
+
+**In scope:** HR (people records, contracts, documents and expiries, leave,
+attendance and shifts, onboarding and offboarding, letters, later recruiting
+and performance) and payroll (calculation, WPS, gratuity and final
+settlement, GPSSA, payslips, payroll reports and journals).
+
+**Out of scope, permanently unless the owner says otherwise:** general
+ledger and accounting, accounts payable and receivable, invoicing, spend
+management and cards, expense management, inventory, CRM, project and task
+management, insurance, payments.
+
+**Rule for the boundary:** where a rival bundles an out-of-scope module
+(Bayzat's finance, expenses, tasks and insurance), we integrate or export
+(for example a payroll journal to the customer's accounting system); we do
+not build the module.
+
 ## 1. The feature list, in build order
 
 Rivals read: Bayzat (home, payroll and HR pages), Zoho Payroll (plan
@@ -48,7 +65,7 @@ comparison), Zoho People (global pricing page), ZenHR (UAE page), NeuralHR.AI
 | F14 | Attendance: web and mobile check-in, GPS, biometric-device import | Zoho People (third plan), Bayzat (GPS, biometric, facial recognition), ZenHR (GPS, QR, ZKTeco) [PAGE] | GPS, geofence and device import first |
 | F15 | Shift rostering | All three [PAGE] | Same |
 | F16 | Employee self-service, mobile-first web, Arabic and English | All [PAGE] | Same (native app in M3) |
-| F17 | Loans, advances, expense reimbursement into payroll | Zoho loans; Bayzat loans and expenses [PAGE] | Same |
+| F17 | Loans and salary advances, deducted through payroll | Zoho loans; Bayzat loans [PAGE] | Same. Expense management is **out of scope** (see scope fence); an approved reimbursement can enter payroll as an input line |
 | F18 | HR letters and salary certificates | Zoho; Bayzat with e-signing [PAGE] | Same |
 | F19 | Reports: payroll summary, salary register, journal, gratuity liability | Zoho [PAGE]; Bayzat AI reports [PAGE] | Same |
 | F20 | Accounting export: Zoho Books, QuickBooks, Xero | Zoho; Bayzat (QuickBooks, Xero); ZenHR (plus Odoo, NetSuite, SAP) [PAGE] | Same, in that order |
