@@ -31,6 +31,16 @@ importers:
         specifier: 22.20.7
         version: 22.20.7
 
+  packages/wps:
+    dependencies:
+      '@payroll/engine':
+        specifier: workspace:*
+        version: link:../engine
+    devDependencies:
+      '@types/node':
+        specifier: 22.20.7
+        version: 22.20.7
+
 packages:
 
   '@emnapi/core@2.0.0-beta.2':
