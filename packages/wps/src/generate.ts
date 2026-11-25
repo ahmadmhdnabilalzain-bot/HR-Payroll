@@ -120,7 +120,7 @@ export function generateSif(
   let sum = 0n;
   for (const { edr, evp } of batch.employees) {
     lines.push(edrLine(edr, layout));
-    if (edr.variable > 0n && evp !== undefined) {
+    if (evp !== undefined) {
       lines.push(evpLine(evp, layout));
     }
     sum += edr.fixed + edr.variable;
