@@ -90,6 +90,7 @@ export interface GratuityParams {
   monthsPerYear: Typed<bigint>;
   yearDayCount: Typed<bigint>;
   endDateInclusive: Typed<boolean>;
+  leapDayAnniversary: Typed<"clamp-to-last-day-of-month">;
   roundingMode: Typed<RoundingMode>;
 }
 
@@ -111,6 +112,8 @@ export function loadGratuityParams(
     monthsPerYear: intParam(pack, "monthsPerYear", ov, 1),
     yearDayCount: intParam(pack, "yearDayCount", ov, 1),
     endDateInclusive: boolParam(pack, "endDateInclusive", ov),
+    leapDayAnniversary: fixedParam(pack, "leapDayAnniversary", ov,
+      "clamp-to-last-day-of-month"),
     roundingMode: roundingParam(pack, ov),
   };
 }

@@ -54,3 +54,22 @@ describe("calculateSettlement", () => {
       .toThrow(code("INVALID_PARAM"));
   });
 });
+
+describe("leave pay divisor", () => {
+  const settle = (o: Record<string, number>) => calculateSettlement(
+    { gratuity: gratuity(), unusedLeaveDays: 10 }, GRATUITY_PACKS, o);
+  it("uses its own convention param, not the gratuity divisor", () => {
+    const line = run(10).trace.find((l) => l.id === "leave.pay")!;
+    const rule = line.rules.find((r) => r.key === "leavePayDivisor");
+    expect(rule).toMatchObject({ value: "30", status: "convention" });
+    expect(line.rules.map((r) => r.key)).not.toContain("dailyWageDivisor");
+  });
+  it("a leavePayDivisor override moves only leave pay", () => {
+    const r = settle({ leavePayDivisor: 31 });
+    expect(r.value.gratuity).toBe(3500000n);
+    expect(r.value.leavePay).toBe(322581n);
+  });
+  it("a dailyWageDivisor override no longer moves leave pay", () => {
+    expect(settle({ dailyWageDivisor: 31 }).value.leavePay).toBe(333333n);
+  });
+});

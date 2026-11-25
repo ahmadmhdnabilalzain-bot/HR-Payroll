@@ -67,12 +67,13 @@ describe("daysBetween and addDays", () => {
 });
 
 describe("anniversary", () => {
-  it("moves 29 February to 28 February in a non-leap year", () => {
-    expect(anniversary("2024-02-29", 1)).toBe("2025-02-28");
-    expect(anniversary("2024-02-29", 4)).toBe("2028-02-29");
+  const CLAMP = "clamp-to-last-day-of-month";
+  it("clamps 29 February to 28 February in a non-leap year", () => {
+    expect(anniversary("2024-02-29", 1, CLAMP)).toBe("2025-02-28");
+    expect(anniversary("2024-02-29", 4, CLAMP)).toBe("2028-02-29");
   });
   it("keeps an ordinary date and handles zero years", () => {
-    expect(anniversary("2019-01-01", 5)).toBe("2024-01-01");
-    expect(anniversary("2019-07-15", 0)).toBe("2019-07-15");
+    expect(anniversary("2019-01-01", 5, CLAMP)).toBe("2024-01-01");
+    expect(anniversary("2019-07-15", 0, CLAMP)).toBe("2019-07-15");
   });
 });

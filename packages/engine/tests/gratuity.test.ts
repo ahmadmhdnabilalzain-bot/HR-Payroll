@@ -60,7 +60,12 @@ describe("GRATUITY_PACKS", () => {
       status: "convention", source: sourceOf("ENGINE_CONVENTION") });
     expect(pack.params["gccNationalGratuity"]).toEqual({ value: null,
       status: "unsourced", source: null });
-    expect(Object.keys(pack.params)).toHaveLength(16);
+    expect(pack.params["leapDayAnniversary"]).toEqual({
+      value: "clamp-to-last-day-of-month", status: "convention",
+      source: sourceOf("ENGINE_CONVENTION") });
+    expect(pack.params["leavePayDivisor"]).toEqual({ value: 30,
+      status: "convention", source: sourceOf("ENGINE_CONVENTION") });
+    expect(Object.keys(pack.params)).toHaveLength(18);
   });
 });
 
@@ -92,7 +97,15 @@ describe("calculateGratuity: sourced and hand-derived cases", () => {
       leftoverDays: 0, amount: 700000n });
     const years = line(r, "service.years")!;
     expect(years.inputs["lastAnniversary"]).toBe("2025-02-28");
-    expect(years.formula).toMatch(/29 February/);
+    expect(years.formula).toMatch(/leapDayAnniversary/);
+  });
+  it("service.years lists the leap-day and end-date conventions", () => {
+    const r = run(input("2024-02-29", "2025-02-27"));
+    const rules = line(r, "service.years")!.rules;
+    const leap = rules.find((x) => x.key === "leapDayAnniversary");
+    expect(leap).toMatchObject({ status: "convention",
+      value: "clamp-to-last-day-of-month" });
+    expect(rules.map((x) => x.key)).toContain("endDateInclusive");
   });
   it("part year pro rata: 2 years and 183/365 gives 1750959n", () => {
     const r = run(input("2022-01-01", "2024-07-01"));
@@ -215,7 +228,7 @@ describe("calculateGratuity: overrides and determinism", () => {
     const bad: Record<string, ParamValue>[] = [{ dailyWageDivisor: 0 },
       { dailyWageDivisor: 1.5 }, { dailyWageDivisor: "30" },
       { roundingMode: "NEAREST" }, { partYearProRata: "yes" },
-      { capBase: "total" }];
+      { capBase: "total" }, { leapDayAnniversary: "march-1" }];
     for (const o of bad) {
       expect(() => run(five, o)).toThrowError(code("INVALID_PARAM"));
     }

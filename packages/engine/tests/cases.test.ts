@@ -66,3 +66,18 @@ describe("runCases failures", () => {
       code: "INVALID_CASE_FILE", detail: { file: "bad.json" } });
   });
 });
+
+describe("case statuses claim no more than their sources", () => {
+  const want: Record<string, [string, string]> = {
+    "exactly-one-year": ["secondary", "LAW_33_2021"],
+    "seven-years": ["secondary", "LAW_33_2021"],
+    "two-year-cap": ["secondary", "LAW_33_2021"],
+    "leap-day-joiner": ["convention", "ENGINE_CONVENTION"],
+    "unpaid-leave-threshold": ["official", "UAE_GOV_EOSB"],
+  };
+  it.each(Object.keys(want))("%s", async (id) => {
+    const text = await readFile(join(LIBRARY, `${id}.json`), "utf8");
+    const c = JSON.parse(text) as { status: string; sourceId: string };
+    expect([c.status, c.sourceId]).toEqual(want[id]);
+  });
+});

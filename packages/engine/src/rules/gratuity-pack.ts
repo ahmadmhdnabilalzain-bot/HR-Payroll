@@ -34,11 +34,17 @@ const AE_GRATUITY_2022: RulePack = {
     basicWageOnly: param(true, "official", LAW),
     leavePayBase: param("basic", "official", "UAE_GOV_LEAVES"),
     dailyWageDivisor: param(30, "secondary", EOSB_PRESS),
+    // Leave pay daily rate: the leaves page gives the basic-salary base
+    // but no divisor, so 30 is our choice, not the gratuity source's.
+    leavePayDivisor: param(30, "convention", CONVENTION),
     partYearProRata: param(true, "secondary", EOSB_PRESS),
     monthsPerYear: param(12, "convention", CONVENTION),
     // Denominator for the leftover days of a part year.
     yearDayCount: param(365, "convention", CONVENTION),
     endDateInclusive: param(true, "convention", CONVENTION),
+    // 29 February joiners: anniversary on 28 February in non-leap years.
+    leapDayAnniversary: param("clamp-to-last-day-of-month", "convention",
+      CONVENTION),
     roundingMode: param("HALF_UP", "convention", CONVENTION),
     // No fetched source covers GCC nationals; no default.
     gccNationalGratuity: { value: null, status: "unsourced", source: null },

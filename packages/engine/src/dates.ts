@@ -100,8 +100,19 @@ export function daysBetween(from: string, to: string): number {
   return toDayNumber(to) - toDayNumber(from);
 }
 
-/** 29 February in a non-leap year becomes 28 February. */
-export function anniversary(joining: string, years: number): string {
+/**
+ * How an anniversary is placed when its day does not exist in the target
+ * year (29 February in a non-leap year). Only one rule is supported; it
+ * is an engine convention carried by the rule pack, not law.
+ */
+export type LeapDayRule = "clamp-to-last-day-of-month";
+
+/** Day d of month m in year y, clamped to the month's last day. */
+export function anniversary(
+  joining: string,
+  years: number,
+  rule: LeapDayRule,
+): string {
   if (!Number.isSafeInteger(years) || years < 0) {
     throw new EngineError("INVALID_YEARS", "years must be a whole number", {
       value: String(years),
@@ -109,6 +120,11 @@ export function anniversary(joining: string, years: number): string {
   }
   const { y, m, d } = parseIsoDate(joining);
   const year = y + years;
-  const day = m === 2 && d === 29 && !isLeapYear(year) ? 28 : d;
+  if (rule !== "clamp-to-last-day-of-month") {
+    throw new EngineError("INVALID_PARAM", "unsupported leap-day rule", {
+      key: "leapDayAnniversary", value: String(rule),
+    });
+  }
+  const day = Math.min(d, daysInMonth(year, m));
   return formatIsoDate({ y: year, m, d: day });
 }

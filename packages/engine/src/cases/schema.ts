@@ -15,7 +15,7 @@ export const CaseFileSchema = z.object({
   }),
   expectedFils: z.string().regex(DIGITS),
   sourceId: z.string().min(1),
-  status: z.enum(["official", "secondary"]),
+  status: z.enum(["official", "secondary", "convention"]),
 });
 
 export type CaseFile = z.infer<typeof CaseFileSchema>;

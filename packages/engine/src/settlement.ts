@@ -45,7 +45,7 @@ export function calculateSettlement(
   const g = calculateGratuity(input.gratuity, packs, overrides);
   const pack = selectPack(packs, input.gratuity.lastWorkingDate);
   const base = fixedParam(pack, "leavePayBase", overrides, "basic");
-  const divisor = intParam(pack, "dailyWageDivisor", overrides, 1);
+  const divisor = intParam(pack, "leavePayDivisor", overrides, 1);
   const mode = roundingParam(pack, overrides);
   const basic = input.gratuity.lastBasicMonthly;
   const days = BigInt(input.unusedLeaveDays);
@@ -55,10 +55,10 @@ export function calculateSettlement(
   g.trace.forEach((l) => t.add(l));
   t.add({
     id: "leave.pay", label: "Unused leave pay",
-    formula: "lastBasicMonthly / dailyWageDivisor * unusedLeaveDays, " +
+    formula: "lastBasicMonthly / leavePayDivisor * unusedLeaveDays, " +
       "rounded once",
     inputs: { lastBasicMonthly: String(basic),
-      dailyWageDivisor: String(divisor.v),
+      leavePayDivisor: String(divisor.v),
       unusedLeaveDays: String(days), leavePayBase: base.v,
       roundingMode: mode.v },
     result: String(leavePay),

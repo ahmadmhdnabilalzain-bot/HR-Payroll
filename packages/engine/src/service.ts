@@ -3,6 +3,7 @@ import {
   anniversary,
   daysBetween,
   parseIsoDate,
+  type LeapDayRule,
   toDayNumber,
 } from "./dates";
 import { EngineError } from "./errors";
@@ -23,6 +24,7 @@ export interface ServiceLength {
 export interface ServiceRules {
   endDateInclusive: boolean;
   unpaidDaysExcluded: boolean;
+  leapDayAnniversary: LeapDayRule;
 }
 
 export function assertDateRange(joining: string, last: string): void {
@@ -50,12 +52,16 @@ export function assertUnpaidDays(unpaid: number, totalDays: number): void {
 }
 
 /** Most whole anniversaries of joining that are not after end. */
-function completedYearsTo(joining: string, end: string): number {
+function completedYearsTo(
+  joining: string,
+  end: string,
+  rule: LeapDayRule,
+): number {
   const endDay = toDayNumber(end);
   let years = parseIsoDate(end).y - parseIsoDate(joining).y;
-  while (years > 0 && toDayNumber(anniversary(joining, years)) > endDay) {
-    years -= 1;
-  }
+  const after = (n: number) =>
+    toDayNumber(anniversary(joining, n, rule)) > endDay;
+  while (years > 0 && after(years)) years -= 1;
   return years;
 }
 
@@ -71,8 +77,9 @@ export function measureService(
   assertUnpaidDays(unpaidDays, totalDays);
   const excluded = rules.unpaidDaysExcluded ? unpaidDays : 0;
   const exclusiveEnd = addDays(rawEnd, -excluded);
-  const completedYears = completedYearsTo(joining, exclusiveEnd);
-  const lastAnniversary = anniversary(joining, completedYears);
+  const rule = rules.leapDayAnniversary;
+  const completedYears = completedYearsTo(joining, exclusiveEnd, rule);
+  const lastAnniversary = anniversary(joining, completedYears, rule);
   return {
     totalDays,
     exclusiveEnd,

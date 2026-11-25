@@ -86,13 +86,14 @@ function traceService(
   t.add({
     id: "service.years", label: "Completed years of service",
     formula: "whole anniversaries of joiningDate not after exclusiveEnd; " +
-      "a 29 February anniversary falls on 28 February in a non-leap " +
-      "year (engine convention)",
+      "an anniversary day missing from its month (29 February) is " +
+      "placed by leapDayAnniversary",
     inputs: { joiningDate: input.joiningDate, exclusiveEnd: s.exclusiveEnd,
       lastAnniversary: s.lastAnniversary,
       leftoverDays: String(s.leftoverDays) },
     result: `${s.completedYears} years and ${s.leftoverDays} days`,
-    rules: [p.minServiceYears.rule],
+    rules: [p.minServiceYears.rule, p.leapDayAnniversary.rule,
+      p.endDateInclusive.rule],
   });
 }
 
@@ -143,7 +144,8 @@ export function calculateGratuity(
   const p = loadGratuityParams(pack, overrides);
   const s = measureService(input.joiningDate, input.lastWorkingDate,
     input.unpaidLeaveDays, { endDateInclusive: p.endDateInclusive.v,
-      unpaidDaysExcluded: p.unpaidDaysExcluded.v });
+      unpaidDaysExcluded: p.unpaidDaysExcluded.v,
+      leapDayAnniversary: p.leapDayAnniversary.v });
   const t = new TraceBuilder();
   traceService(t, input, s, p);
   const value = input.workerClass === "uae-national"
