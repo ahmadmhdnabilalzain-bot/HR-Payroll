@@ -48,6 +48,7 @@ them apart is deliberate.
 | 2026-11-25 | "The code built in an organized way, no long lines, it should be always easy to debug, and always the repo should be updated with a ready handover." (`docs/engineering-standards.md`, `HANDOVER.md`) |
 | 2026-11-25 | "All my decisions and instructions and future plan goes to the ledger." |
 | 2026-11-25 | "Let more agents work in parallel if possible." Run independent work in parallel; builders that edit the same repository still run one at a time, with reviews and research alongside. |
+| 2026-11-25 | "Don't ask me technical stuff. Do what I write." Claude decides technical questions, records each as a ruling, and does not stop to ask. |
 | 2026-11-25 | Use Firecrawl by default for external data and research tasks when suitable. (Not saved to memory: no memory tool in this session.) |
 | 2026-11-25 | "We are doing HR and payroll. Not a full ERP." Scope fence recorded in the advisor's proof. |
 
@@ -63,6 +64,8 @@ them apart is deliberate.
 | 2026-11-25 | Advisor's uniqueness candidates: the six are now accepted by the owner (see section 1); they remain bets until each is demoed. | Owner asked what could make us unique. |
 | 2026-11-25 | "Full integration" for the four platforms is read as: connect the account, pull insights, and publish or schedule where the platform API allows. Direct integrations, not an aggregator, unless an app review blocks one. The owner can narrow this. | Follows the owner's instruction. |
 | 2026-11-25 | Remote-work tracking design: active time while clocked in, app and site categories (no page contents), location once an hour while clocked in, the employee sees their own data and can pause, notice before tracking starts, a retention limit, and a lawyer to confirm the consent wording. Location comes from the phone app by default (browser permission as fallback), with a visible indicator. | Research in `docs/research/2026-11-25-remote-work-tracking-feasibility.md`. |
+| 2026-11-25 | Plan 2 scope: the SIF file format only. Pay amounts, creation date and time are inputs (no monthly pay run exists, the core has no clock). Resolution 340 dates and penalties stay out. The generator never claims "WPS compliant": it says the layout matches two bank guides and is unconfirmed by MOHRE. | Sources: `docs/research/2026-11-25-wps-sif-layout.md`. |
+| 2026-11-25 | Plan execution stays subagent-driven with per-task review; no pause for plan review. | Owner: no technical questions. |
 | 2026-11-25 | Superseded: the HR-and-payroll-only fence and the F17 expense cut are reversed. New order: core first, HR-adjacent next, finance modules last. | Cards and payments need licensed partners, so they come last and depend on partnerships. |
 | 2026-11-25 | Correction: Zoho People includes leave management from its second plan and attendance from its third, at low per-user prices. The earlier "Zoho gates leave and attendance" differentiator is withdrawn. | Read from Zoho's own pricing page. |
 
@@ -86,11 +89,13 @@ Each item gets its own plan under `docs/superpowers/plans/`.
 
 - Owner has not yet reviewed the advisor's proof
   (`docs/superpowers/specs/2026-11-25-advisor-proof.md`); no code until then.
-- Primary text of Ministerial Resolution 340 of 2026 not read (MOHRE page
-  failed through the proxy).
+- Primary text of Ministerial Resolution 340 of 2026 not read (only
+  summaries: `docs/research/2026-11-25-wps-resolution-340.md`).
+- Research notes added: labour law, GPSSA and Emiratisation, UAE spend and AP
+  specialists (all snippet-level, in `docs/research/`).
 - Unsourced statutory values: overtime premiums, leave pay beyond sick
   leave, GPSSA rates, deduction caps, proration divisor.
-- SIF layout not verified against a bank document.
+- SIF layout: sourced from two bank guides (DIB, Emirates Islamic); the central bank's own spec is still unread. See `docs/research/2026-11-25-wps-sif-layout.md`.
 - Bayzat and ZenHR pricing: quote-only or not published.
 
 ## 6. Rulings made during the Plan 1 build (Claude's calls)

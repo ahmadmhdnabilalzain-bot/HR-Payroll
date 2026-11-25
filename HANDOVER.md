@@ -68,8 +68,9 @@ engine refuses to run without an explicit value.
   the one-day-early pro-rata in a 366-day anniversary span needs counsel.
 - Arabic wording is marked `NEEDS NATIVE REVIEW`; plural forms are fixed.
   Nothing shows Arabic text to employees until a native speaker reviews it.
-- The primary text of Ministerial Resolution 340 of 2026 (WPS) and the SIF
-  file layout are not yet sourced.
+- The primary text of Ministerial Resolution 340 of 2026 (WPS) is unread.
+  The SIF layout is sourced from two bank guides
+  (`docs/research/2026-11-25-wps-sif-layout.md`), not the central bank spec.
 - Deferred minors and the reviewer rulings are in `LEDGER.md` (section 3).
 
 ## Where things are
@@ -91,10 +92,10 @@ needs checking against official sources before anything is built on it.
 
 ## Next step
 
-Plan 2: the WPS (SIF) file generator and validator. First read the official
-WPS resolution and gather two or more bank guides to the SIF layout that
-agree. Then write the plan from the master feature list, build it
-test-first, and keep this handover current.
+Plan 2: the WPS (SIF) file generator and validator, format only (see
+`LEDGER.md` section 3 for scope). Layout is sourced; write the plan, build
+it test-first with per-task review, keep this handover current. The owner
+wants no technical questions: decide, record a ruling, continue.
 
 ## Tooling (25 Nov 2026)
 
