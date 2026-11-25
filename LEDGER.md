@@ -67,8 +67,7 @@ Each item gets its own plan under `docs/superpowers/plans/`.
 5. Later: M2 and M3 items; then adjacent modules (expenses, tasks,
    intranet and chat), then finance modules (accounts payable, spend,
    cards, project billing) which need licensed partners.
-6. A master feature list (parity, adjacent modules, unique items) is the
-   gate to Plan 1; the owner is shaping it with more ideas.
+6. The master feature list (`docs/superpowers/specs/2026-11-25-master-feature-list.md`, 31 unique items) is the gate to Plan 1; awaiting the owner's approval.
 
 ## 5. Open items
 

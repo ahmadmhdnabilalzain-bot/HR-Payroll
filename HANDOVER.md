@@ -22,6 +22,7 @@ source-cited, with an open API and Arabic from the start.
 | Combined competitor feature list (union, with plan status) | `docs/superpowers/specs/2026-11-25-combined-feature-list.md` |
 | What could make us unique (proposals, rival-correctness leads) | `docs/superpowers/specs/2026-11-25-unique-candidates.md` |
 | Raw idea pool for uniqueness (round 2, merging into a master list) | `docs/superpowers/specs/2026-11-25-idea-pool.md` |
+| **Master feature list (31 unique items + parity): the gate to Plan 1** | `docs/superpowers/specs/2026-11-25-master-feature-list.md` |
 | Code and debugging standards | `docs/engineering-standards.md` |
 | Implementation plans | `docs/superpowers/plans/` |
 
@@ -31,7 +32,8 @@ source-cited, with an open API and Arabic from the start.
   block at the top of the design doc).
 - Advisor's proof written (`docs/superpowers/specs/2026-11-25-advisor-proof.md`);
   **waiting for the owner to review it.**
-- Code: **none yet.** The owner set this gate.
+- Code: **none yet.** The owner set this gate. The master feature list is the
+  current approval gate to Plan 1.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Next step
