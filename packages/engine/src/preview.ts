@@ -31,7 +31,10 @@ function copyPack(pack: RulePack): RulePack {
 }
 
 /** Deep copy of the packs with exactly one parameter replaced. */
-function applyChange(packs: RulePack[], change: RuleChange): RulePack[] {
+function applyChange(
+  packs: readonly RulePack[],
+  change: RuleChange,
+): RulePack[] {
   if (!packs.some((p) => p.id === change.packId)) {
     throw new EngineError("MISSING_PACK",
       `No rule pack with id ${change.packId}`, { packId: change.packId });
@@ -47,7 +50,7 @@ function applyChange(packs: RulePack[], change: RuleChange): RulePack[] {
     copy.params[change.key] = {
       value: change.newValue,
       status: "hypothetical",
-      source: sourceOf("HYPOTHETICAL"),
+      source: { ...sourceOf("HYPOTHETICAL") },
     };
     return copy;
   });
@@ -55,7 +58,7 @@ function applyChange(packs: RulePack[], change: RuleChange): RulePack[] {
 
 export function previewRuleChange(
   input: SettlementInput,
-  packs: RulePack[],
+  packs: readonly RulePack[],
   change: RuleChange,
 ): RulePreview {
   const changed = applyChange(packs, change);

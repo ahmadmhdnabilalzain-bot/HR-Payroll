@@ -30,7 +30,7 @@ function input(
 function run(
   i: GratuityInput,
   overrides?: Record<string, ParamValue>,
-  packs: RulePack[] = GRATUITY_PACKS,
+  packs: readonly RulePack[] = GRATUITY_PACKS,
 ) {
   return overrides === undefined
     ? calculateGratuity(i, packs)

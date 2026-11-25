@@ -1,3 +1,4 @@
+import { deepFreeze } from "../freeze";
 import { sourceOf } from "../sources";
 import type { ParamValue, RuleParam, RulePack, RuleStatus } from "./types";
 
@@ -44,4 +45,6 @@ const AE_GRATUITY_2022: RulePack = {
   },
 };
 
-export const GRATUITY_PACKS: RulePack[] = [AE_GRATUITY_2022];
+/** Frozen, with every param and source: preview works on copies. */
+export const GRATUITY_PACKS: readonly RulePack[] =
+  deepFreeze([AE_GRATUITY_2022]);

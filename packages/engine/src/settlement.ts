@@ -38,7 +38,7 @@ function assertLeaveDays(days: number): void {
 
 export function calculateSettlement(
   input: SettlementInput,
-  packs: RulePack[],
+  packs: readonly RulePack[],
   overrides?: Record<string, ParamValue>,
 ): Traced<SettlementResult> {
   assertLeaveDays(input.unusedLeaveDays);

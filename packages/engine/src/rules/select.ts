@@ -26,7 +26,10 @@ function covers(pack: RulePack, onDate: string): boolean {
   return started && open;
 }
 
-export function selectPack(packs: RulePack[], onDate: string): RulePack {
+export function selectPack(
+  packs: readonly RulePack[],
+  onDate: string,
+): RulePack {
   assertIsoDate(onDate, "onDate");
   const hits = packs.filter((p) => covers(p, onDate));
   const [first, second] = hits;
@@ -74,7 +77,7 @@ export function requireParam(
     key,
     value,
     status: param.status,
-    source: param.source,
+    source: param.source === null ? null : { ...param.source },
     packId: pack.id,
     packVersion: pack.version,
     overridden: hasOverride,

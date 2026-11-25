@@ -49,8 +49,8 @@ describe("previewRuleChange", () => {
     expect(pack.params.tier1DaysPerYear).toBe(param);
     expect(param.value).toBe(21);
     expect(param.status).toBe("official");
-    expect(Object.isFrozen(pack)).toBe(false);
-    expect(Object.isFrozen(param)).toBe(false);
+    expect(Object.isFrozen(pack)).toBe(true);
+    expect(Object.isFrozen(param)).toBe(true);
   });
   it("rejects an unknown pack id", () => {
     expect(() => previewRuleChange(input, GRATUITY_PACKS,

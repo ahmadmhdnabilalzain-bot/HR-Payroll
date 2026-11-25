@@ -1,4 +1,5 @@
 import { EngineError } from "./errors";
+import { deepFreeze } from "./freeze";
 import type { RuleSource } from "./rules/types";
 
 const LAW_URL = "https://uaelegislation.gov.ae/en/legislations/1541";
@@ -6,7 +7,8 @@ const LAW_URL = "https://uaelegislation.gov.ae/en/legislations/1541";
 const UAE_GOV_BASE = "https://u.ae/en/information-and-services/jobs/" +
   "Sector-of-employment/employment-in-the-private-sector/";
 
-export const SOURCES: Record<string, RuleSource> = {
+/** Frozen: callers cannot change a source that every pack shares. */
+export const SOURCES: Record<string, RuleSource> = deepFreeze({
   LAW_33_2021: {
     url: LAW_URL,
     note: "Federal Decree-Law 33 of 2021, Articles 29 and 51",
@@ -37,7 +39,7 @@ export const SOURCES: Record<string, RuleSource> = {
     url: "",
     note: "hypothetical change, not law",
   },
-};
+});
 
 export function sourceOf(id: string): RuleSource {
   const source = Object.hasOwn(SOURCES, id) ? SOURCES[id] : undefined;

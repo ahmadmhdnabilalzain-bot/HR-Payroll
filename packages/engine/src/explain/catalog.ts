@@ -1,7 +1,9 @@
+import { deepFreeze } from "../freeze";
+
 export type Lang = "en" | "ar";
 
 /** Trace line ids whose result is raw fils and must be shown as AED. */
-export const MONEY_IDS: ReadonlySet<string> = new Set([
+export const MONEY_IDS: readonly string[] = deepFreeze([
   "gratuity.cap", "gratuity.total", "leave.pay", "settlement.total",
 ]);
 
@@ -31,31 +33,37 @@ const AR: Record<string, string> = {
   "settlement.total": "إجمالي التسوية النهائية: {result} ({rules}).",
 };
 
-export const MESSAGES: Record<Lang, Record<string, string>> = {
+/** Frozen: a caller cannot rewrite later explanations. */
+export const MESSAGES: Record<Lang, Record<string, string>> = deepFreeze({
   en: EN,
   ar: AR,
-};
+});
 
 /** Words for rule statuses, and the text used when no rule applies. */
-export const STATUS_WORDS: Record<Lang, Record<string, string>> = {
-  en: { official: "official", secondary: "secondary",
-    convention: "convention", hypothetical: "hypothetical",
-    unsourced: "unsourced", none: "no rules" },
-  ar: { official: "رسمي", secondary: "ثانوي", convention: "عرف",
-    hypothetical: "افتراضي", unsourced: "بلا مصدر",
-    none: "بلا قواعد" },
+const STATUS_EN: Record<string, string> = {
+  official: "official", secondary: "secondary", convention: "convention",
+  hypothetical: "hypothetical", unsourced: "unsourced", none: "no rules",
 };
+
+const STATUS_AR: Record<string, string> = {
+  official: "رسمي", secondary: "ثانوي", convention: "عرف",
+  hypothetical: "افتراضي", unsourced: "بلا مصدر", none: "بلا قواعد",
+};
+
+export const STATUS_WORDS: Record<Lang, Record<string, string>> =
+  deepFreeze({ en: STATUS_EN, ar: STATUS_AR });
 
 // NEEDS NATIVE REVIEW: Arabic wording of the engine's service length text.
-export const YEARS_TEXT: Record<Lang, string> = {
+export const YEARS_TEXT: Record<Lang, string> = deepFreeze({
   en: "{y} years and {d} days",
   ar: "{y} سنوات و{d} أيام",
-};
+});
 
 /** Left-to-right isolate marks keep amounts intact inside Arabic text. */
-export const LTR_ISOLATE: Record<Lang, [string, string]> = {
-  en: ["", ""],
-  ar: ["\u2066", "\u2069"],
-};
+export const LTR_ISOLATE: Record<Lang, readonly [string, string]> =
+  deepFreeze({
+    en: ["", ""],
+    ar: ["\u2066", "\u2069"],
+  });
 
 export const UNTRANSLATED = "[untranslated]";

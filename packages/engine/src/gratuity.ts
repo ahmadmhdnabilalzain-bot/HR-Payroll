@@ -132,7 +132,7 @@ function expatResult(
 
 export function calculateGratuity(
   input: GratuityInput,
-  packs: RulePack[],
+  packs: readonly RulePack[],
   overrides?: Record<string, ParamValue>,
 ): Traced<GratuityResult> {
   validateInput(input);

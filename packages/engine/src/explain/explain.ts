@@ -20,7 +20,7 @@ function statusList(line: TraceLine, lang: Lang): string {
 const YEARS_PATTERN = /^(\d+) years and (\d+) days$/;
 
 function resultText(line: TraceLine, lang: Lang): string {
-  if (MONEY_IDS.has(line.id) && /^-?\d+$/.test(line.result)) {
+  if (MONEY_IDS.includes(line.id) && /^-?\d+$/.test(line.result)) {
     const [open, close] = LTR_ISOLATE[lang];
     return open + formatAed(fils(BigInt(line.result))) + close;
   }
