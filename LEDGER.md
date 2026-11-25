@@ -95,11 +95,18 @@ Each item gets its own plan under `docs/superpowers/plans/`.
 
 The owner can overrule any of these. Source: the build ledger.
 
-- ## Rulings
-- - Ruling 1: the line-length CLI skips `node_modules`, `dist`, `.superpowers`
-- - Ruling 2: `module: ESNext`, `moduleResolution: Bundler`, relative imports
-- - Ruling 3: `calculateGratuity` always emits `service.days` and
-- - Ruling 4: the root `demo` script is added in Task 10, not Task 1.
+- Ruling 1 (pre-flight): the line-length check skips `node_modules`, `dist`,
+  `.superpowers` and lockfiles, because the 80-character rule is for our own
+  files. Costs nothing if wrong.
+- Ruling 2 (pre-flight): `module: ESNext`, `moduleResolution: Bundler` and
+  relative imports without file extensions, to keep the code short. Costs one
+  config change if the runtime disagrees.
+- Ruling 3 (pre-flight): the gratuity calculation always emits the
+  `service.days` and `service.years` trace lines and the `gratuity.*` lines
+  only when the worker is eligible, so the explanation catalog covers every
+  id that can appear. Costs a small catalog change if wrong.
+- Ruling 4 (pre-flight): the root `demo` script was added in Task 10, not
+  Task 1, because `cli.ts` did not exist before. Costs nothing.
 - Task 5: Ruling: the gratuity pack applies to lastWorkingDate on or after 2022-02-02 (Decree-Law 33 of 2021 in force); earlier leavers fall under the old law, which is not modelled, so NO_PACK_FOR_DATE is the correct refusal — the brief's 1990 to 2019 cap case was a plan defect; the cap test runs inside the pack range (1994-01-01 to 2023-12-31) — if wrong, add an old-law pack later. Open question for counsel: service accrued before 2 Feb 2022 for people leaving after it.
 - Task 5: Ruling: gcc-national with an override still throws UNSUPPORTED_WORKER_CLASS (safer than quietly using the expat formula); a badly typed override throws INVALID_PARAM (closes the Task 3 minor); select.ts now shares date checks from dates.ts — review must cover the select.ts change.
 - Task 10: Ruling: src/sample-schema.ts (a second zod file) is accepted as part of the I/O shell, because the controller allowed it in the dispatch; the plan's "zod only in cases/schema.ts" is read as "zod only in shell files" — costs one file move if the owner wants it strict.
