@@ -89,6 +89,30 @@ describe("field rules", () => {
     const r = codeOf(() => scrLine({ ...scr, reference: "شركة" }, L));
     expect(r).toEqual({ code: "FIELD_NOT_ASCII", value: "شركة" });
   });
+  it("rejects control characters such as newlines", () => {
+    for (const bad of ["a\nb", "a\r\nEDR", "a\tb", "a\x00b"]) {
+      expect(
+        codeOf(() => scrLine({ ...scr, reference: bad }, L)),
+      ).toEqual({ code: "FIELD_NOT_ASCII", value: bad });
+    }
+  });
+  it("checks comma, then ASCII, then length", () => {
+    const both = "شركة,x";
+    const ref = (r: string) =>
+      codeOf(() => scrLine({ ...scr, reference: r }, L));
+    expect(ref(both).code).toBe("FIELD_HAS_COMMA");
+    expect(ref("ش".repeat(40)).code).toBe("FIELD_NOT_ASCII");
+  });
+  it("rejects counts that are not whole numbers >= 0", () => {
+    for (const n of [-1, 1.5, NaN]) {
+      const want = { code: "INVALID_COUNT", value: String(n) };
+      expect(codeOf(() => edrLine({ ...edr, days: n }, L))).toEqual(want);
+      expect(
+        codeOf(() => edrLine({ ...edr, unpaidLeaveDays: n }, L)),
+      ).toEqual(want);
+      expect(codeOf(() => scrLine({ ...scr, edrCount: n }, L))).toEqual(want);
+    }
+  });
   it("rejects a reference over 35 characters", () => {
     const long = "x".repeat(36);
     const r = codeOf(() => scrLine({ ...scr, reference: long }, L));

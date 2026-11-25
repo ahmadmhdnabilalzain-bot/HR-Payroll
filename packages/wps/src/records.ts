@@ -1,5 +1,5 @@
 import { EngineError, type Fils } from "@payroll/engine";
-import { formatAmount, isAscii, padId } from "./format";
+import { formatAmount, padId } from "./format";
 import type { SifLayout } from "./layout";
 
 export interface EdrInput {
@@ -40,15 +40,19 @@ export interface ScrInput {
 const REFERENCE_MAX = 35;
 
 /** Every value written to a line passes through here. */
-function field(value: string, max: number): string {
+function field(value: string, max?: number): string {
   const detail = { value };
   if (value.includes(",")) {
     throw new EngineError("FIELD_HAS_COMMA", "Field contains a comma", detail);
   }
-  if (!isAscii(value)) {
-    throw new EngineError("FIELD_NOT_ASCII", "Field is not ASCII", detail);
+  if (/[^\x20-\x7e]/.test(value)) {
+    throw new EngineError(
+      "FIELD_NOT_ASCII",
+      "Field is not printable ASCII",
+      detail,
+    );
   }
-  if (value.length > max) {
+  if (max !== undefined && value.length > max) {
     throw new EngineError("FIELD_TOO_LONG", "Field is too long", {
       value,
       max: String(max),
@@ -57,9 +61,16 @@ function field(value: string, max: number): string {
   return value;
 }
 
-const text = (v: string): string => field(v, Number.MAX_SAFE_INTEGER);
+const text = (v: string): string => field(v);
 const amount = (f: Fils): string => text(formatAmount(f));
-const count = (n: number): string => text(String(n));
+function count(n: number): string {
+  if (!Number.isInteger(n) || n < 0) {
+    throw new EngineError("INVALID_COUNT", "Count must be a whole number", {
+      value: String(n),
+    });
+  }
+  return String(n);
+}
 
 function id(value: string, len: number): string {
   if (!/^[0-9]+$/.test(value)) {

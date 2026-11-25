@@ -1,4 +1,4 @@
-import { EngineError, fils } from "@payroll/engine";
+import { fils } from "@payroll/engine";
 import { describe, expect, it } from "vitest";
 import {
   formatAmount,
@@ -9,7 +9,11 @@ import {
 } from "../src/format";
 import { defaultLayout } from "../src/layout";
 
-const code = (c: string) => expect.objectContaining({ code: c });
+const withValue = (c: string, v: string) =>
+  expect.objectContaining({
+    code: c,
+    detail: expect.objectContaining({ value: v }),
+  });
 
 describe("formatAmount", () => {
   it("prints plain decimals with two places", () => {
@@ -20,13 +24,8 @@ describe("formatAmount", () => {
   });
   it("rejects negative amounts", () => {
     expect(() => formatAmount(fils(-1n))).toThrowError(
-      code("NEGATIVE_AMOUNT"),
+      withValue("NEGATIVE_AMOUNT", "-1"),
     );
-    try {
-      formatAmount(fils(-1n));
-    } catch (e) {
-      expect((e as EngineError).detail.value).toBe("-1");
-    }
   });
 });
 
@@ -37,13 +36,8 @@ describe("padId", () => {
   });
   it("rejects ids that are too long", () => {
     expect(() => padId("123456789012345", 14)).toThrowError(
-      code("ID_TOO_LONG"),
+      withValue("ID_TOO_LONG", "123456789012345"),
     );
-    try {
-      padId("123456789012345", 14);
-    } catch (e) {
-      expect((e as EngineError).detail.value).toBe("123456789012345");
-    }
   });
 });
 
