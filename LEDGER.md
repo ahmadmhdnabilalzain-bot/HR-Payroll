@@ -21,6 +21,7 @@ them apart is deliberate.
 | 2026-11-25 | Before building: "I need the advisor to prove to me the list of features he will build, why they will make us superior technically, and how we will dominate the market." |
 | 2026-11-25 | "We are doing HR and payroll. Not a full ERP." (also recorded in section 2) |
 | 2026-11-25 | "What about Keka": Keka is added to the competitor set. |
+| 2026-11-25 | Asked for the combined list of all competitors' features (`docs/superpowers/specs/2026-11-25-combined-feature-list.md`). |
 
 ## 2. Standing instructions (the owner's words)
 

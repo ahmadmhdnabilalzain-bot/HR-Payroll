@@ -17,6 +17,7 @@ source-cited, with an open API and Arabic from the start.
 | Market research and competitor facts | `docs/research/2026-11-25-competitor-analysis.md` |
 | Approved design | `docs/superpowers/specs/2026-11-25-uae-sme-hr-payroll-design.md` |
 | Advisor's proof of features, superiority, market plan | `docs/superpowers/specs/2026-11-25-advisor-proof.md` |
+| Combined competitor feature list (union, with plan status) | `docs/superpowers/specs/2026-11-25-combined-feature-list.md` |
 | Code and debugging standards | `docs/engineering-standards.md` |
 | Implementation plans | `docs/superpowers/plans/` |
 
