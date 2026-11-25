@@ -1,70 +1,110 @@
-# HR & Payroll: Top-10 Competitor Analysis (Nov 2026)
+# UAE HR & Payroll: Competitor Analysis and Market Gaps (Nov 2026)
 
-**Status:** research only. No product decisions made. No code written.
-**Method:** five parallel researchers, one fixed grid per vendor. Evidence is mostly search snippets of vendor pages, G2, Capterra, TrustRadius and press. g2.com, gusto.com and rippling.com could not be fetched directly; Reddit and Gartner Peer Insights were largely not reached. Everything not confirmed is marked **UNVERIFIED**. Vendor blogs and competitor-written comparisons are treated as marketing.
+**Status:** research only. No product decisions made, no code written.
 
-## 1. How the ten were chosen
+**Scope:** the launch market is the UAE. The ten competitors are the ones the founder named: Yomly, HONO, Bayzat, GulfHR, ZenHR, NeuralHR.AI, StackHX, Zoho Payroll + Zoho People, Darwinbox, SAP SuccessFactors. A global benchmark (section 7) shows what the best international products do.
 
-Rule: market presence plus review volume, spread across four segments so the gaps are visible from every angle.
+**Evidence quality (read this first).** Researchers worked from search snippets. g2.com, vendor sites (gusto, rippling, zenhr, gulfhr, neuralhr, hono, bayzat, yomly, remote, zoho) and capterra.com could not be fetched from this environment. Reddit and Gartner Peer Insights were largely unreachable. Anything not confirmed is marked **UNVERIFIED**. Vendor blogs and competitor-written comparisons are treated as marketing. Statements about UAE law come from law-firm and press summaries and need confirmation from primary texts and UAE counsel before anything is built on them.
 
-| Segment | Picked |
+## 1. The finding that tests the premise
+
+The gaps competitors leave open are mostly **operational and trust gaps**, not raw-technology gaps: opaque pricing, slow or absent support, no accountability for payroll errors, slow implementation, and almost no public proof of UAE-specific depth. Technology helps indirectly: self-serve setup, validation that prevents errors before they reach WPS, an auditable payroll engine, and a documented API. "Beats them technically, easily" is therefore not the right frame. The realistic goal is to be **more trustworthy and more transparent** than the incumbents, and use engineering to make that cheap to deliver.
+
+Also, no vendor in the UAE set publishes verifiable evidence of Emiratisation tracking, MOHRE/visa lifecycle handling, or DIFC/ADGM support. That means either the claims are thin or the research could not see them. **A demo or trial of each competitor is needed before anyone treats that as a confirmed gap.**
+
+## 2. The UAE ten at a glance
+
+| Vendor | Who it targets | UAE payroll compliance (as claimed) | Published pricing | Review base | Headline complaints |
+|---|---|---|---|---|---|
+| **Bayzat** | UAE SME to mid-market; bundles insurance | WPS SIF, EOSB (affiliate blogs); Emiratisation depth UNVERIFIED | Quote-only; third-party guesses AED 15-300 (UNVERIFIED) | G2 4.6 (14), Trustpilot 2.5 (8), App Store 4.6 (33) | Slow support (5h chat replies), insurance claim friction |
+| **Zoho Payroll + People** | SMB to mid-market, global suite | Native UAE edition: WPS SIF, gratuity, pensions (vendor pages); no Emiratisation or MOHRE module found | AED 45-90/org/month incl. 5 staff, +7-18/extra employee (snippets, verify live) | People G2 4.4 (~400); Payroll G2 4.4 (19), Capterra 3.7 (10) | Limited customization, cluttered UI, weak mobile; Payroll: slow support, no batch runs |
+| **ZenHR** | SMB to mid; Arabic-first; Saudi-centric HQ | MOHRE/WPS claimed; gratuity per third parties | "From $5" on Capterra (basis unstated) | G2 4.6 (~55) | Payroll errors and bugs, weak custom reports, weak integrations/mobile |
+| **StackHX** | SMB to large, UAE/MENA | WPS, gratuity, leave claimed (marketing) | One-time cost; "from $1500" (Capterra) | Capterra 0, SoftwareFinder 1 | No user evidence; editorial cons: limited customization |
+| **GulfHR** | Likely mid-market | WPS, EOSB claimed; improved WPS accuracy per 1 reviewer | Placeholder listings only | GetApp 4.4 (7), Software Advice 4.4 (8) | Thin evidence; opaque pricing |
+| **NeuralHR.AI** | 5-50 employee teams (vendor claim) | WPS SIF with anomaly check (vendor) | $10/user/mo, or $22.99 with AI agents (vendor-stated) | None found | No independent proof; AI mostly marketing |
+| **Yomly** | Enterprise, 250+ staff (vendor) | WPS, EOSB claimed; KSA depth to be checked | Quote-only | None found | No review corpus; "complex and costly for small firms" (one aggregator) |
+| **HONO** | Mid to large enterprise; India-centric | WPS in MOHRE format, gratuity, Emiratisation tracking (vendor) | Quote-only; one listing $10/user/mo (UNVERIFIED) | Gartner 4.4 (84), mostly India | App reliability, limited analytics (one Gartner review) |
+| **Darwinbox** | Enterprise (3,000+ typical) | Native payroll in 11 countries incl. 6 GCC (vendor-linked); Neeyamo connector for global | Quote-only; $8-15/employee/month (third-party, UNVERIFIED) | G2 4.4 (~190) | Learning curve, complex reporting, limited customization; 3-6 month rollouts (UNVERIFIED) |
+| **SAP SuccessFactors** | Enterprise, SAP-centric | EC Payroll covers 60 countries on the legacy SAP engine | Quote-only; modular | G2 3.9-4.1 (760-1,500) | Navigation, limited customization, 12-18 month rollouts (UNVERIFIED consultant benchmark) |
+
+## 3. Feature matrix (as publicly claimed; blank or "?" means not found)
+
+| Capability | Bayzat | Zoho | ZenHR | StackHX | GulfHR | NeuralHR | Yomly | HONO | Darwinbox | SAP SF |
+|---|---|---|---|---|---|---|---|---|---|---|
+| WPS SIF generation | claimed | claimed | claimed | claimed | claimed | claimed | claimed | claimed | claimed | ? |
+| Gratuity (EOSB) | claimed | claimed | 3rd-party | claimed | claimed | ? | claimed | claimed | claimed | ? |
+| Emiratisation tracking | claimed, depth ? | none found | ? | ? | ? | ? | ? | claimed | ? | ? |
+| MOHRE / visa / labor card | ? | none found | MOHRE claimed | ? | ? | claimed | ? | ? | ? | ? |
+| DIFC / ADGM | ? | ? | ? | ? | ? | ? | ? | ? | ? | ? |
+| Arabic UI | ? | ? (People) | strong | listed | ? | ? | claimed | ? | ? | ? |
+| Attendance / biometrics | face clock-in; ZKTeco etc. | yes | yes | RFID/biometric | ? | ? | ? | time & attendance | yes | yes |
+| Benefits / insurance | core strength | ? | ? | ? | ? | ? | benefits | ? | ? | ? |
+| Accounting integrations | QuickBooks, Xero, NetSuite | Zoho Books | limited | ? | ? | ? | generic | ? | ? | ? |
+| Public API | ? | likely | limited | exists, scope ? | ? | ? | claimed API-first | ? | connector | OData/SOAP |
+| AI features | face clock-in | Zia, UAE AI ? | none found | none | none | 7 "AI co-workers" (mostly unproven) | none | "Zero UI" conversational | Super Agent | Joule, payroll agents |
+| Multi-country GCC | KSA expansion | GCC page, Bahrain | 12 markets | ? | claims, gaps | KSA, India | KSA claimed | Saudi office | 6 GCC | yes |
+
+### Table stakes a new UAE product must match to be credible
+WPS-compliant SIF generation and bank/exchange-house submission support, correct gratuity under the mainland law (with free-zone variants), leave and overtime rules, an employee self-service mobile app, Arabic and English including right-to-left, attendance with biometric or geofenced check-in, accounting integrations (at least Zoho Books, QuickBooks, Xero), role-based approvals, payslips, and an audit trail.
+
+## 4. Why users like and dislike the UAE set
+
+| Theme | What it looks like |
 |---|---|
-| Enterprise suites | Workday, SAP SuccessFactors, ADP (Vantage/Lyric) |
-| Mid-market | ADP Workforce Now, UKG, Dayforce, Paylocity |
-| SMB / modern | Gusto, Rippling |
-| Global payroll / EOR | Deel, Papaya Global |
+| Liked | Ease of use, bilingual UX (ZenHR), insurance and HR in one place (Bayzat), value for money and the wider ecosystem (Zoho), breadth of suite (Darwinbox, SAP) |
+| Disliked | Support that is slow or email-only; payroll errors and bugs (ZenHR); opaque, quote-only pricing; long implementations (Darwinbox, SAP); limited customization; weak mobile and integrations |
+| Missing from public view | Verified customer reviews for most UAE-native vendors; proof of Emiratisation, MOHRE and DIFC/ADGM depth |
 
-Near misses: Oracle HCM, Paychex, Paycom, BambooHR, Remote, HiBob, Personio, Globalization Partners. A follow-up pass could swap any of these in.
+## 5. UAE regulatory and payments landscape (sources inline)
 
-## 2. Comparison grid
+These facts drive scope. **All are UNVERIFIED against primary text unless stated; confirm with the resolutions themselves and UAE counsel.**
 
-| Vendor | Core segment | Native payroll footprint | Pricing | G2 (approx.) | Headline praise | Headline complaints |
-|---|---|---|---|---|---|---|
-| ADP | Mid to enterprise; RUN for 1-49 | Claims 140+ countries; native split UNVERIFIED | Quote-only; API access is a paid add-on | WFN ~4.2 | Ease of use, tax/compliance breadth | Slow support, weak escalation, dated reporting |
-| Workday | Large enterprise | US, CA, UK, IE, FR, AU, plus 7 new markets announced 18 Nov 2026; rest via partners | Quote-only | ~4.1-4.2 | Integrations, employee transparency | Navigation, learning curve, consultant dependence, 9-15 month rollouts (UNVERIFIED) |
-| SAP SuccessFactors | Enterprise, SAP-centric | EC Payroll 60 countries on the legacy SAP engine | Quote-only, modular | ~3.9-4.1 | Localization breadth (inferred) | Navigation, limited customization, 12-18 month rollouts (UNVERIFIED) |
-| UKG | Upper-mid to enterprise | Claims 160+; native split UNVERIFIED | Quote-only | Pro 4.3, Ready 4.4 | Time and workforce management depth | Review text not captured (gap) |
-| Dayforce | Mid to enterprise; now PE-owned (Thoma Bravo, Feb 2026) | Help docs: "only a few" native (AU, CA, MX, US) | Quote-only | ~4.2 | Single-database pitch | Support, limited customization, paid integrations, long implementations |
-| Paylocity | US SMB to mid | US only | Quote-only | not captured | Helpful staff, ease of use | Support holds of 20-30+ min, hard implementation, occasional payroll errors |
-| Gusto | US SMB | US only; international via Remote referral | Published: from $49 + $6/person (snippet, UNVERIFIED) | ~4.6 (11k+ reviews) | Ease of use, simple payroll | Support unreachable, payroll/tax errors, fee creep |
-| Rippling | SMB to mid, global | Claims 185+ countries combined; native vs partner UNVERIFIED | Opaque, modular, ~$15-35 PEPM all-in (third-party, UNVERIFIED) | ~4.8 (13k reviews) | Setup, time saved, one-system breadth | AI-bot-gated support, opaque pricing, payroll errors, missing features |
-| Deel | Startup to enterprise, remote-first | Claims 150+ EOR, 100+ payroll; owned-entity count UNVERIFIED | Contractors from $49 (confirmed); EOR ~$499-599 (UNVERIFIED) | ~4.8 | Fast hiring, one platform | Payment delays (top theme), support, fees; Rippling lawsuit, reported DOJ probe, AML allegations (Deel denies) |
-| Papaya Global | Mid to enterprise multinationals | Partner/aggregator model | Not published | ~4.5 (~55 reviews) | Support and payroll experts | Invoicing errors, support waits, layoffs reported |
+- **WPS changed on 1 June 2026** under Ministerial Resolution 340 of 2026 ([EY](https://www.ey.com/en_gl/technical/tax-alerts/uae-introduces-enhanced-wage-protection-system-effective-1-june-2026), [Baker McKenzie](https://www.bakermckenzie.com/en/insight/publications/2026/06/uae-new-resolution-impacting-payroll-immediate-action-required), [Morgan Lewis](https://www.morganlewis.com/pubs/2026/05/uae-introduces-new-wage-protection-system-resolution-effective-1-june-2026), [Deloitte](https://www.deloitte.com/middle-east/en/services/tax/perspectives/uae-introduces-a-new-rule-for-wps-effective-1-june-2026.html)). Summaries conflict on due dates, grace periods and fines; an 85% on-time threshold and escalating penalties were reported. Read the resolution first.
+- **MoHRE-to-bank integration** was upgraded in Dec 2025 ([WAM](https://www.wam.ae/en/article/bn56c33-mohre-launches-new-update-for-wage-protection), [Khaleej Times](https://www.khaleejtimes.com/uae/uae-mohre-wage-protection-system-update)). Employee records must match MoHRE's database. The exact SIF layout and deadlines still need to be taken from a partner bank.
+- **Gratuity, leave, overtime, ILOE:** the headline rules (21 days per year for years 1-5, 30 after, capped at two years' wage; ILOE mandatory) come from memory and secondary sources. See [u.ae ILOE page](https://u.ae/en/information-and-services/jobs/insurance/unemployment-insurance-scheme).
+- **Emiratisation:** mainland firms with 50+ staff must raise Emirati share in skilled roles by 2 points a year to 10% by end-2026; fines were reported ([MoHRE](https://mohre.gov.ae/en/media-center/news/27/10/2025/mohre-urges-private-sector-companies-subject-to-emiratisation-policies-to-ensure-2025-targets-are)).
+- **No official public MoHRE API** for third-party HR software was found. Bank-hosted sandboxes exist (e.g. [Mashreq](https://developer.mashreq.com/apihub/sandbox/product/3230/)). Ask MoHRE/ICP about partner access.
+- **DIFC and ADGM** have separate employment and savings regimes (DEWS in DIFC). Not verified.
+- **Data protection:** federal PDPL exists; executive regulations were reportedly still pending in mid-2026; DIFC and ADGM have their own laws ([Morgan Lewis](https://www.morganlewis.com/pubs/2026/06/uae-establishes-federal-authority-for-artificial-intelligence-and-data)). A UAE-region cloud is the safest default.
+- **Open finance:** Central Bank Open Finance Regulation (Circular 3/2025) is live on ADCB, CBD and ADIB ([Pinsent Masons](https://www.pinsentmasons.com/out-law/guides/uae-open-finance)). No evidence that bulk salary payments are in scope.
+- **Licensing hypothesis (analysis, not sourced):** generating SIF files for the customer to submit through their own bank probably needs no licence, as with existing payroll software. Holding or moving salary money likely needs a Central Bank licence or a licensed bank/exchange-house/PSP partner. Confirm with UAE counsel.
 
-## 3. Where every competitor is weak
+## 6. What technology can and cannot win
 
-1. **Support and accountability.** Named as a top complaint for nearly every vendor. Payroll errors rarely come with ownership or guarantees.
-2. **Implementation.** Enterprise suites take 9-18 months and 1-2x annual license in services (consultant benchmarks, UNVERIFIED). Mid-market complaints are similar in kind.
-3. **Pricing opacity.** Eight of the ten are quote-only or modular. Add-ons, including API access, inflate bills.
-4. **Global payroll is mostly delivered by partners.** Real native depth is thin outside a few countries. Workday is only now adding seven markets.
-5. **UI and integration debt.** Legacy-shaped cores with AI layered on top. Every vendor announced AI agents in 2025-26. Most appear to explain or flag, not act (GA status often UNVERIFIED), so AI is not yet a durable moat for anyone.
-6. **Payout reliability.** Deel's top complaint is delayed payments, a payout-rail problem.
+**Can win:** a payroll engine that validates against WPS and MoHRE rules **before** submission; deterministic, re-runnable pay runs with a full audit trail; published AED pricing; setup in days; a documented REST API and webhooks; a UAE-aware AI assistant that explains gratuity and flags anomalies (a provable subset, not seven "co-workers").
 
-## 4. What technology can and cannot win
+**Cannot shortcut:** the statutory content (it changes, as WPS did in June 2026), MoHRE and bank connectivity that the government has not opened, licensing for money movement, and the time it takes to earn public reviews and trust.
 
-**Can win:** payroll-engine correctness (effective-dated rules, retro pay, deterministic re-runs, full audit trail), a single data model, an API-first design, setup in weeks not months, transparent pricing, and an AI layer that takes governed actions with approvals.
+### Build vs partner, UAE view (preliminary)
+- **Build:** HR core, payroll engine for UAE rules, SIF generator and validator, ledger and audit trail, approvals, self-service app, Arabic/RTL.
+- **Partner:** salary payment execution (banks, exchange houses), insurance (a broker or insurer), accounting connectors, biometric hardware.
+- **Check:** whether any WPS aggregator exists (none found); open-finance payment initiation for payroll (no evidence).
 
-**Cannot shortcut:** per-country tax and statutory content, agency filings and registrations, and money-movement licensing. Incumbents hold these as sunk assets.
+## 7. Global benchmark (secondary)
 
-## 5. Build vs partner (preliminary)
+These show what the best international products do. Detailed findings, with the same evidence caveats:
 
-Evidence is search-snippet level and pricing is unverified.
+- **Rippling** (G2 ~4.8, ~13k reviews): one system for HR, payroll, IT and spend; complaints are AI-gated support, opaque modular pricing and payroll errors.
+- **Gusto** (G2 ~4.6): published pricing (from $49/month + $6/person, snippet, UNVERIFIED); US-only native payroll; complaints about support and payroll accountability. Review counts varied by source (about 11k to 13k).
+- **Deel** (G2 ~4.7-4.8, UNVERIFIED rating): broad global coverage; top complaint is payment delays; legal and regulatory allegations that Deel denies.
+- **Papaya Global:** partner-network model, small review base (~55), reported layoffs.
+- **Remote:** EOR from $599 per employee per month, complaints about support delays and payment errors.
+- **ADP, Workday, Oracle, UKG, Dayforce (now private, Thoma Bravo, Feb 2026), Paylocity:** enterprise and mid-market incumbents. Common complaints are support, long implementation, quote-only pricing and dated UI. Workday added seven native payroll markets on 18 Nov 2026 ([Workday newsroom](https://newsroom.workday.com/2026-11-18-Workday-Expands-Payroll-to-Seven-New-Markets,-Making-It-Easier-for-Global-Organizations-to-Pay-Employees)).
+- **Lesson:** every vendor announced AI agents in 2025-26, and most look like explain-and-flag assistants, so AI alone is not a lasting advantage.
 
-- **Partner:** tax content, filings, deposits, licensing, money movement.
-  - US embedded payroll APIs: Check, Gusto Embedded, ADP Embedded, Sage Embedded (alive; prices quote-only). Rollfi and Salsa status UNVERIFIED.
-  - US/CA tax engines: Symmetry, Vertex.
-  - Global: Neeyamo, Deel's partner API. Others UNVERIFIED.
-  - Money movement: Column, Increase, Modern Treasury (bank-partner model). Money-transmitter exposure differs by state; needs counsel.
-  - Registration APIs: Middesk, Avalara, CorpNet.
-- **Realistic to build:** HR core, pay-run workflow, double-entry ledger, immutable audit trail, approvals, reporting, integration to a tax engine.
-- **Not realistic early:** tax-content maintenance, filings and registrations, bank or transmitter licensing, global per-country compliance.
+## 8. Candidate wedges (decision needed)
 
-## 6. Open questions before any plan
+| Option | Who | Why it fits the evidence | Main risk |
+|---|---|---|---|
+| **A. UAE SME payroll you can trust** (recommended) | Mainland SMEs, roughly 10-250 staff | Thin, unproven rivals in this band (ZenHR, StackHX, GulfHR, NeuralHR, Zoho) plus quote-only Bayzat; the June 2026 WPS change gives a concrete "never get fined" story | Crowded low end; price pressure from Zoho; compliance accuracy must be provable |
+| **B. Mid-market and enterprise, UAE + KSA** | 250-5,000 staff | Darwinbox and SAP are heavy and slow; Yomly and HONO have thin public proof | Long sales cycles; KSA (Mudad, Qiwa, GOSI) has limited APIs |
+| **C. Accountant and PRO channel** | Firms running payroll for many SMEs | Multi-client product, built-in distribution | Smaller market; channel partners need a mature product |
 
-1. **Launch market.** Which country and company size first? Payroll is jurisdiction-specific, so this decides scope, compliance work and architecture.
-2. **Who is the buyer?** The clearest wedges differ by segment (see the summary message).
-3. **Gaps to close:** Reddit and Gartner Peer Insights complaint themes, UKG and Paylocity review text, Oracle/Paychex/Paycom coverage, primary-source pricing for Rippling, Deel and the embedded providers.
+Suggested path: **A as the product, C as the go-to-market**, UAE only until WPS accuracy is proven.
 
-## 7. Source notes
-
-Key primary or near-primary sources used: Thoma Bravo's Dayforce close announcement; Workday newsroom (18 Nov 2026 payroll expansion); Dayforce help docs (native payroll list); Deel pricing page; Gusto Remote referral support article; Paylocity and UKG newsroom releases. All other figures: see the researcher notes in-session; treat as directional until re-verified.
+## 9. Open questions
+1. Company size and buyer for launch (A, B or C).
+2. Is the founder building solo, with a team, or funded? This sets the scope and the timeline.
+3. Does the product need to move salary money, or only prepare and validate payroll files? This decides licensing.
+4. Confirmation of primary legal texts and a UAE counsel review.
+5. Trials or demos of Bayzat, Zoho and ZenHR to verify UAE-specific depth.
