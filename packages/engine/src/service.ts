@@ -28,8 +28,8 @@ export interface ServiceRules {
 }
 
 export function assertDateRange(joining: string, last: string): void {
-  parseIsoDate(joining);
-  parseIsoDate(last);
+  parseIsoDate(joining, "joiningDate");
+  parseIsoDate(last, "lastWorkingDate");
   if (last < joining) {
     throw new EngineError(
       "INVALID_DATE_RANGE",

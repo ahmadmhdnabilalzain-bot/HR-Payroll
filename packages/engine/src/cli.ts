@@ -91,13 +91,25 @@ async function render(args: CliArgs): Promise<string> {
   ].join("\n");
 }
 
+const oneLine = (text: string): string => text.replace(/\s+/g, " ").trim();
+
+/** key=value; a value with spaces, quotes or "=" is JSON-quoted. */
+function pair(key: string, value: string): string {
+  const v = oneLine(value);
+  return `${key}=${/^[^\s"=]+$/.test(v) ? v : JSON.stringify(v)}`;
+}
+
+/** CODE: message key=value ..., always on one line. */
+export function formatError(e: EngineError): string {
+  const pairs = Object.entries(e.detail).map(([k, v]) => pair(k, v));
+  return [`${e.code}: ${oneLine(e.message)}`, ...pairs].join(" ");
+}
+
 export async function runCli(args: string[]): Promise<CliResult> {
   try {
     return { code: 0, out: await render(parseArgs(args)) };
   } catch (e) {
-    if (e instanceof EngineError) {
-      return { code: 1, out: `${e.code}: ${e.message}` };
-    }
+    if (e instanceof EngineError) return { code: 1, out: formatError(e) };
     throw e;
   }
 }

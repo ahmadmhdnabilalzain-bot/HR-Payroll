@@ -36,13 +36,14 @@ export function isValidIsoDate(text: string): boolean {
   return tryParse(text) !== null;
 }
 
-export function parseIsoDate(text: string): CivilDate {
+/** field names the input the date came from, for the error detail. */
+export function parseIsoDate(text: string, field?: string): CivilDate {
   const date = tryParse(text);
   if (date === null) {
     throw new EngineError(
       "INVALID_DATE",
       "date must be a real calendar date in the form YYYY-MM-DD",
-      { value: text },
+      field === undefined ? { value: text } : { field, value: text },
     );
   }
   return date;

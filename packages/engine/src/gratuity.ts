@@ -63,15 +63,26 @@ function validateInput(input: GratuityInput): void {
   }
 }
 
-/** No sourced rule exists; an override cannot say how to apply it. */
+const GCC_KEY = "gccNationalGratuity";
+const GCC_MESSAGE = "GCC national gratuity is not supported yet: no " +
+  "sourced rule exists for GCC nationals";
+
+/**
+ * No sourced rule exists, and an override value alone cannot say how to
+ * apply one, so GCC nationals are always refused. Without an override the
+ * code stays UNSOURCED_PARAM, with this message instead of the generic
+ * advice to supply an override.
+ */
 function refuseGccNational(pack: RulePack, ov: Overrides): never {
-  requireParam(pack, "gccNationalGratuity", ov);
-  throw new EngineError(
-    "UNSUPPORTED_WORKER_CLASS",
-    "GCC nationals have no sourced gratuity rule; an override value " +
-      "alone cannot define the calculation",
-    { workerClass: "gcc-national", key: "gccNationalGratuity" },
-  );
+  try {
+    requireParam(pack, GCC_KEY, ov);
+  } catch (e) {
+    if (!(e instanceof EngineError) || e.code !== "UNSOURCED_PARAM") throw e;
+    throw new EngineError("UNSOURCED_PARAM", GCC_MESSAGE,
+      { ...e.detail, workerClass: "gcc-national" });
+  }
+  throw new EngineError("UNSUPPORTED_WORKER_CLASS", GCC_MESSAGE,
+    { workerClass: "gcc-national", key: GCC_KEY });
 }
 
 function traceService(

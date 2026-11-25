@@ -178,6 +178,23 @@ describe("calculateGratuity: worker classes", () => {
       code: "UNSOURCED_PARAM", detail: expect.objectContaining({
         key: "gccNationalGratuity" }) }));
   });
+  it("gcc-national messages say not supported, with no override advice",
+    () => {
+      const i = input("2019-01-01", "2023-12-31",
+        { workerClass: "gcc-national" });
+      for (const o of [undefined, { gccNationalGratuity: "x" }]) {
+        const e = (() => {
+          try {
+            run(i, o);
+          } catch (err) {
+            return err as Error;
+          }
+          throw new Error("expected a throw");
+        })();
+        expect(e.message).toMatch(/GCC national gratuity is not supported/);
+        expect(e.message).not.toMatch(/supply|override/i);
+      }
+    });
   it("gcc-national with an override still refuses to guess", () => {
     const i = input("2019-01-01", "2023-12-31",
       { workerClass: "gcc-national" });
@@ -208,6 +225,14 @@ describe("calculateGratuity: review focus edge cases", () => {
     for (const n of [11, -1, 1.5, Number.NaN]) {
       expect(() => run(i(n))).toThrowError(code("INVALID_UNPAID_DAYS"));
     }
+  });
+  it("INVALID_DATE names the field that failed", () => {
+    expect(() => run(input("2019-02-30", "2023-12-31"))).toThrowError(
+      expect.objectContaining({ code: "INVALID_DATE",
+        detail: { field: "joiningDate", value: "2019-02-30" } }));
+    expect(() => run(input("2019-01-01", "2023-13-01"))).toThrowError(
+      expect.objectContaining({ code: "INVALID_DATE",
+        detail: { field: "lastWorkingDate", value: "2023-13-01" } }));
   });
   it("impossible dates: INVALID_DATE", () => {
     expect(() => run(input("2019-01-01", "2024-02-30"))).toThrowError(

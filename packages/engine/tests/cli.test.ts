@@ -1,3 +1,5 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { runCli } from "../src/cli";
@@ -81,4 +83,44 @@ describe("runCli labels", () => {
       }
       expect(r.out).toContain("⁦AED 1,666.67⁩");
     });
+});
+
+describe("runCli errors", () => {
+  const base = { joiningDate: "2019-01-01", lastWorkingDate: "2023-12-31",
+    unpaidLeaveDays: 0, basicMonthlyAed: "10000.00",
+    workerClass: "expat-full-time", unusedLeaveDays: 10 };
+  async function withSample(more: object) {
+    const dir = await mkdtemp(join(tmpdir(), "cli-"));
+    const file = join(dir, "s.json");
+    await writeFile(file, JSON.stringify({ ...base, ...more }));
+    try {
+      return await runCli([file]);
+    } finally {
+      await rm(dir, { recursive: true });
+    }
+  }
+  it("prints code, message and detail on one line", async () => {
+    const r = await withSample({ joiningDate: "2019-02-30" });
+    expect(r.code).toBe(1);
+    expect(r.out).toMatch(/^INVALID_DATE: .+ field=joiningDate /);
+    expect(r.out).toContain("value=2019-02-30");
+    expect(r.out).not.toContain("\n");
+  });
+  it("names lastWorkingDate when that date is bad", async () => {
+    const r = await withSample({ lastWorkingDate: "2023-13-01" });
+    expect(r.out).toMatch(/field=lastWorkingDate/);
+  });
+  it("keeps a schema failure on one line", async () => {
+    const r = await withSample({ unpaidLeaveDays: "x" });
+    expect(r.out).toMatch(/^INVALID_INPUT_FILE: /);
+    expect(r.out).toMatch(/ file=/);
+    expect(r.out).not.toContain("\n");
+  });
+  it("gcc national is refused without override advice", async () => {
+    const r = await withSample({ workerClass: "gcc-national" });
+    expect(r.code).toBe(1);
+    expect(r.out).toMatch(/^UNSOURCED_PARAM: GCC national gratuity is not/);
+    expect(r.out).toContain("key=gccNationalGratuity");
+    expect(r.out).not.toMatch(/override/i);
+  });
 });
