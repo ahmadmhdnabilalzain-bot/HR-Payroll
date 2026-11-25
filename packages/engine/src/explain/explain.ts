@@ -31,15 +31,28 @@ function resultText(line: TraceLine, lang: Lang): string {
     .replace("{d}", m[2] ?? "");
 }
 
+const ZERO_OUTCOMES: readonly string[] = ["not-eligible", "not-applicable"];
+
+/** A zero gratuity line has its own message that states the reason. */
+function messageKey(line: TraceLine): string {
+  const outcome = line.inputs["outcome"] ?? "";
+  return line.id === "gratuity.total" && ZERO_OUTCOMES.includes(outcome)
+    ? `${line.id}.${outcome}` : line.id;
+}
+
 function explainLine(line: TraceLine, lang: Lang): string {
-  const template = MESSAGES[lang][line.id];
+  const template = MESSAGES[lang][messageKey(line)];
   const rules = statusList(line, lang);
   if (template === undefined) {
     return `${line.label}: ${line.result} (${rules}) ${UNTRANSLATED}`;
   }
-  return template
-    .replace("{result}", () => resultText(line, lang))
-    .replace("{rules}", () => rules);
+  // One pass, so text substituted in is never scanned again.
+  return template.replace(/\{(result|rules|in\.\w+)\}/g,
+    (all, name: string) => {
+      if (name === "result") return resultText(line, lang);
+      if (name === "rules") return rules;
+      return line.inputs[name.slice(3)] ?? all;
+    });
 }
 
 export function explainTrace(trace: TraceLine[], lang: Lang): string {

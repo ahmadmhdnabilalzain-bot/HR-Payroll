@@ -23,8 +23,16 @@ export interface GratuityInput {
   workerClass: WorkerClass;
 }
 
+/**
+ * paid: the worker qualifies. not-eligible: the rule applies but the
+ * worker does not qualify (under the minimum service). not-applicable:
+ * the Labour Law gratuity does not apply to this worker class.
+ */
+export type GratuityOutcome = "paid" | "not-eligible" | "not-applicable";
+
 export interface GratuityResult {
   amount: Fils;
+  outcome: GratuityOutcome;
   eligible: boolean;
   reason: string;
   completedYears: number;
@@ -97,19 +105,44 @@ function traceService(
   });
 }
 
+function zeroResult(s: ServiceLength, outcome: GratuityOutcome,
+  reason: string): GratuityResult {
+  return { amount: fils(0n), outcome, eligible: false, reason,
+    completedYears: s.completedYears, leftoverDays: s.leftoverDays };
+}
+
+function notApplicable(
+  t: TraceBuilder,
+  s: ServiceLength,
+  p: GratuityParams,
+): GratuityResult {
+  const reason = UAE_NATIONAL_REASON;
+  t.add({
+    id: "gratuity.total", label: "Gratuity (not applicable)",
+    formula: "0 when nationalsExcluded",
+    inputs: { outcome: "not-applicable", reason },
+    result: "0", rules: [p.nationalsExcluded.rule],
+  });
+  return zeroResult(s, "not-applicable", reason);
+}
+
 function notEligible(
   t: TraceBuilder,
   s: ServiceLength,
-  reason: string,
-  p: GratuityParams | null,
+  p: GratuityParams,
 ): GratuityResult {
+  const years = BigInt(s.completedYears);
+  const min = p.minServiceYears.v;
+  const reason = `not eligible: ${years} completed years is below ` +
+    `the minimum of ${min} (Decree-Law 33 of 2021, Article 51)`;
   t.add({
     id: "gratuity.total", label: "Gratuity (not eligible)",
-    formula: "0 when not eligible", inputs: { reason },
-    result: "0", rules: p === null ? [] : [p.minServiceYears.rule],
+    formula: "0 when completedYears < minServiceYears",
+    inputs: { outcome: "not-eligible", reason,
+      completedYears: String(years), minServiceYears: String(min) },
+    result: "0", rules: [p.minServiceYears.rule],
   });
-  return { amount: fils(0n), eligible: false, reason,
-    completedYears: s.completedYears, leftoverDays: s.leftoverDays };
+  return zeroResult(s, "not-eligible", reason);
 }
 
 function expatResult(
@@ -120,13 +153,9 @@ function expatResult(
 ): GratuityResult {
   const years = BigInt(s.completedYears);
   const min = p.minServiceYears.v;
-  if (years < min) {
-    const reason = `not eligible: ${years} completed years is below ` +
-      `the minimum of ${min} (Decree-Law 33 of 2021, Article 51)`;
-    return notEligible(t, s, reason, p);
-  }
+  if (years < min) return notEligible(t, s, p);
   const amount = eligibleAmount(t, input.lastBasicMonthly, s, p);
-  return { amount, eligible: true,
+  return { amount, outcome: "paid", eligible: true,
     reason: `eligible: ${years} completed years, minimum ${min}`,
     completedYears: s.completedYears, leftoverDays: s.leftoverDays };
 }
@@ -149,7 +178,7 @@ export function calculateGratuity(
   const t = new TraceBuilder();
   traceService(t, input, s, p);
   const value = input.workerClass === "uae-national"
-    ? notEligible(t, s, UAE_NATIONAL_REASON, null)
+    ? notApplicable(t, s, p)
     : expatResult(t, input, s, p);
   return { value, trace: t.lines() };
 }

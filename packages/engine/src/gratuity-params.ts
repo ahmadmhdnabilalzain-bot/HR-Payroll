@@ -84,6 +84,7 @@ export interface GratuityParams {
   capYearsOfWage: Typed<bigint>;
   capBase: Typed<"basic">;
   basicWageOnly: Typed<true>;
+  nationalsExcluded: Typed<true>;
   unpaidDaysExcluded: Typed<boolean>;
   dailyWageDivisor: Typed<bigint>;
   partYearProRata: Typed<boolean>;
@@ -106,6 +107,7 @@ export function loadGratuityParams(
     capYearsOfWage: intParam(pack, "capYearsOfWage", ov, 1),
     capBase: fixedParam(pack, "capBase", ov, "basic"),
     basicWageOnly: fixedParam(pack, "basicWageOnly", ov, true),
+    nationalsExcluded: fixedParam(pack, "nationalsExcluded", ov, true),
     unpaidDaysExcluded: boolParam(pack, "unpaidDaysExcluded", ov),
     dailyWageDivisor: intParam(pack, "dailyWageDivisor", ov, 1),
     partYearProRata: boolParam(pack, "partYearProRata", ov),

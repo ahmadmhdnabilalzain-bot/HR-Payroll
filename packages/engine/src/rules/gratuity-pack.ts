@@ -32,6 +32,8 @@ const AE_GRATUITY_2022: RulePack = {
     unpaidDaysExcluded: param(true, "official", "UAE_GOV_EOSB"),
     // Article 51: the last basic wage.
     basicWageOnly: param(true, "official", LAW),
+    // UAE nationals: pension legislation, not the Labour Law gratuity.
+    nationalsExcluded: param(true, "official", LAW),
     leavePayBase: param("basic", "official", "UAE_GOV_LEAVES"),
     dailyWageDivisor: param(30, "secondary", EOSB_PRESS),
     // Leave pay daily rate: the leaves page gives the basic-salary base

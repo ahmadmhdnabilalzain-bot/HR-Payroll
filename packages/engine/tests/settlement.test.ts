@@ -38,8 +38,22 @@ describe("calculateSettlement", () => {
       "gratuity.tier1", "gratuity.tier2", "gratuity.cap", "gratuity.total",
       "leave.pay", "settlement.total"]);
   });
+  it("carries the gratuity outcome and reason", () => {
+    expect(run(10).value).toMatchObject({ outcome: "paid",
+      reason: expect.stringMatching(/^eligible/) });
+    const short = run(10, { joiningDate: "2023-06-01" });
+    expect(short.value).toMatchObject({ outcome: "not-eligible",
+      reason: expect.stringMatching(/^not eligible/) });
+  });
+  it("labels the total as a partial computed total", () => {
+    const l = run(10).trace.find((x) => x.id === "settlement.total")!;
+    expect(l.label).toBe("Computed total (excludes notice pay, " +
+      "deductions and other dues)");
+  });
   it("national: no gratuity, leave pay still computed", () => {
     const r = run(10, { workerClass: "uae-national" });
+    expect(r.value.outcome).toBe("not-applicable");
+    expect(r.value.reason).toMatch(/pension/);
     expect(r.value.gratuity).toBe(0n);
     expect(r.value.leavePay).toBe(333333n);
     expect(r.value.total).toBe(333333n);

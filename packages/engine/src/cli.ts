@@ -1,8 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { parseArgs, type CliArgs } from "./cli-args";
 import { EngineError } from "./errors";
+import { LTR_ISOLATE, type Lang } from "./explain/catalog";
+import { CLI_TEXT } from "./explain/cli-text";
 import { explainTrace } from "./explain/explain";
-import { formatAed, parseAed } from "./money";
+import { formatAed, parseAed, type Fils } from "./money";
 import { previewRuleChange } from "./preview";
 import { GRATUITY_PACKS } from "./rules/gratuity-pack";
 import { SampleSchema } from "./sample-schema";
@@ -47,28 +49,44 @@ async function loadInput(file: string): Promise<SettlementInput> {
   };
 }
 
+/** Left-to-right text (amounts, rule names) kept intact in Arabic. */
+function ltr(text: string, lang: Lang): string {
+  const [open, close] = LTR_ISOLATE[lang];
+  return open + text + close;
+}
+
+const aed = (amount: Fils, lang: Lang): string => ltr(formatAed(amount), lang);
+
 function hypothetical(input: SettlementInput, args: CliArgs): string[] {
   if (args.change === null) return [];
   const p = previewRuleChange(input, GRATUITY_PACKS, args.change);
   const c = args.change;
+  const t = CLI_TEXT[args.lang];
+  const what = `${c.packId}:${c.key}=${String(c.newValue)}`;
   return [
     "",
-    `HYPOTHETICAL (not law): ${c.packId}:${c.key}=${String(c.newValue)}`,
-    `Before: ${formatAed(p.before.value.total)}`,
-    `After: ${formatAed(p.after.value.total)}`,
-    `Delta: ${formatAed(p.delta)}`,
+    `${t.hypothetical} ${ltr(what, args.lang)}`,
+    `${t.before} ${aed(p.before.value.total, args.lang)}`,
+    `${t.after} ${aed(p.after.value.total, args.lang)}`,
+    `${t.delta} ${aed(p.delta, args.lang)}`,
   ];
+}
+
+function notComputed(items: string[], lang: Lang): string {
+  const t = CLI_TEXT[lang];
+  const words = items.map((i) => t.items[i] ?? i);
+  return `${t.notComputed} ${words.join(t.listSeparator)}`;
 }
 
 async function render(args: CliArgs): Promise<string> {
   const input = await loadInput(args.file);
   const r = calculateSettlement(input, GRATUITY_PACKS);
   return [
-    `Settlement total: ${formatAed(r.value.total)}`,
+    `${CLI_TEXT[args.lang].total} ${aed(r.value.total, args.lang)}`,
     "",
     explainTrace(r.trace, args.lang),
     "",
-    `Not computed: ${r.value.notComputed.join(", ")}`,
+    notComputed(r.value.notComputed, args.lang),
     ...hypothetical(input, args),
   ].join("\n");
 }

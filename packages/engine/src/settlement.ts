@@ -1,5 +1,9 @@
 import { EngineError } from "./errors";
-import { calculateGratuity, type GratuityInput } from "./gratuity";
+import {
+  calculateGratuity,
+  type GratuityInput,
+  type GratuityOutcome,
+} from "./gratuity";
 import {
   fixedParam,
   intParam,
@@ -18,6 +22,9 @@ export interface SettlementInput {
 
 export interface SettlementResult {
   gratuity: Fils;
+  /** Why the gratuity is what it is, carried from the gratuity result. */
+  outcome: GratuityOutcome;
+  reason: string;
   leavePay: Fils;
   total: Fils;
   notComputed: string[];
@@ -65,14 +72,16 @@ export function calculateSettlement(
     rules: [base.rule, divisor.rule, mode.rule],
   });
   t.add({
-    id: "settlement.total", label: "Final settlement total",
+    id: "settlement.total",
+    label: "Computed total (excludes notice pay, deductions and other dues)",
     formula: "gratuity + leavePay",
     inputs: { gratuity: String(g.value.amount),
       leavePay: String(leavePay) },
     result: String(total), rules: [],
   });
   return {
-    value: { gratuity: g.value.amount, leavePay, total,
+    value: { gratuity: g.value.amount, outcome: g.value.outcome,
+      reason: g.value.reason, leavePay, total,
       notComputed: [...NOT_COMPUTED] },
     trace: t.lines(),
   };

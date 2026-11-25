@@ -56,3 +56,29 @@ describe("runCli", () => {
     expect(r.out).toMatch(/^MISSING_PACK/);
   });
 });
+
+describe("runCli labels", () => {
+  const change = ["--change", "ae-gratuity:tier1DaysPerYear=22"];
+  it("english names the total as partial", async () => {
+    const r = await runCli([sample]);
+    expect(r.out.split("\n")[0]).toBe("Computed total (excludes notice " +
+      "pay, deductions and other dues): AED 38,333.33");
+    expect(r.out).not.toMatch(/final|Settlement total/i);
+  });
+  it("arabic localises every header and the not-computed items",
+    async () => {
+      const r = await runCli([sample, "--lang", "ar", ...change]);
+      expect(r.code).toBe(0);
+      for (const en of ["Computed total", "Not computed", "HYPOTHETICAL",
+        "Before:", "After:", "Delta:", "notice pay", "deductions",
+        "other dues", "not law"]) {
+        expect(r.out, en).not.toContain(en);
+      }
+      for (const ar of ["المجموع المحسوب", "غير محسوب", "بدل الإنذار",
+        "الخصومات", "المستحقات الأخرى", "افتراضي", "قبل:", "بعد:",
+        "الفرق:"]) {
+        expect(r.out, ar).toContain(ar);
+      }
+      expect(r.out).toContain("⁦AED 1,666.67⁩");
+    });
+});

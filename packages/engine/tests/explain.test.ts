@@ -69,6 +69,47 @@ describe("explainTrace", () => {
       }
     }
   });
+  it("national: english gives the pension reason, not a bare zero", () => {
+    const lines = explainTrace(settle({ workerClass: "uae-national" }),
+      "en").split("\n");
+    const g = lines.find((l) => l.startsWith("End-of-service"))!;
+    expect(g).toContain("AED 0.00");
+    expect(g).toMatch(/not applicable/);
+    expect(g).toMatch(/pension legislation/);
+    expect(g).toMatch(/\(official\)\.$/);
+    expect(g).not.toMatch(/no rules/);
+  });
+  it("national: arabic gives the pension reason", () => {
+    const g = explainTrace(settle({ workerClass: "uae-national" }), "ar")
+      .split("\n")[2] ?? "";
+    expect(g).toContain("لا تنطبق");
+    expect(g).toContain("المعاشات");
+    expect(g).toContain("(رسمي).");
+    expect(g).not.toMatch(/[a-z]{3,}/);
+  });
+  it("under one year: both languages give years and the minimum", () => {
+    const t = settle({ joiningDate: "2023-06-01" });
+    const en = explainTrace(t, "en").split("\n")[2] ?? "";
+    expect(en).toContain(
+      "not eligible: 0 completed years is below the minimum of 1");
+    expect(en).toContain("AED 0.00");
+    const ar = explainTrace(t, "ar").split("\n")[2] ?? "";
+    expect(ar).toContain("غير مستحقة");
+    expect(ar).toMatch(/0 .* 1/);
+    expect(ar).not.toMatch(/[a-z]{3,}/);
+  });
+  it("the total line names what it leaves out", () => {
+    const en = explainTrace(settle(), "en");
+    expect(en).toContain("Computed total (excludes notice pay, " +
+      "deductions and other dues): AED 38,333.33");
+    expect(en).not.toMatch(/final/i);
+    expect(explainTrace(settle(), "ar")).not.toContain("النهائية");
+  });
+  it("arabic convention word is the engine's choice, not custom", () => {
+    const ar = explainTrace(settle(), "ar");
+    expect(ar).toContain("اختيار النظام");
+    expect(ar).not.toMatch(/(^|[ (،,])عرف([ ),.،]|$)/m);
+  });
   it("marks an unknown id as untranslated", () => {
     const line: TraceLine = { id: "nope.x", label: "Mystery", formula: "",
       inputs: {}, result: "7", rules: [] };

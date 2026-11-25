@@ -2,6 +2,12 @@ import { deepFreeze } from "../freeze";
 
 export type Lang = "en" | "ar";
 
+/**
+ * Message keys are trace line ids. A zero gratuity line uses
+ * "gratuity.total.<outcome>" so the reason is shown. {in.x} is the
+ * line's input x.
+ */
+
 /** Trace line ids whose result is raw fils and must be shown as AED. */
 export const MONEY_IDS: readonly string[] = deepFreeze([
   "gratuity.cap", "gratuity.total", "leave.pay", "settlement.total",
@@ -14,8 +20,15 @@ const EN: Record<string, string> = {
   "gratuity.tier2": "Gratuity days owed in tier 2: {result} ({rules}).",
   "gratuity.cap": "Gratuity cap (limit on the total): {result} ({rules}).",
   "gratuity.total": "End-of-service gratuity: {result} ({rules}).",
+  "gratuity.total.not-eligible": "End-of-service gratuity: {result}, " +
+    "not eligible: {in.completedYears} completed years is below the " +
+    "minimum of {in.minServiceYears} ({rules}).",
+  "gratuity.total.not-applicable": "End-of-service gratuity: {result}, " +
+    "not applicable: UAE nationals' end-of-service benefits fall under " +
+    "the pension legislation, not the Labour Law gratuity ({rules}).",
   "leave.pay": "Pay for unused leave: {result} ({rules}).",
-  "settlement.total": "Final settlement total: {result} ({rules}).",
+  "settlement.total": "Computed total (excludes notice pay, deductions " +
+    "and other dues): {result} ({rules}).",
 };
 
 // NEEDS NATIVE REVIEW: Arabic text below was authored by Claude and has
@@ -29,8 +42,15 @@ const AR: Record<string, string> = {
     "أيام المكافأة المستحقة في الشريحة الثانية: {result} ({rules}).",
   "gratuity.cap": "الحد الأقصى للمكافأة: {result} ({rules}).",
   "gratuity.total": "مكافأة نهاية الخدمة: {result} ({rules}).",
+  "gratuity.total.not-eligible": "مكافأة نهاية الخدمة: {result}، " +
+    "غير مستحقة: {in.completedYears} سنوات خدمة مكتملة أقل من الحد " +
+    "الأدنى البالغ {in.minServiceYears} ({rules}).",
+  "gratuity.total.not-applicable": "مكافأة نهاية الخدمة: {result}، " +
+    "لا تنطبق: تخضع مستحقات نهاية الخدمة للمواطنين الإماراتيين " +
+    "لتشريعات المعاشات، لا لمكافأة قانون العمل ({rules}).",
   "leave.pay": "بدل الإجازة غير المستخدمة: {result} ({rules}).",
-  "settlement.total": "إجمالي التسوية النهائية: {result} ({rules}).",
+  "settlement.total": "المجموع المحسوب (لا يشمل بدل الإنذار والخصومات " +
+    "والمستحقات الأخرى): {result} ({rules}).",
 };
 
 /** Frozen: a caller cannot rewrite later explanations. */
@@ -45,8 +65,11 @@ const STATUS_EN: Record<string, string> = {
   hypothetical: "hypothetical", unsourced: "unsourced", none: "no rules",
 };
 
+// NEEDS NATIVE REVIEW: "convention" is "اختيار النظام" (the engine's
+// choice). Do not use "عرف" (custom): custom is a source of law in Arabic
+// legal usage, the opposite of what an engine convention is.
 const STATUS_AR: Record<string, string> = {
-  official: "رسمي", secondary: "ثانوي", convention: "عرف",
+  official: "رسمي", secondary: "ثانوي", convention: "اختيار النظام",
   hypothetical: "افتراضي", unsourced: "بلا مصدر", none: "بلا قواعد",
 };
 

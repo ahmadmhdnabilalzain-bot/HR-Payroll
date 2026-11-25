@@ -65,7 +65,9 @@ describe("GRATUITY_PACKS", () => {
       source: sourceOf("ENGINE_CONVENTION") });
     expect(pack.params["leavePayDivisor"]).toEqual({ value: 30,
       status: "convention", source: sourceOf("ENGINE_CONVENTION") });
-    expect(Object.keys(pack.params)).toHaveLength(18);
+    expect(pack.params["nationalsExcluded"]).toEqual({ value: true,
+      status: "official", source: sourceOf("LAW_33_2021") });
+    expect(Object.keys(pack.params)).toHaveLength(19);
   });
 });
 
@@ -150,6 +152,24 @@ describe("calculateGratuity: worker classes", () => {
     expect(r.value.reason).toMatch(/pension/i);
     expect(ids(r)).toEqual(NOT_ELIGIBLE_IDS);
     expect(line(r, "gratuity.total")!.inputs["reason"]).toMatch(/pension/i);
+    expect(r.value.outcome).toBe("not-applicable");
+    const rules = line(r, "gratuity.total")!.rules;
+    expect(rules).toEqual([expect.objectContaining({
+      key: "nationalsExcluded", status: "official", value: "true" })]);
+  });
+  it("outcome is paid or not-eligible for an expat", () => {
+    expect(run(input("2019-01-01", "2023-12-31")).value.outcome)
+      .toBe("paid");
+    const short = run(input("2023-03-01", "2024-02-28"));
+    expect(short.value.outcome).toBe("not-eligible");
+    expect(line(short, "gratuity.total")!.inputs).toMatchObject({
+      outcome: "not-eligible", completedYears: "0", minServiceYears: "1" });
+  });
+  it("refuses nationalsExcluded false rather than pay as an expat", () => {
+    const i = input("2019-01-01", "2023-12-31",
+      { workerClass: "uae-national" });
+    expect(() => run(i, { nationalsExcluded: false })).toThrowError(
+      code("INVALID_PARAM"));
   });
   it("gcc-national throws UNSOURCED_PARAM for gccNationalGratuity", () => {
     const i = input("2019-01-01", "2023-12-31",
