@@ -1,6 +1,22 @@
-# UAE SME HR & Payroll: Design and Build Plan (v2, DRAFT for approval)
+# UAE SME HR & Payroll: Design and Build Plan (v2, approved with amendments)
 
-Status: **draft, not approved. No code has been written.** v2 incorporates three independent reviews (builder check, failure modes, payroll-law) and a second verification batch on 25 Nov 2026. Evidence: `docs/research/2026-11-25-competitor-analysis.md` and the links in section 13. Anything not confirmed is marked **UNVERIFIED** and resolved in Phase 0.
+> **Amendments (2026-11-25, owner decisions; see `LEDGER.md`)**
+> 1. The owner approved this design as the basis and asked Claude to build.
+> 2. The owner declined the lawyer, bank-contact and pilot-customer items.
+>    So the Phase 0 exits, the "counsel-signed" wording and the kill rule
+>    in section 9 are **withdrawn**. Replacement: every rule and case cites
+>    a fetched source and carries a status (`sourced` or `unsourced`).
+>    Real customer payroll and "verified" claims wait until rules are
+>    sourced; the owner decides when.
+> 3. Section 7's claim that Zoho gates leave and attendance applies only
+>    to Zoho Payroll's embedded module. Zoho People includes leave from its
+>    second plan and attendance from its third. Not a differentiator.
+> 4. Before building, the owner asked for the advisor's proof of features,
+>    technical superiority and market plan:
+>    `docs/superpowers/specs/2026-11-25-advisor-proof.md`. No code until
+>    the owner has seen it.
+
+Status: **approved with the amendments above. No code has been written.** v2 incorporates three independent reviews (builder check, failure modes, payroll-law) and a second verification batch on 25 Nov 2026. Evidence: `docs/research/2026-11-25-competitor-analysis.md` and the links in section 13. Anything not confirmed is marked **UNVERIFIED** and resolved in Phase 0.
 
 ## 1. Intent and the honest starting point
 
