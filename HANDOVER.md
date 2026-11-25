@@ -21,6 +21,7 @@ source-cited, with an open API and Arabic from the start.
 | Advisor's proof of features, superiority, market plan | `docs/superpowers/specs/2026-11-25-advisor-proof.md` |
 | Combined competitor feature list (union, with plan status) | `docs/superpowers/specs/2026-11-25-combined-feature-list.md` |
 | What could make us unique (proposals, rival-correctness leads) | `docs/superpowers/specs/2026-11-25-unique-candidates.md` |
+| Raw idea pool for uniqueness (round 2, merging into a master list) | `docs/superpowers/specs/2026-11-25-idea-pool.md` |
 | Code and debugging standards | `docs/engineering-standards.md` |
 | Implementation plans | `docs/superpowers/plans/` |
 
