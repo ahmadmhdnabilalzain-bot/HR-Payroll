@@ -126,15 +126,19 @@ M1 = pilot-ready, M2 = launch parity, M3 = expand.
 | Named customer success managers, premium SLAs, in-person support | Ke | New: service model, set after the cost model |
 | Migration and implementation team | Bz, Ke | New: service model, same |
 
-## H. Out of the HR-and-payroll fence (integrate or export; never build)
+## H. Adjacent modules (in scope by owner decision, built after the core)
 
-Expense management (Bz, Ke, Zo). Accounts payable, spend, corporate cards,
-global payouts (Bz). Insurance brokerage and benefits administration (Bz).
-Project operations and billing (Ke). Task manager (Bz). Intranet and chat,
-password vault (Zo People Plus). India payroll (Ke, Nr).
+Expense management (Bz, Ke, Zo, Yomly): M3. Task manager (Bz): M3.
+Intranet, chat and announcements (Zo People Plus): M3. Project operations
+and billing (Ke): M4. Accounts payable and spend, corporate cards, global
+payouts (Bz): M4, and **they need licensed partners** (card issuing,
+payments), so they depend on partnerships, not only code.
+
+**Still out:** insurance (brokerage and benefits administration), and
+India payroll.
 
 ## Count
 
 About 95 distinct features across sections A to G. Of these, roughly 36
 were already in the plan (F1 to F36), and the rest are the "New" rows above,
-mostly placed in M2 and M3. Everything in section H is excluded.
+mostly placed in M2 and M3. Section H is built after the core, except insurance and India payroll, which stay out.

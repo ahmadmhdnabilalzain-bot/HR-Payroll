@@ -21,6 +21,7 @@ them apart is deliberate.
 | 2026-11-25 | Before building: "I need the advisor to prove to me the list of features he will build, why they will make us superior technically, and how we will dominate the market." |
 | 2026-11-25 | "We are doing HR and payroll. Not a full ERP." (also recorded in section 2) |
 | 2026-11-25 | "What about Keka": Keka is added to the competitor set. |
+| 2026-11-25 | "We won't exclude these except insurance": expense management, accounts payable and spend, corporate cards, project billing, task manager, intranet and chat are **in scope**; insurance stays out. Supersedes the HR-and-payroll-only fence. |
 | 2026-11-25 | Asked for the combined list of all competitors' features (`docs/superpowers/specs/2026-11-25-combined-feature-list.md`). |
 
 ## 2. Standing instructions (the owner's words)
@@ -46,7 +47,8 @@ them apart is deliberate.
 | 2026-11-25 | Real customer payroll and any "verified compliant" claim wait until the rules are sourced. The owner decides when. | Wrong pay harms real employees. |
 | 2026-11-25 | Files-only v1 (no salary payments), mainland UAE first, TypeScript and PostgreSQL. | See design doc sections 4 and 6. |
 | 2026-11-25 | Develop on branch `claude/quirky-wozniak-b7xkvr`; no pull request unless asked. | Session branch rule. |
-| 2026-11-25 | To apply the HR-and-payroll scope: expense management removed from feature F17; out-of-scope modules are integrated or exported, never built. | Follows the owner's scope decision. |
+| 2026-11-25 | Advisor's uniqueness candidates recorded as proposals only; none enters the plan until the owner picks. (`docs/superpowers/specs/2026-11-25-unique-candidates.md`) | Owner asked what could make us unique. |
+| 2026-11-25 | Superseded: the HR-and-payroll-only fence and the F17 expense cut are reversed. New order: core first, HR-adjacent next, finance modules last. | Cards and payments need licensed partners, so they come last and depend on partnerships. |
 | 2026-11-25 | Correction: Zoho People includes leave management from its second plan and attendance from its third, at low per-user prices. The earlier "Zoho gates leave and attendance" differentiator is withdrawn. | Read from Zoho's own pricing page. |
 
 ## 4. Future plan (current)
