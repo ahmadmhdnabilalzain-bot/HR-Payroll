@@ -1,6 +1,6 @@
 # Master Feature List (the gate to Plan 1)
 
-Merges the parity list with about 80 raw uniqueness ideas into 37 items, each
+Merges the parity list with about 80 raw uniqueness ideas into 38 items, each
 grouped by the capability it depends on. **This is the document the owner
 approves before Plan 1.** Nothing is built yet.
 
@@ -133,6 +133,7 @@ own milestone.
 | UQ35 | VAT and corporate tax formats: tax invoice and credit note formats at the 5% rate, VAT return worksheet, corporate tax computation templates, tied to expenses and payables | owner request | Accounting tools (Zoho Books, QuickBooks, Xero) | BET, SR (FTA and Ministry of Finance rules; e-invoicing timeline; research in progress) | Expenses and payables (M4) |
 | UQ36 | FTA-ready VAT filing: VAT return and supporting reports produced in the format the Federal Tax Authority accepts for upload, reconciled to expenses and payables; e-invoicing integration through an accredited provider using the national data standard | owner request | Accounting tools (Zoho Books, QuickBooks, Xero) | BET, SR (FTA upload formats and e-invoicing timeline; research in progress), P (accredited e-invoicing provider) | Expenses and payables (M4) |
 | UQ37 | In-app meetings: video and audio meetings between staff, transcript, summary of meeting points, and tasks proposed per staff member that a human confirms before they enter the task manager; each task links to the transcript segment it came from | owner request | Meeting tools (Zoho Meeting and others); AI meeting-notes tools | BET, P (video infrastructure provider), SR (UAE VoIP and video rules, PDPL recording consent; research in progress) | Tasks and intranet (M3 to M4) |
+| UQ38 | Work-from-home tracking: active time while clocked in, app and site categories (no screenshots, no keystroke logging), location sampled once an hour while clocked in; the employee sees their own data and can pause; notice first; feeds attendance and overtime review, never pay without human review | owner request | GPS and geofenced check-in at Zoho People, Keka, Bayzat, ZenHR | BET, SR (PDPL consent, location data, retention), app-store review risk (Apple, Google background location) | Attendance (M2 to M3) |
 
 ## Plan 1 demo (unique items inside the first thing you run)
 
