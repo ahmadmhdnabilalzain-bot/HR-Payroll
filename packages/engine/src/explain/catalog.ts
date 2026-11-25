@@ -46,4 +46,16 @@ export const STATUS_WORDS: Record<Lang, Record<string, string>> = {
     none: "بلا قواعد" },
 };
 
+// NEEDS NATIVE REVIEW: Arabic wording of the engine's service length text.
+export const YEARS_TEXT: Record<Lang, string> = {
+  en: "{y} years and {d} days",
+  ar: "{y} سنوات و{d} أيام",
+};
+
+/** Left-to-right isolate marks keep amounts intact inside Arabic text. */
+export const LTR_ISOLATE: Record<Lang, [string, string]> = {
+  en: ["", ""],
+  ar: ["\u2066", "\u2069"],
+};
+
 export const UNTRANSLATED = "[untranslated]";

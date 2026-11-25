@@ -49,6 +49,26 @@ describe("explainTrace", () => {
         "[untranslated]");
     }
   });
+  it("localises the years line in arabic", () => {
+    const line = explainTrace(settle(), "ar").split("\n")[1] ?? "";
+    expect(line).not.toMatch(/years|days/);
+    expect(line).toContain("5");
+    expect(explainTrace(settle(), "en")).toContain("5 years and 0 days");
+  });
+  it("uses arabic status words and isolates amounts", () => {
+    const ar = explainTrace(settle(), "ar");
+    expect(ar).toContain("رسمي");
+    expect(ar).toContain("\u2066AED 35,000.00\u2069");
+  });
+  it("leaves no placeholder and ends with statuses", () => {
+    const all = [...settle(), ...settle({ workerClass: "uae-national" })];
+    for (const lang of langs) {
+      for (const l of explainTrace(all, lang).split("\n")) {
+        expect(l).not.toMatch(/[{}]/);
+        expect(l).toMatch(/\([^()]+\)\.$/);
+      }
+    }
+  });
   it("marks an unknown id as untranslated", () => {
     const line: TraceLine = { id: "nope.x", label: "Mystery", formula: "",
       inputs: {}, result: "7", rules: [] };

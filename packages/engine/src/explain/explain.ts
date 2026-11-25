@@ -1,10 +1,12 @@
 import { formatAed, fils } from "../money";
 import type { TraceLine } from "../trace-types";
 import {
+  LTR_ISOLATE,
   MESSAGES,
   MONEY_IDS,
   STATUS_WORDS,
   UNTRANSLATED,
+  YEARS_TEXT,
   type Lang,
 } from "./catalog";
 
@@ -15,10 +17,18 @@ function statusList(line: TraceLine, lang: Lang): string {
   return seen.map((s) => words[s] ?? s).join(", ");
 }
 
-function resultText(line: TraceLine): string {
-  return MONEY_IDS.has(line.id) && /^-?\d+$/.test(line.result)
-    ? formatAed(fils(BigInt(line.result)))
-    : line.result;
+const YEARS_PATTERN = /^(\d+) years and (\d+) days$/;
+
+function resultText(line: TraceLine, lang: Lang): string {
+  if (MONEY_IDS.has(line.id) && /^-?\d+$/.test(line.result)) {
+    const [open, close] = LTR_ISOLATE[lang];
+    return open + formatAed(fils(BigInt(line.result))) + close;
+  }
+  const m = line.id === "service.years" ? YEARS_PATTERN.exec(line.result)
+    : null;
+  if (m === null) return line.result;
+  return YEARS_TEXT[lang].replace("{y}", m[1] ?? "")
+    .replace("{d}", m[2] ?? "");
 }
 
 function explainLine(line: TraceLine, lang: Lang): string {
@@ -28,7 +38,7 @@ function explainLine(line: TraceLine, lang: Lang): string {
     return `${line.label}: ${line.result} (${rules}) ${UNTRANSLATED}`;
   }
   return template
-    .replace("{result}", () => resultText(line))
+    .replace("{result}", () => resultText(line, lang))
     .replace("{rules}", () => rules);
 }
 
