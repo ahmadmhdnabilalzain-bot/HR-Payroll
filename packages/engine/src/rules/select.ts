@@ -1,3 +1,4 @@
+import { isValidIsoDate } from "../dates";
 import { EngineError } from "../errors";
 import type {
   ParamValue,
@@ -5,25 +6,8 @@ import type {
   RulePack,
 } from "./types";
 
-const ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-function daysIn(year: number, month: number): number {
-  if (month === 2) {
-    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-    return leap ? 29 : 28;
-  }
-  return [4, 6, 9, 11].includes(month) ? 30 : 31;
-}
-
 function assertIsoDate(value: string, what: string): void {
-  const m = ISO.exec(value);
-  const ok =
-    m !== null &&
-    Number(m[2]) >= 1 &&
-    Number(m[2]) <= 12 &&
-    Number(m[3]) >= 1 &&
-    Number(m[3]) <= daysIn(Number(m[1]), Number(m[2]));
-  if (!ok) {
+  if (!isValidIsoDate(value)) {
     throw new EngineError(
       "INVALID_DATE",
       `${what} must be an ISO date YYYY-MM-DD`,
