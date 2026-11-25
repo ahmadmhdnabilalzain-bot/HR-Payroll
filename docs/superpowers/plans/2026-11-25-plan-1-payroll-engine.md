@@ -31,10 +31,17 @@ Standards: `docs/engineering-standards.md`.
 - Files under about 300 lines; functions under about 30 lines.
 - Money: integer fils as `bigint`. No floating point anywhere in the engine.
 - The engine never reads the clock, files, environment or network. Dates are
-  ISO strings (`YYYY-MM-DD`) passed in.
+  ISO strings (`YYYY-MM-DD`) passed in. **Purity covers every file except
+  the I/O shell**: `src/cases/runner.ts` and `src/cli.ts` (they read
+  files). `zod` is imported only by `src/cases/schema.ts`; the engine core
+  has no runtime dependencies.
+- Rules and cases cite sources by id from `src/sources.ts` (long URLs live
+  there, so the 80-character check passes).
 - Rule parameter statuses: `official` (fetched official text), `secondary`
-  (credible secondary source), `convention` (our documented choice, not law),
-  `unsourced` (no source: no default, the engine throws `UNSOURCED_PARAM`).
+  (credible secondary source), `convention` (our documented choice, not
+  law), `hypothetical` (used only by the rule-change preview),
+  `unsourced` (no source: no default, the engine throws
+  `UNSOURCED_PARAM`).
 - Every statutory value used in a test cites a fetched source URL.
 - Errors carry a stable `code`, the offending value and where it came from.
 - Each task ends with `pnpm check` green and one commit.
@@ -50,9 +57,12 @@ Standards: `docs/engineering-standards.md`.
   salary only. Source (official): `https://u.ae/en/information-and-services/`
   `jobs/Sector-of-employment/employment-in-the-private-sector/`
   `end-of-service-benefits-for-employees-in-the-private-sector`
-- A worker leaving before using annual leave is paid wages for the unused
-  days (Article 29, clause 9, same Decree-Law). "Wage" means basic wage plus
-  cash allowances and benefits in kind (definitions, same Decree-Law).
+- A worker leaving before using annual leave is paid for any unused
+  days and for the fraction of the last year, **calculated on basic
+  salary**. Source (official): the u.ae "Types of leaves" page, id
+  `UAE_GOV_LEAVES`. Article 51 sets the gratuity base as the last basic
+  wage received (official, `LAW_33_2021`, uaelegislation.gov.ae/en/
+  legislations/1541).
 - Worked example: basic AED 10,000, five years: AED 35,000 (30-day divisor).
   Source (secondary, press summary of a MOHRE post):
   `https://www.arabianbusiness.com/business/uae-gratuity-rules-how-to-`
@@ -91,9 +101,11 @@ scripts/check-line-length.mjs     fails on lines over 80 chars
 scripts/check-line-length.test.mjs
 packages/engine/package.json
 packages/engine/tsconfig.json
+packages/engine/src/errors.ts          EngineError with stable codes
+packages/engine/src/sources.ts         source registry keyed by short id
+packages/engine/src/trace-types.ts     TraceRule, TraceLine, Traced
 packages/engine/src/money.ts           Fils, rounding, parse, format
 packages/engine/src/dates.ts           strict ISO dates, day arithmetic
-packages/engine/src/errors.ts          EngineError with stable codes
 packages/engine/src/rules/types.ts     RulePack, RuleParam, statuses
 packages/engine/src/rules/select.ts    selectPack, requireParam
 packages/engine/src/rules/gratuity-pack.ts  the 2022 gratuity pack (data)
@@ -114,61 +126,87 @@ packages/engine/tests/*.test.ts        one test file per source file
 
 ---
 
-### Task 1: Scaffold, tooling and the line-length check
+### Task 1: Scaffold, shared types and the line-length check
 
 **Files:**
 - Create: root `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`,
   `.gitignore`, `scripts/check-line-length.mjs`,
   `scripts/check-line-length.test.mjs`, `packages/engine/package.json`,
-  `packages/engine/tsconfig.json`
+  `packages/engine/tsconfig.json`, `packages/engine/src/errors.ts`,
+  `packages/engine/src/rules/types.ts`,
+  `packages/engine/src/trace-types.ts`, `packages/engine/src/sources.ts`
+- Test: `packages/engine/tests/shared.test.ts`
 
 **Interfaces:**
-- Produces: root scripts `pnpm check` (runs line check, `tsc --noEmit`,
+- Produces: root scripts `pnpm check` (line check, `tsc --noEmit`,
   `vitest run`), `pnpm test`, `pnpm demo`;
-  `scripts/check-line-length.mjs` exporting
-  `findLongLines(text: string, max: number): number[]` (1-based line
-  numbers) and running as a CLI over the glob in Global Constraints.
+  `findLongLines(text: string, max: number): number[]` (1-based line numbers)
+  in `scripts/check-line-length.mjs`, also a CLI over `packages/` and
+  `scripts/`;
+  `class EngineError extends Error` with `code: string` and
+  `detail: Record<string, string>`;
+  `type RuleStatus = "official" | "secondary" | "convention" |
+  "hypothetical" | "unsourced"`; `type ParamValue = number | boolean |
+  string`; `interface RuleSource { url: string; note: string }`;
+  `interface RuleParam { value: ParamValue | null; status: RuleStatus;
+  source: RuleSource | null }`; `interface RulePack { id: string;
+  version: string; effectiveFrom: string; effectiveTo: string | null;
+  params: Record<string, RuleParam> }`; `interface ResolvedParam { key:
+  string; value: ParamValue; status: RuleStatus; source: RuleSource | null;
+  packId: string; packVersion: string; overridden: boolean }`;
+  `interface TraceRule { key: string; value: string; status: RuleStatus;
+  packId: string; packVersion: string; overridden: boolean }`;
+  `interface TraceLine { id: string; label: string; formula: string;
+  inputs: Record<string, string>; result: string; rules: TraceRule[] }`;
+  `interface Traced<T> { value: T; trace: TraceLine[] }`;
+  `SOURCES: Record<string, RuleSource>` and `sourceOf(id: string):
+  RuleSource` (unknown id throws `UNKNOWN_SOURCE`). Source ids:
+  `LAW_33_2021` (uaelegislation.gov.ae/en/legislations/1541, Articles 29
+  and 51), `UAE_GOV_EOSB` (u.ae end-of-service page), `UAE_GOV_LEAVES`
+  (u.ae types-of-leaves page), `ARABIAN_BUSINESS_EOSB` (secondary press
+  summary of a MOHRE post), `X0PA_EOSB_CALC` (secondary vendor calculator),
+  `ENGINE_CONVENTION` (note "engine convention, not law"), `HYPOTHETICAL`
+  (note "hypothetical change, not law").
 
-- [ ] **Step 1: Write the failing test** in
-  `scripts/check-line-length.test.mjs` using `node:test`:
-  `findLongLines("a\n" + "x".repeat(81) + "\n", 80)` equals `[2]`, and a
-  text of 80-character lines returns `[]`.
-- [ ] **Step 2: Run** `node --test scripts/` and expect FAIL (module missing).
-- [ ] **Step 3: Implement** `findLongLines` and the CLI wrapper in
-  `scripts/check-line-length.mjs`; create the workspace files, ESM
-  (`"type": "module"`), strict TypeScript (`strict`, `noUncheckedIndexedAccess`,
-  `exactOptionalPropertyTypes`), engine package with dev dependencies
-  pinned to the exact versions printed by `npm view` and `pnpm install`.
-- [ ] **Step 4: Run** `node --test scripts/` and expect PASS; run
-  `pnpm check` and expect it to succeed with zero tests found handled
-  (Vitest `passWithNoTests`).
-- [ ] **Step 5: Commit** `chore: scaffold workspace and line-length check`.
+- [ ] **Step 1: Write failing tests:** in `check-line-length.test.mjs`
+  (`node:test`), `findLongLines("a\n" + "x".repeat(81) + "\n", 80)` equals
+  `[2]` and 80-character lines return `[]`; in `shared.test.ts`,
+  `new EngineError("X", "m", { k: "v" })` keeps `code` and `detail`;
+  `sourceOf("NOPE")` throws `UNKNOWN_SOURCE`; every `SOURCES` entry has a
+  non-empty note; `sourceOf("LAW_33_2021").url` starts with
+  `https://uaelegislation.gov.ae`.
+- [ ] **Step 2: Run** `node --test scripts/` and `pnpm test` and expect FAIL.
+- [ ] **Step 3: Implement** the script, the shared files and the workspace
+  (ESM, strict TypeScript with `noUncheckedIndexedAccess` and
+  `exactOptionalPropertyTypes`, exact dependency versions from
+  `npm view`; Vitest `passWithNoTests`).
+- [ ] **Step 4: Run** `node --test scripts/` and `pnpm check`; expect PASS.
+- [ ] **Step 5: Commit** `chore: scaffold workspace and shared types`.
 
 ### Task 2: Money (integer fils)
 
 **Files:**
-- Create: `packages/engine/src/money.ts`, `packages/engine/src/errors.ts`
+- Create: `packages/engine/src/money.ts`
 - Test: `packages/engine/tests/money.test.ts`
 
 **Interfaces:**
+- Consumes: `EngineError` (Task 1).
 - Produces (exact):
   `type Fils = bigint & { readonly __brand: "Fils" }`;
   `type RoundingMode = "HALF_UP" | "HALF_EVEN" | "DOWN" | "UP"`;
   `fils(value: bigint): Fils`;
   `parseAed(text: string): Fils` (digits with optional `.` and at most two
-  decimals; else `EngineError("INVALID_AMOUNT")`);
+  decimals; else `INVALID_AMOUNT`);
   `formatAed(amount: Fils): string` (`"AED 10,000.00"`, `"-AED 5.50"`);
   `add(a: Fils, b: Fils): Fils`, `sub(a: Fils, b: Fils): Fils`;
   `mulDiv(amount: Fils, num: bigint, den: bigint, mode: RoundingMode): Fils`
   (denominator must be positive, else `DIVIDE_BY_ZERO`; HALF_UP rounds
-  halves away from zero);
-  `class EngineError extends Error` with `code: string` and
-  `detail: Record<string, string>`.
+  halves away from zero).
 
 - [ ] **Step 1: Write failing tests:** `parseAed("10000.5")` is `1000050n`;
   `formatAed(fils(1000050n))` is `"AED 10,000.50"`;
   `mulDiv(fils(1000000n), 105n, 30n, "HALF_UP")` is `3500000n`;
-  `mulDiv(fils(1n), 1n, 2n, "HALF_UP")` is `1n`, with `"HALF_EVEN"` `0n`,
+  `mulDiv(fils(1n), 1n, 2n, "HALF_UP")` is `1n`, `"HALF_EVEN"` `0n`,
   `"DOWN"` `0n`, `"UP"` `1n`; negative halves round away from zero under
   HALF_UP; `parseAed("1.234")` and `parseAed("abc")` throw `INVALID_AMOUNT`;
   `mulDiv(x, 1n, 0n, "DOWN")` throws `DIVIDE_BY_ZERO`; Review Focus 8:
@@ -176,72 +214,55 @@ packages/engine/tests/*.test.ts        one test file per source file
   `fils(15n * 10n ** 29n)`. Property test (fast-check):
   `sub(add(a, b), b) === a`.
 - [ ] **Step 2: Run** `pnpm test money` and expect FAIL.
-- [ ] **Step 3: Implement** the signatures above in `money.ts` and
-  `errors.ts` using pure `bigint` arithmetic (round by comparing twice the
-  remainder with the denominator).
+- [ ] **Step 3: Implement** with pure `bigint` arithmetic (round by comparing
+  twice the remainder with the denominator).
 - [ ] **Step 4: Run** `pnpm test money` and `pnpm check`; expect PASS.
 - [ ] **Step 5: Commit** `feat(engine): integer-fils money with rounding`.
 
-### Task 3: Rule-pack types, selection and unsourced refusal
+### Task 3: Pack selection and unsourced refusal
 
 **Files:**
-- Create: `packages/engine/src/rules/types.ts`,
-  `packages/engine/src/rules/select.ts`
+- Create: `packages/engine/src/rules/select.ts`
 - Test: `packages/engine/tests/rules.test.ts`
 
 **Interfaces:**
-- Consumes: `EngineError` (Task 2).
+- Consumes: `EngineError`, `RulePack`, `RuleParam`, `ResolvedParam`,
+  `ParamValue` (Task 1).
 - Produces (exact):
-  `type RuleStatus = "official" | "secondary" | "convention" | "unsourced"`;
-  `type ParamValue = number | boolean | string`;
-  `interface RuleSource { url: string; note: string }`;
-  `interface RuleParam { value: ParamValue | null; status: RuleStatus;
-  source: RuleSource | null }`;
-  `interface RulePack { id: string; version: string; effectiveFrom: string;
-  effectiveTo: string | null; params: Record<string, RuleParam> }`;
-  `interface ResolvedParam { key: string; value: ParamValue;
-  status: RuleStatus; source: RuleSource | null; packId: string;
-  packVersion: string; overridden: boolean }`;
-  `selectPack(packs: RulePack[], onDate: string): RulePack`
-  (inclusive start, exclusive end; none: `NO_PACK_FOR_DATE`; overlap:
-  `OVERLAPPING_PACKS`);
+  `selectPack(packs: RulePack[], onDate: string): RulePack` (inclusive start,
+  exclusive end; none: `NO_PACK_FOR_DATE`; overlap: `OVERLAPPING_PACKS`);
   `requireParam(pack: RulePack, key: string,
   overrides?: Record<string, ParamValue>): ResolvedParam` (missing key:
   `MISSING_PARAM`; `unsourced` or null value without an override:
-  `UNSOURCED_PARAM` naming the key; an override is allowed for any status
+  `UNSOURCED_PARAM` with `detail.key`; an override is allowed for any status
   and sets `overridden: true`).
 
 - [ ] **Step 1: Write failing tests:** two packs, `selectPack` picks by date
   including the boundary day; no pack: `NO_PACK_FOR_DATE`; an `official`
   param resolves with its source; an `unsourced` param throws
-  `UNSOURCED_PARAM` with `detail.key`; the same param with an override
-  resolves with `overridden: true`; unknown key: `MISSING_PARAM`.
+  `UNSOURCED_PARAM`; the same param with an override resolves with
+  `overridden: true`; unknown key: `MISSING_PARAM`.
 - [ ] **Step 2: Run** `pnpm test rules` and expect FAIL.
-- [ ] **Step 3: Implement** the types and the two functions.
+- [ ] **Step 3: Implement** both functions.
 - [ ] **Step 4: Run** `pnpm test rules` and `pnpm check`; expect PASS.
-- [ ] **Step 5: Commit** `feat(engine): rule-packs with source status`.
+- [ ] **Step 5: Commit** `feat(engine): rule-pack selection and refusal`.
 
-### Task 4: Trace
+### Task 4: Trace builder
 
 **Files:**
 - Create: `packages/engine/src/trace.ts`
 - Test: `packages/engine/tests/trace.test.ts`
 
 **Interfaces:**
-- Consumes: `ResolvedParam` (Task 3).
+- Consumes: `TraceLine`, `TraceRule`, `ResolvedParam`, `EngineError`
+  (Task 1).
 - Produces (exact):
-  `interface TraceRule { key: string; value: string; status: RuleStatus;
-  packId: string; packVersion: string; overridden: boolean }`;
-  `interface TraceLine { id: string; label: string; formula: string;
-  inputs: Record<string, string>; result: string; rules: TraceRule[] }`;
-  `interface Traced<T> { value: T; trace: TraceLine[] }`;
   `class TraceBuilder { add(line: TraceLine): void; lines(): TraceLine[] }`;
   `traceRule(param: ResolvedParam): TraceRule`.
 
-- [ ] **Step 1: Write failing tests:** `lines()` returns lines in insertion
-  order and is a copy (mutating it does not change the builder); a duplicate
-  line id throws `DUPLICATE_TRACE_ID`; `traceRule` stringifies the value and
-  keeps status and pack version.
+- [ ] **Step 1: Write failing tests:** `lines()` returns insertion order and
+  a copy; a duplicate id throws `DUPLICATE_TRACE_ID`; `traceRule`
+  stringifies the value and keeps status, pack version and `overridden`.
 - [ ] **Step 2: Run** `pnpm test trace` and expect FAIL.
 - [ ] **Step 3: Implement** the builder and `traceRule`.
 - [ ] **Step 4: Run** `pnpm test trace` and `pnpm check`; expect PASS.
@@ -257,76 +278,92 @@ packages/engine/tests/*.test.ts        one test file per source file
   `packages/engine/tests/gratuity.test.ts`
 
 **Interfaces:**
-- Consumes: `Fils`, `mulDiv`, `EngineError` (Task 2); `RulePack`,
-  `selectPack`, `requireParam` (Task 3); `TraceBuilder`, `Traced`,
-  `traceRule` (Task 4).
+- Consumes: `Fils`, `mulDiv` (Task 2); `selectPack`, `requireParam`
+  (Task 3); `TraceBuilder`, `traceRule` (Task 4); shared types and
+  `sourceOf` (Task 1).
 - Produces (exact):
   `parseIsoDate(text: string): { y: number; m: number; d: number }`
-  (strict, rejects `2024-02-30`, `2024-2-3`, empty; `INVALID_DATE`);
-  `daysBetween(from: string, to: string): number` (`to` minus `from` in
-  whole days, UTC arithmetic);
-  `GRATUITY_PACKS: RulePack[]` (one pack, id `ae-gratuity`, version
+  (strict; `INVALID_DATE`);
+  `addDays(date: string, days: number): string`;
+  `daysBetween(from: string, to: string): number`;
+  `anniversary(joining: string, years: number): string` (29 February in a
+  non-leap year becomes 28 February);
+  `GRATUITY_PACKS: RulePack[]` (pack id `ae-gratuity`, version
   `2022-02-02`, effective from `2022-02-02`);
   `type WorkerClass = "expat-full-time" | "uae-national" | "gcc-national"`;
   `interface GratuityInput { joiningDate: string; lastWorkingDate: string;
   unpaidLeaveDays: number; lastBasicMonthly: Fils; workerClass: WorkerClass }`;
   `interface GratuityResult { amount: Fils; eligible: boolean;
-  reason: string; netServiceDays: number }`;
+  reason: string; completedYears: number; leftoverDays: number }`;
   `calculateGratuity(input: GratuityInput, packs: RulePack[],
   overrides?: Record<string, ParamValue>): Traced<GratuityResult>`.
 
-Pack parameters (key: value, status, source):
-`minServiceYears: 1 official` (law, Article 51);
-`tier1DaysPerYear: 21 official`; `tier1Years: 5 official`;
-`tier2DaysPerYear: 30 official`; `capYearsOfWage: 2 official`;
-`unpaidDaysExcluded: true official` (u.ae page);
-`basicWageOnly: true official` (u.ae page);
-`monthsPerYear: 12 official`;
-`dailyWageDivisor: 30 secondary` (Arabian Business example);
-`partYearProRata: true secondary` (Arabian Business, MOHRE post);
-`yearDayCount: 365 convention`; `endDateInclusive: true convention`;
-`roundingMode: "HALF_UP" convention`.
+Pack parameters (key: value, status, source id):
+`minServiceYears: 1 official LAW_33_2021`;
+`tier1DaysPerYear: 21 official LAW_33_2021`; `tier1Years: 5 official
+LAW_33_2021`; `tier2DaysPerYear: 30 official LAW_33_2021`;
+`capYearsOfWage: 2 official LAW_33_2021`;
+`capBase: "basic" secondary X0PA_EOSB_CALC` (the law says "two years' wage";
+whether that is basic or total wage is not settled in the fetched text);
+`unpaidDaysExcluded: true official UAE_GOV_EOSB`;
+`basicWageOnly: true official LAW_33_2021` (Article 51: last basic wage);
+`leavePayBase: "basic" official UAE_GOV_LEAVES`;
+`dailyWageDivisor: 30 secondary ARABIAN_BUSINESS_EOSB`;
+`partYearProRata: true secondary ARABIAN_BUSINESS_EOSB`;
+`monthsPerYear: 12 convention ENGINE_CONVENTION`;
+`yearDayCount: 365 convention ENGINE_CONVENTION` (denominator for the
+leftover days of a part year);
+`endDateInclusive: true convention ENGINE_CONVENTION`;
+`roundingMode: "HALF_UP" convention ENGINE_CONVENTION`;
+`gccNationalGratuity: null unsourced` (no fetched source for GCC nationals).
 
-Calculation: net service days = `daysBetween(joining, last)` plus one when
-`endDateInclusive`, minus unpaid days. Eligible when net service days is at
-least `minServiceYears * yearDayCount`. Years of service = net days over
-`yearDayCount` (a rational, kept as numerator and denominator; whole years
-and a fraction when `partYearProRata`, whole years only otherwise).
-Days owed = `tier1DaysPerYear` times years up to `tier1Years`, plus
-`tier2DaysPerYear` times years beyond. Amount = basic monthly over
-`dailyWageDivisor` times days owed, rounded once at the end. Cap =
-basic monthly times `monthsPerYear` times `capYearsOfWage`. Non-expat
-classes return `eligible: false`, `amount` zero and a reason naming the
-pension legislation. Each step adds one trace line with ids
-`service.days`, `service.years`, `gratuity.tier1`, `gratuity.tier2`,
-`gratuity.cap`, `gratuity.total`.
+Calculation (by calendar anniversary, not by dividing days): the exclusive
+end is `lastWorkingDate` plus one day when `endDateInclusive`, then moved
+back by `unpaidLeaveDays`. Completed years are the most whole anniversaries
+of `joiningDate` that are not after the exclusive end. Leftover days are the
+exclusive end minus the last anniversary. Eligible when completed years are
+at least `minServiceYears`. Years owed as a fraction: completed years plus
+leftover days over `yearDayCount` when `partYearProRata`, else completed
+years. Days owed: `tier1DaysPerYear` times years up to `tier1Years`, plus
+`tier2DaysPerYear` times years beyond. Amount: basic monthly over
+`dailyWageDivisor` times days owed, kept as one fraction and rounded once at
+the end. Cap: basic monthly times `monthsPerYear` times `capYearsOfWage`.
+`uae-national` returns `eligible: false`, zero and a reason naming the
+pension legislation. `gcc-national` throws `UNSOURCED_PARAM` for key
+`gccNationalGratuity`. Trace line ids: `service.days`, `service.years`,
+`gratuity.tier1`, `gratuity.tier2`, `gratuity.cap`, `gratuity.total`.
 
 - [ ] **Step 1: Write failing tests (dates):** `parseIsoDate("2024-02-29")`
   ok; `"2023-02-29"`, `"2024-02-30"`, `"2024-2-3"`, `""` throw
-  `INVALID_DATE`; `daysBetween("2024-02-28", "2024-03-01")` is `2`
-  (leap year).
-- [ ] **Step 2: Write failing tests (gratuity)** with exact values (all
-  from the Sourced facts section): basic AED 10,000, joining `2019-01-01`,
-  last working `2023-12-31`, no unpaid days: amount `3500000n`
-  (5 years, AED 35,000); basic AED 10,000, 7 full years: 165 days owed,
-  `5500000n` (AED 55,000); under one year: `eligible: false`, amount `0n`,
-  trace has `service.days`; exactly 365 net days inclusive is eligible, 364
-  is not (Review Focus 6); service long enough to exceed the cap (30 years,
-  basic AED 10,000) returns `24000000n` and the trace line `gratuity.cap`
-  shows the cap applied; unpaid leave pushing service below one year:
-  `eligible: false`; `workerClass: "uae-national"` returns
-  `eligible: false` with a reason mentioning pension legislation and a
-  trace; Review Focus 1 to 4 and 7 each throw the named code
-  (`INVALID_DATE_RANGE`, same day gives `eligible: false` with `0n`,
-  `INVALID_UNPAID_DAYS`, `INVALID_DATE`, `INVALID_AMOUNT`); passing an
-  `overrides` of `{ dailyWageDivisor: 365 }` changes the amount and the trace
-  rule shows `overridden: true`; running the same input twice returns
-  deep-equal results (determinism). Property test: for fixed basic, amount
-  never decreases as net service days increase, and never exceeds the cap.
+  `INVALID_DATE`; `daysBetween("2024-02-28", "2024-03-01")` is `2`;
+  `anniversary("2024-02-29", 1)` is `"2025-02-28"`; `anniversary(
+  "2024-02-29", 4)` is `"2028-02-29"`.
+- [ ] **Step 2: Write failing tests (gratuity)**, basic AED 10,000 unless
+  stated, `expat-full-time`, no unpaid days unless stated:
+  joining `2019-01-01`, last `2023-12-31`: five years, amount `3500000n`
+  (AED 35,000, the sourced example, with the 2020 leap day); joining
+  `2017-01-01`, last `2023-12-31`: seven years, `5500000n`; boundary:
+  joining `2023-03-01`, last `2024-02-29` is eligible with `700000n`, last
+  `2024-02-28` is not eligible with `0n`; leap-day joiner: joining
+  `2024-02-29`, last `2025-02-27` is eligible (convention, trace shows it);
+  part year (secondary): joining `2022-01-01`, last `2024-07-01` gives
+  `1750959n` (two years plus 183 of 365 days); cap: joining `1990-01-01`,
+  last `2019-12-31` gives `24000000n` and trace `gratuity.cap` states the
+  cap applied; unpaid leave crossing the threshold: joining `2023-03-01`,
+  last `2024-03-10`, 20 unpaid days is not eligible; `uae-national` is
+  not eligible with a pension reason and a trace; `gcc-national` throws
+  `UNSOURCED_PARAM` (`detail.key` `gccNationalGratuity`); Review Focus 1 to
+  4 and 7: last before joining throws `INVALID_DATE_RANGE`; same day is not
+  eligible with `0n` and no crash; unpaid days greater than total days throw
+  `INVALID_UNPAID_DAYS`; `"2024-02-30"` throws `INVALID_DATE`; basic `0` or
+  negative throws `INVALID_AMOUNT`; `overrides` `{ dailyWageDivisor: 365 }`
+  changes the amount and the trace rule shows `overridden: true`; the same
+  input twice returns deep-equal results. Property tests: for a fixed basic
+  and unpaid days, amount never decreases as `lastWorkingDate` moves later,
+  and never exceeds the cap.
 - [ ] **Step 3: Run** `pnpm test dates gratuity` and expect FAIL.
-- [ ] **Step 4: Implement** `dates.ts`, the pack as data in
-  `gratuity-pack.ts` (each param with `source.url` and `source.note`), and
-  `calculateGratuity`, keeping one rounding at the end.
+- [ ] **Step 4: Implement** `dates.ts`, the pack as data (each param with its
+  `sourceOf(id)`), and `calculateGratuity` with one rounding at the end.
 - [ ] **Step 5: Run** `pnpm test dates gratuity` and `pnpm check`; expect
   PASS.
 - [ ] **Step 6: Commit** `feat(engine): gratuity rule-pack and calculation`.
@@ -338,29 +375,28 @@ pension legislation. Each step adds one trace line with ids
 - Test: `packages/engine/tests/settlement.test.ts`
 
 **Interfaces:**
-- Consumes: `calculateGratuity`, `GratuityInput`, `GratuityResult`
-  (Task 5); `Fils`, `mulDiv`, `add` (Task 2); `TraceBuilder` (Task 4);
-  `requireParam`, `selectPack`, `GRATUITY_PACKS`.
+- Consumes: `calculateGratuity`, `GratuityInput` (Task 5); `Fils`, `mulDiv`,
+  `add` (Task 2); `TraceBuilder` (Task 4); `requireParam`, `selectPack`,
+  `GRATUITY_PACKS`.
 - Produces (exact):
-  `interface SettlementInput { gratuity: GratuityInput; lastWageMonthly: Fils;
+  `interface SettlementInput { gratuity: GratuityInput;
   unusedLeaveDays: number }`;
   `interface SettlementResult { gratuity: Fils; leavePay: Fils; total: Fils;
   notComputed: string[] }`;
   `calculateSettlement(input: SettlementInput, packs: RulePack[],
   overrides?: Record<string, ParamValue>): Traced<SettlementResult>`.
 
-Leave pay = `lastWageMonthly` over `dailyWageDivisor` times
-`unusedLeaveDays`, rounded once (wage, not basic, per the law's definition and
-Article 29, clause 9). `notComputed` always lists `"notice pay"`,
-`"deductions"`, `"other dues"` because they have no sourced rule yet; they
-are never guessed.
+Leave pay = `gratuity.lastBasicMonthly` over `dailyWageDivisor` times
+`unusedLeaveDays`, rounded once; the base is basic salary (`leavePayBase`,
+official, u.ae). `notComputed` always lists `"notice pay"`, `"deductions"`,
+`"other dues"` because they have no sourced rule yet; they are never guessed.
 
-- [ ] **Step 1: Write failing tests:** the Task 5 five-year case with
-  `lastWageMonthly` AED 15,000 and 10 unused days gives `leavePay` of
-  `5000000n` and `total` of `3500000n + 500000n`; `notComputed` equals the
-  three strings; negative unused days throw `INVALID_LEAVE_DAYS`; the trace
-  contains `gratuity.total`, `leave.pay` and `settlement.total` in order;
-  for a national, gratuity is zero but leave pay is still computed.
+- [ ] **Step 1: Write failing tests:** the Task 5 five-year case (basic
+  AED 10,000) with 10 unused days gives `leavePay` `333333n` and `total`
+  `3833333n`; `notComputed` equals the three strings; negative unused days
+  throw `INVALID_LEAVE_DAYS`; the trace contains `gratuity.total`,
+  `leave.pay` and `settlement.total` in that order; for a national, gratuity
+  is zero but leave pay is still computed.
 - [ ] **Step 2: Run** `pnpm test settlement` and expect FAIL.
 - [ ] **Step 3: Implement** `calculateSettlement`, merging the gratuity trace.
 - [ ] **Step 4: Run** `pnpm test settlement` and `pnpm check`; expect PASS.
@@ -374,7 +410,7 @@ are never guessed.
 
 **Interfaces:**
 - Consumes: `calculateSettlement`, `SettlementInput`, `SettlementResult`
-  (Task 6); `RulePack` (Task 3); `Traced`, `Fils`.
+  (Task 6); `RulePack`, `ParamValue` (Task 1); `Traced`, `Fils`.
 - Produces (exact):
   `interface RuleChange { packId: string; key: string; newValue: ParamValue }`;
   `interface RulePreview { hypothetical: true; before: Traced<SettlementResult>;
@@ -382,16 +418,15 @@ are never guessed.
   `previewRuleChange(input: SettlementInput, packs: RulePack[],
   change: RuleChange): RulePreview`.
 
-The change is applied to a deep copy of the pack with status `convention`
-and a source note reading `hypothetical change, not law`; the original packs
-are never mutated.
+The change is applied to a deep copy of the pack with status `hypothetical`
+and source `HYPOTHETICAL`; the original packs are never mutated.
 
 - [ ] **Step 1: Write failing tests:** changing `tier1DaysPerYear` from 21
-  to 22 on the five-year AED 10,000 case gives `delta` of `166667n`
-  (rounded from 5 years times 1 day times 10,000 over 30);
-  `hypothetical` is `true`; the original `GRATUITY_PACKS` still holds 21
-  afterwards; an unknown pack id throws `MISSING_PACK`; an unknown key
-  throws `MISSING_PARAM`; after-trace rules show `status: "convention"`.
+  to 22 on the five-year AED 10,000 case gives `delta` `166667n`
+  (10,000 over 30 times 5 days, rounded); `hypothetical` is `true`; the
+  original `GRATUITY_PACKS` still holds 21 afterwards; an unknown pack id
+  throws `MISSING_PACK`; an unknown key throws `MISSING_PARAM`; the
+  after-trace rule shows `status: "hypothetical"`.
 - [ ] **Step 2: Run** `pnpm test preview` and expect FAIL.
 - [ ] **Step 3: Implement** `previewRuleChange`.
 - [ ] **Step 4: Run** `pnpm test preview` and `pnpm check`; expect PASS.
@@ -445,7 +480,7 @@ Arabic strings are authored by Claude and must carry a code comment
   `{ id: string; title: string; input: { joiningDate: string;
   lastWorkingDate: string; unpaidLeaveDays: number;
   lastBasicMonthly: string; workerClass: string };
-  expectedFils: string; source: { url: string; note: string };
+  expectedFils: string; sourceId: string;
   status: "official" | "secondary" }`;
   `interface CaseReport { id: string; passed: boolean; expected: string;
   actual: string; trace: TraceLine[] }`;
@@ -453,7 +488,7 @@ Arabic strings are authored by Claude and must carry a code comment
   `dir`, validates with zod, runs `calculateGratuity`, never throws for a
   failing case, throws `INVALID_CASE_FILE` for a malformed file).
 
-Cases (each cites the official legislation or u.ae page): five years
+Cases (each cites a source id from the registry): five years
 (AED 35,000, `secondary` with the Arabian Business source), seven years
 (AED 55,000), exactly one year, 364 days (zero), unpaid leave crossing the
 one-year threshold, the two-year cap, a national (not applicable), a
@@ -482,7 +517,7 @@ rule, `status` is `official`; where it comes from the press example, it is
 - Consumes: everything above.
 - Produces: `pnpm demo` runs
   `tsx packages/engine/src/cli.ts packages/engine/samples/settlement.json`
-  with options `--lang en|ar` (default `en`) and
+  with a sample that includes `unusedLeaveDays` and options `--lang en|ar` (default `en`) and
   `--change <packId>:<key>=<value>` (optional). Output: the settlement
   total, the explained trace in the chosen language, the list of
   `notComputed` items, and when `--change` is given, a clearly labelled
@@ -505,13 +540,22 @@ rule, `status` is `official`; where it comes from the press example, it is
 
 ---
 
+## Execution notes
+
+- Parallel groups: Tasks 2, 3, 4 (after Task 1); then Task 5; then Tasks 6
+  and 9; then Tasks 7 and 8; then Task 10.
+- **Each parallel task runs in its own git worktree** on its own branch and
+  is merged into the working branch one at a time, running `pnpm check`
+  after each merge. A shared tree lets one task's half-written file break
+  another's checks.
+- Stop at the demo; report the test and demo output exactly as printed.
+
 ## Self-review notes
 
 - Spec coverage: UQ1 (Task 8), UQ4 seed (Task 9), UQ5 (Task 7), UQ6
-  settlement (Task 6), UQ12 gratuity part (Task 5); money, trace and rules
-  support all. Not in Plan 1: payroll run, WPS file, anything needing data
-  storage.
-- Types: `Fils`, `RulePack`, `ParamValue`, `Traced`, `TraceLine` are defined
-  once (Tasks 2 to 4) and reused unchanged.
-- Parallel groups for execution: Tasks 2, 3, 4 (after Task 1); then Task 5;
-  then Tasks 6 and 9; then Tasks 7 and 8; then Task 10.
+  settlement (Task 6), UQ12 gratuity part (Task 5). Not in Plan 1: payroll
+  run, WPS file, anything needing data storage.
+- Types: shared types and the source registry are defined once (Task 1) and
+  reused unchanged.
+- Service length is counted by calendar anniversary so the sourced example
+  (five years across a leap day) yields exactly AED 35,000.

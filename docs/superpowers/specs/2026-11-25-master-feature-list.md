@@ -1,6 +1,6 @@
 # Master Feature List (the gate to Plan 1)
 
-Merges the parity list with about 80 raw uniqueness ideas into 32 items, each
+Merges the parity list with about 80 raw uniqueness ideas into 33 items, each
 grouped by the capability it depends on. **This is the document the owner
 approves before Plan 1.** Nothing is built yet.
 
@@ -128,6 +128,7 @@ own milestone.
 | ID | Item | Raw ideas | Base that exists | Tags | Lands with |
 |---|---|---|---|---|---|
 | UQ32 | Connect company pages (Instagram, TikTok, Snapchat, X, LinkedIn) and show insights inside the product: followers, reach, engagement, audience; employer-brand and recruitment-campaign results tied to hiring numbers; company reputation signals | owner request | Social tools (Zoho Social and others); to be confirmed | BET, **access risk**: each platform's API approval, cost and data rules (research in progress) | Recruiting and intranet (M3 to M4) |
+| UQ33 | Website insights: connect the company website and careers page and see traffic, sources, job-page views and applications next to the social insights; first-party tracking snippet and UTM tagging so each social post or campaign is tied to applications and hires | owner request | Source-of-hire analytics in ATS tools (to be confirmed) | BET, consent and PDPL to check, access risk for Google API verification (research in progress) | Recruiting and intranet (M3 to M4) |
 
 ## Plan 1 demo (unique items inside the first thing you run)
 

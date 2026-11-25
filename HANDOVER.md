@@ -23,6 +23,7 @@ source-cited, with an open API and Arabic from the start.
 | What could make us unique (proposals, rival-correctness leads) | `docs/superpowers/specs/2026-11-25-unique-candidates.md` |
 | Raw idea pool for uniqueness (round 2, merging into a master list) | `docs/superpowers/specs/2026-11-25-idea-pool.md` |
 | **Master feature list (31 unique items + parity): the gate to Plan 1** | `docs/superpowers/specs/2026-11-25-master-feature-list.md` |
+| Social media insights feasibility (APIs, approvals, costs) | `docs/research/2026-11-25-social-insights-feasibility.md` |
 | Code and debugging standards | `docs/engineering-standards.md` |
 | Implementation plans | `docs/superpowers/plans/` |
 
