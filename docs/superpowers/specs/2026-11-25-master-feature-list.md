@@ -1,6 +1,6 @@
 # Master Feature List (the gate to Plan 1)
 
-Merges the parity list with about 80 raw uniqueness ideas into 35 items, each
+Merges the parity list with about 80 raw uniqueness ideas into 36 items, each
 grouped by the capability it depends on. **This is the document the owner
 approves before Plan 1.** Nothing is built yet.
 
@@ -131,6 +131,7 @@ own milestone.
 | UQ33 | Website insights: connect the company website and careers page and see traffic, sources, job-page views and applications next to the social insights; first-party tracking snippet and UTM tagging so each social post or campaign is tied to applications and hires | owner request | Source-of-hire analytics in ATS tools (to be confirmed) | BET, consent and PDPL to check, access risk for Google API verification (research in progress) | Recruiting and intranet (M3 to M4) |
 | UQ34 | Documents module: generate documents and standard UAE letters from bilingual templates, upload attachments, share between staff with per-document permissions, expiry reminders, version history, virus scan, audit trail | owner request (builds on UQ15) | Letters and records at Bayzat, Zoho, Keka, ZenHR | BET, SR (letter contents, e-signature rules, retention periods) | Documents (M2 letters, M3 sharing) |
 | UQ35 | VAT and corporate tax formats: tax invoice and credit note formats at the 5% rate, VAT return worksheet, corporate tax computation templates, tied to expenses and payables | owner request | Accounting tools (Zoho Books, QuickBooks, Xero) | BET, SR (FTA and Ministry of Finance rules; e-invoicing timeline; research in progress) | Expenses and payables (M4) |
+| UQ36 | FTA-ready VAT filing: VAT return and supporting reports produced in the format the Federal Tax Authority accepts for upload, reconciled to expenses and payables; e-invoicing integration through an accredited provider using the national data standard | owner request | Accounting tools (Zoho Books, QuickBooks, Xero) | BET, SR (FTA upload formats and e-invoicing timeline; research in progress), P (accredited e-invoicing provider) | Expenses and payables (M4) |
 
 ## Plan 1 demo (unique items inside the first thing you run)
 
