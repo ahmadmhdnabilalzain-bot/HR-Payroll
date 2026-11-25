@@ -31,6 +31,7 @@ them apart is deliberate.
 | 2026-11-25 | "Documents generation and standard letters and attachments uploads and sharing between the company staff are needed. Also VAT formats for 5% and corporate tax templates." Added to scope; research in progress. |
 | 2026-11-25 | "For VAT the reports that get uploaded to the FTA need to be ready. E-invoicing integration as well." Added to scope (UQ35); research in progress. |
 | 2026-11-25 | "If LinkedIn is risky ignore it. But the rest it should be full integration." LinkedIn is excluded for now; Instagram, TikTok, Snapchat and X get full integrations. |
+| 2026-11-25 | "I need a feature for meetings within the app itself. Video and audio with summarized meeting points and assigned list of tasks per staff." Added to scope (UQ37); feasibility research in progress. |
 | 2026-11-25 | Asked for the combined list of all competitors' features (`docs/superpowers/specs/2026-11-25-combined-feature-list.md`). |
 
 ## 2. Standing instructions (the owner's words)
