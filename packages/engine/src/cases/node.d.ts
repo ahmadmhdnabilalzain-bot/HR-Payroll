@@ -18,3 +18,8 @@ declare module "node:path" {
 interface ImportMeta {
   readonly dirname: string;
 }
+declare const process: {
+  argv: string[];
+  exitCode: number | undefined;
+};
+declare const console: { log(message: string): void };

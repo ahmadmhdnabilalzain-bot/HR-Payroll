@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "demo": "tsx packages/engine/src/main.ts packages/engine/samples/settlement.json",
     "lines": "node scripts/check-line-length.mjs",
     "lines:test": "node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r --if-present typecheck",
