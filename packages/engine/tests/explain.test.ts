@@ -110,6 +110,16 @@ describe("explainTrace", () => {
     expect(ar).toContain("اختيار النظام");
     expect(ar).not.toMatch(/(^|[ (،,])عرف([ ),.،]|$)/m);
   });
+  it("leap-day joiner: service line is not called official alone", () => {
+    const t = settle({ joiningDate: "2024-02-29",
+      lastWorkingDate: "2025-02-27" });
+    const en = explainTrace(t, "en").split("\n")[1] ?? "";
+    expect(en).toMatch(/^Completed service: 1 years and 0 days/);
+    expect(en).toContain("convention");
+    expect(en).not.toMatch(/\(official\)\.$/);
+    expect(explainTrace(t, "ar").split("\n")[1]).toContain(
+      "اختيار النظام");
+  });
   it("marks an unknown id as untranslated", () => {
     const line: TraceLine = { id: "nope.x", label: "Mystery", formula: "",
       inputs: {}, result: "7", rules: [] };

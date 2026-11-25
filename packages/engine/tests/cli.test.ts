@@ -3,6 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { runCli } from "../src/cli";
+import { CLI_TEXT } from "../src/explain/cli-text";
+import { fils } from "../src/money";
+import { GRATUITY_PACKS } from "../src/rules/gratuity-pack";
+import { calculateSettlement } from "../src/settlement";
 
 const sample = join(import.meta.dirname, "../samples/settlement.json");
 
@@ -83,6 +87,21 @@ describe("runCli labels", () => {
       }
       expect(r.out).toContain("⁦AED 1,666.67⁩");
     });
+});
+
+describe("cli text", () => {
+  it("has words for every not-computed item in both languages", () => {
+    const items = calculateSettlement({ unusedLeaveDays: 0, gratuity: {
+      joiningDate: "2019-01-01", lastWorkingDate: "2023-12-31",
+      unpaidLeaveDays: 0, lastBasicMonthly: fils(1000000n),
+      workerClass: "expat-full-time" } }, GRATUITY_PACKS).value.notComputed;
+    for (const lang of ["en", "ar"] as const) {
+      for (const i of items) {
+        expect(Object.hasOwn(CLI_TEXT[lang].items, i), `${lang} ${i}`)
+          .toBe(true);
+      }
+    }
+  });
 });
 
 describe("runCli errors", () => {

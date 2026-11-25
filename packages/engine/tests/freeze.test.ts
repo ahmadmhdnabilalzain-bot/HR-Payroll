@@ -77,7 +77,7 @@ describe("shared data cannot be changed by callers", () => {
 describe("preview copies", () => {
   const change = { packId: "ae-gratuity", key: "tier1DaysPerYear",
     newValue: 22 };
-  it("gives the changed rule its own HYPOTHETICAL source", () => {
+  it("leaves the shared HYPOTHETICAL source frozen and intact", () => {
     const p = previewRuleChange(input, GRATUITY_PACKS, change);
     expect(p.delta).toBe(166667n);
     expect(SOURCES["HYPOTHETICAL"]!.note).toMatch(/hypothetical/);

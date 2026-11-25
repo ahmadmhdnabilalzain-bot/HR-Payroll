@@ -103,6 +103,26 @@ describe("pure core", () => {
   });
 });
 
+describe("package exports", () => {
+  const pkg = JSON.parse(readFileSync(join(SRC, "..", "package.json"),
+    "utf8")) as { name: string; exports: Record<string, string> };
+  it("maps . to the pure barrel and ./shell to the shell", () => {
+    expect(pkg.name).toBe("@payroll/engine");
+    expect(pkg.exports).toEqual({ ".": "./src/index.ts",
+      "./shell": "./src/shell.ts" });
+    for (const target of Object.values(pkg.exports)) {
+      expect(() => readFileSync(join(SRC, "..", target))).not.toThrow();
+    }
+  });
+  it("resolves both entry points by package name", async () => {
+    const core = await import("@payroll/engine");
+    const shell = await import("@payroll/engine/shell");
+    expect(typeof core.calculateSettlement).toBe("function");
+    expect(typeof shell.runCases).toBe("function");
+    expect("runCases" in core).toBe(false);
+  });
+});
+
 describe("pure barrel", () => {
   const { files, bare } = reach(join(SRC, "index.ts"));
   it("reaches the engine modules", () => {
