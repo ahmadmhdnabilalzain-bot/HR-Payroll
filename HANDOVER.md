@@ -5,52 +5,98 @@ of state. Last updated: 2026-11-25.
 
 ## What this project is
 
-(Scope: HR and payroll first, then adjacent modules, then finance modules; insurance is out.)
-
-An HR and payroll product for UAE SMEs (about 10 to 250 employees,
-mainland first). The edge: payroll that is correct, explainable and
+An HR and payroll product for UAE SMEs (about 10 to 250 employees, mainland
+first), growing later into adjacent modules and finance modules. Insurance is
+out of scope. The edge: payroll that is correct, explainable and
 source-cited, with an open API and Arabic from the start.
+
+## Current state
+
+- Research, design v2 and the master feature list (38 unique items plus
+  parity) are approved by the owner.
+- **Plan 1 (payroll engine) is built, reviewed and pushed.** A pure
+  TypeScript engine computes a UAE end-of-service settlement with a per-line
+  trace and source-cited rule-packs. A whole-branch review found no
+  calculation errors; one fix wave addressed its honesty and packaging
+  findings.
+- Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
+
+## Run it
+
+```bash
+pnpm install
+pnpm check          # line length, typecheck, tests
+pnpm demo           # sample settlement, English
+pnpm demo -- --lang ar
+pnpm demo -- --change ae-gratuity:tier1DaysPerYear=22
+```
+
+The demo prints a computed total (gratuity plus unused leave pay), the
+explained trace, and what is **not computed** (notice pay, deductions, other
+dues: no sourced rule yet). The `--change` option shows a clearly labelled
+HYPOTHETICAL before and after.
+
+## Engine layout (`packages/engine`)
+
+| Area | Files |
+|---|---|
+| Money in integer fils | `src/money.ts` |
+| Dates by calendar anniversary | `src/dates.ts`, `src/service.ts` |
+| Rule-packs (versioned, sourced) | `src/rules/`, `src/sources.ts` |
+| Gratuity and settlement | `src/gratuity*.ts`, `src/settlement.ts` |
+| Rule-change preview | `src/preview.ts` |
+| Explanation in English and Arabic | `src/explain/` |
+| Case library and runner (I/O shell) | `src/cases/`, `cases/gratuity/*.json` |
+| Demo command (I/O shell) | `src/cli.ts`, `src/main.ts` |
+
+The pure engine core has no clock, file, network or environment access; a
+test enforces it. Statutory values live only in rule-pack parameters, each
+with a source id and a status: `official`, `secondary`, `convention`,
+`hypothetical` or `unsourced`. An `unsourced` value has no default and the
+engine refuses to run without an explicit value.
+
+## Known limits and open questions
+
+- The gratuity pack applies to leavers on or after 2022-02-02 (Decree-Law 33
+  of 2021). Earlier leavers throw `NO_PACK_FOR_DATE` (old law not modelled).
+  Open question for counsel: service accrued before that date for people
+  leaving after it.
+- Not computed: notice pay, deductions, other dues, GCC nationals
+  (`UNSOURCED_PARAM`), UAE nationals (pension law: reported as not
+  applicable).
+- Part-year pro-rata and the 30-day daily-wage divisor are `secondary`;
+  the one-day-early pro-rata in a 366-day anniversary span needs counsel.
+- Arabic wording is marked `NEEDS NATIVE REVIEW`; plural forms are fixed.
+  Nothing shows Arabic text to employees until a native speaker reviews it.
+- The primary text of Ministerial Resolution 340 of 2026 (WPS) and the SIF
+  file layout are not yet sourced.
+- Deferred minors and the reviewer rulings are in `LEDGER.md` (section 3).
 
 ## Where things are
 
 | Need | File |
 |---|---|
 | Owner decisions, instructions, future plan | `LEDGER.md` |
-| Market research and competitor facts | `docs/research/2026-11-25-competitor-analysis.md` |
+| Master feature list (gate to every plan) | `docs/superpowers/specs/2026-11-25-master-feature-list.md` |
 | Approved design | `docs/superpowers/specs/2026-11-25-uae-sme-hr-payroll-design.md` |
-| Advisor's proof of features, superiority, market plan | `docs/superpowers/specs/2026-11-25-advisor-proof.md` |
-| Combined competitor feature list (union, with plan status) | `docs/superpowers/specs/2026-11-25-combined-feature-list.md` |
-| What could make us unique (proposals, rival-correctness leads) | `docs/superpowers/specs/2026-11-25-unique-candidates.md` |
-| Raw idea pool for uniqueness (round 2, merging into a master list) | `docs/superpowers/specs/2026-11-25-idea-pool.md` |
-| **Master feature list (31 unique items + parity): the gate to Plan 1** | `docs/superpowers/specs/2026-11-25-master-feature-list.md` |
-| Social media insights feasibility (APIs, approvals, costs) | `docs/research/2026-11-25-social-insights-feasibility.md` |
+| Advisor's proof, unique-ideas pool, combined feature list | `docs/superpowers/specs/` |
+| Market research and feasibility notes | `docs/research/` |
 | Code and debugging standards | `docs/engineering-standards.md` |
 | Implementation plans | `docs/superpowers/plans/` |
 
-## Current state
-
-- Research: done. Design v2: approved by the owner, with amendments (see the
-  block at the top of the design doc).
-- Advisor's proof written (`docs/superpowers/specs/2026-11-25-advisor-proof.md`);
-  **waiting for the owner to review it.**
-- Code: **none yet.** The owner set this gate. The master feature list is approved;
-  Plan 1 (payroll engine) is being written and built.
-- Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
+Feasibility notes in `docs/research/`: competitors, social media APIs,
+website insights, documents module, VAT, corporate tax and e-invoicing,
+in-app meetings, remote-work tracking. All research is snippet-level and
+needs checking against official sources before anything is built on it.
 
 ## Next step
 
-1. Owner reviews the advisor's proof and answers its one question (how the
-   product will be sold).
-2. Write Plan 1 (payroll engine) and build it with tests first. Sources to
-   read for its rules: the labour law and its executive regulation on
-   `uaelegislation.gov.ae` (links in the proof doc).
+Plan 2: the WPS (SIF) file generator and validator. First read the official
+WPS resolution and gather two or more bank guides to the SIF layout that
+agree. Then write the plan from the master feature list, build it
+test-first, and keep this handover current.
 
-## Tooling checked in this environment (25 Nov 2026)
+## Tooling (25 Nov 2026)
 
-Node v22, npm 10, pnpm 10, PostgreSQL client 16, Docker 29, Python 3.13.
-Registry versions seen: typescript 7.0.2, vitest 5.1.2, decimal.js 10.6.0,
-fast-check 4.11.0, zod 4.6.7, tsx 4.23.15. Re-check before pinning.
-
-## Known risks
-
-See design doc section 9 and `LEDGER.md` section 4.
+Node 22, pnpm 10, TypeScript 7.0.2, Vitest 5.1.2, fast-check 4.11.0,
+zod 4.6.7, tsx 4.23.15, `@types/node` 22.x. Versions are pinned exactly.

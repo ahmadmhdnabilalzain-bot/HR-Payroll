@@ -68,8 +68,9 @@ them apart is deliberate.
 
 Each item gets its own plan under `docs/superpowers/plans/`.
 
-1. Plan 1: payroll engine (money type, pay-run calculation with trace,
-   proration, gratuity rule-pack, case library and runner).
+1. Plan 1: payroll engine: **done** (built, reviewed, fix wave applied).
+   Money type, gratuity and settlement with trace, rule-change preview,
+   English and Arabic explanation, case library, demo command.
 2. Plan 2: WPS (SIF) generator and validator, once the layout is sourced
    from two or more documents that agree.
 3. Plan 3: data model, API, tenancy and security baseline.
@@ -89,3 +90,17 @@ Each item gets its own plan under `docs/superpowers/plans/`.
   leave, GPSSA rates, deduction caps, proration divisor.
 - SIF layout not verified against a bank document.
 - Bayzat and ZenHR pricing: quote-only or not published.
+
+## 6. Rulings made during the Plan 1 build (Claude's calls)
+
+The owner can overrule any of these. Source: the build ledger.
+
+- ## Rulings
+- - Ruling 1: the line-length CLI skips `node_modules`, `dist`, `.superpowers`
+- - Ruling 2: `module: ESNext`, `moduleResolution: Bundler`, relative imports
+- - Ruling 3: `calculateGratuity` always emits `service.days` and
+- - Ruling 4: the root `demo` script is added in Task 10, not Task 1.
+- Task 5: Ruling: the gratuity pack applies to lastWorkingDate on or after 2022-02-02 (Decree-Law 33 of 2021 in force); earlier leavers fall under the old law, which is not modelled, so NO_PACK_FOR_DATE is the correct refusal — the brief's 1990 to 2019 cap case was a plan defect; the cap test runs inside the pack range (1994-01-01 to 2023-12-31) — if wrong, add an old-law pack later. Open question for counsel: service accrued before 2 Feb 2022 for people leaving after it.
+- Task 5: Ruling: gcc-national with an override still throws UNSUPPORTED_WORKER_CLASS (safer than quietly using the expat formula); a badly typed override throws INVALID_PARAM (closes the Task 3 minor); select.ts now shares date checks from dates.ts — review must cover the select.ts change.
+- Task 10: Ruling: src/sample-schema.ts (a second zod file) is accepted as part of the I/O shell, because the controller allowed it in the dispatch; the plan's "zod only in cases/schema.ts" is read as "zod only in shell files" — costs one file move if the owner wants it strict.
+- Final review: READY AFTER FIXES; one fix wave (commits bc20961 to d333f36) addressed 9 findings; a scoped re-review followed.
