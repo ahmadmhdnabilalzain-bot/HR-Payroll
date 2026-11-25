@@ -1,3 +1,4 @@
+/** Pure engine barrel: no file, clock, network or zod imports. */
 export * from "./errors";
 export * from "./money";
 export * from "./trace-types";
@@ -12,4 +13,3 @@ export * from "./rules/select";
 export * from "./rules/gratuity-pack";
 export * from "./explain/catalog";
 export * from "./explain/explain";
-export { runCases, type CaseReport } from "./cases/runner";
