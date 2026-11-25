@@ -134,3 +134,13 @@ The owner can overrule any of these. Source: the build ledger.
 - `NO_PACK_FOR_DATE` does not yet say that leavers before 2022-02-02 are not
   modelled; Arabic status words are joined with "," instead of "،".
 - All Arabic text needs a native speaker's review before any employee sees it.
+
+## 8. Plan 2 sourcing notes (2026-11-25)
+
+- CBUAE guide V2018-001 read: no EDR/EVP/SCR tables; confirms 14-digit
+  person id, 9-digit routing code, one month and one employer per file.
+  V2015-01 (section 7.6.2) not found. Resolutions 340/2026 and 598/2022
+  PDFs unreadable through the proxy; a human download is the next step.
+- u.ae wages page (updated 14 Oct 2026): 85% paid on time; currency may be
+  non-AED if the contract says so, which conflicts with the 2018 guide
+  (AED only). The SIF generator keeps AED only (parameter) until sourced.
