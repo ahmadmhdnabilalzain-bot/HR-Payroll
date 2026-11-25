@@ -1,4 +1,4 @@
-import { fils } from "@payroll/engine";
+import { EngineError, fils } from "@payroll/engine";
 import { describe, expect, it } from "vitest";
 import {
   formatAmount,
@@ -22,6 +22,11 @@ describe("formatAmount", () => {
     expect(() => formatAmount(fils(-1n))).toThrowError(
       code("NEGATIVE_AMOUNT"),
     );
+    try {
+      formatAmount(fils(-1n));
+    } catch (e) {
+      expect((e as EngineError).detail.value).toBe("-1");
+    }
   });
 });
 
@@ -34,6 +39,11 @@ describe("padId", () => {
     expect(() => padId("123456789012345", 14)).toThrowError(
       code("ID_TOO_LONG"),
     );
+    try {
+      padId("123456789012345", 14);
+    } catch (e) {
+      expect((e as EngineError).detail.value).toBe("123456789012345");
+    }
   });
 });
 
@@ -53,6 +63,9 @@ describe("dates and text", () => {
 });
 
 describe("defaultLayout", () => {
+  it("records its source", () => {
+    expect(defaultLayout.source.length).toBeGreaterThan(0);
+  });
   it("holds the strictest common form", () => {
     expect(defaultLayout).toMatchObject({
       personIdLength: 14,
