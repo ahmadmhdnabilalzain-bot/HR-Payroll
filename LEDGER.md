@@ -19,6 +19,8 @@ them apart is deliberate.
 | 2026-11-25 | "Yes you will build." The v2 design is approved as the basis. |
 | 2026-11-25 | On the lawyer, bank contact and pilot customers: "I built a whole ERP earlier and I am selling it to a company now and didn't do any of the stuff you mentioned in point 2 or 3." They are not required before building. |
 | 2026-11-25 | Before building: "I need the advisor to prove to me the list of features he will build, why they will make us superior technically, and how we will dominate the market." |
+| 2026-11-25 | "We are doing HR and payroll. Not a full ERP." (also recorded in section 2) |
+| 2026-11-25 | "What about Keka": Keka is added to the competitor set. |
 
 ## 2. Standing instructions (the owner's words)
 

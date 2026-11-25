@@ -161,3 +161,29 @@ Several statements above are stale. Corrections from pages read directly:
 - **NeuralHR.AI** claims Nafis Emiratisation monitoring, visa and Emirates ID tracking, pre-run payroll anomaly flags, human approval gates, in-region data residency and Resolution 340 of 2026 rules (vendor claims; no independent reviews found) (<https://neuralhr.ai/en/ai-powered-hrms>).
 - **Zoho Payroll** pricing and the full plan comparison are verified live; webhooks, leave and attendance and advanced approvals sit in higher plans (<https://www.zoho.com/en-ae/payroll/pricing-comparison/>).
 - So the line "no vendor shows Emiratisation, MOHRE or visa handling" is **stale as a statement about claims**: several vendors now claim them. What remains true is that no vendor offers independently checkable proof. Still unverified: Bayzat pricing, Zoho People pricing, ZenHR pricing, and the primary text of Ministerial Resolution 340 of 2026.
+
+## Addendum: Keka (added by the owner, 25 Nov 2026)
+
+Read directly: <https://www.keka.com/> and <https://www.keka.com/ae/payroll-software>.
+All items are vendor claims.
+
+- **What it is:** an India-based HR and payroll platform (the site redirects
+  to an India version) positioned for "growing enterprises". Claims 12,500+
+  companies on the homepage (10,000+ elsewhere on the same site), SOC 2,
+  ISO 27001 and GDPR. Core payroll modules listed on the homepage are India
+  payroll; it also has a UAE edition.
+- **UAE page claims:** SIF files "with built-in validations"; AI error checks
+  before a payroll run; GPSSA contributions; sick leave payout rules; annual
+  leave advance payouts; air ticket entitlement tracking; EOSB and gratuity;
+  payroll groups by entity, project, pay type or nationality; multi-entity
+  payroll; payroll data hosted in UAE infrastructure; expense management;
+  ERP and accounting integrations; guided onboarding with **parallel payroll
+  runs**; named customer success managers, in-person support and premium
+  SLAs.
+- **Pricing:** UAE pricing not published on the pages read (a US pricing
+  page exists).
+- **Effect on our plan:** Keka claims several things we planned as
+  differentiators (pre-run checks, parallel runs, local hosting, named
+  support). Where we still differ, as far as the pages show: per-line trace
+  and source citation are not mentioned. It also adds two features we had
+  not listed (air tickets, leave salary advance).

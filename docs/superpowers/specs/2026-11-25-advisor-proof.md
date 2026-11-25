@@ -75,6 +75,8 @@ comparison), Zoho People (global pricing page), ZenHR (UAE page), NeuralHR.AI
 | F24 | ILOE tracking | Not on the pages we read | Rules from the official page |
 | F25 | Compliance calendar (WPS dates, document expiries, quota checkpoints) | Not on the pages we read | Included |
 | F26 | Billing, published pricing, self-serve onboarding | Zoho publishes prices [PAGE]; others quote-only | Set after a cost model |
+| F35 | Air ticket entitlement tracking | Keka [PAGE] | Added after Keka review; M2 |
+| F36 | Annual leave salary advance and sick leave payout rules | Keka [PAGE] | Added after Keka review; rules need sources; M2 |
 
 ### M3: expand
 
@@ -105,7 +107,7 @@ comparison), Zoho People (global pricing page), ZenHR (UAE page), NeuralHR.AI
 | T1 | Every payslip line carries a deterministic trace to inputs and rule version. Per-line trace is not on the pages we read | [PAGE] for the gap; [DEMO@M1] for ours | Run the traced payslip from a sample file |
 | T2 | Every statutory value has a source URL and a status; unsourced values refuse to run. Rival pages do not show sources | [PAGE] for the gap; [DEMO@M1] | The engine fails loudly on an unsourced value |
 | T3 | Reproducibility: an old pay run re-runs identically under its old rule-pack | [DEMO@M1] | Automated test |
-| T4 | Parallel-run onboarding with a line-by-line difference report | [DEMO@M1] | Import a sample, compare against Zoho's free trial output for the same employee |
+| T4 | Parallel-run onboarding with a line-by-line difference report. **Not unique:** Keka's UAE page also offers parallel payroll runs [PAGE]; our difference is the line-by-line report with sources | [DEMO@M1] | Import a sample, compare against Zoho's free trial output for the same employee |
 | T5 | One API for the app and customers; webhooks on every plan. Zoho Payroll gates webhooks to Premium | [PAGE] for Zoho; [DEMO@M2] | Published API reference and live calls |
 | T6 | Tenant isolation proven on every build, not by policy | [DEMO@M1] | Automated cross-tenant test; outside penetration test later |
 | T7 | AI explains from the trace and never computes pay | [BET] | Built after M2 |
