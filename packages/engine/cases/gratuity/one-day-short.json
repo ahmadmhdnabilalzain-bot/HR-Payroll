@@ -1,0 +1,14 @@
+{
+  "id": "one-day-short",
+  "title": "One day short of a completed year",
+  "input": {
+    "joiningDate": "2023-03-01",
+    "lastWorkingDate": "2024-02-28",
+    "unpaidLeaveDays": 0,
+    "lastBasicMonthly": "1000000",
+    "workerClass": "expat-full-time"
+  },
+  "expectedFils": "0",
+  "sourceId": "LAW_33_2021",
+  "status": "official"
+}

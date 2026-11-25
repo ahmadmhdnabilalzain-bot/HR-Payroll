@@ -1,0 +1,14 @@
+{
+  "id": "leap-day-joiner",
+  "title": "Leap-day joiner reaches a year on 28 Feb",
+  "input": {
+    "joiningDate": "2024-02-29",
+    "lastWorkingDate": "2025-02-27",
+    "unpaidLeaveDays": 0,
+    "lastBasicMonthly": "1000000",
+    "workerClass": "expat-full-time"
+  },
+  "expectedFils": "700000",
+  "sourceId": "ENGINE_CONVENTION",
+  "status": "official"
+}

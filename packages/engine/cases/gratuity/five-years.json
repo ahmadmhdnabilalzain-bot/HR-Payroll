@@ -1,0 +1,14 @@
+{
+  "id": "five-years",
+  "title": "Five years, AED 10,000 basic: AED 35,000",
+  "input": {
+    "joiningDate": "2019-01-01",
+    "lastWorkingDate": "2023-12-31",
+    "unpaidLeaveDays": 0,
+    "lastBasicMonthly": "1000000",
+    "workerClass": "expat-full-time"
+  },
+  "expectedFils": "3500000",
+  "sourceId": "ARABIAN_BUSINESS_EOSB",
+  "status": "secondary"
+}

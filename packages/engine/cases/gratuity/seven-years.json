@@ -1,0 +1,14 @@
+{
+  "id": "seven-years",
+  "title": "Seven years uses the second tier",
+  "input": {
+    "joiningDate": "2017-01-01",
+    "lastWorkingDate": "2023-12-31",
+    "unpaidLeaveDays": 0,
+    "lastBasicMonthly": "1000000",
+    "workerClass": "expat-full-time"
+  },
+  "expectedFils": "5500000",
+  "sourceId": "LAW_33_2021",
+  "status": "official"
+}

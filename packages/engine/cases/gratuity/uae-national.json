@@ -1,0 +1,14 @@
+{
+  "id": "uae-national",
+  "title": "UAE national: not applicable",
+  "input": {
+    "joiningDate": "2019-01-01",
+    "lastWorkingDate": "2023-12-31",
+    "unpaidLeaveDays": 0,
+    "lastBasicMonthly": "1000000",
+    "workerClass": "uae-national"
+  },
+  "expectedFils": "0",
+  "sourceId": "UAE_GOV_EOSB",
+  "status": "official"
+}

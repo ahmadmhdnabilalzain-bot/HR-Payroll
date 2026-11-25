@@ -1,0 +1,14 @@
+{
+  "id": "exactly-one-year",
+  "title": "Exactly one year ending on a leap day",
+  "input": {
+    "joiningDate": "2023-03-01",
+    "lastWorkingDate": "2024-02-29",
+    "unpaidLeaveDays": 0,
+    "lastBasicMonthly": "1000000",
+    "workerClass": "expat-full-time"
+  },
+  "expectedFils": "700000",
+  "sourceId": "LAW_33_2021",
+  "status": "official"
+}

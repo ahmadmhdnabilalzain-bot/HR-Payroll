@@ -1,0 +1,14 @@
+{
+  "id": "unpaid-leave-threshold",
+  "title": "Unpaid leave drops service below a year",
+  "input": {
+    "joiningDate": "2023-03-01",
+    "lastWorkingDate": "2024-03-10",
+    "unpaidLeaveDays": 20,
+    "lastBasicMonthly": "1000000",
+    "workerClass": "expat-full-time"
+  },
+  "expectedFils": "0",
+  "sourceId": "UAE_GOV_LEAVES",
+  "status": "official"
+}

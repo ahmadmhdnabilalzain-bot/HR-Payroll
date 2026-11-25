@@ -1,0 +1,14 @@
+{
+  "id": "two-year-cap",
+  "title": "Thirty years is capped at two years pay",
+  "input": {
+    "joiningDate": "1994-01-01",
+    "lastWorkingDate": "2023-12-31",
+    "unpaidLeaveDays": 0,
+    "lastBasicMonthly": "1000000",
+    "workerClass": "expat-full-time"
+  },
+  "expectedFils": "24000000",
+  "sourceId": "LAW_33_2021",
+  "status": "official"
+}
