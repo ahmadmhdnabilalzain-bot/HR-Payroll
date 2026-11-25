@@ -35,11 +35,11 @@ function checkAccount(
       `Account must be ${len} characters (IBAN)`);
     return;
   }
-  if (!/^[A-Z]{2}[0-9]{2}/.test(v)) return;
   if (!ibanChecksumOk(v)) {
     report(ctx, "IBAN_CHECKSUM", "warning", r, 4,
-      "IBAN check digits do not pass mod 97");
+      "Account is not an IBAN that passes mod 97");
   }
+  if (!/^[A-Z]{2}[0-9]{2}/.test(v)) return;
   if (routing !== null && v.slice(4, 7) !== routing.slice(1, 4)) {
     report(ctx, "ROUTING_IBAN_BANK_MISMATCH", "warning", r, 4,
       "IBAN bank digits 5-7 differ from routing code digits 2-4");

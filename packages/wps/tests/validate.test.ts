@@ -54,6 +54,7 @@ const CASES: readonly Case[] = [
   ["ROUTING_FORMAT", "error", set(3, 3, "80242010"), 3, 3],
   ["ACCOUNT_LENGTH", "error", set(3, 4, "AE13024"), 3, 4],
   ["IBAN_CHECKSUM", "warning", set(3, 4, "AE140240043520123456702"), 3, 4],
+  ["IBAN_CHECKSUM", "warning", set(3, 4, "12345678901234567890123"), 3, 4],
   ["ROUTING_IBAN_BANK_MISMATCH", "warning",
     set(3, 4, "AE590340000000000000001"), 3, 4],
   ["DATE_FORMAT", "error", set(3, 5, "2016-01-32"), 3, 5],
