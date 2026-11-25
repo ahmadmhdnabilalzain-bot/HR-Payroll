@@ -19,6 +19,30 @@ describe("sources", () => {
     );
   });
 
+  it("reports the offending id in detail", () => {
+    expect.assertions(2);
+    try {
+      sourceOf("NOPE");
+    } catch (err) {
+      expect(err).toBeInstanceOf(EngineError);
+      expect((err as EngineError).detail).toEqual({ id: "NOPE" });
+    }
+  });
+
+  it.each(["constructor", "toString", "__proto__"])(
+    "rejects inherited member %s",
+    (id) => {
+      expect.assertions(3);
+      try {
+        sourceOf(id);
+      } catch (err) {
+        expect(err).toBeInstanceOf(EngineError);
+        expect((err as EngineError).code).toBe("UNKNOWN_SOURCE");
+        expect((err as EngineError).detail).toEqual({ id });
+      }
+    },
+  );
+
   it("gives every source a non-empty note", () => {
     for (const source of Object.values(SOURCES)) {
       expect(source.note.length).toBeGreaterThan(0);
