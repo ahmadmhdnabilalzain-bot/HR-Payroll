@@ -151,3 +151,13 @@ Selection rule: market presence plus review volume across segments. Same evidenc
 | Deel | Startup to enterprise | Claims 150+ EOR, 100+ payroll; owned entities UNVERIFIED | Contractors from $49 (confirmed); EOR $499-599 (UNVERIFIED) | ~4.7-4.8 (rating UNVERIFIED, 6,839 reviews) | Fast hiring, one platform | Payment delays, support, legal allegations (Deel denies) |
 
 Also studied: Papaya Global (partner model, ~55 G2 reviews, so excluded from the ten by the review-volume rule) and Remote (EOR from $599/employee/month; G2 ~4.5-4.6, UNVERIFIED; complaints about support, payment delays and cost). Not studied: Paychex, Paycom, BambooHR, HiBob, Personio, Globalization Partners.
+
+## Update, 25 Nov 2026 (second verification batch)
+
+Several statements above are stale. Corrections from pages read directly:
+
+- **Bayzat is stronger than the snippets suggested.** Its homepage claims 4,000+ companies and 250,000+ employees, ISO 27001:2022 and SOC 2 Type 2, Arabic and English, mobile app, AI assistant and knowledge hub, workflows, Microsoft and Google SSO, biometric integration, group health insurance, accounts payable, host-to-host payments and global payouts, and 2 to 4 week setup. All vendor claims; pricing is quote-only (<https://www.bayzat.com/>).
+- **ZenHR** shows 150+ reviews on GetApp and Capterra and 50+ on G2 on its own page, claims SOC 2 Type II, ISO 27001 and PDPL, 20+ integrations, GPS and QR attendance, ZKTeco, OKRs and an ATS. Pricing is by quote (<https://www.zenhr.com/en/hr-software-uae>).
+- **NeuralHR.AI** claims Nafis Emiratisation monitoring, visa and Emirates ID tracking, pre-run payroll anomaly flags, human approval gates, in-region data residency and Resolution 340 of 2026 rules (vendor claims; no independent reviews found) (<https://neuralhr.ai/en/ai-powered-hrms>).
+- **Zoho Payroll** pricing and the full plan comparison are verified live; webhooks, leave and attendance and advanced approvals sit in higher plans (<https://www.zoho.com/en-ae/payroll/pricing-comparison/>).
+- So the line "no vendor shows Emiratisation, MOHRE or visa handling" is **stale as a statement about claims**: several vendors now claim them. What remains true is that no vendor offers independently checkable proof. Still unverified: Bayzat pricing, Zoho People pricing, ZenHR pricing, and the primary text of Ministerial Resolution 340 of 2026.

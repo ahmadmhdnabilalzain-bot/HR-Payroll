@@ -1,153 +1,179 @@
-# UAE SME HR & Payroll: Design and Build Plan (DRAFT for approval)
+# UAE SME HR & Payroll: Design and Build Plan (v2, DRAFT for approval)
 
-Status: **draft, not approved. No code has been written.** Evidence base: `docs/research/2026-11-25-competitor-analysis.md` plus a verification batch on 25 Nov 2026 (links below). Where a fact is not confirmed, it is marked **UNVERIFIED** and is checked in Phase 0.
+Status: **draft, not approved. No code has been written.** v2 incorporates three independent reviews (builder check, failure modes, payroll-law) and a second verification batch on 25 Nov 2026. Evidence: `docs/research/2026-11-25-competitor-analysis.md` and the links in section 13. Anything not confirmed is marked **UNVERIFIED** and resolved in Phase 0.
 
-## 1. Intent
+## 1. Intent and the honest starting point
 
-Build the HR and payroll product UAE SMEs (about 10 to 250 employees, mainland first) trust most for **getting people paid correctly and legally**, and make that trust provable. The plan below defines "strongest" as a scorecard we can measure against Zoho, Bayzat, ZenHR and NeuralHR.AI, then orders the work so every phase moves a row.
+Build the HR and payroll product UAE SMEs (about 10 to 250 employees, mainland first) trust most for getting people paid correctly and legally, and make that trust **provable rather than claimed**.
 
-Why this is the right target: the competitor research shows the open gaps are trust and operations (opaque pricing, slow support, payroll errors with no ownership, no public proof of UAE depth). Compliance claims are cheap (NeuralHR.AI, ZenHR and Bayzat all claim WPS, gratuity and MOHRE support), so the winning move is **proof, not claims**.
+What the verification changed: **Bayzat is a serious incumbent, not a thin one.** Its own homepage claims 4,000+ companies and 250,000+ employees, ISO 27001:2022 and SOC 2 Type 2, Arabic and English, mobile app, AI assistant and knowledge hub, workflows, Microsoft and Google SSO, biometric integration, group health insurance, accounts payable and host-to-host payments, and 2 to 4 week setup (all vendor claims). Zoho's AED 45 plan is already feature-rich and cheap. ZenHR claims 150+ reviews on GetApp and Capterra, SOC 2 Type II and ISO 27001. NeuralHR.AI claims Emiratisation, visa tracking and pre-run payroll checks. So **claiming WPS, gratuity or Emiratisation support is not a differentiator; every rival claims them.** What none of them offers publicly is independently checkable proof. That is the wedge, and it is narrower than first thought.
 
 ## 2. Goals, non-goals, anti-goals
 
 **Goals**
-- Pay runs that are correct, explainable and reproducible, including edge cases (mid-month joiners and leavers, unpaid leave, overtime, final settlement).
-- Zero WPS file rejections for customers.
-- Setup from signup to a first parallel-run payroll in one business day for a company of up to 50 employees.
-- Published, flat, all-in AED pricing. Full API and webhooks on every plan.
-- Arabic and English from the first screen, including payslips.
+- Pay runs that are correct, explainable and reproducible, including edge cases.
+- No WPS rejection caused by our file's format or our validation.
+- Fast onboarding: import, then a parallel-run comparison against the customer's current payroll.
+- Feature parity with the SME plans of Zoho, ZenHR and Bayzat on the things SMEs buy on (section 7), plus an open API and webhooks on every plan.
+- Arabic and English everywhere, including payslips.
 
 **Non-goals for v1**
-- Moving or holding salary money (files-only, see section 6 and risk R1).
-- Recruiting, performance management, learning, benefits and insurance brokerage.
-- Free zones (DIFC/ADGM), Saudi Arabia and other GCC countries.
-- A native mobile app (a mobile-first web app first).
+- Moving or holding salary money (files-only; risk R1). Note Bayzat advertises payments, so this is a gap we accept and revisit.
+- Group health insurance brokerage, accounts payable, spend management.
+- Recruiting and performance management at launch (reasons in section 7).
+- Saudi Arabia and other GCC countries; native mobile app.
 
-**Anti-goals (a failure even if it technically works)**
-- A product that looks complete but cannot show how a payslip number was derived.
+**Anti-goals**
+- Any number on a payslip we cannot trace to inputs and a rule version.
 - AI that computes or changes pay.
-- Quote-only pricing or a feature matrix that hides the gaps.
+- Marketing claims ("fully compliant", "100% accurate") that the evidence does not back.
 
-## 3. Constraints
+## 3. Constraints and open inputs
 
-- Statutory rules change (WPS changed on 1 June 2026). Rules must be data, not code scattered across the app.
-- No public MoHRE API for third-party HR software was found, so v1 integrates through files and the customer's own bank, not through government systems.
-- Salary, bank and ID data are sensitive. UAE PDPL applies; its executive regulations were reportedly still pending in mid-2026 (UNVERIFIED).
-- Unknown inputs: team size, funding and timeline (section 9). Durations below are indicative and assume 2 to 3 engineers.
+- Statutory rules change (WPS changed 1 June 2026). Old runs must stay reproducible.
+- No public MoHRE API for third-party HR software was found (UNVERIFIED); v1 works through files and the customer's bank.
+- Salary, bank and ID data are sensitive; UAE PDPL applies (executive regulations reportedly pending, UNVERIFIED).
+- **Unknown, and set by you (section 10):** who builds and by when, funding, counsel, bank contact, pilot customers, liability and insurance. Plans below give **no week counts** until the team is known.
 
 ## 4. Approaches considered
 
-| Approach | What it is | Verdict |
-|---|---|---|
-| **1. Deterministic UAE-first engine, files-only, AI explains (chosen)** | Own the payroll engine and rules as versioned data; generate and validate WPS files; customer submits via their bank; AI only explains and flags | Fits the evidence: it makes correctness provable, avoids licensing, and is buildable by a small team |
-| 2. AI-first "agentic" HRMS | Agents execute workflows end to end | NeuralHR.AI already claims this, with no independent proof; payroll must be deterministic and auditable, so AI cannot be the core |
-| 3. Thin layer over an existing payroll provider | White-label another engine | No UAE embedded-payroll provider was found; it would give up the correctness advantage and the margin |
-
-Chosen: **approach 1.** (My call; you approve or change it.)
+| Approach | Verdict |
+|---|---|
+| **1. Deterministic UAE engine with counsel-signed rule-packs, files-only, AI explains (chosen)** | Makes correctness provable, avoids licensing, buildable by a small team |
+| 2. AI-first agentic HRMS | NeuralHR.AI already claims this without independent proof; payroll must be deterministic |
+| 3. Thin layer over another payroll provider | No UAE embedded-payroll provider found; gives up the correctness advantage |
 
 ## 5. "Strongest" as a scorecard
 
-Baselines come from the 25 Nov 2026 verification batch; "none public" means no competitor publishes it.
-
-| # | Dimension | Competitor baseline | Our target |
+| # | Dimension | Verified or claimed baseline | Target |
 |---|---|---|---|
-| 1 | Payroll correctness, measured by a **published golden-scenario suite** (gratuity, WPS, overtime, joiners, leavers, unpaid leave, final settlement) | None published by anyone | 100% pass on 300+ scenarios at launch; the suite and results are public |
-| 2 | WPS file rejections by banks | none public | 0 in pilots and at launch; tracked per customer |
-| 3 | Signup to first parallel-run payroll (up to 50 employees) | NeuralHR.AI claims "inside the demo" (vendor, unproven); others not stated | at most 1 business day via Excel import |
-| 4 | Price | Zoho Payroll AED 45 to 90/org/month incl. 5 staff, plus AED 9 to 18 per extra employee (verified); leave/attendance only in Premium; NeuralHR.AI $10/user/month (about AED 37 at the AED 3.6725/USD peg, vendor-stated); others quote-only | one flat all-in price per employee, hypothesis AED 15 to 20 per month with no base fee. **To be validated with pilots** |
-| 5 | API and webhooks | Zoho: webhooks only in Premium; others unknown | full API and webhooks on every plan |
-| 6 | Arabic | ZenHR strong (bilingual web and mobile, vendor-stated) | full RTL UI, Arabic payslips and Arabic self-service from the first screen |
-| 7 | Support | slow or email-only complaints across vendors | published response times; first response within one business hour on WPS deadline days |
-| 8 | Security and certification | ZenHR claims SOC 2 Type II and ISO 27001; Zoho lists SOC and ISO 27001 | start with a strong baseline (section 6); target ISO 27001 and SOC 2 Type I within 12 months of launch. This is a gap we close, not a lead we have |
-| 9 | Explainability | NeuralHR.AI claims explainable AI (vendor) | every payslip line traces to its inputs and the rule version that produced it |
+| 1 | Payroll correctness | Nobody publishes proof | A **public case library** of counsel-signed UAE payroll cases (coverage defined by the case list in Appendix A, not a number) with results published per release; every payslip line shows its inputs and rule-pack id |
+| 2 | WPS files | none public | Zero rejections caused by our file's format or validation, tracked per customer. (Rejections for customer data mismatches, such as labour card or IBAN, are caught by our pre-checks where possible but are not promised away) |
+| 3 | Onboarding | Bayzat claims 2 to 4 weeks; NeuralHR.AI claims first parallel run in the demo (unproven) | Import plus parallel-run comparison within days for up to 50 employees; the exact promise is set after pilots |
+| 4 | Price and support | Zoho published; Bayzat and ZenHR quote-only; NeuralHR.AI $10/user/month (vendor) | **Not set yet.** Published flat pricing and support response times are set only after a cost and staffing model exists (see section 10) |
+| 5 | API | Zoho webhooks only in its top plan | Full REST API and signed webhooks on every plan |
+| 6 | Arabic | ZenHR and Bayzat claim bilingual web and mobile | Full RTL UI, Arabic payslips and documents, Arabic self-service |
+| 7 | Security | Bayzat: ISO 27001:2022 and SOC 2 Type 2 (vendor). ZenHR: SOC 2 Type II, ISO 27001 (vendor). Zoho: ISO and SOC listings | We start with **no certifications**, which is a gap. Strong baseline first; ISO 27001 and SOC 2 as a funded roadmap item |
+| 8 | Explainability | NeuralHR.AI claims "explainable AI" (vendor) | Deterministic trace per payslip line (no AI needed) |
+| 9 | Independence | Bayzat's pricing is reportedly bundled with its insurance brokerage (UNVERIFIED) | No cross-selling conflict; accountant and PRO friendly |
 
 ## 6. Technical design
 
-Each call is mine, with one line of reasoning. You approve the set, not each line.
+**Rule-packs (revised after review).** Statutory rules are both numbers and logic (tier switches, caps, forfeiture, exclusions). So a **rule-pack is versioned code plus parameter data under one immutable id**, and every payslip line stores the rule-pack id and inputs. Packs are effective-dated. A rule-pack goes into **real pay runs only after counsel signs it**; engineering of everything else does not wait on that.
 
-**Payroll engine**
-- A pure library with no database or network access, so it can be tested exhaustively. *Reason: correctness is the product.*
-- Money in integer fils (no floating point), with explicit, documented rounding rules. *Reason: reproducibility.*
-- Statutory rules (gratuity tiers, overtime multipliers, WPS validation, Emiratisation thresholds) stored as **versioned, effective-dated data**, never hard-coded. *Reason: laws change on a date, and old runs must stay reproducible.*
-- A finalised pay run is immutable. Corrections are new, linked runs. Every payslip line records its inputs and the rule version used. *Reason: audit and dispute resolution.*
-- Definition of correct: the golden suite in section 5, built from official sources (the MOHRE gratuity formula is confirmed: 21 days' basic wage per year for the first five years, 30 days thereafter, capped at two years' wages, proportional after one full year) and reviewed by UAE counsel.
+**Payroll engine.** Pure library, no database or network access; integer fils for money with documented rounding; proration divisor an explicit, versioned parameter (a known dispute source); finalised runs immutable; corrections are new linked runs. **How a correction interacts with a file already sent to a bank is a Phase 0 question for the banks and counsel, not a design guess.**
 
-**WPS**
-- A SIF generator plus a **pre-submission validator**, built from at least two banks' written specifications, not from summaries. The first-of-the-month salary deadline and escalating penalties in Ministerial Resolution 340 of 2026 are encoded as validation and calendar rules once the primary text is read.
-- v1 prepares and validates files; the customer submits through their bank or exchange house.
+**Definition of correct (oracle).** Not "whatever we compute". Counsel-signed cases, plus an official calculator where one exists (the search surfaced <https://dda.gov.ae/en/gratuity-calculator/gratuity-calculator>; its coverage, likely Dubai Development Authority free zones, must be checked before use as an oracle). Coverage is defined by the case list in Appendix A.
 
-**Security and data**
-- PostgreSQL with row-level security for tenant isolation; field-level encryption (envelope keys in a managed KMS) for salary, bank and ID data; an append-only, hash-chained audit log; mandatory MFA for payroll roles; role-based access with separation of duties (the preparer cannot approve).
-- Host in a UAE region (AWS me-central-1 and Azure UAE North exist; availability and certification status to be confirmed in Phase 0). Backups and logs stay in-region.
-- Data minimisation toward any AI service: no salary or ID data leaves the region without a documented basis (Phase 3 decision).
+**WPS.** SIF generator and pre-submission validator built from at least two banks' written specs. Rules from Ministerial Resolution 340 of 2026 are encoded after the primary text is read (the MOHRE page fetch failed with a proxy error; summaries agree on a first-of-the-month deadline and escalating consequences but disagree on details, UNVERIFIED).
 
-**API**
-- OpenAPI-first REST API that the web app itself consumes, plus signed webhooks. *Reason: one surface, one source of truth, and a visible differentiator against Zoho's plan-gated webhooks.*
+**Security, in the first milestone that stores salary data.** Per-tenant data keys with envelope encryption; PostgreSQL row-level security; **all workers run as roles that cannot bypass tenant isolation**; a cross-tenant leak test in CI; append-only hash-chained audit log; mandatory MFA for payroll roles; separation of duties (preparer cannot approve); an **external penetration test before any real employee data**; a breach-notification and data-retention policy (PDPL). UAE-region hosting (AWS me-central-1 and Azure UAE North exist; availability and certification to be confirmed).
 
-**Arabic and RTL**
-- Logical CSS properties and an i18n layer from the first screen; Arabic payslip templates; Arabic-English bilingual documents. *Reason: retrofitting RTL is expensive.*
+**API.** OpenAPI-first REST API that the web app itself uses, plus signed webhooks, tenant model that supports accountants and PROs managing many companies, and a stated versioning policy.
 
-**Stack**
-- TypeScript end to end (engine, API, web); PostgreSQL; a Postgres-backed job queue to keep infrastructure small; a mobile-first responsive web app for employee self-service in v1. *Reason: one language, a small team, fewer moving parts. The stack is a means, not a selling point.*
+**Arabic.** Logical CSS and i18n from the first screen; Arabic payslip templates.
 
-**AI (limited and provable)**
-- Explains a payslip from the engine's trace, flags anomalies before a run (unusual overtime, missed deductions, expiring documents), answers policy questions from the customer's own documents, and reads uploaded documents. It never computes or alters pay. Every AI output links to the data that produced it.
+**Stack.** TypeScript end to end, PostgreSQL, Postgres-backed job queue, mobile-first web app first. A means, not a selling point.
 
-## 7. Features, in order
+**AI (explain and flag only).** Payslip explanation from the engine trace, pre-run anomaly flags, policy Q&A from the customer's documents, document reading. Never computes or alters pay. Not in the first milestone; the data-residency basis for any model provider is decided first.
 
-**Launch (Phases 1 to 3)**
-- Employee records with document and visa expiry alerts; payroll with UAE rules; WPS generate and validate; gratuity and final settlement; leave; attendance (web and mobile check-in, ZKTeco-class device import); employee self-service in Arabic and English; payslips; approvals and separation of duties; accounting export (Zoho Books, QuickBooks, Xero); Excel import with **parallel-run comparison** against the customer's current payroll; audit log; published API and webhooks.
-- Emiratisation tracker for the 20 to 49 and 50+ bands (MoHRE rules reported: one Emirati by end-2024 and a second by end-2025 for 20 to 49 staff; 2 points a year to 10% by end-2026 for 50+; checked 30 June and 31 December); ILOE tracking; compliance calendar.
+## 7. Feature parity and plan
 
-**Next (Phase 4)**
-- Multi-entity, accountant and PRO console, AI explain and flag, DIFC/ADGM variants (DEWS and ADGM rules), compliance certifications.
+Columns: what rivals' own pages list, our decision. "M1" = pilot-ready milestone, "M2" = launch-parity milestone, "M3" = expand.
 
-**Deferred, with reasons (visible by design)**
-- **Salary payment through a bank partner:** needs a licence or a licensed partner (risk R1).
-- **Free zones:** separate legal regimes; after mainland is proven.
-- **Recruiting and performance:** competitors have them, but they do not decide whether payroll is trusted. Revisit after Phase 3 based on pilot demand.
-- **Saudi Arabia (Mudad, Qiwa, GOSI):** limited public APIs and a different compliance regime.
-- **Native mobile app:** after the web app proves the flows.
+| Capability | Zoho (AED 45 plan unless noted) | ZenHR | Bayzat | Our plan |
+|---|---|---|---|---|
+| WPS SIF, bank advice | yes | claimed | claimed | **M1** |
+| Gratuity, final settlement, exit process | yes | claimed | claimed | **M1** (rule-pack signed by counsel) |
+| Pension for Emirati and GCC nationals (GPSSA and others) | yes, all plans | GOSI reports | claimed | **M1** for GPSSA (an Emiratisation tracker without Emirati payroll contradicts itself); other GCC pension schemes M3 |
+| Salary revisions, arrears, joiner arrears, LOP and reversal | yes | ? | ? | **M1** |
+| Pay run reversal and corrections | yes | ? | ? | **M1**, after the Phase 0 bank answer |
+| Pay-run and salary-revision approvals | Professional and up | ? | workflows | **M1** |
+| Audit trail | yes | claimed | ? | **M1** (hash-chained) |
+| Document and visa expiry alerts | yes | doc mgmt | ? | **M1** |
+| Excel import and parallel-run comparison | import supported | ? | migration service | **M1** |
+| Payslips, salary certificates, letter templates | yes | HR letters | ? | payslips **M1**; letters **M2** |
+| Loans and salary advances | yes | ? | ? | **M2** |
+| Leave management and attendance | Premium only | yes; GPS or QR, ZKTeco, rosters | yes | **M2** (included in the base price) |
+| Employee self-service (web and mobile web) | yes | native apps | native apps | **M2** (native app M3) |
+| Reports: payroll summary, salary register, LOP, journal, gratuity liability | yes | custom builder | AI reporting | **M2** |
+| DIFC-DEWS summary | yes | ? | ? | **M3** (with free-zone work) |
+| Accounting integrations | Zoho Books | QuickBooks, Xero, Odoo, NetSuite, SAP | ERPs, accounting | **M2**: Zoho Books, QuickBooks, Xero first |
+| SSO and MFA | SAML and MFA, all plans | ? | Microsoft and Google SSO | MFA **M1**; SSO **M2** |
+| Webhooks and API | Premium only | marketplace integrations | integrations | **M2**, all plans |
+| Emiratisation tracking | not listed | ? | claimed | **M2** (definitions from counsel: Appendix A) |
+| ILOE tracking | ? | ? | ? | **M2** (rules from primary source) |
+| Performance (OKRs, 360), ATS | no | yes | yes | **Deferred**: does not decide whether payroll is trusted; revisit after launch on pilot demand |
+| Group health insurance | no | partner | core business | **Deferred**: avoids a broker conflict; premium deductions only |
+| AP, spend, payments, global payouts | no | no | yes | **Deferred**: licensing (R1) |
+| Multi-currency payroll, roster-heavy shift workforces | ? | yes | ? | **M3** |
+| AI explain, flag, knowledge hub | Zia (details ?) | ATS AI | AI assistant and hub | **M3** |
+| SOC 2 and ISO 27001 | listed | claimed | claimed | **Roadmap**, funded in M2 |
 
-## 8. Phases and exit criteria
+Segment note: the plan targets 10 to 250 employees, but onboarding and pricing were sized for up to 50. Larger SMEs need approvals depth, multi-entity and reporting; those are sized in M3, not ignored.
 
-Indicative sizes assume 2 to 3 engineers; they change with the team.
+## 8. Milestones and exits
 
-| Phase | Scope | Size | Exit criterion (must be demonstrable) |
-|---|---|---|---|
-| **0. Verify** | Read the WPS resolution; get SIF specs from at least two banks; UAE counsel opinion on files-only and PDPL; confirm cloud region; trial Zoho, Bayzat and ZenHR and record gaps; recruit pilot SMEs | 3 to 4 weeks | Counsel's written opinion in hand; SIF specs from 2 banks; at least 5 pilot SMEs committed; competitor trial notes written |
-| **1. Engine and WPS core** | Data model, engine, rules-as-data, golden suite, SIF generator and validator, employee records, Excel import | 8 to 10 weeks | Golden suite 100%; a generated SIF accepted by a real bank in a pilot company; gratuity matches counsel-reviewed cases |
-| **2. Product shell** | Leave, attendance, self-service (Arabic and English), approvals, payslips, accounting export, audit log, security baseline | 8 to 10 weeks | Two pay cycles run in parallel at 5 pilot SMEs with no unexplained variance |
-| **3. Launch** | Billing, published pricing, onboarding flow, API and webhooks, Emiratisation and ILOE, compliance calendar, support operations | 6 to 8 weeks | 20 paying SMEs; median signup to first parallel run at most 1 business day; three consecutive cycles with 0 WPS rejections |
-| **4. Expand** | Multi-entity, accountant console, AI explain and flag, DIFC/ADGM, certifications | ongoing | Set after Phase 3 data |
+Exits are separated by kind, because calendar-bound validation takes months whatever the team size.
 
-## 9. What only you can do
+| Milestone | Scope | **Build exit** (testable now) | **Validation exit** (calendar-bound) | **Business outcome** (not a phase exit) |
+|---|---|---|---|---|
+| **Phase 0: Verify** | Primary texts; two bank SIF specs and the correction-after-submission answer; counsel opinion (files-only, PDPL, liability); cloud region; trials of Zoho, Bayzat, ZenHR; pilots recruited | Written outputs for each item | Counsel's signed rule cases exist for gratuity and WPS validation | At least 5 pilot SMEs agreed in writing |
+| **M1: Pilot-ready** | Engine and rule-packs, WPS generate and validate, records, import and parallel-run, payslips, approvals, audit log, GPSSA, security baseline and pen test | Case library passes 100% on all signed cases; cross-tenant CI test green; pen test findings closed; generated SIF accepted by a real bank in a test run | Two consecutive pay cycles run in parallel at pilot SMEs with no unexplained variance | none |
+| **M2: Launch parity** | Everything marked M2 in section 7, billing, onboarding flow, API and webhooks, support operations, compliance calendar | Parity checklist 100% (no unexplained gaps); published API reference | Three consecutive cycles at paying customers with no rejections caused by our files | Paying customers, onboarding time, support response times |
+| **M3: Expand** | Section 7 M3 items, multi-entity, accountant console, free zones | Per item | Per item | Set after M2 data |
 
-- Engage a UAE employment and data-protection lawyer.
-- Introduce a contact at one or two banks for the SIF specification.
-- Recruit pilot SMEs and sign up for competitor trials (Zoho, Bayzat, ZenHR).
-- Decide pricing after pilot feedback.
-- Tell me the team size, funding runway and target launch date; these change the phase sizes.
-- Allow the blocked vendor sites in this environment's network settings so I can finish the Bayzat, Zoho People and ZenHR pricing checks.
+## 9. Risks and kill rule
 
-## 10. Risks
+- **R1 licensing**: moving salary money needs a licence or licensed partner. Files-only in v1; counsel confirms. Bayzat advertises payments, so this is a competitive gap, accepted for now.
+- **R2 rule drift and secondary sources**: gratuity, ILOE, Emiratisation and WPS details come from press summaries; nothing is a rule until counsel signs it.
+- **R3 liability**: a wrong gratuity or a missed deadline can hurt customers and us. Needs a contract position, an error-remedy commitment and professional indemnity insurance (your decision, section 10).
+- **R4 tenant leak**: mitigated by section 6 security design, CI test and pen test.
+- **R5 pilot and bank dependence**: the M1 validation exit cannot happen without bank access and pilots. Mitigation: they are Phase 0 gates for real pay runs.
+- **R6 price floor and certification gap**: Zoho is cheap; Bayzat and ZenHR hold certifications and have far more customers. Our edge must be provable correctness, open API and independence, not breadth alone.
+- **R7 evidence gaps**: Zoho People, ZenHR pricing pages returned 404; Bayzat pricing is quote-only; vendor claims are unverified.
+- **Kill or re-scope rule**: in Phase 0, run the counsel-signed cases through the Zoho, Bayzat and ZenHR trials. If **at least two of the three compute every case correctly and show their working**, the correctness wedge is gone: stop and re-scope (for example, toward the accountant and PRO channel or toward a different segment) before building M1.
 
-- **R1 licensing:** moving salary money needs a licence or licensed partner. Mitigation: files-only in v1; counsel confirms in Phase 0. Salary payment is a later, separate project.
-- **R2 rule drift:** WPS changed in June 2026, and summaries disagree on due dates, grace periods and fines. Mitigation: read the primary text in Phase 0; rules are dated data.
-- **R3 competitors may be stronger than they look:** the research relied on snippets and vendor pages. Mitigation: the Phase 0 trials; re-scope if Bayzat or Zoho already deliver provable compliance.
-- **R4 price floor:** Zoho is cheap and widely trusted. Mitigation: compete on provable correctness and bundled features, not on price alone.
-- **R5 certifications gap:** competitors list SOC 2 or ISO 27001. Mitigation: strong baseline now, certification roadmap.
-- **R6 evidence gaps:** Bayzat, Zoho People and ZenHR pricing pages returned 404; DIFC/ADGM, ILOE and leave rules rest on secondary sources.
+## 10. What I need from you (the questions that change the plan)
+
+1. **Who builds, and by when?** If you plan to build with me alone, say so; milestones are then sequenced, not parallel. Team size, runway and target date decide how much of M2 can ship together.
+2. **Can you get a UAE employment and data-protection lawyer, a contact at one or two banks, and 5 pilot SMEs?** Phase 0 cannot finish without them.
+3. **Liability and insurance:** who is the legal entity, and are you willing to commit to an error-remedy promise backed by professional indemnity insurance?
+4. **Price and support:** I have removed the earlier price guess and the one-hour response target. They are set after a cost and staffing model; tell me your margin and support expectations.
+5. **Channel timing:** the accountant and PRO channel may be the real route to customers. I kept your SME decision and placed the console in M3; say if you want it earlier.
 
 ## 11. Calls I made (check these)
 
-Files-only v1; UAE mainland only; TypeScript and PostgreSQL stack; web app before native; AI never computes pay; hypothesis price of AED 15 to 20 per employee per month; certifications as a 12-month roadmap item; Phase sizes as indicative.
+Files-only v1; UAE mainland first; counsel-signed rule-packs; TypeScript and PostgreSQL; web app before native; AI never computes pay and arrives after launch parity; no week counts or price until inputs exist; Zoho, ZenHR and Bayzat as the parity baseline; performance, ATS, insurance and payments deferred; certifications as a funded roadmap item.
 
-## 12. Evidence (verified 25 Nov 2026)
+## 12. Appendix A: counsel question list (questions, not rules)
 
-- Zoho Payroll UAE pricing and plan comparison: <https://www.zoho.com/en-ae/payroll/pricing/> and <https://www.zoho.com/en-ae/payroll/pricing-comparison/>
+These come from a practitioner-style review that worked from memory. **None is a rule in this plan.** Each must be answered from primary sources or by counsel before it enters the case library.
+
+- Contract type and the effect of Decree-Law 33/2021 (fixed-term only) on service before and after 2 February 2022.
+- Emirati and GCC nationals: GPSSA instead of gratuity; contribution bases and caps; GCC nationals' home-country rules.
+- Gratuity inputs: basic wage only; unpaid-leave days excluded from service; probation; forfeiture on dismissal; proportional years; tier switch at year five; cap.
+- Final settlement: payment timing, notice in lieu, leave encashment, deductions (loans, ILOE premiums).
+- Leave: annual leave accrual and first-six-months rule; sick leave tiers and pay base; maternity, parental, bereavement, Hajj, study leave.
+- Overtime: daily cap, day, night and rest-day or holiday premiums, Ramadan hours, pay base.
+- Deductions: caps and stacking.
+- ILOE: premium amount by category, deduction mechanics, penalties, treatment at exit.
+- Emiratisation: which sectors and roles count, which salaries, the 20 to 49 band's sector scope, penalty amounts, historical versus current thresholds.
+- Part-time, flexible and temporary contracts.
+- Free zones: which follow federal law and WPS (DMCC, IFZA and others), versus DIFC and ADGM's own regimes. This sizes the market.
+- Proration divisor (30 days, calendar days, working days), mid-month joiners and leavers, February.
+- WPS data defects: expired labour card, IBAN or routing errors, unbanked staff, mid-cycle salary change, leave-days field.
+- Fixed-term early termination compensation.
+- Health insurance premium deductions and any emirate-level mandates.
+
+Highest-risk cases to include first: gratuity spanning 2 Feb 2022; unpaid-leave crossing the one-year and five-year thresholds; basic versus total wage; mid-month joiners and leavers; overtime stacking; deduction caps; resignation versus dismissal; Emirati or GCC employees; WPS data defects; fixed-term early termination.
+
+## 13. Evidence (verified 25 Nov 2026)
+
+- Zoho Payroll UAE pricing and full plan comparison: <https://www.zoho.com/en-ae/payroll/pricing/>, <https://www.zoho.com/en-ae/payroll/pricing-comparison/>
+- Bayzat homepage (vendor claims; product pages and pricing not fetched): <https://www.bayzat.com/>
 - ZenHR UAE: <https://www.zenhr.com/en/hr-software-uae> (vendor claims)
-- NeuralHR.AI: <https://neuralhr.ai/en/ai-powered-hrms> (vendor claims, no independent reviews found)
-- WPS 2026 resolution: [Baker McKenzie](https://www.bakermckenzie.com/en/insight/publications/2026/06/uae-new-resolution-impacting-payroll-immediate-action-required), [LexisNexis](https://www.lexisnexis.com/blogs/ae-legal/b/insights/posts/uae-mohre-enforces-unified-salary-deadline-new-wage-protection-system), [KPMG](https://kpmg.com/xx/en/our-insights/gms-flash-alert/2026/flash-alert-2026-128.html), [MOHRE WPS page](https://www.mohre.gov.ae/en/guidance-and-awareness-portal-new/wages-protection-system)
+- NeuralHR.AI: <https://neuralhr.ai/en/ai-powered-hrms> (vendor claims; no independent reviews found)
+- WPS 2026 resolution: [Baker McKenzie](https://www.bakermckenzie.com/en/insight/publications/2026/06/uae-new-resolution-impacting-payroll-immediate-action-required), [LexisNexis](https://www.lexisnexis.com/blogs/ae-legal/b/insights/posts/uae-mohre-enforces-unified-salary-deadline-new-wage-protection-system), [KPMG](https://kpmg.com/xx/en/our-insights/gms-flash-alert/2026/flash-alert-2026-128.html); MOHRE page fetch failed
 - Gratuity: [Arabian Business summarising a MOHRE post](https://www.arabianbusiness.com/business/uae-gratuity-rules-how-to-calculate-end-of-service-pay)
-- Competitor background: `docs/research/2026-11-25-competitor-analysis.md`
+- Research background: `docs/research/2026-11-25-competitor-analysis.md`
