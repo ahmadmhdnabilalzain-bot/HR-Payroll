@@ -111,3 +111,19 @@ The owner can overrule any of these. Source: the build ledger.
 - Task 5: Ruling: gcc-national with an override still throws UNSUPPORTED_WORKER_CLASS (safer than quietly using the expat formula); a badly typed override throws INVALID_PARAM (closes the Task 3 minor); select.ts now shares date checks from dates.ts — review must cover the select.ts change.
 - Task 10: Ruling: src/sample-schema.ts (a second zod file) is accepted as part of the I/O shell, because the controller allowed it in the dispatch; the plan's "zod only in cases/schema.ts" is read as "zod only in shell files" — costs one file move if the owner wants it strict.
 - Final review: READY AFTER FIXES; one fix wave (commits bc20961 to d333f36) addressed 9 findings; a scoped re-review followed.
+
+## 7. Residual notes after the final re-review (fix later)
+
+- The purity test misses an aliased global (`const c = console; c.log(1)`).
+- `nationalsExcluded` cites the law text; the u.ae end-of-service page that
+  states the rule was fetched and is the better source id.
+- Which status ranks weaker (secondary or convention) decides whether the
+  one-year and seven-year cases are "secondary" or "convention"; settle it with
+  counsel or a stated rule.
+- The not-eligible line lists only the one-year minimum, although the end-date
+  and leap-day conventions also decide the boundary.
+- Package exports point at `.ts` files: fine under tsx, vitest or a bundler,
+  not plain Node; revisit when Plan 2 picks a runtime.
+- `NO_PACK_FOR_DATE` does not yet say that leavers before 2022-02-02 are not
+  modelled; Arabic status words are joined with "," instead of "،".
+- All Arabic text needs a native speaker's review before any employee sees it.
