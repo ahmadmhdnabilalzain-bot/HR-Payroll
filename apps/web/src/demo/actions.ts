@@ -7,6 +7,8 @@ import {
   type RunPhase,
 } from "./derive";
 import { reducedMotion } from "./motion";
+import { mayOpen } from "../nav/registry";
+import { hrefOf, parseHash } from "./route";
 import { useDemo, type Role, type Verdict } from "./state";
 
 export interface RunApproval {
@@ -46,15 +48,34 @@ export function useSwitchRole(): (role: Role) => void {
   const { dispatch } = useDemo();
   return (role) => {
     const doc = document as Document & {
-      startViewTransition?: (cb: () => void) => unknown;
+      startViewTransition?: (cb: () => void) => Transition;
     };
     // The new role's Home opens at its top, status sentence in view.
+    // A page the new role may not open gives way to its Home, so a
+    // switch never lands on "outside your view".
     const run = (): void => {
+      if (!mayOpen(role, parseHash(location.hash))) {
+        const oldURL = location.href;
+        history.pushState(null, "", hrefOf("home"));
+        dispatchEvent(new HashChangeEvent("hashchange",
+          { oldURL, newURL: location.href }));
+      }
       flushSync(() => dispatch({ type: "role", role }));
       scrollTo({ top: 0, left: 0, behavior: "instant" });
     };
     if (reducedMotion() || typeof doc.startViewTransition !== "function") {
       run();
-    } else doc.startViewTransition(run);
+    } else quiet(doc.startViewTransition(run));
   };
+}
+
+interface Transition { ready?: Promise<unknown>; finished?: Promise<unknown> }
+
+/**
+ * A transition skipped by the next one rejects its promises; nothing
+ * waits on them here, so they are caught to keep the console clean.
+ */
+export function quiet(vt: Transition | undefined): void {
+  vt?.ready?.catch(() => undefined);
+  vt?.finished?.catch(() => undefined);
 }

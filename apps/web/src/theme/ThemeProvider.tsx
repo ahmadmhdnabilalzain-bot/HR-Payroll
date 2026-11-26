@@ -30,10 +30,16 @@ function crossfade(update: () => void): void {
   const reduce = typeof matchMedia === "function" &&
     matchMedia("(prefers-reduced-motion: reduce)").matches;
   const doc = document as Document & {
-    startViewTransition?: (cb: () => void) => unknown;
+    startViewTransition?: (cb: () => void) => {
+      ready?: Promise<unknown>; finished?: Promise<unknown> };
   };
   if (reduce || typeof doc.startViewTransition !== "function") update();
-  else doc.startViewTransition(update);
+  else {
+    // A transition skipped by the next one rejects; nothing waits on it.
+    const vt = doc.startViewTransition(update);
+    vt.ready?.catch(() => undefined);
+    vt.finished?.catch(() => undefined);
+  }
 }
 
 /**
