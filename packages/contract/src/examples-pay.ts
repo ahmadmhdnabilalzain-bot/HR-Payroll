@@ -41,6 +41,10 @@ const payslip = {
   notComputed,
   settlement: null,
   trace,
+  reimbursements: [],
+  reimbursementTotal: "0.00",
+  salaryNet: SALARY_SENTINEL,
+  reimbursementNote: null,
 };
 
 const payRun = {
@@ -56,6 +60,9 @@ const payRun = {
   gross: SALARY_SENTINEL,
   notComputed,
   sifFileId: null,
+  reimbursementTotal: "0.00",
+  claimCount: 0,
+  pendingClaimCount: 0,
 };
 
 const sifFile = {

@@ -139,6 +139,8 @@ function slipFor(
       code: "MOCK_NOT_COMPUTED",
       message: "The offline demo does not compute settlements." } : null,
     trace: lines.map(traceOf),
+    reimbursements: [], reimbursementTotal: fils(0n), salaryNet: total,
+    reimbursementNote: null,
   };
 }
 

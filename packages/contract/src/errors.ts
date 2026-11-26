@@ -1,6 +1,33 @@
 import { z } from "zod";
 
 /**
+ * Plan 6 (approvals, receipts, expenses). Claim problem codes
+ * (CLAIM_PROBLEM_CODES) travel inside a CLAIM_PROBLEMS body and are
+ * not API codes.
+ */
+const EXPENSE_ERROR_STATUS = {
+  RECEIPT_BASE64_INVALID: 400,
+  NOT_AN_APPROVER: 403,
+  APPROVER_NEEDED_LATER: 403,
+  APPROVAL_NOT_PENDING: 409,
+  APPROVAL_STEP_CHANGED: 409,
+  CHAIN_VERSION_CONFLICT: 409,
+  CATEGORY_CODE_TAKEN: 409,
+  POLICY_VERSION_CONFLICT: 409,
+  CLAIM_NOT_EDITABLE: 409,
+  CLAIM_NOT_CANCELLABLE: 409,
+  RECEIPT_TOO_LARGE: 413,
+  RECEIPT_TYPE_NOT_ALLOWED: 415,
+  NO_ELIGIBLE_APPROVER: 422,
+  CHAIN_INVALID: 422,
+  RECEIPT_TYPE_MISMATCH: 422,
+  POLICY_INVALID: 422,
+  CANCEL_NOTE_REQUIRED: 422,
+  CLAIM_PROBLEMS: 422,
+  EXCLUDED_CLAIM_INVALID: 422,
+} as const;
+
+/**
  * Every code an HTTP error body can carry, with its status. Internal
  * codes (MIGRATION_NAME, AUDIT_SENSITIVE_DATA, CANONICAL_NUMBER) are
  * not API codes and never reach a response. Pay-run problem codes
@@ -57,6 +84,7 @@ export const ERROR_STATUS = {
   PAYLOAD_TOO_LARGE: 413,
   ACCOUNT_LOCKED: 423,
   INTERNAL: 500,
+  ...EXPENSE_ERROR_STATUS,
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_STATUS;

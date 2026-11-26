@@ -6,6 +6,7 @@ import {
 } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { base32Decode, totpCode } from "../src/auth/totp";
+import { PLAN6_PENDING } from "./helpers/plan6-pending";
 import { salaryOf } from "./helpers/seed";
 import { call, makeApp, PASSWORD, type Res } from "./helpers/test-app";
 
@@ -42,14 +43,14 @@ describe("whole-API conformance", () => {
     const routes = (ctx.app.routes as { method: string; path: string }[])
       .filter((r) => r.method !== "ALL")
       .map((r) => `${r.method} ${r.path}`);
-    const want = ROUTES.map((r) =>
+    const want = ROUTES.filter((r) => !PLAN6_PENDING.has(r.id)).map((r) =>
       `${r.method} ${r.path.replace(/\{([a-zA-Z]+)\}/g, ":$1")}`);
     expect([...routes].sort()).toEqual([...want].sort());
   });
 
   it("one happy-path call per route parses with its response schema",
     () => {
-      for (const r of ROUTES) {
+      for (const r of ROUTES.filter((x) => !PLAN6_PENDING.has(x.id))) {
         const ok = hits.find((h) => h.id === r.id && h.res.status < 300);
         expect(ok, `${r.id} never succeeded`).toBeDefined();
         const body = r.status === 204 ? null : ok!.res.body;

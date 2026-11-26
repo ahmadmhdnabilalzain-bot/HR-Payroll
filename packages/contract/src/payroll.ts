@@ -50,6 +50,8 @@ export type PayRunEntry = z.infer<typeof PayRunEntry>;
 export const PayRunCreate = z.object({
   period: Period,
   entries: z.array(PayRunEntry).max(1000),
+  /** Approved claims HR keeps out of this run (they stay approved). */
+  excludeClaimIds: z.array(Id).max(500).optional(),
 });
 export type PayRunCreate = z.infer<typeof PayRunCreate>;
 
@@ -76,6 +78,11 @@ export const PayRun = z.object({
   notComputed: z.array(z.string()),
   /** The run's SIF file once generated (one per run), else null. */
   sifFileId: Id.nullable(),
+  /** Approved expense claims paid with this run (outside gross). */
+  reimbursementTotal: Money,
+  claimCount: z.number().int().min(0),
+  /** Submitted, undecided claims of in-scope employees at creation. */
+  pendingClaimCount: z.number().int().min(0),
 });
 export type PayRun = z.infer<typeof PayRun>;
 
@@ -123,6 +130,20 @@ export const Settlement = z.discriminatedUnion("status", [
 ]);
 export type Settlement = z.infer<typeof Settlement>;
 
+/** Shown on payslips, runs and payouts that carry reimbursements. */
+export const REIMBURSEMENT_WPS_NOTE = "Reimbursements are not in the " +
+  "WPS salary file. Pay them by separate transfer. Whether they must " +
+  "go through WPS is not sourced.";
+
+/** One approved expense claim: outside gross, inside net. */
+export const ReimbursementLine = z.object({
+  claimId: Id,
+  label: z.string(),
+  amount: Money,
+  traceId: z.string(),
+});
+export type ReimbursementLine = z.infer<typeof ReimbursementLine>;
+
 export const Payslip = z.object({
   id: Id,
   payRunId: Id,
@@ -135,5 +156,10 @@ export const Payslip = z.object({
   notComputed: z.array(z.string()),
   settlement: Settlement.nullable(),
   trace: z.array(TraceLine),
+  /** Never in `lines`, `gross` or the SIF. net = salaryNet + total. */
+  reimbursements: z.array(ReimbursementLine),
+  reimbursementTotal: Money,
+  salaryNet: Money,
+  reimbursementNote: z.literal(REIMBURSEMENT_WPS_NOTE).nullable(),
 });
 export type Payslip = z.infer<typeof Payslip>;

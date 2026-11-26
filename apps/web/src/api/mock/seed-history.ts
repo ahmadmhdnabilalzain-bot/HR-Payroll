@@ -38,7 +38,8 @@ function lastMonthRun(s: MockSeed, today: string) {
     approvedAt: dubaiAt(end, 15, 0),
     inputHash: sha256(canonical(toWirePayRunCreate(body))),
     employeeCount: payslips.length, gross,
-    notComputed: [...NOT_COMPUTED_PAY],
+    notComputed: [...NOT_COMPUTED_PAY], sifFileId: null,
+    reimbursementTotal: fils(0n), claimCount: 0, pendingClaimCount: 0,
   };
   return { run, payslips };
 }

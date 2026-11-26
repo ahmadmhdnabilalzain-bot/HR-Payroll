@@ -3,9 +3,11 @@ import {
   ERROR_STATUS,
   type ErrorCode,
   type PayRunProblem,
+  type WireErrorDetail,
 } from "./contract";
 
-export type ErrorDetail = Record<string, string | string[]>;
+/** As the contract: strings, string lists or lists of flat objects. */
+export type ErrorDetail = WireErrorDetail;
 
 /** Codes that never come from the server. */
 export type ClientCode = "NETWORK" | "CONTRACT_MISMATCH";
@@ -43,6 +45,8 @@ function decodeProblems(detail: ErrorDetail): PayRunProblem[] {
   if (raw === undefined) return [];
   const list = Array.isArray(raw) ? raw : [raw];
   return list.flatMap((s) => {
+    // The server sends problem objects; the mock sends JSON strings.
+    if (typeof s !== "string") return [s as unknown as PayRunProblem];
     try {
       return [JSON.parse(s) as PayRunProblem];
     } catch {

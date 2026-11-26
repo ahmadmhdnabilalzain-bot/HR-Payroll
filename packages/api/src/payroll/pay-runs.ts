@@ -51,7 +51,8 @@ export const toPayRun = (r: RunRow): PayRun => ({
   createdAt: r.created_at, approvedAt: r.approved_at,
   inputHash: r.input_hash, employeeCount: r.employee_count,
   gross: toMoney(fils(BigInt(r.gross))), notComputed: [...NOT_COMPUTED_PAY],
-  sifFileId: r.sif_file_id });
+  sifFileId: r.sif_file_id, reimbursementTotal: "0.00", claimCount: 0,
+  pendingClaimCount: 0 });
 
 export async function loadRun(tx: Db, companyId: string, id: string,
   lock = false): Promise<RunRow> {

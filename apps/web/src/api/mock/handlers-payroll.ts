@@ -58,7 +58,8 @@ function create(c: Ctx, r: WireRequest): AppPayRun {
     createdBy: signedIn(c).id, approvedBy: null, createdAt: c.now,
     approvedAt: null, inputHash: hash, employeeCount: slips.length,
     gross: slips.reduce((t: Fils, s) => add(t, s.gross), fils(0n)),
-    notComputed: [...NOT_COMPUTED_PAY] };
+    notComputed: [...NOT_COMPUTED_PAY], sifFileId: null,
+    reimbursementTotal: fils(0n), claimCount: 0, pendingClaimCount: 0 };
   c.s.runs = [...c.s.runs, run];
   c.s.payslips = [...c.s.payslips, ...slips];
   c.s.idempotency.set(key, { hash, runId: id });

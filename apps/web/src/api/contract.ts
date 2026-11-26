@@ -10,6 +10,7 @@ import {
   type PayRunEntry,
   type Payslip,
   type PayslipLine,
+  type ReimbursementLine,
   type SalaryComponent,
   type Settlement,
   type SifFile,
@@ -40,6 +41,7 @@ export type {
   CompanyUser,
   Department,
   ErrorCode,
+  ErrorDetail as WireErrorDetail,
   Finding,
   InviteRequest,
   InviteResponse,
@@ -81,15 +83,18 @@ export type AppSalaryComponent = Money<SalaryComponent, "amount">;
 export type AppEmployee = Omit<EmployeeView, "salary"> & {
   salary: AppSalaryComponent[] | null;
 };
-export type AppPayRun = Money<PayRun, "gross">;
+export type AppPayRun = Money<PayRun, "gross" | "reimbursementTotal">;
+export type AppReimbursementLine = Money<ReimbursementLine, "amount">;
 export type AppPayslipLine = Money<PayslipLine, "amount">;
 type Computed = Extract<Settlement, { status: "computed" }>;
 export type AppSettlement =
   | Money<Computed, "gratuity" | "leavePay" | "total">
   | Extract<Settlement, { status: "refused" }>;
+type SlipMoney = "gross" | "net" | "salaryNet" | "reimbursementTotal";
 export type AppPayslip = Omit<
-  Money<Payslip, "gross" | "net">, "lines" | "settlement"
-> & { lines: AppPayslipLine[]; settlement: AppSettlement | null };
+  Money<Payslip, SlipMoney>, "lines" | "settlement" | "reimbursements"
+> & { lines: AppPayslipLine[]; settlement: AppSettlement | null;
+  reimbursements: AppReimbursementLine[] };
 export type AppSifFile = Money<SifFile, "total">;
 
 type Override = { code: string; amount: Fils };
@@ -136,9 +141,10 @@ export function toWireEmployee(a: AppEmployee): EmployeeView {
 }
 
 export const fromWirePayRun = (w: PayRun): AppPayRun =>
-  ({ ...w, gross: from(w.gross) });
+  ({ ...w, gross: from(w.gross),
+    reimbursementTotal: from(w.reimbursementTotal) });
 export const toWirePayRun = (a: AppPayRun): PayRun =>
-  ({ ...a, gross: to(a.gross) });
+  ({ ...a, gross: to(a.gross), reimbursementTotal: to(a.reimbursementTotal) });
 export const fromWireSifFile = (w: SifFile): AppSifFile =>
   ({ ...w, total: from(w.total) });
 export const toWireSifFile = (a: AppSifFile): SifFile =>
@@ -161,6 +167,10 @@ export function fromWirePayslip(w: Payslip): AppPayslip {
     ...w,
     gross: from(w.gross),
     net: from(w.net),
+    salaryNet: from(w.salaryNet),
+    reimbursementTotal: from(w.reimbursementTotal),
+    reimbursements: w.reimbursements.map((r) => ({ ...r,
+      amount: from(r.amount) })),
     lines: w.lines.map((l) => ({ ...l, amount: from(l.amount) })),
     settlement: w.settlement === null ? null
       : fromWireSettlement(w.settlement),
@@ -172,6 +182,10 @@ export function toWirePayslip(a: AppPayslip): Payslip {
     ...a,
     gross: to(a.gross),
     net: to(a.net),
+    salaryNet: to(a.salaryNet),
+    reimbursementTotal: to(a.reimbursementTotal),
+    reimbursements: a.reimbursements.map((r) => ({ ...r,
+      amount: to(r.amount) })),
     lines: a.lines.map((l) => ({ ...l, amount: to(l.amount) })),
     settlement: a.settlement === null ? null
       : toWireSettlement(a.settlement),

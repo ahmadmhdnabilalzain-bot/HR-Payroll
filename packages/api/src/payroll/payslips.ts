@@ -25,7 +25,8 @@ export function toWirePayslip(id: string, payRunId: string,
       traceId: l.traceId })),
     gross: toMoney(p.gross), net: toMoney(p.net),
     notComputed: p.notComputed, settlement: settlementOut(p.settlement),
-    trace: p.trace,
+    trace: p.trace, reimbursements: [], reimbursementTotal: "0.00",
+    salaryNet: toMoney(p.net), reimbursementNote: null,
   };
 }
 
