@@ -16,6 +16,7 @@ import {
 } from "../time/corrections";
 import { audit, co, nowIso, selfEmployee } from "../time/ctx";
 import { assertTimeDecidable } from "../time/decide";
+import { dubaiDate } from "../time/dubai";
 import { assertUnlocked } from "../time/locks";
 
 type IdCtx<B = unknown> = ReqCtx<B, unknown, { id: string }>;
@@ -28,7 +29,8 @@ async function create(ctx: ReqCtx<CorrectionCreate>) {
   }
   await ctx.tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
     "id = $2 FOR UPDATE", [co(ctx), me]);
-  await checkCorrection(ctx.tx, co(ctx), me, b);
+  await checkCorrection(ctx.tx, co(ctx), me, b,
+    dubaiDate(ctx.deps.now()));
   const id = ctx.deps.newId();
   await ctx.tx.query(
     `INSERT INTO attendance_corrections (id, company_id, employee_id,

@@ -54,6 +54,13 @@ describe("attendance corrections", () => {
       clockIn: "2026-03-02T04:00:00.000Z" });
   });
 
+  it("future_correction_refused", async () => {
+    const r = await as(s.employee, "POST", C, day("2026-03-25", "05:00",
+      "13:00"));
+    expect(r.status).toBe(422);
+    expect(r.body.error.code).toBe("CORRECTION_TIMES_INVALID");
+  });
+
   it("correction_rules", async () => {
     const other = await as(s.employee, "POST", C, { ...day("2026-03-03",
       "05:00", "13:00"), date: "2026-03-05" });

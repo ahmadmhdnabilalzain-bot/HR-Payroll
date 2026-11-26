@@ -61,6 +61,19 @@ describe("wfh pause", () => {
     expect((await status()).state).toBe("ready");
   });
 
+  it("hr_correction_closes_an_open_pause", async () => {
+    const rec = await as(s.employee, "POST", "/v1/attendance/clock-in",
+      { method: "web", workLocation: "remote" });
+    await as(s.employee, "POST", `${ME}/pause`);
+    const out = new Date(ctx.clock.now.getTime() + 60_000).toISOString();
+    const put = await as(s.hr, "PUT", `/v1/attendance/${rec.body.id}`, {
+      clockIn: rec.body.clockIn, clockOut: out, note: "closed by hr" });
+    expect(put.status, put.text).toBe(200);
+    const open = await ctx.deps.db.query(
+      "SELECT 1 FROM wfh_pauses WHERE ended_at IS NULL");
+    expect(open).toEqual([]);
+  });
+
   it("stopped_limit_state", async () => {
     await as(s.owner, "PUT", "/v1/wfh/settings",
       { maxTrackedMinutesPerRecord: 60 });

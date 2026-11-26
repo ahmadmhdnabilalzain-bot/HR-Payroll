@@ -37,7 +37,8 @@ const bad = (why: string) => new ApiError("CORRECTION_TIMES_INVALID", why);
  * The clock-in falls on `date` in Dubai; clock-out is not before it and
  * at most 24 hours later; a new record needs a clock-out.
  */
-function checkTimes(b: CorrectionCreate) {
+function checkTimes(b: CorrectionCreate, today: string) {
+  if (b.date > today) throw bad("a correction cannot be for a future day");
   if (dubaiDate(new Date(Date.parse(b.clockIn))) !== b.date) {
     throw bad("clockIn is not on date (Dubai time)");
   }
@@ -79,8 +80,8 @@ async function checkTarget(tx: Db, companyId: string, employeeId: string,
 
 /** Every rule of a new request for `employeeId` (the caller). */
 export async function checkCorrection(tx: Db, companyId: string,
-  employeeId: string, b: CorrectionCreate): Promise<void> {
-  checkTimes(b);
+  employeeId: string, b: CorrectionCreate, today: string): Promise<void> {
+  checkTimes(b, today);
   await checkTarget(tx, companyId, employeeId, b);
   await assertUnlocked(tx, companyId, employeeId, [b.date]);
   await assertNoOverlap(tx, companyId, employeeId, { date: b.date,

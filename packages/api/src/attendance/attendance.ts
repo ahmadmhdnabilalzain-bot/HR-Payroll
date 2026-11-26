@@ -135,6 +135,7 @@ export async function correct(tx: Db, companyId: string, id: string,
      WHERE company_id = $1 AND id = $2 RETURNING *`,
     [companyId, id, c.clockIn, c.clockOut, minutes, c.note,
       dubaiDate(new Date(Date.parse(c.clockIn))), source]);
+  if (c.clockOut !== null) await closePauses(tx, companyId, id, c.clockOut);
   return r!;
 }
 

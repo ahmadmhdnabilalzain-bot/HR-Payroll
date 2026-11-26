@@ -58,9 +58,12 @@ function add(t: WfhDayTotals, m: Minute) {
 /** Paused minutes of each Dubai day, pauses clipped to the day. */
 async function pausedByDay(tx: Db, companyId: string, emp: string,
   from: string, to: string, now: Date, out: Map<string, WfhDayTotals>) {
+  const cut = await wfhCutoff(tx, companyId, now);
   const ps = await tx.query<{ s: string; e: string | null }>(
     `SELECT started_at AS s, ended_at AS e FROM wfh_pauses
-     WHERE company_id = $1 AND employee_id = $2`, [companyId, emp]);
+     WHERE company_id = $1 AND employee_id = $2
+     AND ($3::timestamptz IS NULL OR coalesce(ended_at, $4) >= $3)`,
+    [companyId, emp, cut, now.toISOString()]);
   for (let d = from; d <= to; d = addDays(d, 1)) {
     const lo = dubaiMidnight(d);
     const mins = ps.reduce((n, p) => n + Math.max(0, Math.min(lo + DAY,

@@ -41,8 +41,9 @@ export async function purgeExpiredWfh(tx: Db, now: Date, companyId: string,
       "company_id = $1 AND at < $2", args),
     locations: await del(tx, "DELETE FROM wfh_location_samples WHERE " +
       "company_id = $1 AND at < $2", args),
+    // Closed pauses that ended, and open ones that started, before it.
     pauses: await del(tx, "DELETE FROM wfh_pauses WHERE company_id = $1 " +
-      "AND ended_at IS NOT NULL AND ended_at < $2", args),
+      "AND coalesce(ended_at, started_at) < $2", args),
   };
   if (out.activity + out.locations + out.pauses > 0) {
     await timeAudit(tx, { companyId, at: now.toISOString(), actorUserId,

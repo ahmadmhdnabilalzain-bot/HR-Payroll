@@ -29,12 +29,12 @@ import {
   visibleSheet,
   type SheetRow,
 } from "../time/timesheets";
-import { sheetWfh } from "../time/sheet-wfh";
+import { sheetWfhAt } from "../time/sheet-wfh";
 
 type IdCtx<B = unknown> = ReqCtx<B, unknown, { id: string }>;
 const today = (ctx: ReqCtx) => dubaiDate(ctx.deps.now());
 const view = (ctx: ReqCtx, r: SheetRow) =>
-  sheetView(ctx.tx, co(ctx), r, today(ctx), sheetWfh);
+  sheetView(ctx.tx, co(ctx), r, today(ctx), sheetWfhAt(ctx.deps.now()));
 const reread = async (ctx: ReqCtx, id: string) =>
   view(ctx, await loadSheet(ctx.tx, co(ctx), id));
 
