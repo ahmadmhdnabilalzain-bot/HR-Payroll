@@ -170,3 +170,24 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Phones: one row of cards that scrolls sideways, edge to edge, each
+ * card snapping to the page's gutter. */
+@media (max-width: 760px) {
+  .strip {
+    display: flex;
+    gap: var(--space-3);
+    margin-inline: calc(var(--page-pad) * -1);
+    padding-inline: var(--page-pad);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: var(--page-pad);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .strip > li {
+    flex: 0 0 min(72%, 280px);
+    scroll-snap-align: start;
+  }
+}

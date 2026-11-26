@@ -108,6 +108,7 @@ export const home = {
   decided: "Decision recorded: {title}",
   requested: "Requested {date}",
   waitingFor: "Waiting for {name}",
+  waitingYou: "Waiting for you",
   approvalsEmpty: "Nothing waiting. New requests appear here.",
   kindLeave: "Leave",
   kindExpense: "Expense",

@@ -273,9 +273,11 @@
 }
 
 /*
- * Phone: Home gets its own first screen. The sentence, then the one
- * action with "Step 2 of 5", then net pay as a card of its own with
- * a 56 pt figure; the chart and its people follow below.
+ * Phone: Home gets its own first screen. Net pay first, as a card of
+ * its own with a 56 pt figure; then the sentence, the one action with
+ * its steps, "Waiting for you" (at most three rows with faces) and who
+ * is ready against who is held. The strip follows as cards that
+ * scroll sideways, then the chart (Home).
  */
 @media (max-width: 760px) {
   .hero {
@@ -284,23 +286,13 @@
     box-shadow: none;
   }
 
-  .lead > header {
-    order: 0;
-  }
-
-  .slot {
-    order: 1;
-    margin-block: var(--space-4) var(--space-5);
-  }
-
-  .act {
-    display: grid;
-    gap: var(--space-3);
+  .lead {
+    gap: 0;
   }
 
   .netCard {
     --text-hero: 56px;
-    order: 2;
+    order: 0;
     padding: var(--space-5) var(--space-4) var(--space-4);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
@@ -310,14 +302,44 @@
     margin-block-start: 0;
   }
 
-  .caveat {
-    order: 3;
-    margin-block-start: var(--space-3);
+  .lead > header {
+    order: 1;
+    margin-block-start: var(--space-5);
   }
 
-  .top > :last-child {
+  /* No guess on phones: the slot reserves only the form's measured
+   * height, once it has opened. */
+  .slot {
+    order: 2;
+    margin-block: var(--space-4) var(--space-5);
+  }
+
+  .slot[data-reserve="true"] {
+    min-block-size: var(--slot-h, 0px);
+  }
+
+  .act {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .lead > section {
+    order: 3;
+    margin-block-end: var(--space-5);
+  }
+
+  .ready {
+    order: 4;
+    max-inline-size: none;
+    margin: 0;
     padding: var(--space-4);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
+  }
+
+  .caveat {
+    order: 5;
+    margin-block-start: var(--space-3);
+    padding-inline: var(--space-4);
   }
 }

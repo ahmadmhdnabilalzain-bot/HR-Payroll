@@ -13,6 +13,8 @@ import { RollDigits } from "../ui/RollDigits";
 import { CardIban } from "./CardIban";
 import { StatusAction, StatusSentence } from "./StatusLead";
 import { StepTracker } from "./StepTracker";
+import { usePhone } from "./usePhone";
+import { WaitingList } from "./WaitingList";
 import nt from "./NetTrend.module.css";
 import s from "./PayRunHero.module.css";
 
@@ -32,10 +34,19 @@ export function PayRunHero() {
   const cal = data.payCalendar();
   const net = run.explain["run:net"];
   const [editing, setEditing] = useState<Issue | null>(null);
-  // While bank details hold the run, the action slot keeps the bank
-  // form's height, so opening, saving and closing it never moves the
-  // tiles below.
-  const reserve = useRunApproval().blockedBy.length > 0;
+  // While bank details hold the run, and for the rest of the visit
+  // once the form has opened, the action slot keeps the bank form's
+  // height, so opening, saving and closing it (the last save included)
+  // never moves what sits below.
+  const [opened, setOpened] = useState(false);
+  const reserve = useRunApproval().blockedBy.length > 0 || opened;
+  const edit = (i: Issue): void => {
+    setOpened(true);
+    setEditing(i);
+  };
+  // Phones: the chart moves below the strip (Home) and a short
+  // "Waiting for you" list joins the first screen.
+  const phone = usePhone();
   return (
     <section className={s.hero} aria-labelledby="run-title" data-card="">
       <div className={s.top}>
@@ -57,24 +68,27 @@ export function PayRunHero() {
                 {t("home.whyNumber")}
               </ExplainLink>
             </p>
-            <ReadyBar total={h.headcount} file={h.sifTotalFils}
-              held={h.heldNetFils} />
           </div>
+          <ReadyBar total={h.headcount} file={h.sifTotalFils}
+            held={h.heldNetFils} />
           <div className={s.slot} data-reserve={reserve}>
             {editing !== null ? (
               <CardIban issue={editing} onDone={() => setEditing(null)} />
             ) : (
               <div className={s.act}>
-                <StatusAction onIban={setEditing} />
+                <StatusAction onIban={edit} />
                 <StepTracker />
               </div>
             )}
           </div>
+          {phone && <WaitingList />}
           <p className={s.caveat}>{h.netNote[lang]}</p>
         </div>
-        <Suspense fallback={<div className={nt.placeholder} />}>
-          <NetTrend />
-        </Suspense>
+        {!phone && (
+          <Suspense fallback={<div className={nt.placeholder} />}>
+            <NetTrend />
+          </Suspense>
+        )}
       </div>
     </section>
   );
