@@ -4,6 +4,7 @@ import type {
   AuditVerifyResult,
 } from "@payroll/contract";
 import { CodedError } from "../coded-error";
+import { assertAllowedAuditData } from "./allowlist";
 import { isoTimestamp, type Db } from "../db/db";
 import { eventHash, GENESIS_HASH, type HashedEvent } from "./canonical";
 
@@ -19,18 +20,12 @@ export interface AuditInput {
   data: AuditData;
 }
 
-/** Callers record changed field names, never these values. */
-export const SENSITIVE_KEYS = ["amount", "salary", "components", "iban",
-  "labourPersonId", "emiratesIdNumber", "password", "totp", "token"];
-const SENSITIVE = new Set(SENSITIVE_KEYS.map((k) => k.toLowerCase()));
-
+/**
+ * Callers record changed field names and named safe values only
+ * (see allowlist.ts); anything else throws AUDIT_SENSITIVE_DATA.
+ */
 export function assertNoSensitive(data: Record<string, unknown>): void {
-  for (const k of Object.keys(data)) {
-    if (SENSITIVE.has(k.toLowerCase())) {
-      throw new CodedError("AUDIT_SENSITIVE_DATA",
-        "audit data must not carry sensitive values", { key: k });
-    }
-  }
+  assertAllowedAuditData(data);
 }
 
 interface EventRow {

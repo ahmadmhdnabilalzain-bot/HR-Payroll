@@ -30,7 +30,7 @@ function input(n: number, companyId = COMPANY_A): AuditInput {
     action: "company.updated",
     entityType: "company",
     entityId: companyId,
-    data: { changed: ["name"], n },
+    data: { changed: ["name"], count: n },
   };
 }
 
@@ -132,5 +132,36 @@ describe("audit log", () => {
     expect(() => assertNoSensitive({ IBAN: "x" })).toThrow(
       /AUDIT_SENSITIVE_DATA/);
     expect(() => assertNoSensitive({ changed: ["salary"] })).not.toThrow();
+  });
+
+  it("allows only named keys with safe shapes", () => {
+    const bad: Record<string, unknown>[] = [
+      { basicSalary: "4000.00" }, { newAmount: "1.00" },
+      { bankIban: "AE070331234567890123456" }, { emiratesId: "784" },
+      { note: "AE070331234567890123456" },
+      { changed: ["x"], before: "4000.00" },
+      { changed: ["AE070331234567890123456"] },
+      { changed: ["7777.77"] }, { role: "7777.77" },
+      { fileName: "AE070331234567890123456" },
+      { version: "7777.77" }, { period: { year: 2026, month: "x" } },
+      { employeeCount: 1.5 }, { inputHash: "7777.77" },
+    ];
+    for (const d of bad) {
+      expect(() => assertNoSensitive(d), JSON.stringify(d)).toThrow(
+        /AUDIT_SENSITIVE_DATA/);
+    }
+    const good: Record<string, unknown>[] = [
+      { changed: ["wps", "nameAr", "bank.routingCode"] },
+      { role: "hr" }, { from: "hr", to: "manager" }, { version: 3 },
+      { period: { year: 2026, month: 3 }, employeeCount: 2,
+        inputHash: "a".repeat(64) },
+      { fileName: "0000000123456260401010000.SIF", errorCount: 0,
+        warningCount: 1 },
+      { oldClockIn: "2026-03-01T20:30:00.000Z",
+        newClockOut: "2026-03-01T22:00:00.000Z" },
+    ];
+    for (const d of good) {
+      expect(() => assertNoSensitive(d), JSON.stringify(d)).not.toThrow();
+    }
   });
 });
