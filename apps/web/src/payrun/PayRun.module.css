@@ -458,6 +458,10 @@
 
 /* Fix: the salary file as it stands, then the cards. */
 .fileNow {
+  position: sticky;
+  inset-block-start: 90px;
+  z-index: 5;
+  box-shadow: var(--shadow-pop);
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: baseline;
@@ -1108,11 +1112,7 @@
   }
 
   .stepNav {
-    position: sticky;
-    inset-block-end: calc(64px + env(safe-area-inset-bottom));
-    margin-inline: calc(var(--space-4) * -1);
-    padding: var(--space-3) var(--space-4);
-    background: var(--color-bg);
+    margin-block-start: var(--space-6);
   }
 
   .navNext {
