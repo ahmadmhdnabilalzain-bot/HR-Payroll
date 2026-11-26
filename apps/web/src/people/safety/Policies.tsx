@@ -62,8 +62,8 @@ function Policy(p: { row: PolicyView | null; sf: Safety }) {
         { id: "about", label: W.about, render: () => (
           <>
             <KeyValues items={[
-              { label: W.owner, value: `${r.ownerName}, ${r.ownerRole}` },
-              { label: W.summary, value: r.summary }]} />
+              { label: W.owner,
+                value: `${r.ownerName}, ${r.ownerRole}` }]} />
             <h2 className={s.sub}>{W.history}</h2>
             <History items={r.history.map((h, i) => ({
               text: `Version ${h.version}`, when: h.effectiveOn.display
