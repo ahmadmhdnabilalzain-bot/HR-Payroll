@@ -64,7 +64,7 @@ export function TeamReviews() {
             </span>) },
           { key: "s", label: W.appraisal, render: (a) => (
             <Status tone={TONE[a.status]}>{word(a)}</Status>) },
-          { key: "r", label: W.rated, render: (a) =>
+          { key: "r", label: W.ratingCol, render: (a) =>
             a.rating === null ? (a.selfRating === null ? "-"
               : fill(W.selfRating, { n: a.selfRating }))
               : `${a.rating}, ${a.ratingText}` },

@@ -14,13 +14,15 @@ E14 (WP15), P17 P35 P41 T05 T03 T06 T11 T12 T15 T16 T23 (WP17).
 
 | Row | Feature | Ar | For a bank HR manager | Plan |
 |---|---|---|---|---|
-| E09 | My time card, correct | FA | high | build |
-| E13 | My KPIs | LF | high | build |
-| E08 | My expenses | FA | high | build |
-| E11 | Team probation and appraisal (manager) | FA | high | build |
-| P04 | New employee | FA | high | build |
-| H10 | Leave cover for approvals | ST | high | build |
+| E09 | My time card, correct | FA | high | live |
+| E13 | My KPIs | LF | high | live |
+| E08 | My expenses | FA | high | live |
+| E11 | Team probation and appraisal (manager) | FA | high | live |
+| P04 | New employee | FA | high | live |
+| H10 | Leave cover for approvals | ST | high | live |
 | P49 | Labour crews and documents | LF | none (no crews at a bank) | skip |
 | P50 | Accommodation (camps) | LF | none (no camps at a bank) | skip |
 | H13 | Team chat and intranet | LF | low, 2 h, map plan skips it | skip |
 | H14 | Meetings with transcript | LF | low, 2 h, map plan skips it | skip |
+
+Note: E07 and T16 appear in two lists above (live or N, and owned by another agent); either way they are not WP18's.

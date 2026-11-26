@@ -154,6 +154,7 @@ export const X = {
     appraisal: "Appraisal",
     probation: "Probation",
     cycle: "Cycle: {name}",
+    ratingCol: "Rating",
     managerDue: "Your part is due {date}",
     noProbation: "No one in your team is on probation.",
     emptyApp: "No appraisals for your team in this cycle.",
