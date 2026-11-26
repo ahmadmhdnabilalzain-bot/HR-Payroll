@@ -85,6 +85,11 @@ describe("pure core", () => {
     expect(core.some((f) => f.endsWith("cli.ts"))).toBe(false);
     expect(core.some((f) => f.includes("cases"))).toBe(false);
   });
+  it("scans the tax functions under src/tax", () => {
+    const tax = core.filter((f) =>
+      relative(SRC, f).split("\\").join("/").startsWith("tax/"));
+    expect(tax.some((f) => f.endsWith("employee-expense.ts"))).toBe(true);
+  });
   it("the scanner flags planted breaches", () => {
     expect(breaches('import { x } from "node:fs";')).toEqual(
       ["node: import"]);
