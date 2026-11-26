@@ -2,7 +2,9 @@ import type { DemoData } from "../demo/data/types";
 import { openIssues, pendingApprovals, personOf } from "../demo/derive";
 import { navigate } from "../demo/route";
 import type { Action, DemoState, Role, Section } from "../demo/state";
-import { visibleIds } from "../demo/time-off";
+import { canSeePay, visibleIds } from "../demo/time-off";
+import type { RunApproval } from "../demo/actions";
+import { STEP_LABEL, STEPS } from "../payrun/model";
 import type { MessageKey } from "../i18n/t";
 import type { T } from "../i18n/t";
 import type { Lang } from "../i18n/types";
@@ -36,6 +38,12 @@ export interface Env {
   sections: [Section, string, IconName][];
   /** True when the People view exists (profiles are searchable). */
   peopleShown: boolean;
+  payRunShown: boolean;
+  timeOffShown: boolean;
+  /** The shared pay run approval (the same one Home and Pay run use). */
+  run: RunApproval;
+  /** "October", for "Approve October pay". */
+  month: string;
 }
 
 function focusApproval(id: string): void {
@@ -79,6 +87,24 @@ function actions(e: Env): Command[] {
       hint: e.data.employee(personOf(e.data, r)).name[e.lang],
       icon: "user", keywords: "role switch view as",
       run: () => e.switchRole(r) })));
+  if (e.run.canDecide) {
+    list.push({ id: "approve-run", group: "actions",
+      label: e.t("shell.actApprove", { month: e.month }), hint: "",
+      icon: "check", keywords: "approve pay run sign off",
+      run: () => e.run.decide("approve") });
+  }
+  if (e.payRunShown && company) {
+    list.push(...STEPS.map((step): Command => ({ id: `step:${step}`,
+      group: "go", label: e.t("shell.actStep", { step: e.t(STEP_LABEL[step]) }),
+      hint: "", icon: "wallet", keywords: `pay run step ${step}`,
+      run: () => navigate("pay-run", step) })));
+  }
+  if (e.timeOffShown && !company) {
+    list.push({ id: "request-leave", group: "actions",
+      label: e.t("shell.actRequestLeave"), hint: "", icon: "calendar",
+      keywords: "leave holiday vacation request time off",
+      run: () => navigate("time-off") });
+  }
   if (company) {
     list.push({ id: "sources", group: "actions",
       label: e.t("shell.actSources"), hint: "", icon: "info",
@@ -102,7 +128,9 @@ function people(e: Env): Command[] {
     .filter((i) => i.employeeId !== null).map((i): Command => {
       const who = e.data.employee(i.employeeId ?? "");
       return { id: `issue:${i.id}`, group: "people", icon: "alert",
-        label: e.t("shell.actIssue", { name: who.name[e.lang] }),
+        label: i.fixKind === "enter-iban"
+          ? e.t("shell.actIban", { name: who.name[e.lang] })
+          : e.t("shell.actIssue", { name: who.name[e.lang] }),
         hint: i.title[e.lang],
         keywords: `${who.name.en} ${who.name.ar} ${i.title.en} ` +
           i.reason.en,
@@ -126,7 +154,16 @@ function people(e: Env): Command[] {
         keywords: `${x.name.en} ${x.name.ar} ${x.department.en} ` +
           `${x.number} profile`, run: () => navigate("people", id) }];
     });
-  return [...fromIssues, ...fromApprovals, ...profiles];
+  const payslips = !e.peopleShown ? [] : visibleIds(e.data, e.state)
+    .filter((id) => canSeePay(e.data, e.state, id) &&
+      e.data.people.payslip(id) !== null).flatMap((id): Command[] => {
+      const x = e.data.people.person(id);
+      return x === null ? [] : [{ id: `payslip:${id}`, group: "people",
+        icon: "file", label: e.t("shell.actPayslip", { name: x.name[e.lang] }),
+        hint: x.role[e.lang], keywords: `${x.name.en} ${x.name.ar} payslip ` +
+          "pay salary", run: () => navigate("people", id, "payslip") }];
+    });
+  return [...fromIssues, ...fromApprovals, ...profiles, ...payslips];
 }
 
 export function commands(e: Env): Command[] {
