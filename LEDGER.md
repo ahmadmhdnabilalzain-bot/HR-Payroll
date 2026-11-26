@@ -804,3 +804,22 @@ The owner can overrule any of these. Full list with reasons:
   product-launch style promo video of the finished app covering all
   features (story and shot list approved first). Agents must not record
   videos for chat unless a task needs one for its own verification.
+
+## 21. Status and rulings after the mobile stage (2026-11-26)
+
+- Done: final merge of d1 to d5, polish, fix1 to fix4; mobile stage (audits
+  mob-a and mob-b, fixes, verify: 254 e2e pass, 1824 light-theme route
+  measurements with zero overflow, zero input problems, zero errors).
+- Coverage 3: 176 of 207 UAE-scope rows live (85.0 percent). 31 pending: 6
+  partial, 14 missing, 3 not for a bank, 8 skipped on purpose. Not built:
+  WP20 pension, WP21 bonus, WP24 Arabic, WP29 assistant, WP30 commission.
+- Remaining gates: design rescore; client-style walk; owner approval of the
+  previews; Render plan with cost and the owner's yes; unlisted link;
+  owner's check on a real iPhone; 3D opening decision (branch `cine`, not
+  merged); promo video last.
+- Ruling: no in-progress videos or screenshots go to the owner; plain-text
+  progress only. Exception: the final approval check on the finished build.
+- Ruling: the hosting decision is deferred until the Render plan (with cost)
+  is approved by the owner.
+- Ruling: sound is off by default in the demo and in any video.
+- Ruling: the client is called "the bank" in every document.

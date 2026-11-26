@@ -1,7 +1,7 @@
 # Handover
 
 Read this first. Keep it current: update it in the same commit as any change
-of state. Last updated: 2026-11-26 (overnight autonomous build).
+of state. Last updated: 2026-11-26 (demo build: merges, mobile stage and coverage 3 done).
 
 ## What this project is
 
@@ -463,6 +463,23 @@ Feasibility notes in `docs/research/`: competitors, social media APIs,
 website insights, documents module, VAT, corporate tax and e-invoicing,
 in-app meetings, remote-work tracking. All research is snippet-level and
 needs checking against official sources before anything is built on it.
+
+## Demo program status (2026-11-26, after merges and mobile stage)
+
+| Item | State |
+|---|---|
+| Final merge of branches d1 to d5 (design sprint, e-signatures) | done |
+| Polish and fixes fix1 to fix4 | done, merged |
+| Mobile stage (audits mob-a and mob-b, fixes, verify) | done: 254 e2e tests pass; 1824 light-theme route measurements show zero overflow, zero input problems, zero errors |
+| Coverage 3 (`docs/demo/coverage-3.md`) | 176 of 207 UAE-scope rows live (85.0 percent); 31 pending: 6 partial, 14 missing, 3 not for a bank, 8 skipped on purpose |
+| Not built: WP20 pension, WP21 bonus run, WP24 Arabic review, WP29 assistant, WP30 commission | pending; pension still reads "Not computed" |
+| 3D opening (branch `cine`) | not merged; waits for the owner's decision |
+
+Remaining gates, in order: design rescore; client-style walk; owner approval
+of the previews; Render plan with cost and the owner's yes; unlisted link;
+owner's check on a real iPhone; the 3D opening decision; promo video last
+(proposal in `docs/demo/promo-video-brief.md`, nothing is filmed until the
+owner approves it).
 
 ## Program status (plans)
 
