@@ -20,7 +20,7 @@ import { systemDeps } from "./deps";
 import { letterRenderer } from "./pdf/setup";
 import type { Db } from "./db/db";
 import { purgeAllCompanies } from "./db/wfh-purge-all";
-import { sweepUnclaimedFiles } from "./files/sweep";
+import { sweepUnclaimedFiles } from "./db/files-sweep";
 import { fsBlobStore } from "./storage/fs-blob";
 
 async function runMigrations(cfg: Config): Promise<void> {

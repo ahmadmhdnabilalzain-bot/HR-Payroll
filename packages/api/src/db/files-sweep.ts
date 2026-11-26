@@ -1,4 +1,4 @@
-import type { Db } from "../db/db";
+import type { Db } from "./db";
 import type { BlobStore } from "../storage/blob";
 
 export interface SweepDeps {

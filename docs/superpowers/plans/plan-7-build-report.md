@@ -348,6 +348,109 @@ the left end of the Arabic sentence; after fix 5 the Arabic amount
 reads number then currency. The Arabic wording itself still needs a
 native speaker.
 
+## Security review fixes (2026-11-26)
+
+The independent review (`.superpowers/sdd/plan7/security-review.md`,
+no Critical, 6 Important) was fixed test-first, one commit per item.
+The local `claude/quirky-wozniak-b7xkvr` already pointed at this
+branch's tip, so the catch-up merge was a no-op.
+
+- **R1 (I-1) `11e14a1`:** a stored file's extension is replaced by the
+  sniffed type's (`.pdf`, `.png`, `.jpg`) at upload, and again at every
+  download (rows from before); `safeFileName` strips bidi controls
+  (U+200E, U+200F, U+202A to U+202E, U+2066 to U+2069). A PDF polyglot
+  named `visa.html` is stored and served as `visa.pdf`.
+- **R2 (I-2) `bbc61cc`:** any version whose text holds an Arabic letter
+  (`RTL_LETTER`, now in `letters/arabic.ts`) starts needing a native
+  review, whatever `lang` says; issue refuses it until the owner
+  records the review, which is now allowed on such `en` templates.
+- **R3 (I-3, coordinator's ruling) `9b3ad23`:** verify takes
+  `{ versionId }` (contract `DocumentVerify`), answers 409
+  `VERSION_NOT_CURRENT` when it is not the current version and takes
+  the slot lock. Alerts use the last verified version's expiry (the
+  current one only while nothing is verified), and an unverified newer
+  version adds an alert with the new status `renewal-unverified`.
+  Decision: owner and hr are the verifiers, so their own uploads are
+  verified at insert; only other users' uploads wait. An employee's
+  upload therefore never clears HR's alert.
+- **R4 (I-4) `b9bf3cc`:** an issuer reads a salary-free letter only
+  while their role is manager and the letter's employee still reports
+  to them (owner and hr see all anyway). The hr-turned-manager test
+  now expects 404 for the non-salary letter too.
+- **R5 (I-5) `0954dfb`:** renders are capped (`limitRenders`: 3 at
+  once, 6 waiting, then 503 `PDF_RENDERER_BUSY` with `Retry-After`);
+  a failed render closes only its own browser context and forgets the
+  browser only when it disconnected (real-Chrome test: one render
+  timing out beside three healthy ones, all three succeed); preview
+  and issue are rate-limited (429 `RATE_LIMITED` with `Retry-After`,
+  20 a minute per user, 120 per company, per process); and both render
+  with no transaction open: the handler returns `RenderThen`, the
+  first transaction commits, the PDF renders, and a second transaction
+  (membership and role checked again) stores it. `letter.previewed`
+  now names the employee (minor 5).
+- **R6 (I-6) `80bf8fb`:** tenant routes read the whole request body
+  before taking a connection (test: a stalled upload no longer blocks
+  another request; seen red first); the runtime pool sets
+  `statement_timeout` 30 s and `idle_in_transaction_session_timeout`
+  15 s (`openPg(..., { runtime: true })`, also in `deploy/serve.ts`);
+  uploads have a daily quota (50 per user, 1000 per company, letters
+  not counted; 429 `FILE_QUOTA_EXCEEDED`); and `pnpm api:sweep-files`
+  (`main.ts sweep-files`, code in `src/db/files-sweep.ts` because
+  transactions stay in `src/db`) deletes uploads unclaimed for 24 hours.
+- **Minor 1 `44b7f8f`:** migration 076: verification write-once,
+  a recorded review (status, name, time) never changes, no draft to
+  superseded, publish time fixed, and a restrictive INSERT policy on
+  `files` (own, unclaimed rows only). Tested on real PostgreSQL as the
+  runtime role; seen red without the migration.
+- **Minors 3, 4, 8, 9 `8c65236`:** bidi controls are stripped from all
+  merge values; reviewer names go to owner and hr only; a template of
+  a kind the role may not issue answers 404 (the plan's test said 403;
+  the review's ruling wins); a library document that asks no
+  acknowledgement refuses one (409 `ACK_NOT_REQUIRED`).
+- **Minor 10 `35dcefa`:** `chrome.sandbox.off` is logged at start when
+  `CHROME_NO_SANDBOX=1`; `docs/ops/security-checklist.md` has a Plan 7
+  section (non-root Chrome with its sandbox on, caps, quota, the
+  sweeper, no virus scan).
+- **M-E1 and M-E2 `b0ca19c`:** the report adds `figureStatus` (the
+  sources behind `required` and `fineExposure`, with
+  `company-entered` for owner values; a zero fine carries the sources
+  of the required count it follows from), `statusNote` (planning
+  estimate, not a compliance finding) on every on-target or
+  below-target, and a `fineNote` for every non-null fine.
+- `c6ffa6c` keeps the renderer functions under 30 lines.
+- New error codes (with English and Arabic web texts, Arabic marked):
+  `RATE_LIMITED`, `PDF_RENDERER_BUSY`, `FILE_QUOTA_EXCEEDED`,
+  `ACK_NOT_REQUIRED`.
+
+**Forced RLS and jobs.** Plan 7's migrations (070 to 076) create and
+replace objects only; none reads or updates existing rows, so the
+owner role's blindness under forced RLS (Plan 9's 905 problem) does
+not touch them. The new sweeper cannot list companies as the owner
+either (`companies` forces RLS and `payroll_owner` has no BYPASSRLS),
+so it lists them on `JOBS_LIST_DATABASE_URL` (the `payroll_backup`
+role, which reads past RLS) and deletes per company on the owner
+connection with `app.company_id` set, so each delete stays in one
+tenant; its test runs as the real owner and runtime roles. **Plan 9's
+`purge-wfh` lists companies on the owner connection and will find
+none in a deployment with these roles** (it is outside Plan 7; flagged
+to the coordinator).
+
+Results after these fixes: api 869 of 869 (127 files; the one
+failure of the first full run, Plan 3's "transactions only in
+`src/db`" rule, was fixed by moving the sweeper to
+`src/db/files-sweep.ts`, then its file and the sweeper test rerun);
+contract 141, engine 584, web 103; wps 172 of 173 (the SIF timing test
+timed out at 5 s while the API suite ran beside it; it passes alone);
+typecheck, `deploy/` typecheck, line checks, `lines:test` and
+`ops:test` pass.
+
+Not done from the review: minor 2 (HR authoring and self-issuing
+letters; needs an owner decision), minor 6 (plain file names and
+SHA-256 at rest; the byte cipher carries no key id), minor 7 (virus
+scan), and the per-route `requestTimeout` (the body is now read before
+any connection is taken, which removes the pool risk the review
+measured).
+
 ## Decisions
 
 1. **Commit trailers.** (The first merge commit `f28df25` has no

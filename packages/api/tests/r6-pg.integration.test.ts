@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { openPg } from "../src/db/pg";
-import { sweepUnclaimedFiles } from "../src/files/sweep";
+import { sweepUnclaimedFiles } from "../src/db/files-sweep";
 import type { MemoryBlobStore } from "../src/storage/blob";
 import { ADMIN_URL, closeAll, freshPgPair } from "./helpers/pg-env";
 import { seedCompany } from "./helpers/seed";
