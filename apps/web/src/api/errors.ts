@@ -1,11 +1,12 @@
 import {
   ApiErrorBody,
   ERROR_STATUS,
+  PayRunProblem,
   type ErrorCode,
-  type PayRunProblem,
+  type ErrorDetail,
 } from "./contract";
 
-export type ErrorDetail = Record<string, string | string[]>;
+export type { ErrorDetail };
 
 /** Codes that never come from the server. */
 export type ClientCode = "NETWORK" | "CONTRACT_MISMATCH";
@@ -34,26 +35,19 @@ export class ApiError extends Error {
 }
 
 /**
- * The contract's error detail holds only strings, so each pay-run
- * problem travels as one JSON string (an ask to Plan 3: let detail
- * carry PayRunProblem objects). Unreadable entries are skipped loudly.
+ * `detail.problems` of a PAY_RUN_PROBLEMS body is a list of objects.
+ * An entry that is not a PayRunProblem is a contract mismatch: it is
+ * reported loudly and left out rather than half-read.
  */
 function decodeProblems(detail: ErrorDetail): PayRunProblem[] {
   const raw = detail["problems"];
-  if (raw === undefined) return [];
-  const list = Array.isArray(raw) ? raw : [raw];
-  return list.flatMap((s) => {
-    try {
-      return [JSON.parse(s) as PayRunProblem];
-    } catch {
-      console.error("unreadable pay-run problem", s);
-      return [];
-    }
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item: unknown) => {
+    const r = PayRunProblem.safeParse(item);
+    if (r.success) return [r.data];
+    console.error("pay-run problem not in contract", item);
+    return [];
   });
-}
-
-export function encodeProblems(ps: readonly PayRunProblem[]): string[] {
-  return ps.map((p) => JSON.stringify(p));
 }
 
 /** An error response body to an ApiError; a bad body is a mismatch. */

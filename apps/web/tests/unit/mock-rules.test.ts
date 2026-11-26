@@ -2,6 +2,7 @@ import { fils } from "@payroll/engine";
 import { describe, expect, it } from "vitest";
 import type { AppPayRunCreate } from "../../src/api/contract";
 import { codeOf, mockApi } from "../helpers/mock";
+import { DEMO_PASSWORD } from "../../src/api/mock/options";
 
 const ANNUAL = "00000000-0000-4000-8000-000005000001";
 const emp = (n: number): string =>
@@ -27,7 +28,7 @@ describe("mock rules: separation of duties", () => {
     expect(done.status).toBe("approved");
     expect(done.approvedBy).toBe((await m.api.me()).user.id);
     const { events } = await m.api.listAuditEvents();
-    expect(events[0]?.action).toBe("payroll.run-approved");
+    expect(events[0]?.action).toBe("pay-run.approved");
     expect(await codeOf(m.api.approvePayRun(run.id))).toBe("RUN_NOT_DRAFT");
   });
 
@@ -161,11 +162,12 @@ describe("mock rules: files, users, audit", () => {
   it("invite-and-mfa", async () => {
     const m = mockApi();
     await m.signIn("hr@demo.test");
-    const enrol = await m.api.mfaEnrol();
+    const enrol = await m.api.mfaEnrol(DEMO_PASSWORD);
     expect(enrol.otpauthUrl).toContain(enrol.secret);
-    expect(await codeOf(m.api.mfaConfirm("000000")))
+    expect(await codeOf(m.api.mfaConfirm("000000", DEMO_PASSWORD)))
       .toBe("MFA_CODE_INVALID");
-    expect((await m.api.mfaConfirm("123456")).user.mfaEnrolled).toBe(true);
+    const me = await m.api.mfaConfirm("123456", DEMO_PASSWORD);
+    expect(me.user.mfaEnrolled).toBe(true);
     await m.signIn("owner@demo.test");
     const inv = await m.api.inviteUser({ email: "new@demo.test",
       role: "hr" });

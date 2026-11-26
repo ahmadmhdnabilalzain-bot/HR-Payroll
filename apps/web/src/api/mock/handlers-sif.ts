@@ -5,7 +5,7 @@ import { MockFail, notFound } from "./fail";
 import { findRun } from "./handlers-payroll";
 import type { MockSif } from "./seed-types";
 import { buildSif } from "./sif";
-import { newId, record } from "./state";
+import { newId, record, replace } from "./state";
 
 /** A second call for the same run returns the stored file (Plan 3). */
 function createSif(c: Ctx, runId: string): MockSif {
@@ -21,6 +21,7 @@ function createSif(c: Ctx, runId: string): MockSif {
     employees: c.s.employees, createdDate: dubaiDate(c.now),
     createdTime: dubaiClock(c.now), createdAt: c.now, today: c.today });
   c.s.sifs = [...c.s.sifs, sif];
+  c.s.runs = replace(c.s.runs, { ...run, sifFileId: sif.file.id });
   const { fileName, errorCount, warningCount } = sif.file;
   record(c.s, signedIn(c), { at: c.now, action: "sif.generated",
     entityType: "sif-file", entityId: sif.file.id,
@@ -37,7 +38,8 @@ function findSif(c: Ctx, id: string): MockSif {
 function download(c: Ctx, id: string): string {
   const sif = findSif(c, id);
   record(c.s, signedIn(c), { at: c.now, action: "sif.downloaded",
-    entityType: "sif-file", entityId: id, data: {} });
+    entityType: "sif-file", entityId: id,
+    data: { fileName: sif.file.fileName } });
   return sif.text;
 }
 
