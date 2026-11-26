@@ -12,7 +12,9 @@ import {
 
 function statusList(line: TraceLine, lang: Lang): string {
   const words = STATUS_WORDS[lang];
-  const seen = [...new Set(line.rules.map((r) => r.status))];
+  // A caller's override is shown as such, never as the pack's status.
+  const seen = [...new Set(line.rules.map((r) =>
+    r.overridden ? "overridden" : r.status))];
   if (seen.length === 0) return words["none"] ?? "";
   return seen.map((s) => words[s] ?? s).join(", ");
 }

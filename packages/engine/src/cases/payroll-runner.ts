@@ -19,7 +19,18 @@ export interface PayrollExpected { gross: string; totalDeductions: string;
 
 export interface PayrollCaseReport { id: string; passed: boolean;
   expected: PayrollExpected; actual: PayrollExpected | string;
-  trace: TraceLine[] }
+  trace: TraceLine[];
+  /** The weakest status among the trace's rules; "" after an error. */
+  weakestStatus: string }
+
+const STRENGTH: readonly string[] = ["official", "secondary", "convention",
+  "hypothetical", "unsourced"];
+
+function weakest(trace: TraceLine[]): string {
+  const ranks = trace.flatMap((l) => l.rules)
+    .map((r) => STRENGTH.indexOf(r.status));
+  return STRENGTH[Math.max(0, ...ranks)] ?? "unsourced";
+}
 
 function invalidCase(file: string, why: string): EngineError {
   return new EngineError("INVALID_CASE_FILE",
@@ -75,11 +86,13 @@ function execute(c: PayrollCaseFile): PayrollCaseReport {
     const actual = { gross: String(s.gross),
       totalDeductions: String(s.totalDeductions), net: String(s.net),
       employerCost: String(s.employerCost) };
-    return { ...base, passed: same(actual, c.expected), actual,
-      trace: r.trace };
+    const weakestStatus = weakest(r.trace);
+    return { ...base, actual, trace: r.trace, weakestStatus,
+      passed: same(actual, c.expected) && weakestStatus === c.status };
   } catch (e) {
     if (!(e instanceof EngineError)) throw e;
-    return { ...base, passed: false, actual: `ERROR ${e.code}`, trace: [] };
+    return { ...base, passed: false, actual: `ERROR ${e.code}`, trace: [],
+      weakestStatus: "" };
   }
 }
 

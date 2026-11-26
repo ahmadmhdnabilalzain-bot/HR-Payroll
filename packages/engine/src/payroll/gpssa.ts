@@ -4,7 +4,8 @@ import { fils, mulDiv, type Fils } from "../money";
 import { requireParam } from "../rules/select";
 import type { RulePack } from "../rules/types";
 import type { TraceBuilder } from "../trace";
-import type { GpssaParams, Overrides } from "./params";
+import type { TraceRule } from "../trace-types";
+import type { GpssaParams, GpssaRegime, Overrides } from "./params";
 import type {
   GpssaInput,
   PayslipInput,
@@ -15,7 +16,9 @@ import type {
 export interface GpssaResult { salary: Fils; employeeShare: Fils;
   employerGross: Fils; govSupport: Fils; employerPayable: Fils;
   partialLastMonthExempt: boolean;
-  employerLine: PayslipLine<"gpssa-employer"> }
+  employerLine: PayslipLine<"gpssa-employer">;
+  /** The employee share's rules, carried onto the ded.gpssa line. */
+  shareRules: TraceRule[]; regime: GpssaRegime }
 
 /** January, or the joining month when joined in `year` after January. */
 export function expectedFixingMonth(joiningDate: string,
@@ -83,31 +86,50 @@ function shares(salary: Fils, exempt: boolean, p: GpssaParams): Shares {
   const pct = (bps: bigint) => mulDiv(salary, bps, 10000n, p.rounding.v);
   const below = p.govSupportBelow;
   const supported = below === null || salary < below.v;
-  return { employee: pct(p.employeeBps.v), gross: pct(p.employerBps.v),
-    support: supported ? pct(p.govSupportBps.v) : fils(0n) };
+  const gross = pct(p.employerBps.v);
+  // The payable share is rounded once; support is what is left of gross.
+  const payable = supported ? pct(p.employerBps.v - p.govSupportBps.v)
+    : gross;
+  return { employee: pct(p.employeeBps.v), gross,
+    support: fils(gross - payable) };
 }
+
+/** The rules that set the contribution salary. */
+const salaryRules = (p: GpssaParams): TraceRule[] => [p.base.rule,
+  p.minSalary.rule, p.maxSalary.rule, p.fixingRule.rule];
+
+const shareRulesOf = (p: GpssaParams): TraceRule[] => [p.employeeBps.rule,
+  p.lastMonth.rule, p.rounding.rule, ...salaryRules(p)];
 
 function traceShares(t: TraceBuilder, salary: Fils, s: Shares,
   payable: Fils, p: GpssaParams): void {
   const inputs = { salary: String(salary), lastMonth: p.lastMonth.v };
   const support = p.govSupportBelow === null ? [] : [p.govSupportBelow.rule];
+  t.add({ id: "gpssa.employee-share", label: "Employee pension share",
+    formula: "salary * employeeBps / 10000, 0 for an exempt last month",
+    inputs: { ...inputs, employeeBps: String(p.employeeBps.v) },
+    result: String(s.employee), rules: shareRulesOf(p) });
   t.add({ id: "gpssa.employer-gross", label: "Employer share before " +
     "government support", formula: "salary * employerBps / 10000",
     inputs: { ...inputs, employerBps: String(p.employerBps.v) },
     result: String(s.gross),
-    rules: [p.employerBps.rule, p.lastMonth.rule, p.rounding.rule] });
+    rules: [p.employerBps.rule, p.lastMonth.rule, p.rounding.rule,
+      p.base.rule] });
   t.add({ id: "gpssa.gov-support", label: "Government support",
-    formula: "salary * govSupportBps / 10000 when salary is below the " +
-      "threshold (none under Law 7), else 0",
+    formula: "employer gross - round(salary * (employerBps - " +
+      "govSupportBps) / 10000) when salary is below the threshold (none " +
+      "under Law 7), else 0",
     inputs: { ...inputs, govSupportBps: String(p.govSupportBps.v),
       below: p.govSupportBelow === null ? "none"
         : String(p.govSupportBelow.v) },
     result: String(s.support),
-    rules: [p.govSupportBps.rule, ...support, p.rounding.rule] });
+    rules: [p.govSupportBps.rule, ...support, p.rounding.rule,
+      p.base.rule] });
   t.add({ id: "employer.gpssa", label: "Employer pension contribution",
     formula: "employer gross - government support",
     inputs: { gross: String(s.gross), support: String(s.support) },
-    result: String(payable), rules: [p.lastMonth.rule] });
+    result: String(payable), rules: [p.employerBps.rule,
+      p.govSupportBps.rule, p.lastMonth.rule, ...salaryRules(p)] });
 }
 
 /** Contributions on the fixed salary; not prorated (DL57 Art 11(3)). */
@@ -124,7 +146,8 @@ export function computeGpssa(input: PayslipInput, w: PayWindow,
     govSupport: s.support, employerPayable: payable,
     partialLastMonthExempt: exempt,
     employerLine: { traceId: "employer.gpssa", kind: "gpssa-employer",
-      label: "Employer pension contribution", amount: payable } };
+      label: "Employer pension contribution", amount: payable },
+    shareRules: shareRulesOf(g), regime: g.regime };
 }
 
 const GCC_KEY = "gpssaGccNationalContribution";

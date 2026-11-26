@@ -59,7 +59,7 @@ function entries(m: number, from: number, to: number, days: Day[]) {
       absences.push({ date, kind: x.kind as Absence["kind"] });
     } else if (x.kind === "overtime" && overtime.length < 3) {
       overtime.push({ date, minutes: x.minutes,
-        nightMinutes: Math.min(x.night, x.minutes) });
+        nightMinutes: Math.min(x.night, x.minutes, 360) });
     } else if (x.kind === "rest-day") {
       rest.push({ date, kind: x.holiday ? "holiday" : "rest-day",
         compensation: x.pay ? "pay" : "day-off" });

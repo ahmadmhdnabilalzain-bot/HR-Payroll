@@ -96,7 +96,8 @@ describe("computeGpssa under Decree-Law 57", () => {
       x.key === "gpssaContributionSalaryBase");
     expect(base?.overridden).toBe(true);
     expect(trace.map((l) => l.id)).toEqual(["gpssa.salary",
-      "gpssa.employer-gross", "gpssa.gov-support", "employer.gpssa"]);
+      "gpssa.employee-share", "gpssa.employer-gross", "gpssa.gov-support",
+      "employer.gpssa"]);
   });
 });
 

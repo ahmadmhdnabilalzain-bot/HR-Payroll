@@ -21,6 +21,15 @@ export const NOT_COMPUTED: readonly string[] = deepFreeze([
   "WPS 85% paid test (Resolution 340/2026, text unread): not checked",
   "other paid leave (parental, mourning, companion Art 30(4)):" +
     " treated as paid days",
+  "GPSSA for government employers (Decree-Law 57/2023 Art 5(1)): the" +
+    " private sector is assumed",
+  "a mid-month salary change: one basic and one set of allowances per" +
+    " month",
+  "GPSSA exclusion of the unpaid maternity extension (Art 30(2)): not" +
+    " computed",
+  "two consecutive rest days worked at most (Art 19(5)): not checked",
+  "a Cabinet decision changing or cancelling the 2.5% GPSSA support:" +
+    " not read",
 ]);
 
 const GPSSA_NOT_APPLICABLE = "GPSSA pension contributions: not " +

@@ -120,7 +120,17 @@ function checkDates(dates: string[], field: string, w: PayWindow): void {
   });
 }
 
-function checkMinutes(input: PayslipInput): void {
+/** Minutes in a "HH:MM-HH:MM" window that may cross midnight. */
+function windowMinutes(window: string): number {
+  const [a, b] = window.split("-").map((t) => {
+    const [h, m] = t.split(":").map(Number);
+    return (h ?? 0) * 60 + (m ?? 0);
+  });
+  return ((b ?? 0) - (a ?? 0) + 1440) % 1440 || 1440;
+}
+
+function checkMinutes(input: PayslipInput, p: PayrollParams): void {
+  const night = windowMinutes(p.nightWindow.v);
   input.overtime.forEach((o, i) => {
     const f = `overtime[${i}]`;
     if (!isWhole(o.minutes) || o.minutes < 1 || o.minutes > 1440) {
@@ -128,18 +138,20 @@ function checkMinutes(input: PayslipInput): void {
         String(o.minutes));
     }
     const n = o.nightMinutes;
-    if (!isWhole(n) || n < 0 || n > o.minutes) {
-      fail("INVALID_MINUTES", "night minutes must be 0 to the minutes",
-        `${f}.nightMinutes`, String(n));
+    if (!isWhole(n) || n < 0 || n > o.minutes || n > night) {
+      fail("INVALID_MINUTES", "night minutes must be 0 to the minutes " +
+        `and at most ${night} (the night window)`, `${f}.nightMinutes`,
+      String(n));
     }
   });
 }
 
-function checkDays(input: PayslipInput, w: PayWindow): void {
+function checkDays(input: PayslipInput, w: PayWindow,
+  p: PayrollParams): void {
   checkDates(input.absences.map((a) => a.date), "absences", w);
   checkDates(input.overtime.map((o) => o.date), "overtime", w);
   checkDates(input.restDayWork.map((r) => r.date), "restDayWork", w);
-  checkMinutes(input);
+  checkMinutes(input, p);
   const absent = new Set(input.absences.map((a) => a.date));
   const work = [...input.overtime, ...input.restDayWork];
   for (const { date } of work) {
@@ -219,7 +231,7 @@ export function validatePayslipInput(input: PayslipInput,
   checkEmployee(input.employee, p);
   checkGpssa(input.employee);
   const w = payWindow(input);
-  checkDays(input, w);
+  checkDays(input, w, p);
   checkLeave(input, w);
   checkDeductions(input, p);
   return w;

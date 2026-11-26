@@ -132,7 +132,8 @@ export function accountDays(input: PayslipInput, w: PayWindow,
     formula: "payEnd - payStart + 1",
     inputs: { payStart: w.payStart, payEnd: w.payEnd,
       daysInMonth: String(w.daysInMonth) },
-    result: String(employedDays), rules: [p.prorationBasis.rule] });
+    result: String(employedDays),
+    rules: [p.prorationBasis.rule, p.maxNormalHoursPerDay.rule] });
   const sick = sickSteps(input, p);
   const maternity = maternitySteps(input, p);
   traceSteps(t, input, p, sick, maternity);

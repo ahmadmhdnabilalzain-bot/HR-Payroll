@@ -194,3 +194,14 @@ export function loadGpssaParams(
     rounding: modeParam(pack, "gpssaRoundingMode", ov),
   };
 }
+
+/** Keys of every loaded param whose value came from an override. */
+export function overriddenKeys(params: object): string[] {
+  const keys: string[] = [];
+  for (const v of Object.values(params)) {
+    const rule = (v as { rule?: { key: string; overridden: boolean } }
+      | null)?.rule;
+    if (rule?.overridden === true) keys.push(rule.key);
+  }
+  return keys;
+}

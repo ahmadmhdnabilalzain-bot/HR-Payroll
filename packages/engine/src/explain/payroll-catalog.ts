@@ -11,7 +11,8 @@ export const PAYROLL_MONEY_IDS: readonly string[] = deepFreeze([
   "earn.basic", "earn.allowance", "earn.overtime.normal",
   "earn.overtime.night", "earn.rest-day", "earn.holiday",
   "earn.leave-encashment", "earn.gross", "gpssa.salary",
-  "gpssa.employer-gross", "gpssa.gov-support", "cap.base", "cap.overall",
+  "gpssa.employee-share", "gpssa.employer-gross", "gpssa.gov-support",
+  "cap.base", "cap.overall",
   "ded.gpssa", "ded.overpayment", "ded.violation", "ded.damage",
   "ded.court-debt", "ded.scheme", "ded.loan", "ded.total", "pay.net",
   "employer.gpssa", "employer.total",
@@ -23,9 +24,11 @@ export const PAYROLL_EN: Record<string, string> = deepFreeze({
   "payroll.days": "Paid share of the month in half-days: {result} " +
     "({in.unpaidDays} unpaid days, {in.halfPayDays} half-pay days)" + R,
   "leave.sick": "Sick leave this month: {in.fullPay} days full pay, " +
-    "{in.halfPay} half pay, {in.unpaid} unpaid" + R,
+    "{in.halfPay} half pay, {in.unpaid} unpaid, {in.beyond} unpaid " +
+    "beyond the legal limit, {in.probation} unpaid in probation" + R,
   "leave.maternity": "Maternity leave this month: {in.fullPay} days " +
-    "full pay, {in.halfPay} half pay, {in.unpaid} unpaid" + R,
+    "full pay, {in.halfPay} half pay, {in.unpaid} unpaid, {in.beyond} " +
+    "unpaid beyond the legal limit" + R,
   "earn.basic": "Basic salary for the period: {result}" + R,
   "earn.allowance": "Allowance {in.code}: {result}" + R,
   "earn.overtime.normal": "Overtime pay, {in.minutes} minutes: " +
@@ -41,13 +44,15 @@ export const PAYROLL_EN: Record<string, string> = deepFreeze({
   "earn.gross": "Gross pay: {result}" + R,
   "gpssa.salary": "Pension contribution salary (fixed in " +
     "{in.fixingMonth}): {result}" + R,
+  "gpssa.employee-share": "Employee pension share this month: " +
+    "{result}" + R,
   "gpssa.employer-gross": "Employer pension share before government " +
     "support: {result}" + R,
   "gpssa.gov-support": "Part of the employer share paid by the " +
     "government: {result}" + R,
   "cap.base": "Wage used for deduction limits: {result}" + R,
-  "cap.overall": "Most that may be deducted this month (half the " +
-    "wage): {result}" + R,
+  "cap.overall": "Most that may be deducted this month " +
+    "({in.capPercent} of the wage): {result}" + R,
   "ded.gpssa": "Pension contribution, employee share: {result}" + R,
   "ded.overpayment": "Recovery of an overpayment {in.ref}: {result}" + R,
   "ded.violation": "Deduction for violation {in.ref}: {result}" + R,
@@ -70,9 +75,12 @@ export const PAYROLL_AR: Record<string, string> = deepFreeze({
   "payroll.days": "الحصة المدفوعة من الشهر بأنصاف الأيام: {result} " +
     "({in.unpaidDays} أيام بدون أجر، {in.halfPayDays} أيام بنصف أجر)" + R,
   "leave.sick": "الإجازة المرضية هذا الشهر: {in.fullPay} أيام بأجر " +
-    "كامل، {in.halfPay} بنصف أجر، {in.unpaid} بدون أجر" + R,
+    "كامل، {in.halfPay} بنصف أجر، {in.unpaid} بدون أجر، {in.beyond} " +
+    "بدون أجر بعد الحد القانوني، {in.probation} بدون أجر خلال فترة " +
+    "التجربة" + R,
   "leave.maternity": "إجازة الوضع هذا الشهر: {in.fullPay} أيام بأجر " +
-    "كامل، {in.halfPay} بنصف أجر، {in.unpaid} بدون أجر" + R,
+    "كامل، {in.halfPay} بنصف أجر، {in.unpaid} بدون أجر، {in.beyond} " +
+    "بدون أجر بعد الحد القانوني" + R,
   "earn.basic": "الراتب الأساسي عن الفترة: {result}" + R,
   "earn.allowance": "البدل {in.code}: {result}" + R,
   "earn.overtime.normal": "أجر العمل الإضافي، {in.minutes} دقيقة: " +
@@ -88,12 +96,15 @@ export const PAYROLL_AR: Record<string, string> = deepFreeze({
   "earn.gross": "إجمالي الراتب: {result}" + R,
   "gpssa.salary": "راتب حساب الاشتراك (المحدد في {in.fixingMonth}): " +
     "{result}" + R,
+  "gpssa.employee-share": "حصة الموظف في الاشتراك هذا الشهر: " +
+    "{result}" + R,
   "gpssa.employer-gross": "حصة صاحب العمل في الاشتراك قبل دعم " +
     "الحكومة: {result}" + R,
   "gpssa.gov-support": "الجزء الذي تتحمله الحكومة من حصة صاحب العمل: " +
     "{result}" + R,
-  "cap.base": "الأجر المعتمد لحدود الخصم: {result}" + R,
-  "cap.overall": "أقصى ما يجوز خصمه هذا الشهر (نصف الأجر): {result}" + R,
+  "cap.base": "الأجر الذي تُحسب عليه حدود الخصم: {result}" + R,
+  "cap.overall": "أقصى ما يجوز خصمه هذا الشهر ({in.capPercent} من " +
+    "الأجر): {result}" + R,
   "ded.gpssa": "اشتراك المعاش، حصة الموظف: {result}" + R,
   "ded.overpayment": "استرداد مبلغ مدفوع بالزيادة {in.ref}: {result}" + R,
   "ded.violation": "خصم بسبب مخالفة {in.ref}: {result}" + R,

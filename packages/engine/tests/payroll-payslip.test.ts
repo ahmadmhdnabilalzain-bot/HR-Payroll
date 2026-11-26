@@ -31,6 +31,11 @@ describe("calculatePayslip", () => {
     expect(s.earnings.map((e) => e.kind)).toEqual(["basic", "housing",
       "conveyance"]);
     expect(s.notComputed).toEqual(NOT_COMPUTED);
+    expect(NOT_COMPUTED).toHaveLength(17);
+    for (const words of ["private sector", "mid-month salary change",
+      "Art 30(2)", "Art 19(5)", "Cabinet"]) {
+      expect(NOT_COMPUTED.some((t) => t.includes(words)), words).toBe(true);
+    }
     expect(s.notApplicable).toEqual(notApplicableFor("expat-full-time"));
     expect(s.notApplicable[0]).toContain("GPSSA");
     expect(s.daysInPeriod).toBe(30);

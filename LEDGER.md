@@ -334,3 +334,44 @@ while building (`docs/superpowers/plans/plan-5-build-report.md`).
 - Ruling B6: `deductionOrder` is loaded as text and parsed by
   `applyDeductions`, which refuses anything but the seven kinds once
   each (`INVALID_PARAM`). Cost if wrong: none.
+- Review fixes (2026-11-26, after the whole-branch review, READY AFTER
+  FIXES). Ruling B5 is replaced by B7.
+- Ruling B7: overrides are recorded when params load, so
+  `OVERRIDE_USED` lists every overridden key read, traced or not. An
+  override key that no payroll or GPSSA pack defines is refused
+  (`UNKNOWN_OVERRIDE`); a known key this payslip did not read is shown
+  in an `OVERRIDE_UNUSED` flag. Cost if wrong: a caller that sends extra
+  keys must drop them.
+- Ruling B8: the GPSSA employee share has its own trace line
+  (`gpssa.employee-share`); `ded.gpssa` shows the share and the arrears
+  as inputs; the pension lines carry the salary-base rule, and
+  explanations show any overridden rule as "overridden". Cost: none.
+- Ruling B9: in a leaving month a deferred remainder raises
+  `DEDUCTION_DUE_AT_EXIT` ("must be settled at exit in the final
+  settlement, which this engine does not compute") instead of
+  `DEDUCTION_DEFERRED`. Whether the 50% cap applies at final settlement
+  is not found. Cost if wrong: wording only.
+- Ruling B10: the employer GPSSA share is rounded once: payable =
+  round(salary x (employer rate - support rate)), support = gross -
+  payable. Salary 300,100 fils gives gross 45,015, payable 37,513 and
+  support 7,502 (before: 37,512 and 7,503). Cost if GPSSA invoices round
+  the support instead: 1 fils a month on some salaries.
+- Ruling B11: night overtime minutes above the night window (360 for
+  22:00-04:00) on one date are refused (`INVALID_MINUTES`), not
+  clamped, so nothing is silently changed. Cost if wrong: an input
+  error for a night that spans two dates; the caller splits it.
+- Ruling B12 (review M13): the government's "(2.5%) of its share" (DL57
+  Art 4(1)(b), L7 Art 2(2)) is read as 2.5 percentage points of the
+  contribution salary, so a private employer pays 12.5% below AED
+  20,000. The other reading (2.5% of the 15%, 0.375% of salary) is not
+  coded. Cost if wrong: the employer share is 2.125% of salary too low.
+- Ruling B13: case files declare the weakest status among the rules in
+  their trace, and the runner fails a case that claims more; the two
+  national cases are `unsourced` (they depend on the salary-base
+  override). Cost: none.
+- Open from the review, not fixed: M1 (Law 7, joining and leaving in
+  one month drops the whole contribution), M5 (no flag when probation
+  makes sick days unpaid), M10 (two daily bases: calendar days for
+  proration, 30 for overtime and caps), M11 (WPS fixed can be 0 when
+  deductions take all of basic; half-pay days are not in
+  `unpaidLeaveDays`).
