@@ -153,8 +153,7 @@ export function ExplainPanel(p: { explanation: Explanation;
             <Icon name="x" size={20} />
           </button>
         </div>
-        <div className={s.body} tabIndex={0} role="region"
-          aria-label={t("explain.working")}>
+        <div className={s.body} tabIndex={0}>
           <div className={s.result}>
             <span className={s.resultLabel}>{e.result.label}</span>
             <Value v={e.result.value} size="lg" />
