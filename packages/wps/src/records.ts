@@ -37,8 +37,6 @@ export interface ScrInput {
   readonly reference?: string;
 }
 
-const REFERENCE_MAX = 35;
-
 /** Every value written to a line passes through here. */
 function field(value: string, max?: number): string {
   const detail = { value };
@@ -142,6 +140,6 @@ export function scrLine(s: ScrInput, l: SifLayout): string {
     count(s.edrCount),
     amount(s.total),
     text(l.currency),
-    field(s.reference ?? "", REFERENCE_MAX),
+    field(s.reference ?? "", l.referenceMaxLength),
   ]);
 }

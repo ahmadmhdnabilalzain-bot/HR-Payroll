@@ -26,21 +26,25 @@ export interface CliResult {
   out: string;
 }
 
+/** The cause's own message, on one line, so no error is swallowed. */
+const why = (e: unknown): string =>
+  (e instanceof Error ? e.message : String(e)).split("\n")[0] ?? "";
+
 async function readInput(io: CliIo, file: string): Promise<string> {
   try {
     return await io.read(file);
-  } catch {
-    throw new EngineError("INVALID_INPUT_FILE", `${file}: cannot read file`,
-      { file });
+  } catch (e) {
+    throw new EngineError("INVALID_INPUT_FILE",
+      `${file}: cannot read file (${why(e)})`, { file });
   }
 }
 
 function parseJson(text: string, file: string): unknown {
   try {
     return JSON.parse(text);
-  } catch {
-    throw new EngineError("INVALID_BATCH_FILE", `${file}: not valid JSON`,
-      { file });
+  } catch (e) {
+    throw new EngineError("INVALID_BATCH_FILE",
+      `${file}: not valid JSON (${why(e)})`, { file });
   }
 }
 
@@ -51,11 +55,11 @@ const report = (fs: readonly Finding[], name: string): string =>
   renderReport(fs, name).trimEnd();
 
 async function generate(
-  io: CliIo, file: string, out: string,
+  io: CliIo, file: string, out: string, today: string | null,
 ): Promise<CliResult> {
   const json = parseJson(await readInput(io, file), file);
   const sif = generateSif(parseBatch(json, file), defaultLayout);
-  const findings = validateSif(sif.text, defaultLayout, io.today());
+  const findings = validateSif(sif.text, defaultLayout, today ?? io.today());
   const text = report(findings, sif.fileName);
   if (hasErrors(findings)) {
     return { code: 1,
@@ -64,8 +68,9 @@ async function generate(
   let path: string;
   try {
     path = await io.write(out, sif.fileName, sif.text);
-  } catch {
-    throw new EngineError("CANNOT_WRITE", `cannot write to ${out}`,
+  } catch (e) {
+    throw new EngineError("CANNOT_WRITE",
+      `cannot write to ${out} (${why(e)})`,
       { dir: out, file: sif.fileName });
   }
   return { code: 0, out: `${text}\n\nWrote ${path}` };
@@ -90,7 +95,7 @@ export async function runCli(
   try {
     const a = parseArgs(args);
     return a.command === "generate"
-      ? await generate(io, a.file, a.out)
+      ? await generate(io, a.file, a.out, a.today)
       : await check(io, a.file, a.today);
   } catch (e) {
     if (e instanceof EngineError) return { code: 1, out: formatError(e) };

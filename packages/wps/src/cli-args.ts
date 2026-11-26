@@ -2,14 +2,14 @@ import { EngineError } from "@payroll/engine";
 
 export type CliArgs =
   | { readonly command: "generate"; readonly file: string;
-    readonly out: string }
+    readonly out: string; readonly today: string | null }
   | { readonly command: "check"; readonly file: string;
     readonly today: string | null };
 
 export const DEFAULT_OUT = "out";
 
-const USAGE = "usage: generate <batch.json> [--out dir] | " +
-  "check <file.SIF> [--today YYYY-MM-DD]";
+const USAGE = "usage: generate <batch.json> [--out dir] " +
+  "[--today YYYY-MM-DD] | check <file.SIF> [--today YYYY-MM-DD]";
 
 const bad = (why: string, value: string): EngineError =>
   new EngineError("INVALID_ARGS", `${why}; ${USAGE}`, { value });
@@ -36,13 +36,19 @@ function scan(rest: readonly string[]): Raw {
   return raw;
 }
 
-function only(raw: Raw, allowed: string, command: string): void {
+function only(
+  raw: Raw,
+  allowed: readonly string[],
+  command: string,
+): void {
   for (const flag of raw.flags.keys()) {
-    if (flag !== allowed) throw bad(`${flag} is not for ${command}`, flag);
+    if (!allowed.includes(flag)) {
+      throw bad(`${flag} is not for ${command}`, flag);
+    }
   }
 }
 
-/** `generate <batch.json> [--out dir]` or `check <file> [--today d]`. */
+/** Both commands take `--today d`; only generate takes `--out dir`. */
 export function parseArgs(args: readonly string[]): CliArgs {
   const [command, ...rest] = args.filter((a) => a !== "--");
   if (command !== "generate" && command !== "check") {
@@ -50,11 +56,12 @@ export function parseArgs(args: readonly string[]): CliArgs {
   }
   const raw = scan(rest);
   if (command === "generate") {
-    only(raw, "--out", command);
+    only(raw, ["--out", "--today"], command);
     return { command, file: raw.file,
-      out: raw.flags.get("--out") ?? DEFAULT_OUT };
+      out: raw.flags.get("--out") ?? DEFAULT_OUT,
+      today: raw.flags.get("--today") ?? null };
   }
-  only(raw, "--today", command);
+  only(raw, ["--today"], command);
   return { command, file: raw.file,
     today: raw.flags.get("--today") ?? null };
 }

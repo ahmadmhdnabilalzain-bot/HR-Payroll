@@ -8,16 +8,13 @@ import type { CliIo } from "./cli";
  * "./index" instead.
  */
 
-const two = (n: number): string => String(n).padStart(2, "0");
-
 /**
- * The machine's local date (not UTC), so a file made just after
- * midnight in Dubai is not judged against yesterday.
+ * The calendar date in Dubai (Asia/Dubai, UTC+4), whatever the host
+ * time zone, so a file made just after midnight in Dubai is not judged
+ * against yesterday. en-CA formats as YYYY-MM-DD.
  */
-function localToday(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${two(now.getMonth() + 1)}-` +
-    two(now.getDate());
+function dubaiToday(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dubai" });
 }
 
 export const nodeIo: CliIo = {
@@ -28,7 +25,7 @@ export const nodeIo: CliIo = {
     await writeFile(path, text, "utf8");
     return path;
   },
-  today: localToday,
+  today: dubaiToday,
 };
 
 export { BatchSchema, parseBatch } from "./batch-schema";

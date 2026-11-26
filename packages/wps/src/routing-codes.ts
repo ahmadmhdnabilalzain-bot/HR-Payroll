@@ -4,11 +4,11 @@
  * Source: the Emirates Islamic WPS guide (S2) routing code table, as
  * recorded in docs/research/2026-11-25-wps-sif-layout.md (2026-11-25).
  * Status: secondary. This table is PARTIAL: the research note lists six
- * banks, the full table is in the guide. It is also OLD (2016-era
- * guide) and some banks have merged since, so a current code can be
- * missing and a listed code can be retired. Codes are copied from the
- * note and never guessed. Before production, get the live list from
- * the bank or the central bank.
+ * banks, the full table is in the guide. It is also OLD (the guide is
+ * undated; its sample is from 2009) and some banks have merged
+ * since, so a current code can be missing and a listed code can be
+ * retired. Codes are copied from the note and never guessed. Before
+ * production, get the live list from the bank or the central bank.
  *
  * `entityId` is derived from routing code digits 2 to 4. That matches
  * the IBAN bank digits in the guide samples for Dubai Islamic Bank

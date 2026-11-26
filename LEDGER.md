@@ -79,9 +79,10 @@ Each item gets its own plan under `docs/superpowers/plans/`.
    Money type, gratuity and settlement with trace, rule-change preview,
    English and Arabic explanation, case library, demo command.
 2. Plan 2: WPS (SIF) generator and validator: **done** (built task by
-   task with review, 2026-11-26). Layout from two bank guides that agree;
-   unconfirmed by MOHRE. Generator, validator, routing codes, report,
-   demo commands `pnpm sif` and `pnpm sif:check`.
+   task, tasks 1 to 5 each reviewed, task 6 not; whole-branch review and
+   one fix round done, 2026-11-26). Layout from two bank guides that
+   agree; unconfirmed by MOHRE. Generator, validator, routing codes,
+   report, demo commands `pnpm sif` and `pnpm sif:check`.
 3. Plan 3: data model, API, tenancy and security baseline.
 4. Plan 4: web app (Arabic and English).
 5. Later: M2 and M3 items; then adjacent modules (expenses, tasks,
@@ -162,7 +163,8 @@ undecided.
   (`FIELD_NOT_ASCII`, `FIELD_HAS_COMMA`); days and counts are whole
   numbers of 0 or more (`INVALID_COUNT`). A missing SCR reference is
   written as an empty last field. Only the reference has a length cap
-  (35, now `layout.referenceMaxLength`).
+  (35, `layout.referenceMaxLength`, used by the generator and the
+  validator alike since the final fix round).
 - Task 3: an EVP given while variable pay is zero is refused
   (`EVP_WITHOUT_VARIABLE`): inconsistent input is an error. Extra codes
   `EVP_MISMATCH` and `INVALID_TIME`. Person ids are compared without
@@ -188,13 +190,66 @@ undecided.
   record type, count and total mismatches are reported only when the SCR
   is smaller than what was read.
 - Task 6: `sif:check` always passes a `today`: `--today`, else the
-  machine's local date read by the shell, never the core. `sif` checks
+  Dubai calendar date read by the shell, never the core. `sif` checks
   the file it made the same way and writes nothing on any error. Output
-  goes to `out/` by default, which git ignores.
+  goes to `/out/` by default, which git ignores. (Corrected in the final
+  fix round: the clock was first the host's local date, and `sif` had no
+  `--today`. A UTC host would have refused a Dubai-dated batch as a
+  future date from 00:00 to 04:00 Dubai time, not late in the Dubai
+  day.) Task 6 had no task review (speed ruling); the whole-branch
+  review covered it.
 - Task 6: batch amounts are strings read by the engine's `parseAed`, so
   "4000" and "4000.5" are accepted as well as "4000.00". zod stays in
   shell files (`batch-schema.ts`); a bad field is named by its path, such
   as `employees.0.edr.fixed`, under `INVALID_BATCH_FILE`.
-- Task 6: the purity scanner ignores words inside string literals for
-  `Date` and the other globals (a message said "Date must be ..."); it
-  still reads import strings.
+- Task 6: the purity scanner (`tests/purity.test.ts`) was rewritten in
+  the final fix round as one tokenising pass. It removes line and
+  multi-line block comments, and empties "..." and '...' strings,
+  template literals (their `${}` code is still scanned) and regex
+  literals, so words in messages are not code and a quote in a regex or
+  a comment marker in a string cannot hide code. It reads import
+  strings (single, double or backtick quotes, and `import(`). It bans
+  `Date`, `Intl`, `performance`, `Temporal`, timers, `crypto`,
+  `globalThis`/`global`, `process`, `console`, `Math.random`, `fetch(`,
+  `require(` and dynamic `import(` in the core. It does not catch: a
+  regex-versus-division guess that is wrong (it uses the previous
+  token), a global reached through an alias (`const g = self`) or
+  computed string (`globalThis[k]` is caught by the name, `self` and
+  `window` are not banned), or code outside `src/`.
+
+Rulings made in the Plan 2 final fix round (2026-11-26). The owner can
+overrule any of these.
+
+- Ruling: the generator throws `EVP_REQUIRED` when variable pay is above
+  zero and no EVP is given. Why: the Emirates Islamic guide says the EVP
+  is mandatory when variable pay is given. Cost if wrong: a batch with
+  variable pay and no breakdown is refused; relax one check in
+  `generate.ts`. The validator still gives `EVP_MISSING` as a warning for
+  third-party files.
+- Ruling: a period must have days of 1 or more: pay end on or after pay
+  start (`PAY_END_BEFORE_START`, generator and validator). Why: the DIB
+  guide has the end after the start; days 0 with a reversed period
+  passed both checks before. Cost if wrong: a one-off zero-day line is
+  refused; relax one check in each place.
+- Ruling: `generate` takes `--today YYYY-MM-DD` like `check`. Without
+  it the shell uses the Asia/Dubai calendar date
+  (`toLocaleDateString('en-CA', { timeZone: 'Asia/Dubai' })`, in
+  `shell.ts` only). Why: a UTC host judged a Dubai-dated batch as a
+  future date from 00:00 to 04:00 Dubai time. Cost if wrong: none for
+  UAE use; a future non-UAE market needs a time zone setting.
+- Ruling: the purity scanner is one tokenising pass (see the Task 6
+  scanner bullet). Why: the old two-step stripping could be bypassed.
+  Cost if wrong: a rare false alarm in the core, fixed in the test.
+- Ruling: the SCR EDR count stays unpadded (`1`). Why: the two guides
+  disagree (DIB sample `01`, Emirates Islamic sample `1`) and the field
+  is numeric; the validator accepts both. Cost if wrong: a bank that
+  wants `01` rejects the file; add a layout parameter and pad. The first
+  bank test upload should confirm it.
+- Ruling: the reference cap is only `layout.referenceMaxLength`
+  (`REFERENCE_MAX` deleted). Why: one source of truth. Cost if wrong:
+  none; a smaller cap in a layout now also stops the generator.
+- Ruling: `ROUTING_UNKNOWN` is deduplicated per code per file. When an
+  EDR and the SCR share an unknown code, only the first (the EDR) gets
+  the warning. Why: the warning is about the code, and the first line
+  names it. Cost if wrong: the SCR line shows no warning of its own;
+  pinned by a test, change both together.
