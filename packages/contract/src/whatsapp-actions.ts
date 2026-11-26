@@ -27,6 +27,10 @@ export const REPLY_TEXTS = {
   ar: "تغيّر هذا الطلب أو تم البت فيه. افتح التطبيق لرؤيته." },
   refused: { en: "This decision cannot be made from WhatsApp. Open the " +
     "app.", ar: "لا يمكن اتخاذ هذا القرار عبر واتساب. افتح التطبيق." },
+  ambiguous: { en: "More than one rejection was waiting for a reason, " +
+    "so none was recorded. Tap Reject again on the request you mean.",
+  ar: "كان أكثر من رفض بانتظار السبب، فلم يُسجَّل أي منها. اضغط رفض مجددًا " +
+    "على الطلب المقصود." },
   stopped: { en: "You will get no more WhatsApp messages from this " +
     "service. You can turn them on again in the app.",
   ar: "لن تصلك رسائل واتساب أخرى من هذه الخدمة. يمكنك تفعيلها مجددًا " +

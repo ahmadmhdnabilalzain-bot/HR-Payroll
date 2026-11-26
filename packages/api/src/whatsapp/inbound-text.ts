@@ -30,6 +30,17 @@ async function stop(h: HookCtx, e: TextEv, hash: string): Promise<void> {
   if (n > 0) await sendReply(h, e.fromE164, e.messageId, "stopped");
 }
 
+/**
+ * Review M8: two rejects wait for a reason on this phone. Neither gets
+ * the text; both expire and the approver is asked to tap again.
+ */
+async function ambiguous(h: HookCtx, e: TextEv, hash: string)
+  : Promise<void> {
+  await h.enter(NO_TENANT, (tx) =>
+    tx.query("SELECT expire_awaiting_by_phone($1)", [hash]));
+  await sendReply(h, e.fromE164, e.messageId, "ambiguous");
+}
+
 async function reasonTx(a: ActCtx, actionId: string, text: string)
   : Promise<Outcome> {
   if (!(await markSeen(a.tx, a.companyId, "whatsapp", a.messageId,
@@ -52,10 +63,12 @@ async function reasonTx(a: ActCtx, actionId: string, text: string)
 export async function onText(h: HookCtx, e: TextEv): Promise<void> {
   const hash = phoneHash(h.deps.keyring, e.fromE164);
   if (e.text.trim().toUpperCase() === "STOP") return stop(h, e, hash);
-  const [found] = await h.enter(NO_TENANT, (tx) =>
+  const all = await h.enter(NO_TENANT, (tx) =>
     tx.query<{ company_id: string; action_id: string }>(
       "SELECT * FROM find_awaiting_reason($1, $2)",
       [hash, h.deps.now().toISOString()]));
+  if (all.length > 1) return ambiguous(h, e, hash);
+  const [found] = all;
   if (found === undefined) return;
   await asRecipient(h, found.company_id, found.action_id, e, (a) =>
     reasonTx(a, found.action_id, e.text));

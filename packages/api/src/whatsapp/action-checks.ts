@@ -22,6 +22,7 @@ export interface ActionRow {
 }
 
 export type ReplyKey = "approved" | "reasonPrompt" | "rejected" | "stale" |
+  "ambiguous" |
   "refused" | "stopped";
 
 /** Bad taps per phone per hour before taps are ignored (default). */

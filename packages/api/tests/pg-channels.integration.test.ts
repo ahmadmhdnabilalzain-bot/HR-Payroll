@@ -73,8 +73,9 @@ describe.skipIf(!ADMIN_URL)("Plan 13 jobs on real PostgreSQL", () => {
     const now = "2026-03-01T08:00:00.000Z";
     const two = (rows: Record<string, unknown>[]) =>
       new Set(rows.map((r) => r.company_id)).size;
-    expect((await q("SELECT * FROM find_awaiting_reason('hx', $1)",
-      [now])).length).toBe(1);
+    // Up to two rows, so a second waiting reject is noticed (M8).
+    expect(two(await q("SELECT * FROM find_awaiting_reason('hx', $1)",
+      [now]))).toBe(2);
     expect(two(await q("SELECT * FROM due_webhook_deliveries($1, 10)",
       [now]))).toBe(2);
     // Only the company that verified the domain (review I4).
