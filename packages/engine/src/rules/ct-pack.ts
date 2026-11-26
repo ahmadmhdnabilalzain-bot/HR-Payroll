@@ -17,7 +17,9 @@ const AE_CT: RulePack = {
   params: {
     // Bulletin snippet: taxable income "not exceeding AED 375,000".
     zeroBandUpperFils: sourced(37500000, SEC, BULLETIN),
-    zeroBandRateBps: sourced(0, SEC, BULLETIN),
+    // The bulletin snippet cut off the 0% word; the 25 Nov note
+    // shows "0% on taxable income up to AED 375,000".
+    zeroBandRateBps: sourced(0, SEC, "RESEARCH_CT_ZERO_RATE"),
     // Bulletin snippet: "9% on the portion of the Taxable Income".
     mainRateBps: sourced(900, SEC, BULLETIN),
     taxRounding: sourced("HALF_UP", CONV, "ENGINE_CONVENTION"),

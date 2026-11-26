@@ -203,8 +203,10 @@ function correctionLine(r: Vat201, rule: TraceRule): TraceLine {
   return {
     id: "vat201.corrections",
     label: "Corrections of earlier periods",
-    formula: "per corrected period: sale VAT minus claimed purchase " +
-      "VAT, credit notes negative; flagged above the threshold",
+    formula: "per corrected period: the documents' Box 14 effect " +
+      "(standard sale VAT, minus claimed standard purchase VAT, plus " +
+      "reverse-charge VAT minus its claimed part), credit notes " +
+      "negative; flagged above the threshold",
     inputs: { periods: String(r.corrections.length) },
     result: r.corrections.map((c) =>
       `${c.periodStart} ${c.netVatEffect.toString()}`).join("; "),

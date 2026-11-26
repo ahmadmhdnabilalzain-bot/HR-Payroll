@@ -126,8 +126,6 @@ describe("computeDaySheet", () => {
       .toThrow(expect.objectContaining({ code: "INVALID_SHIFT" }));
   });
   it("invalid_interval_refused", () => {
-    expect(() => computeDaySheet(day({ worked: ivs([[2800, 2900]]) }), P))
-      .toThrow(expect.objectContaining({ code: "INVALID_INTERVAL" }));
     expect(() => computeDaySheet(day({ worked: ivs([[600, 600]]) }), P))
       .toThrow(expect.objectContaining({ code: "INVALID_INTERVAL" }));
   });

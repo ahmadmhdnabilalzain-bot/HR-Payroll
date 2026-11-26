@@ -28,6 +28,8 @@ function emp(over: Partial<SnapshotEmployee> = {}): SnapshotEmployee {
     employeeId: E1, name: "Asha", joiningDate: "2019-01-01",
     lastWorkingDate: null, workerClass: "expat-full-time",
     salaryVersion: 1, unpaidLeaveDays: 0,
+    bank: { routingCode: "803320101", iban: "AE070331234567890123456" },
+    labourPersonId: "00000000000001",
     components: [
       { code: "basic", label: "Basic", amount: fils(400000n),
         sifBucket: "fixed" },
@@ -115,6 +117,30 @@ describe("computePayRun", () => {
           code: "EMPLOYEE_NOT_IN_PERIOD", missing: [] }]));
     });
 
+  it("a code twice in one entry is a problem, not a silent pick", () => {
+    const out = computePayRun(snap([emp()], [{ employeeId: E1,
+      componentOverrides: [{ code: "basic", amount: "1.00" },
+        { code: "basic", amount: "2.00" }],
+      oneOffs: [
+        { code: "bonus", label: "B", amount: "1.00",
+          sifBucket: "otherAllowances" },
+        { code: "bonus", label: "B", amount: "1.00",
+          sifBucket: "otherAllowances" }] }]));
+    expect(out.payslips).toEqual([]);
+    expect(out.problems).toEqual([{ employeeId: E1,
+      code: "VALIDATION_FAILED", missing: ["basic", "bonus"] }]);
+  });
+
+  it("a run gross above the wire cap is a problem", () => {
+    const big = (id: string) => emp({ employeeId: id, components: [
+      { code: "basic", label: "B", amount: fils(60_000_000_000n),
+        sifBucket: "fixed" }] });
+    const out = computePayRun(snap([big(E1), big(E2)]));
+    expect(out.payslips).toEqual([]);
+    expect(out.problems).toEqual([{ employeeId: E2,
+      code: "VALIDATION_FAILED", missing: ["runGross"] }]);
+  });
+
   it("people outside the period are not paid", () => {
     const out = computePayRun(snap([emp({ lastWorkingDate: "2026-02-28" }),
       emp({ employeeId: E2, joiningDate: "2026-04-01" })]));
@@ -124,38 +150,49 @@ describe("computePayRun", () => {
 
   const leaver = (over: Partial<SnapshotEmployee> = {}) =>
     emp({ lastWorkingDate: "2026-03-31", ...over });
+  const inputs = { unusedLeaveDays: 0, serviceUnpaidLeaveDays: 0 };
+  const direct = (over: { basic?: bigint; unpaid?: number;
+    lwd?: string } = {}) => calculateSettlement({ gratuity: {
+    joiningDate: "2019-01-01", lastWorkingDate: over.lwd ?? "2026-03-31",
+    unpaidLeaveDays: over.unpaid ?? 0,
+    lastBasicMonthly: fils(over.basic ?? 400000n),
+    workerClass: "expat-full-time" }, unusedLeaveDays: 0 }, GRATUITY_PACKS);
 
   it("compute_leaver_settlement", () => {
     const out = computePayRun(snap([leaver()], [{ employeeId: E1,
-      unusedLeaveDays: 0 }]));
+      ...inputs }]));
     expect(out.problems).toEqual([]);
     const s = out.payslips[0]!.settlement!;
     expect(s.status).toBe("computed");
     if (s.status !== "computed") return;
-    const direct = calculateSettlement({ gratuity: {
-      joiningDate: "2019-01-01", lastWorkingDate: "2026-03-31",
-      unpaidLeaveDays: 0, lastBasicMonthly: fils(400000n),
-      workerClass: "expat-full-time" }, unusedLeaveDays: 0 },
-      GRATUITY_PACKS);
-    expect(s.total).toBe(direct.value.total);
+    expect(s.total).toBe(direct().value.total);
     expect(s.includedInSif).toBe(false);
     expect(s.explanation.arReviewed).toBe(false);
-    expect(s.notComputed).toContain(SERVICE_UNPAID_LEAVE_NOT_ENTERED);
+    expect(s.notComputed).not.toContain(SERVICE_UNPAID_LEAVE_NOT_ENTERED);
     expect(out.gross).toBe(550000n);
   });
 
-  it("the leaver's gratuity uses the stored basic, not an override", () => {
-    const withOverride = computePayRun(snap([leaver()], [{ employeeId: E1,
-      unusedLeaveDays: 0, serviceUnpaidLeaveDays: 10,
-      componentOverrides: [{ code: "basic", amount: "1.00" }] }]));
-    const plain = computePayRun(snap([leaver()], [{ employeeId: E1,
-      unusedLeaveDays: 0, serviceUnpaidLeaveDays: 10 }]));
-    const a = withOverride.payslips[0]!.settlement!;
-    const b = plain.payslips[0]!.settlement!;
-    expect(a).toEqual(b);
-    if (b.status === "computed") {
-      expect(b.notComputed).not.toContain(SERVICE_UNPAID_LEAVE_NOT_ENTERED);
-    }
+  it("entered unpaid leave over service lowers the gratuity", () => {
+    // Review worked example: 200 unpaid days give 20,794.52, not 22,986.30.
+    const out = computePayRun(snap([leaver()], [{ employeeId: E1,
+      unusedLeaveDays: 0, serviceUnpaidLeaveDays: 200 }]));
+    const s = out.payslips[0]!.settlement!;
+    expect(s.status === "computed" && s.gratuity).toBe(2079452n);
+    expect(direct().value.gratuity).toBe(2298630n);
+  });
+
+  it("compute_midmonth_leaver_uses_recurring_basic", () => {
+    const mid = leaver({ lastWorkingDate: "2026-03-15" });
+    const out = computePayRun(snap([mid], [{ employeeId: E1, ...inputs,
+      componentOverrides: [{ code: "basic", amount: "1935.48" },
+        { code: "housing", amount: "725.81" }] }]));
+    expect(out.problems).toEqual([]);
+    const s = out.payslips[0]!.settlement!;
+    expect(s.status === "computed" && s.total).toBe(
+      direct({ lwd: "2026-03-15" }).value.total);
+    expect(s.status === "computed" && s.total).not.toBe(
+      direct({ lwd: "2026-03-15", basic: 193548n }).value.total);
+    expect(out.payslips[0]!.lines[0]!.amount).toBe(193548n);
   });
 
   it("compute_leaver_refused", () => {
@@ -170,21 +207,28 @@ describe("computePayRun", () => {
     }
     expect(code).not.toBe("");
     const out = computePayRun(snap([leaver({ workerClass: "gcc-national" })],
-      [{ employeeId: E1, unusedLeaveDays: 0 }]));
+      [{ employeeId: E1, ...inputs }]));
     expect(out.payslips.length).toBe(1);
     expect(out.payslips[0]!.settlement).toMatchObject({ status: "refused",
       code });
   });
 
   it("compute_leaver_needs_leave_days", () => {
-    const out = computePayRun(snap([leaver()]));
-    expect(out.problems).toEqual([{ employeeId: E1,
-      code: "SETTLEMENT_INPUT_REQUIRED", missing: ["unusedLeaveDays"] }]);
+    expect(computePayRun(snap([leaver()])).problems).toEqual([{
+      employeeId: E1, code: "SETTLEMENT_INPUT_REQUIRED",
+      missing: ["unusedLeaveDays", "serviceUnpaidLeaveDays"] }]);
+    expect(computePayRun(snap([leaver()], [{ employeeId: E1,
+      unusedLeaveDays: 0 }])).problems).toEqual([{ employeeId: E1,
+      code: "SETTLEMENT_INPUT_REQUIRED",
+      missing: ["serviceUnpaidLeaveDays"] }]);
+    expect(computePayRun(snap([leaver()], [{ employeeId: E1,
+      serviceUnpaidLeaveDays: 0 }])).problems[0]?.missing).toEqual(
+      ["unusedLeaveDays"]);
   });
 
   it("compute_uae_national_not_applicable", () => {
     const out = computePayRun(snap([leaver({ workerClass: "uae-national" })],
-      [{ employeeId: E1, unusedLeaveDays: 0 }]));
+      [{ employeeId: E1, ...inputs }]));
     expect(out.payslips[0]!.settlement).toMatchObject({
       status: "computed", outcome: "not-applicable",
       reason: UAE_NATIONAL_REASON });

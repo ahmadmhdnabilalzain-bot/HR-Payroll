@@ -24,12 +24,13 @@ import type {
   LoginResponse,
   Me,
   MfaEnrolResponse,
+  Role,
 } from "./contract";
 
 export type LeaveListQuery = {
   employeeId?: string;
   status?: LeaveRequest["status"];
-  /** Filtered in the client: the contract's query has no year. */
+  /** Requests starting in this calendar year. */
   year?: number;
 };
 
@@ -43,8 +44,9 @@ export interface ApiClient {
   login(r: LoginRequest): Promise<LoginResponse>;
   logout(): Promise<void>;
   me(): Promise<Me>;
-  mfaEnrol(): Promise<MfaEnrolResponse>;
-  mfaConfirm(code: string): Promise<Me>;
+  /** Both need the current password (Plan 3). */
+  mfaEnrol(password: string): Promise<MfaEnrolResponse>;
+  mfaConfirm(code: string, password: string): Promise<Me>;
   getCompany(): Promise<Company>;
   updateCompany(u: CompanyUpdate): Promise<Company>;
   listDepartments(): Promise<Department[]>;
@@ -76,6 +78,8 @@ export interface ApiClient {
   verifyAudit(): Promise<AuditVerifyResult>;
   listUsers(): Promise<UserRow[]>;
   inviteUser(r: InviteRequest): Promise<InviteResponse>;
+  /** Owner with an MFA session; the last owner cannot be demoted. */
+  changeUserRole(userId: string, role: Role): Promise<UserRow>;
 }
 
 export type ApiMethod = keyof ApiClient;

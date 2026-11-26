@@ -127,3 +127,70 @@ matched, so the plan file is unchanged.
 5. The purity scanner reads any string literal ending in `from` or
    `import` followed by a quote as an import. A field name `"from"`
    tripped it, so I renamed it; the scanner itself was not changed.
+
+## Review fixes (after `.superpowers/sdd/plan12/final-review.md`)
+
+Merged `claude/quirky-wozniak-b7xkvr` (04dd349) first, then:
+
+| Fix | Commit | What |
+|---|---|---|
+| I1, M3, M7 | 1c12585 | corrections use `box14Effect`; `CLAIMED_ON_UNTAXED` |
+| I2 | 3b5f89d | 0% band cites the 25 Nov note; guidelines note |
+| I3 | 6a3284f | wider banned-wording scan, variants, URL strip |
+| M1, M2, M5, M6 | 8feebc7 | cap and 18-month tests, 15-digit TRN, stay days |
+
+- I1: each document's Box 14 effect is computed the way `placeDocs`
+  places it. Standard sales count `+vat`, standard purchases count
+  `-claimed`, reverse-charge purchases count `vat - claimed`, and
+  everything else counts 0. The pinned test now expects `600n`. The
+  review's three scenarios are tests. Two new property tests: the
+  corrections total equals the Box 14 change, and a single corrected
+  period's effect equals `box14`. An undecided claim counts as 0, as
+  the prescribed helper does; the return is incomplete then anyway.
+- M7: the property generators now cover credit notes, corrections,
+  entered or `none` FTA boxes, and signed adjustments.
+- M3: an excluded purchase with `claimedVat > 0` raises
+  `CLAIMED_ON_UNTAXED`, which makes the return incomplete.
+- I2: new source `RESEARCH_CT_ZERO_RATE` points to the 25 Nov note,
+  with an empty url like `RESEARCH_EMIRATISATION`. Status stays
+  `secondary`. The `MOF_EINV_GUIDELINES` note now says "V1.1 path;
+  link serves V2.1".
+- I3: the scan now covers:
+  - folders `api/src/{tax,einvoicing}` and
+    `contract/src/{tax,einvoicing}`;
+  - `contract/src/routes-(vat|tax|einvoic)*.ts`;
+  - `api/src/routes/(vat|tax|einvoic)*.ts`.
+
+  It catches these variants: "submitted to FTA", "FTA-approved",
+  "5 %", "five per cent", "recover input tax". URLs and
+  percent-encoded bytes are removed before the scan. The engine's
+  `src/tax` text is scanned too; only the quoted Box 13 FTA label is
+  allowed. Once `routes-vat.ts` exists, the test fails unless that
+  file is scanned and the tax folders exist. The plan's test spec is
+  updated to match. The scanner and its planted-string tests live in
+  one file, so I could not show a separate failing run for it.
+- M5: `tinFromTrn` accepts exactly `^\d{15}$`, which is the Ruling 9
+  assumption and is marked as one in the code.
+- M6: `stayDays` counts calendar days including the first and the
+  last day. This is a cautious convention, documented on the
+  interface and in the plan.
+- M4 (not requested): I added a comment documenting rounding per
+  band; no behaviour changed.
+- The M1 and M2 tests pass against the existing code. They pin
+  behaviour that was already right, so there was no failing run.
+
+Checks: engine 550 tests pass, including the line-length checks and
+the typecheck of every package except web.
+
+`pnpm check` is not fully green, for reasons outside the engine:
+- `apps/web` fails its typecheck and 15 unit tests on the merged
+  base. The errors are `sifFileId` missing on `AppPayRun` and
+  `ErrorDetail` typing. These files are untouched by this work.
+- `packages/api` had 174 tests pass, then one worker was killed with
+  SIGKILL, probably memory.
+
+UNVERIFIED source URLs, left untouched as instructed:
+1. VAT guide: `...User%20GuideEnglishV40...`, which probably lost a
+   `%20`.
+2. Decision 17: `tax.gov.ae//Datafolder`, verbatim in the note.
+3. CT bulletin: `CT_TaxB_ulletin_EN_V5.pdf`, verbatim in the note.

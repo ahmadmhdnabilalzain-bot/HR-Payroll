@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { withTenant } from "../src/db/tenant";
 import {
+  member,
   IBAN_SENTINEL,
+  SENTINELS,
   SALARY_SENTINEL,
   salaryOf,
   seedCompany,
@@ -87,7 +89,7 @@ describe("employees and departments", () => {
       const text = JSON.stringify(raw);
       expect(text).not.toContain("7777.77");
       expect(text).not.toContain("AE0703");
-      expect(text).not.toContain("00000000000004");
+      expect(text).not.toContain(SENTINELS.outsider.labour);
     });
 
   it("bank reveal needs an MFA session and is audited", async () => {
@@ -99,13 +101,42 @@ describe("employees and departments", () => {
     expect(noMfa.body.error.code).toBe("MFA_REQUIRED");
     const r = await as("owner", "GET", path);
     expect(r.status, r.text).toBe(200);
-    expect(r.body).toEqual({ routingCode: "803320101", iban: IBAN_SENTINEL });
+    expect(r.body).toEqual({ routingCode: "803320101",
+      iban: SENTINELS.outsider.iban });
     const ev = await withTenant(ctx.deps.db, { companyId: s.companyId,
       userId: null }, (tx) => tx.query<{ entity_id: string }>(
       `SELECT entity_id FROM audit_events
        WHERE action = 'employee.bank.revealed'`));
     expect(ev.map((e) => e.entity_id)).toContain(s.emp.outsider);
   });
+
+  it("salary and bank writes need MFA; nobody but an owner edits self",
+    async () => {
+      const plain = await login(ctx.app, s.hr.email, PASSWORD);
+      const noMfa = await call(ctx.app, plain.body.token, s.companyId, "PUT",
+        `/v1/employees/${s.emp.outsider}/salary`, salaryOf("1.00"));
+      expect(noMfa.body.error.code).toBe("MFA_REQUIRED");
+      const own = await as("hr", "POST", "/v1/employees", { number: "S-1",
+        fullName: "Hr Self", jobTitle: "HR", nationality: "IN",
+        workerClass: "expat-full-time", joiningDate: "2020-01-01" });
+      const hr2 = await member(ctx, s.owner, s.companyId,
+        "hr2.self@example.com", "hr", own.body.id);
+      const mine = (path: string, body: unknown) => call(ctx.app, hr2.token,
+        s.companyId, "PUT", `/v1/employees/${own.body.id}/${path}`, body);
+      expect((await mine("salary", salaryOf("99999.00"))).body.error.code)
+        .toBe("SOD_VIOLATION");
+      expect((await mine("bank", { routingCode: "803320101",
+        iban: "AE990000000000000000099" })).body.error.code)
+        .toBe("SOD_VIOLATION");
+      const o = await as("owner", "POST", "/v1/employees", { number: "S-2",
+        fullName: "Owner Self", jobTitle: "Owner", nationality: "IN",
+        workerClass: "expat-full-time", joiningDate: "2020-01-01" });
+      const owner3 = await member(ctx, s.owner, s.companyId,
+        "owner3.self@example.com", "owner", o.body.id);
+      const ok = await call(ctx.app, owner3.token, s.companyId, "PUT",
+        `/v1/employees/${o.body.id}/salary`, salaryOf("5000.00"));
+      expect(ok.status, ok.text).toBe(200);
+    });
 
   it("departments: create, update, list for all roles", async () => {
     const d = await as("hr", "POST", "/v1/departments", { name: "Ops",

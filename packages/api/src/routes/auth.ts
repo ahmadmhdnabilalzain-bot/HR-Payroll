@@ -78,9 +78,10 @@ function securityLog(ctx: ReqCtx, event: string): void {
 
 async function enrolMfa(ctx: ReqCtx<MfaEnrolRequest>) {
   const { deps } = ctx;
-  if (ctx.user!.mfa_enrolled) throw new ApiError("MFA_ALREADY_ENROLLED");
   const { u, refused } = await reauthenticate(ctx);
   if (refused !== null) return new Refuse(credentialError(refused));
+  // Checked on the locked row: a parallel confirm cannot be overwritten.
+  if (u.mfa_enrolled) throw new ApiError("MFA_ALREADY_ENROLLED");
   const secret = base32Encode(deps.randomBytes(20));
   const enc = deps.keyring.encryptGlobal(`users:mfa_secret:${u.id}`,
     secret);

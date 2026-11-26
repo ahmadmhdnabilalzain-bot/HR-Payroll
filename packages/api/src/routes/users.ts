@@ -41,18 +41,36 @@ async function listUsers(ctx: ReqCtx) {
     mfaEnrolled: r.mfa_enrolled })) };
 }
 
+/**
+ * One user account per employee record: the employee must exist, have
+ * no member linked and no open invite.
+ */
+async function checkLinkable(tx: Db, deps: HandlerDeps, companyId: string,
+  employeeId: string): Promise<void> {
+  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
+    "id = $2 FOR UPDATE", [companyId, employeeId]);
+  const e = await tx.query(
+    "SELECT 1 FROM employees WHERE company_id = $1 AND id = $2",
+    [companyId, employeeId]);
+  if (e.length === 0) {
+    throw new ApiError("NOT_FOUND", "No such employee",
+      { fields: ["body.employeeId"] });
+  }
+  const taken = await tx.query(
+    `SELECT 1 FROM memberships WHERE company_id = $1 AND employee_id = $2
+     UNION ALL
+     SELECT 1 FROM invites WHERE company_id = $1 AND employee_id = $2
+       AND used_at IS NULL AND expires_at > $3`,
+    [companyId, employeeId, deps.now().toISOString()]);
+  if (taken.length > 0) throw new ApiError("EMPLOYEE_ALREADY_LINKED");
+}
+
 /** The setup token carries the company id so accept can set the tenant. */
 async function inviteUser(ctx: ReqCtx<InviteRequest>) {
   const { deps, body } = ctx;
   const companyId = ctx.tenant!.companyId;
   if (body.employeeId !== undefined) {
-    const e = await ctx.tx.query(
-      "SELECT 1 FROM employees WHERE company_id = $1 AND id = $2",
-      [companyId, body.employeeId]);
-    if (e.length === 0) {
-      throw new ApiError("NOT_FOUND", "No such employee",
-        { fields: ["body.employeeId"] });
-    }
+    await checkLinkable(ctx.tx, ctx.deps, companyId, body.employeeId);
   }
   const setupToken = `${companyId}.${newSecret(deps)}`;
   const now = deps.now();
@@ -110,6 +128,11 @@ async function acceptIn(tx: Db, ctx: ReqCtx<AcceptInviteRequest>,
   const member = await tx.query("SELECT 1 FROM memberships WHERE " +
     "company_id = $1 AND user_id = $2", [companyId, userId]);
   if (member.length > 0) throw new ApiError("ALREADY_MEMBER");
+  if (inv.employee_id !== null) {
+    const linked = await tx.query("SELECT 1 FROM memberships WHERE " +
+      "company_id = $1 AND employee_id = $2", [companyId, inv.employee_id]);
+    if (linked.length > 0) throw new ApiError("EMPLOYEE_ALREADY_LINKED");
+  }
   await insertMembership(tx, { companyId, userId, role: inv.role,
     employeeId: inv.employee_id, at });
   await tx.query("UPDATE invites SET used_at = $2 WHERE id = $1",

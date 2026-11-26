@@ -25,8 +25,11 @@ export {
   EXAMPLES,
   IBAN_SENTINEL,
   NOT_COMPUTED_PAY,
+  PAY_TRACE_RESULT,
+  PayRunProblem,
   ROUTES,
   routeById,
+  SERVICE_UNPAID_LEAVE_NOT_ENTERED,
   SIF_STATEMENT,
 } from "@payroll/contract";
 export type {
@@ -41,7 +44,7 @@ export type {
   CompanyUser,
   Department,
   ErrorCode,
-  ErrorDetail as WireErrorDetail,
+  ErrorDetail,
   Finding,
   InviteRequest,
   InviteResponse,
@@ -55,7 +58,6 @@ export type {
   Me,
   Membership,
   MfaEnrolResponse,
-  PayRunProblem,
   Period,
   Role,
   RouteDef,
@@ -104,6 +106,8 @@ export type AppPayRunEntry = {
   componentOverrides?: Override[];
   oneOffs?: (Omit<OneOff, "amount"> & { amount: Fils })[];
   unusedLeaveDays?: number;
+  /** Leavers only; omitted means 0 and the settlement says so. */
+  serviceUnpaidLeaveDays?: number;
 };
 export type AppPayRunCreate = {
   period: PayRunCreate["period"];
@@ -204,6 +208,9 @@ function toWireEntry(e: AppPayRunEntry): PayRunEntry {
   if (e.unusedLeaveDays !== undefined) {
     out.unusedLeaveDays = e.unusedLeaveDays;
   }
+  if (e.serviceUnpaidLeaveDays !== undefined) {
+    out.serviceUnpaidLeaveDays = e.serviceUnpaidLeaveDays;
+  }
   return out;
 }
 
@@ -222,6 +229,9 @@ function fromWireEntry(e: PayRunEntry): AppPayRunEntry {
   }
   if (e.unusedLeaveDays !== undefined) {
     out.unusedLeaveDays = e.unusedLeaveDays;
+  }
+  if (e.serviceUnpaidLeaveDays !== undefined) {
+    out.serviceUnpaidLeaveDays = e.serviceUnpaidLeaveDays;
   }
   return out;
 }

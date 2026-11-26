@@ -245,3 +245,81 @@ and listed here:
   run slightly over 30 lines. Each is a flat list of one-line methods.
 - `HANDOVER.md` and `LEDGER.md` are not updated: the plan reserves that
   for Task 9, and the coordinator owns the merge.
+
+## Addendum: adapted to the merged Plan 3 contract (2026-11-26)
+
+`claude/quirky-wozniak-b7xkvr` was merged in after the Plan 3 backend
+landed. The contract changes listed above as asks 1 to 8 are now in
+the contract, and the groundwork follows them. No UI was built.
+
+- **Error detail.** Pay-run problems are now read as nested objects
+  from `detail.problems`, each checked against the contract's
+  `PayRunProblem` schema; an entry that fails is logged and dropped.
+  The JSON-string workaround is gone.
+- **`sifFileId`.** It is carried on `AppPayRun`. The mock sets it on
+  the seed run and when it generates a new file.
+- **`serviceUnpaidLeaveDays`.** It is mapped both ways on pay-run
+  entries. As in the api, it is optional, and a leaver still needs
+  only `unusedLeaveDays`.
+- **Leave year filter.** It is sent in the query, and the mock filters
+  on it as the server does. The client-side filter is gone.
+- **New client methods.** `changeUserRole(userId, role)` covers
+  `PATCH /v1/users/{id}`; the route map now has 34 routes.
+  `mfaEnrol(password)` and `mfaConfirm(code, password)` follow
+  `MfaEnrolRequest` and `MfaConfirmRequest`.
+- **New error codes.** `INVITE_NOT_FOUND`, `LAST_OWNER`,
+  `RUN_INPUTS_CHANGED`, `SALARY_MISSING` and `PAYLOAD_TOO_LARGE` have
+  English and Arabic text (the Arabic NEEDS NATIVE REVIEW).
+- **The mock now copies `packages/api`:**
+  - Audit action names and data:
+    - `pay-run.created` with `{ period, employeeCount, inputHash }`;
+      `pay-run.approved` and `pay-run.voided` with `{ period }`;
+    - `leave.requested` with `{ employeeId, leaveTypeId, days }`; the
+      leave decisions with `{ employeeId }` only, never the note;
+    - `user.invited` on an `invite` entity with `{ role }`;
+      `user.role-changed` with `{ from, to }`;
+    - `sif.downloaded` with `{ fileName }`.
+  - No audit event for MFA enrolment, which the api sends to its
+    security log instead.
+  - The password is re-checked before an MFA change; a wrong one is
+    `INVALID_CREDENTIALS`.
+  - `LAST_OWNER` when demoting the last owner.
+  - `SALARY_MISSING` as a pay-run problem.
+  - `RUN_INPUTS_CHANGED` at approval. The run's input hash is a
+    snapshot of its entries plus the salaries and unpaid leave of
+    everyone in scope, recomputed when the run is approved.
+  - Only managers are held to separation of duties on leave; owner
+    and hr may decide their own requests, as in the api.
+  - Owner and hr may cancel any request that is not already
+    cancelled; others may cancel only their own pending one.
+- **Tests:** 103 web unit tests pass, including
+  `tests/unit/mock-mirror.test.ts`. These were written first and
+  failed before the code changed.
+
+### What the real api does that the mock cannot copy
+
+- **Settlements.** The api computes a leaver's settlement with the
+  engine, including `SERVICE_UNPAID_LEAVE_NOT_ENTERED`. The mock
+  returns `refused` with `MOCK_NOT_COMPUTED` (Ruling W25), so offline
+  payslips never show settlement numbers.
+- **TOTP.** The api checks real time-based codes and refuses a code
+  used twice. The mock accepts only the fixed code `123456`.
+- **Lockout.** The api locks an account for 15 minutes after 5 failed
+  passwords (`ACCOUNT_LOCKED`). The mock has no lockout.
+- **Sessions.** After an MFA change the api revokes the user's other
+  sessions. The mock's sessions are stateless tokens, so it cannot.
+- **Invite acceptance** (`acceptInvite`) and signup are not
+  `ApiClient` methods yet. The mock's setup token only has the
+  `<companyId>.` shape and cannot be accepted.
+- **Write routes.** Employee, salary, bank, department, leave-type,
+  adjustment and attendance writes are not in `ApiClient` (no screens
+  yet), so the mock's data changes only through leave, pay runs,
+  files, users and company settings.
+- **Transport details.** `PAYLOAD_TOO_LARGE`, the `X-Request-Id`
+  header (the mock's request ids are `mock-N`), the download's
+  `Content-Disposition` file name, encryption at rest and the api's
+  audit-data allowlist check have no mock equivalent.
+- **Flaky wps test.** One `packages/wps` test failed once when the
+  whole repository ran tests in parallel, then passed in two later full
+  runs. That package is not touched here; the failure looks like a
+  timeout under load.

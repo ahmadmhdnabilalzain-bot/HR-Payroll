@@ -61,4 +61,17 @@ export const errors = {
   ACCOUNT_LOCKED: "This account is locked after too many attempts. Try " +
     "again later.",
   INTERNAL: "The server had a problem. Try again.",
+  INVITE_NOT_FOUND: "This invite was not found. Ask for a new one.",
+  LAST_OWNER: "The company needs at least one owner. Make someone else " +
+    "an owner first.",
+  RUN_INPUTS_CHANGED: "Salaries or unpaid leave changed since this " +
+    "draft was made. Void it and create the pay run again.",
+  SALARY_MISSING: "This person has no salary set.",
+  PAYLOAD_TOO_LARGE: "The request was too large.",
+  EMPLOYEE_ALREADY_LINKED: "This person is already linked to a user " +
+    "account.",
+  MANAGER_CYCLE: "A person cannot report to someone who reports to them.",
+  EMPLOYEE_DATA_UNREADABLE: "Some saved employee data could not be " +
+    "read. Ask support to check it.",
+  RUN_EMPTY: "This pay run has no employees. Add people first.",
 } satisfies EnNamespace;
