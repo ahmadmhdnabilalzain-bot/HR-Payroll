@@ -1,7 +1,11 @@
 import { useRunApproval } from "../demo/actions";
-import { openIssues } from "../demo/derive";
+import { isBlocking, openIssues } from "../demo/derive";
 import { useDemo } from "../demo/state";
-import { formatLongDay, formatMonthName } from "../i18n/format";
+import {
+  formatList,
+  formatLongDay,
+  formatMonthName,
+} from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import s from "./StatusLead.module.css";
@@ -19,6 +23,7 @@ export function StatusLead() {
   const h = data.headline();
   const month = formatMonthName(h.runMonth, lang);
   const nameOf = (id: string): string => data.employee(id).name[lang];
+  const names = (ids: string[]): string => formatList(ids.map(nameOf), lang);
   const checker = nameOf(data.runPeople().checkerId);
   const held = run.blockedBy;
   const sentence = run.phase === "file" ? t("home.statusFile", { month })
@@ -26,9 +31,8 @@ export function StatusLead() {
       ? (run.isChecker ? t("home.statusApproveYou", { month })
         : t("home.statusApprove", { month, name: checker }))
       : t("home.statusBank", { month, count: held.length,
-        name: nameOf(held[0] ?? "") });
-  const firstHeld = openIssues(data, state).find((i) =>
-    i.code === "SIF_HELD_NO_IBAN");
+        name: nameOf(held[0] ?? ""), names: names(held) });
+  const firstHeld = openIssues(data, state).find(isBlocking);
   return (
     <header className={s.lead}>
       <p className={s.date}>
@@ -48,8 +52,7 @@ export function StatusLead() {
               </button>
               {!run.canDecide && (
                 <p id="approve-why" className={s.why}>
-                  {t("home.approveWaits", { count: held.length,
-                    name: nameOf(held[0] ?? "") })}
+                  {t("home.approveWaits", { names: names(held) })}
                 </p>
               )}
             </>

@@ -73,12 +73,13 @@ export function adapt(c: DemoCompany): DemoData {
     headline: () => ({
       runMonth: `${c.payRun.year}-${String(c.payRun.month)
         .padStart(2, "0")}`,
-      netTotalFils: h.net, grossTotalFils: h.gross,
+      netTotalFils: h.net, netNote: both(h.netNote),
+      grossTotalFils: h.gross,
       deductionsFils: h.deductions,
       employerCostFils: c.payRun.totals.employerCost,
       sifTotalFils: h.sifTotal, heldNetFils: h.heldNet,
       headcount: h.payslips, sifPeople: sifSummary(c).employees,
-      issuesOpen: h.issues, needsConfirmation: h.needsConfirmation,
+      issuesOpen: h.issuesOpen, needsConfirmation: h.needsConfirmation,
       approvalsPending: h.pendingApprovals }),
     departments: () => costByDepartment(c).map((d) => ({
       id: d.departmentId, name: label(d.labelKey),
@@ -86,6 +87,9 @@ export function adapt(c: DemoCompany): DemoData {
     issues: () => issues,
     heldIds: () => c.payRun.payslips.filter((s) => !s.sif.included)
       .map((s) => s.employeeId),
+    badIbanIds: () => [...new Set(issues.filter((i) =>
+      i.code === "IBAN_CHECKSUM" && i.employeeId !== null)
+      .map((i) => i.employeeId ?? ""))],
     approvalsInbox: () => approvals,
     employee: (id) => toEmployee(c, id),
     employees: () => c.employees.map((e) => toEmployee(c, e.id)),
@@ -94,7 +98,7 @@ export function adapt(c: DemoCompany): DemoData {
     payCalendar: () => {
       const p = payCalendar(c);
       return { asOf: p.asOf, cutOff: p.cutOff, approveBy: p.approveBy,
-        sifDue: p.sifDue, payday: p.payday };
+        sifDue: p.salaryFileSent, payday: p.payday };
     },
     basis: () => ({ ruleSet: label("scope.rules"),
       pension: both(PENSION_NOT_COMPUTED.en, PENSION_NOT_COMPUTED.ar) }),

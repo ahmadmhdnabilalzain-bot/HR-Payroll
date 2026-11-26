@@ -37,10 +37,25 @@ describe("demo selectors", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it("missing-and-mistyped-ibans-both-block-approval", () => {
+    const blocked = approvalBlockedBy(d, INITIAL);
+    expect(blocked).toEqual([...d.heldIds(), ...d.badIbanIds()]);
+    expect(d.heldIds().length).toBe(1);
+    expect(d.badIbanIds().length).toBe(1);
+    const fixed = blocked.reduce((s, id) => reduce(s, { type: "iban",
+      employeeId: id, value: src.bankLetterIban(id) }), INITIAL);
+    const after = src.at(fixed.ibans);
+    expect(approvalBlockedBy(after, fixed)).toEqual([]);
+    expect(after.badIbanIds()).toEqual([]);
+    expect(now(fixed)).toBe("approve");
+    const half = reduce(INITIAL, { type: "iban",
+      employeeId: blocked[0] ?? "", value: src.bankLetterIban(
+        blocked[0] ?? "") });
+    expect(now(half)).toBe("bank");
+  });
+
   it("entering-the-letter-iban-reruns-the-file-check", () => {
-    const held = approvalBlockedBy(d, INITIAL);
-    expect(held.length).toBe(1);
-    const who = held[0] ?? "";
+    const who = d.heldIds()[0] ?? "";
     expect(now(INITIAL)).toBe("bank");
     const iban = src.bankLetterIban(who);
     expect(src.tryIban({}, who, iban)).toEqual({ ok: true });
@@ -54,7 +69,6 @@ describe("demo selectors", () => {
     expect(h.sifPeople).toBe(d.headline().sifPeople + 1);
     expect(openIssues(after, s).length).toBe(openIssues(d, INITIAL)
       .length - 1);
-    expect(now(s)).toBe("approve");
   });
 
   it("a-mistyped-iban-is-refused-in-plain-words", () => {
@@ -67,9 +81,9 @@ describe("demo selectors", () => {
   });
 
   it("approval-moves-the-run-to-the-file", () => {
-    const who = d.heldIds()[0] ?? "";
-    const s0 = reduce(INITIAL, { type: "iban", employeeId: who,
-      value: src.bankLetterIban(who) });
+    const s0 = approvalBlockedBy(d, INITIAL).reduce((s, id) =>
+      reduce(s, { type: "iban", employeeId: id,
+        value: src.bankLetterIban(id) }), INITIAL);
     const run = runApprovalId(d) ?? "";
     expect(now(reduce(s0, { type: "decide", id: run,
       verdict: "approve" }))).toBe("sif");

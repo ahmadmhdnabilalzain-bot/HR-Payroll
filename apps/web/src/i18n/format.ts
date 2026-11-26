@@ -93,6 +93,12 @@ export function formatNumber(n: number, lang: Lang): string {
   return new Intl.NumberFormat(LOCALE[lang]).format(n);
 }
 
+/** "Priya Nair and Juma Al Zaabi", in the reading language. */
+export function formatList(items: string[], lang: Lang): string {
+  return new Intl.ListFormat(LOCALE[lang], { type: "conjunction" })
+    .format(items);
+}
+
 export function dirOf(lang: Lang): "ltr" | "rtl" {
   return lang === "ar" ? "rtl" : "ltr";
 }

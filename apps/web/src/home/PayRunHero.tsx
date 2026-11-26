@@ -31,6 +31,10 @@ export function PayRunHero() {
           <p className={s.figure}>
             <Money value={h.netTotalFils} size="hero" />
           </p>
+          <p className={s.caveat}>
+            <Icon name="info" size={16} />
+            <span>{h.netNote[lang]}</span>
+          </p>
           <p className={s.sub}>
             {t("home.netTo", { count: h.headcount })}
             {", "}
