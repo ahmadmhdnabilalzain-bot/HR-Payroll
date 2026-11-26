@@ -38,8 +38,12 @@ test("letter-requested-then-signed-by-the-general-manager", async ({
 test("papers-are-for-hr-and-the-gm-only", async ({ page }, info) => {
   test.skip(info.project.name === "phone", "role menu is an avatar");
   await page.goto("/#/people/papers/warnings");
+  const at = new URL(page.url()).hash;
   await page.getByRole("button", { name: /HR manager/ }).click();
   await page.getByRole("menuitemradio", { name: /Employee/ }).click();
+  // A role switch on a page outside the new view opens its Home.
+  await expect(page).toHaveURL(/#\/home$/);
+  await page.evaluate((h) => { location.hash = h; }, at);
   await expect(page.getByRole("heading", { level: 1,
     name: "Outside your view" })).toBeVisible();
 });

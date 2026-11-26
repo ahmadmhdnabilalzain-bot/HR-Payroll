@@ -20,6 +20,7 @@ const NAME = "list-name";
 
 interface Transition {
   finished: Promise<void>;
+  ready?: Promise<void>;
 }
 type Doc = Document & {
   startViewTransition?: (cb: () => Promise<void>) => Transition;
@@ -159,6 +160,8 @@ export function changeRoute(oldUrl: string, render: () => void): void {
     clearNew = nameParts(parts === null ? null
       : { face: parts.face, name: same ? parts.name : null });
   });
+  // A transition skipped by the next one rejects `ready`; nothing waits.
+  vt.ready?.catch(() => undefined);
   vt.finished.finally(() => {
     clearNew();
     delete html.dataset["listMotion"];

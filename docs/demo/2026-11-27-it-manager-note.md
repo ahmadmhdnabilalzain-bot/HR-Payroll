@@ -55,7 +55,7 @@ example "pay run signed off" to a finance system); calendar feeds; WPS
 salary file (SIF) for upload to your bank; CSV import and export. Single
 sign-on (OpenID Connect, with Microsoft Entra ID or Google) is written in
 the backend but not yet set up for any client. Accounting connectors and
-a Keka migration tool are planned, not built.
+a migration tool from your current system are planned, not built.
 
 ## What we need from you
 
@@ -64,7 +64,7 @@ a Keka migration tool are planned, not built.
 2. Your sign-in provider and MFA policy.
 3. The systems that need HR or payroll data (finance, directory, service
    desk, branch attendance devices).
-4. A sample of Keka exports with names removed, and how many years of
+4. A sample of exports from your current system with names removed, and how many years of
    history you must keep.
 5. A named contact for the security review.
 

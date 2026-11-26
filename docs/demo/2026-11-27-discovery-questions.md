@@ -12,7 +12,7 @@ Write the answers down word for word where you can.
 
 ## For the HR Manager (1 to 10)
 
-1. **Ask first.** What exactly fails in Keka today? The last time it went
+1. **Ask first.** What exactly fails in your current system today? The last time it went
    wrong, what happened, and what did it cost you (time, money, a staff
    complaint)?
    *Why:* "It cannot do the job properly" can mean wrong numbers, slow
@@ -24,7 +24,7 @@ Write the answers down word for word where you can.
    *Why:* shows where time goes and which checks are done by hand.
 
 3. Which bank receives your salary file? Does it take the standard SIF,
-   or a bank-specific format? Is the file made in Keka or by hand? Has one
+   or a bank-specific format? Is the file made in your current system or by hand? Has one
    ever been rejected?
    *Why:* the file format is bank-specific in practice. Keka claims files
    for a few named banks only; we must know theirs before any promise.
@@ -56,7 +56,7 @@ Write the answers down word for word where you can.
    *Why:* deductions have legal limits; we show the cap in the demo and
    need their cases.
 
-10. Do staff use the Keka mobile app? For what? What would they miss?
+10. Do staff use your current system's mobile app? For what? What would they miss?
     *Why:* staff like Keka's app; our phone version is a website, with no
     native app yet. We need to know what matters most.
 
@@ -75,7 +75,7 @@ Write the answers down word for word where you can.
     *Why:* the demo shows headcount by nationality only; the rules for
     banks are not confirmed on our side.
 
-14. Which Keka plan and add-ons do you pay for? When does the contract
+14. Which plan and add-ons of your current system do you pay for? When does the contract
     end, and how much notice must you give?
     *Why:* Keka's terms renew automatically unless notice is given 30
     days before the end, and data access lasts 30 days after it ends.
@@ -119,14 +119,14 @@ Write the answers down word for word where you can.
     general ledger, the directory, the service desk?
     *Why:* sets the integration list (API, webhooks, file exports).
 
-22. What can you export from Keka today: pay registers, leave balances,
+22. What can you export from your current system today: pay registers, leave balances,
     gratuity accruals, documents, audit logs? How many years of history
     must we keep?
     *Why:* our Keka migration tool is not built; the exports decide the
     migration plan. Ask for exports before giving notice.
 
 23. Which attendance devices do the branches use, and how do punches
-    reach Keka today?
+    reach your current system today?
     *Why:* clock-in feeds are a common integration and a peak-hour pain
     in Keka reviews.
 

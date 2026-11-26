@@ -51,6 +51,7 @@ export const home: ArOf<typeof en> = {
     "في جدوله.",
   preparedBy: "أعدّه {name}",
   checker: "يوقّع عليه {name}",
+  checkerDone: "وقّع عليه {name}",
   sources: "المصادر",
   hideSources: "إخفاء المصادر",
   sourcesTitle: "من أين تأتي هذه الأرقام",

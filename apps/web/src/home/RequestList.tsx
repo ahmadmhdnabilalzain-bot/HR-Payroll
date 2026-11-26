@@ -87,21 +87,24 @@ export function RequestList(p: { title: string; rows: RequestRow[];
                       onClick={verdict("approve")}>
                       {t("timeoff.approve")}</button>
                   </div>
-                ) : r.isNew && r.state === "waiting" &&
-                  r.employeeId === me ? (
-                  <button type="button" className={`${b.btn} ${b.quiet}`}
-                    onClick={() => {
-                      dispatch({ type: "withdraw-leave", id: r.id });
-                      toast.show(t("timeoff.withdrew"), () =>
-                        dispatch({ type: "restore-leave", id: r.id }));
-                    }}>{t("timeoff.withdraw")}</button>
                 ) : (
-                  <span className={s.state} data-state={r.state}>
-                    {r.state === "waiting" ? t("timeoff.waitingFor", {
-                      name: nameOf(r.approverId),
-                      role: data.people.person(r.approverId)?.role[lang]
-                        ?? "" }) : t(STATE[r.state])}
-                  </span>
+                  <div className={s.rowActions}>
+                    <span className={s.state} data-state={r.state}>
+                      {r.state === "waiting" ? t("timeoff.waitingFor", {
+                        name: nameOf(r.approverId),
+                        role: data.people.person(r.approverId)?.role[lang]
+                          ?? "" }) : t(STATE[r.state])}
+                    </span>
+                    {r.isNew && r.state === "waiting" && r.employeeId === me
+                      && (
+                      <button type="button" className={`${b.btn} ${b.quiet}`}
+                        onClick={() => {
+                          dispatch({ type: "withdraw-leave", id: r.id });
+                          toast.show(t("timeoff.withdrew"), () =>
+                            dispatch({ type: "restore-leave", id: r.id }));
+                        }}>{t("timeoff.withdraw")}</button>
+                    )}
+                  </div>
                 )}
               </li>
             );

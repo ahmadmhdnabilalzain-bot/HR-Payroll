@@ -18,11 +18,11 @@ export function EmployerCostScreen() {
         "Gross only"];
     }
     const a = r.employer.amount;
-    return [r.name, name, m(r.gross), a === 0n ? "None computed" : m(a),
+    return [r.name, name, m(r.gross), a === 0n ? "Nothing computed" : m(a),
       m((r.gross + a) as Fils)];
   });
   rows.push(["Total, partial", "", m(k.gross),
-    k.employerComputed === 0n ? "None computed" : m(k.employerComputed),
+    k.employerComputed === 0n ? "Nothing computed" : m(k.employerComputed),
     m(k.partialTotal)]);
   return (
     <ReportPage title="Employer cost" period={k.period}

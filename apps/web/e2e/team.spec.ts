@@ -59,11 +59,16 @@ test("appraisal-reminder-is-recorded-and-undone", async ({ page }) => {
     .toBeVisible();
 });
 
-test("a-manager-is-sent-outside-the-view", async ({ page }, info) => {
-  test.skip(info.project.name === "phone", "role menu is desktop only");
-  await page.goto("/#/people/team/org");
-  await page.getByRole("button", { name: /HR manager/ }).click();
-  await page.getByRole("menuitemradio", { name: /Team manager/ }).click();
-  await expect(page.getByRole("heading", { level: 1,
-    name: "This page is outside your view." })).toBeVisible();
-});
+test("a-manager-switched-onto-the-org-chart-lands-on-home",
+  async ({ page }, info) => {
+    test.skip(info.project.name === "phone", "role menu is desktop only");
+    await page.goto("/#/people/team/org");
+    await page.getByRole("button", { name: /HR manager/ }).click();
+    await page.getByRole("menuitemradio", { name: /Team manager/ }).click();
+    await expect(page).toHaveURL(/#\/home$/);
+    await expect(page.getByRole("heading", { level: 1 }))
+      .toHaveText(/waits? for you/);
+    await page.evaluate(() => { location.hash = "#/people/team/org"; });
+    await expect(page.getByRole("heading", { level: 1,
+      name: "This page is outside your view." })).toBeVisible();
+  });

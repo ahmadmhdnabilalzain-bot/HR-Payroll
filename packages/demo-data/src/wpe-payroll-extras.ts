@@ -608,12 +608,12 @@ function sampleText(c: DemoCompany, keep: (k: ParallelCause) => boolean)
 export function parallelSamples(c: DemoCompany): ParallelSample[] {
   return [
     { id: "first", label: "First export, before clean-up",
-      fileName: "keka-october-2026-first-export.csv",
+      fileName: "current-system-october-2026-first-export.csv",
       text: sampleText(c, () => true),
       note: "The old system's October net pay as first exported, before " +
         "its records were brought up to date." },
     { id: "cleaned", label: "Second export, records brought up to date",
-      fileName: "keka-october-2026-second-export.csv",
+      fileName: "current-system-october-2026-second-export.csv",
       text: sampleText(c, (k) => k.kind === "rule"),
       note: "The same month after the raise, the leaving date and the " +
         "leave were entered in the old system. Only rule differences " +

@@ -50,7 +50,7 @@ saved. To change who you are, tap the round initials at the top right."
 ## Step 1. Home as HR (0:00 to 2:30)
 
 **Open with one question (30 seconds).** "Before I show anything: what was
-the last thing that went wrong in Keka?" Listen. Write it down. If it
+the last thing that went wrong in your current system?" Listen. Write it down. If it
 matches a step below, say "I will show you that in a minute".
 
 **Click.** Nothing yet. The demo opens on Home, viewing as HR manager
@@ -59,8 +59,8 @@ matches a step below, say "I will show you that in a minute".
 **They see.** One sentence at the top: "2 bank details hold October pay",
 with one black button, "Enter bank details". Under it the net pay figure,
 the date line "Tuesday, 27 October · Zarqan Demo Bank", five steps
-(Inputs close, Bank details, Approve, Salary file, Payday) and the list
-"Before approval: 2 block approval · 6 to review". "Why this number" opens
+(Inputs close, Bank details, Sign off, Salary file, Payday) and the list
+"Before sign-off: 2 items block sign-off · 6 to review". "Why this number" opens
 a side panel that adds the figure up.
 
 **Say.** "Home answers one question: can October be paid, and what is my
@@ -96,9 +96,9 @@ is refused in plain words. Then use "Fill from bank letter".
 **They see.** After Priya: a message "Priya Nair: IBAN saved. Salary file
 checked again: 31 people, AED 933,730.94.", the sentence becomes "1 bank
 detail holds October pay" and "held out of the salary file" changes to
-"everyone in the salary file". After Juma: the sentence becomes "October
-pay is ready for approval", the Bank details step shows Done and Approve
-shows Now, and "2 block approval" disappears.
+"Held out: None". After Juma: the sentence becomes "October pay is ready
+for sign-off" with the button "Go to sign-off", the line under the steps
+reads "Step 3 of 5 · Sign off", and the list shows only "6 to review".
 
 **Say.** "The system will not let October be signed off while one person
 cannot be paid, or while an account number has a typo the bank would
@@ -122,11 +122,13 @@ story restarts at step 1 (about 30 seconds to catch up).
 **Click.**
 1. Top right, "Viewing as HR manager". Choose "General manager, Khalid Al
    Nuaimi".
-2. Click "Approve October pay".
+2. Click "Sign off October pay".
 
-**They see.** As the GM, Home reads "October pay waits for your approval".
+**They see.** As the GM, Home reads "October pay waits for your sign-off".
 After the click it reads "October salary file is next", with the button
-"Open the salary file". The steps show Approve as Done.
+"Open the salary file", and "Step 4 of 5 · Salary file". The list
+heading changes to "Signed off": what is left to review does not hold
+the salary file.
 
 **Say.** "One person prepares the pay run and a different person signs it
 off. HR cannot sign off their own run. The GM sees the same figures and
@@ -136,7 +138,7 @@ what is still open, with no spreadsheet in between."
 Khalid Al Nuaimi (General manager), AED 933,730.94 for 31 people. The pay
 run page records the sign-off with name, role and date.
 
-**If it goes wrong.** If "Approve October pay" is missing, a bank detail
+**If it goes wrong.** If "Sign off October pay" is missing, a bank detail
 is still open: switch back to HR manager and finish step 2. If the role
 menu does not open, press Esc and click "Viewing as" again.
 
@@ -169,8 +171,9 @@ it ask for its own format?" (Discovery question 3.)
 ## Step 5. The leaver's gratuity, explained (8:00 to 11:00)
 
 **Click.**
-1. Top bar "Pay". In the panel, under "Owed and leaving", click "Final
-   settlements".
+1. Top bar "Pay". In the panel, under "Waiting", click "Settlements".
+   (The group "Owed and leaving" opens Loans; Settlements is its second
+   tab.)
 2. Click "James Whitfield".
 3. Click the gratuity figure, AED 173,928.08.
 
@@ -196,11 +199,11 @@ rely on a secondary source, it says so. You can check it by hand."
   the gratuity, not part of it.
 - Sources named: Federal Decree-Law 33 of 2021, Article 51.
 
-**Say, carefully.** "How does Keka work out gratuity for you today: how
-many days a year, and on a 30-day or 365-day basis?" Do not say Keka is
-wrong. Let them compare.
+**Say, carefully.** "How does your current system work out gratuity today: how
+many days a year, and on a 30-day or 365-day basis?" Do not say it is
+wrong. Never name their vendor; say "your current system". Let them compare.
 
-**If it goes wrong.** If "Final settlements" is not in the panel, press
+**If it goes wrong.** If "Settlements" is not in the panel, press
 Cmd K, type "settlement" and press Return. If the side panel is long,
 scroll inside it; Esc closes it.
 
@@ -215,22 +218,24 @@ Their phone does not talk to the laptop: each device has its own copy.
 2. "Request leave". Leave the defaults (Annual leave, 16 Nov to 17 Nov,
    Travel). Click "Send request".
 3. "Viewing as", then "Team manager, Arjun Menon".
-4. On Jose Reyes's row, click "Approve".
+4. On Jose Reyes's row, click "Book".
 5. "Viewing as", then "Employee" again, to show the result.
 
 **They see.** The employee's Home: "Your October pay arrives on 30 Oct.",
-net pay AED 12,450.00, "Annual leave left 22.5 days left". The form shows
+net pay AED 12,450.00, "Annual leave left: 22½ days left". The form shows
 "2 working days · Goes to Arjun Menon, Operations manager" before sending.
-After sending: "Sent to Arjun Menon" and 20.5 days left. The manager's
-Home: "2 leave requests wait for you." with Jose Reyes (16 to 17 Nov) and
-Rafiq Hossain (16 to 20 Nov), plus "Team today". After the decision:
-"Jose Reyes's time off is booked". The employee then sees "Booked".
+After sending: "Sent to Arjun Menon", 20½ days left, and under "Your
+requests" the line "Waiting for Arjun Menon, Operations manager". The
+manager's Home: "2 leave requests wait for you." with Jose Reyes (16 to
+17 Nov) and Rafiq Hossain (16 to 20 Nov), each marked "Same days as ...",
+plus "Team today". After "Book": "Jose Reyes's time off is booked". The
+employee then sees "Booked".
 
 **Say.** "The employee sees the balance and who decides before sending.
 The manager sees who else asked for the same days. Nobody decides their
 own request."
 
-**The numbers.** 22.5 days left before, 20.5 after (waiting days count).
+**The numbers.** 22½ days left before, 20½ after (waiting days count).
 Two people in the same team asked for 16 and 17 November.
 
 **If it goes wrong.** If "Request leave" says the dates overlap, change the
@@ -243,13 +248,14 @@ demo; that is expected.
 
 **Click.**
 1. "Viewing as", then "IT manager, Vikram Rao".
-2. On Home, under "Audit trail", click "Check the chain".
-3. Top bar "Setup", then "Roles". Then "Setup", then "Segregation of
-   duties".
+2. On Home, on the "Audit chain" card, click "Check the chain".
+3. Top bar "Setup", then "Access and sign-off" (it opens Users). Click
+   the tab "Roles", then the tab "Duties".
 4. Top bar "Reports", then "Audit trail". Click "Edit one entry", then
-   "Check the chain", then "Restore the entry".
-5. "Setup", then "Data import". Then "Setup", then "Data location and
-   export".
+   "Check the chain", then "Restore the entry", then "Check the chain"
+   again.
+5. "Setup", then "Data and company" (it opens Company). Click the tab
+   "Import", then the tab "Data location".
 
 If time is short, do 1, 2, 4 and the data location page only.
 
@@ -257,16 +263,17 @@ If time is short, do 1, 2, 4 and the data location page only.
 - IT Home: "One connection is failing." Connections (to the finance
   system working; to the IT service desk failing), "2 API keys, read
   only", the last access review, "Data import 4 of 12 rows ready", "Audit
-  trail 58 entries in the chain". After the check: "All 58 entries match.
+  chain 58 entries in the chain". After the check: "All 58 entries match.
   Checked just now."
-- The IT manager's bar is Home, People, Reports, Setup. No pay figures in the menus. (The audit trail may still show
-  amounts: not yet checked.)
+- The IT manager's bar is Home, People, Time, Reports, Setup. No pay
+  figures in the menus; amounts in the audit trail show as dots for IT.
 - Roles: 11 roles in plain words, for example "HR manager: prepares the
   pay run and the salary file; cannot sign it off" and "IT administrator:
   runs access and connections".
-- Segregation of duties: four checks, each "Holds".
+- Duties kept apart: four checks, each "Holds".
 - Audit trail after "Edit one entry": "Chain broken at entry 11: its
-  fingerprint no longer matches".
+  fingerprint no longer matches". After restoring and checking again:
+  "Chain checked: all 58 entries fit".
 - Data import: a 12-row sample file: 4 ready, 3 to review, 5 to fix (it
   catches a duplicate employee number and Juma Al Zaabi's IBAN).
 - Data location: "The demo is hosted in Frankfurt; the hosting
@@ -283,8 +290,9 @@ users. Hand the IT Manager the IT note now.
 
 **If it goes wrong.** If "Check the chain" says broken on the Home card,
 you edited an entry earlier: open Reports, Audit trail, click "Restore the
-entry". If a page says "outside your view", that is the IT role working
-as designed: switch to HR manager.
+entry". Switching role on a page the new role may not see opens that
+role's Home. If a page says "outside your view", that is the role
+working as designed: switch to HR manager.
 
 ## Step 8. Menu panels and Cmd K (17:30 to 20:00)
 
@@ -293,14 +301,16 @@ as designed: switch to HR manager.
 2. Top bar "People": a panel opens with short groups. Esc. Then "Time",
    then "Pay", the same way.
 3. Press Cmd and K together (Ctrl and K on Windows). Type "James". Press
-   Esc. Type "leave" to show areas and decisions together. Esc.
+   Esc. Type "leave" to show open items and areas together. Esc.
 
 **They see.** Six words in the top bar that never grow: Home, People,
 Time, Pay, Reports, Setup. Each opens a panel of groups (for Pay: This
 month, Changes, Owed and leaving), with small counts of things waiting.
-Cmd K lists people, areas and actions, for example "Decide: Leave request,
-Rafiq Hossain". On the phones: a bottom bar (Home, People, Time, Pay,
-More) and a search field at the top.
+Cmd K lists people, areas and actions, for example "Open issue: James
+Whitfield, Final settlement needs notice pay" first for "James". On the
+phones: a bottom bar (Home, People, Time, Pay, More;
+an employee sees Home, Pay, Time, Requests, More) and a search button at
+the top.
 
 **Say.** "A short menu, and every feature behind it, two clicks at most.
 If you know what you want, type it."
@@ -323,7 +333,7 @@ the top bar (or press /). If a panel does not close, press Esc.
   discovery questions. Do not guess a rate.
 - Price, contract and support hours: say only what you have decided. If
   not decided: "I will send it in writing next week."
-- Close: agree the next step (for example a sample of their Keka exports
+- Close: agree the next step (for example a sample of exports from their current system
   and their regulator's requirements for the IT review).
 
 ---
@@ -348,7 +358,7 @@ Say the first four out loud during the demo; keep the rest for questions.
    In the real system the chain is in the database, which refuses edits
    and deletions.
 6. **Import.** The import screen checks a 12-row sample file. A tool that
-   moves data out of Keka is not built yet.
+   moves data out of your current system is not built yet.
 7. **Pension for UAE nationals** is not computed until the fund is
    confirmed (see the discovery questions).
 8. **Not built yet:** native iPhone and Android apps (the demo is a
