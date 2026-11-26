@@ -1,5 +1,6 @@
 import {
   CANDIDATE_EMAIL_SENTINEL,
+  EXIT_REASON_SENTINEL,
   OFFER_SENTINEL,
   type HrSeeded,
 } from "./seed-hr";
@@ -19,6 +20,8 @@ export const HR_ID_KIND: Record<string, string | null> = {
   getOffer: "offer",
   listChecklistTemplates: null,
   getEmploymentTerms: "employee",
+  listExits: null,
+  getExit: "exit",
 };
 
 const FIXTURE: Record<string, keyof HrSeeded> = {
@@ -26,6 +29,7 @@ const FIXTURE: Record<string, keyof HrSeeded> = {
   requisition: "requisitionId",
   application: "applicationId",
   offer: "offerId",
+  exit: "exitId",
 };
 
 export const HR_KINDS = Object.keys(FIXTURE);
@@ -43,7 +47,8 @@ export function hrVisible(role: Role, kind: string): boolean {
   // The seeded task is hr's, assigned to the employee user.
   if (kind === "task") return role === "employee";
   // The seeded requisition's hiring manager is the manager user.
-  if (["requisition", "application", "offer"].includes(kind)) {
+  // The seeded exit is of report2, the manager's direct report.
+  if (["requisition", "application", "offer", "exit"].includes(kind)) {
     return role === "manager";
   }
   return false;
@@ -53,10 +58,16 @@ export function hrVisible(role: Role, kind: string): boolean {
 export function hrOwnerPaths(h: HrSeeded): [string, string][] {
   return [["/v1/candidates", CANDIDATE_EMAIL_SENTINEL],
     [`/v1/offers/${h.offerId}`, OFFER_SENTINEL],
-    ["/v1/offers", OFFER_SENTINEL]];
+    ["/v1/offers", OFFER_SENTINEL],
+    [`/v1/exits/${h.exitId}`, EXIT_REASON_SENTINEL],
+    ...Object.values(h.settlementSentinels).map((t): [string, string] =>
+      [`/v1/exits/${h.exitId}`, t]),
+    ...Object.values(h.settlementSentinels).map((t): [string, string] =>
+      ["/v1/exits", t])];
 }
 
 /** Values only owner and hr may receive. */
-export function hrSentinels(_h: HrSeeded): string[] {
-  return [CANDIDATE_EMAIL_SENTINEL, OFFER_SENTINEL];
+export function hrSentinels(h: HrSeeded): string[] {
+  return [CANDIDATE_EMAIL_SENTINEL, OFFER_SENTINEL, EXIT_REASON_SENTINEL,
+    ...Object.values(h.settlementSentinels)];
 }

@@ -16,6 +16,8 @@ export interface HrFlowCtx {
   emp: string;
   empUserId: string;
   employeeId: string;
+  /** Set by `onboarding`: the newly hired employee. */
+  otherEmployeeId?: string;
   c: string;
 }
 
@@ -97,7 +99,25 @@ export async function hrFlow(hit: Hitter, f: HrFlowCtx): Promise<void> {
   const h = await hiring(hit, f);
   const days = EMPLOYMENT_PACKS[0]!.params.empNoticeMinDays!.value as number;
   const offerId = await offers(hit, f, h.applicationId, days);
-  await onboarding(hit, f, offerId, days);
+  f.otherEmployeeId = await onboarding(hit, f, offerId, days);
+  await exits(hit, f);
+}
+
+/** The employee resigns; owner2 approves; settlement; a withdrawal. */
+export async function exits(hit: Hitter, f: HrFlowCtx): Promise<string> {
+  const x = await hit("createExit", f.emp, f.c, {}, { kind: "resignation",
+    noticeGivenDate: "2026-03-01", reason: "Moving" });
+  const id = x.body.id as string;
+  await hit("listExits", f.emp, f.c);
+  await hit("getExit", f.emp, f.c, { id });
+  await hit("decideExit", f.owner2, f.c, { id }, { approve: true });
+  await hit("computeExitSettlement", f.owner, f.c, { id },
+    { unusedLeaveDays: 5, serviceUnpaidLeaveDays: 0 });
+  const y = await hit("createExit", f.owner, f.c, {}, { employeeId:
+    f.otherEmployeeId, kind: "probation-employer-termination",
+    noticeGivenDate: "2026-04-10" });
+  await hit("withdrawExit", f.owner, f.c, { id: y.body.id });
+  return id;
 }
 
 /** Hire, templates and terms; returns the new employee's id. */

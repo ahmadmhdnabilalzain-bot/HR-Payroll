@@ -54,7 +54,7 @@ interface DbRow {
 
 export type Column = "salary_enc" | "iban_enc" | "labour_person_id_enc" |
   "emirates_id_enc" | "snapshot_enc" | "body_enc" | "text_enc" |
-  "findings_enc";
+  "findings_enc" | "reason_enc" | "settlement_enc";
 
 /** The field crypto for one company: AAD binds company, column, row. */
 export interface Sealer {

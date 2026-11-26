@@ -1,4 +1,5 @@
 import { IDS, PEOPLE_EXAMPLES } from "./examples-people";
+import { EXIT_FLAG_ONLY, EXIT_FLAG_ONLY_NOTE } from "./exits";
 
 /** Example ids for Plan 8's records. All invented. */
 export const HR_IDS = {
@@ -12,6 +13,7 @@ export const HR_IDS = {
   scorecard: "00000000-0000-4000-8000-000000000808",
   offer: "00000000-0000-4000-8000-000000000809",
   flow: "00000000-0000-4000-8000-00000000080a",
+  exit: "00000000-0000-4000-8000-00000000080b",
 } as const;
 
 const AT = "2026-03-01T08:00:00Z";
@@ -120,6 +122,38 @@ const hireResult = {
   flowId: HR_IDS.flow, tasks: [taskSummary],
 };
 
+const dueTrace = { id: "employment.settlement.due",
+  label: "Settlement due date",
+  formula: "last working date + settlement days",
+  inputs: { lastWorkingDate: "2026-04-15" }, result: "2026-04-29",
+  rules: [] };
+
+/** Fake amounts (the salary sentinel), not a real calculation. */
+const exitSettlement = {
+  settlement: { status: "computed", gratuity: "7777.77",
+    leavePay: "0.00", total: "7777.77", outcome: "paid",
+    reason: "Sample reason.",
+    notComputed: ["notice pay", "deductions", "other dues"],
+    trace: [], explanation: { en: "Sample explanation.",
+      ar: "شرح نموذجي.", arReviewed: false }, includedInSif: false },
+  flagOnly: [...EXIT_FLAG_ONLY], flagOnlyNote: EXIT_FLAG_ONLY_NOTE,
+  inputs: { unusedLeaveDays: 0, serviceUnpaidLeaveDays: 0,
+    salaryVersion: 1 },
+  dueDate: "2026-04-29", dueTrace, version: 1, computedAt: AT,
+};
+
+const exit = {
+  id: HR_IDS.exit, employeeId: IDS.employee,
+  employeeName: "Sample Employee", kind: "resignation",
+  status: "in-notice", noticeGivenDate: "2026-03-01", noticeDays: 45,
+  lastWorkingDate: "2026-04-15", settlementDueDate: "2026-04-29",
+  inProbation: false, flags: [], noticeTrace: [dueTrace],
+  reason: "Moving abroad.", requestedBy: IDS.user, decidedBy: IDS.user,
+  decidedAt: AT, settlement: exitSettlement,
+  access: { status: "not-revoked", at: null }, documents: [],
+  closedAt: null, createdAt: AT,
+};
+
 /** One example per Plan 8 response schema. */
 export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   TaskSummary: taskSummary,
@@ -138,4 +172,6 @@ export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   ChecklistTemplateList: { items: [template] },
   EmploymentTerms: terms,
   HireResult: hireResult,
+  Exit: exit,
+  ExitList: { items: [exit] },
 };

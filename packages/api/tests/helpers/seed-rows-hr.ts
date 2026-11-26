@@ -72,6 +72,14 @@ export async function seedHrRows(admin: Db, c: string, user: string,
      VALUES ($1, $2, $3, 'Clerk', '2026-04-01', 'x', 0, 1, '[]',
        'pending-approval', $4, $5)`, [rowId(c, "7a"), c, app, user, AT]);
   await seedOnboarding(admin, c, user, emp, rowId(c, "7a"));
+  await admin.query(
+    `INSERT INTO exits (id, company_id, employee_id, kind, status,
+       notice_given_date, notice_days, last_working_date,
+       settlement_due_date, in_probation, flags, notice_trace,
+       requested_by, created_at)
+     VALUES ($1, $2, $3, 'resignation', 'requested', '2026-03-01', 1,
+       '2026-03-02', '2026-03-16', false, '{}', '[]', $4, $5)`,
+    [rowId(c, "7c"), c, emp, user, AT]);
 }
 
 async function seedOnboarding(admin: Db, c: string, user: string,

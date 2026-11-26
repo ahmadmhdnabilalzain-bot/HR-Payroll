@@ -18,6 +18,10 @@ export interface HrSeeded {
   offerId: string;
   hiredEmployeeId: string;
   onboardingFlowId: string;
+  /** Approved resignation of report2 (no login), settlement computed. */
+  exitId: string;
+  /** Leaver employee id to the settlement `total` string. */
+  settlementSentinels: Record<string, string>;
 }
 
 async function must(p: Promise<{ status: number; text: string; body: any }>,
@@ -91,6 +95,24 @@ async function terms(ctx: Ctx, s: Seeded) {
   }
 }
 
+/** Only owner, hr and the leaver may see an exit's reason. */
+export const EXIT_REASON_SENTINEL = "Reason sentinel: private family matter";
+
+/** An approved exit of report2 with a computed settlement. */
+async function exit(ctx: Ctx, s: Seeded) {
+  const hit = (u: SeedUser, path: string, body: unknown, want = 200) =>
+    must(call(ctx.app, u.token, s.companyId, "POST", path, body), want);
+  const x = await hit(s.hr, "/v1/exits", { employeeId: s.emp.report2,
+    kind: "resignation", noticeGivenDate: "2026-03-01",
+    reason: EXIT_REASON_SENTINEL }, 201);
+  await hit(s.owner, `/v1/exits/${x.id}/decision`, { approve: true });
+  const st = await hit(s.hr, `/v1/exits/${x.id}/settlement`,
+    { unusedLeaveDays: 12, serviceUnpaidLeaveDays: 0 });
+  const total = st.settlement.settlement.total as string;
+  return { exitId: x.id as string,
+    settlementSentinels: { [s.emp.report2]: total } };
+}
+
 /** Plan 8 fixtures on top of `seedCompany`. */
 export async function seedHr(ctx: Ctx, s: Seeded): Promise<HrSeeded> {
   const task = await must(call(ctx.app, s.hr.token, s.companyId, "POST",
@@ -103,5 +125,6 @@ export async function seedHr(ctx: Ctx, s: Seeded): Promise<HrSeeded> {
       workerClass: "expat-full-time" }), 201);
   await terms(ctx, s);
   return { taskId: task.id, ...hired, offerId,
-    hiredEmployeeId: h.employee.id, onboardingFlowId: h.flowId };
+    hiredEmployeeId: h.employee.id, onboardingFlowId: h.flowId,
+    ...await exit(ctx, s) };
 }

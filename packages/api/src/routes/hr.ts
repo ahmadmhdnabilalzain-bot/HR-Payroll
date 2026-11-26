@@ -1,5 +1,6 @@
 import type { AppDeps } from "../deps";
 import type { App } from "../http/context";
+import { registerExitRoutes } from "./exits";
 import { registerHiringRoutes } from "./hiring";
 import { registerOfferRoutes } from "./offers";
 import { registerOnboardingRoutes } from "./onboarding";
@@ -11,4 +12,5 @@ export function registerHrRoutes(app: App, deps: AppDeps): void {
   registerHiringRoutes(app, deps);
   registerOfferRoutes(app, deps);
   registerOnboardingRoutes(app, deps);
+  registerExitRoutes(app, deps);
 }

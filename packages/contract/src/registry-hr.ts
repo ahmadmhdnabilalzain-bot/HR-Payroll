@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import * as exits from "./exits";
 import * as hiring from "./hiring";
 import * as offers from "./offers";
 import * as onboarding from "./onboarding";
@@ -19,6 +20,8 @@ export const HR_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
   ...pick(onboarding, ["TemplateItem", "ChecklistTemplate",
     "TemplatePut", "EmploymentTerms", "TermsPut", "HireRequest",
     "HireResult", "ChecklistTemplateList"]),
+  ...pick(exits, ["ExitCreate", "SettlementInputs", "ExitSettlement",
+    "ExitDocument", "Exit", "ExitList"]),
 };
 
 function pick(

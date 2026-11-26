@@ -18,6 +18,9 @@ const HR_ROUTE_IDS = [
   // Task 5: offer to hire, templates, employment terms
   "hireFromOffer", "listChecklistTemplates", "putChecklistTemplate",
   "getEmploymentTerms", "putEmploymentTerms",
+  // Task 6: exits and the final settlement
+  "createExit", "listExits", "getExit", "decideExit",
+  "computeExitSettlement", "withdrawExit",
 ];
 
 /** Plan 8 routes that need an MFA session (Ruling 16). */

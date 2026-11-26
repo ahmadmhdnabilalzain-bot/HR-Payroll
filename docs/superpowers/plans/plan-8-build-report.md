@@ -7,7 +7,7 @@ on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`. Task 1 (the engine
 
 ## Status
 
-In progress. Tasks 2 to 5 done.
+In progress. Tasks 2 to 6 done.
 
 | Task | Commit message |
 |---|---|
@@ -15,6 +15,7 @@ In progress. Tasks 2 to 5 done.
 | 3 | `feat(api): requisitions and applicant tracker` |
 | 4 | `feat(api): offers with approval` |
 | 5 | `feat(api): offer to hire and onboarding` |
+| 6 | `feat(api): exit flow and final settlement` |
 
 ## Gate
 
@@ -76,6 +77,21 @@ setting was changed.
     flow link, so the hire's task list is the template items plus the
     two reminders (as the plan's test expects); `saveTerms` takes an
     optional flow for this.
+13. **Exit contract additions.** `NoticeFlag` (the engine's three
+    strings), `DocumentKind` and `ExitDocument` are defined in
+    `contract/src/exits.ts` in Task 6 because `Exit.documents` needs
+    them; Task 7 only adds routes. `Exit.access` and `documents` are
+    read from `src/exits/exit-hooks-view.ts`, which Task 7 extends.
+14. **Encrypted columns.** Plan 3's closed `Column` union gained
+    `reason_enc` and `settlement_enc`; `sealerFor(..., "exits")` gives
+    the planned AAD `<companyId>:exits:<column>:<exitId>`.
+15. **Settlement cross-check** runs Plan 3's `computePayRun` on a
+    one-leaver snapshot and compares amounts, `notComputed` and the
+    trace with `computeExitSettlement`. `serviceUnpaidLeaveDays` is
+    always entered on exits (the plan's `SettlementInputs` requires
+    it), so Plan 3's "not entered" note never applies here.
+16. **Contract exit tests** are in a new `contract/tests/exits.test.ts`
+    (not `schemas.test.ts`), to keep merges with other plans clean.
 6. **Leak test.** HR fixtures live in `tests/helpers/leak-hr.ts` and
    `seed-hr.ts` (`seedHr` runs after Plan 3's pay run and SIF, so the
    HR records never change those fixtures).
@@ -133,6 +149,23 @@ setting was changed.
     checklist (product default, not law)." in their description.
 16. **Hire uses only the request's fields** for email and the other
     optional employee fields (the candidate's email is not copied).
+17. **Who the exit is for.** Owner or hr name any employee (no
+    `employeeId`: their own linked employee). Others may only name
+    themselves; a missing employee link is Plan 3's 422
+    `NO_EMPLOYEE_LINK`.
+18. **Exit visibility** is Plan 3's `viewerScope` (owner and hr: all;
+    manager: self and direct reports; employee: self). Settlement and
+    reason: owner, hr and the leaver. A visible exit the caller may not
+    withdraw (not requester, owner or hr) is 403.
+19. **Decision notes** (requisitions, offers, exits) are stored in clear
+    columns, never shown on the planned response shapes and never
+    audited. Exit reasons are encrypted (planned `reason_enc`).
+20. **The whole `ExitSettlement`** (wire amounts, trace, inputs) is
+    sealed as one JSON value in `settlement_enc`; `settlement_version`
+    is kept in clear for ordering.
+21. **Exit checklist people:** the manager task goes to the login linked
+    to the leaver's manager, the employee task to the leaver's own
+    login; each falls back to role hr.
 10. **Duplicates** (candidate email, application, scorecard) are found
     with `INSERT ... ON CONFLICT DO NOTHING RETURNING`, so a unique
     violation never aborts the request's one transaction.
@@ -146,6 +179,9 @@ setting was changed.
 - Task 3: `approvals`, `requisitions` and `applications` tests were
   written first and seen red (20 failing); the contract schemas came
   just before them.
+- Task 6: `exit-settlement` (pure) and `exits` tests were written
+  first and seen red (15 failing); `settlement.ts` was written first,
+  then the rest, as planned.
 - Task 5: `expand`, `terms` and `hire` tests were written first and
   seen red (12 failing).
 - Task 4: `offers.test.ts` was written first and seen red (seed
