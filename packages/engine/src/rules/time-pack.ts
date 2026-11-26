@@ -37,7 +37,9 @@ const OVERTIME: Record<string, RuleParam> = {
   timeMaxMinutesPer3Weeks: param(8640, o, "DL33_ART19"),
   // 19(3): "between 10 pm and 4 am".
   timeNightWindow: param("22:00-04:00", o, "DL33_ART19"),
-  // 19(5): no more than two consecutive rest days of work.
+  // 19(5): "The Worker may not be required to work for more than two
+  // consecutive rest days, excluding day laborers" (search excerpt of
+  // the official PDF, not read in full; day laborers not modelled).
   timeMaxConsecutiveRestDaysWorked: param(2, o, "DL33_ART19"),
   // 21: "paid weekly rest not less than one day".
   timeMinWeeklyRestDays: param(1, o, "DL33_ART21"),
