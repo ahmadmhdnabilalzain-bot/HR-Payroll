@@ -103,6 +103,58 @@ package. Never write "compliant", "approved", "certified" or
 - **Lint:** the repo has no linter: `pnpm typecheck`, `pnpm lines` and
   the style tests are the checks.
 
+## Pay run, explain panel and reports (Claude's calls)
+
+- **Pay run:** four labelled steps at `#/pay-run/review|fix|approve|
+  pay`. Every step opens at any time (the owner browses freely); the
+  stepper shows progress only. Content swaps fade 200 ms out and
+  250 ms in; the track fills as Fix and Approve finish.
+- **Detail chunk:** `src/demo/data/run-detail.ts` and `run-explain.ts`
+  import the package beside adapter.ts (the boundaries test lists
+  them). They load lazily (`useRunDetail`) and build from the same
+  `state.ibans` as the shared store (`withIbans`), so the figures
+  agree with Home.
+- **Last month:** the package has no September run, so September is
+  computed by the same engine from the same records (`slipOf`, with
+  emp-012 on the old basic as in the package's back-pay derivation).
+  The reasons beside each change come from the inputs (joined, left,
+  unpaid days, overtime, back pay, new basic).
+- **Fix:** IBANs go through the shared `iban` action. "Fill from bank
+  letter" types the fictional letter's IBAN. A wrong IBAN is refused
+  in the validator's plain words. The salary-file total stays pinned
+  at the top while fixing, so the held amount is seen folding in.
+  The other checks do not block; each can be marked reviewed.
+- **Approve:** only through `useRunApproval` (missing and mistyped
+  IBANs block: never a partial run). HR sees "View as General
+  Manager" (`useSwitchRole`). The time of a decision is the real Dubai
+  clock time on the demo's date, kept for the visit only.
+- **Pay:** "Salary file for N people, AED x, to Zarqan Demo Bank,
+  dated 27 October 2026". Download is enabled only after approval.
+  The file check's findings are shown in the package's plain words.
+  The page never says the file is accepted or compliant; it says the
+  bank checks it again on upload.
+- **Explain panel** (`src/components/explain`): plain-data contract,
+  no provider. A figure becomes a button (`Explainable`) or a text
+  link (`ExplainLink`). The panel is a side panel on wide screens and
+  a sheet on phones. Gratuity steps reconcile to the fils (tier 2 is
+  the total less tier 1, both from the engine). Notice pay, deductions
+  and other dues are listed as not worked out. Rule status comes from
+  the engine, or from the package's `PRESENTED_STATUS` where it
+  differs (the 50% deduction limit reads "secondary-sourced, as we
+  read it"). Citations name Decree-Law 33/2021 articles only where
+  the primary text was read (Art 51 for gratuity).
+- **Reports** (`#/reports/<id>`): payroll summary, cost by department
+  (the department bars), headcount by nationality (headcount only,
+  "sample data, regime for banks to be confirmed"), documents
+  expiring, salary file register (the one October file; no invented
+  history). CSV is made in the browser: text starting with = + - @
+  (or tab or CR) gets an apostrophe, numbers stay plain numbers, with
+  a BOM and CRLF. CSV is disabled while amounts are hidden. Print
+  shows the report alone.
+- **Phones:** checked with Chromium emulation of iPhone 13, 15 and 16
+  Pro sizes (WebKit is not installed). Steps become a vertical list,
+  tables become rows, touch targets are at least 44 px.
+
 ## Checks
 
 `pnpm --filter @payroll/web test` and `pnpm --filter @payroll/web
