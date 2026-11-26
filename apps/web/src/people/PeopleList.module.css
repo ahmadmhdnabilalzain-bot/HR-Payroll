@@ -105,6 +105,11 @@
   background: transparent;
   color: var(--color-accent);
   font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%,
+    transparent);
+  text-underline-offset: 3px;
 }
 
 /* One inset grouped list: radius 12, separators inset 16 px. */

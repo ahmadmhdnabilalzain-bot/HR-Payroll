@@ -753,7 +753,11 @@
   min-block-size: 44px;
   color: var(--color-accent);
   font-weight: 500;
-  text-underline-offset: 4px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%,
+    transparent);
+  text-underline-offset: 3px;
 }
 
 .checksLine {

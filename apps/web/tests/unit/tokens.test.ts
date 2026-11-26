@@ -49,10 +49,30 @@ function check(t: Tokens): string[] {
   need("on-accent", "accent", 4.5);
   need("focus", "surface", 3);
   need("border", "surface", 3);
+  need("accent", "surface", 3);
+  need("bar-1", "surface", 3);
+  for (let i = 1; i <= 8; i += 1) need("text", `avatar-${i}`, 4.5);
   return fails;
 }
 
+/** Ink only (owner's choice C): no accent hue left in the tokens. */
+function hueless(t: Tokens): string[] {
+  const keys = ["accent", "accent-hover", "accent-soft", "focus", "trace",
+    "info", "bar-1", "bar-2", "bar-3", "bar-4"];
+  return keys.filter((k) => {
+    const v = t[`--color-${k}`] ?? "#000000";
+    const ch = [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16));
+    return Math.max(...ch) - Math.min(...ch) > 20;
+  });
+}
+
 describe("tokens", () => {
+  it("ink-only-no-accent-hue", () => {
+    const css = readWeb("src/theme/tokens.css");
+    expect(hueless(block(css, ":root"))).toEqual([]);
+    expect(hueless(block(css, ':root[data-theme="dark"]'))).toEqual([]);
+  });
+
   it("contrast-pairs-pass", () => {
     const css = readWeb("src/theme/tokens.css");
     expect(check(block(css, ":root"))).toEqual([]);
