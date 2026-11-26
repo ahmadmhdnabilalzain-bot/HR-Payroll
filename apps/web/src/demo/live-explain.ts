@@ -6,7 +6,12 @@ import {
 } from "../components/explain/sum";
 import { count, type Explanation } from "../components/explain/types";
 import { formatDayMonth } from "../i18n/format";
-import type { Approval, DemoData, DocumentExpiry } from "./data/types";
+import type {
+  Approval,
+  DemoData,
+  DocumentExpiry,
+  Issue,
+} from "./data/types";
 import type { RequestRow } from "./time-off";
 
 /**
@@ -26,8 +31,8 @@ const requests = (n: number): string =>
   `${n} ${n === 1 ? "request" : "requests"}`;
 
 /** Problems that stop pay: each open check counts once. */
-export function issuesExplain(d: DemoData, scope: string): Explanation {
-  const open = d.issues().filter((i) => i.kind === "issue");
+export function issuesExplain(d: DemoData, open: Issue[], scope: string)
+  : Explanation {
   return sumExplain({ id: "live:issues", title: "Open items that stop pay",
     subject: "October pay run",
     summary: "Each check on the run that must be fixed before it can be " +

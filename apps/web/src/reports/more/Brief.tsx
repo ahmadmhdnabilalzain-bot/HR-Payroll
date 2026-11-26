@@ -1,4 +1,7 @@
+import { useLiveExplain } from "../../demo/live-explain-load";
+import { useRunDetail } from "../../demo/useRunDetail";
 import {
+  actionable,
   openIssues,
   pendingApprovals,
   runApprovalId,
@@ -34,11 +37,18 @@ function useNext(): (i: Item) => { next: string; count: number | null } {
 
 /** X25: this week's pack for the owner, in the order owners ask. */
 export function OwnerBriefScreen() {
-  const { brief } = useMoreSource();
+  const { brief, briefExplain } = useMoreSource();
+  const live = useLiveExplain();
+  const { scope } = useRunDetail();
   const { data, state } = useDemo();
   const m = useTableMoney();
   const now = useNext();
-  const waiting = pendingApprovals(data, state).length;
+  const list = pendingApprovals(data, state);
+  const waiting = list.length;
+  const waitingWhy = live.waitingExplain(data, list, scope);
+  const issuesWhy = live.issuesExplain(data, openIssues(data, state), scope);
+  const why = brief.items.map((i) => i.id === "issues" ? issuesWhy
+    : briefExplain[i.id]);
   const rows = brief.items.map((i) => {
     const n = now(i);
     const figure = i.amount !== null ? m(i.amount)
@@ -47,7 +57,9 @@ export function OwnerBriefScreen() {
   });
   return (
     <ReportPage title="Owner brief" period={brief.title}
-      figure={{ label: "Waiting for a decision", value: String(waiting) }}
+      figure={{ label: "Waiting for a decision", value: String(waiting),
+        explanation: waitingWhy }}
+      explain={(r, c) => c === 2 ? why[r] : undefined}
       columns={[{ label: "Item" }, { label: "What it is, and what next" },
         { label: "Figure", end: true }]}
       rows={[...rows, ...brief.dates.map((d) =>

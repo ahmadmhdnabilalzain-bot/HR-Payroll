@@ -27,7 +27,10 @@ export function EmployerCostScreen() {
   return (
     <ReportPage title="Employer cost" period={k.period}
       figure={{ label: "Gross plus computed employer cost, partial",
-        value: <Money value={k.partialTotal} size="lg" tween={false} /> }}
+        value: <Money value={k.partialTotal} size="lg" tween={false} />,
+        explanation: src.costExplain }}
+      explain={(r, c) => r === k.rows.length && c === 4 ? src.costExplain
+        : undefined}
       columns={[{ label: "Person" }, { label: "Department" },
         { label: "Gross", end: true }, { label: "Employer cost", end: true },
         { label: "Total", end: true }]}

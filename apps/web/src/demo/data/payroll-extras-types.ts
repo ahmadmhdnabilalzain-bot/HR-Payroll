@@ -12,6 +12,7 @@ import type {
   WhatIfChange,
   WhatIfResult,
 } from "@payroll/demo-data";
+import type { Explanation } from "../../components/explain/types";
 
 /**
  * Payroll extras (WP16): pay elements, the journal view, analysis,
@@ -41,6 +42,11 @@ export interface ExtrasPerson { id: string; name: string;
 
 export interface ExtrasSource {
   elements: ElementReport;
+  /** Earnings in October, element by element. */
+  elementsExplain: Explanation;
+  /** Each side of a journal, line by line. */
+  journalExplain(j: PayrollJournal): { debits: Explanation;
+    credits: Explanation };
   /** The journal for the IBANs entered so far (held pay moves). */
   journal(ibans: Readonly<Record<string, string>>): PayrollJournal;
   datasets: AnalysisDataset[];

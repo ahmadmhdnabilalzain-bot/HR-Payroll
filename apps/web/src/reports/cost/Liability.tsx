@@ -1,4 +1,3 @@
-import { Explainable } from "../../components/explain";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
 import { plural, useMoney } from "../fmt";
@@ -29,9 +28,11 @@ export function GratuityLiabilityScreen() {
   return (
     <ReportPage title="Gratuity liability" period={`As of ${src.asOfText}`}
       figure={{ label: "Company's accrued liability estimate", value: (
-        <Explainable explanation={src.totalExplain}>
-          <Money value={g.total} size="lg" tween={false} />
-        </Explainable>) }}
+        <Money value={g.total} size="lg" tween={false} />),
+      explanation: src.totalExplain }}
+      explain={(r, c) => c !== 3 ? undefined : r === g.byDepartment.length
+        ? src.totalExplain
+        : src.deptExplain[g.byDepartment[r]?.departmentId ?? ""]}
       columns={[{ label: "Department" }, { label: "People counted" },
         { label: "Not counted" }, { label: "Provision", end: true }]}
       rows={rows} bars={bars} csvName="gratuity-liability-2026-10-27.csv"

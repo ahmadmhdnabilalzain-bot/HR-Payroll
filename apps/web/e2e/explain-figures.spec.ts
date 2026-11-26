@@ -51,6 +51,16 @@ const PAGES: [string, string, RegExp, RegExp][] = [
     /worked out: Headcount by nationality/, /People/],
   ["summary", "Payroll summary", /worked out: Gross pay, whole run/,
     /by department/],
+  ["gratuity-liability", "Gratuity liability",
+    /worked out: Gratuity liability/, /Provision/],
+  ["employer-cost", "Employer cost", /worked out: Employer cost, partial/,
+    /All departments/],
+  ["owner-brief", "Owner brief", /worked out: Waiting for a decision/,
+    /Waiting/],
+  ["loans", "Loans report", /worked out: Balance still owed/, /Lent/],
+  ["journal", "Payroll journal", /worked out: Credits/, /balance/],
+  ["elements", "Pay elements report", /worked out: Earnings in October/,
+    /gross pay/],
 ];
 
 for (const [id, h1, title, result] of PAGES) {
@@ -74,4 +84,12 @@ test("why-this-number-executive-dashboard", async ({ page }) => {
   await clean(page);
   await why(page, /worked out: Net pay, whole run/, /Salary file and held/);
   await why(page, /worked out: Department cost/, /Gross cost/);
+  await page.evaluate(() => { location.hash = "#/reports/board-pack"; });
+  await expect(page.getByRole("heading", { level: 1, name: "Board pack" }))
+    .toBeVisible();
+  await expect(page.getByText(/Figures with a dotted line open/))
+    .toHaveCount(1);
+  await clean(page);
+  await why(page, /worked out: Gross pay, January to October/, /October/);
+  await why(page, /worked out: Loans and advances outstanding/, /owed/);
 });

@@ -1,4 +1,4 @@
-import { pendingApprovals } from "../../demo/derive";
+import { actionable, pendingApprovals } from "../../demo/derive";
 import { useLiveExplain } from "../../demo/live-explain-load";
 import { useDemo } from "../../demo/state";
 import { useRunDetail } from "../../demo/useRunDetail";
@@ -24,7 +24,8 @@ export function DashboardHr() {
   const stops = data.headline().issuesOpen;
   const list = pendingApprovals(data, state);
   const waiting = list.length;
-  const stopsWhy = live.issuesExplain(data, scope);
+  const stopsWhy = live.issuesExplain(data,
+    data.issues().filter(actionable), scope);
   const why = [stopsWhy, src.explain["headcount:now"], undefined, undefined,
     src.explain["turnover:total"], live.docsExplain(data, soon,
       "Papers expiring in 30 days", "ends in the next 30 days", scope),

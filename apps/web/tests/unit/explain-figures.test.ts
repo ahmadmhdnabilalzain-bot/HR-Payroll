@@ -7,11 +7,18 @@ import {
 } from "../../src/components/explain/types";
 import { buildDemoSource } from "../../src/demo/data/adapter";
 import { buildRunSource } from "../../src/demo/data/run-detail";
-import { pendingApprovals } from "../../src/demo/derive";
+import {
+  actionable,
+  openIssues,
+  pendingApprovals,
+} from "../../src/demo/derive";
 import * as live from "../../src/demo/live-explain";
 import { INITIAL, type DemoState } from "../../src/demo/state";
 import { offOn, requestRows } from "../../src/demo/time-off";
 import { share } from "../../src/reports/fmt";
+import { buildExtrasSource } from "../../src/demo/data/payroll-extras";
+import { buildCostSource } from "../../src/reports/cost/source";
+import { buildMoreSource } from "../../src/reports/more/source";
 import { buildReportsSource } from "../../src/reports/source";
 
 /**
@@ -135,13 +142,74 @@ describe.each(STATES)("pay run figures, %s", (_name, ibans) => {
     const list = pendingApprovals(data, state);
     holds(live.waitingExplain(data, list, d.scope), list.length,
       "waiting");
-    holds(live.issuesExplain(data, d.scope), h.issuesOpen, "issues");
+    holds(live.issuesExplain(data, data.issues().filter(actionable),
+      d.scope), h.issuesOpen, "issues");
+    const open = openIssues(data, state);
+    holds(live.issuesExplain(data, open, d.scope), open.length, "open");
     holds(live.headcountExplain(data, d.scope), h.headcount, "headcount");
     const away = offOn(requestRows(data, state), data.payCalendar().asOf);
     holds(live.onLeaveExplain(data, away, d.scope), away.length, "away");
     const soon = data.documents().filter((x) => x.daysLeft <= 30);
     holds(live.docsExplain(data, soon, "Documents", "ends soon", d.scope),
       soon.length, "documents");
+  });
+});
+
+describe("cost, brief, board, loans and extras add up", () => {
+  const cost = buildCostSource();
+  const more = buildMoreSource();
+  const x = buildExtrasSource();
+
+  it("gratuity-liability-by-department-and-total", () => {
+    const g = cost.gratuity;
+    holds(cost.totalExplain, g.total, "gratuity total");
+    for (const d of g.byDepartment) {
+      const counted = g.rows.some((r) => r.departmentId === d.departmentId &&
+        r.amount !== null);
+      if (!counted) {
+        expect(cost.deptExplain[d.departmentId]).toBeUndefined();
+        continue;
+      }
+      holds(cost.deptExplain[d.departmentId], d.amount, d.departmentId);
+    }
+  });
+
+  it("employer-cost-partial-total", () => {
+    holds(cost.costExplain, cost.cost.partialTotal, "employer cost");
+  });
+
+  it("owner-brief-items", () => {
+    for (const i of more.brief.items) {
+      const e = more.briefExplain[i.id];
+      if (i.id === "issues" || i.id === "review") continue;
+      holds(e, i.amount ?? i.count ?? -1, `brief ${i.id}`);
+    }
+  });
+
+  it("board-pack-rows-and-headline", () => {
+    holds(more.boardTotal, more.board.ytdGross, "board headline");
+    more.board.rows.forEach((r, i) => {
+      const shown = r.amount ?? Number(r.text);
+      holds(more.boardExplain[i], shown, `board ${r.measure}`);
+    });
+  });
+
+  it("loans-outstanding-and-each-balance", () => {
+    holds(more.loansExplain, more.loans.outstanding, "loans");
+    for (const r of more.loans.rows) {
+      holds(more.loanExplain[r.ref], r.balance, `loan ${r.ref}`);
+    }
+  });
+
+  it("pay-elements-earnings", () => {
+    holds(x.elementsExplain, x.elements.earningsOctober, "earnings");
+  });
+
+  it.each(STATES)("payroll-journal-totals, %s", (_n, ibans) => {
+    const j = x.journal(ibans);
+    const why = x.journalExplain(j);
+    holds(why.debits, j.debits, "debits");
+    holds(why.credits, j.credits, "credits");
   });
 });
 
