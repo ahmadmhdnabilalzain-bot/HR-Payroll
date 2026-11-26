@@ -11,22 +11,19 @@
  * old fully out before new comes in.
  *
  * Each rolling digit is a two-glyph column (old and new) slid one
- * digit's height inside a clip. The timeline has three phases:
+ * digit's height inside a clip. Every changed column runs on ONE
+ * clock (no per-column stagger: a staggered roll shows totals that
+ * never existed). The timeline has three phases:
  *
- *   0 .. A      every column moves together to SPLIT_IN of the way,
- *               while the changed digits dim to DIM and blur by
- *               BLUR (the "in transit" look);
- *   A .. B+s    the middle of the slide, staggered right to left,
- *               STAGGER_MS per changed digit (capped at MAX_RANK);
- *   B+s .. END  every column is at SPLIT_OUT and finishes together,
- *               brightening back to full.
+ *   0 .. A      the columns move to SPLIT_IN of the way while the
+ *               changed digits dim to DIM and blur by BLUR;
+ *   A .. B      the middle of the slide, dimmed and blurred;
+ *   B .. END    the columns finish from SPLIT_OUT, sharpening back.
  *
- * Outside the middle phase all changed digits are at the same point
- * of their slide, so the figure reads as the old amount or the new
- * one, never a mix. Inside it every changed digit is dimmed and no
- * more than SPLIT_OUT of either glyph shows, so none is legible
- * (opacity x visible share stays under LEGIBLE). The stagger lives
- * only where nothing can be read.
+ * Every changed digit is always at the same point of its slide, so a
+ * paused frame shows the old figure, the new figure, or digits
+ * visibly mid-motion (clipped, dimmed, blurred), never a third
+ * readable amount. The rank and stagger knobs are kept at zero.
  */
 
 /** Total length of a roll, ms (the slow token). */
@@ -35,10 +32,10 @@ export const ROLL_MS = 320;
 export const PHASE_A = 90;
 /** End of the middle phase for the rightmost changed digit, ms. */
 export const PHASE_B = 170;
-/** Right-to-left delay per changed digit, ms. */
-export const STAGGER_MS = 20;
-/** Ranks beyond this share the last delay (spread <= 60 ms). */
-export const MAX_RANK = 3;
+/** Right-to-left delay per changed digit, ms: zero, one clock. */
+export const STAGGER_MS = 0;
+/** Ranks beyond this share the last delay. */
+export const MAX_RANK = 0;
 /** Slide progress at the end of the opening phase. */
 export const SPLIT_IN = 0.3;
 /** Slide progress at the start of the closing phase. */

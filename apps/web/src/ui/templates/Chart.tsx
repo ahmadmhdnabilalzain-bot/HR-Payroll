@@ -1,7 +1,7 @@
 import type { Fils } from "@payroll/engine";
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { useDemo } from "../../demo/state";
-import { useChartMotion } from "../chartMotion";
+import { motion, useChartMotion } from "../chartMotion";
 import { formatMoney, formatSignedMoney, MINUS }
   from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
@@ -125,6 +125,50 @@ export interface WaterfallStep {
 const nice = (v: number, step: number, up: boolean): number =>
   (up ? Math.ceil(v / step) : Math.floor(v / step)) * step;
 
+const WF_RISE = 300;
+const WF_UNFOLD = 600;
+const WF_Z = 0.001;
+
+/**
+ * The waterfall's entrance, one clock, so it adds up in every frame.
+ * First the start total grows from the axis (300 ms; the end total
+ * grows with it to the same length). Then the causes unfold out of
+ * the start total's end (600 ms): every step scales about that one
+ * point by the same factor, so each step starts exactly where the
+ * one before it ends at every frame, and the end total's edge rides
+ * with the last step. Then connectors and figures fade in.
+ */
+function waterfallIn(root: Element): Animation[] {
+  const total = WF_RISE + WF_UNFOLD;
+  const at = WF_RISE / total;
+  const ease = motion.ease;
+  const out: Animation[] = [];
+  for (const el of root.querySelectorAll<SVGElement>("[data-wf]")) {
+    const kind = el.dataset["wf"];
+    const k0 = Number(el.dataset["k0"] ?? 0);
+    el.style.transformBox = "view-box";
+    el.style.transformOrigin = `${el.dataset["ox"] ?? 0}px 0px`;
+    const s = (k: number): string => `scaleX(${Math.max(k, WF_Z)})`;
+    const frames: Keyframe[] = kind === "start" ? [
+      { offset: 0, transform: s(0), easing: ease },
+      { offset: at, transform: s(1) }, { offset: 1, transform: s(1) }]
+      : kind === "end" ? [
+        { offset: 0, transform: s(0), easing: ease },
+        { offset: at, transform: s(k0), easing: ease },
+        { offset: 1, transform: s(1) }]
+        : [{ offset: 0, transform: s(0) },
+          { offset: at, transform: s(0), easing: ease },
+          { offset: 1, transform: s(1) }];
+    out.push(el.animate(frames, { duration: total, fill: "backwards" }));
+  }
+  root.querySelectorAll<SVGElement>("[data-label]").forEach((el, i) => {
+    out.push(el.animate([{ opacity: 0 }, { opacity: 1 }],
+      { duration: motion.base, delay: total - 80 + i * 12,
+        easing: "linear", fill: "backwards" }));
+  });
+  return out;
+}
+
 /**
  * A waterfall, laid on its side so long cause names read on a phone:
  * the start total, each cause as a step from the running total, and
@@ -163,10 +207,11 @@ export function Waterfall(p: { steps: WaterfallStep[]; label: string }) {
   const plotW = Math.max(40, w - labelW - valueW - 16);
   const x = (v: bigint): number => labelW + 8 +
     (Number(v) - min) / (max - min || 1) * plotW;
-  // The steps build left to right, each from the previous one's end
-  // (a fall grows leftward from it), 40 ms apart on one 600 ms swing.
   useChartMotion(svg, p.steps.map((d) => `${d.label}${d.value}`).join(),
-    w > 0, { stagger: 40, duration: 600 });
+    w > 0, { entrance: waterfallIn });
+  const x0 = x(BigInt(min));
+  const xS = x(spans[0]?.to ?? 0n);
+  const xE = x(spans.at(-1)?.to ?? 0n);
   const hide = state.hideAmounts;
   return (
     <figure className={s.chart} ref={box}>
@@ -192,6 +237,10 @@ export function Waterfall(p: { steps: WaterfallStep[]; label: string }) {
                     : st.label}</text>
                 <rect data-mark="" data-grow="x"
                   data-key={total ? (i === 0 ? "start" : "end") : st.label}
+                  data-wf={total ? (i === 0 ? "start" : "end") : "change"}
+                  data-ox={total ? x0 : xS}
+                  data-k0={total && i > 0 && xE !== x0
+                    ? (xS - x0) / (xE - x0) : 0}
                   x={left} y={yy + 6} width={width}
                   height={row - 12} rx={3}
                   data-origin={down ? "100% 50%" : "0% 50%"}

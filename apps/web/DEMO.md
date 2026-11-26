@@ -653,16 +653,19 @@ Everything here runs on CSS transitions or WAAPI, so it shows up in
   `ui/Rolling.tsx`, timeline in `ui/roll.ts`): a changed figure rolls
   only the digits that changed, each a two-glyph column sliding one
   line in a clip (`clip-path`, so the baseline holds; tabular figures,
-  so nothing shifts). 320 ms: 0 to 90 ms every changed digit moves
-  together and dims to 25 % with a 0.14em blur; 90 to 230 ms the
-  middle of the slide ripples right to left, 20 ms per digit (capped
-  at three steps); 230 to 320 ms all finish together and sharpen.
-  Outside the middle the changed digits are always at the same point,
-  so the figure reads as the old total or the new one; inside it none
-  can be read. It never shows an amount in between and never counts
-  up. A sign flip or a digit more or less swaps the whole figure
+  so nothing shifts). 320 ms, every changed column on one clock (no
+  per-column stagger: a staggered roll shows totals that never
+  existed): 0 to 90 ms the columns start moving and the changed
+  digits dim to 25 % with a 0.14em blur; 90 to 170 ms the middle of
+  the slide, dimmed and blurred; 170 to 320 ms they finish and
+  sharpen. Any paused frame shows the old figure, the new figure, or
+  digits visibly mid-motion, never a third readable amount, and it
+  never counts up. A sign flip or a digit more or less swaps the whole
+  figure
   instead (old out over 120 ms, then new in over 120 ms, never both).
-  `tests/unit/roll.test.ts` steps the timeline every 1 ms. Headline
+  `tests/unit/roll.test.ts` steps the timeline every 1 ms and
+  `e2e/money-roll.spec.ts` pauses the real roll on Home and steps it
+  every 5 ms, asserting no frame reads old and new digits together. Headline
   figures (hero, lg) carry `aria-live="polite"` with the final value
   only. While amounts are hidden the mask is drawn and no digit is
   ever animated; toggling Hide amounts brings the arriving face (dots
@@ -676,9 +679,13 @@ Everything here runs on CSS transitions or WAAPI, so it shows up in
   values and labels fade in (200 ms). The entrance is built paused at
   frame 0 on mount and played by an IntersectionObserver, so a chart
   never flashes full first. Executive dashboard bars use 600 ms to
-  match the tiles' 600 ms rise. The Variance waterfall builds top to
-  bottom, 40 ms apart over 600 ms, each step growing from the previous
-  step's end (a fall grows back from it). On a data change (Variance's
+  match the tiles' 600 ms rise. The Variance waterfall adds up in
+  every frame, on one clock: the start total grows from the axis
+  (300 ms, the end total with it), then the causes unfold out of the
+  start total's end (600 ms), each step scaling about that one point
+  by the same factor so it begins exactly where the step before it
+  ends, the end total riding with the last step; figures fade in
+  after. On a data change (Variance's
   earlier or later month) the chart is not remounted: marks FLIP from
   their old box (320 ms), lines morph their path, new marks grow,
   labels fade back. Scales start at 0.001, not 0: Chromium draws an
@@ -686,7 +693,10 @@ Everything here runs on CSS transitions or WAAPI, so it shows up in
 - **Rails** (Home ready-against-held bar, Home step dashes, the pay
   run's phone step bar, department bars, tile meters): fills move by
   `transform: scaleX` only (320 ms ease-out, from 0 on first paint via
-  `@starting-style`).
+  `@starting-style`). Rails and chart tweens read `--dur-slow`,
+  `--dur-hero` and `--ease-out` live, with the 320 / 480 ms and
+  cubic-bezier(0.2, 0, 0, 1) values as fallbacks; until the shared
+  motion tokens land, tokens.css still sets `--dur-slow` to 250 ms.
 - **Frame-stepping a capture:** `document.getAnimations()` holds every
   roll, chart and rail animation. Pause them all, then set
   `currentTime` on each and wait two animation frames before each

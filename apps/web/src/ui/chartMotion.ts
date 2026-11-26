@@ -194,7 +194,9 @@ function tween(root: Element, before: Map<string, Geo>): Animation[] {
  */
 export function useChartMotion(root: RefObject<Element | null>,
   dataKey: string, ready = true,
-  opts: { stagger?: number; duration?: number } = {}): void {
+  opts: { stagger?: number; duration?: number;
+    /** A chart's own entrance (the waterfall's), built here paused. */
+    entrance?: (root: Element) => Animation[] } = {}): void {
   const geo = useRef<Map<string, Geo>>(new Map());
   const entered = useRef(false);
   const lastKey = useRef(dataKey);
@@ -205,7 +207,10 @@ export function useChartMotion(root: RefObject<Element | null>,
     if (el === null || !ready || entered.current) return undefined;
     entered.current = true;
     if (reducedMotion()) return undefined;
-    const anims = entrance(el, opts.stagger ?? STAGGER, opts.duration);
+    const anims = opts.entrance === undefined
+      ? entrance(el, opts.stagger ?? STAGGER, opts.duration)
+      : opts.entrance(el);
+    for (const a of anims) a.pause();
     const go = (): void => {
       for (const a of anims) a.play();
     };

@@ -17,11 +17,11 @@ const rolled = (from: string, to: string): Slot[] => {
 };
 
 describe("roll plan", () => {
-  it("rolls only the digits that changed, ranked right to left", () => {
+  it("rolls only the digits that changed", () => {
     const slots = rolled("1,234.50", "1,284.55");
     expect(slots.map((x) => x.to).join("")).toBe("1,284.55");
     expect(slots.filter((x) => x.from !== undefined).map((x) =>
-      [x.from, x.to, x.rank])).toEqual([["3", "8", 1], ["0", "5", 0]]);
+      [x.from, x.to, x.rank])).toEqual([["3", "8", 0], ["0", "5", 0]]);
   });
 
   it("swaps when the figure changes shape", () => {
@@ -30,10 +30,14 @@ describe("roll plan", () => {
     expect(planRoll("12", "12").kind).toBe("same");
   });
 
-  it("caps the stagger", () => {
+  it("runs every changed digit on one clock", () => {
     const slots = rolled("11,111,111.11", "22,222,222.22");
     const ranks = slots.flatMap((x) => x.rank === undefined ? [] : [x.rank]);
     expect(Math.max(...ranks)).toBe(MAX_RANK);
+    for (let t = 0; t <= ROLL_MS; t += 1) {
+      const at = new Set(ranks.map((r) => slideAt(r, t)));
+      expect(at.size).toBe(1);
+    }
   });
 });
 

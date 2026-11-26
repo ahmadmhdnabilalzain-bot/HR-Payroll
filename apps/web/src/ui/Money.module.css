@@ -116,12 +116,13 @@
   will-change: transform;
 }
 
-/* A change of shape: the old figure fades out over the new one, at
- * the new one's end edge, before the new one fades in. */
+/* A change of shape: the old figure fades out where it stood (the
+ * figure's start edge, which does not move: the sign and AED stay
+ * put) before the new one fades in. */
 .ghostFace {
   position: absolute;
   inset-block-start: 0;
-  inset-inline-end: 0;
+  inset-inline-start: 0;
   display: inline-flex;
   align-items: baseline;
   gap: inherit;
