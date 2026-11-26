@@ -57,6 +57,7 @@ function create(c: Ctx, r: WireRequest): AppPayRun {
   const run: AppPayRun = { id, period, status: "draft",
     createdBy: signedIn(c).id, approvedBy: null, createdAt: c.now,
     approvedAt: null, inputHash: hash, employeeCount: slips.length,
+    sifFileId: null,
     gross: slips.reduce((t: Fils, s) => add(t, s.gross), fils(0n)),
     notComputed: [...NOT_COMPUTED_PAY] };
   c.s.runs = [...c.s.runs, run];

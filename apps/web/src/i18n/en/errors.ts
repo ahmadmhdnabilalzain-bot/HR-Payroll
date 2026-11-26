@@ -61,4 +61,10 @@ export const errors = {
   ACCOUNT_LOCKED: "This account is locked after too many attempts. Try " +
     "again later.",
   INTERNAL: "The server had a problem. Try again.",
+  INVITE_NOT_FOUND: "This invite link was not found.",
+  PAYLOAD_TOO_LARGE: "The request is too large.",
+  RUN_INPUTS_CHANGED: "Salaries or leave changed since this run was " +
+    "created. Void it and create it again.",
+  SALARY_MISSING: "An employee in this period has no salary.",
+  LAST_OWNER: "The company needs at least one owner.",
 } satisfies EnNamespace;

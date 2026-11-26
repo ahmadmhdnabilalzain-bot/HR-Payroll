@@ -2,10 +2,11 @@ import {
   ApiErrorBody,
   ERROR_STATUS,
   type ErrorCode,
+  type ErrorDetail as ContractErrorDetail,
   type PayRunProblem,
 } from "./contract";
 
-export type ErrorDetail = Record<string, string | string[]>;
+export type ErrorDetail = ContractErrorDetail;
 
 /** Codes that never come from the server. */
 export type ClientCode = "NETWORK" | "CONTRACT_MISMATCH";
@@ -34,26 +35,37 @@ export class ApiError extends Error {
 }
 
 /**
- * The contract's error detail holds only strings, so each pay-run
- * problem travels as one JSON string (an ask to Plan 3: let detail
- * carry PayRunProblem objects). Unreadable entries are skipped loudly.
+ * Pay-run problems arrive as objects in `detail.problems` (the contract
+ * now allows them); older JSON-string entries are still read.
+ * Unreadable entries are skipped loudly.
  */
+function isProblem(v: unknown): v is PayRunProblem {
+  const p = v as Partial<PayRunProblem> | null;
+  return typeof v === "object" && p !== null &&
+    typeof p.employeeId === "string" && typeof p.code === "string" &&
+    Array.isArray(p.missing);
+}
+
 function decodeProblems(detail: ErrorDetail): PayRunProblem[] {
   const raw = detail["problems"];
   if (raw === undefined) return [];
-  const list = Array.isArray(raw) ? raw : [raw];
-  return list.flatMap((s) => {
+  const list: unknown[] = Array.isArray(raw) ? raw : [raw];
+  return list.flatMap((item) => {
     try {
-      return [JSON.parse(s) as PayRunProblem];
+      const v: unknown = typeof item === "string" ? JSON.parse(item) : item;
+      if (!isProblem(v)) throw new Error("not a problem");
+      return [v];
     } catch {
-      console.error("unreadable pay-run problem", s);
+      console.error("unreadable pay-run problem");
       return [];
     }
   });
 }
 
-export function encodeProblems(ps: readonly PayRunProblem[]): string[] {
-  return ps.map((p) => JSON.stringify(p));
+export function encodeProblems(ps: readonly PayRunProblem[])
+  : PayRunProblem[] {
+  return ps.map((p) => ({ employeeId: p.employeeId, code: p.code,
+    missing: [...p.missing] }));
 }
 
 /** An error response body to an ApiError; a bad body is a mismatch. */

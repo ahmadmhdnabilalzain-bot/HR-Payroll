@@ -37,7 +37,7 @@ function lastMonthRun(s: MockSeed, today: string) {
     approvedBy: OWNER2, createdAt: dubaiAt(end, 9, 0),
     approvedAt: dubaiAt(end, 15, 0),
     inputHash: sha256(canonical(toWirePayRunCreate(body))),
-    employeeCount: payslips.length, gross,
+    employeeCount: payslips.length, gross, sifFileId: null,
     notComputed: [...NOT_COMPUTED_PAY],
   };
   return { run, payslips };

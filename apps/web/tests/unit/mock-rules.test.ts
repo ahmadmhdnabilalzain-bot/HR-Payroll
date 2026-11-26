@@ -1,6 +1,7 @@
 import { fils } from "@payroll/engine";
 import { describe, expect, it } from "vitest";
 import type { AppPayRunCreate } from "../../src/api/contract";
+import { DEMO_PASSWORD } from "../../src/api/mock/options";
 import { codeOf, mockApi } from "../helpers/mock";
 
 const ANNUAL = "00000000-0000-4000-8000-000005000001";
@@ -161,11 +162,12 @@ describe("mock rules: files, users, audit", () => {
   it("invite-and-mfa", async () => {
     const m = mockApi();
     await m.signIn("hr@demo.test");
-    const enrol = await m.api.mfaEnrol();
+    const enrol = await m.api.mfaEnrol(DEMO_PASSWORD);
     expect(enrol.otpauthUrl).toContain(enrol.secret);
-    expect(await codeOf(m.api.mfaConfirm("000000")))
+    expect(await codeOf(m.api.mfaConfirm("000000", DEMO_PASSWORD)))
       .toBe("MFA_CODE_INVALID");
-    expect((await m.api.mfaConfirm("123456")).user.mfaEnrolled).toBe(true);
+    expect((await m.api.mfaConfirm("123456", DEMO_PASSWORD)).user
+      .mfaEnrolled).toBe(true);
     await m.signIn("owner@demo.test");
     const inv = await m.api.inviteUser({ email: "new@demo.test",
       role: "hr" });

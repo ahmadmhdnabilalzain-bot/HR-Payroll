@@ -43,8 +43,8 @@ export interface ApiClient {
   login(r: LoginRequest): Promise<LoginResponse>;
   logout(): Promise<void>;
   me(): Promise<Me>;
-  mfaEnrol(): Promise<MfaEnrolResponse>;
-  mfaConfirm(code: string): Promise<Me>;
+  mfaEnrol(password: string): Promise<MfaEnrolResponse>;
+  mfaConfirm(code: string, password: string): Promise<Me>;
   getCompany(): Promise<Company>;
   updateCompany(u: CompanyUpdate): Promise<Company>;
   listDepartments(): Promise<Department[]>;

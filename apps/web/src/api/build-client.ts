@@ -44,8 +44,9 @@ function accountMethods(call: Call, items: ItemsFn) {
       await call("logout");
     },
     me: () => call("me"),
-    mfaEnrol: () => call("mfaEnrol"),
-    mfaConfirm: (code) => call("mfaConfirm", { body: { code } }),
+    mfaEnrol: (password) => call("mfaEnrol", { body: { password } }),
+    mfaConfirm: (code, password) => call("mfaConfirm",
+      { body: { code, password } }),
     getCompany: () => call("getCompany"),
     updateCompany: (u) => call("updateCompany", { body: u }),
     listUsers: () => items("listUsers"),
