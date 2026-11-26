@@ -94,7 +94,9 @@ reserve BYPASSRLS or `pg_read_all_data` for their admin role, in which
 case back up with the platform's snapshots and run the audit check as
 that admin), then run the image with `migrate` and `serve` and set
 `DATABASE_URL`, `MIGRATE_DATABASE_URL` (migrate job only),
-`PAYROLL_MASTER_KEY` and `PORT`. Add `?sslmode=require` (or stricter)
+`PAYROLL_MASTER_KEY`, `PORT` and `RECEIPTS_DIR` (an absolute,
+persistent directory for encrypted receipt files; back it up with the
+database). Add `?sslmode=require` (or stricter)
 to the URLs when the database is across a network.
 
 ## 3. Migrations

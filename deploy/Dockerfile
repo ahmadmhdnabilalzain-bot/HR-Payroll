@@ -49,6 +49,11 @@ COPY packages/wps/src packages/wps/src
 COPY deploy/check-env.mjs deploy/serve.ts deploy/verify-audit-chain.ts \
   deploy/
 COPY --chmod=0755 deploy/entrypoint.sh deploy/
+# Receipt files (RECEIPTS_DIR): the only path the app user writes; a
+# named volume mounted here starts with this owner.
+RUN mkdir -p /var/lib/payroll/receipts \
+  && chown node:node /var/lib/payroll/receipts \
+  && chmod 0700 /var/lib/payroll/receipts
 USER node
 EXPOSE 8787
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \

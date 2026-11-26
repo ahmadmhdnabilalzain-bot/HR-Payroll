@@ -10,16 +10,20 @@
 import { serve } from
   "../packages/api/node_modules/@hono/node-server/dist/index.mjs";
 import { createApp } from "../packages/api/src/app";
+import { buildChannelPorts } from "../packages/api/src/channels/wire";
 import { loadConfig } from "../packages/api/src/config";
 import { openPg } from "../packages/api/src/db/pg";
 import { assertRuntimeRole } from "../packages/api/src/db/role-check";
 import { systemDeps } from "../packages/api/src/deps";
+import { fsBlobStore } from "../packages/api/src/storage/fs-blob";
 
 async function main(): Promise<void> {
   const cfg = loadConfig(process.env);
   const db = await openPg(cfg.databaseUrl);
   await assertRuntimeRole(db);
-  const app = createApp(systemDeps(db, cfg.masterKey));
+  const blobs = fsBlobStore(cfg.receiptsDir);
+  const app = createApp(systemDeps(db, cfg.masterKey, blobs,
+    buildChannelPorts(cfg)));
   serve({ fetch: app.fetch, port: cfg.port });
   process.stdout.write(`${JSON.stringify({ event: "listening",
     port: cfg.port, migrations: "skipped (serve-only)" })}\n`);

@@ -27,7 +27,8 @@ function goodApi() {
   return {
     DATABASE_URL: `postgres://payroll_runtime:${pw()}@db:5432/payroll`,
     MIGRATE_DATABASE_URL: `postgres://payroll_owner:${pw()}@db/payroll`,
-    PAYROLL_MASTER_KEY: key(), PORT: "8787" };
+    PAYROLL_MASTER_KEY: key(), PORT: "8787",
+    RECEIPTS_DIR: "/var/lib/payroll/receipts" };
 }
 
 function run(args) {
@@ -54,6 +55,18 @@ test("serve: runtime URL only; the owner URL is refused", () => {
     /MIGRATE_DATABASE_URL is set/.test(p)));
   delete env.MIGRATE_DATABASE_URL;
   assert.deepEqual(checkEnv(env, "serve"), []);
+});
+
+test("RECEIPTS_DIR is required and absolute for api, migrate, serve", () => {
+  for (const target of ["api", "migrate", "serve"]) {
+    const env = goodApi();
+    if (target === "serve") delete env.MIGRATE_DATABASE_URL;
+    delete env.RECEIPTS_DIR;
+    assert.ok(checkEnv(env, target).includes("RECEIPTS_DIR is required"));
+    env.RECEIPTS_DIR = "receipts";
+    assert.ok(checkEnv(env, target).includes(
+      "RECEIPTS_DIR must be an absolute path"));
+  }
 });
 
 test("weak, short, placeholder and URL-unsafe passwords fail", () => {
