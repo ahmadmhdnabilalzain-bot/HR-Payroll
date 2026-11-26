@@ -3,6 +3,10 @@ import type { PapersData } from "./papers-types";
 import type { MovesData } from "./moves-types";
 import type { HomeData } from "./home-types";
 import type { PeopleData } from "./people-types";
+import type { SafetyData } from "./safety-types";
+import type { RequestsData } from "./requests-types";
+import type { FilesData } from "./files-types";
+import type { MoreData } from "./more-types";
 import type { TalentData } from "./talent-types";
 import type { TeamData } from "./team-types";
 
@@ -145,10 +149,18 @@ export interface DemoData {
   team: TeamData;
   /** Skills, training and surveys (talent-types.ts). */
   talent: TalentData;
+  /** Cover, incidents, ILOE and policies (safety-types.ts). */
+  safety: SafetyData;
+  /** Profile changes, travel, help desk, access (requests-types.ts). */
+  requests: RequestsData;
+  /** Exit interviews, signatures, files, leave pay (files-types.ts). */
+  files: FilesData;
   /** Hiring, joining and leaving (moves-types.ts). */
   moves: MovesData;
   /** Home and Me: tasks, notices, the IT view (home-types.ts). */
   home: HomeData;
+  /** New employee, claims, cover (more-types.ts). */
+  more: MoreData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };

@@ -49,11 +49,53 @@ import {
   type PapersSlice,
 } from "./papers-state";
 import {
+  reduceSafety,
+  SAFETY_INITIAL,
+  type SafetyAction,
+  type SafetySlice,
+} from "./safety-state";
+import {
+  REQUESTS_INITIAL,
+  reduceRequests,
+  type RequestsAction,
+  type RequestsSlice,
+} from "./requests-state";
+import {
+  FILES_INITIAL,
+  reduceFiles,
+  type FilesOp,
+  type FilesSlice,
+} from "./files-state";
+import {
+  CONNECT_INITIAL,
+  reduceConnect,
+  type ConnectAction,
+  type ConnectSlice,
+} from "../setup/more/state";
+import {
+  PRIOR_INITIAL,
+  reducePrior,
+  type PriorAction,
+  type PriorSlice,
+} from "../pay/more/state";
+import {
+  MORE_INITIAL,
+  reduceMore,
+  type MoreAction,
+  type MoreSlice,
+} from "./more-state";
+import {
   PAY_INITIAL,
   reducePay,
   type PayAction,
   type PaySlice,
 } from "../pay/pay-state";
+import {
+  HOLD_INITIAL,
+  reduceHolds,
+  type HoldAction,
+  type HoldSlice,
+} from "../pay/gate/hold-state";
 
 /** manager and employee: the team view and the self view; it: the IT
  * manager (access, connections, the audit chain; no company pay). */
@@ -71,7 +113,8 @@ export type Resolution = "reviewed" | "renewal";
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
-    TeamSlice, MovesSlice, PaySlice {
+    TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
+    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -107,6 +150,13 @@ export type Action =
   | TeamAction
   | MovesAction
   | PayAction
+  | SafetyAction
+  | RequestsAction
+  | { type: "files"; op: FilesOp }
+  | ConnectAction
+  | PriorAction
+  | HoldAction
+  | MoreAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -116,7 +166,12 @@ export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL, ...TEAM_INITIAL,
-  ...MOVES_INITIAL, ...PAY_INITIAL, tasksDone: [], notesRead: [],
+  ...MOVES_INITIAL, ...PAY_INITIAL, ...SAFETY_INITIAL, ...REQUESTS_INITIAL,
+  ...FILES_INITIAL,
+  ...CONNECT_INITIAL, ...PRIOR_INITIAL,
+  ...HOLD_INITIAL,
+  ...MORE_INITIAL,
+  tasksDone: [], notesRead: [],
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -172,6 +227,7 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "ending-undo":
     case "staff-move-new":
     case "staff-move-undo": return reduceMoves(s, a);
+    case "files": return reduceFiles(s, a.op);
     case "task-done": return s.tasksDone.includes(a.id) ? s
       : { ...s, tasksDone: [...s.tasksDone, a.id] };
     case "task-undone":
@@ -180,11 +236,43 @@ export function reduce(s: DemoState, a: Action): DemoState {
       return { ...s, notesRead: [...new Set([...s.notesRead, ...a.ids])] };
     case "notes-unread": return { ...s,
       notesRead: s.notesRead.filter((x) => !a.ids.includes(x)) };
+    case "safety-mark":
+    case "safety-unmark": return reduceSafety(s, a);
+    case "req-step":
+    case "req-undo":
+    case "req-new":
+    case "req-new-undo":
+    case "req-reply":
+    case "req-reply-undo":
+    case "appr-reset":
+    case "appr-reset-undo":
+    case "appr-split":
+    case "appr-split-undo": return reduceRequests(s, a);
+    case "more-hire":
+    case "more-hire-withdraw":
+    case "more-hire-restore":
+    case "more-claim":
+    case "more-claim-withdraw":
+    case "more-claim-restore":
+    case "more-fix":
+    case "more-fix-withdraw":
+    case "more-fix-restore":
+    case "more-cover":
+    case "more-cover-withdraw":
+    case "more-cover-restore": return reduceMore(s, a);
     case "pay-request":
     case "pay-withdraw":
     case "pay-restore":
     case "fine-decide":
     case "fine-undo": return reducePay(s, a);
+    case "connect-edit":
+    case "connect-undo": return reduceConnect(s, a);
+    case "prior-add":
+    case "prior-check":
+    case "prior-uncheck":
+    case "prior-undo": return reducePrior(s, a);
+    case "salary-hold":
+    case "salary-release": return reduceHolds(s, a);
   }
 }
 

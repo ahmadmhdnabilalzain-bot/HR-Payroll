@@ -17,10 +17,14 @@ import {
   type DemoCompany,
   type DemoIssue,
 } from "@payroll/demo-data";
+import { adaptFiles } from "./files";
 import { adaptPapers } from "./papers";
+import { adaptMore } from "./more";
 import { adaptMoves } from "./moves";
 import { adaptHome } from "./home";
 import { adaptPeople } from "./people";
+import { adaptSafety } from "./safety";
+import { adaptRequests } from "./requests";
 import { adaptTalent } from "./talent";
 import { adaptTeam } from "./team";
 import type {
@@ -114,8 +118,12 @@ export function adapt(c: DemoCompany): DemoData {
     papers: adaptPapers(c),
     team: adaptTeam(c),
     talent: adaptTalent(c),
+    safety: adaptSafety(c),
+    requests: adaptRequests(c),
     moves: adaptMoves(c),
+    files: adaptFiles(c),
     home: adaptHome(c),
+    more: adaptMore(c),
   };
 }
 

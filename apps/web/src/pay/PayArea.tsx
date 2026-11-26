@@ -4,9 +4,11 @@ import { canOpenPayArea } from "./derive";
 import { CorrectionRecord, Corrections } from "./Corrections";
 import { ExpenseRecord, Expenses } from "./Expenses";
 import { FineRecord, Fines } from "./Fines";
+import { Gate } from "./gate/Gate";
 import { Deductions, OffCycle } from "./Ledger";
 import { LoanRecord, Loans } from "./Loans";
 import { Loading, Outside } from "./parts";
+import { PayMore } from "./more";
 import { PastRuns, RunRecord } from "./PastRuns";
 import { RevisionRecord, Revisions } from "./Revisions";
 import { PayElements, PayGroups } from "./Rules";
@@ -19,13 +21,14 @@ import { SettlementRecord, Settlements } from "./Settlements";
  */
 export const PAY_AREAS = ["loans", "revisions", "corrections",
   "settlements", "runs", "fines", "groups", "elements", "deductions",
-  "off-cycle", "expenses"] as const;
+  "off-cycle", "expenses", "more", "gate"] as const;
 export type PayAreaId = (typeof PAY_AREAS)[number];
 
 export const isPayArea = (x: string | undefined): x is PayAreaId =>
   PAY_AREAS.some((a) => a === x);
 
-function screen(area: PayAreaId, id: string | undefined): ReactNode {
+function screen(area: PayAreaId, id: string | undefined,
+  rest: string[]): ReactNode {
   switch (area) {
     case "loans": return id === undefined ? <Loans /> : <LoanRecord id={id} />;
     case "revisions": return id === undefined ? <Revisions />
@@ -41,8 +44,10 @@ function screen(area: PayAreaId, id: string | undefined): ReactNode {
     case "elements": return <PayElements />;
     case "deductions": return <Deductions />;
     case "off-cycle": return <OffCycle />;
+    case "more": return <PayMore rest={rest} />;
     case "expenses": return id === undefined ? <Expenses />
       : <ExpenseRecord id={id} />;
+    case "gate": return <Gate rest={["gate", id ?? ""]} />;
   }
 }
 
@@ -52,7 +57,7 @@ export function PayArea(p: { rest: string[] }) {
   if (!isPayArea(area)) return null;
   return (
     canOpenPayArea(state.role, area) ? (
-      <Suspense fallback={<Loading />}>{screen(area, id)}</Suspense>
+      <Suspense fallback={<Loading />}>{screen(area, id, p.rest)}</Suspense>
     ) : <Outside />
   );
 }
