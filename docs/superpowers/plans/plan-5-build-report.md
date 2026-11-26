@@ -11,3 +11,5 @@ Built test-first, one commit per task, `pnpm check` green before each.
   '../src/payroll/validate'` (Test Files 1 failed, no tests ran).
 - Task 3 `payroll-days payroll-earnings`: FAIL, `Cannot find module
   '../src/payroll/days'` (Test Files 2 failed, no tests ran).
+- Task 4 `payroll-variable`: FAIL, `Cannot find module
+  '../src/payroll/variable'` (Test Files 1 failed, no tests ran).
