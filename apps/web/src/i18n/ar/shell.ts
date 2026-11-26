@@ -28,6 +28,7 @@ export const shell: ArOf<typeof en> = {
   viewingAs: "العرض بصفة",
   roleHr: "مديرة الموارد البشرية",
   roleGm: "المدير العام",
+  roleIt: "مدير تقنية المعلومات",
   roleManager: "مدير الفريق",
   roleEmployee: "موظف",
   toLight: "التبديل إلى المظهر الفاتح",

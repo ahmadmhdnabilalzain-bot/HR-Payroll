@@ -7,7 +7,7 @@ import type { Section } from "./state";
  * so no rewrite rule is needed. Unknown sections show Home.
  */
 export const SECTIONS: readonly Section[] = ["home", "pay-run", "people",
-  "time-off", "reports", "setup", "s"];
+  "time-off", "reports", "setup", "s", "me"];
 
 export interface Route {
   section: Section;

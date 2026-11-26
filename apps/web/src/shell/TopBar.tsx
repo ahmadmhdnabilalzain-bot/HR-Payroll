@@ -13,6 +13,7 @@ import {
   wordOfRoute,
 } from "../nav/registry";
 import type { SectionId } from "../nav/types";
+import { NotificationsButton } from "../home/inbox/Notifications";
 import { Icon } from "../ui/Icon";
 import { SectionPanel } from "./SectionPanel";
 import { RoleMenu } from "./RoleMenu";
@@ -48,6 +49,7 @@ export function TopBar(p: { route: Route; onSearch(): void }) {
             <span className="visually-hidden">{t("shell.searchHint")}</span>
             <kbd className={s.kbd} aria-hidden="true">⌘K</kbd>
           </button>
+          <NotificationsButton className={s.iconBtn ?? ""} />
           <AmountsToggle />
           <ThemeToggle />
           {showArabic(data.arReviewed, location.search) && <LangToggle />}

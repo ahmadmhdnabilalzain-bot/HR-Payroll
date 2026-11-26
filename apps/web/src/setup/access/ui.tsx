@@ -20,7 +20,7 @@ export function Status(p: { tone: Tone; children: ReactNode }) {
 }
 
 const ROLE_KEY: Record<Role, MessageKey> = { hr: "shell.roleHr",
-  gm: "shell.roleGm", manager: "shell.roleManager",
+  gm: "shell.roleGm", it: "shell.roleIt", manager: "shell.roleManager",
   employee: "shell.roleEmployee" };
 
 /** Who is acting in the demo, for every action's stamp. */

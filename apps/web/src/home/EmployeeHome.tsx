@@ -10,6 +10,7 @@ import {
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
+import { Inbox } from "./inbox/Inbox";
 import { LeaveForm } from "./LeaveForm";
 import { RequestList } from "./RequestList";
 import s from "./Self.module.css";
@@ -69,6 +70,7 @@ export function EmployeeHome() {
       {asking && <LeaveForm employeeId={me} onDone={() => setAsking(false)} />}
       <RequestList title={t("home.myRequests")} rows={mine}
         empty={t("timeoff.requestsEmpty")} />
+      <Inbox />
     </div>
   );
 }

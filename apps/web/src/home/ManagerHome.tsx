@@ -2,7 +2,10 @@ import { useDemo } from "../demo/state";
 import { personFor, requestRows, visibleIds } from "../demo/time-off";
 import { formatLongDay } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { Inbox } from "./inbox/Inbox";
+import { TeamToday } from "./inbox/TeamToday";
 import { RequestList } from "./RequestList";
+import h from "./Home.module.css";
 import s from "./Self.module.css";
 
 /**
@@ -35,10 +38,14 @@ export function ManagerHome() {
             : t("home.teamTitle", { count: n })}
         </h1>
       </header>
-      <RequestList title={t("home.teamWaiting")} rows={waiting} showName
-        empty={t("home.teamNone")} />
+      <div className={h.grid}>
+        <RequestList title={t("home.teamWaiting")} rows={waiting} showName
+          empty={t("home.teamNone")} />
+        <TeamToday />
+      </div>
       <RequestList title={t("home.teamLeave")} rows={teamLeave} showName
         empty={t("home.teamLeaveEmpty")} />
+      <Inbox />
     </div>
   );
 }

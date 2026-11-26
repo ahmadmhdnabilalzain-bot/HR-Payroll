@@ -55,7 +55,8 @@ export function MonthCalendar(p: {
             {t("tpl.nextMonth")}</button>
         </div>
       )} />
-      <div className={s.calScroll}>
+      <div className={s.calScroll} tabIndex={0} role="region"
+        aria-label={`${p.title}, ${p.monthLabel}`}>
         <table className={s.cal}>
           <thead>
             <tr>

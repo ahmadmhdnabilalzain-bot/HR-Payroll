@@ -41,7 +41,8 @@ export const LETTER_KIND: Record<LetterKind, string> = {
 };
 
 export const ROLE_WORD: Record<Role, string> = { hr: "HR manager",
-  gm: "General manager", manager: "Team manager", employee: "Employee" };
+  gm: "General manager", it: "IT manager", manager: "Team manager",
+  employee: "Employee" };
 
 /** Request kinds a person can raise (value, label). */
 export const REQUEST_KINDS: [string, string][] = [
