@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { personOf } from "../demo/derive";
 import { useDemo, type Role } from "../demo/state";
+import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import s from "./TopBar.module.css";
 
-const ROLES: Role[] = ["hr", "gm"];
+const ROLES: Role[] = ["hr", "gm", "manager", "employee"];
+
+const ROLE_KEY: Record<Role, MessageKey> = { hr: "shell.roleHr",
+  gm: "shell.roleGm", manager: "shell.roleManager",
+  employee: "shell.roleEmployee" };
 
 function initials(name: string): string {
   return name.split(" ").filter((w) => w.length > 2 || w === name)
@@ -33,8 +38,7 @@ export function RoleMenu() {
       removeEventListener("keydown", esc);
     };
   }, [open]);
-  const roleLabel = (r: Role): string =>
-    r === "hr" ? t("shell.roleHr") : t("shell.roleGm");
+  const roleLabel = (r: Role): string => t(ROLE_KEY[r]);
   const me = data.employee(personOf(data, state.role));
   return (
     <div className={s.role} ref={box}>

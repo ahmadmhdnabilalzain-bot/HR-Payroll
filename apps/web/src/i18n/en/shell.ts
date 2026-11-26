@@ -17,6 +17,8 @@ export const shell = {
   viewingAs: "Viewing as",
   roleHr: "HR manager",
   roleGm: "General manager",
+  roleManager: "Team manager",
+  roleEmployee: "Employee",
   toLight: "Switch to light theme",
   toDark: "Switch to dark theme",
   hideAmounts: "Hide amounts",

@@ -9,10 +9,11 @@ const SECTIONS: readonly Section[] = ["home", "pay-run", "people",
   "time-off", "reports"];
 
 /** Sections built in this demo build; the others are inert in nav. */
-export const BUILT: ReadonlySet<Section> = new Set<Section>(["home"]);
+export const BUILT: ReadonlySet<Section> = new Set<Section>(["home",
+  "people", "time-off"]);
 
 function read(): Section {
-  const raw = location.hash.replace(/^#\/?/, "");
+  const raw = location.hash.replace(/^#\/?/, "").split("/")[0] ?? "";
   const hit = SECTIONS.find((x) => x === raw);
   return hit !== undefined && BUILT.has(hit) ? hit : "home";
 }

@@ -1,5 +1,6 @@
 import type { Approval, DemoData, Issue, Severity } from "./data/types";
 import type { DemoState, Role } from "./state";
+import { allApprovals, personFor } from "./time-off";
 
 const RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2,
   "needs-confirmation": 3 };
@@ -27,23 +28,25 @@ export function openIssueCount(d: DemoData, s: DemoState): number {
     actionable(i) && s.resolved[i.id] === undefined).length;
 }
 
-/** The person behind a role: HR prepared the run, the GM checks it. */
+/**
+ * The person behind a role: HR prepared the run, the GM checks it; the
+ * manager and employee views are people from the data (time-off.ts).
+ */
 export function personOf(d: DemoData, role: Role): string {
-  const p = d.runPeople();
-  return role === "hr" ? p.makerId : p.checkerId;
+  return personFor(d, role);
 }
 
 /** What waits for the current role's decision. */
 export function waitingApprovals(d: DemoData, s: DemoState): Approval[] {
   const me = personOf(d, s.role);
-  return d.approvalsInbox().filter((a) =>
+  return allApprovals(d, s).filter((a) =>
     a.checkerId === me && s.decided[a.id] === undefined);
 }
 
 /** Everything still undecided, the current role's own first. */
 export function pendingApprovals(d: DemoData, s: DemoState): Approval[] {
   const me = personOf(d, s.role);
-  const open = d.approvalsInbox().filter((a) =>
+  const open = allApprovals(d, s).filter((a) =>
     s.decided[a.id] === undefined);
   return [...open.filter((a) => a.checkerId === me),
     ...open.filter((a) => a.checkerId !== me)];

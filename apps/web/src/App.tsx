@@ -3,6 +3,8 @@ import { showArabic } from "./demo/flags";
 import { useSection } from "./demo/route";
 import { useDemo } from "./demo/state";
 import { Home } from "./home/Home";
+import { People } from "./people/People";
+import { TimeOff } from "./timeoff/TimeOff";
 import { useLocale } from "./i18n/LocaleProvider";
 import { CommandPalette, usePaletteHotkeys } from "./shell/CommandPalette";
 import { TopBar } from "./shell/TopBar";
@@ -30,6 +32,8 @@ export function App() {
           </p>
         )}
         {section === "home" && <Home />}
+        {section === "people" && <People />}
+        {section === "time-off" && <TimeOff />}
       </main>
       <CommandPalette open={palette} arabicShown={arabicShown}
         onClose={() => setPalette(false)} />
