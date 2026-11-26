@@ -10,8 +10,21 @@ export const AttendanceRecord = z.object({
   clockOut: Timestamp.nullable(),
   /** Whole minutes, rounded down; null while open. */
   minutes: z.number().int().min(0).nullable(),
-  source: z.enum(["self", "hr"]),
+  /** "correction": an approved correction request (Plan 9 Ruling 7). */
+  source: z.enum(["self", "hr", "correction"]),
   note: z.string().nullable(),
+  /** Plan 9 (additive): how the record was clocked. */
+  method: z.enum(["web", "phone", "unknown"]).optional(),
+  workLocation: z.enum(["site", "remote"]).optional(),
+  /** The geofence outcome; the location itself is never stored. */
+  geofence: z.object({
+    mode: z.enum(["off", "record", "require"]),
+    result: z.enum(["inside", "outside", "no-location", "not-applied"]),
+    siteId: Id.nullable(),
+    distanceM: z.number().int().nullable(),
+  }).optional(),
+  exception: z.enum(["outside-geofence", "no-location"]).nullable()
+    .optional(),
 });
 export type AttendanceRecord = z.infer<typeof AttendanceRecord>;
 

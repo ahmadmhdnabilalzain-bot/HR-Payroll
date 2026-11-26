@@ -6,6 +6,7 @@ export const TIME_ID_KIND: Record<string, "employee" | null> = {
   getTimeSettings: null, listHolidays: null, listSpecialPeriods: null,
   listWorkSites: null, getTimeProfile: "employee",
   listShiftTemplates: null, getRoster: null, listSwapRequests: null,
+  listCorrectionRequests: null,
 };
 
 export const TIME_QUERY: Record<string, string> = {

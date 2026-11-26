@@ -1,8 +1,15 @@
-import type { AttendanceRecord } from "@payroll/contract";
+import type {
+  AttendanceCorrection,
+  AttendanceRecord,
+} from "@payroll/contract";
 import type { Tenant } from "../auth/guard";
+import { appendAudit } from "../audit/audit";
 import type { Db } from "../db/db";
+import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
+import type { ClockFacts } from "../time/clock-geofence";
 import { dubaiDate } from "../time/dubai";
+import { assertUnlocked } from "../time/locks";
 
 export interface AttendanceRow {
   id: string;
@@ -11,14 +18,34 @@ export interface AttendanceRow {
   clock_in: string;
   clock_out: string | null;
   minutes: number | null;
-  source: "self" | "hr";
+  source: "self" | "hr" | "correction";
   note: string | null;
+  method: ClockFacts["method"] | null;
+  work_location: ClockFacts["workLocation"] | null;
+  geofence_mode: ClockFacts["geofenceMode"] | null;
+  geofence_result: ClockFacts["result"] | null;
+  geofence_site_id: string | null;
+  geofence_distance_m: number | null;
+  exception: ClockFacts["exception"];
+}
+
+/** Plan 9 fields appear once a record carries them (additive). */
+function clockFields(r: AttendanceRow): Partial<AttendanceRecord> {
+  const out: Partial<AttendanceRecord> = {};
+  if (r.method !== null) out.method = r.method;
+  if (r.work_location !== null) out.workLocation = r.work_location;
+  if (r.geofence_mode !== null && r.geofence_result !== null) {
+    out.geofence = { mode: r.geofence_mode, result: r.geofence_result,
+      siteId: r.geofence_site_id, distanceM: r.geofence_distance_m };
+    out.exception = r.exception ?? null;
+  }
+  return out;
 }
 
 export const toRecord = (r: AttendanceRow): AttendanceRecord => ({
   id: r.id, employeeId: r.employee_id, date: r.date, clockIn: r.clock_in,
   clockOut: r.clock_out, minutes: r.minutes, source: r.source,
-  note: r.note });
+  note: r.note, ...clockFields(r) });
 
 /** Whole minutes, rounded down. Overtime is not computed. */
 export function minutesBetween(from: string, to: string): number {
@@ -40,17 +67,27 @@ async function openRecord(tx: Db, companyId: string, employeeId: string) {
   return r ?? null;
 }
 
-export async function clockIn(tx: Db, t: Tenant, id: string, now: Date)
-  : Promise<AttendanceRow> {
+/** The linked employee, refused before any write if already open. */
+export async function clockInTarget(tx: Db, t: Tenant): Promise<string> {
   const emp = linked(t);
   if (await openRecord(tx, t.companyId, emp) !== null) {
     throw new ApiError("ALREADY_CLOCKED_IN");
   }
+  return emp;
+}
+
+export async function clockIn(tx: Db, t: Tenant, id: string, now: Date,
+  f: ClockFacts): Promise<AttendanceRow> {
+  const emp = await clockInTarget(tx, t);
   const at = now.toISOString();
   const [r] = await tx.query<AttendanceRow>(
     `INSERT INTO attendance (id, company_id, employee_id, date, clock_in,
-       source, created_at) VALUES ($1, $2, $3, $4, $5, 'self', $5)
-     RETURNING *`, [id, t.companyId, emp, dubaiDate(now), at]);
+       source, created_at, method, work_location, geofence_mode,
+       geofence_result, geofence_site_id, geofence_distance_m, exception)
+     VALUES ($1, $2, $3, $4, $5, 'self', $5, $6, $7, $8, $9, $10, $11, $12)
+     RETURNING *`, [id, t.companyId, emp, dubaiDate(now), at, f.method,
+      f.workLocation, f.geofenceMode, f.result, f.siteId, f.distanceM,
+      f.exception]);
   return r!;
 }
 
@@ -76,7 +113,7 @@ export async function loadRecord(tx: Db, companyId: string, id: string)
 }
 
 export async function correct(tx: Db, companyId: string, id: string,
-  c: { clockIn: string; clockOut: string | null; note: string })
+  c: AttendanceCorrection, source: "hr" | "correction" = "hr")
   : Promise<AttendanceRow> {
   if (c.clockOut !== null && Date.parse(c.clockOut) < Date.parse(c.clockIn)) {
     throw new ApiError("VALIDATION_FAILED", "clockOut is before clockIn",
@@ -86,9 +123,34 @@ export async function correct(tx: Db, companyId: string, id: string,
     : minutesBetween(c.clockIn, c.clockOut);
   const [r] = await tx.query<AttendanceRow>(
     `UPDATE attendance SET clock_in = $3, clock_out = $4, minutes = $5,
-       source = 'hr', note = $6, date = $7
+       source = $8, note = $6, date = $7
      WHERE company_id = $1 AND id = $2 RETURNING *`,
     [companyId, id, c.clockIn, c.clockOut, minutes, c.note,
-      dubaiDate(new Date(Date.parse(c.clockIn)))]);
+      dubaiDate(new Date(Date.parse(c.clockIn))), source]);
   return r!;
+}
+
+/**
+ * Plan 3's hr correction, reused on approval of a correction request.
+ * A day inside a submitted or approved timesheet refuses (409
+ * TIMESHEET_LOCKED), both the old and the new date. The audit row
+ * keeps the old and new times.
+ */
+export async function correctAttendance(ctx: ReqCtx, id: string,
+  body: AttendanceCorrection, source: "hr" | "correction" = "hr")
+  : Promise<AttendanceRecord> {
+  const co = ctx.tenant!.companyId;
+  const old = await loadRecord(ctx.tx, co, id);
+  await assertUnlocked(ctx.tx, co, old.employee_id, [old.date,
+    dubaiDate(new Date(Date.parse(body.clockIn)))]);
+  const r = await correct(ctx.tx, co, old.id, body, source);
+  const data: Record<string, string> = { oldClockIn: old.clock_in,
+    newClockIn: r.clock_in };
+  if (old.clock_out !== null) data.oldClockOut = old.clock_out;
+  if (r.clock_out !== null) data.newClockOut = r.clock_out;
+  await appendAudit(ctx.tx, { companyId: co,
+    at: ctx.deps.now().toISOString(), actorUserId: ctx.user!.id,
+    action: "attendance.corrected", entityType: "attendance",
+    entityId: r.id, data });
+  return toRecord(r);
 }

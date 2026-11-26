@@ -24,6 +24,8 @@ import {
 import { IdParams } from "./primitives";
 import { TIME_SETTINGS_ROUTES } from "./routes-time-settings";
 import { TIME_ROSTER_ROUTES } from "./routes-time-rosters";
+import { TIME_CLOCK_ROUTES } from "./routes-time-clock";
+import { ClockBody } from "./time-clock";
 import {
   ALL_ROLES,
   DECIDERS,
@@ -68,10 +70,12 @@ const LEAVE: readonly RouteDef[] = [
 
 const ATTENDANCE: readonly RouteDef[] = [
   ten(ALL_ROLES, { id: "clockIn", method: "POST",
-    path: "/v1/attendance/clock-in", response: AttendanceRecord,
+    path: "/v1/attendance/clock-in", body: ClockBody.optional(),
+    response: AttendanceRecord,
     status: 201 }),
   ten(ALL_ROLES, { id: "clockOut", method: "POST",
-    path: "/v1/attendance/clock-out", response: AttendanceRecord }),
+    path: "/v1/attendance/clock-out", body: ClockBody.optional(),
+    response: AttendanceRecord }),
   ten(ALL_ROLES, { id: "listAttendance", method: "GET",
     path: "/v1/attendance", query: AttendanceQuery,
     response: AttendanceRecordList }),
@@ -88,4 +92,5 @@ export const LEAVE_ATTENDANCE_ROUTES: readonly RouteDef[] = [...LEAVE,
 export const TIME_ROUTES: readonly RouteDef[] = [
   ...TIME_SETTINGS_ROUTES,
   ...TIME_ROSTER_ROUTES,
+  ...TIME_CLOCK_ROUTES,
 ];

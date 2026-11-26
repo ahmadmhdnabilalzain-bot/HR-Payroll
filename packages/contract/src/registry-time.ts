@@ -2,6 +2,7 @@ import type { z } from "zod";
 import * as settingsRoutes from "./routes-time-settings";
 import * as settings from "./time-settings";
 import * as rosters from "./time-rosters";
+import * as clock from "./time-clock";
 
 function named(mod: Record<string, unknown>, names: readonly string[]) {
   const out: Record<string, z.ZodType> = {};
@@ -28,4 +29,6 @@ export const TIME_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
     "RosterResult", "RotationApply", "RosterPublish", "PublishResult",
     "SwapRequest", "SwapRequestList", "SwapCreate", "SwapRespond",
     "SwapDecision"]),
+  ...named(clock, ["ClockBody", "GeofenceView", "CorrectionRequest",
+    "CorrectionRequestList", "CorrectionCreate", "CorrectionReject"]),
 };

@@ -31,7 +31,15 @@ const swap = { id: id(6), requesterEmployeeId: TIME_IDS.employee,
   flagsAfter: [], decidedBy: null, decidedAt: null,
   createdAt: "2026-03-01T08:00:00.000Z" };
 
+const correction = { id: id(8), employeeId: TIME_IDS.employee,
+  attendanceId: null, date: "2026-03-02",
+  clockIn: "2026-03-02T05:00:00.000Z", clockOut: "2026-03-02T13:00:00.000Z",
+  reason: "Forgot to clock in", status: "pending",
+  requestedBy: id(9), decidedBy: null, decidedAt: null, decisionNote: null };
+
 const ROSTER_EXAMPLES = {
+  CorrectionRequest: correction,
+  CorrectionRequestList: { items: [correction] },
   ShiftTemplate: shift,
   ShiftTemplateList: { items: [shift] },
   RosterDayList: { items: [rosterDay] },

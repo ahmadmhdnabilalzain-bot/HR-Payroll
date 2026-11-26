@@ -24,9 +24,14 @@ function parse(where: string, schema: z.ZodType | undefined,
   return r.data;
 }
 
+/**
+ * An empty body is `undefined` (so an optional body, such as Plan 9's
+ * clock-in body, may be left out); anything else must be JSON.
+ */
 async function readJson(c: Context): Promise<unknown> {
   try {
-    return await c.req.json();
+    const text = await c.req.text();
+    return text === "" ? undefined : JSON.parse(text);
   } catch {
     throw new ApiError("VALIDATION_FAILED", "The body is not valid JSON",
       { fields: ["body"] });

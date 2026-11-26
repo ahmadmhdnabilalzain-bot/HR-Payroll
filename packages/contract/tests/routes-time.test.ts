@@ -12,6 +12,9 @@ const TIME_ROUTE_IDS = [
   "getRoster", "putRosterEntries", "applyRotation", "publishRoster",
   "listSwapRequests", "createSwapRequest", "respondSwapRequest",
   "approveSwapRequest", "rejectSwapRequest", "cancelSwapRequest",
+  "listCorrectionRequests", "createCorrectionRequest",
+  "approveCorrectionRequest", "rejectCorrectionRequest",
+  "cancelCorrectionRequest",
 ];
 
 const FORBIDDEN_PATH =

@@ -47,4 +47,9 @@ async function seedRosterRows(admin: Db, c: string, emp: string) {
        peer_version, requested_by, created_at) VALUES ($1, $2, $3,
        '2026-03-02', $3, '2026-03-02', 'cancelled', 0, 0, $3, $4)`,
     [rowId(c, "95"), c, emp, AT]);
+  await admin.query(
+    `INSERT INTO attendance_corrections (id, company_id, employee_id, date,
+       clock_in, reason, status, requested_by, created_at) VALUES ($1, $2,
+       $3, '2026-03-02', $4, 'seed', 'cancelled', $3, $4)`,
+    [rowId(c, "96"), c, emp, AT]);
 }
