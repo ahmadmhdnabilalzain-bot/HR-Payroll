@@ -1,0 +1,36 @@
+/* The Executive dashboard's lead tile: the depth reveal (ui/depth),
+ * on the tile's card, inside the tiles' own rise. */
+.lead,
+.still {
+  display: contents;
+}
+
+.lead li:first-child > * {
+  transform-origin: 50% 100%;
+  animation: depth-in var(--dur-hero, 480ms)
+    var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) 60ms both;
+}
+
+@keyframes depth-in {
+  from {
+    transform: perspective(900px) rotateX(10deg) translateY(10px);
+  }
+}
+
+@media (max-width: 760px) {
+  .lead li:first-child > * {
+    animation-name: depth-in-soft;
+  }
+}
+
+@keyframes depth-in-soft {
+  from {
+    transform: perspective(900px) rotateX(4deg) translateY(6px);
+  }
+}
+
+@media print {
+  .lead li:first-child > * {
+    animation: none;
+  }
+}

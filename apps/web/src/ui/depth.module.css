@@ -1,0 +1,40 @@
+/*
+ * A hero surface's first reveal: it tips up into the page from a few
+ * degrees back, in real perspective, and settles flat. Transform only
+ * (its figures read at full contrast from the first frame), once per
+ * load (useFirstReveal), never on the pointer. Phone: half the angle.
+ * Reduced motion and print: simply flat.
+ */
+.depth {
+  transform-origin: 50% 100%;
+  animation: depth-in var(--dur-hero, 480ms)
+    var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+
+.later {
+  animation-delay: 80ms;
+}
+
+@keyframes depth-in {
+  from {
+    transform: perspective(900px) rotateX(9deg) translateY(12px);
+  }
+}
+
+@keyframes depth-in-soft {
+  from {
+    transform: perspective(900px) rotateX(4deg) translateY(6px);
+  }
+}
+
+@media (max-width: 760px) {
+  .depth {
+    animation-name: depth-in-soft;
+  }
+}
+
+@media print {
+  .depth {
+    animation: none;
+  }
+}
