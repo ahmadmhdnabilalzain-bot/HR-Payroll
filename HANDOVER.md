@@ -1,7 +1,7 @@
 # Handover
 
 Read this first. Keep it current: update it in the same commit as any change
-of state. Last updated: 2026-11-26 (Plan 3).
+of state. Last updated: 2026-11-26 (overnight autonomous build).
 
 ## What this project is
 
@@ -38,13 +38,24 @@ source-cited, with an open API and Arabic from the start.
   whole-branch money and law review found nothing Critical (READY AFTER
   FIXES); its Important findings and most Minor ones are fixed (LEDGER
   section 10, Rulings B7 to B13). Open: review items M1, M5, M10, M11.
-- **Plan 3 (backend) is built** on a worktree branch (Tasks 1 to 8 plus
-  the security review's fixes), not yet merged into
-  `claude/quirky-wozniak-b7xkvr`. `packages/contract` (zod schemas, 50
-  routes, error codes, OpenAPI) and `packages/api` (Hono over
-  PostgreSQL with row-level security, sealed salary and bank fields,
-  hash-chained audit log, pay runs, payslips and SIF files).
-  Build report: `docs/superpowers/plans/plan-3-build-report-1.md`.
+- **Plan 3 (backend) is built and merged** into this branch:
+  `packages/contract` (zod schemas, 50 routes, error codes, OpenAPI) and
+  `packages/api` (Hono over PostgreSQL with row-level security, sealed
+  salary and bank fields, hash-chained audit log, pay runs, payslips and
+  SIF files). Two independent reviews (security, money) found no Critical
+  items; their fixes are being applied (see the table below).
+  Report: `docs/superpowers/plans/plan-3-build-report-1.md`.
+- **Engine parts of Plans 7, 8, 9, 11 and 12 are built and merged**
+  (employment and Emiratisation packs, time and leave logic, deadlines
+  and payslip preview, VAT, corporate tax and e-invoicing packs).
+- **The web app is paused on purpose.** The owner wants an advanced,
+  non-standard interface (no sidebar, motion, light and dark). Three
+  concepts are published as artifacts for the owner to pick:
+  A Command, B Orbit, C Pipeline (links in the owner's chat; sources in
+  the session scratchpad, not in the repo). The web groundwork
+  (`apps/web`: contract adapter, mock API, typed Arabic and English text)
+  is merged; no screens yet.
+- All 17 plans are written (`docs/superpowers/plans/`).
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -248,17 +259,39 @@ website insights, documents module, VAT, corporate tax and e-invoicing,
 in-app meetings, remote-work tracking. All research is snippet-level and
 needs checking against official sources before anything is built on it.
 
+## Program status (plans)
+
+| Plan | Subject | State |
+|---|---|---|
+| 1, 2 | End-of-service engine; WPS SIF file | built, reviewed |
+| 3 | Backend: contract, database, audit, auth, employees, leave, pay runs, SIF | built, merged; review fixes in progress |
+| 4 | Web app | groundwork merged; screens wait for the design pick |
+| 5 | Monthly payroll engine | built, reviewed, fixed, merged |
+| 6 | Expenses and claims (approval spine, receipts) | API build running |
+| 7 | Documents, letters, Emiratisation | engine part merged; API waits for Plan 6 |
+| 8 | Hiring, tasks, exit flow | engine part merged; API build running |
+| 9 | Time, attendance, leave policies, WFH | engine part merged (review running); API build running |
+| 10 | Performance, learning, surveys | planned; waits for 7 and 8 |
+| 11 | Owner view, pre-pay gate, evidence | deadline and preview engine merged; API waits for 5, 6, 7 |
+| 12 | VAT, corporate tax, e-invoicing | engine merged, reviewed, fixed; API waits for Plan 6 |
+| 13 | Channels and integrations | planned; waits for Plan 6 |
+| 14 | Meetings | planned; blocked until a telecom position is confirmed |
+| 15 | Social and website insights | planned; waits for 8, 11, 13 |
+| 16 | Finance modules | planned; waits for 6, 7, 12 |
+| 17 | Governed assistant, import, intranet, chat | planned; waits for 6, 13 |
+
+Also in the repo: the Arabic native-review pack (`docs/review/`) and the
+deployment and CI kit (`deploy/`, `.github/`, `docs/ops/`) when merged.
+
 ## Next step
 
-Plan 5: merge the review-fix commits of the worktree branch. Plan 3: data model, API, tenancy and
-security baseline (`LEDGER.md` section 4). The Plan 2 whole-branch review and its fix round are done.
-Write the plan, build it test-first, keep this handover current. Plan 3
-gets one whole-branch review at the end, plus separate reviews of the
-money, security and tenancy tasks (speed ruling, `LEDGER.md`). The owner
-wants no technical questions: decide, record a ruling, continue.
-Review Plan 3 (whole branch, plus Tasks 5 and 7 for data protection and
-money), merge it into `claude/quirky-wozniak-b7xkvr`, then finish Plan 4
-(web app) against `packages/contract`. The owner wants no technical
+Keep building in parallel (the owner allows up to 10 agents): merge each
+finished worktree branch, run `pnpm install`, typecheck and per-package
+tests, push; start the next plan whose prerequisites are merged; send
+money, security and tenancy tasks to a read-only reviewer and forward the
+findings to the builder. When the owner has chosen a design concept,
+re-plan the web app and build the screens in parallel against
+`packages/contract` and the mock API. The owner wants no technical
 questions: decide, record a ruling, continue.
 
 ## Tooling (25 Nov 2026)
