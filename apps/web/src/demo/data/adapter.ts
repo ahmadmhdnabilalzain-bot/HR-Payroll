@@ -18,6 +18,7 @@ import {
   type DemoCompany,
   type DemoIssue,
 } from "@payroll/demo-data";
+import { adaptChecks } from "./checks";
 import { adaptFiles } from "./files";
 import { adaptFinish } from "./finish";
 import { adaptPapers } from "./papers";
@@ -139,6 +140,7 @@ export function adapt(c: DemoCompany): DemoData {
     verify: adaptVerify(c),
     finish: adaptFinish(c),
     esign: adaptEsign(c),
+    checks: adaptChecks(c),
   };
 }
 
