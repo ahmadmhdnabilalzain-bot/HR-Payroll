@@ -20,6 +20,22 @@ export const DEFAULT_RENDER_LIMITS: RenderLimits = { concurrent: 3,
  */
 export function limitRenders(inner: PdfRenderer, l: RenderLimits)
   : PdfRenderer {
+  const { acquire, release } = gate(l);
+  return {
+    render: async (page) => {
+      await acquire();
+      try {
+        return await inner.render(page);
+      } finally {
+        release();
+      }
+    },
+    close: () => inner.close(),
+  };
+}
+
+/** A counting semaphore with a bounded queue. */
+function gate(l: RenderLimits) {
   let running = 0;
   const waiting: (() => void)[] = [];
   const acquire = async () => {
@@ -39,15 +55,5 @@ export function limitRenders(inner: PdfRenderer, l: RenderLimits)
     if (next === undefined) running--;
     else next();
   };
-  return {
-    render: async (page) => {
-      await acquire();
-      try {
-        return await inner.render(page);
-      } finally {
-        release();
-      }
-    },
-    close: () => inner.close(),
-  };
+  return { acquire, release };
 }
