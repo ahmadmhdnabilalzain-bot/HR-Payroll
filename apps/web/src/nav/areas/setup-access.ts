@@ -33,7 +33,7 @@ export const AREAS: readonly Area[] = [
   area("setup.hooks", "connections", "Webhooks", "LF",
     ["connections", "hooks"], "S31 events delivery"),
   area("setup.import", "data", "Data import", "SF", ["data", "import"],
-    "S37 keka cut-over migrate csv upload"),
+    "S37 old system cut-over migrate csv upload"),
   area("setup.location", "data", "Data location", "LF",
     ["data", "location"], "S39 data location export residency backup security"),
 ];
