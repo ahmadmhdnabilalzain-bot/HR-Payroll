@@ -38,7 +38,7 @@ After the merge: api 330 tests pass; contract 98 pass; web 102 of 103
 |---|---|---|
 | 1 | `feat(contract): documents, letters and Emiratisation schemas` | done |
 | 3 | `feat(api): encrypted file storage and upload` | done |
-| 4 | `feat(api): employee documents and expiry alerts` | |
+| 4 | `feat(api): employee documents and expiry alerts` | done |
 | 5 | `feat(api): company library and receipts` | |
 | 6 | `feat(api): letter templates and merge` | |
 | 7 | `feat(api): letters rendered to PDF` | |
@@ -112,6 +112,34 @@ Task 2 (engine pack and tracker) was already merged and is used as is.
    claims of one file at once give one success and one 409.
 8. Plan 7's routes are registered by one call, `registerDocumentApp`
    in `src/document-app.ts`.
+
+### Task 4 (employee documents)
+
+1. **Access helpers** (`documents/access.ts`) read only the employee's
+   id, manager, name and last working date (no decryption): full access
+   for owner, hr and the person (any role), limited for the person's
+   manager, 404 for anyone else. Writes: owner and hr for anyone;
+   others only their own linked employee (no link 422, other id 404).
+2. **Version adds are serialised with a transaction advisory lock**
+   keyed on the slot id, not `FOR UPDATE`: the runtime role has no
+   UPDATE grant on `employee_documents`, and a row lock needs one.
+   `unique (document_id, version)` still guards the numbering.
+3. **Verify** stamps the current version once (`verified_by IS NULL`);
+   a second verify changes nothing. Only `verified_by` and
+   `verified_at` are updatable; the database also requires both or
+   neither.
+4. **Download** finds the version as `document_id = {id} AND id =
+   {versionId}` after the slot's visibility check, and reads the file
+   only through `readFile(..., "employee-document-version:<id>")`.
+5. **Retention for documents** uses the current version's upload date
+   in Dubai as the `issue` anchor, as the plan says.
+6. **Leak suite:** Plan 7's GET routes have their own file
+   (`leak-documents.test.ts`) with sentinel passport numbers
+   (`helpers/seed-documents.ts`, `DOC_NUMBERS`) instead of new keys in
+   Plan 3's `SENTINELS`; `leak.test.ts` skips Plan 7 ids. Binary bodies
+   are read as latin1 text, so file markers are checked too.
+7. **Settings audit** writes `{ settingsChanged: [...] }` (Task 3,
+   item 4), e.g. `["leadDays.emirates-id", "leadDays.passport"]`.
 
 ## Decisions
 

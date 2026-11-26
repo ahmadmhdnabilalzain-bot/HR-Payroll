@@ -11,11 +11,22 @@ const rowId = (c: string, slot: string) => `${slot}${c.slice(2)}`;
  */
 export async function seedDocumentRows(admin: Db, c: string, emp: string,
   user: string): Promise<void> {
-  void emp;
   const file = rowId(c, "d1");
   await admin.query(
     `INSERT INTO files (id, company_id, name, mime, size, sha256, blob_key,
        uploaded_by, uploaded_at) VALUES ($1, $2, 'f.pdf',
        'application/pdf', 1, $3, $4, $5, $6)`,
     [file, c, "0".repeat(64), `${c}/files/${file}`, user, AT]);
+  const doc = rowId(c, "d2");
+  await admin.query(
+    `INSERT INTO employee_documents (id, company_id, employee_id, type,
+       created_at) VALUES ($1, $2, $3, 'contract', $4)`, [doc, c, emp, AT]);
+  await admin.query(
+    `INSERT INTO employee_document_versions (id, company_id, document_id,
+       version, file_id, uploaded_by, uploaded_at)
+     VALUES ($1, $2, $3, 1, $4, $5, $6)`,
+    [rowId(c, "d3"), c, doc, file, user, AT]);
+  await admin.query(
+    `INSERT INTO document_settings (company_id, lead_days, retention,
+       updated_at) VALUES ($1, '{}', '{}', $2)`, [c, AT]);
 }

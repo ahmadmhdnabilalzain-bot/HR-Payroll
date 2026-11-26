@@ -2,7 +2,10 @@ import { DOCUMENT_ROUTES } from "@payroll/contract";
 import { PLAN6_PENDING } from "./plan6-pending";
 
 const SERVED: readonly string[] = [
-  "fileUpload",
+  "fileUpload", "employeeDocumentsList", "employeeDocumentCreate",
+  "employeeDocumentGet", "employeeDocumentVersionAdd",
+  "employeeDocumentVerify", "employeeDocumentDownload", "documentAlerts",
+  "documentSettingsGet", "documentSettingsPut", "documentRetentionDue",
 ];
 
 /**

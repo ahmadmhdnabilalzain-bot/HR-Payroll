@@ -42,7 +42,8 @@ const aadOf = (companyId: string, id: string) =>
 const sha256 = (b: Uint8Array) =>
   createHash("sha256").update(b).digest("hex");
 
-async function companyKey(ctx: FileCtx): Promise<CompanyKey> {
+/** The company data key, unwrapped for this request. */
+export async function companyKey(ctx: FileCtx): Promise<CompanyKey> {
   const c = ctx.tenant!.companyId;
   const [row] = await ctx.tx.query<{ dek_wrapped: string }>(
     "SELECT dek_wrapped FROM companies WHERE id = $1", [c]);

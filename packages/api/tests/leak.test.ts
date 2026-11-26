@@ -1,4 +1,4 @@
-import { ROUTES, type RouteDef } from "@payroll/contract";
+import { DOCUMENT_ROUTES, ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { enableMfa, call, makeApp, signup } from "./helpers/test-app";
 import { isPending } from "./helpers/plan7-pending";
@@ -70,8 +70,10 @@ function expected(r: RouteDef, role: Role, t: Target | null): number {
   return r.status;
 }
 
+/** Plan 7's routes have their own suite (leak-documents.test.ts). */
+const DOC_IDS = new Set(DOCUMENT_ROUTES.map((r) => r.id));
 const getRoutes = ROUTES.filter((r) => r.method === "GET" &&
-  r.auth === "tenant" && !isPending(r.id));
+  r.auth === "tenant" && !isPending(r.id) && !DOC_IDS.has(r.id));
 
 describe("no sensitive value leaks to a viewer who may not see it", () => {
   let ctx: Awaited<ReturnType<typeof makeApp>>;
