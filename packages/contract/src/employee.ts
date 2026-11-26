@@ -75,7 +75,19 @@ export const EmployeeCreate = z.object({
 });
 export type EmployeeCreate = z.infer<typeof EmployeeCreate>;
 
-export const EmployeeUpdate = EmployeeCreate.partial();
+/**
+ * A PATCH: any create field; `null` clears an optional one (name,
+ * number, job, nationality, class and joining date cannot be cleared).
+ */
+export const EmployeeUpdate = EmployeeCreate.partial().extend({
+  fullNameAr: z.string().max(200).nullable().optional(),
+  email: Email.nullable().optional(),
+  departmentId: Id.nullable().optional(),
+  managerId: Id.nullable().optional(),
+  lastWorkingDate: IsoDate.nullable().optional(),
+  labourPersonId: PersonId.nullable().optional(),
+  emiratesIdNumber: EmiratesIdNumber.nullable().optional(),
+});
 export type EmployeeUpdate = z.infer<typeof EmployeeUpdate>;
 
 /**

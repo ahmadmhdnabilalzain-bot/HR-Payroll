@@ -70,4 +70,8 @@ export const errors = {
   RUN_EMPTY: "Nobody is employed in this month, so there is no run.",
   EMPLOYEE_DATA_UNREADABLE: "Some stored employee details could not be " +
     "read. Report this with the reference below.",
+  EMPLOYEE_ALREADY_LINKED: "This employee already has a user account or " +
+    "an open invite.",
+  MANAGER_CYCLE: "That manager reports to this employee, directly or " +
+    "through others.",
 } satisfies EnNamespace;

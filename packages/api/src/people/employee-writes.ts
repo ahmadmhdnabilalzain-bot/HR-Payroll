@@ -51,14 +51,26 @@ export async function checkEmployeeRefs(tx: Db, companyId: string,
   if (dup.length > 0) throw new ApiError("EMPLOYEE_NUMBER_TAKEN");
 }
 
-/** The manager exists and is not the employee. */
+/** The manager exists and is not the employee or below them. */
 async function checkManager(tx: Db, companyId: string, managerId: string,
   selfId: string | null): Promise<void> {
-  if (managerId === selfId ||
-    !await exists(tx, "employees", companyId, managerId)) {
+  if (!await exists(tx, "employees", companyId, managerId)) {
     throw new ApiError("NOT_FOUND", "No such manager",
       { fields: ["body.managerId"] });
   }
+  if (selfId === null) return;
+  if (managerId === selfId) throw new ApiError("MANAGER_CYCLE");
+  // Walk up from the new manager; meeting the employee is a cycle.
+  const chain = await tx.query<{ id: string }>(
+    `WITH RECURSIVE up(id, manager_id, depth) AS (
+       SELECT id, manager_id, 0 FROM employees
+       WHERE company_id = $1 AND id = $2
+       UNION ALL
+       SELECT e.id, e.manager_id, up.depth + 1 FROM employees e
+       JOIN up ON e.id = up.manager_id AND e.company_id = $1
+       WHERE up.depth < 1000)
+     SELECT id FROM up WHERE id = $3`, [companyId, managerId, selfId]);
+  if (chain.length > 0) throw new ApiError("MANAGER_CYCLE");
 }
 
 function valueFor(s: Sealer, id: string, k: keyof EmployeeCreate,
