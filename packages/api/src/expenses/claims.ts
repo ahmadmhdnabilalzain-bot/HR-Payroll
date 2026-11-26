@@ -100,6 +100,10 @@ export async function updateClaim(ctx: ReqCtx<ExpenseClaimUpdate,
       WHERE company_id = $1 AND id = $2`,
     [c, r.id, r.revision + 1, t.total, t.vatTotal]);
   }
+  await ctx.tx.query(`UPDATE expense_claims SET editors =
+      array_append(editors, $3::uuid)
+    WHERE company_id = $1 AND id = $2 AND NOT ($3::uuid = ANY (editors))`,
+  [c, r.id, ctx.user!.id]);
   await claimAudit(ctx, "updated", r.id, { changed: Object.keys(b).sort() });
   return claimView(ctx, await visibleClaim(ctx, r.id));
 }

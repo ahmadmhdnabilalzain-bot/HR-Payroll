@@ -30,6 +30,8 @@ export interface ClaimRow {
   total: bigint;
   vat_total: bigint;
   flags: ClaimFlag[];
+  /** Users who saved a revision after creation (makers). */
+  editors: string[];
 }
 
 export interface ItemRow {
@@ -77,7 +79,8 @@ export const isPayroll = (ctx: ReqCtx) =>
 export const viewer = (ctx: ReqCtx) =>
   [ctx.user!.id, ctx.tenant!.employeeId, isPayroll(ctx)];
 
-export const CLAIM_SELECT = `SELECT c.*, e.full_name AS employee_name
+export const CLAIM_SELECT = `SELECT c.*, e.full_name AS employee_name,
+    array_to_json(c.editors) AS editors
   FROM expense_claims c JOIN employees e
     ON e.company_id = c.company_id AND e.id = c.employee_id`;
 

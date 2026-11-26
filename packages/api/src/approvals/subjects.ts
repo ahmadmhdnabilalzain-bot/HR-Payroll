@@ -7,6 +7,10 @@ import type { ReqCtx } from "../http/context";
 export interface SubjectFacts {
   claimantEmployeeId: string;
   claimantUserId: string | null;
+  /** Every user linked to the claimant employee (all are excluded). */
+  claimantUserIds: string[];
+  /** Who wrote the subject (creator, editors): never its approver. */
+  makerUserIds: string[];
   lineManagerUserId: string | null;
   total: Fils;
   overLimit: boolean;
@@ -37,7 +41,7 @@ export function handlerMap(list: readonly SubjectHandler[])
  */
 export async function employeeUsers(tx: Db, companyId: string,
   employeeId: string): Promise<{ claimantUserId: string | null;
-  lineManagerUserId: string | null }> {
+  claimantUserIds: string[]; lineManagerUserId: string | null }> {
   const [r] = await tx.query<{ claimant: string | null;
     manager: string | null }>(
     `SELECT
@@ -49,6 +53,7 @@ export async function employeeUsers(tx: Db, companyId: string,
      FROM employees e WHERE e.company_id = $1 AND e.id = $2`,
     [companyId, employeeId]);
   return { claimantUserId: r?.claimant ?? null,
+    claimantUserIds: await linkedUsers(tx, companyId, employeeId),
     lineManagerUserId: r?.manager ?? null };
 }
 
