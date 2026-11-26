@@ -44,3 +44,4 @@ export * from "./wpe-exit";
 export * from "./wpe-connect";
 export * from "./wpe-prior";
 export * from "./wpe-payroll-extras";
+export * from "./wpe-more";

@@ -5,7 +5,7 @@ import {
   FIRE_BRIEFING,
   NEW_JOINER_DAYS,
   buildDemoCompany,
-  coverRows,
+  insuranceCoverRows,
   homeNoticesFor,
   iloeRows,
   incidents,
@@ -22,7 +22,7 @@ const isoRaw = /\b20\d\d-\d\d-\d\d\b/;
 describe("WPE health insurance", () => {
   it("one row per person who has joined; cards masked; no money", () =>
     each((c) => {
-      const rows = coverRows(c);
+      const rows = insuranceCoverRows(c);
       expect(rows.length).toBe(c.employees.length);
       for (const r of rows) {
         if (r.cardMasked !== null) {
@@ -39,7 +39,7 @@ describe("WPE health insurance", () => {
   it("the new joiner's pending card matches the joining checklist", () =>
     each((c) => {
       const hire = c.employees.find((e) => e.cases.includes("probation"))!;
-      const r = coverRows(c).find((x) => x.employeeId === hire.id)!;
+      const r = insuranceCoverRows(c).find((x) => x.employeeId === hire.id)!;
       expect(r.status).toBe("card-pending");
     }));
 });
@@ -131,11 +131,13 @@ describe("WPE policies", () => {
 describe("WPE wording", () => {
   it("no authority words and no raw ISO dates in display strings", () =>
     each((c) => {
-      const all = [coverRows(c), incidents(c), incidentsByMonth(c),
+      const all = [insuranceCoverRows(c), incidents(c), incidentsByMonth(c),
         iloeRows(c), policies(c)];
       expect(asText(all)).not.toMatch(BANNED_WORDS);
       const shown: string[] = [];
-      for (const r of coverRows(c)) shown.push(...Object.values(r.display));
+      for (const r of insuranceCoverRows(c)) {
+        shown.push(...Object.values(r.display));
+      }
       for (const r of iloeRows(c)) shown.push(...Object.values(r.display));
       for (const i of incidents(c)) shown.push(i.what, i.title,
         ...Object.values(i.display), ...i.actions.map((a) => a.text));

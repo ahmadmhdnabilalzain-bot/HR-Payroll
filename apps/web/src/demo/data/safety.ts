@@ -4,7 +4,7 @@ import {
   ILOE_EXEMPT_NOTE,
   INSURANCE_BASIS,
   INSURER,
-  coverRows,
+  insuranceCoverRows,
   iloeRows,
   incidents,
   incidentsByMonth,
@@ -16,7 +16,7 @@ import type { SafetyData } from "./safety-types";
 /** The Safety view over the demo company. Imported only by adapter.ts. */
 export function adaptSafety(c: DemoCompany): SafetyData {
   return {
-    cover: () => coverRows(c),
+    cover: () => insuranceCoverRows(c),
     insurer: INSURER,
     insuranceBasis: INSURANCE_BASIS,
     incidents: () => incidents(c),

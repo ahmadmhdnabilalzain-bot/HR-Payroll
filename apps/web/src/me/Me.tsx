@@ -1,5 +1,10 @@
 import type { ViewProps } from "../views";
 import { MeMore, MORE_PAGES } from "./MeMore";
+import { Cover } from "../home/extra/Cover";
+import { MyExpenses } from "../home/extra/MyExpenses";
+import { MyKpis } from "../home/extra/MyKpis";
+import { TeamReviews } from "../home/extra/TeamReviews";
+import { MyTimeCard } from "../time/extra/MyTimeCard";
 import { MyDocuments } from "./MyDocuments";
 import { MyLeave, MyRequests } from "./MyLeave";
 import { MyPayslips } from "./MyPayslips";
@@ -17,6 +22,11 @@ export function Me(p: ViewProps) {
     case "leave": return <MyLeave />;
     case "requests": return <MyRequests />;
     case "profile": return <MyProfile />;
+    case "cover": return <Cover />;
+    case "expenses": return <MyExpenses />;
+    case "timecard": return <MyTimeCard />;
+    case "kpis": return <MyKpis />;
+    case "team-reviews": return <TeamReviews />;
     default: return <MyPayslips />;
   }
 }

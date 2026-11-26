@@ -48,7 +48,7 @@ export const INSURANCE_BASIS = "A register of who is covered. It holds no " +
   "premiums and no quotes. Card numbers are masked, and the sample " +
   "cards stand in until the insurer's list is loaded.";
 
-export interface CoverRow {
+export interface InsuranceCoverRow {
   id: string;
   employeeId: string;
   name: string;
@@ -71,7 +71,7 @@ const lastFour = (e: DemoEmployee): string =>
   String((numberOf(e) * 7919 + 1031) % 9000 + 1000);
 
 /** Everyone who has joined, one row each; a leaver's cover has ended. */
-export function coverRows(c: DemoCompany): CoverRow[] {
+export function insuranceCoverRows(c: DemoCompany): InsuranceCoverRow[] {
   const renewal = shortDateOf(COVER_RENEWAL);
   return c.employees.filter((e) => e.joiningDate <= AS_OF).map((e) => {
     const status: CoverStatus = e.leavingDate !== null ? "ended"
