@@ -37,6 +37,7 @@ export const home = {
     "line is a note, not a problem.",
   preparedBy: "Prepared by {name}",
   checker: "{name} signs off",
+  checkerDone: "signed off by {name}",
   sources: "Sources",
   hideSources: "Hide sources",
   sourcesTitle: "Where these figures come from",

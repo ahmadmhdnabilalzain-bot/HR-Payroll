@@ -1,5 +1,5 @@
 import { fils, type Fils } from "@payroll/engine";
-import { notes } from "../demo/derive";
+import { notes, runPhase } from "../demo/derive";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -41,7 +41,8 @@ export function MakeUp() {
       <p className={s.people}>
         {t("home.preparedBy", { name: name(people.makerId) })}
         {" · "}
-        {t("home.checker", { name: name(people.checkerId) })}
+        {t(runPhase(data, state) === "file" ? "home.checkerDone"
+          : "home.checker", { name: name(people.checkerId) })}
         <button type="button" className={s.sources}
           aria-expanded={state.sourcesOpen} aria-controls="sources"
           onClick={() => dispatch({ type: "sources",
