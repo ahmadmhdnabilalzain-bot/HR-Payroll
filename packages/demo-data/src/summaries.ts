@@ -40,7 +40,7 @@ export function payCalendar(c: DemoCompany): PayCalendar {
     basis: "sample date" });
   const items = [sample("cutOff", "Cut-off for changes", p.cutOff),
     sample("asOf", "Today", p.asOf),
-    sample("approveBy", "Approve by", p.approveBy),
+    sample("approveBy", "Sign off by", p.approveBy),
     sample("salaryFileSent", "Salary file sent", p.salaryFileSent),
     sample("payday", "Payday", p.payday),
     ...(due === null ? [] : [{ key: "settlementDue",

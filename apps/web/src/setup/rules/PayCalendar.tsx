@@ -35,7 +35,7 @@ export function PayCalendar() {
     tone: CalEvent["tone"] }[] = [
     { id: "cut", label: "Cut-off for changes", on: cal.cutOff,
       tone: "booked" },
-    { id: "approve", label: "Approve by", on: cal.approveBy,
+    { id: "approve", label: "Sign off by", on: cal.approveBy,
       tone: "booked" },
     { id: "file", label: "Salary file sent", on: cal.sifDue,
       tone: "booked" },

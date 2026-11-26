@@ -15,7 +15,7 @@ authority. Say "as we read the law" and "we will confirm".
 ## Before the meeting (10 minutes, not part of the 20)
 
 1. Open the demo link in Chrome or Safari on the laptop. Press reload once
-   so the story starts fresh. Check the top left says "Mubinflow demo:
+   so the story starts fresh. Check the top left says "MubinFlow demo:
    fictional data".
 2. Make sure the theme is light (the sun and moon button, top right).
 3. Zoom the browser to 110% or 125% if the room is large (Cmd and +).

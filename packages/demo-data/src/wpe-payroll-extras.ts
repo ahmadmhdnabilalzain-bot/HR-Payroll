@@ -604,7 +604,7 @@ function sampleText(c: DemoCompany, keep: (k: ParallelCause) => boolean)
   return [PARALLEL_HEADER, ...rows].join("\n") + "\n";
 }
 
-/** S38: two built-in exports from the old system (Keka), October. */
+/** S38: two built-in exports from your current system, October. */
 export function parallelSamples(c: DemoCompany): ParallelSample[] {
   return [
     { id: "first", label: "First export, before clean-up",

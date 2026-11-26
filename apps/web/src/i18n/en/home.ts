@@ -78,7 +78,7 @@ export const home = {
   sSick: "Sick days during probation are unpaid. Tell them before payday.",
   tDoc: "{name}: {document} expires {date}",
   sDoc: "Start the renewal with the PRO before it lapses.",
-  tPension: "Pension: confirm the fund with the client",
+  tPension: "Pension: confirm the fund",
   tSettlement: "{name}: final settlement needs notice pay",
   sSettlement: "Gratuity and leave pay are computed. Notice pay and other " +
     "dues are entered by hand.",

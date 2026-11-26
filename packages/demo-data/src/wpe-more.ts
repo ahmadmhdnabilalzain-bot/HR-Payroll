@@ -174,8 +174,8 @@ export function newHirePlan(c: DemoCompany, nationality: string)
       "The joiner checklist opens for HR, IT and the line manager.",
       "Bank details, Emirates ID and visa papers are collected before " +
         "the first pay run."],
-    pensionNote: nationality === "AE" ? "Pension for UAE nationals is " +
-      "not computed in this demo." : null };
+    pensionNote: nationality === "AE"
+      ? "Pension for UAE nationals: Not computed." : null };
 }
 
 /* ---------------------------------------------------------------- *

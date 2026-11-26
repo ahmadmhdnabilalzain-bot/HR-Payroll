@@ -1,6 +1,6 @@
-# Mubinflow: a note for the IT Manager (27 Nov 2026)
+# MubinFlow: a note for the IT Manager (27 Nov 2026)
 
-Mubinflow is HR and payroll for UAE mainland companies. This page says
+MubinFlow is HR and payroll for UAE mainland companies. This page says
 plainly what you saw today, what exists behind it, and what is still open.
 
 ## What the demo is, and is not

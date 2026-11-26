@@ -49,7 +49,7 @@ describe("WPD letter templates", () => {
         l.employeeId, l.purpose, l.addressee);
       expect(text).toContain(l.display.salary);
       expect(text).not.toMatch(/[{}]/);
-      expect(text).toContain("not an official document");
+      expect(text).not.toMatch(/Demo letter|fictional/);
     }));
 
   it("every field in a body has a value", () => each((c) => {

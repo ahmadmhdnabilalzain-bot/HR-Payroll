@@ -82,7 +82,7 @@ export function Hooks(p: { d: AccessData }) {
 }
 
 const EVENT: Record<string, string> = {
-  "payrun.approved": "Pay run: approval given",
+  "payrun.approved": "Pay run: signed off",
   "employee.created": "New starter added",
 };
 const eventText = (id: string): string => EVENT[id] ?? id;

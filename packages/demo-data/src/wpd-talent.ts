@@ -124,7 +124,7 @@ export interface TrainingCourse { id: string; name: string;
   provider: string; mandatory: boolean; repeatDays: number | null;
   audience: string }
 
-const PROVIDER = "Zarqan Demo Academy (fictional)";
+const PROVIDER = "Zarqan Demo Academy";
 
 export const TRAINING_COURSES: readonly TrainingCourse[] = [
   { id: "tr-induction", name: "Bank induction", provider: PROVIDER,

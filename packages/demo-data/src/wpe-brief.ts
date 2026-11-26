@@ -138,11 +138,11 @@ export function ownerBrief(c: DemoCompany): OwnerBrief {
   ];
   return { asOf: AS_OF, title: `Week of ${shortDateText(AS_OF)}`,
   items, dates: cal.items.filter((x) => x.key !== "asOf").map((x) =>
-    ({ label: x.label.replace("Approve by", "Sign off by"),
+    ({ label: x.label,
       text: `${x.date.display} (${x.basis})` })),
   note: "Worked out on 27 Oct 2026 from the records in this demo. " +
     "Figures that change as you work (sign-off, problems) follow the " +
-    "screen. Pension for UAE nationals is not computed." };
+    "screen. Pension for UAE nationals: Not computed." };
 }
 
 /* ---------------------------------------------------------------- *

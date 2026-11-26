@@ -49,7 +49,7 @@ export const M = {
     choose: "Choose",
     yes: "Yes",
     no: "No",
-    pensionNote: "Pension for UAE nationals is not computed in this demo.",
+    pensionNote: "Pension for UAE nationals: Not computed.",
     notAmount: "Enter the basic pay as an amount, for example 15000.",
   },
 };

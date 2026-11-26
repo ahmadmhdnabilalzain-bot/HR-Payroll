@@ -279,5 +279,5 @@ export function groupsPage(d: DemoData, lang: Lang): PageSpec {
     groups: [g("Groups", ...[...by.entries()].map(([name, n]): ItemSpec => ({
       key: `pg:${name}`, label: name,
       value: `${n} ${n === 1 ? "person" : "people"}`,
-      help: `Payday ${payday} (sample date).` })))] };
+      help: `Payday ${payday}.` })))] };
 }

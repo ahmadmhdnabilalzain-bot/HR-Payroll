@@ -406,9 +406,9 @@ export function payGroups(c: DemoCompany): PayGroup[] {
     s.employeeId).filter((id) => (c.employees.find((e) => e.id === id)!
     .location === "hq-abu-dhabi") === hq);
   return [{ id: "pg-hq", label: "Head office, monthly",
-    employeeIds: ids(true), payday: "Last working day (sample)" },
+    employeeIds: ids(true), payday: "Last working day" },
   { id: "pg-branches", label: "Branches, monthly",
-    employeeIds: ids(false), payday: "Last working day (sample)" }];
+    employeeIds: ids(false), payday: "Last working day" }];
 }
 
 export interface PayElement { code: string; label: string;
