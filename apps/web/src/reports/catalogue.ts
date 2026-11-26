@@ -1,11 +1,13 @@
 import { SAFETY_BLURBS } from "../people/safety/Report";
 import { COST_BLURBS } from "./cost";
 import { MORE_BLURBS } from "./more";
+import { PLANNING_BLURBS } from "./planning";
 import { ANALYSIS_BLURBS } from "./analysis";
 
 /** What each report answers, by area id: the home page's one line. */
 export const BLURB: Readonly<Record<string, string>> = {
   ...COST_BLURBS,
+  ...PLANNING_BLURBS,
   ...SAFETY_BLURBS,
   ...MORE_BLURBS,
   ...ANALYSIS_BLURBS,

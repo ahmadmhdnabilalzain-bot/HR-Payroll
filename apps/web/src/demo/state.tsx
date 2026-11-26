@@ -49,6 +49,12 @@ import {
   type PapersSlice,
 } from "./papers-state";
 import {
+  PLANNING_INITIAL,
+  reducePlanning,
+  type PlanningAction,
+  type PlanningSlice,
+} from "./planning-state";
+import {
   reduceSafety,
   SAFETY_INITIAL,
   type SafetyAction,
@@ -133,7 +139,7 @@ export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
-    PrivacySlice, VerifySlice, RuleChangeSlice {
+    PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -179,6 +185,7 @@ export type Action =
   | MoreAction
   | VerifyAction
   | RuleChangeAction
+  | PlanningAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -196,6 +203,7 @@ export const INITIAL: DemoState = {
   ...PRIVACY_INITIAL,
   ...VERIFY_INITIAL,
   ...RULE_CHANGE_INITIAL,
+  ...PLANNING_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -277,6 +285,9 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "appr-reset-undo":
     case "appr-split":
     case "appr-split-undo": return reduceRequests(s, a);
+    case "plan-set":
+    case "plan-signoff":
+    case "plan-unsign": return reducePlanning(s, a);
     case "more-hire":
     case "more-hire-withdraw":
     case "more-hire-restore":

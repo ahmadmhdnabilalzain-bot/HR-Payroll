@@ -12,6 +12,7 @@ import { AREAS as PEOPLE_SAFETY } from "./people-safety";
 import { AREAS as PEOPLE_TALENT } from "./people-talent";
 import { AREAS as PEOPLE_TEAM } from "./people-team";
 import { AREAS as PRIVACY } from "./privacy";
+import { AREAS as PLANNING } from "./planning";
 import { AREAS as REPORTS } from "./reports";
 import { AREAS as REQUESTS } from "./requests";
 import { AREAS as RULE_CHANGE } from "./rule-change";
@@ -47,6 +48,7 @@ export const ALL_AREAS: readonly Area[] = [
   ...HOME_ME,
   ...REQUESTS,
   ...EXIT_FILES,
+  ...PLANNING,
   ...SWEEP_PEOPLE,
   ...ERP,
   ...VERIFY,
