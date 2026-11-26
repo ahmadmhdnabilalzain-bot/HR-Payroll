@@ -91,4 +91,11 @@ describe("buildOpenApi", () => {
     expect(Object.keys(op.responses["200"]?.content ?? {}).sort())
       .toEqual(["application/json", "text/csv"]);
   });
+  it("the letter download has a 200 response listing application/pdf",
+    () => {
+      const op = (doc.paths["/v1/letters/{id}/download"] as
+        Record<string, Op>).get!;
+      expect(op.responses["200"]?.content).toHaveProperty(
+        "application/pdf");
+    });
 });

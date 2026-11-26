@@ -7,7 +7,7 @@ import { tenancyCases } from "./helpers/tenancy-cases";
 import { COMPANY_A, seedTwoCompanies } from "./helpers/test-db";
 import { pgConcurrencyCases } from "./helpers/pg-concurrency";
 import { recorder, runFlow, type Hit } from "./helpers/api-flow";
-import { PLAN6_PENDING } from "./helpers/plan6-pending";
+import { isPending } from "./helpers/plan7-pending";
 import { makeApp } from "./helpers/test-app";
 
 describe.skipIf(!ADMIN_URL)("real PostgreSQL, non-superuser runtime", () => {
@@ -51,7 +51,7 @@ describe.skipIf(!ADMIN_URL)("real PostgreSQL, non-superuser runtime", () => {
       const ctx = await makeApp({ db });
       const hits: Hit[] = [];
       await runFlow(ctx, recorder(ctx, hits));
-      for (const r of ROUTES.filter((x) => !PLAN6_PENDING.has(x.id))) {
+      for (const r of ROUTES.filter((x) => !isPending(x.id))) {
         const ok = hits.find((h) => h.id === r.id && h.res.status < 300);
         expect(ok, `${r.id}: ${hits.filter((h) => h.id === r.id)
           .map((h) => h.res.text).join(" | ")}`).toBeDefined();

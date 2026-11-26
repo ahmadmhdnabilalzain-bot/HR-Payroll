@@ -5,7 +5,7 @@ import {
 } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { recorder, runFlow, type Hit } from "./helpers/api-flow";
-import { PLAN6_PENDING } from "./helpers/plan6-pending";
+import { isPending } from "./helpers/plan7-pending";
 import { makeApp } from "./helpers/test-app";
 
 type Ctx = Awaited<ReturnType<typeof makeApp>>;
@@ -26,7 +26,7 @@ describe("whole-API conformance", () => {
     const key = (r: { method: string; path: string }) =>
       `${r.method} ${r.path.replace(/\{([a-zA-Z]+)\}/g, ":$1")}`;
     const all = ROUTES.map(key);
-    const want = ROUTES.filter((r) => !PLAN6_PENDING.has(r.id)).map(key);
+    const want = ROUTES.filter((r) => !isPending(r.id)).map(key);
     expect(new Set(routes).size).toBe(routes.length);
     expect(routes.filter((r) => !all.includes(r))).toEqual([]);
     expect(want.filter((w) => !routes.includes(w))).toEqual([]);
@@ -34,7 +34,7 @@ describe("whole-API conformance", () => {
 
   it("one happy-path call per route parses with its response schema",
     () => {
-      for (const r of ROUTES.filter((x) => !PLAN6_PENDING.has(x.id))) {
+      for (const r of ROUTES.filter((x) => !isPending(x.id))) {
         const ok = hits.find((h) => h.id === r.id && h.res.status < 300);
         expect(ok, `${r.id} never succeeded`).toBeDefined();
         const body = r.status === 204 ? null : ok!.res.body;

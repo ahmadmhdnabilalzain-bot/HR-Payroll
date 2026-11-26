@@ -1,7 +1,7 @@
 import { ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { enableMfa, call, makeApp, signup } from "./helpers/test-app";
-import { PLAN6_PENDING } from "./helpers/plan6-pending";
+import { isPending } from "./helpers/plan7-pending";
 import {
   addOwner,
   march,
@@ -71,7 +71,7 @@ function expected(r: RouteDef, role: Role, t: Target | null): number {
 }
 
 const getRoutes = ROUTES.filter((r) => r.method === "GET" &&
-  r.auth === "tenant" && !PLAN6_PENDING.has(r.id));
+  r.auth === "tenant" && !isPending(r.id));
 
 describe("no sensitive value leaks to a viewer who may not see it", () => {
   let ctx: Awaited<ReturnType<typeof makeApp>>;

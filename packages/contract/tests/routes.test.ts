@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { ROUTES } from "../src/index";
+import {
+  DOCUMENT_ROUTES,
+  FILE_BODY_LIMIT,
+  ROUTES,
+} from "../src/index";
+
+const docIds = new Set(DOCUMENT_ROUTES.map((r) => r.id));
+const older = ROUTES.filter((r) => !docIds.has(r.id));
 
 function paramNames(path: string): string[] {
   return [...path.matchAll(/\{([a-zA-Z]+)\}/g)].map((m) => m[1] ?? "");
 }
 
 describe("ROUTES", () => {
-  it("has 75 routes (Plan 3's 50 plus Plan 6's 25)", () => {
-    expect(ROUTES.length).toBe(75);
+  it("has 75 routes before Plan 7 (Plan 3's 50 plus Plan 6's 25)", () => {
+    expect(older.length).toBe(75);
   });
   it("ids are unique", () => {
     const ids = ROUTES.map((r) => r.id);
@@ -65,7 +72,7 @@ describe("ROUTES", () => {
     }
   });
   it("owner-only routes are the four", () => {
-    const owner = ROUTES.filter((r) => r.roles.length === 1)
+    const owner = older.filter((r) => r.roles.length === 1)
       .map((r) => r.id).sort();
     expect(owner).toEqual(["approvePayRun", "changeUserRole", "inviteUser",
       "listUsers", "putApprovalChain",
@@ -76,7 +83,7 @@ describe("ROUTES", () => {
     expect(text.map((r) => r.id)).toEqual(["downloadSifFile"]);
   });
   it("binary routes are GETs; the upload has a 7.5 MB body limit", () => {
-    const binary = ROUTES.filter((r) => r.contentType === "binary");
+    const binary = older.filter((r) => r.contentType === "binary");
     expect(binary.map((r) => r.id)).toEqual(["downloadReceipt"]);
     for (const r of binary) expect(r.method, r.id).toBe("GET");
     const up = ROUTES.find((r) => r.id === "uploadReceipt");
@@ -99,5 +106,34 @@ describe("ROUTES", () => {
       .map((r) => r.id).sort();
     expect(csv).toEqual(["expensePayouts", "expenseSummary",
       "expenseVatRegister"]);
+  });
+});
+
+describe("DOCUMENT_ROUTES (Plan 7)", () => {
+  it("has 35 routes, each in ROUTES exactly once", () => {
+    expect(DOCUMENT_ROUTES.length).toBe(35);
+    for (const d of DOCUMENT_ROUTES) {
+      expect(ROUTES.filter((r) => r.id === d.id).length, d.id).toBe(1);
+    }
+  });
+  it("binary routes are the three downloads, all GET", () => {
+    const binary = DOCUMENT_ROUTES.filter((r) =>
+      r.contentType === "binary");
+    expect(binary.map((r) => r.id).sort()).toEqual([
+      "employeeDocumentDownload", "letterDownload", "libraryDownload"]);
+    for (const r of binary) expect(r.method, r.id).toBe("GET");
+  });
+  it("the upload has the file body limit; every route is a tenant route",
+    () => {
+      const up = DOCUMENT_ROUTES.find((r) => r.id === "fileUpload");
+      expect(up?.bodyLimit).toBe(FILE_BODY_LIMIT);
+      expect(up?.status).toBe(201);
+      for (const r of DOCUMENT_ROUTES) expect(r.auth, r.id).toBe("tenant");
+    });
+  it("owner-only routes are settings and the native review", () => {
+    const owner = DOCUMENT_ROUTES.filter((r) => r.roles.length === 1)
+      .map((r) => r.id).sort();
+    expect(owner).toEqual(["documentSettingsPut",
+      "emiratisationSettingsPut", "letterTemplateNativeReview"]);
   });
 });
