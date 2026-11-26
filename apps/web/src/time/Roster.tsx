@@ -41,7 +41,8 @@ export function Roster() {
             <span data-tone="rest">Rest day</span>
           </p>
         </header>
-        <div className={s.gridScroll}>
+        <div className={s.gridScroll} tabIndex={0} role="region"
+          aria-label="Roster, scrolls sideways">
           <table className={s.grid}>
             <thead>
               <tr>

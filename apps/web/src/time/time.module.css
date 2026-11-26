@@ -140,6 +140,7 @@
 /* The roster grid: two planned weeks, people as rows. */
 .rosterPage {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
   max-inline-size: var(--container);
   margin-inline: auto;
@@ -197,6 +198,9 @@
 }
 
 .gridScroll {
+  position: relative;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   overflow-x: auto;
   border-radius: var(--radius-panel);
   background: var(--color-surface);
