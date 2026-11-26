@@ -38,7 +38,7 @@ function Value(p: { v: ExplainValue; size?: "lg" | "md" }) {
  * opened), and it opens the explain panel beside the page.
  */
 export function Explainable(p: { explanation: Explanation | undefined;
-  children: ReactNode; className?: string }) {
+  children: ReactNode; className?: string | undefined }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
@@ -65,7 +65,7 @@ export function Explainable(p: { explanation: Explanation | undefined;
 
 /** A text link that opens an explanation ("How this is worked out"). */
 export function ExplainLink(p: { explanation: Explanation | undefined;
-  children: ReactNode; className?: string }) {
+  children: ReactNode; className?: string | undefined }) {
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
   if (p.explanation === undefined) return null;
@@ -153,8 +153,12 @@ export function ExplainPanel(p: { explanation: Explanation;
             <Icon name="x" size={20} />
           </button>
         </div>
+<<<<<<< HEAD
         <div className={s.body} tabIndex={0} role="region"
           aria-label={t("explain.working")}>
+=======
+        <div className={s.body} tabIndex={0}>
+>>>>>>> demo-payrun-explain
           <div className={s.result}>
             <span className={s.resultLabel}>{e.result.label}</span>
             <Value v={e.result.value} size="lg" />
@@ -199,7 +203,7 @@ export function ExplainPanel(p: { explanation: Explanation;
                     <p className={s.ruleMeta}>
                       <span className={s.status} data-status={r.status}>
                         <span className={s.dot} aria-hidden="true" />
-                        {t(STATUS[r.status])}
+                        {r.statusLabel ?? t(STATUS[r.status])}
                       </span>
                       {r.citation !== null && (
                         <span className={s.cite}>{r.citation}</span>
