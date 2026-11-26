@@ -694,3 +694,12 @@ The owner can overrule any of these. Full list with reasons:
   data) before it was put back to the placeholder. So: any Blueprint
   change that points the site at apps/web happens only after approval,
   and `trigger_deploy` is not needed for it (the sync itself deploys).
+- Presenting setup (owner, 2026-11-26): a laptop connected to a big
+  screen; the client also opens the demo on their own iPhones (iPhone
+  13 or newer, Safari). Rules: design and test at 1920x1080 and 1280x720
+  with light theme as the default; phone Home is its own composition
+  with a bottom bar; offline single-file build as the fallback if the
+  network fails; WebKit/Safari is not available in this sandbox, so the
+  owner checks once on a real iPhone. Hosting the approved demo is
+  needed for the clients' phones (a link or QR code) and happens only
+  after the owner's yes.
