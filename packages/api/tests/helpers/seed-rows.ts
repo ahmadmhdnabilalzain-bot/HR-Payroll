@@ -1,4 +1,5 @@
 import type { Db } from "../../src/db/db";
+import { seedHrRows } from "./seed-rows-hr";
 
 const AT = "2026-03-01T08:00:00.000Z";
 const H0 = "0".repeat(64);
@@ -93,6 +94,7 @@ async function seedOne(admin: Db, s: SeedCompany): Promise<void> {
   const c = s.companyId;
   await seedBare(admin, s);
   await seedPeople(admin, c);
+  await seedHrRows(admin, c, s.userId, rowId(c, "f1"));
   await admin.query(
     `INSERT INTO invites (id, company_id, token_hash, email, role,
        created_by, expires_at) VALUES ($1, $2, $3, $4, 'hr', $5, $6)`,

@@ -9,6 +9,7 @@ import * as leave from "./leave";
 import * as lists from "./lists";
 import * as payroll from "./payroll";
 import { Health, NoContent } from "./primitives";
+import { HR_SCHEMAS } from "./registry-hr";
 import * as sif from "./sif";
 import * as trace from "./trace";
 import * as user from "./user";
@@ -38,6 +39,7 @@ export const SCHEMAS: Readonly<Record<string, z.ZodType>> = {
   ...pick(sif, ["Finding", "SifFile", "SifText"]),
   ...pick(audit, ["AuditEvent", "AuditVerifyResult", "AuditEventPage"]),
   ...pick(lists, Object.keys(lists)),
+  ...HR_SCHEMAS,
 };
 
 function pick(

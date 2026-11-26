@@ -1,3 +1,4 @@
+import { HR_EXAMPLES } from "./examples-hr";
 import { PAY_EXAMPLES } from "./examples-pay";
 import { PEOPLE_EXAMPLES } from "./examples-people";
 
@@ -11,4 +12,5 @@ export {
 export const EXAMPLES: Readonly<Record<string, unknown>> = {
   ...PEOPLE_EXAMPLES,
   ...PAY_EXAMPLES,
+  ...HR_EXAMPLES,
 };

@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { ROUTES } from "../src/index";
+import { CORE_ROUTES, ROUTES } from "../src/index";
 
 function paramNames(path: string): string[] {
   return [...path.matchAll(/\{([a-zA-Z]+)\}/g)].map((m) => m[1] ?? "");
 }
 
 describe("ROUTES", () => {
-  it("has 50 routes", () => {
-    expect(ROUTES.length).toBe(50);
+  it("Plan 3 has 50 routes", () => {
+    expect(CORE_ROUTES.length).toBe(50);
   });
   it("ids are unique", () => {
     const ids = ROUTES.map((r) => r.id);
@@ -27,11 +27,12 @@ describe("ROUTES", () => {
       }
     }
   });
-  it("mfa routes are tenant routes", () => {
+  it("mfa routes are tenant routes (Plan 3 set fixed)", () => {
     for (const r of ROUTES.filter((x) => x.mfa)) {
       expect(r.auth, r.id).toBe("tenant");
     }
-    expect(ROUTES.filter((x) => x.mfa).map((x) => x.id).sort()).toEqual(
+    expect(CORE_ROUTES.filter((x) => x.mfa).map((x) => x.id).sort())
+      .toEqual(
       ["approvePayRun", "changeUserRole", "downloadSifFile",
         "getEmployeeBank"]);
   });
@@ -64,7 +65,7 @@ describe("ROUTES", () => {
     }
   });
   it("owner-only routes are the four", () => {
-    const owner = ROUTES.filter((r) => r.roles.length === 1)
+    const owner = CORE_ROUTES.filter((r) => r.roles.length === 1)
       .map((r) => r.id).sort();
     expect(owner).toEqual(["approvePayRun", "changeUserRole", "inviteUser",
       "listUsers",

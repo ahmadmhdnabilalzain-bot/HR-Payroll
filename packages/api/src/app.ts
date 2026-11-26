@@ -14,6 +14,7 @@ import { registerPayRunRoutes } from "./routes/pay-runs";
 import { registerSifRoutes } from "./routes/sif";
 import { registerAuditRoutes } from "./routes/audit";
 import { registerUserRoutes } from "./routes/users";
+import { registerHrRoutes } from "./routes/hr";
 
 function internalLine(err: unknown): Record<string, unknown> {
   const e = err as { name?: unknown; code?: unknown };
@@ -71,5 +72,6 @@ export function createApp(deps: AppDeps): App {
   registerPayRunRoutes(app, deps);
   registerSifRoutes(app, deps);
   registerAuditRoutes(app, deps);
+  registerHrRoutes(app, deps);
   return app;
 }

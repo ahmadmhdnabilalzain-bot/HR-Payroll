@@ -6,6 +6,7 @@ import {
 } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { base32Decode, totpCode } from "../src/auth/totp";
+import { hrFlow } from "./helpers/conformance-hr";
 import { salaryOf } from "./helpers/seed";
 import { call, makeApp, PASSWORD, type Res } from "./helpers/test-app";
 
@@ -116,6 +117,8 @@ async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
   await leave(hit, owner, e.body.token, c, emp);
   await attendance(hit, owner, e.body.token, c);
   await payroll(hit, owner, owner2, e.body.token, c);
+  await hrFlow(hit, { owner, owner2, emp: e.body.token,
+    empUserId: e.body.user.id, employeeId: emp, c });
   await hit("listAuditEvents", owner, c, {}, undefined,
     { query: "?limit=10" });
   await hit("verifyAuditChain", owner, c);

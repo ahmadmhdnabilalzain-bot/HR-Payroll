@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { HR_ERROR_STATUS } from "./errors-hr";
 
 /**
  * Every code an HTTP error body can carry, with its status. Internal
@@ -57,6 +58,7 @@ export const ERROR_STATUS = {
   PAYLOAD_TOO_LARGE: 413,
   ACCOUNT_LOCKED: 423,
   INTERNAL: 500,
+  ...HR_ERROR_STATUS,
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_STATUS;

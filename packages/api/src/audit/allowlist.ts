@@ -1,4 +1,5 @@
 import { CodedError } from "../coded-error";
+import { HR_CHECKS } from "./hr-allowlist";
 
 /**
  * Audit `data` is an allowlist: each key has a shape check, and any
@@ -56,6 +57,7 @@ const CHECKS: Record<string, Check> = {
   oldClockOut: matches(TIME),
   newClockIn: matches(TIME),
   newClockOut: matches(TIME),
+  ...HR_CHECKS,
 };
 
 export const AUDIT_KEYS = Object.keys(CHECKS);

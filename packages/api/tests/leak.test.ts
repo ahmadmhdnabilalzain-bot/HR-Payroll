@@ -10,6 +10,14 @@ import {
   seedCompany,
   type Seeded,
 } from "./helpers/seed";
+import {
+  HR_ID_KIND,
+  HR_KINDS,
+  hrIdFor,
+  hrSentinels,
+  hrVisible,
+} from "./helpers/leak-hr";
+import { seedHr, type HrSeeded } from "./helpers/seed-hr";
 
 /**
  * Review Focus 1. The sentinels sit only on records the manager and
@@ -22,7 +30,7 @@ const ROLES: Role[] = ["owner", "hr", "manager", "employee"];
 type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
 
-type Kind = "employee" | "payslip" | "payRun" | "sifFile" | null;
+type Kind = string | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
 const ID_KIND: Record<string, Kind> = {
   getCompany: null, listUsers: null, listEmployees: null,
@@ -33,6 +41,7 @@ const ID_KIND: Record<string, Kind> = {
   getPayRun: "payRun", listPayRunPayslips: "payRun",
   getSifFile: "sifFile", downloadSifFile: "sifFile",
   listAuditEvents: null, verifyAuditChain: null,
+  ...HR_ID_KIND,
 };
 
 /** Query strings a route needs. */
@@ -42,7 +51,8 @@ const QUERY: Record<string, string> = {
 };
 
 /** Which targets a role may open on an employee or payslip route. */
-function visible(role: Role, t: Target, kind: Kind): boolean {
+function visible(role: Role, t: Target | null, kind: Kind): boolean {
+  if (kind !== null && HR_KINDS.includes(kind)) return hrVisible(role, kind);
   if (role === "owner" || role === "hr") return true;
   const own = role === "manager" ? "manager" : "report";
   if (kind === "payslip") return t === own;
@@ -51,7 +61,8 @@ function visible(role: Role, t: Target, kind: Kind): boolean {
 
 function expected(r: RouteDef, role: Role, t: Target | null): number {
   if (!r.roles.includes(role)) return 403;
-  if (t !== null && !visible(role, t, ID_KIND[r.id] ?? null)) return 404;
+  const kind = ID_KIND[r.id] ?? null;
+  if ((t !== null || kind !== null) && !visible(role, t, kind)) return 404;
   return r.status;
 }
 
@@ -63,6 +74,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   let s: Seeded;
   let runId: string;
   let sifId: string;
+  let hr: HrSeeded;
   const slips = {} as Record<Target, string>;
   beforeAll(async () => {
     ctx = await makeApp();
@@ -81,13 +93,15 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       { wps: { employerId: "0000000123456", bankRoutingCode: "802420101" } });
     sifId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
       `/v1/pay-runs/${runId}/sif`)).body.id;
+    hr = await seedHr(ctx, s);
   });
   /** Every `{id}` to try for a route, with the record it belongs to. */
   const idsFor = (kind: Kind): [Target | null, string | null][] =>
     kind === "employee" ? TARGETS.map((t) => [t, s.emp[t]])
     : kind === "payslip" ? TARGETS.map((t) => [t, slips[t]])
     : kind === "payRun" ? [[null, runId]]
-    : kind === "sifFile" ? [[null, sifId]] : [[null, null]];
+    : kind === "sifFile" ? [[null, sifId]]
+    : kind !== null ? [[null, hrIdFor(kind, hr)]] : [[null, null]];
   const path = (r: RouteDef, id: string | null) =>
     (id === null ? r.path : r.path.replace("{id}", id)) +
     (QUERY[r.id] ?? "");
@@ -105,8 +119,8 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
           const label = `${r.id} as ${role} on ${t}`;
           expect(res.status, `${label}: ${res.text}`)
             .toBe(expected(r, role, t));
-          const leaked = res.text.includes(SALARY_SENTINEL) ||
-            res.text.includes(IBAN_SENTINEL);
+          const leaked = [SALARY_SENTINEL, IBAN_SENTINEL,
+            ...hrSentinels(hr)].some((x) => res.text.includes(x));
           if (role === "manager" || role === "employee") {
             expect(leaked, label).toBe(false);
           }
@@ -137,7 +151,8 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   it("company B's owner gets 404 for every A id", async () => {
     const b = await signup(ctx.app, "other");
     const mfa = await enableMfa(ctx.app, ctx.clock, b);
-    const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile"];
+    const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile",
+      ...HR_KINDS];
     const allIds = kinds.flatMap((k) => idsFor(k).map(([, id]) => id!));
     for (const r of getRoutes.filter((x) => x.path.includes("{id}"))) {
       for (const id of allIds) {
