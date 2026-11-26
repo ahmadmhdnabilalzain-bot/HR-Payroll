@@ -1,13 +1,12 @@
 .header {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-5);
 }
 
 .who {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-block-start: calc(var(--space-2) * -1);
+  gap: var(--space-5);
 }
 
 .whoText {
@@ -18,8 +17,7 @@
 
 .sub {
   color: var(--color-text-muted);
-  font-size: 17px;
-  line-height: 24px;
+  font-size: var(--text-md);
 }
 
 /* Three facts in a row, no boxes. */

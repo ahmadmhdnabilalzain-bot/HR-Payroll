@@ -34,14 +34,6 @@ import {
 import p from "./page.module.css";
 import s from "./Profile.module.css";
 import { Avatar } from "../ui/Avatar";
-import { PageHead, StatusPill, type StatusTone } from "../ui/templates";
-import type { Tone } from "./words";
-
-/** The people's own tones, on the template's status dot. */
-const TONE: Record<Tone, StatusTone> = {
-  ok: "ok", info: "neutral", neutral: "neutral", warn: "warn",
-  danger: "stop", done: "done",
-};
 
 function years(from: string, to: string): number {
   const [fy, fm, fd] = from.split("-").map(Number);
@@ -68,27 +60,35 @@ export function Profile(q: { id: string }) {
   const backKey: MessageKey = state.role === "manager" ? "people.backTeam"
     : "people.back";
   return (
-    <div className={`${p.page} ${p.headed}`}>
-      <PageHead title={x.name[lang]}
-        crumbs={state.role !== "employee" ? [{ label: t(backKey),
-          href: hrefOf("people") }] : undefined}
-        badge={x.status !== "active" ? (
-          <StatusPill tone={TONE[statusTone(x)]}>
-            {statusLong(x, t, lang)}</StatusPill>
-        ) : undefined}
-        meta={(
-          <div className={s.header}>
-            <div className={s.who}>
-              <Avatar id={x.id} name={x.name.en} size="md" />
+    <div className={p.page}>
+      <header className={s.header}>
+        {state.role !== "employee" && (
+          <nav aria-label={t("shell.breadcrumb")} className={p.crumbs}>
+            <a href={hrefOf("people")}>{t(backKey)}</a>
+            <span aria-hidden="true" className={p.sep}>/</span>
+            <span aria-current="page">{x.name[lang]}</span>
+          </nav>
+        )}
+        <div className={s.who}>
+          <Avatar id={x.id} name={x.name.en} size="lg" />
+          <div className={s.whoText}>
+            <h1 className={p.title}>{x.name[lang]}</h1>
+            <p className={s.sub}>
+              {x.role[lang]} · {x.department[lang]} ·{" "}
+              {shortBranch(x.branch[lang])}
+              {me && <> · {t("people.you")}</>}
+            </p>
+            {x.status !== "active" && (
               <p className={s.sub}>
-                {x.role[lang]} · {x.department[lang]} ·{" "}
-                {shortBranch(x.branch[lang])}
-                {me && <> · {t("people.you")}</>}
+                <span className={p.status} data-tone={statusTone(x)}>
+                  {statusLong(x, t, lang)}
+                </span>
               </p>
-            </div>
-            <Summary person={x} />
+            )}
           </div>
-        )} />
+        </div>
+        <Summary person={x} />
+      </header>
       <div className={s.grid}>
         <div className={s.main}>
           <Notes person={x} />
