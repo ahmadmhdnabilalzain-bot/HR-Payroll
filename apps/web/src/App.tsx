@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { documentTitle } from "./brand";
 import { showArabic } from "./demo/flags";
 import { useRoute } from "./demo/route";
 import { useDemo } from "./demo/state";
@@ -26,10 +27,26 @@ export function App() {
   useEffect(() => {
     if (!arabicShown && lang === "ar") setLang("en");
   }, [arabicShown, lang, setLang]);
+  /* The tab names the page: Home, else the page's own heading. */
+  const main = useRef<HTMLElement>(null);
+  const home = route.section === "home" ? t("shell.navHome") : null;
+  useEffect(() => {
+    const el = main.current;
+    const set = (): void => {
+      const page = home ?? el?.querySelector("h1")?.textContent ?? "";
+      const next = documentTitle(lang, page);
+      if (document.title !== next) document.title = next;
+    };
+    set();
+    if (el === null) return undefined;
+    const seen = new MutationObserver(set);
+    seen.observe(el, { subtree: true, childList: true, characterData: true });
+    return () => seen.disconnect();
+  }, [home, lang]);
   return (
     <>
       <TopBar route={route} onSearch={open} />
-      <main className={s.main}>
+      <main className={s.main} ref={main}>
         {lang === "ar" && (
           <p className={s.banner} role="note">
             {t("common.arReviewBanner")}

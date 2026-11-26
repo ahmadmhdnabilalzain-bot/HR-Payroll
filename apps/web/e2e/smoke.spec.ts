@@ -4,7 +4,10 @@ import { PRODUCT_NAME } from "../src/brand";
 test("loads-in-english", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html[lang=en][dir=ltr]")).toHaveCount(1);
-  await expect(page).toHaveTitle(PRODUCT_NAME.en);
+  await expect(page).toHaveTitle(`Home · ${PRODUCT_NAME.en}`);
+  await page.evaluate(() => { location.hash = "#/reports/variance"; });
+  await expect(page).toHaveTitle(
+    `Variance against last month · ${PRODUCT_NAME.en}`);
   await expect(page.getByText("demo: fictional data")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });

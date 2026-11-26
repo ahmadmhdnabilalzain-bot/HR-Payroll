@@ -1,8 +1,9 @@
 /* Reports: one job per page; figures right-aligned and tabular. */
+/* The same column as the template pages, so reports do not jump. */
 .page {
-  max-inline-size: 1120px;
+  max-inline-size: var(--container);
   margin-inline: auto;
-  padding: var(--space-5) var(--space-6) var(--space-8);
+  padding: var(--space-5) var(--page-pad) var(--space-8);
   font-size: var(--text-lg);
 }
 
