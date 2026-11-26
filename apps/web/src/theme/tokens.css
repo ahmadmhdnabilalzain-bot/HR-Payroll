@@ -46,19 +46,27 @@
   --space-7: 48px;
   --space-8: 64px;
 
+  /* Six steps plus one display size: caption 12, secondary 13, body
+   * 15, headline 17, title 22, large title 28, display 56. */
   --text-2xs: 12px;
-  --text-xs: 14px;
-  --text-sm: 15px;
-  --text-md: 16px;
-  --text-base: 17px;
-  --text-lg: 19px;
+  --text-xs: 13px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-base: 15px;
+  --text-lg: 17px;
   --text-xl: 22px;
-  --text-2xl: 26px;
-  --text-3xl: 32px;
-  --text-hero: 64px;
+  --text-2xl: 22px;
+  --text-3xl: 28px;
+  --text-hero: 56px;
 
-  --radius-control: 6px;
-  --radius-panel: 10px;
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-lg: 20px;
+
+  /* One grid everywhere: 1200 px, 12 columns, 24 px gutters. */
+  --container: 1200px;
+  --gutter: 24px;
+  --page-pad: 32px;
   --radius-pill: 999px;
 
   --dur-fast: 150ms;
@@ -76,9 +84,9 @@
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #0e0f11;
-  --color-surface: #16181b;
-  --color-surface-2: #1d2024;
+  --color-bg: #0b0b0c;
+  --color-surface: #1c1c1e;
+  --color-surface-2: #26262a;
   --color-border: #6b717a;
   --color-divider: #25282d;
   --color-divider-strong: #33373d;
@@ -99,8 +107,8 @@
   --color-success-soft: #15291f;
   --color-info: #9db7d9;
   --color-focus: #8ab4ff;
-  --color-ribbon: #ecedee;
-  --color-on-ribbon: #0e0f11;
+  --color-ribbon: #1c1c1e;
+  --color-on-ribbon: #a1a1a6;
   --color-scrim: #000000;
   --color-bar-1: #5fb8bf;
   --color-bar-2: #3f8c92;
@@ -110,17 +118,20 @@
   color-scheme: dark;
 }
 
-/* Big screens (1080p projectors): one step up, read from the back. */
+/* Big screens (1080p projectors): the whole page scales up, so the
+ * grid and the type steps stay the same, only larger. */
 @media (min-width: 1680px) {
+  html {
+    zoom: 1.2;
+  }
+}
+
+/* Phones: body 17, display 48. */
+@media (max-width: 760px) {
   :root {
-    --text-xs: 15px;
-    --text-sm: 16px;
     --text-md: 17px;
-    --text-base: 18px;
-    --text-lg: 21px;
-    --text-xl: 24px;
-    --text-2xl: 30px;
-    --text-3xl: 38px;
-    --text-hero: 80px;
+    --text-base: 17px;
+    --text-hero: 48px;
+    --page-pad: 16px;
   }
 }

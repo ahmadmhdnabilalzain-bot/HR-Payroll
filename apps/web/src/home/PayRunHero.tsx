@@ -1,10 +1,15 @@
-import { Suspense } from "react";
-import { Explainable } from "../components/explain";
+import { fils, type Fils } from "@payroll/engine";
+import { ExplainLink, Explainable } from "../components/explain";
 import { notes } from "../demo/derive";
-import { useRunDetail } from "../demo/useRunDetail";
 import { useDemo } from "../demo/state";
+import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import {
+  ChangeNote,
+  monthName,
+  SignedMoney,
+} from "../payrun/Change";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
 import { Sources } from "./Sources";
@@ -12,18 +17,21 @@ import { StepTracker } from "./StepTracker";
 import s from "./PayRunHero.module.css";
 
 /**
- * The figure that supports the sentence: net pay, its make-up, and the
- * salary-file split. When an IBAN passes the file check the held
- * amount rolls into the file total; then the progress steps.
+ * The figure that supports the sentence: net pay with its change
+ * against last month and a visible "Why this number", its make-up
+ * (each line with its change), and the salary-file split. When an IBAN
+ * passes the file check the held amount rolls into the file total.
  */
 export function PayRunHero() {
   const { lang, t } = useLocale();
   const { data, state, dispatch } = useDemo();
+  const run = useRunDetail();
   const h = data.headline();
   const cal = data.payCalendar();
   const people = data.runPeople();
   const name = (id: string): string => data.employee(id).name[lang];
   const note = notes(data)[0];
+  const net = run.explain["run:net"];
   return (
     <section className={s.hero} aria-labelledby="run-title">
       <div className={s.top}>
@@ -32,20 +40,26 @@ export function PayRunHero() {
             {t("home.net")}
           </h2>
           <p className={s.figure}>
-            <Suspense fallback={<Money value={h.netTotalFils} size="hero"
-              countUp />}>
-              <ExplainedNet />
-            </Suspense>
+            <Explainable explanation={net}>
+              <Money value={h.netTotalFils} size="hero" countUp />
+            </Explainable>
           </p>
-          <p className={s.caveat}>
-            <Icon name="info" size={16} />
-            <span>{h.netNote[lang]}</span>
+          <p className={s.change}>
+            <ChangeNote now={h.netTotalFils} prev={run.prev.net}
+              month={run.prevMonth} />
           </p>
-          <p className={s.sub}>
-            {t("home.netTo", { count: h.headcount })}
-            {", "}
-            {t("home.paysOn", { date: formatDayMonth(cal.payday, lang) })}
+          <p className={s.figureNotes}>
+            <span>
+              {t("home.netTo", { count: h.headcount })}
+              {", "}
+              {t("home.paysOn", { date: formatDayMonth(cal.payday, lang) })}
+            </span>
+            <ExplainLink explanation={net} className={s.why}>
+              <Icon name="info" size={16} />
+              {t("home.whyNumber")}
+            </ExplainLink>
           </p>
+          <p className={s.caveat}>{h.netNote[lang]}</p>
           <p className={s.people}>
             <span>{t("home.preparedBy", { name: name(people.makerId) })}
             </span>
@@ -56,34 +70,32 @@ export function PayRunHero() {
               aria-expanded={state.sourcesOpen} aria-controls="sources"
               onClick={() => dispatch({ type: "sources",
                 open: !state.sourcesOpen })}>
-              <Icon name="info" size={14} />
               {state.sourcesOpen ? t("home.hideSources")
                 : t("home.sources")}
             </button>
           </p>
         </div>
         <dl className={s.equation}>
-          <div>
-            <dt>{t("home.gross")}</dt>
-            <dd><Money value={h.grossTotalFils} /></dd>
+          <div className={s.eqHead} aria-hidden="true">
+            <span />
+            <span>{t("home.vsLast", { month: monthName(run.prevMonth,
+              lang) })}</span>
+            <span />
           </div>
-          <div>
-            <dt>{t("home.deductions")}</dt>
-            <dd className={s.minus}>
-              <span aria-hidden="true">−</span>
-              <Money value={h.deductionsFils} />
-            </dd>
-          </div>
-          <div className={s.total}>
-            <dt>{t("home.net")}</dt>
-            <dd><Money value={h.netTotalFils} /></dd>
-          </div>
+          <Line label={t("home.gross")} now={h.grossTotalFils}
+            prev={run.prev.gross} month={run.prevMonth} />
+          <Line label={t("home.deductions")} now={h.deductionsFils}
+            prev={run.prev.deductions} month={run.prevMonth} minus />
+          <Line label={t("home.net")} now={h.netTotalFils}
+            prev={run.prev.net} month={run.prevMonth} total />
           <div className={s.part}>
             <dt>{t("home.inSif")}</dt>
+            <dd className={s.delta} />
             <dd><Money value={h.sifTotalFils} /></dd>
           </div>
           <div className={s.part} data-zero={h.heldNetFils === 0n}>
             <dt>{t("home.held")}</dt>
+            <dd className={s.delta} />
             <dd><Money value={h.heldNetFils} /></dd>
           </div>
         </dl>
@@ -94,13 +106,20 @@ export function PayRunHero() {
   );
 }
 
-/** The net figure opens its explanation (loaded with the run detail). */
-function ExplainedNet() {
-  const { data } = useDemo();
-  const run = useRunDetail();
+/** One money line with its change against last month. */
+function Line(p: { label: string; now: Fils; prev: Fils; month: string;
+  minus?: boolean; total?: boolean }) {
   return (
-    <Explainable explanation={run.explain["run:net"]}>
-      <Money value={data.headline().netTotalFils} size="hero" countUp />
-    </Explainable>
+    <div className={p.total === true ? s.total : undefined}>
+      <dt>{p.label}</dt>
+      <dd className={s.delta}>
+        <SignedMoney value={fils(p.now - p.prev)} />
+        <span className="visually-hidden">{p.month}</span>
+      </dd>
+      <dd className={p.minus === true ? s.minus : undefined}>
+        {p.minus === true && <span aria-hidden="true">−</span>}
+        <Money value={p.now} />
+      </dd>
+    </div>
   );
 }

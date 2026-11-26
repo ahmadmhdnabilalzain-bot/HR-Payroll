@@ -6,6 +6,7 @@ import { Expiries } from "./Expiries";
 import { IssueList } from "./IssueList";
 import { ManagerHome } from "./ManagerHome";
 import { PayRunHero } from "./PayRunHero";
+import { PeopleStrip } from "./PeopleStrip";
 import { Setup } from "./Setup";
 import { StatusLead } from "./StatusLead";
 import s from "./Home.module.css";
@@ -24,6 +25,7 @@ export function Home() {
   return (
     <div className={s.page}>
       <StatusLead />
+      <PeopleStrip />
       <PayRunHero />
       <div className={s.grid}>
         <IssueList />
