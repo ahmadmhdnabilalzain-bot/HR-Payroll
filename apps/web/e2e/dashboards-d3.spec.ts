@@ -76,6 +76,10 @@ test("owner-brief-and-dashboards-follow-the-story", async ({ page },
   await expect(sum.getByText("Signed off", { exact: true })).toBeVisible();
   await expect(sum.getByText("nothing stops pay, 6 to check"))
     .toBeVisible();
+  await expect(sum.getByText("Everyone's pay is in the salary file"))
+    .toBeVisible();
+  await expect(page.getByRole("row", { name: /Held out of the salary file/ })
+    .getByText("AED 25,300.00")).toHaveCount(0);
   await page.evaluate(() => { location.hash = "#/reports/dashboard-exec"; });
   const tiles = page.getByRole("list", { name: "Key figures" });
   await expect(tiles.getByText("nothing stops pay, 6 to check"))

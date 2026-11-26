@@ -85,8 +85,12 @@ function useColumns(items: Item[]): Column[] {
         text: "Before approval", meta: w.sub,
         ...(b.stops > 0 ? { state: { tone: "bad" as const,
           word: "Holds the whole run" } } : {}) },
-      { key: "held", figure: <Money value={h.heldNetFils} tween={false} />,
-        text: "Held out of the salary file",
+      h.heldNetFils === 0n
+        ? { key: "held", figure: "None",
+          text: "Held out of the salary file",
+          meta: "Everyone's pay is in the salary file" }
+        : { key: "held", figure: <Money value={h.heldNetFils}
+          tween={false} />, text: "Held out of the salary file",
         meta: "No valid bank account yet" },
       { key: "docs", figure: <Count n={n("docs-soon")} />,
         text: "Documents ending in 30 days",
@@ -106,8 +110,11 @@ export function OwnerBriefScreen() {
   const crumbs = useReportCrumbs();
   const rows = brief.items.map((i) => {
     const n = now(i);
+    // Held pay follows the IBANs entered, as the pay run does.
     const figure = i.live === "issues-open"
       ? phrase(beforeApproval(data, state))
+      : i.id === "held" ? (data.headline().heldNetFils === 0n ? "None"
+        : m(data.headline().heldNetFils))
       : i.amount !== null ? m(i.amount)
         : n.count !== null ? String(n.count) : "";
     return [`${i.area}: ${i.item}`, `${i.text} ${n.next}`, figure];
