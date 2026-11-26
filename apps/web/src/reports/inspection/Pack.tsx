@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Money } from "../../ui/Money";
 import type { AuditData } from "./data";
+import { useLivePack } from "./live";
 import s from "./audit.module.css";
 
 /**
@@ -23,8 +24,8 @@ const Empty = (p: { children: string }) => (
 
 type InspectionPack = AuditData["packs"][string];
 
-export function PackBody(p: { pack: InspectionPack }) {
-  const { pack } = p;
+export function PackBody(p: { pack: InspectionPack; month: string }) {
+  const pack = useLivePack(p.pack, p.month);
   const r = pack.register;
   return (
     <article className={s.pack} aria-label={pack.title}>
@@ -77,9 +78,10 @@ export function PackBody(p: { pack: InspectionPack }) {
                     <small className={s.sub}>Asked by {x.askedBy}
                       {x.askedOn === "" ? "" : `, ${x.askedOn}`}</small>
                   </span>
-                  <span className={s.end}>{x.outcomeText}
-                    {x.decidedOn === "Not yet" ? ` by ${x.decider}`
-                      : ` by ${x.decider}, ${x.decidedOn}`}</span>
+                  <span className={s.end}>
+                    {x.decidedOn === "Not yet" ? `Waiting for ${x.decider}`
+                      : `${x.outcomeText} by ${x.decider}, ${x.decidedOn}`}
+                  </span>
                 </li>
               ))}
             </ul>)}

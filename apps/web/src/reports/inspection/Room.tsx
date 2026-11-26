@@ -91,7 +91,7 @@ export function Room() {
                   </li>
                 ))}
               </ul>
-              <PackBody pack={d.packs[at.month]!} />
+              <PackBody pack={d.packs[at.month]!} month={at.month} />
             </>
           )}
           {at.page === "errors" && <RemediesList d={d} />}

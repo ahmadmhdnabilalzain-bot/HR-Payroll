@@ -50,7 +50,7 @@ export function Inspection(p: ViewProps) {
           ))}
         </ul>
       </nav>
-      <PackBody pack={pack} />
+      <PackBody pack={pack} month={key} />
     </div>
   );
 }

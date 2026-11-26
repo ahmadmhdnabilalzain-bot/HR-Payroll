@@ -195,14 +195,19 @@ function packFiles(c: DemoCompany, month: string): PackFile[] {
         : employeeById(c, e.actorId).fullName, when: stampOf(e.at) }));
 }
 
+/** Checks that hold the whole run: no bank account, or a mistyped IBAN. */
+const STOPS_PAY = new Set(["SIF_HELD_NO_IBAN", "IBAN_CHECKSUM"]);
+
 function packExceptions(c: DemoCompany, month: string): PackException[] {
   const out: PackException[] = [];
   if (month === "2026-10") {
     for (const i of issuesOf(c).filter((x) => x.kind === "issue")) {
+      const stops = STOPS_PAY.has(i.code);
       out.push({ id: `exc-${i.code}-${i.employeeId ?? i.subjectId ?? ""}`,
         title: i.title, reason: i.plainReason.en,
-        severityText: i.severity === "error" ? "Stops pay" : "Check",
-        statusText: "Open: fix before the run is signed off" });
+        severityText: stops ? "Stops pay" : "Check",
+        statusText: stops ? "Open: fix before the run is signed off"
+          : "Open: to review; it does not hold the run" });
     }
   }
   for (const k of payCorrections(c)) {
@@ -332,8 +337,9 @@ export function errorRemedies(c: DemoCompany): ErrorRemedy[] {
       monthText: "October 2026", source: "Salary file check",
       what: i.plainReason.en, foundBy: "The salary file check, by the " +
         "system", foundOn: reportDate(AS_OF), fix: i.suggestedFix.en,
-      amount: null, paidIn: "Not paid until fixed", open: true,
-      statusText: i.severity === "error" ? "Open: stops pay"
+      amount: null, paidIn: STOPS_PAY.has(i.code) ? "Not paid until fixed"
+        : "Nothing held back", open: true,
+      statusText: STOPS_PAY.has(i.code) ? "Open: stops pay"
         : "Open: check" };
   });
   return [...found, ...fixed, ...back];

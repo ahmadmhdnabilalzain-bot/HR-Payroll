@@ -3,17 +3,19 @@ import { Money } from "../../ui/Money";
 import { Status } from "../../setup/access/ui";
 import { useAuditData } from "./load";
 import type { AuditData } from "./data";
+import { useLiveRemedies } from "./live";
 
 type Row = AuditData["remedies"][number];
 
 /** X37: each payroll error, who found it, the fix and the run that pays. */
 export function RemediesList(p: { d: AuditData }) {
   const { d } = p;
+  const rows = useLiveRemedies(d.remedies);
   return (
     <FilterList<Row> title="Error-remedy record"
       lede={`Each payroll error, who found it, how it is put right and ` +
         `which run pays it. ${d.remedyNote}`}
-      rows={d.remedies} rowKey={(r) => r.id}
+      rows={rows} rowKey={(r) => r.id}
       searchText={(r) => `${r.personName} ${r.what} ${r.foundBy} ${r.source}`}
       segments={[{ id: "all", label: "All", match: () => true },
         { id: "fixed", label: "Corrections", match: (r) =>
@@ -27,11 +29,12 @@ export function RemediesList(p: { d: AuditData }) {
           `${r.foundBy}, ${r.foundOn}` },
         { key: "x", label: "The fix", render: (r) => r.fix },
         { key: "a", label: "Amount", end: true, render: (r) =>
-          r.amount === null ? "Not paid" : <Money value={r.amount}
+          r.amount === null ? "No amount" : <Money value={r.amount}
             size="sm" tween={false} /> },
         { key: "s", label: "Pays in", end: true, render: (r) => (
-          <Status tone={r.source === "Salary file check" ? "danger"
-            : "warn"}>{r.paidIn}</Status>) }]}
+          <Status tone={r.paidIn === "Not paid until fixed" ? "danger"
+            : r.source !== "Salary file check" ? "warn" : r.open ? "none"
+              : "ok"}>{r.paidIn}</Status>) }]}
       empty="No errors recorded." />
   );
 }
