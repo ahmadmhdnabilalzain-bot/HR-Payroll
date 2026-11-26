@@ -60,7 +60,37 @@ export async function loadEmiratisationSettings(tx: Db, companyId: string)
     overrides: r?.overrides ?? {}, updatedAt: r?.updated_at ?? null };
 }
 
-/** GET /v1/emiratisation: the engine's planning estimate, unchanged. */
+export const STATUS_NOTE = "Planning estimate from secondary sources " +
+  "and the values shown in the trace; not a compliance finding.";
+export const FINE_ESTIMATE_NOTE = "Planning estimate of a yearly fine " +
+  "from the values shown in the trace. Not legal advice.";
+
+type Line = EmiratisationReport["trace"][number];
+type Source = EmiratisationReport["figureStatus"]["required"][number];
+
+/** Statuses of a trace line's rules; overrides are the company's. */
+function sourcesOf(trace: readonly Line[], id: string): Source[] {
+  const rules = trace.find((l) => l.id === id)?.rules ?? [];
+  return rules.map((r): Source => r.overridden ? "company-entered"
+    : r.status);
+}
+
+const uniq = (xs: Source[]) => [...new Set(xs)].sort();
+
+/** Labels and notes so no figure or status reads as a bare fact. */
+function labelled(r: EmiratisationReport): EmiratisationReport {
+  const req = sourcesOf(r.trace, "emiratisation.required");
+  const fine = [...sourcesOf(r.trace, "emiratisation.fine"), ...req];
+  return { ...r,
+    figureStatus: { required: r.required === null ? [] : uniq(req),
+      fineExposure: r.fineExposure === null ? [] : uniq(fine) },
+    statusNote: r.status === "on-target" || r.status === "below-target"
+      ? STATUS_NOTE : null,
+    fineNote: r.fineNote ?? (r.fineExposure === null ? null
+      : FINE_ESTIMATE_NOTE) };
+}
+
+/** GET /v1/emiratisation: the engine's planning estimate, labelled. */
 export async function emiratisationReport(ctx: ReqCtx<unknown,
   { asOf?: string }>): Promise<EmiratisationReport> {
   const c = ctx.tenant!.companyId;
@@ -69,8 +99,9 @@ export async function emiratisationReport(ctx: ReqCtx<unknown,
   const input = await buildEmiratisationInput(ctx.tx, ctx.deps, c, asOf,
     st.sectorInScope);
   const r = computeEmiratisation(input, undefined, st.overrides);
-  return { ...r, fineExposure: r.fineExposure === null ? null
-    : toMoney(r.fineExposure) };
+  return labelled({ ...r, fineExposure: r.fineExposure === null ? null
+    : toMoney(r.fineExposure), figureStatus: { required: [],
+    fineExposure: [] }, statusNote: null });
 }
 
 const same = (a: unknown, b: unknown) =>

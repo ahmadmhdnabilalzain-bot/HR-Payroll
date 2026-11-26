@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Id, IsoDate, Money, Timestamp } from "./primitives";
-import { TraceLine } from "./trace";
+import { RuleStatus, TraceLine } from "./trace";
 
 /** HR-entered counting conditions; null means not entered yet. */
 export const EmiratisationFlags = z.object({
@@ -68,6 +68,10 @@ export const NotCountedReason = z.enum(["flags-not-entered",
   "below-minimum-wage"]);
 export type NotCountedReason = z.infer<typeof NotCountedReason>;
 
+/** Where a figure comes from: rule statuses, or the company's value. */
+export const FigureSource = z.enum([...RuleStatus.options,
+  "company-entered"]);
+
 /** A planning estimate from secondary sources, never legal advice. */
 export const EmiratisationReport = z.object({
   asOf: IsoDate,
@@ -87,6 +91,16 @@ export const EmiratisationReport = z.object({
   missingParams: z.array(z.string()),
   fineExposure: Money.nullable(),
   fineNote: z.string().nullable(),
+  /**
+   * The sources behind `required` and `fineExposure` (sorted, unique;
+   * empty when the figure is null), so neither is shown as a bare fact.
+   */
+  figureStatus: z.object({
+    required: z.array(FigureSource),
+    fineExposure: z.array(FigureSource),
+  }),
+  /** Planning-estimate wording for any on-target or below-target. */
+  statusNote: z.string().nullable(),
   trace: z.array(TraceLine),
   disclaimer: z.string(),
 });
