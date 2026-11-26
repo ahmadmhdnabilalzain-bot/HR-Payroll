@@ -79,17 +79,28 @@ function isLeaver(e: SnapshotEmployee, p: Period): boolean {
     e.lastWorkingDate <= last;
 }
 
+/** Codes that appear more than once (a second amount is never picked). */
+const repeated = (cs: string[]) =>
+  cs.filter((c, i) => cs.indexOf(c) !== i);
+
+/**
+ * Unknown override codes, one-off codes that clash with a component and
+ * codes given twice are VALIDATION_FAILED; partial months need every
+ * component entered; leavers need unusedLeaveDays.
+ */
 function entryProblems(e: SnapshotEmployee, x: PayRunEntry, p: Period)
   : Problem[] {
   const codes = e.components.map((c) => c.code);
   const out: Problem[] = [];
-  const over = new Set((x.componentOverrides ?? []).map((o) => o.code));
-  const unknown = [...over].filter((c) => !codes.includes(c));
-  const clash = (x.oneOffs ?? []).map((o) => o.code)
-    .filter((c) => codes.includes(c));
-  if (unknown.length + clash.length > 0) {
-    out.push(problem(e.employeeId, "VALIDATION_FAILED",
-      [...unknown, ...clash]));
+  const overCodes = (x.componentOverrides ?? []).map((o) => o.code);
+  const oneOffCodes = (x.oneOffs ?? []).map((o) => o.code);
+  const over = new Set(overCodes);
+  const bad = new Set([
+    ...overCodes.filter((c) => !codes.includes(c)),
+    ...oneOffCodes.filter((c) => codes.includes(c)),
+    ...repeated(overCodes), ...repeated(oneOffCodes)]);
+  if (bad.size > 0) {
+    out.push(problem(e.employeeId, "VALIDATION_FAILED", [...bad]));
   }
   if (isPartial(e, p) && codes.some((c) => !over.has(c))) {
     out.push(problem(e.employeeId, "ENTERED_AMOUNTS_REQUIRED",

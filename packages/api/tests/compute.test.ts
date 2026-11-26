@@ -115,6 +115,20 @@ describe("computePayRun", () => {
           code: "EMPLOYEE_NOT_IN_PERIOD", missing: [] }]));
     });
 
+  it("a code twice in one entry is a problem, not a silent pick", () => {
+    const out = computePayRun(snap([emp()], [{ employeeId: E1,
+      componentOverrides: [{ code: "basic", amount: "1.00" },
+        { code: "basic", amount: "2.00" }],
+      oneOffs: [
+        { code: "bonus", label: "B", amount: "1.00",
+          sifBucket: "otherAllowances" },
+        { code: "bonus", label: "B", amount: "1.00",
+          sifBucket: "otherAllowances" }] }]));
+    expect(out.payslips).toEqual([]);
+    expect(out.problems).toEqual([{ employeeId: E1,
+      code: "VALIDATION_FAILED", missing: ["basic", "bonus"] }]);
+  });
+
   it("people outside the period are not paid", () => {
     const out = computePayRun(snap([emp({ lastWorkingDate: "2026-02-28" }),
       emp({ employeeId: E2, joiningDate: "2026-04-01" })]));
