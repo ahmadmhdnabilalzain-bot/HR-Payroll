@@ -84,6 +84,12 @@ import {
   type PayAction,
   type PaySlice,
 } from "../pay/pay-state";
+import {
+  HOLD_INITIAL,
+  reduceHolds,
+  type HoldAction,
+  type HoldSlice,
+} from "../pay/gate/hold-state";
 
 /** manager and employee: the team view and the self view; it: the IT
  * manager (access, connections, the audit chain; no company pay). */
@@ -102,7 +108,7 @@ export type Resolution = "reviewed" | "renewal";
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
-    FilesSlice, ConnectSlice, PriorSlice {
+    FilesSlice, ConnectSlice, PriorSlice, HoldSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -143,6 +149,7 @@ export type Action =
   | { type: "files"; op: FilesOp }
   | ConnectAction
   | PriorAction
+  | HoldAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -155,6 +162,7 @@ export const INITIAL: DemoState = {
   ...MOVES_INITIAL, ...PAY_INITIAL, ...SAFETY_INITIAL, ...REQUESTS_INITIAL,
   ...FILES_INITIAL,
   ...CONNECT_INITIAL, ...PRIOR_INITIAL,
+  ...HOLD_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -243,6 +251,8 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "prior-check":
     case "prior-uncheck":
     case "prior-undo": return reducePrior(s, a);
+    case "salary-hold":
+    case "salary-release": return reduceHolds(s, a);
   }
 }
 

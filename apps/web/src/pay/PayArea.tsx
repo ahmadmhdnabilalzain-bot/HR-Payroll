@@ -4,6 +4,7 @@ import { canOpenPayArea } from "./derive";
 import { CorrectionRecord, Corrections } from "./Corrections";
 import { ExpenseRecord, Expenses } from "./Expenses";
 import { FineRecord, Fines } from "./Fines";
+import { Gate } from "./gate/Gate";
 import { Deductions, OffCycle } from "./Ledger";
 import { LoanRecord, Loans } from "./Loans";
 import { Loading, Outside } from "./parts";
@@ -20,7 +21,7 @@ import { SettlementRecord, Settlements } from "./Settlements";
  */
 export const PAY_AREAS = ["loans", "revisions", "corrections",
   "settlements", "runs", "fines", "groups", "elements", "deductions",
-  "off-cycle", "expenses", "more"] as const;
+  "off-cycle", "expenses", "more", "gate"] as const;
 export type PayAreaId = (typeof PAY_AREAS)[number];
 
 export const isPayArea = (x: string | undefined): x is PayAreaId =>
@@ -46,6 +47,7 @@ function screen(area: PayAreaId, id: string | undefined,
     case "more": return <PayMore rest={rest} />;
     case "expenses": return id === undefined ? <Expenses />
       : <ExpenseRecord id={id} />;
+    case "gate": return <Gate rest={["gate", id ?? ""]} />;
   }
 }
 
