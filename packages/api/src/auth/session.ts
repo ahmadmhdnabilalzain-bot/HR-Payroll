@@ -1,6 +1,6 @@
 import { sha256Hex } from "../audit/canonical";
 import type { Db } from "../db/db";
-import type { AppDeps } from "../deps";
+import type { HandlerDeps as AppDeps } from "../deps";
 
 /** Absolute lifetime from sign-in; no sliding renewal. */
 export const SESSION_MS = 8 * 3600 * 1000;
@@ -57,7 +57,11 @@ export async function expireSession(tx: Db, hash: string, now: Date) {
     [hash, now.toISOString()]);
 }
 
-export async function markSessionMfa(tx: Db, hash: string): Promise<void> {
-  await tx.query("UPDATE sessions SET mfa = true WHERE token_hash = $1",
-    [hash]);
+/** Expires every live session of the user except `keepHash`. */
+export async function revokeOtherSessions(tx: Db, userId: string,
+  keepHash: string, now: Date): Promise<void> {
+  await tx.query(
+    `UPDATE sessions SET expires_at = $3 WHERE user_id = $1
+     AND token_hash <> $2 AND expires_at > $3`,
+    [userId, keepHash, now.toISOString()]);
 }

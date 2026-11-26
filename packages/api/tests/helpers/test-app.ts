@@ -95,16 +95,30 @@ export async function signup(app: Hono, name: string): Promise<Account> {
 }
 
 /**
- * Enrols and confirms TOTP; the session behind `token` becomes an MFA
- * session. Returns a function giving the code for the clock's now.
+ * Enrols and confirms TOTP with `token` (which stays a non-MFA
+ * session), then advances the clock one step and signs in with a code.
+ * Returns the code function and the new MFA session token.
  */
-export async function enableMfa(app: Hono, clock: Clock, token: string) {
-  const e = await call(app, token, null, "POST", "/v1/auth/mfa/enrol");
+export async function enableMfa(app: Hono, clock: Clock,
+  acct: { token: string; email: string; password?: string }) {
+  const password = acct.password ?? PASSWORD;
+  const code = await enrolOnly(app, clock, acct.token, password);
+  clock.advance(30_000);
+  const r = await login(app, acct.email, password, code());
+  if (r.status !== 200) throw new Error(`mfa login ${r.status} ${r.text}`);
+  return { code, token: r.body.token as string };
+}
+
+/** Enrol and confirm only; returns the code function. */
+export async function enrolOnly(app: Hono, clock: Clock, token: string,
+  password = PASSWORD) {
+  const e = await call(app, token, null, "POST", "/v1/auth/mfa/enrol",
+    { password });
   if (e.status !== 200) throw new Error(`enrol ${e.status} ${e.text}`);
   const secret = base32Decode(e.body.secret);
   const code = () => totpCode(secret, Math.floor(clock.now.getTime() / 1000));
   const c = await call(app, token, null, "POST", "/v1/auth/mfa/confirm",
-    { code: code() });
+    { code: code(), password });
   if (c.status !== 200) throw new Error(`confirm ${c.status} ${c.text}`);
   return code;
 }

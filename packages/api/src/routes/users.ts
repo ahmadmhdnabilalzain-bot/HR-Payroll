@@ -11,8 +11,8 @@ import { signedIn, verifyCredentials } from "../auth/login";
 import { hashPassword } from "../auth/password";
 import { newSecret, tokenHash } from "../auth/session";
 import type { Db } from "../db/db";
-import { UUID, withTenant } from "../db/tenant";
-import type { AppDeps } from "../deps";
+import { UUID } from "../db/tenant";
+import type { AppDeps, HandlerDeps } from "../deps";
 import { register, type App, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 
@@ -29,14 +29,13 @@ interface InviteRow {
 
 async function listUsers(ctx: ReqCtx) {
   const companyId = ctx.tenant!.companyId;
-  const rows = await withTenant(ctx.deps.db, { companyId,
-    userId: ctx.user!.id }, (tx) => tx.query<{ user_id: string;
-    email: string; display_name: string; role: Role;
-    employee_id: string | null; mfa_enrolled: boolean }>(
+  const rows = await ctx.tx.query<{ user_id: string; email: string;
+    display_name: string; role: Role; employee_id: string | null;
+    mfa_enrolled: boolean }>(
     `SELECT m.user_id, u.email, u.display_name, m.role, m.employee_id,
        u.mfa_enrolled
      FROM memberships m JOIN users u ON u.id = m.user_id
-     WHERE m.company_id = $1 ORDER BY u.email`, [companyId]));
+     WHERE m.company_id = $1 ORDER BY u.email`, [companyId]);
   return { items: rows.map((r) => ({ userId: r.user_id, email: r.email,
     displayName: r.display_name, role: r.role, employeeId: r.employee_id,
     mfaEnrolled: r.mfa_enrolled })) };
@@ -50,25 +49,23 @@ async function inviteUser(ctx: ReqCtx<InviteRequest>) {
   const now = deps.now();
   const expiresAt = new Date(now.getTime() + INVITE_MS).toISOString();
   const id = deps.newId();
-  await withTenant(deps.db, { companyId, userId: ctx.user!.id },
-    async (tx) => {
-      await tx.query(
-        `INSERT INTO invites (id, company_id, token_hash, email, role,
-           employee_id, created_by, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [id, companyId, tokenHash(setupToken), body.email, body.role,
-          body.employeeId ?? null, ctx.user!.id, expiresAt]);
-      await appendAudit(tx, { companyId, at: now.toISOString(),
-        actorUserId: ctx.user!.id, action: "user.invited",
-        entityType: "invite", entityId: id, data: { role: body.role } });
-    });
+  await ctx.tx.query(
+    `INSERT INTO invites (id, company_id, token_hash, email, role,
+       employee_id, created_by, expires_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [id, companyId, tokenHash(setupToken), body.email, body.role,
+      body.employeeId ?? null, ctx.user!.id, expiresAt]);
+  await appendAudit(ctx.tx, { companyId, at: now.toISOString(),
+    actorUserId: ctx.user!.id, action: "user.invited",
+    entityType: "invite", entityId: id, data: { role: body.role } });
   return { setupToken, expiresAt };
 }
 
-async function openInvite(tx: Db, deps: AppDeps, token: string) {
+/** Locks the invite row: parallel accepts queue, the losers get 410. */
+async function openInvite(tx: Db, deps: HandlerDeps, token: string) {
   const [inv] = await tx.query<InviteRow>(
     `SELECT id, email, role, employee_id, expires_at, used_at
-     FROM invites WHERE token_hash = $1`, [tokenHash(token)]);
+     FROM invites WHERE token_hash = $1 FOR UPDATE`, [tokenHash(token)]);
   if (inv === undefined) throw new ApiError("INVITE_INVALID");
   if (inv.used_at !== null) throw new ApiError("INVITE_USED");
   if (Date.parse(inv.expires_at) <= deps.now().getTime()) {
@@ -117,13 +114,13 @@ async function acceptIn(tx: Db, ctx: ReqCtx<AcceptInviteRequest>,
 /** An existing account must pass the sign-in check, lockout included. */
 async function verifiedExisting(ctx: ReqCtx<AcceptInviteRequest>,
   companyId: string): Promise<string | null> {
-  const { deps } = ctx;
-  const email = await withTenant(deps.db, { companyId, userId: null },
+  const { deps, enter } = ctx;
+  const email = await enter({ companyId, userId: null },
     async (tx) => (await openInvite(tx, deps, ctx.body.setupToken)).email);
-  const existing = await withTenant(deps.db, { companyId: null,
-    userId: null }, (tx) => userByEmail(tx, email));
+  const existing = await enter({ companyId: null, userId: null },
+    (tx) => userByEmail(tx, email));
   if (existing === null) return null;
-  const ok = await verifyCredentials(deps, { email,
+  const ok = await verifyCredentials(enter, deps, { email,
     password: ctx.body.password });
   return ok.userId;
 }
@@ -134,25 +131,27 @@ async function acceptInvite(ctx: ReqCtx<AcceptInviteRequest>) {
   const { deps } = ctx;
   const companyId = raw.toLowerCase();
   const verifiedId = await verifiedExisting(ctx, companyId);
-  const userId = await withTenant(deps.db, { companyId, userId: null },
+  const userId = await ctx.enter({ companyId, userId: null },
     (tx) => acceptIn(tx, ctx, companyId, verifiedId));
-  return withTenant(deps.db, { companyId: null, userId },
+  return ctx.enter({ companyId: null, userId },
     (tx) => signedIn(tx, deps, userId, false));
 }
 
 async function changeRole(tx: Db, ctx: ReqCtx<RoleChange, unknown,
   { id: string }>, companyId: string) {
   const target = ctx.params.id;
+  // Lock every owner row first: two owners demoting each other at
+  // once queue here, so the second sees one owner left.
+  const owners = await tx.query<{ user_id: string }>(
+    `SELECT user_id FROM memberships WHERE company_id = $1
+     AND role = 'owner' ORDER BY user_id FOR UPDATE`, [companyId]);
   const [m] = await tx.query<{ role: Role }>(
-    "SELECT role FROM memberships WHERE company_id = $1 AND user_id = $2",
-    [companyId, target]);
+    `SELECT role FROM memberships WHERE company_id = $1 AND user_id = $2
+     FOR UPDATE`, [companyId, target]);
   if (m === undefined) throw new ApiError("NOT_FOUND");
   const to = ctx.body.role;
-  if (m.role === "owner" && to !== "owner") {
-    const [n] = await tx.query<{ n: bigint }>(
-      `SELECT count(*) AS n FROM memberships
-       WHERE company_id = $1 AND role = 'owner'`, [companyId]);
-    if ((n?.n ?? 0n) <= 1n) throw new ApiError("LAST_OWNER");
+  if (m.role === "owner" && to !== "owner" && owners.length <= 1) {
+    throw new ApiError("LAST_OWNER");
   }
   await tx.query("UPDATE memberships SET role = $3 WHERE company_id = $1 " +
     "AND user_id = $2", [companyId, target, to]);
@@ -165,8 +164,7 @@ async function changeRole(tx: Db, ctx: ReqCtx<RoleChange, unknown,
 async function changeUserRole(ctx: ReqCtx<RoleChange, unknown,
   { id: string }>) {
   const companyId = ctx.tenant!.companyId;
-  await withTenant(ctx.deps.db, { companyId, userId: ctx.user!.id },
-    (tx) => changeRole(tx, ctx, companyId));
+  await changeRole(ctx.tx, ctx, companyId);
   const list = await listUsers(ctx);
   return list.items.find((u) => u.userId === ctx.params.id);
 }

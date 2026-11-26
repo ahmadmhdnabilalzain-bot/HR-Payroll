@@ -42,6 +42,10 @@ export async function validate(
     Record<string, unknown>;
   const query = parse("query", def.query, c.req.query()) as
     Record<string, unknown>;
+  const wantsKey = def.headers?.shape["idempotency-key"] !== undefined;
+  if (wantsKey && (c.req.header("idempotency-key") ?? "") === "") {
+    throw new ApiError("IDEMPOTENCY_KEY_REQUIRED");
+  }
   const headers = parse("headers", def.headers, c.req.header()) as
     Record<string, unknown>;
   const body = def.body === undefined ? undefined

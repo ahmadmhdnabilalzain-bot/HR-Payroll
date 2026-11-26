@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { ApiErrorBody, ERROR_CODES } from "@payroll/contract";
-import { base32Decode, totpCode } from "../src/auth/totp";
 import {
   call,
+  enrolOnly,
   login,
   makeApp,
   PASSWORD,
@@ -20,16 +20,8 @@ function expectError(r: Res, status: number, code: string): void {
   expect(r.body.error.requestId).toBe(r.headers.get("x-request-id"));
 }
 
-async function enrolMfa(ctx: Ctx, token: string, clock: Clock) {
-  const e = await call(ctx.app, token, null, "POST", "/v1/auth/mfa/enrol");
-  expect(e.status, e.text).toBe(200);
-  const secret = base32Decode(e.body.secret);
-  const code = () => totpCode(secret, Math.floor(clock.now.getTime() / 1000));
-  const c = await call(ctx.app, token, null, "POST",
-    "/v1/auth/mfa/confirm", { code: code() });
-  expect(c.status, c.text).toBe(200);
-  return code;
-}
+const enrolMfa = (ctx: Ctx, token: string, clock: Clock) =>
+  enrolOnly(ctx.app, clock, token);
 
 describe("auth", () => {
   let ctx: Ctx;
@@ -113,8 +105,10 @@ describe("auth", () => {
   it("auth_mfa_enrol_confirm_then_login_with_totp", async () => {
     const a = await signup(ctx.app, "acme");
     const code = await enrolMfa(ctx, a.token, ctx.clock);
+    const me0 = await call(ctx.app, a.token, null, "GET", "/v1/me");
+    expect(me0.body.session.mfa).toBe(false);
     const again = await call(ctx.app, a.token, null, "POST",
-      "/v1/auth/mfa/enrol");
+      "/v1/auth/mfa/enrol", { password: PASSWORD });
     expectError(again, 409, "MFA_ALREADY_ENROLLED");
     ctx.clock.advance(60_000);
     const plain = await login(ctx.app, a.email, PASSWORD);
@@ -150,11 +144,39 @@ describe("auth", () => {
 
   it("auth_mfa_confirm_rejects_a_wrong_code", async () => {
     const a = await signup(ctx.app, "acme");
+    const body = { code: "123456", password: PASSWORD };
     expectError(await call(ctx.app, a.token, null, "POST",
-      "/v1/auth/mfa/confirm", { code: "123456" }), 409, "MFA_NOT_STARTED");
-    await call(ctx.app, a.token, null, "POST", "/v1/auth/mfa/enrol");
+      "/v1/auth/mfa/confirm", body), 409, "MFA_NOT_STARTED");
+    await call(ctx.app, a.token, null, "POST", "/v1/auth/mfa/enrol",
+      { password: PASSWORD });
     expectError(await call(ctx.app, a.token, null, "POST",
-      "/v1/auth/mfa/confirm", { code: "000000" }), 400, "MFA_CODE_INVALID");
+      "/v1/auth/mfa/confirm", { ...body, code: "000000" }), 400,
+      "MFA_CODE_INVALID");
+  });
+
+  it("auth_mfa_needs_the_password_and_revokes_other_sessions", async () => {
+    const a = await signup(ctx.app, "acme");
+    const other = await login(ctx.app, a.email, PASSWORD);
+    expectError(await call(ctx.app, a.token, null, "POST",
+      "/v1/auth/mfa/enrol", { password: "stolen token only" }), 401,
+      "INVALID_CREDENTIALS");
+    expect((await call(ctx.app, other.body.token, null, "GET", "/v1/me"))
+      .status).toBe(200);
+    await enrolOnly(ctx.app, ctx.clock, a.token);
+    expectError(await call(ctx.app, other.body.token, null, "GET",
+      "/v1/me"), 401, "UNAUTHENTICATED");
+    const me = await call(ctx.app, a.token, null, "GET", "/v1/me");
+    expect(me.body.session.mfa).toBe(false);
+  });
+
+  it("auth_mfa_password_guesses_count_toward_lockout", async () => {
+    const a = await signup(ctx.app, "acme");
+    for (let i = 0; i < 5; i++) {
+      await call(ctx.app, a.token, null, "POST", "/v1/auth/mfa/enrol",
+        { password: "wrong password!!" });
+    }
+    expectError(await call(ctx.app, a.token, null, "POST",
+      "/v1/auth/mfa/enrol", { password: PASSWORD }), 423, "ACCOUNT_LOCKED");
   });
 
   it("auth_role_forbidden", async () => {

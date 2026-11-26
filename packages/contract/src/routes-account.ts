@@ -11,6 +11,7 @@ import {
   LoginResponse,
   Me,
   MfaConfirmRequest,
+  MfaEnrolRequest,
   MfaEnrolResponse,
   RoleChange,
 } from "./user";
@@ -29,6 +30,7 @@ export const ACCOUNT_ROUTES: readonly RouteDef[] = [
     response: NoContent, status: 204 }),
   usr({ id: "getMe", method: "GET", path: "/v1/me", response: Me }),
   usr({ id: "enrolMfa", method: "POST", path: "/v1/auth/mfa/enrol",
+    body: MfaEnrolRequest,
     response: MfaEnrolResponse }),
   usr({ id: "confirmMfa", method: "POST", path: "/v1/auth/mfa/confirm",
     body: MfaConfirmRequest, response: Me }),

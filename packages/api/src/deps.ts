@@ -16,6 +16,9 @@ export interface AppDeps {
   passwordCost: { N: number };
 }
 
+/** What handlers get: everything but the raw database. */
+export type HandlerDeps = Omit<AppDeps, "db">;
+
 /** scrypt N for production (memory 128 * N * r = 32 MiB). */
 export const PRODUCTION_PASSWORD_COST = { N: 32768 };
 

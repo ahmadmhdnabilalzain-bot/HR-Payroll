@@ -105,7 +105,8 @@ describe("company and users", () => {
     const noMfa = await call(ctx.app, a.token, a.companyId, "PATCH", path,
       { role: "manager" });
     expect(noMfa.body.error.code).toBe("MFA_ENROLMENT_REQUIRED");
-    await enableMfa(ctx.app, ctx.clock, a.token);
+    const mfa = await enableMfa(ctx.app, ctx.clock, a);
+    a = { ...a, token: mfa.token };
     const ok = await call(ctx.app, a.token, a.companyId, "PATCH", path,
       { role: "manager" });
     expect(ok.status, ok.text).toBe(200);

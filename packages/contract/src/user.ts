@@ -66,8 +66,19 @@ export const MfaEnrolResponse = z.object({
 });
 export type MfaEnrolResponse = z.infer<typeof MfaEnrolResponse>;
 
+/** Enrolment needs the current password (a stolen token is not enough). */
+export const MfaEnrolRequest = z.object({
+  password: z.string().min(1).max(200),
+});
+export type MfaEnrolRequest = z.infer<typeof MfaEnrolRequest>;
+
+/**
+ * Confirming needs the password too. It does not make the current
+ * session an MFA session: sign in again with a code for that.
+ */
 export const MfaConfirmRequest = z.object({
   code: z.string().regex(/^\d{6}$/),
+  password: z.string().min(1).max(200),
 });
 export type MfaConfirmRequest = z.infer<typeof MfaConfirmRequest>;
 

@@ -1,5 +1,6 @@
 import type { Role, RouteDef } from "@payroll/contract";
-import { UUID, withTenant } from "../db/tenant";
+import type { Db } from "../db/db";
+import { withTenant } from "../db/tenant";
 import type { AppDeps } from "../deps";
 import { ApiError } from "../http/errors";
 import { userById, type UserRow } from "./accounts";
@@ -37,23 +38,18 @@ export async function authenticate(
 }
 
 /** The caller's membership in the company named by X-Company-Id. */
+/**
+ * The caller's membership in `companyId`, read in the request's own
+ * tenant transaction (so the check and the handler see one snapshot).
+ */
 export async function resolveTenant(
-  deps: AppDeps,
+  tx: Db,
   auth: Authed,
-  header: string | undefined,
+  companyId: string,
 ): Promise<Tenant> {
-  if (header === undefined || header === "") {
-    throw new ApiError("COMPANY_HEADER_REQUIRED");
-  }
-  if (!UUID.test(header)) {
-    throw new ApiError("VALIDATION_FAILED", undefined,
-      { fields: ["headers.x-company-id"] });
-  }
-  const companyId = header.toLowerCase();
-  const [m] = await withTenant(deps.db, { companyId, userId: auth.user.id },
-    (tx) => tx.query<{ role: Role; employee_id: string | null }>(
-      `SELECT role, employee_id FROM memberships
-       WHERE company_id = $1 AND user_id = $2`, [companyId, auth.user.id]));
+  const [m] = await tx.query<{ role: Role; employee_id: string | null }>(
+    `SELECT role, employee_id FROM memberships
+     WHERE company_id = $1 AND user_id = $2`, [companyId, auth.user.id]);
   if (m === undefined) throw new ApiError("TENANT_FORBIDDEN");
   return { companyId, role: m.role, employeeId: m.employee_id };
 }

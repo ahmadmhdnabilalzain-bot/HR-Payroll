@@ -35,6 +35,20 @@ describe("one place for transactions and adapters", () => {
     expect(ADAPTER.test('import { x } from "../db/pglite";')).toBe(true);
     expect(ADAPTER.test('import { x } from "../db/tenant";')).toBe(false);
   });
+  it("handlers never touch the raw db or open a tenant", () => {
+    // Only the request plumbing and the session lookup reach deps.db;
+    // handlers get ctx.tx (one withTenant per request) or ctx.enter.
+    const allowed = new Set(["http/context.ts", "auth/guard.ts",
+      "main.ts", "app.ts", "deps.ts"]);
+    const raw = /\bdeps\.db\b|\.db\.(query|exec|transaction)\(|withTenant\(/;
+    expect(raw.test("ctx.deps.db.query('x')")).toBe(true);
+    expect(raw.test("withTenant(db, t, fn)")).toBe(true);
+    expect(raw.test("ctx.tx.query('x')")).toBe(false);
+    for (const f of outsideDb) {
+      if (allowed.has(f.rel)) continue;
+      expect(raw.test(f.text), f.rel).toBe(false);
+    }
+  });
   it("only main.ts imports an adapter, and only pg", () => {
     for (const f of outsideDb) {
       const m = ADAPTER.exec(f.text);
