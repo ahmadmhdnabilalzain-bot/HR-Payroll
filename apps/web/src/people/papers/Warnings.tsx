@@ -8,6 +8,7 @@ import s from "./papers.module.css";
 import { Stack, Status } from "./Status";
 import { usePapers, type Papers } from "./usePapers";
 import { VERB, WARNING_STATUS } from "./words";
+import { signTab } from "../esign/Sign";
 
 const LIST = hrefOf("people", "papers", "warnings");
 
@@ -97,6 +98,7 @@ export function WarningRecord(props: { id: string }) {
           </div>) },
         { id: "history", label: "History",
           render: () => <History items={historyOf(p, w)} /> },
+        signTab(`warning:${w.id}`),
       ]} />
   );
 }

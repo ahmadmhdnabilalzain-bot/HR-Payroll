@@ -7,6 +7,7 @@ import { TeamReviews } from "../home/extra/TeamReviews";
 import { MyTimeCard } from "../time/extra/MyTimeCard";
 import { ReportIncident } from "../time/finish/ReportIncident";
 import { MyDocuments } from "./MyDocuments";
+import { MySign } from "../people/esign/Esign";
 import { MyLeave, MyRequests } from "./MyLeave";
 import { MyPayslips } from "./MyPayslips";
 import { MyProfile } from "./MyProfile";
@@ -20,6 +21,7 @@ export function Me(p: ViewProps) {
   if (MORE_PAGES.includes(p.rest[0] ?? "")) return <MeMore {...p} />;
   switch (p.rest[0]) {
     case "documents": return <MyDocuments />;
+    case "sign": return <MySign />;
     case "leave": return <MyLeave />;
     case "requests": return <MyRequests />;
     case "profile": return <MyProfile />;

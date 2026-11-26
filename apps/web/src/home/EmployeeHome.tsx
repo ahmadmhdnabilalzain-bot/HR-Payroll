@@ -12,6 +12,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { Inbox } from "./inbox/Inbox";
+import { ToSignCard } from "../people/esign/ToSignCard";
 import { LeaveForm } from "./LeaveForm";
 import { RequestList } from "./RequestList";
 import s from "./Self.module.css";
@@ -68,6 +69,7 @@ export function EmployeeHome() {
           )}
         </section>
       </div>
+      <ToSignCard />
       {asking && <LeaveForm employeeId={me} onDone={() => setAsking(false)} />}
       <RequestList title={t("home.myRequests")} rows={mine}
         empty={t("timeoff.requestsEmpty")} />

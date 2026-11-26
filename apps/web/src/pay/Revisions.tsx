@@ -28,6 +28,7 @@ import {
 import type { PayRequest } from "./pay-state";
 import s from "./pay.module.css";
 import type { RevisionView } from "./types";
+import { signTab } from "../people/esign/Sign";
 
 const LIST = hrefOf("pay-run", "revisions");
 
@@ -208,7 +209,7 @@ function RevisionPage(p: { r: RevisionView }) {
             </ExplainLink>
           )}
         </div>
-      ) }]} />
+      ) }, signTab(`revision:${r.id}`)]} />
   );
 }
 

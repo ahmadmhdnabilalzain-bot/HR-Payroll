@@ -12,6 +12,7 @@ import { Letter } from "./Letter";
 import { Missing } from "./Missing";
 import { offerNow, OFFER_SHORT, OFFER_WORD, stepWho, useActor, type OfferNow,
   type Tone } from "./view";
+import { signTab } from "../esign/Sign";
 
 const TONE: Record<OfferNow, Tone> = { draft: "neutral", waiting: "warn",
   sent: "info", accepted: "ok", declined: "neutral" };
@@ -152,6 +153,6 @@ function OfferRecord(p: { id: string }) {
             ...(step === undefined ? [] : [{ label: "Next step",
               value: `${OFFER_WORD[now]}, by ${stepWho(data, step)}` }]),
             { label: "Note", value: o.note }]} />
-        ) }]} />
+        ) }, signTab(`offer:${o.id}`)]} />
   );
 }

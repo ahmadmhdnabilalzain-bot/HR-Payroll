@@ -22,6 +22,7 @@ import { adaptFinish } from "./finish";
 import { adaptPapers } from "./papers";
 import { adaptMore } from "./more";
 import { adaptVerify } from "./verify";
+import { adaptEsign } from "./esign";
 import { adaptMoves } from "./moves";
 import { adaptHome } from "./home";
 import { adaptPeople } from "./people";
@@ -128,6 +129,7 @@ export function adapt(c: DemoCompany): DemoData {
     more: adaptMore(c),
     verify: adaptVerify(c),
     finish: adaptFinish(c),
+    esign: adaptEsign(c),
   };
 }
 

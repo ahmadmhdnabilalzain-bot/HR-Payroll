@@ -9,6 +9,7 @@ import { dayText } from "../words";
 import { Dot } from "./Dot";
 import { useActor } from "./view";
 import s from "./moves.module.css";
+import { SignBlock } from "../esign/Sign";
 
 /** The facts of one resignation, as a key-value grid. */
 export function EndingDetails(p: { end: EmploymentEndView }) {
@@ -16,6 +17,7 @@ export function EndingDetails(p: { end: EmploymentEndView }) {
   const e = p.end;
   const by = data.people.person(e.acceptedBy.employeeId);
   return (
+    <>
     <KeyValues items={[
       { label: "Resignation received", value: e.submittedOn.display },
       { label: "Last working day", value: e.lastWorkingDay.display },
@@ -23,6 +25,8 @@ export function EndingDetails(p: { end: EmploymentEndView }) {
       { label: "Accepted by", value: `${e.acceptedBy.name}, ` +
         `${by?.role.en ?? ""}, ${e.acceptedBy.on.display}` },
       { label: "Reason given", value: e.reason }]} />
+    <SignBlock docId={`resign:${e.employeeId}`} level={2} />
+    </>
   );
 }
 

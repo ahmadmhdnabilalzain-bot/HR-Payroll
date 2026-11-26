@@ -16,6 +16,7 @@ import {
   RecordTabs,
 } from "../../ui/templates";
 import { M } from "./words";
+import { signTab } from "../../people/esign/Sign";
 
 const W = M.encash;
 const LIST = hrefOf("time-off", "more", "encash");
@@ -190,6 +191,7 @@ function EncashRecord(p: { row: AskRow }) {
                 : String(person.availableDays - halves / 2) }]} />
             <p className={f.hint}>{data.files.leave.encashNote}</p>
           </div>) },
+        signTab(`encash:${row.id}`),
       ]} />
   );
 }

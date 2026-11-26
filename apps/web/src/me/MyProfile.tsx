@@ -7,6 +7,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { countryName } from "../people/words";
 import b from "../ui/button.module.css";
 import { KeyValues, RecordTabs } from "../ui/templates";
+import { signTab } from "../people/esign/Sign";
 
 /** E06: the viewer's own record (RT): details, and pay with the slip. */
 export function MyProfile() {
@@ -48,6 +49,6 @@ export function MyProfile() {
               href={hrefOf("people", me, "payslip")}>
               {t("me.openPayslip")}
             </a>
-          </>) }]} />
+          </>) }, signTab(`bank:${me}`, `privacy:${me}`)]} />
   );
 }

@@ -18,6 +18,7 @@ import s from "./papers.module.css";
 import { Stack, Status } from "./Status";
 import { usePapers, type Papers } from "./usePapers";
 import { LETTER_KIND, LETTER_KINDS, LETTER_STATUS, VERB } from "./words";
+import { signTab } from "../esign/Sign";
 
 const LIST = hrefOf("people", "papers", "letters");
 
@@ -212,6 +213,7 @@ export function LetterRecord(props: { id: string }) {
         ]} />) },
       { id: "history", label: "History",
         render: () => <History items={historyOf(p, l)} /> },
+      signTab(`letter:${l.id}`),
     ]} />
   );
 }

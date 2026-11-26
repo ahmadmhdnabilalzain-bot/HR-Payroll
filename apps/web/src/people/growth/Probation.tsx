@@ -11,6 +11,7 @@ import { fill } from "../team/words";
 import { decideByExplanation } from "./probation-explain";
 import { G } from "./words";
 import s from "../team/team.module.css";
+import { SignLink } from "../esign/Sign";
 
 const SCORE_KEYS = ["attendance", "quality", "teamwork", "learning"] as const;
 
@@ -89,6 +90,7 @@ export function Probation() {
               <span className={s.name}>
                 <Status tone={st.tone}>{st.word}</Status>
                 <span className={s.sub}>{st.sub}</span>
+                <SignLink docId={`probation:${x.employeeId}`} />
               </span>);
           } },
           { key: "d", label: g.decision, render: (x) => x.status ===
