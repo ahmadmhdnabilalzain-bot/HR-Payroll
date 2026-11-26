@@ -1,5 +1,6 @@
 import { routeById } from "@payroll/contract";
 import { base32Decode, totpCode } from "../../src/auth/totp";
+import { channelFlow } from "./api-flow-channels";
 import { salaryOf } from "./seed";
 import { call, makeApp, PASSWORD, type Res } from "./test-app";
 
@@ -23,7 +24,7 @@ export function recorder(ctx: Ctx, hits: Hit[]) {
   };
 }
 
-type Hitter = ReturnType<typeof recorder>;
+export type Hitter = ReturnType<typeof recorder>;
 
 async function mfaToken(ctx: Ctx, hit: Hitter, token: string,
   email: string): Promise<string> {
@@ -71,6 +72,8 @@ export async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
   await leave(hit, owner, e.body.token, c, emp);
   await attendance(hit, owner, e.body.token, c);
   await payroll(hit, owner, owner2, e.body.token, c);
+  await channelFlow(ctx, hit, { owner, owner2, emp: e.body.token,
+    empId: emp, company: c });
   await hit("listAuditEvents", owner, c, {}, undefined,
     { query: "?limit=10" });
   await hit("verifyAuditChain", owner, c);

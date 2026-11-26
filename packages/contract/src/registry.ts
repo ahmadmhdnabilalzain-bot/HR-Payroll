@@ -5,6 +5,7 @@ import * as company from "./company";
 import * as department from "./department";
 import * as employee from "./employee";
 import { ApiErrorBody } from "./errors";
+import { CHANNEL_SCHEMAS } from "./registry-channels";
 import { EXPENSE_SCHEMAS } from "./registry-expenses";
 import * as leave from "./leave";
 import * as lists from "./lists";
@@ -40,6 +41,7 @@ export const SCHEMAS: Readonly<Record<string, z.ZodType>> = {
   ...pick(audit, ["AuditEvent", "AuditVerifyResult", "AuditEventPage"]),
   ...pick(lists, Object.keys(lists)),
   ...EXPENSE_SCHEMAS,
+  ...CHANNEL_SCHEMAS,
 };
 
 function pick(

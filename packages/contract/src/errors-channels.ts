@@ -1,0 +1,11 @@
+/**
+ * Plan 13 (channels and integrations). TEMPLATE_VAR_MISSING and
+ * TEMPLATE_VAR_FORBIDDEN are internal (never in a response).
+ */
+export const CHANNEL_ERROR_STATUS = {
+  SETTINGS_VERSION_CONFLICT: 409,
+  CHANNEL_NOT_CONFIGURED: 409,
+  RATE_LIMITED: 429,
+  INBOUND_PAYLOAD_INVALID: 403,
+  SSO_NOT_CONFIGURED: 409,
+} as const;

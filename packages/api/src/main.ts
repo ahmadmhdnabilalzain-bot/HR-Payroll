@@ -7,6 +7,7 @@
  */
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
+import { buildChannelPorts } from "./channels/wire";
 import { loadConfig, type Config } from "./config";
 import { MIGRATIONS_DIR, migrate } from "./db/migrate";
 import { openPg } from "./db/pg";
@@ -32,7 +33,8 @@ async function main(argv: string[]): Promise<void> {
   const db = await openPg(cfg.databaseUrl);
   await assertRuntimeRole(db);
   const blobs = fsBlobStore(cfg.receiptsDir);
-  const app = createApp(systemDeps(db, cfg.masterKey, blobs));
+  const app = createApp(systemDeps(db, cfg.masterKey, blobs,
+    buildChannelPorts(cfg)));
   serve({ fetch: app.fetch, port: cfg.port });
   process.stdout.write(`${JSON.stringify({ event: "listening",
     port: cfg.port })}\n`);

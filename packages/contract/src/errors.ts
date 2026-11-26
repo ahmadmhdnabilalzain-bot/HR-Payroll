@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CHANNEL_ERROR_STATUS } from "./errors-channels";
 
 /**
  * Plan 6 (approvals, receipts, expenses). Claim problem codes
@@ -89,6 +90,7 @@ export const ERROR_STATUS = {
   ACCOUNT_LOCKED: 423,
   INTERNAL: 500,
   ...EXPENSE_ERROR_STATUS,
+  ...CHANNEL_ERROR_STATUS,
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_STATUS;

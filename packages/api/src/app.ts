@@ -14,7 +14,13 @@ import { registerPayRunRoutes } from "./routes/pay-runs";
 import { registerSifRoutes } from "./routes/sif";
 import { registerAuditRoutes } from "./routes/audit";
 import { registerUserRoutes } from "./routes/users";
-import { registerExpenseApp, type ExpenseAppOpts } from "./expense-app";
+import {
+  DEFAULT_SUBJECTS,
+  registerExpenseApp,
+  type ExpenseAppOpts,
+} from "./expense-app";
+import { handlerMap } from "./approvals/subjects";
+import { registerChannelApp } from "./channel-app";
 
 function internalLine(err: unknown): Record<string, unknown> {
   const e = err as { name?: unknown; code?: unknown };
@@ -66,5 +72,7 @@ export function createApp(deps: AppDeps, opts: ExpenseAppOpts = {}): App {
   registerSifRoutes(app, deps);
   registerAuditRoutes(app, deps);
   registerExpenseApp(app, deps, opts);
+  registerChannelApp(app, deps,
+    handlerMap(opts.subjects ?? DEFAULT_SUBJECTS));
   return app;
 }

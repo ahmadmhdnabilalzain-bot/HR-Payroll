@@ -17,6 +17,7 @@ export * from "./receipts";
 export * from "./expense-policy";
 export * from "./expenses";
 export * from "./expense-reports";
+export * from "./channel-settings";
 export * from "./lists";
 export * from "./routes";
 export { ALL_ROLES, DECIDERS, OWNER, PAYROLL } from "./route-def";

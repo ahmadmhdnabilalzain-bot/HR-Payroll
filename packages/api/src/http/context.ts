@@ -49,6 +49,10 @@ export interface ReqCtx<B = any, Q = any, P = any, H = any> {
   query: Q;
   body: B;
   headers: H;
+  /** The request text, for `rawBody` routes (signed webhooks). */
+  rawBody?: string | undefined;
+  /** Any request header by lower-case name (signature, Basic auth). */
+  rawHeader?: (name: string) => string | undefined;
 }
 
 /** Overrides the route's declared success status (e.g. a 200 replay). */
@@ -135,16 +139,19 @@ export function register(app: App, deps: AppDeps, routeId: string,
 
 function base(c: Context<Env>, deps: AppDeps, v: Validated) {
   const { db: _db, ...handlerDeps } = deps;
-  return { deps: handlerDeps, requestId: c.get("requestId"), ...v };
+  return { deps: handlerDeps, requestId: c.get("requestId"), ...v,
+    rawHeader: (name: string) => c.req.header(name) };
 }
 
 async function run(c: Context<Env>, def: RouteDef, deps: AppDeps,
   handler: Handler): Promise<unknown> {
   if (def.auth === "public") {
+    // Read once: Hono caches it, so the JSON parse below reuses it.
+    const rawBody = def.rawBody ? await c.req.text() : undefined;
     const v = await validate(c, def);
     const enter: Enter = (t, fn) => withTenant(deps.db, t, fn);
     return handler({ ...base(c, deps, v), user: null, session: null,
-      tenant: null, tx: NO_TX, enter });
+      tenant: null, tx: NO_TX, enter, rawBody });
   }
   const auth = await authenticate(deps, c.req.header("authorization"));
   c.set("userId", auth.user.id);

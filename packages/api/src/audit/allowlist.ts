@@ -1,4 +1,5 @@
 import { CodedError } from "../coded-error";
+import { CHANNEL_AUDIT_CHECKS } from "./allowlist-channels";
 import { EXPENSE_AUDIT_CHECKS } from "./allowlist-expenses";
 
 /**
@@ -59,6 +60,7 @@ const CHECKS: Record<string, Check> = {
   newClockIn: matches(TIME),
   newClockOut: matches(TIME),
   ...EXPENSE_AUDIT_CHECKS,
+  ...CHANNEL_AUDIT_CHECKS,
 };
 
 export const AUDIT_KEYS = Object.keys(CHECKS);

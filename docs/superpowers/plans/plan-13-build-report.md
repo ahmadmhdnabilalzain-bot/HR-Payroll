@@ -1,0 +1,69 @@
+# Plan 13 build report (channels and integrations)
+
+Date: 2026-11-26. Branch `api-plan-13`, worktree
+`/home/user/HR-Payroll/.claude/worktrees/agent-a59589f188e1476fc`.
+Nothing is pushed.
+
+## Setup and merge resolutions
+
+- `git reset --hard deffc89`, then merged
+  `origin/claude/quirky-wozniak-b7xkvr` (backend review fixes). The
+  merge commit is the first commit on the branch.
+- Conflicts were resolved by keeping both sides:
+  - `contract/src/payroll.ts`: `PayRun` keeps Plan 6's
+    `reimbursementTotal`, `claimCount`, `pendingClaimCount` and the
+    review's `changedSinceLastRun`.
+  - `api/src/payroll/compute.ts`: reimbursements are applied, then the
+    review's wire-cap check (`capProblems`) runs. No new cap was
+    invented (a `net` cap tried during the merge was removed again).
+  - `api/src/payroll/pay-runs.ts`: the insert stores both the claim
+    columns and `changes`; the keyed `snapshotHash(snap, mac)` is used
+    with Plan 6's claim source; audit data is the review's flat
+    `year`/`month`; Plan 6's `linkClaims`, `markReimbursed` and
+    `releaseClaims` are kept; `RUN_EMPTY` is kept.
+  - `api/src/payroll/snapshot.ts`: the review's employee share lock and
+    unreadable-field problems plus Plan 6's claim source. The employee
+    loop moved to `snapshotEmployees` to keep functions under 30 lines.
+  - `api/src/people/employees.ts`: the sealed column union holds both
+    sides' columns.
+  - Tests: `conformance.test.ts` uses the review's `api-flow` helper
+    with Plan 6's `PLAN6_PENDING` filter; `pg.integration.test.ts`
+    (new from the review) gets the same filter; `reimburse.test.ts`
+    adds the bank and labour id the review made required;
+    `reimbursed-once.test.ts` adds `serviceUnpaidLeaveDays: 0`, which
+    the review made required for leavers.
+  - Web (`apps/web`): the review's `ErrorDetail` and problem decoding,
+    plus Plan 6's claim fields on mock pay runs.
+- `pnpm-lock.yaml` needed no change (`pnpm install` was clean).
+
+## Baseline failures (present before Plan 13, left alone)
+
+- `apps/web` `tests/unit/i18n.test.ts` `every-error-code-has-text`
+  fails on 19 Plan 6 error codes with no English text. Plan 13 adds
+  codes too (listed under Concerns); web is not in this plan's scope.
+- `pnpm ops:typecheck` fails: `deploy/serve.ts` calls `systemDeps`
+  with two arguments, but Plan 6 added a third (`blobs`). Plan 13
+  adds an optional fourth (`channels`) and does not touch `deploy/`.
+
+## Status
+
+In progress (updated after each task).
+
+## Task log
+
+### Task 1: channel platform, ports, settings
+
+- Contract: `ROUTE_GROUPS` created in `routes.ts` (no plan had made it
+  yet); `ROUTES = ROUTE_GROUPS.flat()`; `CHANNEL_ROUTES` is the last
+  group. Shared files get one import and one spread line each
+  (`errors-channels.ts`, `registry-channels.ts`,
+  `examples-channels.ts`).
+- `routes.test.ts`: the route count became "the Plan 3 and Plan 6 ids
+  are all present" (literal id lists in `tests/route-ids.ts`); the
+  public, MFA, owner-only, text/plain and binary checks became subset
+  checks that ignore channel routes (`PUBLIC_CHANNEL_IDS` literal).
+- `migrate.ts` accepts `^(\d{3,4})_` and sorts numerically (it took
+  only three digits and sorted as text, so `1301_` would have run
+  before `601_`); test `migrate_numeric_order`.
+- `INBOUND_PAYLOAD_INVALID` and `SSO_NOT_CONFIGURED` were added in
+  Task 1 (the not-configured ports throw them).

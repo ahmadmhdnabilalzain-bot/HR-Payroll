@@ -1,3 +1,9 @@
+import {
+  httpsUrl,
+  loadChannelConfig,
+  type ChannelConfig,
+} from "./config-channels";
+
 export interface Config {
   /** Runtime login role: no superuser, no BYPASSRLS, owns no table. */
   databaseUrl: string;
@@ -7,6 +13,10 @@ export interface Config {
   port: number;
   /** Directory for encrypted receipt files (local-disk blob store). */
   receiptsDir: string;
+  /** Plan 13 provider groups (null: not configured). */
+  channels: ChannelConfig;
+  publicApiBaseUrl: string | null;
+  publicAppBaseUrl: string | null;
 }
 
 const KEY_MESSAGE = "PAYROLL_MASTER_KEY must be 32 bytes base64";
@@ -35,5 +45,7 @@ export function loadConfig(env: Record<string, string | undefined>)
     throw new Error("RECEIPTS_DIR is required");
   }
   return { databaseUrl, migrateUrl: env.MIGRATE_DATABASE_URL ?? databaseUrl,
-    masterKey: key, port, receiptsDir };
+    masterKey: key, port, receiptsDir, channels: loadChannelConfig(env),
+    publicApiBaseUrl: httpsUrl(env, "PUBLIC_API_BASE_URL"),
+    publicAppBaseUrl: httpsUrl(env, "PUBLIC_APP_BASE_URL") };
 }

@@ -5,11 +5,17 @@ import type { HandlerDeps as AppDeps } from "../deps";
 /** Absolute lifetime from sign-in; no sliding renewal. */
 export const SESSION_MS = 8 * 3600 * 1000;
 
+/** How a request reached a handler (absent means the web app). */
+export type Via = "web" | "whatsapp" | "email-in" | "job" | "api-key";
+
 export interface Session {
   tokenHash: string;
   userId: string;
   mfa: boolean;
   expiresAt: string;
+  via?: Via;
+  /** "password", "sso:<provider>" or "api-key" (Tasks 7 and 9). */
+  authMethod?: string;
 }
 
 /** 32 random bytes, base64url. Only the SHA-256 is ever stored. */

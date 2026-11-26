@@ -48,6 +48,7 @@ const ID_KIND: Record<string, Kind> = {
   getPayRun: "payRun", listPayRunPayslips: "payRun",
   getSifFile: "sifFile", downloadSifFile: "sifFile",
   listAuditEvents: null, verifyAuditChain: null,
+  getChannelSettings: null,
 };
 
 /** Query strings a route needs. */

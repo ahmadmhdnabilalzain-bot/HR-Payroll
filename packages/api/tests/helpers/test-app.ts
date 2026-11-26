@@ -10,6 +10,7 @@ import type { ReceiptReader } from "../../src/receipts/reader";
 import { nullReceiptReader } from "../../src/receipts/reader";
 import { memoryBlobStore } from "../../src/storage/blob";
 import { createTestDb } from "./test-db";
+import { fakeChannels, type FakeChannels } from "./fake-channels";
 
 export const TEST_KEK = new Uint8Array(32).fill(7);
 export const PASSWORD = "correct horse battery staple";
@@ -30,6 +31,8 @@ export interface MakeAppOpts {
   subjects?: SubjectHandler[];
   /** Receipt reader (default: the null reader). */
   reader?: ReceiptReader;
+  /** Channel fakes (default: every provider configured). */
+  channels?: FakeChannels;
 }
 
 export async function makeApp(opts: MakeAppOpts = {}) {
@@ -42,6 +45,7 @@ export async function makeApp(opts: MakeAppOpts = {}) {
   let n = 0x1000;
   const logs: Record<string, unknown>[] = [];
   const rand = (k: number) => new Uint8Array(randomBytes(k));
+  const fakes = opts.channels ?? fakeChannels();
   const deps: AppDeps = {
     db: opts.db ?? await createTestDb(),
     now: () => clock.now,
@@ -52,10 +56,11 @@ export async function makeApp(opts: MakeAppOpts = {}) {
     passwordCost: { N: 1024 },
     blobs: memoryBlobStore(),
     receiptReader: opts.reader ?? nullReceiptReader,
+    channels: fakes.ports,
   };
   const app = createApp(deps, opts.subjects === undefined ? {}
     : { subjects: opts.subjects });
-  return { app, deps, clock, logs };
+  return { app, deps, clock, logs, fakes };
 }
 
 export interface Res {

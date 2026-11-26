@@ -1,4 +1,6 @@
 import { randomBytes as nodeRandomBytes, randomUUID } from "node:crypto";
+import { notConfiguredPorts } from "./channels/not-configured";
+import type { ChannelPorts } from "./channels/ports";
 import { keyringFromKey, type Keyring } from "./crypto/keyring";
 import type { Db } from "./db/db";
 import { nullReceiptReader, type ReceiptReader } from "./receipts/reader";
@@ -20,6 +22,8 @@ export interface AppDeps {
   blobs: BlobStore;
   /** OCR port (suggestions only). */
   receiptReader: ReceiptReader;
+  /** Plan 13: email, WhatsApp, inbound mail, OIDC, HTTP and DNS. */
+  channels: ChannelPorts;
 }
 
 /** What handlers get: everything but the raw database. */
@@ -29,8 +33,8 @@ export type HandlerDeps = Omit<AppDeps, "db">;
 export const PRODUCTION_PASSWORD_COST = { N: 65536 };
 
 /** The real clock, ids, randomness and stdout JSON log. */
-export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore)
-  : AppDeps {
+export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore,
+  channels?: ChannelPorts): AppDeps {
   const randomBytes = (n: number) => new Uint8Array(nodeRandomBytes(n));
   return {
     db,
@@ -42,5 +46,7 @@ export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore)
     passwordCost: PRODUCTION_PASSWORD_COST,
     blobs,
     receiptReader: nullReceiptReader,
+    channels: channels ?? notConfiguredPorts({ publicApiBaseUrl: null,
+      publicAppBaseUrl: null }),
   };
 }
