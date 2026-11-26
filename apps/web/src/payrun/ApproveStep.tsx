@@ -6,7 +6,10 @@ import { formatDate, formatTime } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
-import { SignStamp } from "../ui/SignStamp";
+import { ScriptSignature, SignStamp } from "../ui/SignStamp";
+import { useRef } from "react";
+import { useHeightTween } from "../ui/heightTween";
+import { ReleaseStatus } from "./ReleaseStatus";
 import b from "../ui/button.module.css";
 import {
   decisionTime,
@@ -51,6 +54,11 @@ export function ApproveStep(p: { go: Go }) {
     a.decide(v);
   };
   const waiting = verdict === undefined;
+  const fresh = at !== null && nowMs() - at < 2000;
+  // The card loses "Send back" and the reason as the run is signed:
+  // its height eases (250 ms) rather than jumping.
+  const box = useRef<HTMLDivElement>(null);
+  useHeightTween(box, verdict);
   const blocked = a.blockedBy.length > 0;
   // Why Approve, or Continue to Pay, cannot be pressed yet, in words.
   const reason = !waiting ? null
@@ -96,8 +104,9 @@ export function ApproveStep(p: { go: Go }) {
               <SignStamp className={s.stamp} seal={false}
                 label={t("payrun.chainRecorded")}
                 name={checker.name[lang]} role={checker.role[lang]}
-                when={decidedAt}
-                fresh={at !== null && nowMs() - at < 2000} />
+                when={decidedAt} fresh={fresh}>
+                <ScriptSignature name={checker.name[lang]} />
+              </SignStamp>
             ) : (
               <div className={s.chainText}>
                 <p className={s.chainLabel}>
@@ -114,8 +123,12 @@ export function ApproveStep(p: { go: Go }) {
           </li>
         </ol>
 
-        <div className={s.approveBox}>
-          <h3 className={s.blockTitle}>{t("payrun.whatYouApprove")}</h3>
+        <div ref={box} className={s.approveBox}>
+          <div className={s.approveHead}>
+            <h3 className={s.blockTitle}>{t("payrun.whatYouApprove")}</h3>
+            <ReleaseStatus released={verdict === "approve"}
+              fresh={verdict === "approve" && fresh} />
+          </div>
           <dl className={s.approveFigures}>
             <div>
               <dt>{t("payrun.netTo", { count: h.headcount })}</dt>

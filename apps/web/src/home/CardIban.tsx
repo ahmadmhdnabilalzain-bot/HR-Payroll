@@ -1,28 +1,15 @@
-import { fils } from "@payroll/engine";
 import { useLayoutEffect, useRef } from "react";
 import type { Issue } from "../demo/data/types";
 import { reducedMotion } from "../demo/motion";
 import { useDemo } from "../demo/state";
-import { formatMoney } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { IbanForm } from "./IbanForm";
-import { fly, LAND_FADE_MS } from "../ui/flight";
+import { useIbanFlight } from "./useIbanFlight";
 import { useSaveIban } from "./useSaveIban";
 import s from "./PayRunHero.module.css";
 
 /** The form fades out while the amount travels. */
 const FADE_MS = 160;
-
-/**
- * Whether the target's centre is on screen and not under anything (the
- * phone's tab bar): a chip landing out of sight would tell nothing.
- */
-function inView(el: Element): boolean {
-  const r = el.getBoundingClientRect();
-  const hit = document.elementFromPoint(r.left + r.width / 2,
-    r.top + r.height / 2);
-  return hit !== null && el.contains(hit);
-}
 
 /**
  * Bank details entered in the top card itself, so nothing scrolls.
@@ -37,8 +24,9 @@ function inView(el: Element): boolean {
  */
 export function CardIban(p: { issue: Issue; onDone(): void }) {
   const { lang } = useLocale();
-  const { source, data, state } = useDemo();
+  const { data } = useDemo();
   const save = useSaveIban();
+  const flight = useIbanFlight();
   const box = useRef<HTMLDivElement>(null);
   const id = p.issue.employeeId ?? "";
   const name = data.employee(id).name[lang];
@@ -58,29 +46,13 @@ export function CardIban(p: { issue: Issue; onDone(): void }) {
       p.onDone();
     };
     const el = box.current;
-    const card = el?.closest<HTMLElement>("[data-card]") ?? null;
-    if (el === null || card === null || reducedMotion()) return finish();
-    const delta = source.at({ ...state.ibans, [id]: value }).headline()
-      .sifTotalFils - data.headline().sifTotalFils;
-    const from = el.querySelector("input")?.getBoundingClientRect();
-    const to = card.querySelector("[data-fly-target] dd") ?? undefined;
+    if (el === null || reducedMotion()) return finish();
     el.animate([{ opacity: 1 }, { opacity: 0 }],
       { duration: FADE_MS, easing: "ease-out", fill: "forwards" });
-    if (delta <= 0n || from === undefined || to === undefined ||
-      state.hideAmounts || !inView(to)) {
-      setTimeout(finish, FADE_MS);
-      return;
-    }
-    // The chip leaves the IBAN row and lands on the file total
-    // (ui/flight: 420 ms spring), fades into it (160 ms), and only then
-    // is the IBAN saved and the total rolls: the save's re-check runs
-    // once the chip has gone, so a busy main thread can never hold the
-    // chip over the figure.
-    const chip = document.createElement("span");
-    chip.className = s.flyer ?? "";
-    chip.textContent = `+${formatMoney(fils(delta), lang)}`;
-    fly({ from, to, content: chip,
-      onLand: () => setTimeout(finish, LAND_FADE_MS) });
+    // Saved: the fading form takes no more input while the chip flies.
+    el.inert = true;
+    flight({ from: el.querySelector("input"), id, value, finish,
+      wait: FADE_MS });
   };
   return (
     <div ref={box} className={s.cardIban}>

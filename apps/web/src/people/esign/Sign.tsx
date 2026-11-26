@@ -4,7 +4,7 @@ import { undoable } from "../../demo/esign-state";
 import { hrefOf } from "../../demo/route";
 import { useDemo, type Role } from "../../demo/state";
 import b from "../../ui/button.module.css";
-import { SignStamp } from "../../ui/SignStamp";
+import { justSigned, markSigned, SignStamp } from "../../ui/SignStamp";
 import { Sheet, type RecordTab } from "../../ui/templates";
 import t from "../../ui/templates/templates.module.css";
 import { usePresence } from "../../ui/presence";
@@ -67,15 +67,17 @@ export function Stamp(p: { mark: EsignMark; fingerprint: string;
   return (
     <SignStamp className={s.stamp} label={signed ? E.signed : E.declined}
       name={m.name} role={m.role} seal={signed} declined={!signed}
+      fresh={justSigned(m.ref)}
       when={`${m.on.display}, ${m.time} · ${E.method(m.method)}`}>
       {signed && (m.path !== null ? (
-        <svg className={s.drawn} viewBox="0 0 300 120" role="img"
+        <svg className={s.drawn} viewBox="0 0 300 120" role="img" data-sig=""
           aria-label={`${E.method("drawn")}: ${m.name}`}>
           <path d={m.path} fill="none" stroke="currentColor"
             strokeWidth="2.5" strokeLinecap="round"
             strokeLinejoin="round" />
         </svg>) : (
-        <span className={s.script} data-style={p.style}>{m.typed}</span>))}
+        <span className={s.script} data-style={p.style} data-sig="">
+          {m.typed}</span>))}
       {m.reason !== null && (
         <span className={s.line}>{E.reason}: {m.reason}</span>)}
       <span className={s.muted}>{E.reference} {m.ref}</span>
@@ -276,6 +278,8 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
   const listed = row.doc.signers.some((x) => x.personId === who.by);
   const style = world.profiles.find((x) => x.key === who.by)?.style;
   const finish = (verdict: "signed" | "declined"): void => {
+    // The stamp the signature makes lands once, wherever it shows.
+    markSigned(data.esign.ref(row.doc.id, next!.order));
     dispatch({ type: "esign", entry: { kind: "sign", docId: row.doc.id,
       order: next!.order, verdict, method, typed: typed.trim() || who.name,
       path: method === "drawn" && verdict === "signed" ? path : null,

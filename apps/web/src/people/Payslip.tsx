@@ -16,6 +16,8 @@ import { PageHead } from "../ui/templates";
 import { dayText, lineLabel } from "./words";
 import p from "./page.module.css";
 import s from "./Payslip.module.css";
+import dp from "../ui/depth.module.css";
+import { useFirstReveal } from "../ui/firstReveal";
 
 /** Lines whose figure is worked out, not copied from the contract. */
 const DERIVED = new Set(["overtime", "rest-day", "holiday",
@@ -217,12 +219,12 @@ function Total(q: { slip: PayslipView; traceId: string; label: string;
 }
 
 /** Net pay first, as the display figure: the number a payslip is for. */
-function NetHero(q: { slip: PayslipView }) {
+function NetHero(q: { slip: PayslipView; depth?: string | undefined }) {
   const { t } = useLocale();
   const label = t("people.net");
   const ex = useExplained(q.slip, q.slip.netTraceId, label);
   return (
-    <div className={s.hero}>
+    <div className={`${s.hero} ${q.depth ?? ""}`}>
       <span className={s.heroLabel}>{label}</span>
       <Explainable explanation={ex} className={s.heroFigure}>
         <Money value={q.slip.netFils} size="hero" tween={false} />
@@ -238,10 +240,12 @@ function Slip(q: { slip: PayslipView }) {
   const x = data.people.person(slip.employeeId);
   const earnings = slip.lines.filter((l) => l.group === "earning");
   const deductions = slip.lines.filter((l) => l.group === "deduction");
+  // The header and the net figure tip up into place, once per load.
+  const first = useFirstReveal("payslip-head");
   return (
     <article className={s.slip} aria-label={t("people.payslipTitle",
       { month: formatMonth(data.headline().runMonth, lang) })}>
-      <header className={s.docHead}>
+      <header className={`${s.docHead} ${first ? dp.depth : ""}`}>
         <span className={s.employer}>{data.companyName[lang]}</span>
         <span className={s.period}>{t("people.period", {
           from: dayText(slip.payStart, lang),
@@ -253,7 +257,8 @@ function Slip(q: { slip: PayslipView }) {
             { count: slip.unpaidDays })}</>}
         </span>
       </header>
-      <NetHero slip={slip} />
+      <NetHero slip={slip}
+        depth={first ? `${dp.depth} ${dp.later}` : undefined} />
       <section aria-labelledby="slip-earn">
         <h2 id="slip-earn" className={s.groupTitle}>
           {t("people.earnings")}

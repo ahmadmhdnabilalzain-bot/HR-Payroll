@@ -12,7 +12,9 @@ import type { MessageKey } from "../../i18n/t";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../../ui/Icon";
 import { useMaskText } from "../../ui/mask";
+import { FLIGHT_MS as SPRING_MS, SPRING } from "../../ui/flight";
 import { Money } from "../../ui/Money";
+import { assembly } from "./assembly";
 import type { Fils } from "@payroll/engine";
 import type {
   ExplainValue,
@@ -83,14 +85,15 @@ export function Explainable(p: { explanation: Explanation | undefined;
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
-  const origin = useRef<DOMRect | null>(null);
+  const origin = useRef<HTMLElement | null>(null);
   if (p.explanation === undefined) return <>{p.children}</>;
   return (
     <>
       <button ref={btn} type="button" aria-haspopup="dialog"
         className={`${s.trigger} ${p.className ?? ""}`}
+        data-explain-src={p.explanation.id}
         onClick={() => {
-          origin.current = btn.current?.getBoundingClientRect() ?? null;
+          origin.current = btn.current;
           setOpen(true);
           announce();
         }}>
@@ -110,19 +113,33 @@ export function Explainable(p: { explanation: Explanation | undefined;
   );
 }
 
+/**
+ * The figure a text link explains, when it is on screen (the hero's
+ * net pay beside "Why this number"): the flight leaves from it, not
+ * from the link.
+ */
+function sourceOf(id: string | undefined): HTMLElement | null {
+  if (id === undefined) return null;
+  const el = document.querySelector<HTMLElement>(
+    `[data-explain-src="${CSS.escape(id)}"]`);
+  const r = el?.getBoundingClientRect();
+  return r !== undefined && r.width > 0 && r.bottom > 0 &&
+    r.top < innerHeight ? el ?? null : null;
+}
+
 /** A text link that opens an explanation ("How this is worked out"). */
 export function ExplainLink(p: { explanation: Explanation | undefined;
   children: ReactNode; className?: string | undefined }) {
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
-  const origin = useRef<DOMRect | null>(null);
+  const origin = useRef<HTMLElement | null>(null);
   if (p.explanation === undefined) return null;
   return (
     <>
       <button ref={btn} type="button" aria-haspopup="dialog"
         className={`${s.link} ${p.className ?? ""}`}
         onClick={() => {
-          origin.current = btn.current?.getBoundingClientRect() ?? null;
+          origin.current = sourceOf(p.explanation?.id) ?? btn.current;
           setOpen(true);
           announce();
         }}>
@@ -139,52 +156,110 @@ export function ExplainLink(p: { explanation: Explanation | undefined;
   );
 }
 
-/** The flight's curve: quick to leave, long settle. */
-const OPEN_EASE = "cubic-bezier(.2,.8,.2,1)";
-/** The tapped figure flies into the drawer header over this long. */
-export const FLIGHT_MS = 380;
+/** The tapped figure flies into the drawer header on the demo's one
+ * spring and clock (ui/flight: 420 ms), as the bank moment does. */
+export const FLIGHT_MS = SPRING_MS;
 /** Reduced motion: the drawer only fades, in and out. */
 export const FADE_MS = 120;
 /** Closing: the drawer slides back out. */
 const CLOSE_MS = 200;
+/** The source figure, dimmed while its working is open. */
+const DIM = 0.35;
+
+/** How far an element is moved by its own running transform (the
+ * drawer's slide or the sheet's rise), in viewport px. */
+function shiftOf(el: Element | null, zoom: number): { x: number;
+  y: number } {
+  if (el === null) return { x: 0, y: 0 };
+  const m = new DOMMatrix(getComputedStyle(el).transform);
+  return { x: m.m41 * zoom, y: m.m42 * zoom };
+}
 
 /**
- * The drawer opens from the figure: the tapped figure flies from where
- * it was into the drawer header (380 ms) while the drawer, opaque from
- * its first frame, slides in 32 px (280 ms, CSS). The figure's start
- * is measured with the drawer already at its 32 px offset, so it
- * leaves exactly from the tapped figure and lands with the drawer.
- * Reduced motion: a 120 ms fade only. Web Animations, so the global
- * reduced-motion CSS rule cannot cut it.
+ * The drawer opens from the figure, as a true change of size: a copy
+ * of the header figure leaves from the source figure at its own size
+ * (the hero's 56 px: scale about 2 down to 1, by transform) and lands
+ * on the header figure's final place, measured as if the drawer had
+ * already arrived, in 420 ms on the shared spring. It travels in its
+ * own top layer, so it never rides (or leads) the sliding drawer; the
+ * header figure appears under it as it lands. The source dims to 0.35
+ * while the copy is away and comes back as it lands (the page under
+ * the scrim keeps its contrast). Reduced motion: a 120 ms fade only.
+ * Web Animations, so a capture can seek it and the global
+ * reduced-motion CSS rule cannot cut it. Phone: no copy; the figure
+ * rises with the sheet.
  */
-function openFrom(origin: DOMRect | null, el: HTMLElement | null,
-  layer: HTMLElement | null): void {
+function openFrom(src: HTMLElement | null, el: HTMLElement | null,
+  layer: HTMLElement | null, panel: HTMLElement | null): void {
   if (reducedMotion()) {
     layer?.animate([{ opacity: 0 }, { opacity: 1 }],
       { duration: FADE_MS, easing: "linear" });
     return;
   }
-  if (origin === null || el === null) return;
+  // Phone (lighter): the sheet rises with the figure already in its
+  // header; a copy crossing the rising sheet would cut through its
+  // title.
+  if (src === null || el === null || phone()) return;
   // Measure the figure where it lands, not mid-flight: an effect run
   // twice (React's development check) must not fly from itself.
   for (const a of el.getAnimations()) a.cancel();
-  const r = el.getBoundingClientRect();
-  if (r.width === 0) return;
+  document.querySelectorAll("[data-explain-flight]")
+    .forEach((n) => n.remove());
+  const origin = src.getBoundingClientRect();
+  const now = el.getBoundingClientRect();
+  if (now.width === 0 || origin.width === 0) return;
   const zoom = Number(getComputedStyle(document.documentElement)
     .getPropertyValue("zoom")) || 1;
-  const dx = (origin.left - r.left) / zoom;
-  const dy = (origin.top - r.top) / zoom;
-  const k = Math.min(1.4, Math.max(0.35, origin.height / r.height));
-  el.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${k})`,
-    transformOrigin: "0 0" },
-  { transform: "none", transformOrigin: "0 0" }],
-  // On a phone the sheet rises from the bottom edge in 280 ms: the
-  // figure lands with it, so it never overshoots and settles back.
-  { duration: phone() ? SHEET_MS : FLIGHT_MS, easing: OPEN_EASE });
+  const shift = shiftOf(panel, zoom);
+  const end = { x: now.x - shift.x, y: now.y - shift.y };
+  const k = Math.min(2.4, Math.max(0.35, origin.height / now.height));
+  const wrap = document.createElement("div");
+  wrap.setAttribute("aria-hidden", "true");
+  wrap.dataset["explainFlight"] = "";
+  wrap.className = s.result ?? "";
+  wrap.dir = getComputedStyle(el).direction;
+  Object.assign(wrap.style, {
+    position: "fixed", inset: "0 auto auto 0", margin: "0",
+    zIndex: "60", pointerEvents: "none", whiteSpace: "nowrap",
+    transformOrigin: "0 0", willChange: "transform",
+    color: getComputedStyle(el).color,
+  });
+  wrap.appendChild(el.cloneNode(true));
+  document.body.appendChild(wrap);
+  // Leave from the source's start corner, scaled to its height.
+  const sx = (dirOf(el) === "rtl" ? origin.x + origin.width -
+    now.width * k : origin.x) / zoom;
+  const sy = (origin.top + (origin.height - now.height * k) / 2) / zoom;
+  const travel = wrap.animate([
+    { transform: `translate(${sx}px, ${sy}px) scale(${k})` },
+    { transform: `translate(${end.x / zoom}px, ${end.y / zoom}px)` },
+  ], { duration: FLIGHT_MS, easing: SPRING, fill: "forwards" });
+  // The header figure stays hidden until the copy lands on it.
+  el.animate([{ opacity: 0 }, { opacity: 0 }],
+    { duration: FLIGHT_MS });
+  // The source steps back at once, so the copy leaving it never sits
+  // on a second full-ink figure.
+  // It comes back as the copy lands, so the page under the scrim
+  // keeps its full contrast while the working is read.
+  src.animate([{ opacity: 1 }, { opacity: DIM, offset: 60 / FLIGHT_MS },
+    { opacity: DIM, offset: 1 }], { duration: FLIGHT_MS });
+  src.animate([{ opacity: DIM }, { opacity: 1 }],
+    { duration: CLOSE_MS, delay: FLIGHT_MS, easing: "ease-out" });
+  const gone = (): void => wrap.remove();
+  travel.onfinish = gone;
+  travel.oncancel = gone;
 }
 
-/** The phone sheet's rise (the CSS --drawer-ms). */
-const SHEET_MS = 280;
+/** Brings the source figure back at once if the drawer closes while
+ * the copy is still in flight. */
+function undim(src: HTMLElement | null): void {
+  if (src === null) return;
+  for (const a of src.getAnimations()) a.cancel();
+}
+
+function dirOf(el: Element): string {
+  return getComputedStyle(el).direction;
+}
 
 function phone(): boolean {
   return typeof matchMedia === "function" &&
@@ -209,7 +284,7 @@ const FOCUSABLE = "button, [href], input, [tabindex]:not([tabindex='-1'])";
  * from the bottom on phones. Escape or the scrim closes it.
  */
 export function ExplainPanel(p: { explanation: Explanation;
-  origin?: DOMRect | null; onClose(): void }) {
+  origin?: HTMLElement | null; onClose(): void }) {
   const { t, dir } = useLocale();
   // Amounts written as text follow hide-amounts (and IT sees none),
   // as every other text on screen does; <Money/> masks itself.
@@ -221,9 +296,11 @@ export function ExplainPanel(p: { explanation: Explanation;
   const layer = useRef<HTMLDivElement>(null);
   const closing = useRef(false);
   const [top] = useState(bannerBottom);
+  const plan = assembly(e.steps, phone());
   const close = (): void => {
     if (closing.current) return;
     closing.current = true;
+    undim(p.origin ?? null);
     if (reducedMotion()) {
       layer.current?.animate([{ opacity: 1 }, { opacity: 0 }],
         { duration: FADE_MS, easing: "linear", fill: "forwards" });
@@ -243,12 +320,14 @@ export function ExplainPanel(p: { explanation: Explanation;
   useEffect(() => {
     panel.current?.querySelector<HTMLElement>("[data-close]")
       ?.focus({ preventScroll: true });
-    openFrom(p.origin ?? null, result.current, layer.current);
+    openFrom(p.origin ?? null, result.current, layer.current,
+      panel.current);
     const html = document.documentElement;
     const was = html.style.overflow;
     html.style.overflow = "hidden";
     return () => {
       html.style.overflow = was;
+      if (!closing.current) undim(p.origin ?? null);
     };
   }, []);
   const onKey = (ev: ReactKeyboardEvent): void => {
@@ -297,10 +376,12 @@ export function ExplainPanel(p: { explanation: Explanation;
             <span className={s.resultFigure} ref={result}>
               <Value v={e.result.value} size="hero" />
             </span>
+            <span className={s.resultRule} aria-hidden="true" />
           </div>
         </div>
         <div className={s.body} tabIndex={0} role="region"
-          aria-labelledby={`${id}-t`}>
+          aria-labelledby={`${id}-t`}
+          style={{ "--after-steps": `${plan.after}ms` } as object}>
           <p className={s.summary}>{e.summary}</p>
           <section aria-labelledby={`${id}-w`} className={s.section}>
             <h3 id={`${id}-w`} className={s.h3}>{t("explain.working")}</h3>
@@ -308,7 +389,9 @@ export function ExplainPanel(p: { explanation: Explanation;
               {e.steps.map((x, i) => (
                 <li key={i} className={s.step}
                   data-limit={x.limit !== undefined}
-                  style={{ "--i": Math.min(i, 10) } as object}>
+                  data-total={x.op === "total"}
+                  data-check={i === plan.check}
+                  style={{ "--d": `${plan.at[i] ?? 0}ms` } as object}>
                   <span className={s.stepText}>
                     {x.limit !== undefined && (
                       <span className={s.limitWord}>
@@ -318,7 +401,9 @@ export function ExplainPanel(p: { explanation: Explanation;
                     {x.text}
                   </span>
                   {x.value !== undefined && (
-                    <span className={s.stepValue}><Value v={x.value} /></span>
+                    <span className={s.stepValue}>
+                      <span className={s.roll}><Value v={x.value} /></span>
+                    </span>
                   )}
                   {x.limit !== undefined && <Limit {...x.limit} />}
                 </li>

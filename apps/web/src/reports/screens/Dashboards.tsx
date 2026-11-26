@@ -19,6 +19,8 @@ import { Panel, useIssuePhrase, useIssueWords } from "../dash/Panel";
 import { Tiles } from "../dash/Tiles";
 import { ChangeBars } from "../dash/ChangeBars";
 import s from "../dash/dash.module.css";
+import x from "./exec.module.css";
+import { useFirstReveal } from "../../ui/firstReveal";
 import { plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import { execDashboardRows, hrDashboardRows } from "./dashboard-rows";
@@ -131,13 +133,17 @@ export function DashboardExec() {
   [top === undefined ? undefined : run.explain[`dept-cost:${top.id}`]]];
   const rows = execDashboardRows(src, data, state,
     (f) => signed(f as never));
+  // The lead tile (net pay) tips up into place, once per load.
+  const first = useFirstReveal("exec-top");
   const board = (
     <div className={s.board}>
-      <Tiles label="Key figures"
-        tiles={execTiles(src, data, state, words)}
-        explain={{ net: run.explain["run:net"],
-          gross: run.explain["run:gross"],
-          paid: run.explain["run:people"] }} />
+      <div className={first ? x.lead : x.still}>
+        <Tiles label="Key figures"
+          tiles={execTiles(src, data, state, words)}
+          explain={{ net: run.explain["run:net"],
+            gross: run.explain["run:gross"],
+            paid: run.explain["run:people"] }} />
+      </div>
       <div className={s.panels}>
         <Panel id="dash-trend" wide title="Gross pay, month on month"
           note={`Change against the month before, ${src.months[1]!.label

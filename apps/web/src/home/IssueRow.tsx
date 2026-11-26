@@ -8,6 +8,7 @@ import b from "../ui/button.module.css";
 import { Icon } from "../ui/Icon";
 import { useToast } from "../ui/Toast";
 import { IbanForm } from "./IbanForm";
+import { useIbanFlight } from "./useIbanFlight";
 import { useSaveIban } from "./useSaveIban";
 import s from "./IssueList.module.css";
 
@@ -22,7 +23,8 @@ const ONE_TAP: Partial<Record<FixKind, [Resolution, MessageKey]>> = {
 };
 
 /** One issue: a short title, one plain sentence, one next step. */
-export function IssueRow(p: { issue: Issue; delay: number | null }) {
+export function IssueRow(p: { issue: Issue; delay: number | null;
+  busy?: boolean; setBusy?(b: boolean): void }) {
   const { lang, t } = useLocale();
   const { data, state, dispatch } = useDemo();
   const toast = useToast();
@@ -44,7 +46,21 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
       () => dispatch({ type: "reopen", id: i.id }));
   };
   const save = useSaveIban();
-  const saveIban = (value: string): void => save(i.employeeId ?? "", value);
+  const flight = useIbanFlight();
+  // Saved and in flight: the form closes and no action shows.
+  const [flying, setFlying] = useState(false);
+  // The pay it releases flies up into the salary-file total first.
+  const saveIban = (value: string): void => {
+    const id = i.employeeId ?? "";
+    const from = row.current?.querySelector("input") ?? null;
+    p.setBusy?.(true);
+    flight({ from, id, value, finish: () => {
+      p.setBusy?.(false);
+      save(id, value);
+    } });
+    setFlying(true);
+    setEditing(false);
+  };
   const step = ONE_TAP[i.fixKind];
   const mask = useMaskText();
   const canAct = state.role === "hr" && i.employeeId !== null;
@@ -66,10 +82,11 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
             onCancel={() => setEditing(false)} onSave={saveIban} />
         )}
       </div>
-      {canAct && !editing && (
+      {canAct && !editing && !flying && (
         <div className={s.actions}>
           {i.fixKind === "enter-iban" ? (
             <button type="button" className={`${b.btn} ${b.secondary}`}
+              disabled={p.busy === true}
               onClick={() => setEditing(true)}>{t("home.enterIban")}</button>
           ) : step !== undefined ? (
             <button type="button" className={`${b.btn} ${b.secondary}`}

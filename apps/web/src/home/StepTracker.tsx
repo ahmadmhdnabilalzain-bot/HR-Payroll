@@ -28,8 +28,9 @@ export function StepTracker() {
   return (
     <div className={s.wrap} role="group" aria-label={t("home.progress")}>
       <ol className={s.dots} aria-hidden="true">
-        {list.map((x) => (
-          <li key={x.id} data-state={x.state} title={t(LABEL[x.id])} />
+        {list.map((x, i) => (
+          <li key={x.id} data-state={x.state} title={t(LABEL[x.id])}
+            style={{ "--n": i } as object} />
         ))}
       </ol>
       <p className={s.line}>

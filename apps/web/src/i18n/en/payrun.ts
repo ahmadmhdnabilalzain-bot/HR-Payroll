@@ -99,6 +99,8 @@ export const payrun = {
   chainDeclined: "Sent back",
   notYet: "Not decided yet",
   payAfter: "Pay opens once {name} signs off the run.",
+  payHeld: "Pay held until sign-off",
+  payReleased: "Pay released to the salary file",
   approveTitle: "Sign off the pay run",
   approveSub: "One person prepares the run and another signs it off.",
   prepared: "Prepared",

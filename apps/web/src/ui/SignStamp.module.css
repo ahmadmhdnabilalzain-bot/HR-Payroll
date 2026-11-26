@@ -6,16 +6,34 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-5) var(--space-3) var(--space-3);
-  border: 1.5px solid color-mix(in srgb, var(--color-text) 72%,
-    transparent);
   border-radius: 14px;
   background: var(--color-surface);
   transform-origin: 30% 50%;
 }
 
-.stamp[data-declined="true"] {
+/* The stamp's border, its own layer so it can land over a signature
+ * that is already on the card. */
+.frame {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid color-mix(in srgb, var(--color-text) 72%,
+    transparent);
+  border-radius: inherit;
+  transform-origin: 30% 50%;
+  pointer-events: none;
+}
+
+.stamp[data-declined="true"] .frame {
   border-style: dashed;
   border-color: var(--color-text-muted);
+}
+
+.stamp[data-compact="true"] {
+  padding-block: var(--space-2);
+}
+
+.stamp[data-compact="true"] .name {
+  font-size: var(--text-md);
 }
 
 .stamp[data-seal="false"] {
@@ -27,7 +45,7 @@
 .ring {
   position: absolute;
   inset: -6px;
-  border: 1px solid color-mix(in srgb, var(--color-text) 18%,
+  border: 1px solid color-mix(in srgb, var(--color-text) 30%,
     transparent);
   border-radius: 20px;
   opacity: 0;
@@ -67,6 +85,20 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
+}
+
+/* A sign-off made with a button, signed in script under the date. */
+.sig {
+  display: block;
+  inline-size: max-content;
+  max-inline-size: 100%;
+  margin-block-start: var(--space-1);
+  font-family: "Snell Roundhand", "Segoe Script", "Bradley Hand",
+    "Apple Chancery", "Brush Script MT", cursive;
+  font-size: var(--text-2xl);
+  font-style: italic;
+  line-height: 1.2;
+  padding-inline-end: 0.2em;
 }
 
 @media print {

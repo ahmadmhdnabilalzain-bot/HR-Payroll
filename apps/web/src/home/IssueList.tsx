@@ -41,6 +41,9 @@ export function IssueList() {
     : "", review > 0 ? t("home.reviewCount", { count: review }) : ""]
     .filter(Boolean).join(" · ");
   const [opening, setOpening] = useState(!reducedMotion());
+  // One bank chip in flight at a time: no other row opens until it
+  // lands and the list under it has changed.
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     const h = setTimeout(() => setOpening(false), 900);
     return () => clearTimeout(h);
@@ -65,7 +68,7 @@ export function IssueList() {
       ) : (
         <ol className={s.list} ref={box}>
           {shown.map((i, n) => (
-            <IssueRow key={i.id} issue={i}
+            <IssueRow key={i.id} issue={i} busy={busy} setBusy={setBusy}
               delay={opening ? n * 90 + 150
                 : all && n >= FIRST ? (n - FIRST) * 90 : null} />
           ))}

@@ -38,39 +38,35 @@ export function plainOnly(text: string): string {
 }
 
 /**
- * The held amount flying into the file total. When an IBAN passes and
- * held pay drops, a "+AED 25,300.00" chip leaves the fixed row (its
- * rect is taken before the save) and lands on the total (420 ms
- * spring, ui/flight); only then do the total roll digit by digit and
- * "held out" change. Any other change settles at once. Reduced
- * motion: no flight, the figures change with a short fade.
+ * The held amount flying into the file total, in order: the IBAN
+ * passes, a "+AED 25,300.00" chip leaves the row and lands on the
+ * total's end edge (420 ms spring, ui/flight); only as it lands is the
+ * IBAN saved, so the total starts its roll in the same frame as the
+ * chip hands over (120 ms), "held out" changes, and the row moves to
+ * "Fixed" after the flight, never before it. Reduced motion: no
+ * flight, the save is at once and the figures change with a short
+ * fade.
  */
-function useHeldFlight(total: Fils, held: Fils, people: number,
-  target: RefObject<HTMLElement | null>): {
-  total: Fils; held: Fils; people: number;
-  from: RefObject<DOMRect | null> } {
+function useFixFlight(target: RefObject<HTMLElement | null>)
+  : (o: { from: Element | null; id: string; value: string;
+    save(): void }) => void {
   const { lang } = useLocale();
-  const { state } = useDemo();
-  const [shown, setShown] = useState({ total, held, people });
-  const from = useRef<DOMRect | null>(null);
-  const was = useRef(held);
-  useEffect(() => {
-    const before = was.current;
-    was.current = held;
-    const settle = (): void => setShown({ total, held, people });
-    const start = from.current;
-    from.current = null;
-    if (held >= before || start === null || target.current === null) {
-      settle();
-      return undefined;
+  const { source, data, state } = useDemo();
+  return (o) => {
+    const before = data.headline().heldNetFils;
+    const after = source.at({ ...state.ibans, [o.id]: o.value })
+      .headline().heldNetFils;
+    const from = o.from?.getBoundingClientRect();
+    if (after >= before || from === undefined || target.current === null) {
+      o.save();
+      return;
     }
     const chip = document.createElement("span");
     chip.textContent = state.hideAmounts ? "+AED ••••••"
-      : formatSignedMoney(fils(before - held), lang);
-    return fly({ from: start, to: target.current, content: chip,
-      className: s.chip ?? "", align: "end", onLand: settle });
-  }, [total, held, people]);
-  return { ...shown, from };
+      : formatSignedMoney(fils(before - after), lang);
+    fly({ from, to: target.current, content: chip,
+      className: s.chip ?? "", align: "end", onLand: o.save });
+  };
 }
 
 type Kind = "stops" | "check" | "confirm" | "fixed";
@@ -114,8 +110,12 @@ export function FixStep() {
   const isHr = state.role === "hr";
   const signed = runPhase(data, state) === "file";
   const figure = useRef<HTMLSpanElement>(null);
-  const shown = useHeldFlight(h.sifTotalFils, h.heldNetFils,
-    h.sifPeople, figure);
+  const shown = { total: h.sifTotalFils, held: h.heldNetFils,
+    people: h.sifPeople };
+  // One chip in flight at a time: until it lands (and the IBAN is
+  // saved), no other row opens, so no row is edited while the list
+  // under it is about to change.
+  const [busy, setBusy] = useState(false);
   const heldBox = useRef<HTMLSpanElement>(null);
   const noneHeld = shown.held === 0n;
   useEffect(() => shortFade(heldBox.current), [noneHeld]);
@@ -158,7 +158,7 @@ export function FixStep() {
         <ul className={s.group}>
           {blockers.map((i) => (
             <BlockerRow key={i.id} issue={i} canFix={isHr}
-              from={shown.from} />
+              target={figure} busy={busy} setBusy={setBusy} />
           ))}
           {fixed.map((id) => (
             <li key={`fixed-${id}`} className={s.row} data-done="true">
@@ -198,12 +198,17 @@ export function FixStep() {
 }
 
 function BlockerRow(p: { issue: Issue; canFix: boolean;
-  from: RefObject<DOMRect | null> }) {
+  target: RefObject<HTMLElement | null>; busy: boolean;
+  setBusy(b: boolean): void }) {
   const { lang, t } = useLocale();
   const mask = useMaskText();
   const { data, dispatch } = useDemo();
   const toast = useToast();
   const [open, setOpen] = useState(false);
+  const flight = useFixFlight(p.target);
+  // Saved and in flight: the form closes and no action shows, so the
+  // row cannot be saved twice while the chip travels.
+  const [flying, setFlying] = useState(false);
   const row = useRef<HTMLLIElement>(null);
   const i = p.issue;
   const name = i.employeeId === null ? ""
@@ -218,10 +223,11 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
           {mask(plainOnly(i.reason[lang]))}</span>
         <span className={s.reason}>{mask(i.suggestedFix[lang])}</span>
       </span>
-      {p.canFix && i.employeeId !== null && !open && (
+      {p.canFix && i.employeeId !== null && !open && !flying && (
         <span className={s.rowAction}>
           <button type="button"
             className={`${b.btn} ${b.secondary} ${s.act}`}
+            disabled={p.busy}
             onClick={() => setOpen(true)}>{t("payrun.enterIban")}</button>
         </span>
       )}
@@ -230,12 +236,18 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
           <IbanForm employeeId={i.employeeId} name={name}
             onCancel={() => setOpen(false)}
             onSave={(value) => {
-              // Where the held amount leaves from, before the row goes.
-              p.from.current = row.current?.getBoundingClientRect() ?? null;
-              dispatch({ type: "iban", employeeId: i.employeeId!, value });
-              toast.show(t("payrun.fixedIban", { name }), () =>
-                dispatch({ type: "unset-iban",
-                  employeeId: i.employeeId! }));
+              const id = i.employeeId!;
+              const from = row.current?.querySelector("input") ?? null;
+              setFlying(true);
+              setOpen(false);
+              p.setBusy(true);
+              // The chip flies first; the row turns "Fixed" as it lands.
+              flight({ from, id, value, save: () => {
+                  p.setBusy(false);
+                  dispatch({ type: "iban", employeeId: id, value });
+                  toast.show(t("payrun.fixedIban", { name }), () =>
+                    dispatch({ type: "unset-iban", employeeId: id }));
+                } });
             }} />
         </span>
       )}

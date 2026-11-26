@@ -1,5 +1,6 @@
 import { useRunApproval } from "../demo/actions";
-import { isBlocking, openIssues } from "../demo/derive";
+import { isBlocking, openIssues, runApprovalId } from "../demo/derive";
+import { decisionTime, nowMs, recordDecision } from "../payrun/model";
 import { hrefOf } from "../demo/route";
 import type { Issue } from "../demo/data/types";
 import { useDemo } from "../demo/state";
@@ -9,6 +10,7 @@ import {
   formatMonthName,
 } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { useLayoutEffect, useRef, useState } from "react";
 import b from "../ui/button.module.css";
 import s from "./StatusLead.module.css";
 
@@ -31,11 +33,32 @@ export function StatusSentence() {
       ? (run.isChecker ? t("home.statusApproveYou", { month })
         : t("home.statusApprove", { month, name: checker }))
       : t("home.statusBank", { month, count: run.blockedBy.length });
+  // Signed here a moment ago: the stamp lands in the card first and
+  // the sentence changes after it (from 280 ms).
+  const id = runApprovalId(data);
+  const at = id === null ? null : decisionTime(id);
+  const late = run.phase === "file" && at !== null && nowMs() - at < 2000;
+  // The sentence it replaces stays on screen, read by nobody, until the
+  // new one comes in, so the slot is never empty.
+  const before = useRef(sentence);
+  const [ghost, setGhost] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    if (before.current === sentence) return;
+    setGhost(late ? before.current : null);
+    before.current = sentence;
+  }, [sentence]);
   return (
     <header className={s.lead}>
-      <h1 key={sentence} id="run-title" className={s.sentence}>
-        {sentence}
-      </h1>
+      <div className={s.slot}>
+        <h1 key={sentence} id="run-title" className={s.sentence}
+          data-late={late}>
+          {sentence}
+        </h1>
+        {ghost !== null && (
+          <p className={`${s.sentence} ${s.ghost}`} aria-hidden="true"
+            onAnimationEnd={() => setGhost(null)}>{ghost}</p>
+        )}
+      </div>
       <p className={s.date}>
         {t("home.dateLine", { date: formatLongDay(data.payCalendar().asOf,
           lang), company: data.companyName[lang] })}
@@ -68,7 +91,11 @@ export function StatusAction(p: { onIban?(issue: Issue): void }) {
             ${b.large}`} disabled={!run.canDecide}
             aria-describedby={held.length === 0 ? undefined
               : "approve-why"}
-            onClick={() => run.decide("approve")}>
+            onClick={() => {
+              const id = runApprovalId(data);
+              if (id !== null) recordDecision(id);
+              run.decide("approve");
+            }}>
             {t("home.primaryApprove", { month })}
           </button>
           {!run.canDecide && held.length > 0 && (
