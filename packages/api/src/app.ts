@@ -8,6 +8,8 @@ import { registerAuthRoutes } from "./routes/auth";
 import { registerCompanyRoutes } from "./routes/company";
 import { registerDepartmentRoutes } from "./routes/departments";
 import { registerEmployeeRoutes } from "./routes/employees";
+import { registerLeaveRoutes } from "./routes/leave";
+import { registerAttendanceRoutes } from "./routes/attendance";
 import { registerUserRoutes } from "./routes/users";
 
 function internalLine(err: unknown): Record<string, unknown> {
@@ -61,5 +63,7 @@ export function createApp(deps: AppDeps): App {
   registerUserRoutes(app, deps);
   registerEmployeeRoutes(app, deps);
   registerDepartmentRoutes(app, deps);
+  registerLeaveRoutes(app, deps);
+  registerAttendanceRoutes(app, deps);
   return app;
 }

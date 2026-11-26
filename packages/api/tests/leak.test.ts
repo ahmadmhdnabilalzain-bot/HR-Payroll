@@ -20,8 +20,7 @@ type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
 
 /** Routes not built yet answer 404 before auth; later tasks shrink it. */
-const NOT_BUILT = new Set(["listLeaveTypes", "listLeaveRequests",
-  "getLeaveBalances", "listAttendance", "listMyPayslips", "getPayslip",
+const NOT_BUILT = new Set(["listMyPayslips", "getPayslip",
   "listPayRuns", "getPayRun", "listPayRunPayslips", "getSifFile",
   "downloadSifFile", "listAuditEvents", "verifyAuditChain"]);
 
@@ -29,7 +28,14 @@ const NOT_BUILT = new Set(["listLeaveTypes", "listLeaveRequests",
 const ID_KIND: Record<string, "employee" | null> = {
   getCompany: null, listUsers: null, listEmployees: null,
   getEmployee: "employee", getEmployeeBank: "employee",
-  listDepartments: null,
+  listDepartments: null, listLeaveTypes: null, listLeaveRequests: null,
+  getLeaveBalances: "employee", listAttendance: null,
+};
+
+/** Query strings a route needs. */
+const QUERY: Record<string, string> = {
+  listAttendance: "?from=2026-01-01&to=2026-12-31",
+  getLeaveBalances: "?year=2026",
 };
 
 /** Which targets a role may open on an employee `{id}` route. */
@@ -56,7 +62,8 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     s = await seedCompany(ctx, "leak");
   });
   const path = (r: RouteDef, id: string | null) =>
-    id === null ? r.path : r.path.replace("{id}", id);
+    (id === null ? r.path : r.path.replace("{id}", id)) +
+    (QUERY[r.id] ?? "");
 
   it("every GET tenant route has a fixture or is listed as not built",
     () => {

@@ -45,6 +45,28 @@ async function seedPeople(admin: Db, c: string): Promise<void> {
        nationality, worker_class, joining_date, created_at)
      VALUES ($1, $2, 'E-1', 'Seed Person', 'Clerk', 'IN',
        'expat-full-time', '2020-01-01', $3)`, [rowId(c, "f1"), c, AT]);
+  await seedTime(admin, c, rowId(c, "f1"));
+}
+
+async function seedTime(admin: Db, c: string, emp: string): Promise<void> {
+  const lt = rowId(c, "a1");
+  await admin.query(
+    `INSERT INTO leave_types (id, company_id, name, paid, annual_days,
+       created_at) VALUES ($1, $2, 'Annual', true, 30, $3)`, [lt, c, AT]);
+  await admin.query(
+    `INSERT INTO leave_requests (id, company_id, employee_id, leave_type_id,
+       start_date, end_date, days, status, created_by, created_at)
+     VALUES ($1, $2, $3, $4, '2026-03-02', '2026-03-03', 2, 'pending', $3,
+       $5)`, [rowId(c, "a2"), c, emp, lt, AT]);
+  await admin.query(
+    `INSERT INTO leave_adjustments (id, company_id, employee_id,
+       leave_type_id, year, days, reason, created_by, created_at)
+     VALUES ($1, $2, $3, $4, 2026, 1, 'seed', $3, $5)`,
+    [rowId(c, "a3"), c, emp, lt, AT]);
+  await admin.query(
+    `INSERT INTO attendance (id, company_id, employee_id, date, clock_in,
+       source, created_at) VALUES ($1, $2, $3, '2026-03-01', $4, 'self',
+       $4)`, [rowId(c, "a4"), c, emp, AT]);
 }
 
 async function seedOne(admin: Db, s: SeedCompany): Promise<void> {
