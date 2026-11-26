@@ -49,6 +49,12 @@ import {
   type PapersSlice,
 } from "./papers-state";
 import {
+  REQUESTS_INITIAL,
+  reduceRequests,
+  type RequestsAction,
+  type RequestsSlice,
+} from "./requests-state";
+import {
   PAY_INITIAL,
   reducePay,
   type PayAction,
@@ -71,7 +77,7 @@ export type Resolution = "reviewed" | "renewal";
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
-    TeamSlice, MovesSlice, PaySlice {
+    TeamSlice, MovesSlice, PaySlice, RequestsSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -107,6 +113,7 @@ export type Action =
   | TeamAction
   | MovesAction
   | PayAction
+  | RequestsAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -116,7 +123,8 @@ export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL, ...TEAM_INITIAL,
-  ...MOVES_INITIAL, ...PAY_INITIAL, tasksDone: [], notesRead: [],
+  ...MOVES_INITIAL, ...PAY_INITIAL, ...REQUESTS_INITIAL, tasksDone: [],
+  notesRead: [],
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -180,6 +188,16 @@ export function reduce(s: DemoState, a: Action): DemoState {
       return { ...s, notesRead: [...new Set([...s.notesRead, ...a.ids])] };
     case "notes-unread": return { ...s,
       notesRead: s.notesRead.filter((x) => !a.ids.includes(x)) };
+    case "req-step":
+    case "req-undo":
+    case "req-new":
+    case "req-new-undo":
+    case "req-reply":
+    case "req-reply-undo":
+    case "appr-reset":
+    case "appr-reset-undo":
+    case "appr-split":
+    case "appr-split-undo": return reduceRequests(s, a);
     case "pay-request":
     case "pay-withdraw":
     case "pay-restore":

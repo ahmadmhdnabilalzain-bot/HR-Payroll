@@ -1,0 +1,150 @@
+/* Requests screens: only what the shared templates do not give. */
+.block {
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: 720px;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.small {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--color-accent);
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.actions > * {
+  min-block-size: 44px;
+}
+
+.thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.msg {
+  background: var(--color-surface);
+  border-radius: var(--radius-panel);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.msg[data-from="hr"] {
+  border-inline-start: 3px solid var(--color-text-faint);
+}
+
+.msgHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.msgHead strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.msg p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.reply {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.reply textarea,
+.field textarea,
+.field input,
+.field select {
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-panel);
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.card h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.card p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.cards {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.search {
+  inline-size: 100%;
+  max-inline-size: 420px;
+  min-block-size: 44px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
