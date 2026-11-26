@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDemo } from "../../demo/state";
-import { RecordTabs } from "../../ui/templates";
+import { PageFoot, PageHead } from "../../ui/templates";
+import tpl from "../../ui/templates/templates.module.css";
 import type { SkillRow } from "../../demo/data/talent-types";
 import { profileHref, Status } from "../team/common";
 import { fill, T } from "./words";
@@ -15,20 +16,40 @@ const W = T.skills;
  */
 export function Skills() {
   const { data } = useDemo();
+  const [tab, setTab] = useState<"person" | "skill">("person");
   const rows = data.talent.skillMatrix();
   const summary = data.talent.skillSummary();
   const withGap = rows.filter((r) => r.gaps > 0).length;
+  const tabs = [{ id: "person", label: W.byPerson },
+    { id: "skill", label: W.bySkill }] as const;
   return (
-    <RecordTabs title={W.title} lede={data.talent.skillBasis}
-      stats={[{ label: W.people, value: rows.length },
-        { label: W.gaps, value: withGap },
-        { label: W.tracked, value: data.talent.skills().length }]}
-      tabs={[
-        { id: "person", label: W.byPerson, render: () => (
+    <div className={tpl.page}>
+      <PageHead title={W.title} lede={data.talent.skillBasis} meta={(
+        <dl className={s.figures}>
+          {[{ label: W.people, value: rows.length },
+            { label: W.gaps, value: withGap },
+            { label: W.tracked, value: data.talent.skills().length }]
+            .map((x) => (
+              <div key={x.label}>
+                <dt>{x.label}</dt>
+                <dd className="tabular">{x.value}</dd>
+              </div>))}
+        </dl>
+      )} />
+      <div className={tpl.tabs} role="tablist">
+        {tabs.map((x) => (
+          <button key={x.id} type="button" role="tab" id={`tab-${x.id}`}
+            aria-selected={x.id === tab} aria-controls={`tabpanel-${x.id}`}
+            onClick={() => setTab(x.id)}>{x.label}</button>
+        ))}
+      </div>
+      <div role="tabpanel" id={`tabpanel-${tab}`}
+        aria-labelledby={`tab-${tab}`} className={tpl.tabPanel}>
+        {tab === "person" ? (
           <Matrix rows={rows}
             skills={data.talent.skills().map((x) => ({ id: x.id,
-              name: x.name }))} />) },
-        { id: "skill", label: W.bySkill, render: () => (
+              name: x.name }))} />
+        ) : (
           <ul className={s.plain} aria-label={W.bySkill}>
             {summary.map((x) => (
               <li key={x.skillId} className={s.line}>
@@ -42,8 +63,11 @@ export function Skills() {
                     {x.display.gaps}</Status>
                 </span>
               </li>))}
-          </ul>) },
-      ]} />
+          </ul>
+        )}
+      </div>
+      <PageFoot />
+    </div>
   );
 }
 
@@ -68,10 +92,18 @@ function Matrix(p: { rows: SkillRow[];
           {fill(W.shown, { n: shown.length, total: p.rows.length })}
         </span>
       </div>
-      <p className={s.legend}>{W.legend}</p>
+      <div className={s.key}>
+        <p className={s.legend}>{W.legend}</p>
+        <ul className={s.keyList} aria-label={W.keyTitle}>
+          <li><Status tone="ok">{W.keyMet}</Status></li>
+          <li><Status tone="warn">{W.keyBelow}</Status></li>
+          <li><span className={s.dash} aria-hidden="true">–</span>
+            {W.notTrackedShort}</li>
+        </ul>
+      </div>
       {shown.length === 0 ? <p className={s.note}>{W.empty}</p> : (
         <>
-          <div className={`${s.scroll} ${s.wide}`} role="region"
+          <div className={`${s.scroll} ${s.wide} ${s.matrix}`} role="region"
             aria-label={W.matrix} tabIndex={0}>
             <table className={s.table}>
               <thead>
@@ -85,7 +117,8 @@ function Matrix(p: { rows: SkillRow[];
                 {shown.map((r) => (
                   <tr key={r.employeeId}>
                     <th scope="row">
-                      <a href={profileHref(r.employeeId)}>{r.name}</a>
+                      <a href={profileHref(r.employeeId)}
+                        className={s.name}>{r.name}</a>
                       <small>{r.jobText}</small>
                     </th>
                     {p.skills.map((k) => (
@@ -98,7 +131,8 @@ function Matrix(p: { rows: SkillRow[];
             {shown.map((r) => (
               <li key={r.employeeId} className={s.card}>
                 <span className={s.main}>
-                  <a href={profileHref(r.employeeId)}>{r.name}</a>
+                  <a href={profileHref(r.employeeId)}
+                    className={s.name}>{r.name}</a>
                   <span className={s.sub}>{r.jobText}</span>
                 </span>
                 <ul>

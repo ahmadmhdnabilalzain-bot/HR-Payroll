@@ -20,14 +20,14 @@ export function TaskAction(p: { task: InboxTask }) {
   if (x.done && !x.doneHere) return null;
   if (x.doneHere) {
     return (
-      <button type="button" className={`${b.btn} ${b.quiet}`}
+      <button type="button" className={`${b.btn} ${b.quiet} ${s.act}`}
         onClick={() => dispatch({ type: "task-undone", id: x.id })}>
         {t("inbox.undo")}
       </button>
     );
   }
   return (
-    <button type="button" className={`${b.btn} ${b.quiet}`}
+    <button type="button" className={`${b.btn} ${b.quiet} ${s.act}`}
       onClick={() => {
         dispatch({ type: "task-done", id: x.id });
         toast.show(t("inbox.doneToast", { title: x.title }), () =>

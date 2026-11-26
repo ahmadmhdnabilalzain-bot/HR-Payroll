@@ -31,7 +31,9 @@ pnpm --filter @payroll/web build:offline
   only and always with a word: red stops pay, amber is a check, muted
   green is done. Charts draw the month in focus in ink and the rest in
   grey (`--color-bar-1..4`). Light and dark are designed as equals.
-- **Type:** body 15 (17 on phones), page title `--text-title` 34/40
+- **Type:** nothing the templates draw is smaller than 13 (column
+  headers, the sources line and calendar day letters included). Body 15 (17
+  on phones), page title `--text-title` 34/40
   (28/34 on phones), a report's lead figure `--text-figure` 48/52
   (40/44), the Home figure `--text-hero` 56 (48). All in tokens.css.
 - **Avatars** (`src/ui/Avatar.tsx`): initials on one of eight neutral
@@ -199,8 +201,10 @@ sideways), `rowHref?(row)`, `avatar?(row): { id, name }` (the
 person's face beside column 0), `rowActions?(row)` (secondary buttons
 in a column of their own), `summary?` (five rows or fewer get a band
 of counts above the table, by default the segments'), `empty`,
-`emptyAction?`, `actions?`, `crumbs?` / `back?`. Column headers are
-sticky, rows 56 px; on phones each row is two lines.
+`emptyAction?`, `actions?`, `meta?` (under the lede: a page's one
+figure, a status line or its controls, so nothing sits above the
+h1), `crumbs?` / `back?`. Column headers are sticky, rows 56 px; on
+phones each row is two lines.
 
 ```tsx
 <FilterList title="Loans and advances" rows={loans}
@@ -254,10 +258,13 @@ way `time-off.ts` does (`sessionApprovals`).
 shaded. Props: `title`, `lede?`, `month` (`YYYY-MM`), `monthLabel`,
 `rows: { id, label }[]`, `events: { rowId, start, end, tone:
 booked|waiting|holiday|shift, label }[]`, `onMonth?(step)`,
-`agenda?` (one row: a month grid with the day's labels), `legend?`
+`agenda?` (false when the page lists the month itself), `legend?`
 (what each tone means here), `children?` (the page's own list under
-the grid). On phones the cells keep dots and the day names are
-listed under the grid.
+the grid). The grid draws bars only: labels are never squeezed into
+a day column, they are the month's list under the grid (day, what,
+whose, the tone's word), which replaces the grid on phones. Row names
+wrap and stay put while the days scroll; the month stepper is the
+head's meta line.
 
 ```tsx
 <MonthCalendar title="Rosters" month="2026-10" monthLabel="October 2026"

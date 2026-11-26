@@ -352,7 +352,7 @@
   border-block-end: 1px solid var(--color-hairline);
   background: var(--color-surface-secondary);
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 16px;
   letter-spacing: 0.2px;
@@ -884,22 +884,23 @@ li + li.actRow > .row {
 
 .cal {
   inline-size: 100%;
+  min-inline-size: 760px;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .cal th,
 .cal td {
   min-inline-size: 26px;
-  block-size: 44px;
+  block-size: 52px;
   padding: 0;
   border-block-end: 1px solid var(--color-divider);
   text-align: center;
 }
 
 .cal thead th {
-  block-size: 44px;
+  block-size: 52px;
   background: var(--color-surface-secondary);
   color: var(--color-text-muted);
   font-weight: 500;
@@ -908,28 +909,33 @@ li + li.actRow > .row {
 
 .cal thead th:first-child,
 .cal tbody th {
-  inline-size: 180px;
+  inline-size: 200px;
 }
 
 .dow {
   display: block;
   color: var(--color-text-faint);
-  font-size: 11px;
-  line-height: 14px;
+  font-size: 13px;
+  line-height: 16px;
 }
 
+/* The row's name wraps (never an ellipsis); it stays put while the
+ * days scroll. */
 .cal tbody th {
   position: sticky;
   z-index: 1;
   inset-inline-start: 0;
-  padding-inline: var(--space-3);
+  padding: var(--space-2) var(--space-4);
   background: var(--color-surface);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
+  line-height: 20px;
   text-align: start;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+}
+
+.cal tbody tr:last-child > * {
+  border-block-end: 0;
 }
 
 .cal td {
@@ -940,15 +946,26 @@ li + li.actRow > .row {
   background: var(--color-surface-secondary);
 }
 
-/* The bar: a band in the cell's lower part (a pseudo-element, so the
- * label above it sits on the plain cell); the label is ink. */
+/* The bar: a rounded band across the event's days, centred in the row.
+ * Its words are in the month's list under the grid. */
 .cal td[data-tone]::after {
   content: "";
   position: absolute;
-  inset-block-end: 6px;
+  inset-block: 16px;
   inset-inline: 0;
-  block-size: 12px;
   background: var(--tone);
+}
+
+.cal td[data-start="true"]::after {
+  inset-inline-start: 3px;
+  border-start-start-radius: 6px;
+  border-end-start-radius: 6px;
+}
+
+.cal td[data-end="true"]::after {
+  inset-inline-end: 3px;
+  border-start-end-radius: 6px;
+  border-end-end-radius: 6px;
 }
 
 .cal td[data-tone="booked"],
@@ -975,26 +992,7 @@ li + li.actRow > .row {
   background: var(--tone);
 }
 
-/* The label on the bar, across the event's days. */
-.calLabel {
-  position: absolute;
-  z-index: 1;
-  inset-block-start: 6px;
-  inset-inline-start: 2px;
-  max-inline-size: calc(var(--span, 1) * (100cqi - 180px) /
-    var(--days, 31) - 6px);
-  overflow: hidden;
-  color: var(--color-text);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-  text-align: start;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .agenda {
-  display: none;
   margin: 0;
   padding: 0;
   border-radius: var(--radius-panel);
@@ -1004,7 +1002,7 @@ li + li.actRow > .row {
 
 .agenda li {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
   min-block-size: 56px;
@@ -1016,6 +1014,7 @@ li + li.actRow > .row {
 }
 
 .agendaDay {
+  white-space: nowrap;
   font-size: 17px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -1139,7 +1138,7 @@ li + li.actRow > .row {
 .table th {
   background: var(--color-surface-secondary);
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.2px;
 }
@@ -1207,8 +1206,8 @@ li + li.actRow > .row {
   padding-block-start: var(--space-4);
   border-block-start: 1px solid var(--color-hairline);
   color: var(--color-text-muted);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 /* Print: the report alone, black on white, no controls; only while a
@@ -1473,12 +1472,14 @@ li + li.actRow > .row {
     padding: var(--space-4);
   }
 
-  .calScroll[data-agenda="true"] {
-    display: none;
+  .cal thead th:first-child,
+  .cal tbody th {
+    inline-size: 120px;
+    padding-inline: var(--space-3);
   }
 
-  .calScroll[data-agenda="true"] ~ .agenda {
-    display: block;
+  .calScroll[data-agenda="true"] {
+    display: none;
   }
 
   .setRow {
@@ -1608,7 +1609,7 @@ li + li.actRow > .row {
   .table td[data-label]:not(:first-child)::before {
     content: attr(data-label);
     color: var(--color-text-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
   }
 

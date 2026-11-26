@@ -3,7 +3,6 @@ import { requestRows, visibleIds } from "../demo/time-off";
 import { MonthCalendar, type CalEvent } from "../ui/templates";
 import { History } from "../people/papers/History";
 import { useRequests } from "../people/requests/useRequests";
-import tpl from "../ui/templates/templates.module.css";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
@@ -55,28 +54,28 @@ export function MyCalendar() {
     e.start <= `${month}-31`).sort((a, c) =>
     a.start.localeCompare(c.start));
   return (
-    <div>
-      <MonthCalendar title="My calendar"
-        lede={manager ? "Your leave and your team's, public holidays, " +
-          "payday and training. Holiday dates are expected dates."
-          : "Your leave, public holidays, payday and training. Holiday " +
-            "dates are expected dates."}
-        month={month} monthLabel={`${MONTHS[Number(m) - 1] ?? ""} ${y ?? ""}`}
-        rows={[...who.map((id) => ({ id, label: id === me ? "Me"
-          : p.nameOf(id) })), { id: "company", label: "Holidays" },
-        { id: "pay", label: "Pay dates" }]}
-        events={events} onMonth={(step) => setMonth(shift(month, step))} />
-      <div className={tpl.page}>
-        {list.length === 0 ? <p>Nothing is planned this month.</p> : (
-          <History items={list.map((e) => ({ text: e.rowId === me ||
-            e.rowId === "company" || e.rowId === "pay" ? e.label
-            : `${p.nameOf(e.rowId)}: ${e.label}`,
-          when: e.start === e.end ? p.when(e.start)
-            : `${p.when(e.start)} to ${p.when(e.end)}`,
-          tone: e.tone === "booked" ? "ok" : e.tone === "waiting" ? "warn"
-            : "info" }))} />
-        )}
-      </div>
-    </div>
+    <MonthCalendar title="My calendar"
+      lede={manager ? "Your leave and your team's, public holidays, " +
+        "payday and training. Holiday dates are expected dates."
+        : "Your leave, public holidays, payday and training. Holiday " +
+          "dates are expected dates."}
+      month={month} monthLabel={`${MONTHS[Number(m) - 1] ?? ""} ${y ?? ""}`}
+      rows={[...who.map((id) => ({ id, label: id === me ? "Me"
+        : p.nameOf(id) })), { id: "company", label: "Holidays" },
+      { id: "pay", label: "Pay dates" }]}
+      events={events} agenda={false}
+      legend={{ booked: "Leave, booked", waiting: "Leave, waiting",
+        holiday: "Public holiday", shift: "Pay date or training" }}
+      onMonth={(step) => setMonth(shift(month, step))}>
+      {list.length === 0 ? <p>Nothing is planned this month.</p> : (
+        <History items={list.map((e) => ({ text: e.rowId === me ||
+          e.rowId === "company" || e.rowId === "pay" ? e.label
+          : `${p.nameOf(e.rowId)}: ${e.label}`,
+        when: e.start === e.end ? p.when(e.start)
+          : `${p.when(e.start)} to ${p.when(e.end)}`,
+        tone: e.tone === "booked" ? "ok" : e.tone === "waiting" ? "warn"
+          : "info" }))} />
+      )}
+    </MonthCalendar>
   );
 }

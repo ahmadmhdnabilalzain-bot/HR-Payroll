@@ -13,6 +13,12 @@
   animation: enter var(--dur-slow) var(--ease-out);
 }
 
+/* A page whose head is the shared PageHead: the templates' top, so
+ * the title sits at the same height as on every template page. */
+.headed {
+  padding-block-start: 40px;
+}
+
 @keyframes enter {
   from {
     opacity: 0;
@@ -209,4 +215,18 @@
     font-size: var(--text-2xl);
   }
 
+  .headed {
+    padding-block-start: var(--space-4);
+  }
+
+  /* The page's action goes under the lede on phones, not between it
+   * and the title (PageHead: crumbs, then the title row). */
+  .headed > header > :nth-child(2) {
+    display: contents;
+  }
+
+  .headed > header > :nth-child(2) > :last-child:not(:first-child) {
+    order: 1;
+    margin-block: var(--space-4) 0;
+  }
 }
