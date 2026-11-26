@@ -28,7 +28,7 @@ dependencies.
 needs payslips later) and
 `docs/superpowers/specs/2026-11-25-uae-sme-hr-payroll-design.md`
 (section 2: "Any number on a payslip we cannot trace to inputs and a
-rule version" is a non-goal; section 6 rule-packs). Rule sources:
+rule version" is an anti-goal; section 6 rule-packs). Rule sources:
 `docs/research/2026-11-26-labour-law-primary.md` (DL = Decree-Law
 33/2021, ER = Cabinet Resolution 1/2022),
 `docs/research/2026-11-26-gpssa-primary.md` (DL57 = Decree-Law 57/2023,
@@ -192,6 +192,7 @@ c = convention):
 | nightWindow | "22:00-04:00" | o | DL33_ART19 (19(3)) |
 | shiftWorkersNightExcluded | true | o | DL33_ART19 (19(3)) |
 | overtimeMaxMinutesPerDay | 120 | o | DL33_ART19 (19(1)), flag only |
+| maxHoursPer3Weeks | 144 | o | DL33_ART19 (19(1)), not checked |
 | maxNormalHoursPerDay | 8 | o | DL33_ART17 (17(1)) |
 | restDayUpliftBps | 5000 | o | DL33_ART19 (19(4)) |
 | holidayUpliftBps | 5000 | o | DL33_ART28 (28(2)) |
@@ -203,7 +204,7 @@ c = convention):
 | sickHalfPayDays | 30 | o | DL33_ART31 (31(3)(b)) |
 | sickMaxDays | 90 | o | DL33_ART31 (31(3)) |
 | sickPaidInProbation | false | o | DL33_ART31 (31(2)) |
-| leavePayBase | "wage" | c | DL33_ART1 ("full pay" read as wage) |
+| paidLeaveBase | "wage" | c | DL33_ART1 ("full pay" read as wage) |
 | maternityFullPayDays | 45 | o | DL33_ART30 (30(1)(a)) |
 | maternityHalfPayDays | 15 | o | DL33_ART30 (30(1)(b)) |
 | maternityUnpaidExtraDays | 45 | o | DL33_ART30 (30(2)) |
@@ -319,7 +320,8 @@ export interface DeductionRequest { ref: string; kind: DeductionKind;
 export interface LoanInstalment { ref: string; instalment: Fils;
   balance: Fils; consentOnFile: boolean }
 export interface GpssaInput { regime: GpssaRegime;
-  fixingMonth: string; fixingBasic: Fils; fixingAllowances: Fils }
+  fixingMonth: string; fixingBasic: Fils; fixingAllowances: Fils;
+  arrears: Fils }
 export interface PayEmployee { workerClass: WorkerClass;
   joiningDate: string; leavingDate: string | null;
   probationEndDate: string | null; shiftWorker: boolean;
@@ -358,8 +360,9 @@ export interface Payslip { year: number; month: number;
   notApplicable: string[] }
 ```
 
-  The GPSSA employee share uses `ref: "gpssa"`; `encashLeaveDays` 0
-  means no encashment.
+  The GPSSA employee share uses `ref: "gpssa"`; `arrears` is employee
+  share deferred in earlier months (Ruling 17), 0 when none;
+  `encashLeaveDays` 0 means no encashment.
 - Produces (`validate.ts`): `validatePayslipInput(input: PayslipInput,
   p: PayrollParams): PayWindow`. `payStart` = later of month start and
   joining date; `payEnd` = earlier of month end and leaving date.
@@ -372,8 +375,9 @@ Error codes (each test asserts code and the named `detail` field):
 `INVALID_DATE`, `INVALID_DATE_RANGE` (leaving or probation end before
 joining), `NOT_EMPLOYED_IN_PERIOD`, `INVALID_AMOUNT` (basic <= 0,
 allowance < 0, deduction amount <= 0, instalment <= 0, balance < 0,
-fixing amounts < 0), `INVALID_CODE`, `DUPLICATE_CODE` (allowance codes;
-deduction and loan refs share one namespace, and `gpssa` is reserved),
+fixing amounts or `arrears` < 0), `INVALID_CODE`, `DUPLICATE_CODE`
+(allowance codes; deduction and loan refs share one namespace, and
+`gpssa` is reserved),
 `INVALID_HOURS` (`normalHoursPerDay` not a whole number in
 1..`maxNormalHoursPerDay`), `INVALID_MINUTES` (minutes not 1..1440,
 night not 0..minutes), `DATE_OUTSIDE_PAY_PERIOD`, `DUPLICATE_DATE`,
@@ -528,7 +532,7 @@ Rules (decided here; see Rulings 3 to 6):
     `"30"`, `payroll.days` result `"55/60"`, `leave.sick` inputs
     `fullPay "5"` and `halfPay "5"`, `earn.allowance#housing` result
     `"366667"` with rule keys including `prorationBasis` and
-    `leavePayBase`.
+    `paidLeaveBase`.
 - [ ] **Step 2: Run** `pnpm --filter @payroll/engine test payroll-days
   payroll-earnings`; expect FAIL.
 - [ ] **Step 3: Implement** `accountDays` and `fixedEarnings` as above.
@@ -565,7 +569,8 @@ Rules (Rulings 7 to 9):
   dailyDivisor * normalHoursPerDay * 60 * 10000, roundingMode)`.
   Night: the same with `nightOvertimeUpliftBps` and night minutes.
   Lines `earn.overtime.normal` and `earn.overtime.night` (kind
-  `overtime`), each only when its minutes exceed 0.
+  `overtime`), each only when its minutes exceed 0; inputs `minutes`
+  (the minutes paid on that line), `upliftBps`, `hoursPerDay`.
 - Any entry with `minutes > overtimeMaxMinutesPerDay` adds flag
   `OVERTIME_DAILY_CAP_EXCEEDED` (detail `date`, `minutes`). Pay is never
   reduced.
@@ -669,7 +674,8 @@ Rules (Rulings 10 to 13):
 - [ ] **Step 1: Write the failing tests** (`g(regime, base)` loads
   params with `{ gpssaContributionSalaryBase: base }`; national FX:
   `workerClass "uae-national"`, `gpssa: { regime, fixingMonth:
-  "2026-01", fixingBasic: 1000000n, fixingAllowances: 500000n }`):
+  "2026-01", fixingBasic: 1000000n, fixingAllowances: 500000n,
+  arrears: 0n }`):
   - `charges 11% and 15% on the wage under DL57`: salary 1500000;
     employee 1500000*1100/10000 = 165000; gross 225000; support 37500
     (salary < 2000000); payable 187500.
@@ -831,9 +837,10 @@ month's first day; load params; validate; for `gcc-national` select
 the GPSSA pack and `refuseGccNational`; `accountDays`;
 `fixedEarnings`; `variableEarnings`; trace `earn.gross`; for
 `uae-national` select the GPSSA pack on the same date and
-`computeGpssa`; `applyDeductions` (gpssaShare = the employee share or
-`null`); trace `pay.net` (gross - total deductions) and
-`employer.total` (sum of employer lines, 0 when none). Flags are the
+`computeGpssa`; `applyDeductions` (gpssaShare = the employee share
+plus `gpssa.arrears`, or `null`); trace `pay.net` (gross - total
+deductions) and `employer.total` (sum of employer lines, 0 when
+none). Flags are the
 day, variable and deduction flags, plus `OVERRIDE_USED` (detail `keys`:
 the sorted, comma-joined keys of every trace rule with `overridden`).
 
@@ -891,6 +898,9 @@ the sorted, comma-joined keys of every trace rule with `overridden`).
     `employer.total`, `cap.base`, `cap.overall` match `gross`,
     `totalDeductions`, `net`, `employerCost`, `caps.wageBase`,
     `caps.overall`.
+  - `recovers GPSSA arrears`: national FX, wage base, `arrears:
+    140001n`: deductions 165000 + 140001 = 305001, net 1194999, nothing
+    deferred (305001 <= 750000).
   - `gives the same payslip twice`: two runs are `toEqual`.
 - [ ] **Step 2: Write the failing properties** in `payroll-props.test.ts`
   (fast-check, 200 runs each; the arbitrary builds a valid expat or
@@ -1082,7 +1092,8 @@ digit strings, converted with `fils(BigInt(s))`):
           "monthly": "100000" }
       ],
       "gpssa": { "regime": "dl57-2023", "fixingMonth": "2026-01",
-        "fixingBasic": "1000000", "fixingAllowances": "500000" }
+        "fixingBasic": "1000000", "fixingAllowances": "500000",
+        "arrears": "0" }
     },
     "absences": [], "sickDaysUsedBefore": 0,
     "maternityDaysUsedBefore": 0, "overtime": [], "restDayWork": [],
@@ -1106,8 +1117,9 @@ digit strings, converted with `fils(BigInt(s))`):
     every id emitted by the Task 7 national, overtime, sick, maternity,
     rest-day, encashment and all-deduction-kinds payslips has a message
     under `baseId`); `never prints [untranslated]` for those traces in
-    `en` and `ar`; `formats money as AED`: the FX English text contains
-    `"Net pay: AED 15,000.00"`; `explains an item line`:
+    `en` and `ar`; `fills every placeholder`: no rendered line in
+    either language contains `"{in."`; `formats money as AED`: the FX
+    English text contains `"Net pay: AED 15,000.00"`; `explains an item line`:
     `earn.allowance#housing` renders `"Allowance housing: AED
     4,000.00"`; `keeps amounts intact in Arabic`: the Arabic FX text
     contains `"15,000.00"` inside the isolate marks.
@@ -1223,7 +1235,8 @@ risk.
 4. **Sick and maternity pay reduce earnings, not deductions.** A
    half-pay day removes half a day of every wage component; it is not
    an Article 25 deduction, so it does not use the 50% cap. "Full pay"
-   is read as the wage (`leavePayBase`, `convention`). Cost if pay means
+   is read as the wage (`paidLeaveBase`, `convention`; not the gratuity
+   pack's `leavePayBase`). Cost if pay means
    basic: allowances overpaid on sick days.
 5. **Sick-leave year and counters are inputs.** Article 31 says "per
    year" without saying which year; the caller passes days already
@@ -1234,10 +1247,13 @@ risk.
    maternity over 105), never refused. Cost: none to pay.
 7. **Overtime rate**: hourly = contractual basic / 30 / the contract's
    daily hours (input, at most 8, Art 17(1)). Minutes, not hours. Cost
-   if a 26-day or annual basis is expected: under 15% on overtime.
+   if a 26-day or annual basis is expected: about 15% (30/26) on
+   overtime.
 8. **Overtime caps flag, never cut pay** (Art 19(1) limits the employer,
    Art 19(2) pays every hour worked). The 144-hour three-week limit is
-   not checked (no schedule input). Cost: none to pay.
+   a cited param (`maxHoursPer3Weeks`, official) but not checked: there
+   is no daily schedule input. Cost: none to pay; a breach goes
+   unflagged until rosters exist.
 9. **Rest-day and holiday work** (Art 19(4), 28(2)): an extra day's
    wage (wage / 30) plus 50% of basic for the day, because the monthly
    salary already pays the rest day; the "premium only" reading is a
@@ -1275,7 +1291,8 @@ risk.
     a param). Remainders are deferred and reported, never dropped. Cost:
     a different order changes who waits, not the total.
 17. **GPSSA share counts towards the 50% cap and can be deferred**
-    (Art 25(1)(c) and 25(2)); the flag says the employer still remits
+    (Art 25(1)(c) and 25(2)); the caller resubmits it next month as
+    `GpssaInput.arrears`; the flag says the employer still remits
     the full share. This keeps net pay at zero or more. Cost if the
     share must always be deducted in full: net pay can go negative in a
     last-day joiner month; the employer funds the gap either way.
@@ -1297,3 +1314,9 @@ risk.
 21. **ILOE and the WPS 85% test are not computed** (snippet-level
     sources only) and are listed on every payslip. No demo command in
     this plan. Cost: users compute ILOE outside the product for now.
+22. **Law 7 rates and the 2.5% government support are `official`**:
+    they were read in the official site's English text, although the
+    three L7 amendments, the Arabic text and any Cabinet decision
+    changing the support are unread (the 25 Nov note asked for
+    `secondary`). Cost if a later decision changed them: wrong pension
+    amounts for pre-2023 nationals until the pack is versioned.
