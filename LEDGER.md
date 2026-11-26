@@ -761,3 +761,10 @@ The owner can overrule any of these. Full list with reasons:
   status pills and a right column on records. Built as a preview
   (branch design10) for the owner's approval before any rollout; the
   coverage wave is held until the owner approves the direction.
+- Owner sequencing (2026-11-26): HR and payroll features first (target 80%
+  for the first client meeting); **after all HR features are done, move to
+  the other list made initially** (the wider master and combined feature
+  lists in docs/superpowers/specs/, beyond HR and payroll: spend and AP,
+  VAT and e-invoicing, meetings, channels, intranet, assistant and so on).
+  Duplicates against the HR rows will exist; a dedupe pass against the
+  navigation map's 208 rows comes first, so nothing is built twice.
