@@ -37,3 +37,5 @@ export * from "./wpd-templates";
 export * from "./wpd-cost";
 export * from "./wpd-talent";
 export * from "./wpe-brief";
+export * from "./wpe-exit";
+export * from "./wpe-connect";

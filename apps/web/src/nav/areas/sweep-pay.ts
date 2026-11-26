@@ -11,7 +11,18 @@ const HR_GM = ["hr", "gm"] as const;
 const rep = (id: string): AreaRoute =>
   ({ section: "reports", rest: [id] });
 
+const more = (...rest: string[]): AreaRoute =>
+  ({ section: "pay-run", rest: ["more", ...rest] });
+
+const set = (page: string): AreaRoute =>
+  ({ section: "setup", rest: ["more", page] });
+
 export const AREAS: readonly Area[] = [
+  { id: "pay.exit", section: "pay", group: "owed",
+    label: { en: "People leaving", ar: "المغادرون وإنهاء الخدمة" },
+    status: "live", archetype: "SF", roles: HR_GM, route: more("exit"),
+    keywords: "R34 exit flow resignation last day notice leaver legal " +
+      "flags settlement checks" },
   { id: "reports.owner-brief", section: "reports", group: "people",
     label: { en: "Owner brief", ar: "موجز المالك" },
     status: "live", archetype: "RP", roles: HR_GM, route: rep("owner-brief"),
@@ -29,4 +40,16 @@ export const AREAS: readonly Area[] = [
     status: "live", archetype: "RP", roles: ["hr", "gm", "it"],
     route: rep("it-dashboard"),
     keywords: "X24 access keys webhooks audit chain import sign-in" },
+  { id: "setup.whatsapp", section: "setup", group: "connections",
+    label: { en: "Decisions by WhatsApp", ar: "القرارات عبر واتساب" },
+    status: "live", archetype: "ST", roles: HR_GM, route: set("whatsapp"),
+    keywords: "S32 whatsapp approvals message reply manager phone" },
+  { id: "setup.calendar-feeds", section: "setup", group: "connections",
+    label: { en: "Calendar feeds", ar: "تقويمات الاشتراك" },
+    status: "live", archetype: "ST", roles: HR_GM, route: set("calendar"),
+    keywords: "S34 calendar feed ics outlook google leave holidays" },
+  { id: "setup.email-in", section: "setup", group: "connections",
+    label: { en: "Email in", ar: "البريد الوارد إلى السجلات" },
+    status: "live", archetype: "ST", roles: HR_GM, route: set("email-in"),
+    keywords: "S33 email in inbox letters bank letter medical certificate" },
 ];
