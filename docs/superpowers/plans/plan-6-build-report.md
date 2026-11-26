@@ -4,16 +4,47 @@ Date: 2026-11-26. Branch `api-plan-6` (not pushed), worktree
 `/home/user/HR-Payroll/.claude/worktrees/agent-a98cb405e06910d16`,
 based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 
+## Status
+
+All seven tasks are built, test-first, one commit per task. Not pushed.
+Tasks 2, 3 and 6 (approvals, untrusted files, money) await their
+security review; then one whole-branch review.
+
+## Tests (final run)
+
+- api: 310 passed, 22 skipped (the real-PostgreSQL suites, which skip
+  without `DATABASE_URL`). With `DATABASE_URL` pointing at a throwaway
+  PostgreSQL 16 superuser (`/tmp/pgplan6`, port 5466, stopped at the
+  end), the real-PostgreSQL suites pass 22 of 22 (Plan 3's 17 plus
+  Plan 6's 5), run as the non-superuser runtime role the way Plan 3
+  did. Plan 6's real-PostgreSQL cases are four races (two approvers,
+  March and April runs at once, two submits against one monthly
+  limit, a cancel racing the last approval) and one smoke case
+  (receipt upload and download, list filters, the five reports). The
+  rest of the Plan 6 suite runs on pglite only.
+- contract 98, engine 539 (3 skipped), wps 173: all pass. Line length
+  and every typecheck (including `apps/web`) pass.
+- `apps/web`: 86 passed, 2 failed. Checked on the base commit
+  `32d2dfe` (detached checkout, same worktree): the web suite already
+  failed there with at least ten tests, including both of these; this
+  branch's web changes fixed the rest (see Concerns). `pnpm check` therefore exits 1 at the web step, which
+  also stops `pnpm -r test` before the api package, so the api suite
+  was run on its own.
+
 ## Progress
 
-| Task | Commit message | State |
+| Task | Commit | Message |
 |---|---|---|
-| 1 | `feat(contract): expenses, approvals, receipts` | done |
-| 2 | `feat(api): shared approval spine` | done |
-| 3 | `feat(api): receipts with storage and OCR port` | done |
-| 4 | `feat(api): expense policy, pricing, checks` | done |
-| 5 | `feat(api): expense claims with approvals` | done |
-| 6 | `feat(api): reimburse approved claims in payroll` | done |
+| 1 | `6ff6ec7` | `feat(contract): expenses, approvals, receipts` |
+| 2 | `9810ea8` | `feat(api): shared approval spine` |
+| 3 | `4476d85` | `feat(api): receipts with storage and OCR port` |
+| 4 | `542bd32` | `feat(api): expense policy, pricing, checks` |
+| 5 | `665246a` | `feat(api): expense claims with approvals` |
+| 6 | `deffc89` | `feat(api): reimburse approved claims in payroll` |
+| 7 | the commit holding this report | `feat(api): expense reports, handover` |
+
+The cancel lock-order fix (Further adaptations, item 1) touches Task
+5's `expenses/claims.ts` but is in the Task 7 commit.
 
 ## Adaptations to the plan (Task 1)
 
@@ -223,6 +254,62 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 8. **Real PostgreSQL:** March and April runs created at once link
    three claims, each to exactly one of the two runs.
 
+## Adaptations to the plan (Task 7)
+
+1. **Reports split** into `expenses/reports.ts` (summary, VAT
+   register) and `expenses/reports-payroll.ts` (aging, unpaid,
+   payouts). Summary rows sort by label; an employee with no
+   department groups under `none` / "No department".
+2. **CSV:** `CsvReply` in `src/http/context.ts` answers `text/csv;
+   charset=utf-8` as an attachment (`expense-summary.csv`,
+   `expense-vat-register.csv`, `expense-payouts.csv`), with `nosniff`
+   and `no-store`; the routes wrap their JSON builders with
+   `csvOptional`. The statement line is always one quoted cell; a cell
+   starting with `=`, `+`, `-`, `@`, tab or CR gets a leading `'`, and
+   is quoted when it holds `,`, `"`, CR or LF.
+3. **Leak test:** `seedExpenses` (in `tests/helpers/seed-expenses.ts`,
+   not `seed.ts`) runs **before** the pay run, so payslips carry the
+   sentinel reimbursements and are checked too (the plan said after
+   `seedPayroll`, which would leave no reimbursement in any payslip).
+   Expense sentinels: owner and hr may see all four; the manager sees
+   their own and both direct reports' (as line manager and approver);
+   the employee sees their own. Company B gets 404 for every A claim
+   and receipt id on every `{id}` GET route.
+4. **Conformance:** the Plan 6 happy paths are in
+   `tests/helpers/conformance-expenses.ts`, called from `runFlow` (the
+   claim approved there is paid by the March run, so payouts has a
+   row). The binary route is checked by `Content-Type` and
+   `Content-Disposition` (the recorder reads text, so byte equality is
+   proved in `receipts.test.ts`); the three CSV variants by
+   `text/csv`. The pending list is empty and asserted empty.
+5. **LEDGER.md** section 3 gained one dated row per ruling (28) and one
+   row pointing at this report; **HANDOVER.md** has the state, layout
+   rows, `RECEIPTS_DIR` and the limits.
+
+## Further adaptations (found in the final check)
+
+1. **Cancel takes locks in `decide`'s order** (approval request, then
+   claim). The first version locked the claim first, and on real
+   PostgreSQL a claimant cancelling while the last approver approved
+   deadlocked (one 500); the new race test failed on that version and
+   passes now. A request that changed between the two reads (a
+   resubmit) gives 409 `APPROVAL_STEP_CHANGED`.
+2. **Global Constraints the plan's interfaces do not carry:** `PayRun`
+   has no note field, so pay runs show reimbursements through
+   `reimbursementTotal` and `claimCount` and the note travels on each
+   payslip (`reimbursementNote`) and on the payouts report;
+   `ExpenseClaim` carries `vatRecoverability: "not-assessed"` but not
+   the `VAT_STATEMENT` text (the VAT reports and CSVs carry it). The
+   interfaces were followed as written.
+3. **Smaller ones:** `mayDecide` takes the step order, not an array
+   index; `expense_claims.created_at` is an added column (list order
+   and date filters); `Payslip.reimbursementNote` is the literal note
+   or null, not any string; `ReceiptUpload.dataBase64` has a maximum
+   of 7,200,000 characters; `receipts/base64.ts` is an extra file;
+   `fsBlobStore` hard-links the `.part` file into place (refusing to
+   overwrite) instead of renaming; the OpenAPI error list was not
+   widened with 413 and 415.
+
 ## Decisions
 
 1. **Commit trailer.** The brief asks for `Co-Authored-By: Claude
@@ -236,6 +323,18 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
    expense policy, expense claims): Plan 3 already used 007 and 008,
    and Plans 8 and 9 use 801 and 901 blocks. The runner's three-digit
    pattern and lexical sort already order them, so it is unchanged.
+3. **No new dependency** and no version pin chosen; `hono/body-limit`
+   is part of the pinned Hono 4.13.17.
+4. **Statutory values:** none were added. VAT recovery is
+   `not-assessed` (unsourced) with the exact `VAT_STATEMENT`; the WPS
+   treatment of reimbursements is unsourced and carried as
+   `REIMBURSEMENT_WPS_NOTE`; mileage and per diem rates have no default
+   (`RATE_NOT_FOUND`); the TRN format is a labelled convention. No VAT
+   rate appears in code or tests (a contract test scans exported
+   strings and examples; a report test scans every report body).
+5. **The web app** got only what its typecheck needed (see Task 1,
+   item 8); no web texts were added for the new error codes, to avoid
+   colliding with Plan 4 and the parallel plans in the same catalogue.
 
 ## Approval spine design (Task 2)
 
@@ -254,32 +353,56 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 ## Test order (honest)
 
 - Task 1: contract tests written and seen red (18 failures), then green.
-- Task 6: reimburse, pay-run and exactly-once tests seen red (10
-  failures), then green; every Plan 3 pay-run, SIF and idempotency test
-  still passes unchanged (only the compute test builder gained
-  `reimbursements: []`).
-- Task 5: claim, submit and approval-flow tests seen red (18 failures,
-  routes 404), then green.
-- Task 4: pricing, check, purity and policy tests seen red (modules
-  missing, routes 404), then green.
-- Task 3: sniff, fs-blob, receipts and config tests seen red (modules
-  missing), then green.
 - Task 2: `approvals-resolve.test.ts` was written before `resolve.ts`
   but not run red before it existed; `approvals.test.ts` was seen red
   (module missing), then green. The tenancy suite went red on the new
   tables, then green after seeding.
+- Task 3: sniff, fs-blob, receipts and config tests seen red (modules
+  missing), then green.
+- Task 4: pricing, check, purity and policy tests seen red (modules
+  missing, routes 404), then green.
+- Task 5: claim, submit and approval-flow tests seen red (18 failures,
+  routes 404), then green.
+- Task 6: reimburse, pay-run and exactly-once tests seen red (10
+  failures), then green; every Plan 3 pay-run, SIF and idempotency test
+  still passes unchanged (only the compute test builder gained
+  `reimbursements: []`).
+- Task 7: CSV and report tests seen red (module missing, routes 404),
+  then green; the leak and conformance extensions were written after
+  the report code and passed on first run.
+- The real-PostgreSQL race tests were written after their code and were
+  never seen red against a broken version.
 
 ## Concerns
-
-- A receipt's blob is written before the database transaction
-  commits; a failed transaction leaves an orphan encrypted file (never
-  served: no row points at it). A sweeper is later work.
 
 1. `pnpm check` is not fully green, for reasons that predate this
    branch: two `apps/web` tests fail on the base commit and still fail
    (`every-error-code-has-text`: Plan 3's codes such as
    `INVITE_NOT_FOUND` have no web text, and Plan 6's codes join that
    list; `invite-and-mfa`: the web mock still enrols MFA without the
-   password Plan 3 now requires). Everything else passes. Fixing the
-   web's Plan 3 debt is Plan 4 work and would collide with the other
-   builders in the same catalogue files.
+   password Plan 3 now requires). The web typecheck was red on the base
+   commit too and is green now. Fixing the web's Plan 3 debt is Plan 4
+   work.
+2. A receipt's blob is written before the database transaction
+   commits; a failed transaction leaves an orphan encrypted file (never
+   served: no row points at it). A sweeper is later work.
+3. Merge points with Plans 8 and 9 (all one-line or append-only):
+   `routes.ts`, `registry.ts`, `examples.ts`, `errors.ts`,
+   `allowlist.ts`, `app.ts`, `seed-rows.ts`, `conformance.test.ts`,
+   `leak.test.ts`, `contract/tests/routes.test.ts` (the route count and
+   the exact owner-only and MFA lists), `HANDOVER.md` and `LEDGER.md`
+   section 3. Plan 3 files changed beyond one line: `http/context.ts`
+   (binary and CSV replies, per-route body limit), `payroll/compute.ts`,
+   `snapshot.ts`, `pay-runs.ts`, `payslips.ts` (reimbursements),
+   `deps.ts`, `config.ts`, `main.ts` (blob store), and `people/
+   employees.ts` (one column name).
+4. pglite runs one transaction at a time, so the races are proved only
+   by the real-PostgreSQL suite, which is skipped without
+   `DATABASE_URL`.
+5. Approvers keep seeing a claim (and its receipts) after deciding it,
+   and a line manager sees a report's drafts: by design of the plan's
+   visibility rule, worth a look in the security review.
+6. An approval's `summary.total` and the inbox show claim totals to
+   approvers; claim amounts are stored in clear (Ruling 15).
+7. Old pay-run snapshots without `reimbursements` open as an empty
+   list; none exist outside tests.

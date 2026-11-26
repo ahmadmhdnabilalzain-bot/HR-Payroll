@@ -45,6 +45,18 @@ source-cited, with an open API and Arabic from the start.
   PostgreSQL with row-level security, sealed salary and bank fields,
   hash-chained audit log, pay runs, payslips and SIF files).
   Build report: `docs/superpowers/plans/plan-3-build-report-1.md`.
+- **Plan 6 (expenses and claims) is built** on worktree branch
+  `api-plan-6` (not pushed, not merged), extending `packages/contract`
+  (now 75 routes) and `packages/api`: a shared approval spine (chains
+  of amount tiers, maker-checker, distinct approvers per tier),
+  receipts (sniffed, encrypted, attachment-only downloads, OCR port),
+  expense categories and a versioned policy (limits per role, dated
+  mileage and per diem rates with no defaults), claims with revisions,
+  reimbursement of approved claims through the next pay run (outside
+  gross and the SIF, inside net), and owner/hr reports with CSV.
+  Build report: `docs/superpowers/plans/plan-6-build-report.md`.
+  Tasks 2, 3 and 6 (approvals, untrusted files, money) await their
+  security review.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -77,8 +89,9 @@ pnpm api:dev                               # migrate, then serve
 `api:dev` reads `DATABASE_URL` (the runtime role: no superuser, no
 BYPASSRLS, owns no table, granted `payroll_app WITH INHERIT FALSE, SET
 TRUE`), `MIGRATE_DATABASE_URL` (the role that owns the tables; defaults
-to `DATABASE_URL`), `PAYROLL_MASTER_KEY` (32 bytes, base64) and `PORT`
-(default 8787). It refuses to start with a bad key or an unsafe runtime
+to `DATABASE_URL`), `PAYROLL_MASTER_KEY` (32 bytes, base64), `PORT`
+(default 8787) and `RECEIPTS_DIR` (required: the directory for
+encrypted receipt files; Plan 6). It refuses to start with a bad key or an unsafe runtime
 role. Checked on 2026-11-26 against a throwaway PostgreSQL 16 (health,
 signup, the superuser and table-owner refusals). The real-PostgreSQL
 test suite runs when `DATABASE_URL` points at a superuser (it creates
@@ -145,14 +158,15 @@ engine refuses to run without an explicit value.
 |---|---|
 | Primitives, roles, errors | `src/primitives.ts`, `src/roles.ts`, `src/errors.ts` |
 | Schemas by family | `src/company.ts`, `user.ts`, `department.ts`, `employee.ts`, `leave.ts`, `attendance.ts`, `trace.ts`, `payroll.ts`, `sif.ts`, `audit.ts`, `lists.ts` |
-| Routes (50) | `src/route-def.ts`, `src/routes*.ts` |
+| Routes (75; Plan 6's 25 in `routes-expenses.ts`) | `src/route-def.ts`, `src/routes*.ts` |
+| Plan 6 schemas | `src/approvals.ts`, `receipts.ts`, `expense-policy.ts`, `expenses.ts`, `expense-reports.ts`, `registry-expenses.ts`, `examples-expenses.ts` |
 | Registry, examples, OpenAPI | `src/registry.ts`, `src/examples*.ts`, `src/openapi.ts`, `src/write-openapi.ts` |
 
 ## API layout (`packages/api`)
 
 | Area | Files |
 |---|---|
-| Database, migrations, tenancy | `src/db/`, `migrations/001` to `008` |
+| Database, migrations, tenancy | `src/db/`, `migrations/001` to `008`, `601` to `604` (Plan 6) |
 | HTTP plumbing (one transaction per request) | `src/app.ts`, `src/http/` |
 | Sign-in, sessions, TOTP, guards | `src/auth/` |
 | Field encryption | `src/crypto/keyring.ts` |
@@ -161,8 +175,24 @@ engine refuses to run without an explicit value.
 | Leave and attendance | `src/leave/`, `src/attendance/`, `src/time/dubai.ts` |
 | Pay runs (pure compute), payslips, SIF | `src/payroll/` |
 | Entry and config | `src/main.ts`, `src/config.ts`, `src/deps.ts` |
+| Plan 6 wiring (one call from `app.ts`) | `src/expense-app.ts` |
+| Approval spine (pure resolution, chains, requests, decisions) | `src/approvals/`, `src/routes/approvals.ts` |
+| Receipt storage port (memory, local disk) | `src/storage/` |
+| Receipts (sniffing, base64, OCR port, service) | `src/receipts/`, `src/routes/receipts.ts` |
+| Expenses (pure policy, checks and reimbursement; claims, submit, reports) | `src/expenses/`, `src/routes/expense-*.ts`, `src/http/csv.ts` |
 
 ## Known limits and open questions
+
+- Plan 6 limits: reimbursements are paid with the run but are **not in
+  the WPS salary file** (whether they must be is not sourced; HR pays
+  them by separate transfer from the payouts report). Input VAT is
+  captured as entered and **recovery is never assessed** (FTA Decision
+  17 of 2026 is known only from secondary summaries). OCR is an
+  interface only (the default reader suggests nothing). No web screens
+  yet (Plan 4 follow-up). The approval spine serves expense claims
+  only; leave and pay runs keep Plan 3's own checks. A receipt blob is
+  written before the transaction commits, so a failed request can
+  leave an orphan encrypted file (never served).
 
 - Plan 3 limits: nothing on `NOT_COMPUTED_PAY` is computed (proration
   for partial months, overtime premiums, unpaid leave deductions,
@@ -260,6 +290,10 @@ Review Plan 3 (whole branch, plus Tasks 5 and 7 for data protection and
 money), merge it into `claude/quirky-wozniak-b7xkvr`, then finish Plan 4
 (web app) against `packages/contract`. The owner wants no technical
 questions: decide, record a ruling, continue.
+Plan 6 (branch `api-plan-6`): run the security reviews of Tasks 2, 3
+and 6 and one whole-branch review, then merge (migrations 601 to 604,
+`RECEIPTS_DIR` in every environment). Expense and approval screens are
+a Plan 4 follow-up.
 
 ## Tooling (25 Nov 2026)
 

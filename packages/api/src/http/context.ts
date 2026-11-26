@@ -70,6 +70,11 @@ export class BinaryReply {
     readonly fileName: string) {}
 }
 
+/** A CSV report (csv-optional routes with `format=csv`). */
+export class CsvReply {
+  constructor(readonly text: string, readonly fileName: string) {}
+}
+
 /**
  * Commit the transaction, then answer with this error (e.g. a failed
  * password check whose failure counter must stick).
@@ -93,6 +98,7 @@ const NO_ENTER: Enter = () => {
 function respond(c: Context<Env>, def: RouteDef, out: unknown) {
   if (out instanceof Refuse) throw out.error;
   if (out instanceof BinaryReply) return binary(c, out);
+  if (out instanceof CsvReply) return csv(c, out);
   if (out instanceof FileReply) {
     c.header("Content-Disposition",
       `attachment; filename="${out.fileName}"`);
@@ -103,6 +109,14 @@ function respond(c: Context<Env>, def: RouteDef, out: unknown) {
   if (status === 204) return c.body(null, 204);
   if (def.contentType === "text/plain") return c.text(String(body), status);
   return c.json(body as object, status);
+}
+
+function csv(c: Context<Env>, out: CsvReply) {
+  c.header("Content-Type", "text/csv; charset=utf-8");
+  c.header("Content-Disposition", `attachment; filename="${out.fileName}"`);
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("Cache-Control", "no-store");
+  return c.body(out.text, 200);
 }
 
 function binary(c: Context<Env>, out: BinaryReply) {

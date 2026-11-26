@@ -6,6 +6,10 @@ import {
 } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { base32Decode, totpCode } from "../src/auth/totp";
+import {
+  expenseReports,
+  expensesFlow,
+} from "./helpers/conformance-expenses";
 import { PLAN6_PENDING } from "./helpers/plan6-pending";
 import { salaryOf } from "./helpers/seed";
 import { call, makeApp, PASSWORD, type Res } from "./helpers/test-app";
@@ -29,6 +33,9 @@ function recorder(ctx: Ctx, hits: Hit[]) {
     return res;
   };
 }
+
+/** CSV responses of the csv-optional reports (format=csv). */
+const csvHits: Res[] = [];
 
 describe("whole-API conformance", () => {
   let ctx: Ctx;
@@ -63,6 +70,22 @@ describe("whole-API conformance", () => {
           .toBe(true);
       }
     });
+
+  it("binary and csv-optional routes answer their media types", () => {
+    const bin = hits.find((h) => h.id === "downloadReceipt")!;
+    expect(bin.res.headers.get("content-type")).toBe("image/png");
+    expect(bin.res.headers.get("content-disposition"))
+      .toMatch(/^attachment; filename="receipt-[0-9a-f-]{36}\.png"$/);
+    expect(csvHits.length).toBe(3);
+    for (const r of csvHits) {
+      expect(r.status).toBe(200);
+      expect(r.headers.get("content-type")).toMatch(/^text\/csv/);
+    }
+  });
+
+  it("every Plan 6 route is served (no pending list left)", () => {
+    expect([...PLAN6_PENDING]).toEqual([]);
+  });
 
   it("every error body parses and carries a known code", () => {
     const errors = hits.filter((h) => h.res.status >= 400);
@@ -120,7 +143,9 @@ async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
     { role: "manager" });
   await leave(hit, owner, e.body.token, c, emp);
   await attendance(hit, owner, e.body.token, c);
-  await payroll(hit, owner, owner2, e.body.token, c);
+  await expensesFlow(hit, owner, e.body.token, c);
+  const runId = await payroll(hit, owner, owner2, e.body.token, c);
+  csvHits.push(...await expenseReports(hit, owner, c, runId));
   await hit("listAuditEvents", owner, c, {}, undefined,
     { query: "?limit=10" });
   await hit("verifyAuditChain", owner, c);
@@ -199,4 +224,5 @@ async function payroll(hit: Hitter, owner: string, owner2: string,
   const sif = await hit("generateSif", owner, c, { id });
   await hit("getSifFile", owner, c, { id: sif.body.id });
   await hit("downloadSifFile", owner, c, { id: sif.body.id });
+  return id;
 }
