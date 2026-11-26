@@ -46,6 +46,8 @@ describe("setup rules", () => {
     expect(valueWords("overtimeUpliftBps", 2500)).toBe("25%");
     expect(valueWords("timeMaxNormalMinutesPerDay", 480)).toBe("8 hours");
     expect(valueWords("x", null)).toBe("Not set");
+    expect(valueWords("capYearsOfWage", 2)).toBe("2 years of wage");
+    expect(valueWords("capYearsOfWage", 1)).toBe("1 year of wage");
     expect(plainOf("zzzUnknownKey")).toBe("Zzz unknown key.");
   });
   it("holds a choice to the law's limit", () => {

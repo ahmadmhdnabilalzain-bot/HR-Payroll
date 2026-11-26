@@ -63,4 +63,8 @@ export const shell: ArOf<typeof en> = {
   panelAreas: "انتقل إلى",
   groupTabs: "في هذه المجموعة",
   phoneTools: "الإشعارات والعرض",
+  outsideTitle: "هذه الصفحة خارج نطاق عرضك.",
+  outsideHelp: "هذه الصفحة لدور آخر. غيّر الدور من القائمة في الأعلى، " +
+    "أو عُد إلى صفحتك الرئيسية.",
+  outsideBack: "العودة إلى الرئيسية",
 };

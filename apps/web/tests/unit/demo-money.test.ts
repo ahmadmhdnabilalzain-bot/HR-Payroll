@@ -27,6 +27,17 @@ describe("demo money formatter", () => {
     expect(formatSignedMoney(fils(0n), "en")).toBe("AED 0.00");
   });
 
+  it("writes-a-negative-one-way-typographic-minus-before-aed", () => {
+    expect(MINUS).toBe("\u2212");
+    expect(formatMoney(fils(-1471906n), "en")).toBe("\u2212AED 14,719.06");
+    expect(formatMoney(fils(-1471906n), "en", { plus: true }))
+      .toBe("\u2212AED 14,719.06");
+    expect(formatMoney(fils(495000n), "en", { plus: true }))
+      .toBe("+AED 4,950.00");
+    expect(formatMoney(fils(0n), "en", { plus: true })).toBe("AED 0.00");
+    expect(moneyParts(fils(495000n), true).sign).toBe("+");
+  });
+
   it("isolates-amounts-in-arabic", () => {
     expect(formatMoney(fils(250000n), "en")).toBe("AED 2,500.00");
     expect(formatMoney(fils(250000n), "ar"))

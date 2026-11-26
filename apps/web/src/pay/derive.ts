@@ -33,6 +33,18 @@ export function waitingOf(s: DemoState,
 export const canSeePayRecords = (role: Role): boolean =>
   role === "hr" || role === "gm";
 
+/** Pay groups and pay elements are Setup pages with no one's pay. */
+export const PAY_SETUP = ["groups", "elements"] as const;
+
+/**
+ * Who may open a pay area: pay records are HR's and the GM's; the
+ * two Setup pages are the IT manager's too (no one's pay is on them).
+ */
+export function canOpenPayArea(role: Role, area: string): boolean {
+  if (canSeePayRecords(role)) return true;
+  return role === "it" && PAY_SETUP.some((x) => x === area);
+}
+
 /** Fines still to decide. */
 export function finesToDecide(v: PayView, s: DemoState): number {
   return v.fines.filter((f) => s.fineDecisions[f.id] === undefined).length;

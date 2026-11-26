@@ -5,7 +5,8 @@ import {
   personFor,
   requestRows,
   usedHalves,
-  visibleIds,
+  leaveIds,
+  ownLeaveOnly,
 } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useRoll } from "../people/useRoll";
@@ -29,7 +30,7 @@ export function TimeOff(_p: ViewProps) {
   const [fresh, setFresh] = useState<string | null>(null);
   const me = personFor(data, state.role);
   const who = data.people.person(me);
-  const lead = state.role === "employee"
+  const lead = ownLeaveOnly(state)
     ? t("timeoff.leadMine", { name: who?.name[lang].split(" ")[0] ?? "" })
     : state.role === "manager" ? t("timeoff.leadTeam")
       : t("timeoff.leadAll");
@@ -45,7 +46,7 @@ export function TimeOff(_p: ViewProps) {
       </header>
       <Balances id={me} />
       <Requests fresh={fresh} />
-      {visibleIds(data, state).length > 1 && <TeamCalendar />}
+      {leaveIds(data, state).length > 1 && <TeamCalendar />}
       <RequestSheet open={open} onClose={() => setOpen(false)}
         onSent={(id) => setFresh(id)} />
     </div>

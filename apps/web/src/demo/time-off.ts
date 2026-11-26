@@ -37,6 +37,19 @@ export function canSee(d: DemoData, s: Pick<DemoState, "role">,
   return visibleIds(d, s).includes(id);
 }
 
+/**
+ * Whose leave a role sees in Time off: the IT manager sees the
+ * directory, but only their own leave (leave reasons are HR's).
+ */
+export function leaveIds(d: DemoData, s: Pick<DemoState, "role">)
+  : string[] {
+  return s.role === "it" ? [personFor(d, s.role)] : visibleIds(d, s);
+}
+
+/** True when the role sees only their own leave. */
+export const ownLeaveOnly = (s: Pick<DemoState, "role">): boolean =>
+  s.role === "employee" || s.role === "it";
+
 /** HR and the GM see everyone's pay; others only their own. */
 export function canSeePay(d: DemoData, s: Pick<DemoState, "role">,
   id: string): boolean {

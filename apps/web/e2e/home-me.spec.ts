@@ -74,3 +74,55 @@ test("manager-sees-team-today", async ({ page }) => {
   const team = page.getByRole("region", { name: "Team today" });
   await expect(team.getByRole("listitem").first()).toBeVisible();
 });
+
+test("deep-links-outside-the-role-are-turned-away", async ({ page }) => {
+  await page.goto("/");
+  await asRole(page, "Employee");
+  for (const hash of ["#/reports/summary", "#/reports/files",
+    "#/setup/access/users", "#/setup/rules/end-of-service",
+    "#/pay-run/review", "#/time-off/attendance"]) {
+    await page.evaluate((h) => { location.hash = h; }, hash);
+    await expect(page.getByRole("heading", { level: 1,
+      name: "This page is outside your view." })).toBeVisible();
+    await expect(page.getByText(/933,730\.94|938,680\.94/)).toHaveCount(0);
+  }
+  await page.getByRole("link", { name: "Back to Home" }).click();
+  await expect(page).toHaveURL(/#\/home$|\/$/);
+});
+
+test("manager-home-never-says-no-one-waits-under-a-waiting-request",
+  async ({ page }) => {
+    await page.goto("/");
+    await asRole(page, "Team manager");
+    await expect(page.getByRole("heading", { level: 1 }))
+      .toHaveText(/waits? for you/);
+    await expect(page.getByText(/off or waiting/)).toHaveCount(0);
+  });
+
+test("it-manager-has-the-time-word-and-sees-attendance", async ({ page }) => {
+  await page.goto("/");
+  await asRole(page, "IT manager");
+  await page.evaluate(() => { location.hash = "#/time-off/attendance"; });
+  await expect(page.getByText("This page is outside your view."))
+    .toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.evaluate(() => { location.hash = "#/time-off/overtime"; });
+  await expect(page.getByText("This page is outside your view."))
+    .toBeVisible();
+});
+
+test("switching-role-opens-the-new-home-at-the-top", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => scrollTo(0, 400));
+  await asRole(page, "IT manager");
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+});
+
+test("leave-left-reads-one-way-on-me-and-home", async ({ page }) => {
+  await page.goto("/");
+  await asRole(page, "Employee");
+  await expect(page.getByText(/22½ days left/).first()).toBeVisible();
+  await page.evaluate(() => { location.hash = "#/me/leave"; });
+  await expect(page.getByText(/22½ days left/).first()).toBeVisible();
+  await expect(page.getByText(/22\.5 days/)).toHaveCount(0);
+});

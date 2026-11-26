@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { documentTitle } from "./brand";
 import { showArabic } from "./demo/flags";
 import { useRoute } from "./demo/route";
 import { useDemo } from "./demo/state";
 import { useLocale } from "./i18n/LocaleProvider";
 import { CommandPalette, usePaletteHotkeys } from "./shell/CommandPalette";
 import { GroupTabs } from "./shell/GroupTabs";
+import { Outside } from "./shell/Outside";
 import { PhoneTabs, TopBar } from "./shell/TopBar";
+import { mayOpen } from "./nav/registry";
 import { VIEWS } from "./views";
 import s from "./App.module.css";
 
@@ -14,10 +17,9 @@ export function App() {
   const { lang, t, setLang } = useLocale();
   const { data, state } = useDemo();
   const route = useRoute();
-  /* Company pay is HR's and the GM's: a typed link shows Home. */
-  const company = state.role === "hr" || state.role === "gm";
-  const shown = route.section === "pay-run" && !company ? "home"
-    : route.section;
+  /* The one route guard: a deep link the role may not open. */
+  const allowed = mayOpen(state.role, route);
+  const shown = route.section;
   const [palette, setPalette] = useState(false);
   const open = useCallback(() => setPalette(true), []);
   usePaletteHotkeys(open);
@@ -26,17 +28,34 @@ export function App() {
   useEffect(() => {
     if (!arabicShown && lang === "ar") setLang("en");
   }, [arabicShown, lang, setLang]);
+  /* The tab names the page: Home, else the page's own heading. */
+  const main = useRef<HTMLElement>(null);
+  const home = route.section === "home" ? t("shell.navHome") : null;
+  useEffect(() => {
+    const el = main.current;
+    const set = (): void => {
+      const page = home ?? el?.querySelector("h1")?.textContent ?? "";
+      const next = documentTitle(lang, page);
+      if (document.title !== next) document.title = next;
+    };
+    set();
+    if (el === null) return undefined;
+    const seen = new MutationObserver(set);
+    seen.observe(el, { subtree: true, childList: true, characterData: true });
+    return () => seen.disconnect();
+  }, [home, lang]);
   return (
     <>
       <TopBar route={route} onSearch={open} />
-      <main className={s.main}>
+      <main className={s.main} ref={main}>
         {lang === "ar" && (
           <p className={s.banner} role="note">
             {t("common.arReviewBanner")}
           </p>
         )}
-        {shown === route.section && <GroupTabs route={route} />}
-        <View key={shown} rest={shown === route.section ? route.rest : []} />
+        {allowed && <GroupTabs route={route} />}
+        {allowed ? <View key={shown} rest={route.rest} />
+          : <Outside key={`outside-${shown}`} />}
       </main>
       <PhoneTabs route={route} />
       <CommandPalette open={palette} arabicShown={arabicShown}

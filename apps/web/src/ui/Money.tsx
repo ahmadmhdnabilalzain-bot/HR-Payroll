@@ -1,8 +1,7 @@
 import { fils, type Fils } from "@payroll/engine";
 import { useTweenedBigint } from "../demo/motion";
 import { useDemo } from "../demo/state";
-import { formatMoney, formatSignedMoney, moneyParts }
-  from "../i18n/format";
+import { formatMoney, moneyParts } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import s from "./Money.module.css";
 
@@ -17,10 +16,10 @@ const MASK = "•".repeat(6);
  * masked when amounts are hidden. Screen readers get the plain text.
  */
 export function Money(p: { value: Fils; size?: Size; tween?: boolean;
-  /** A change: "+" on a rise (a fall always has the minus). */
-  signed?: boolean;
   /** Count up from zero once, on first show (the opening pass). */
-  countUp?: boolean }) {
+  countUp?: boolean;
+  /** A change: "+" on a rise (a fall always reads "−AED"). */
+  signed?: boolean }) {
   const { lang, t } = useLocale();
   const { state } = useDemo();
   const shown = useTweenedBigint(p.value, p.countUp === true ? 800 : 600,
@@ -36,15 +35,14 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
       </span>
     );
   }
-  const m = moneyParts(v);
+  const plus = p.signed === true;
+  const m = moneyParts(v, plus);
   return (
     <span className={`${s.money} ${s[size]}`} dir="ltr">
-      <span className="visually-hidden">{p.signed === true
-        ? formatSignedMoney(p.value, lang) : formatMoney(p.value, lang)}
-      </span>
+      <span className="visually-hidden">
+        {formatMoney(p.value, lang, { plus })}</span>
       <span aria-hidden="true" className={s.lead}>
-        {m.sign === "" && p.signed === true && v > 0n ? "+" : m.sign}
-        <span className={s.cur}>{m.currency}</span>
+        {m.sign}<span className={s.cur}>{m.currency}</span>
       </span>
       <span aria-hidden="true">
         {m.whole}<span className={s.frac}>.{m.frac}</span>

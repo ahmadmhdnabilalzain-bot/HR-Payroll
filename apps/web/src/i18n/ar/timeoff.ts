@@ -35,7 +35,9 @@ export const timeoff: ArOf<typeof en> = {
   notJoined: "ينضم لاحقًا هذا العام: لا رصيد بعد.",
   requests: "الطلبات",
   requestsMine: "طلباتك",
-  requestsEmpty: "لا توجد طلبات بعد.",
+  requestsEmpty: "لا طلبات بعد. تظهر هنا الإجازات التي تطلبها، " +
+    "ومن يقرر فيها.",
+  requestsEmptyAll: "لا توجد طلبات إجازة بعد.",
   waitingFor: "بانتظار {name}، {role}",
   booked: "محجوزة",
   bookedBy: "حجزها {name}، {role}، {date}",

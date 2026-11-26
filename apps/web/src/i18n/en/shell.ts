@@ -61,4 +61,8 @@ export const shell = {
   panelAreas: "Go to",
   groupTabs: "In this group",
   phoneTools: "Notifications and display",
+  outsideTitle: "This page is outside your view.",
+  outsideHelp: "It is for another role. Switch role from the menu at " +
+    "the top, or go back to your Home.",
+  outsideBack: "Back to Home",
 } satisfies EnNamespace;

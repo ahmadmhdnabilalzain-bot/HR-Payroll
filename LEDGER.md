@@ -749,3 +749,26 @@ The owner can overrule any of these. Full list with reasons:
   of rows still missing. Manar One was built in 48 hours, so breadth is
   built in parallel (up to 10 builders) on shared screen templates once
   the shell and tokens have landed.
+- Owner decision (2026-11-26): **accent colour = option C, ink only (no
+  accent).** Primary actions are near-black ink in light and near-white in
+  dark; links are ink with an underline; colour appears only as state
+  (red stops pay, amber check, muted green done) and always with a word.
+  Avatars use neutral tonal initials. Teal is retired.
+- Owner instruction (2026-11-26): "if its not 10/10, then the advisor need
+  to propose upgrades to make it 10/10". The advisor proposed: data-drawn
+  hero (net pay trend), data cards in the strip, action-row section
+  panels, avatars, motion into records, a dedicated phone first screen,
+  status pills and a right column on records. Built as a preview
+  (branch design10) for the owner's approval before any rollout; the
+  coverage wave is held until the owner approves the direction.
+- Owner sequencing (2026-11-26): HR and payroll features first (target 80%
+  for the first client meeting); **after all HR features are done, move to
+  the other list made initially** (the wider master and combined feature
+  lists in docs/superpowers/specs/, beyond HR and payroll: spend and AP,
+  VAT and e-invoicing, meetings, channels, intranet, assistant and so on).
+  Duplicates against the HR rows will exist; a dedupe pass against the
+  navigation map's 208 rows comes first, so nothing is built twice.
+- Owner ruling (2026-11-26): **UAE only. Ignore Saudi** (and any other
+  country: India payroll, GCC multi-country). Rows for other countries are
+  removed from the coverage denominator and from every build list; the
+  "not buildable" count for the 80% target is recomputed without them.

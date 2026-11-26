@@ -1,6 +1,7 @@
 import type { DemoData } from "../../demo/data/types";
 import { formatDate } from "../../i18n/format";
 import type { Lang } from "../../i18n/types";
+import { sampleHolidayText } from "../structure/data";
 import { holidayDatesLoaded, ruleOf } from "./data";
 import type { GroupSpec, ItemSpec, PageSpec } from "./RuleSettings";
 
@@ -93,14 +94,16 @@ export function hoursPage(): PageSpec {
 
 export function holidaysPage(): PageSpec {
   const n = holidayDatesLoaded();
+  const sample = sampleHolidayText();
   return { title: "Holidays and Ramadan hours",
     lede: "Public holidays and the shorter day in Ramadan.",
     groups: [
       g("Public holidays",
         { key: "holidays:dates", label: "Holiday dates",
-          value: n === 0 ? "None loaded" : `${n} loaded`,
-          help: n === 0 ? "The rule packs hold no list of public " +
-            "holidays. Leave day counts skip weekends only." : "" }),
+          value: n === 0 ? `${sample.count} sample dates`
+            : `${n} loaded`,
+          help: n === 0 ? `${sample.note} ${sample.names}. Leave day ` +
+            "counts still skip weekends only." : "" }),
       g("Work on a holiday",
         r(TIME, "timeHolidayWorkCompensated", "Compensated"),
         r(PAY, "holidayUpliftBps", "Extra pay",
@@ -129,7 +132,7 @@ export function endOfServicePage(): PageSpec {
         r(EOS, "capBase", "Limit measured on"),
         r(EOS, "basicWageOnly", "Worked out on basic wage only")),
       g("Counting service",
-        r(EOS, "unpaidDaysExcluded", "Unpaid leave counts"),
+        r(EOS, "unpaidDaysExcluded", "Unpaid leave left out"),
         r(EOS, "partYearProRata", "Part of a year"),
         r(EOS, "endDateInclusive", "Last day counts"),
         r(EOS, "roundingMode", "Rounding")),

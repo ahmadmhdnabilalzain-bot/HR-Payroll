@@ -40,16 +40,6 @@ export function RequestStatus(p: { r: PayRequest }) {
 }
 
 /** Pay records are for HR and the General Manager only. */
-export function Outside() {
-  return (
-    <div className={s.page}>
-      <PageHead title="Outside your view"
-        lede={"Pay records are open to the HR manager and the General " +
-          "Manager. Switch role at the top of the page to see them."} />
-    </div>
-  );
-}
-
 export function NotFound(p: { what: string; back: { label: string;
   href: string } }) {
   return (
@@ -175,3 +165,6 @@ export function useMakerChecker(): { makerId: string; checkerId: string;
   return { makerId, checkerId, maker: whoIs(data, makerId),
     checker: whoIs(data, checkerId), today: data.payCalendar().asOf };
 }
+
+/** Pay records are HR's and the GM's: the shell's refusal. */
+export { Outside } from "../shell/Outside";

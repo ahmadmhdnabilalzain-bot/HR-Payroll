@@ -23,9 +23,7 @@ export function NotificationsButton(p: { className: string }) {
         onClick={() => setOpen(true)}>
         <Icon name="bell" size={18} />
         {unread > 0 && (
-          <span className={`${s.badge} tabular`} aria-hidden="true">
-            {unread}
-          </span>
+          <span className={s.badge} aria-hidden="true" />
         )}
       </button>
       <NotificationsSheet open={open} onClose={() => setOpen(false)} />

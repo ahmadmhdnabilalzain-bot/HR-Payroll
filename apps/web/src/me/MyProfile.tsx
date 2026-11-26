@@ -1,4 +1,5 @@
 import { hrefOf } from "../demo/route";
+import { dayCountVars } from "../people/words";
 import { useDemo } from "../demo/state";
 import { annualNow, personFor } from "../demo/time-off";
 import { formatDate } from "../i18n/format";
@@ -22,8 +23,8 @@ export function MyProfile() {
       stats={[
         { label: t("me.joined"), value: formatDate(x.joinedOn, lang) },
         ...(balance === null ? [] : [{ label: t("me.leaveLeft"),
-          value: t("timeoff.annualLeft", { count: balance.availableDays,
-            n: String(balance.availableDays) }) }]),
+          value: t("timeoff.annualLeft",
+              dayCountVars(balance.availableDays, lang)) }]),
         { label: t("me.documents"),
           value: String(data.home.documents(me).length) }]}
       tabs={[

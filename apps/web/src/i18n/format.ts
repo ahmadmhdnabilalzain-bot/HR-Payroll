@@ -11,27 +11,26 @@ const LOCALE: Record<Lang, string> = {
 /** The typographic minus (U+2212): every negative amount on screen. */
 export const MINUS = "\u2212";
 
-/** The engine's text with its hyphen-minus turned into a true minus. */
-const aed = (f: Fils): string => formatAed(f).replace(/^-/, MINUS);
-
 /**
  * "AED 38,333.33", "−AED 1,180.64"; in Arabic wrapped in left-to-right
  * isolates. The one money formatter: <Money/> and every table read
- * it. CSV files keep a plain hyphen (lib/csv, filsDecimal).
+ * it; `plus` adds "+" to a rise. CSV files keep a plain hyphen
+ * (lib/csv, filsDecimal).
  */
-export function formatMoney(f: Fils, lang: Lang): string {
+export function formatMoney(f: Fils, lang: Lang,
+  opts?: { plus?: boolean }): string {
   const [open, close] = LTR_ISOLATE[lang];
-  return open + aed(f) + close;
+  const m = moneyParts(f, opts?.plus === true);
+  return `${open}${m.sign}${m.currency} ${m.whole}.${m.frac}${close}`;
 }
 
 /** The same with a plus sign on a rise: "+AED 5.00", "−AED 5.00". */
 export function formatSignedMoney(f: Fils, lang: Lang): string {
-  const [open, close] = LTR_ISOLATE[lang];
-  return open + (f > 0n ? "+" : "") + aed(f) + close;
+  return formatMoney(f, lang, { plus: true });
 }
 
 export interface MoneyParts {
-  sign: "" | typeof MINUS;
+  sign: "" | "+" | typeof MINUS;
   currency: "AED";
   /** Grouped whole dirhams, "612,430". */
   whole: string;
@@ -42,11 +41,11 @@ export interface MoneyParts {
 /**
  * The same amount as formatMoney, split so the fils can be set
  * smaller. Built from formatAed's own output, so there is still one
- * formatter.
+ * formatter; the sign is MINUS, or "+" on a rise when asked.
  */
-export function moneyParts(f: Fils): MoneyParts {
+export function moneyParts(f: Fils, plus = false): MoneyParts {
   const text = formatAed(f);
-  const sign = text.startsWith("-") ? MINUS : "";
+  const sign = text.startsWith("-") ? MINUS : plus && f > 0n ? "+" : "";
   const [whole = "0", frac = "00"] = text.replace(/^-?AED /, "")
     .split(".");
   return { sign, currency: "AED", whole, frac };

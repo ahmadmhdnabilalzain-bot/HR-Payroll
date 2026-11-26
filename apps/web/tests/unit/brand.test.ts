@@ -18,5 +18,7 @@ describe("brand", () => {
   it("title-from-product-name", () => {
     expect(documentTitle("en")).toBe(PRODUCT_NAME.en);
     expect(documentTitle("ar")).toBe(PRODUCT_NAME.ar);
+    expect(documentTitle("en", " Pay  groups. "))
+      .toBe(`Pay groups · ${PRODUCT_NAME.en}`);
   });
 });

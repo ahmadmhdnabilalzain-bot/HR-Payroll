@@ -35,13 +35,26 @@ describe("boundaries", () => {
     // in parallel merge without conflicts.
     const allowed = [
       "src/demo/data/adapter.ts",
+      "src/demo/data/payroll-extras-types.ts",
+      "src/demo/data/payroll-extras.ts",
+      "src/demo/data/files-types.ts",
+      "src/demo/data/files.ts",
       "src/demo/data/papers.ts",
       "src/demo/data/people.ts",
       "src/demo/data/run-detail.ts",
       "src/demo/data/run-explain.ts",
       "src/demo/data/time.ts",
       "src/reports/source.ts",
+      "src/reports/cost/source.ts",
+      "src/reports/more/source.ts",
+      "src/pay/more/source.ts",
+      "src/setup/more/source.ts",
       "src/setup/access/data.ts",
+      "src/setup/structure/data.ts",
+      "src/demo/data/safety-types.ts",
+      "src/demo/data/safety.ts",
+      "src/demo/data/talent-types.ts",
+      "src/demo/data/talent.ts",
       "src/demo/data/team-types.ts",
       "src/demo/data/team.ts",
       "src/demo/data/moves-types.ts",
@@ -49,6 +62,8 @@ describe("boundaries", () => {
       "src/demo/data/home-types.ts",
       "src/demo/data/home.ts",
       "src/demo/data/pay.ts",
+      "src/demo/data/requests-types.ts",
+      "src/demo/data/requests.ts",
     ];
     expect([...filesImporting(/^@payroll\/demo-data/)].sort())
       .toEqual([...allowed].sort());

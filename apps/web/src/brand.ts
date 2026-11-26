@@ -13,6 +13,8 @@ export const PRODUCT_NAME: Readonly<Record<Lang, string>> = Object.freeze({
   ar: "Mubinflow",
 });
 
-export function documentTitle(lang: Lang): string {
-  return PRODUCT_NAME[lang];
+/** "Pay groups · Mubinflow": the page first, so tabs tell apart. */
+export function documentTitle(lang: Lang, page?: string): string {
+  const p = page?.trim().replace(/\s+/g, " ").replace(/\.$/, "") ?? "";
+  return p === "" ? PRODUCT_NAME[lang] : `${p} · ${PRODUCT_NAME[lang]}`;
 }

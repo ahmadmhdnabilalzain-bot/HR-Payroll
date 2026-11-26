@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { dayCountVars } from "../people/words";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { annualNow, personFor, requestRows } from "../demo/time-off";
@@ -58,8 +59,8 @@ export function EmployeeHome() {
           <h2 id="self-leave" className={s.label}>{t("home.leaveLeft")}</h2>
           <p className={s.big}>
             {balance === null ? t("timeoff.notJoined")
-              : t("timeoff.annualLeft", { count: balance.availableDays,
-                n: String(balance.availableDays) })}
+              : t("timeoff.annualLeft",
+              dayCountVars(balance.availableDays, lang))}
           </p>
           {!asking && (
             <button type="button" className={`${b.btn} ${b.primary}`}

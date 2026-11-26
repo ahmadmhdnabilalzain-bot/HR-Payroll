@@ -44,7 +44,8 @@ export function ManagerHome() {
         <TeamToday />
       </div>
       <RequestList title={t("home.teamLeave")} rows={teamLeave} showName
-        empty={t("home.teamLeaveEmpty")} />
+        empty={t(n === 0 ? "home.teamLeaveEmpty"
+          : "home.teamLeaveEmptyOther")} />
       <Inbox />
     </div>
   );

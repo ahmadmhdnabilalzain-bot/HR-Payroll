@@ -18,6 +18,10 @@ import {
 } from "./defs";
 import { Catalogue } from "./Catalogue";
 import { Guard } from "./Guard";
+import { COST_SCREENS } from "./cost";
+import { SAFETY_SCREENS } from "../people/safety/Report";
+import { MORE_SCREENS } from "./more";
+import { ANALYSIS_SCREENS } from "./analysis";
 import { Audit } from "./screens/Audit";
 import { DashboardExec, DashboardHr } from "./screens/Dashboards";
 import { Headcount } from "./screens/Headcount";
@@ -35,6 +39,10 @@ const SCREENS: Record<string, { view: ComponentType<ViewProps>;
   leave: { view: Leave }, audit: { view: Audit, itOk: true },
   "dashboard-hr": { view: DashboardHr },
   "dashboard-exec": { view: DashboardExec, gmOnly: true },
+  ...COST_SCREENS,
+  ...SAFETY_SCREENS,
+  ...MORE_SCREENS,
+  ...ANALYSIS_SCREENS,
 };
 
 /** Reports: a short list; each opens at once, downloads and prints. */

@@ -14,6 +14,7 @@ describe("csv safety", () => {
   it("quotes-commas-quotes-and-newlines", () => {
     expect(cellText("Al Ain, branch")).toBe('"Al Ain, branch"');
     expect(cellText('say "hi"')).toBe('"say ""hi"""');
+    expect(cellText("\u2212AED 5.00")).toBe("'-AED 5.00");
     expect(cellText("two\nlines")).toBe('"two\nlines"');
     expect(cellText('=HYPERLINK("x")')).toBe('"\'=HYPERLINK(""x"")"');
   });

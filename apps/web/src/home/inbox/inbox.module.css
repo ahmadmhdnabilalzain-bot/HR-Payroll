@@ -161,26 +161,23 @@ a.what:hover {
   }
 }
 
-/* The bell's unread count. */
+/*
+ * The bell's unread mark: a teal dot, not a red count (red is only for
+ * what stops pay). The number is in the button's label.
+ */
 .bell {
   position: relative;
 }
 
 .badge {
   position: absolute;
-  inset-block-start: 4px;
-  inset-inline-end: 2px;
-  display: inline-grid;
-  place-items: center;
-  min-inline-size: 18px;
-  block-size: 18px;
-  padding-inline: 5px;
+  inset-block-start: 9px;
+  inset-inline-end: 9px;
+  inline-size: 8px;
+  block-size: 8px;
   border-radius: var(--radius-pill);
   background: var(--color-accent);
-  color: var(--color-on-accent);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
+  box-shadow: 0 0 0 2px var(--color-bg);
   pointer-events: none;
 }
 

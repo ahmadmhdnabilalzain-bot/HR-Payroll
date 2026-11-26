@@ -24,7 +24,9 @@ export const timeoff = {
   notJoined: "Joins later this year: no balance yet.",
   requests: "Requests",
   requestsMine: "Your requests",
-  requestsEmpty: "No requests yet.",
+  requestsEmpty: "No requests yet. Leave you ask for shows here, with " +
+    "who decides it.",
+  requestsEmptyAll: "No leave requests yet.",
   waitingFor: "Waiting for {name}, {role}",
   booked: "Booked",
   bookedBy: "Booked by {name}, {role}, {date}",

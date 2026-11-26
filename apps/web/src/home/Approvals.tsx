@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useRunApproval } from "../demo/actions";
 import type { Approval, ApprovalKind } from "../demo/data/types";
 import { pendingApprovals, personOf } from "../demo/derive";
-import { useFlip, useTweenedNumber } from "../demo/motion";
+import { useFlip } from "../demo/motion";
 import { useDemo, type Verdict } from "../demo/state";
 import { formatDayMonth, formatList } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
@@ -26,22 +26,15 @@ const KIND: Record<ApprovalKind, MessageKey> = {
 export function Approvals() {
   const { t } = useLocale();
   const { data, state } = useDemo();
-  const run = useRunApproval();
   const list = pendingApprovals(data, state);
-  const sent = list.filter((a) => a.kind !== "pay-run" ||
-    run.blockedBy.length === 0);
   const box = useRef<HTMLUListElement>(null);
   useFlip(box, [list.map((a) => a.id).join(), state.role]);
-  const count = useTweenedNumber(sent.length);
   return (
     <section className={s.panel} aria-labelledby="approvals-title">
       <header className={s.head}>
         <h2 id="approvals-title" className={s.title}>
           {t("home.approvalsTitle")}
         </h2>
-        <span className={`${s.note} tabular`}>
-          {t("home.waiting", { count })}
-        </span>
       </header>
       {list.length === 0 ? (
         <p className={s.empty}>{t("home.approvalsEmpty")}</p>

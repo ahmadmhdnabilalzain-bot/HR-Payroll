@@ -30,7 +30,8 @@ function quote(v: string): string {
 
 export function cellText(c: Cell): string {
   if (typeof c === "number") return String(c);
-  if (typeof c === "string") return quote(guard(c));
+  // The screen's minus (U+2212) is a plain hyphen in the file.
+  if (typeof c === "string") return quote(guard(c.replace(/\u2212/g, "-")));
   return filsDecimal(c.fils);
 }
 
