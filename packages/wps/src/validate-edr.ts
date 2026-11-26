@@ -57,7 +57,10 @@ function checkPeriod(
       `Pay start cannot be before ${ctx.layout.minPayStart}`);
   }
   const days = checkCount(ctx, r, 7);
-  if (start !== null && end !== null && days !== null &&
+  if (start !== null && end !== null && end < start) {
+    report(ctx, "PAY_END_BEFORE_START", "error", r, 6,
+      "Pay end cannot be before pay start");
+  } else if (start !== null && end !== null && days !== null &&
     daysBetween(start, end) + 1 !== days) {
     report(ctx, "DAYS_MISMATCH", "error", r, 7,
       "Days must be pay end minus pay start plus 1");

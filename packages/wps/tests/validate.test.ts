@@ -68,6 +68,9 @@ const CASES: readonly Case[] = [
       set(3, 6, "2010-09-30", set(3, 7, "30")))).slice(2), 1, 5],
   ["DAYS_MISMATCH", "error", set(3, 7, "30"), 3, 7],
   ["DAYS_MISMATCH", "error", set(3, 6, "2016-01-01"), 3, 7],
+  ["PAY_END_BEFORE_START", "error",
+    set(3, 5, "2016-01-02", set(3, 6, "2016-01-01",
+      set(3, 7, "0", set(3, 10, "99")))), 3, 6],
   ["NEGATIVE_AMOUNT", "error", set(3, 8, "-3000.00"), 3, 8],
   ["NEGATIVE_AMOUNT", "error", set(2, 4, "-500.00"), 2, 4],
   ["AMOUNT_FORMAT", "error", set(3, 8, "3000.5"), 3, 8],
@@ -109,7 +112,7 @@ describe("validateSif finding codes", () => {
       "EDR_COUNT_MISMATCH", "TOTAL_MISMATCH", "EVP_WITHOUT_EDR",
       "EVP_MISSING", "EVP_SUM_MISMATCH", "FUTURE_CREATION_DATE",
       "NON_ASCII", "ZERO_PAY", "FIELD_HAS_SPACES", "FIELD_TOO_LONG",
-      "ROUTING_UNKNOWN",
+      "ROUTING_UNKNOWN", "PAY_END_BEFORE_START",
     ];
     const tested = new Set(CASES.map((c) => c[0]));
     expect(listed.filter((c) => !tested.has(c))).toEqual([]);
@@ -123,6 +126,12 @@ describe("validateSif details", () => {
     expect(validateSif(t, L)).toEqual([
       expect.objectContaining({ code: "DAYS_MISMATCH", line: 4, field: 7 }),
     ]);
+  });
+  it("a reversed period gives one finding, even with days 0", () => {
+    const lines = set(3, 5, "2016-01-02", set(3, 6, "2016-01-01",
+      set(3, 7, "0", set(3, 10, "99"))));
+    expect(validateSif(text(lines), L).map((f) => f.code)).toEqual(
+      ["PAY_END_BEFORE_START"]);
   });
   it("accepts a creation date equal to today", () => {
     expect(validateSif(text(BASE), L, "2016-01-26")).toEqual([]);

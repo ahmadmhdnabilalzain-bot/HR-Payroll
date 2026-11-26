@@ -14,7 +14,7 @@ The primary MOHRE/CBUAE text is still unread. Treat this layout as
 ## File shape
 
 - ASCII, comma separated, one record per line, no header.
-- One file per employer. Name: `EEEEEEEEEEEEEEE YYMMDD HHMMSS` joined
+- One file per employer. Name: `EEEEEEEEEEEEE YYMMDD HHMMSS` joined
   without spaces, extension `.SIF` (S1 and S2 agree).
 - Per employee: one `EDR` line, then an `EVP` line only when the
   employee has variable pay. The last line is one `SCR`.

@@ -57,6 +57,10 @@ function checkPeriod(e: EdrInput, b: SifBatch, l: SifLayout): void {
         `${e.payStart}..${e.payEnd}`);
     }
   }
+  if (e.payEnd < e.payStart) {
+    throw fail("PAY_END_BEFORE_START", "Pay end is before pay start",
+      `${e.payStart}..${e.payEnd}`);
+  }
   if (daysBetween(e.payStart, e.payEnd) + 1 !== e.days) {
     throw fail("DAYS_MISMATCH", "Days is not end minus start plus 1",
       String(e.days));
@@ -65,7 +69,13 @@ function checkPeriod(e: EdrInput, b: SifBatch, l: SifLayout): void {
 
 function checkEvp(emp: SifEmployee): void {
   const { edr, evp } = emp;
-  if (evp === undefined) return;
+  if (evp === undefined) {
+    if (edr.variable > 0n) {
+      throw fail("EVP_REQUIRED", "Variable pay needs an EVP line",
+        edr.personId);
+    }
+    return;
+  }
   if (edr.variable === 0n) {
     throw fail("EVP_WITHOUT_VARIABLE", "EVP given but variable is zero",
       edr.personId);

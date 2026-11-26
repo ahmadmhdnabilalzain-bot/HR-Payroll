@@ -19,8 +19,10 @@ source-cited, with an open API and Arabic from the start.
   trace and source-cited rule-packs. A whole-branch review found no
   calculation errors; one fix wave addressed its honesty and packaging
   findings.
-- **Plan 2 (WPS SIF generator and validator) is built**, one task at a
-  time with a review after each. `packages/wps` writes a salary
+- **Plan 2 (WPS SIF generator and validator) is built and its final
+  review is done**, one task at a time. Tasks 1 to 5 each had a task
+  review; Task 6 (the CLI) did not, by the speed ruling, and the
+  whole-branch review covered it. `packages/wps` writes a salary
   information file (SIF) from a batch and checks any SIF file, with a
   plain-English report. Format only: it pays nobody and claims no
   compliance.
@@ -51,9 +53,10 @@ pnpm sif:check -- <file.SIF> --today 2026-11-26
 the `.SIF` file into `--out` (default `out/`, ignored by git) and prints
 the report. It writes nothing when the batch is invalid, generation fails
 or the generated file has an error. `sif:check` validates any SIF file.
-Both exit 1 on any error and 0 otherwise (warnings alone give 0). `today`
-for the future-date check is `--today`, else the machine's local date;
-only the shell reads the clock. The sample reproduces the DIB guide
+Both exit 1 on any error and 0 otherwise (warnings alone give 0). Both
+take `--today YYYY-MM-DD` for the future-date check; without it the shell
+uses today's date in Dubai (Asia/Dubai), whatever the machine's time
+zone. Only the shell reads the clock. The sample reproduces the DIB guide
 sample and gives one warning (its account fails the IBAN check).
 
 ## Engine layout (`packages/engine`)
@@ -114,11 +117,16 @@ engine refuses to run without an explicit value.
   Islamic test sample is reconstructed from the guide's description.
 - Ids must be exactly 14 digits (person) and 13 (employer), zero-padded;
   the DIB guide allows 14 to 35 and 13 to 35. A layout can change this.
-- The routing code table has six banks and is old (2016 era), so real
-  files often get a `ROUTING_UNKNOWN` warning.
+- The routing code table has six banks and is old (undated; the guide
+  sample is from 2009), so real files often get a `ROUTING_UNKNOWN`
+  warning.
 - Amounts are inputs: no monthly pay run exists yet. One currency, AED.
 - "EVP parts add up to variable pay" is inferred, so it is a warning.
-- The generator writes the SCR count as `1`; the DIB sample shows `01`.
+- The generator writes the SCR count as `1`; the DIB sample shows `01`
+  and the Emirates Islamic sample `1`. Ruling: keep `1` (see `LEDGER.md`
+  section 9). The first bank test upload should confirm it.
+- The generator refuses variable pay without an EVP line (EVP_REQUIRED)
+  and a pay end before pay start (PAY_END_BEFORE_START).
 - Finding codes added beyond the plan: `AMOUNT_FORMAT`, `COUNT_FORMAT`,
   `CURRENCY`, `PAY_START_TOO_EARLY`, `FIELD_TOO_LONG`, `ROUTING_UNKNOWN`.
 - Deferred minors and the reviewer rulings are in `LEDGER.md` (section 3).
@@ -143,9 +151,11 @@ needs checking against official sources before anything is built on it.
 ## Next step
 
 Plan 3: data model, API, tenancy and security baseline (`LEDGER.md`
-section 4). Before it, a whole-branch review of Plan 2. Write the plan,
-build it test-first with per-task review, keep this handover current. The
-owner wants no technical questions: decide, record a ruling, continue.
+section 4). The Plan 2 whole-branch review and its fix round are done.
+Write the plan, build it test-first, keep this handover current. Plan 3
+gets one whole-branch review at the end, plus separate reviews of the
+money, security and tenancy tasks (speed ruling, `LEDGER.md`). The owner
+wants no technical questions: decide, record a ruling, continue.
 
 ## Tooling (25 Nov 2026)
 

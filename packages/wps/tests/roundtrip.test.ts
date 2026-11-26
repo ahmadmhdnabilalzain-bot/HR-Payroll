@@ -20,7 +20,6 @@ const employee = (y: number, m: number, i: number) =>
       fullMonth: fc.boolean(),
       fixed: amount,
       variable: amount,
-      evp: fc.boolean(),
       leave: fc.nat({ max: 31 }),
     })
     .map((r): SifEmployee => {
@@ -38,7 +37,7 @@ const employee = (y: number, m: number, i: number) =>
         variable: r.variable,
         unpaidLeaveDays: r.leave,
       };
-      if (!r.evp || r.variable === 0n) return { edr };
+      if (r.variable === 0n) return { edr };
       const z = fils(0n);
       return {
         edr,
@@ -82,6 +81,10 @@ describe("round trip", () => {
           (f) => f.severity === "error",
         );
         expect(errs).toEqual([]);
+        const evp = validateSif(text, L, "2100-01-01").filter(
+          (f) => f.code.startsWith("EVP_"),
+        );
+        expect(evp).toEqual([]);
       }),
       { numRuns: 100 },
     );
