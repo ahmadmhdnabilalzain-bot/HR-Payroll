@@ -69,17 +69,39 @@ pnpm --filter @payroll/web build:offline
   nationals, who is off this week, documents expiring, who waits),
   each a link with its own picture. IT, the manager and the employee
   have their own Home.
-- **Bank moment** (`ui/flight.ts`): one flight helper for the demo.
-  When an IBAN passes, the held amount leaves its row as a clone in a
-  fixed layer (420 ms on a spring, then a 160 ms fade) and lands on
-  the salary-file total, which then rolls; Home and the Fix step use
-  the same call. Reduced motion: no travel, a 120 ms fade.
+  Depth on this card only: a hairline, a contact shadow and two soft
+  ambient layers (dark: a lit top edge and an outline instead). Once
+  per load (`ui/firstReveal.ts`) a soft band of light crosses it (from
+  520 ms, 1.8 s, transform and opacity, no pointer events) and the
+  ready bar (from 260 ms, 720 ms) and the step rail (from 420 ms, 110
+  ms apart) fill. Phone: a lighter shadow on the net card, no light.
+- **First reveal in depth** (`ui/depth.module.css`): the payslip's
+  head and net figure, and the Executive dashboard's lead tile, tip up
+  from 9 to 10 degrees back in real perspective and settle flat (480
+  ms, transform only, once per load, never on the pointer; half the
+  angle on a phone, flat in print).
+- **Bank moment** (`ui/flight.ts`, `home/useIbanFlight.ts`): one
+  flight helper for the demo. When an IBAN passes, the held amount
+  leaves its row as a clone in a fixed layer (420 ms on a spring, then
+  a 160 ms fade) and lands on the salary-file total, which gives a
+  hair as it receives it (1.03 to 1, 280 ms) and then rolls; Home's
+  top card, Home's issue list and the Fix step use the same call.
+  Reduced motion: no travel, a 120 ms fade.
 - **Sign-off** (`ui/SignStamp.tsx`): one stamp for every signature
   (name, role, when, a check seal), shared by the pay run's Approve
   step and the e-signature sheet (which adds the drawn or typed
   signature, the reference and the fingerprint as extra lines). A
-  fresh signature lands (1.06 to 1 over 240 ms, a ring settles out);
-  a declined one is dashed and has no seal.
+  fresh signature plays one sequence from the moment of signing
+  (`signSequence`): the card comes up (180 ms), the signature draws
+  (from 100 ms, 560 ms: a stroke for a drawn one, a wipe for a name;
+  the pay run signs the General manager's name in script), the stamp
+  lands as the pen lifts (from 600 ms: 1.04 to 0.995 to 1 over 360
+  ms, the seal dropping in, a ring settling out), then on the pay run
+  the "Pay held until sign-off" pill turns "Pay released to the salary
+  file" as ink sweeps across it (from 880 ms, 420 ms, the flight
+  spring; `payrun/ReleaseStatus.tsx`). The words change at the click;
+  only the ink is late. A declined one is dashed, has no seal and
+  simply lands.
 - **List to record** (`ui/templates/listMotion.ts`): opening a row
   sends its face and name into the record's head (a view transition,
   280 ms); Back returns to the same row, scroll, search and filter.
@@ -408,6 +430,13 @@ are in `docs/demo/copy-audit.md`.
   150 to 250 ms ease-out, numbers ease on change only, FLIP reorder,
   rows stagger 90 ms when revealed, crossfade on theme and role
   switches. `prefers-reduced-motion` turns all of it off.
+- **Frame capture:** the signature moments (explain working, sign-off,
+  bank flight, Home hero, first reveals) are CSS animations and Web
+  Animations only, no GSAP, each finite and timed from one start, so a
+  capture can pause `document.getAnimations()` and seek `currentTime`
+  frame by frame. The one exception is the IBAN save: the flight's two
+  animations seek, but the save that follows runs on a timer (real
+  time), so let it run before capturing the roll.
 - **Lint:** the repo has no linter: `pnpm typecheck`, `pnpm lines` and
   the style tests are the checks.
 
@@ -558,16 +587,22 @@ are in `docs/demo/copy-audit.md`.
   The file check's findings are shown in the package's plain words.
   The page never says the file is accepted or compliant; it says the
   bank checks it again on upload.
-- **Explain panel** (`src/components/explain`): plain-data contract,
-  no provider. A figure becomes a button (`Explainable`) or a text
-  link (`ExplainLink`). The panel is a side panel on wide screens and
-  a sheet on phones. Gratuity steps reconcile to the fils (tier 2 is
-  the total less tier 1, both from the engine). Notice pay, deductions
-  and other dues are listed as not worked out. Rule status comes from
-  the engine, or from the package's `PRESENTED_STATUS` where it
-  differs (the 50% deduction limit reads "secondary-sourced, as we
-  read it"). Citations name Decree-Law 33/2021 articles only where
-  the primary text was read (Art 51 for gratuity).
+- **Explain panel** (`src/components/explain`): plain-data contract, no
+  provider. A figure becomes a button (`Explainable`) or a text link
+  (`ExplainLink`). The panel is a side panel on wide screens and a sheet on
+  phones. Opening it: the figure flies into the header (380 ms) and resolves
+  from faint to full ink, a short rule draws under it; then the working
+  assembles (`assembly.ts`): from 240 ms, one line every 96 ms (tighter for long
+  workings, 56 ms on phones), each rising in as its rule draws and its amount
+  slides up whole (never counted, so no line shows a number it does not end on);
+  a total waits for the line before it to land, and the sum check (the last
+  total) lands last on an ink rule; the rest follows. Gratuity steps reconcile
+  to the fils (tier 2 is the total less tier 1, both from the engine). Notice
+  pay, deductions and other dues are listed as not worked out. Rule status comes
+  from the engine, or from the package's `PRESENTED_STATUS` where it differs
+  (the 50% deduction limit reads "secondary-sourced, as we read it"). Citations
+  name Decree-Law 33/2021 articles only where the primary text was read (Art 51
+  for gratuity).
 - **Reports** (`#/reports/<id>`): payroll summary, cost by department
   (the department bars), headcount by nationality (headcount only,
   "sample data, regime for banks to be confirmed"), documents
