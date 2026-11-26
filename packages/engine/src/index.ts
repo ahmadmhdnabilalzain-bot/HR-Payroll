@@ -40,3 +40,6 @@ export * from "./rules/ct-pack";
 export * from "./rules/einvoicing-pack";
 export * from "./tax/params-view";
 export * from "./tax/employee-expense";
+export * from "./tax/calendar";
+export * from "./tax/vat-line";
+export * from "./tax/vat-periods";
