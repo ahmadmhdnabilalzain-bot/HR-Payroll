@@ -2,6 +2,7 @@ import {
   createCipheriv,
   createDecipheriv,
   createHash,
+  createHmac,
   hkdfSync,
 } from "node:crypto";
 
@@ -13,8 +14,17 @@ import {
  * `<companyId>:<table>:<column>:<rowId>`, so a value cannot be moved
  * to another row, column or company.
  */
+/** One company's data key, unwrapped once. */
+export interface CompanyKey {
+  encrypt(aad: string, plain: string): string;
+  decrypt(aad: string, cipher: string): string;
+  /** Keyed fingerprint (HMAC-SHA256 under a key derived from the DEK). */
+  mac(label: string, data: string): string;
+}
+
 export interface Keyring {
   wrapNewDek(companyId: string): { dekWrapped: string };
+  companyKey(dekWrapped: string, companyId: string): CompanyKey;
   encrypt(dekWrapped: string, aad: string, plain: string): string;
   decrypt(dekWrapped: string, aad: string, cipher: string): string;
   encryptGlobal(aad: string, plain: string): string;
@@ -45,8 +55,10 @@ function open(key: Uint8Array, kid: string, aad: string,
   }
   if (id !== kid) throw new Error("cipher made with another master key");
   const packed = Buffer.from(body, "base64url");
+  if (packed.length < IV_LEN + TAG_LEN) throw new Error("cipher too short");
+  // The tag length is pinned: a shorter tag is never accepted.
   const d = createDecipheriv("aes-256-gcm", key,
-    packed.subarray(0, IV_LEN));
+    packed.subarray(0, IV_LEN), { authTagLength: TAG_LEN });
   d.setAAD(Buffer.from(aad, "utf8"));
   d.setAuthTag(packed.subarray(IV_LEN, IV_LEN + TAG_LEN));
   return Buffer.concat([d.update(packed.subarray(IV_LEN + TAG_LEN)),
@@ -73,9 +85,26 @@ export function keyringFromKey(kek: Uint8Array, random: Random): Keyring {
   const dekAad = (aad: string) => `${companyOf(aad)}:dek`;
   const unwrap = (wrapped: string, aad: string) =>
     open(wrapKey, kid, dekAad(aad), wrapped);
+  const companyKey = (wrapped: string, companyId: string): CompanyKey => {
+    const dek = unwrap(wrapped, companyId);
+    const macKey = subkey(dek, "company-mac");
+    const own = (aad: string) => {
+      if (companyOf(aad) !== companyId) throw new Error("AAD company");
+      return aad;
+    };
+    return {
+      encrypt: (aad, plain) => seal(dek, kid, own(aad),
+        Buffer.from(plain, "utf8"), random(IV_LEN)),
+      decrypt: (aad, cipher) =>
+        open(dek, kid, own(aad), cipher).toString("utf8"),
+      mac: (label, data) => createHmac("sha256", macKey)
+        .update(`${label}:${data}`, "utf8").digest("hex"),
+    };
+  };
   return {
     wrapNewDek: (companyId) => ({ dekWrapped: seal(wrapKey, kid,
       dekAad(companyId), random(32), random(IV_LEN)) }),
+    companyKey,
     encrypt: (wrapped, aad, plain) => seal(unwrap(wrapped, aad), kid, aad,
       Buffer.from(plain, "utf8"), random(IV_LEN)),
     decrypt: (wrapped, aad, cipher) =>

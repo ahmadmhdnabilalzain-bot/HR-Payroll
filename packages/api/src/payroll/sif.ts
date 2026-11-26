@@ -6,7 +6,7 @@ import { parseAed } from "../db/money";
 import type { HandlerDeps } from "../deps";
 import { ApiError } from "../http/errors";
 import { leaveDays, periodBounds } from "../leave/days";
-import { listEmployees, type EmployeeRow } from "../people/employees";
+import { listEmployees } from "../people/employees";
 import { dubaiDate, dubaiTime } from "../time/dubai";
 import type { SnapshotEmployee } from "./compute";
 import { loadRun } from "./pay-runs";
@@ -22,8 +22,8 @@ export interface SifInput {
   bankRoutingCode: string | null;
   period: { year: number; month: number };
   payslips: Payslip[];
+  /** The approved run's employees: bank and labour id as approved. */
   snapshot: Map<string, SnapshotEmployee>;
-  employees: Map<string, EmployeeRow>;
   at: Date;
 }
 
@@ -41,16 +41,16 @@ function evpOf(p: Payslip, personId: string, routing: string): EvpInput {
     leaveEncashment: by("leaveEncashment") };
 }
 
-function employeeLine(p: Payslip, s: SnapshotEmployee, e: EmployeeRow,
+function employeeLine(p: Payslip, s: SnapshotEmployee,
   period: SifInput["period"]): SifEmployee {
   const { first, last } = periodBounds(period);
   const payStart = s.joiningDate > first ? s.joiningDate : first;
   const payEnd = s.lastWorkingDate !== null && s.lastWorkingDate < last
     ? s.lastWorkingDate : last;
-  const personId = e.labourPersonId!;
-  const routing = e.bank!.routingCode;
+  const personId = s.labourPersonId!;
+  const routing = s.bank!.routingCode;
   const variable = sumOf(p, (b) => b !== "fixed");
-  const edr = { personId, routingCode: routing, account: e.bank!.iban,
+  const edr = { personId, routingCode: routing, account: s.bank!.iban,
     payStart, payEnd, days: leaveDays(payStart, payEnd),
     fixed: sumOf(p, (b) => b === "fixed"), variable,
     unpaidLeaveDays: s.unpaidLeaveDays };
@@ -61,16 +61,19 @@ function employeeLine(p: Payslip, s: SnapshotEmployee, e: EmployeeRow,
 /**
  * The SIF batch for an approved run: pay lines only (fixed bucket to
  * EDR fixed, the seven EVP buckets to variable and EVP); a leaver's
- * settlement is never included. Every employee missing a labour id or
- * bank details is named, not just the first.
+ * settlement is never included. Bank details and labour ids come from
+ * the approved snapshot, never from live rows, so a change after
+ * approval cannot redirect approved pay. Every employee missing them
+ * is named, not just the first.
  */
 export function buildSifBatch(i: SifInput): SifBatch {
   if (i.employerId === null || i.bankRoutingCode === null) {
     throw new ApiError("COMPANY_WPS_SETTINGS_MISSING");
   }
-  const missing = i.payslips.map((p) => i.employees.get(p.employeeId))
-    .filter((e) => e === undefined || e.labourPersonId === null ||
-      e.bank === null).map((e) => e?.id ?? "unknown");
+  const missing = i.payslips.filter((p) => {
+    const e = i.snapshot.get(p.employeeId);
+    return e === undefined || e.labourPersonId === null || e.bank === null;
+  }).map((p) => p.employeeId);
   if (missing.length > 0) {
     throw new ApiError("EMPLOYEE_BANK_MISSING", undefined,
       { employeeIds: missing });
@@ -79,8 +82,7 @@ export function buildSifBatch(i: SifInput): SifBatch {
     createdDate: dubaiDate(i.at), createdTime: dubaiTime(i.at).hhmmss,
     month: i.period,
     employees: i.payslips.map((p) => employeeLine(p,
-      i.snapshot.get(p.employeeId)!, i.employees.get(p.employeeId)!,
-      i.period)) };
+      i.snapshot.get(p.employeeId)!, i.period)) };
 }
 
 /** Reads what buildSifBatch needs, in the request's transaction. */
@@ -93,11 +95,29 @@ export async function loadSifBatch(tx: Db, deps: HandlerDeps,
     [companyId]);
   const snap = await openSnapshot(tx, deps, companyId, run.id,
     run.snapshot_enc);
-  const employees = await listEmployees(tx, deps, companyId);
   return buildSifBatch({ employerId: c?.wps_employer_id ?? null,
     bankRoutingCode: c?.wps_bank_routing ?? null,
     period: { year: run.year, month: run.month },
     payslips: await payslipsOfRun(tx, deps, companyId, run.id),
-    snapshot: new Map(snap.employees.map((e) => [e.employeeId, e])),
-    employees: new Map(employees.map((e) => [e.id, e])), at });
+    snapshot: new Map(snap.employees.map((e) => [e.employeeId, e])), at });
+}
+
+/**
+ * Employees of the run whose live bank details or labour id differ
+ * from the approved snapshot (or cannot be read): reported, not used.
+ */
+export async function bankDrift(tx: Db, deps: HandlerDeps,
+  companyId: string, runId: string): Promise<string[]> {
+  const run = await loadRun(tx, companyId, runId);
+  const snap = await openSnapshot(tx, deps, companyId, run.id,
+    run.snapshot_enc);
+  const live = new Map((await listEmployees(tx, deps, companyId))
+    .map((e) => [e.id, e]));
+  return snap.employees.filter((s) => {
+    const e = live.get(s.employeeId);
+    return e === undefined || e.unreadable.length > 0 ||
+      e.labourPersonId !== s.labourPersonId ||
+      e.bank?.iban !== s.bank?.iban ||
+      e.bank?.routingCode !== s.bank?.routingCode;
+  }).map((s) => s.employeeId);
 }

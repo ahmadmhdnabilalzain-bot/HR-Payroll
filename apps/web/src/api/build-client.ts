@@ -26,7 +26,7 @@ export function buildClient(send: Transport): ApiClient {
     (await call<Items<T>>(m, req)).items;
   const byId = (id: string): WireRequest => ({ params: { id } });
   return {
-    ...accountMethods(call, items),
+    ...accountMethods(call, items, byId),
     ...peopleMethods(call, items, byId),
     ...timeMethods(call, items, byId),
     ...payMethods(call, items, byId),
@@ -37,19 +37,22 @@ type Call = <T>(m: ApiMethod, req?: WireRequest) => Promise<T>;
 type ItemsFn = <T>(m: ApiMethod, req?: WireRequest) => Promise<T[]>;
 type ById = (id: string) => WireRequest;
 
-function accountMethods(call: Call, items: ItemsFn) {
+function accountMethods(call: Call, items: ItemsFn, byId: ById) {
   return {
     login: (r) => call("login", { body: r }),
     logout: async () => {
       await call("logout");
     },
     me: () => call("me"),
-    mfaEnrol: () => call("mfaEnrol"),
-    mfaConfirm: (code) => call("mfaConfirm", { body: { code } }),
+    mfaEnrol: (password) => call("mfaEnrol", { body: { password } }),
+    mfaConfirm: (code, password) =>
+      call("mfaConfirm", { body: { code, password } }),
     getCompany: () => call("getCompany"),
     updateCompany: (u) => call("updateCompany", { body: u }),
     listUsers: () => items("listUsers"),
     inviteUser: (r) => call("inviteUser", { body: r }),
+    changeUserRole: (userId, role) =>
+      call("changeUserRole", { ...byId(userId), body: { role } }),
   } satisfies Partial<ApiClient>;
 }
 
@@ -67,13 +70,8 @@ function peopleMethods(call: Call, items: ItemsFn, byId: ById) {
 function timeMethods(call: Call, items: ItemsFn, byId: ById) {
   return {
     listLeaveTypes: () => items("listLeaveTypes"),
-    listLeaveRequests: async (q = {}) => {
-      const { year, ...query } = q;
-      const all = await items<{ startDate: string }>("listLeaveRequests",
-        { query });
-      return (year === undefined ? all : all.filter((r) =>
-        r.startDate.startsWith(`${year}-`))) as never;
-    },
+    listLeaveRequests: (q = {}) =>
+      items("listLeaveRequests", { query: q }),
     createLeaveRequest: (r) => call("createLeaveRequest", { body: r }),
     approveLeave: (id, d) => call("approveLeave", { ...byId(id), body: d }),
     rejectLeave: (id, d) => call("rejectLeave", { ...byId(id), body: d }),

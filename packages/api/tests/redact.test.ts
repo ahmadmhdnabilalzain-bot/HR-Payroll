@@ -18,7 +18,7 @@ function row(id: string, managerId: string | null): EmployeeRow {
     emiratesIdNumber: "784199012345671",
     salary: [{ code: "basic", label: "Basic", labelAr: null,
       amount: fils(777777n), sifBucket: "fixed" }],
-    salaryVersion: 1,
+    salaryVersion: 1, bankVersion: 1, unreadable: [],
     bank: { routingCode: "803320101", iban: "AE070331234567890123456",
       ibanLast4: "3456" },
   };

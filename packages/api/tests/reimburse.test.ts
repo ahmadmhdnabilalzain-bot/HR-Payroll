@@ -23,7 +23,9 @@ const emp = (over: Partial<SnapshotEmployee> = {}): SnapshotEmployee => ({
     { code: "basic", label: "Basic", amount: fils(400000n),
       sifBucket: "fixed" },
     { code: "housing", label: "Housing", amount: fils(150000n),
-      sifBucket: "housing" }], ...over });
+      sifBucket: "housing" }],
+  bank: { routingCode: "803320101", iban: "AE070331234567890123456" },
+  labourPersonId: "00000000000001", ...over });
 
 function slip(): ComputedPayslip {
   const s: RunSnapshot = { period: { year: 2026, month: 3 },

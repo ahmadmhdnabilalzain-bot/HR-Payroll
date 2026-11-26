@@ -51,6 +51,11 @@ to the wage established for normal business days, plus an increase not
 less than fifty percent (50%) of the basic wage for that day."
 Art 19(5): no more than two consecutive rest days of work, excluding
 day laborers.
+Art 19(5), official English text (search excerpt of the
+uaelegislation.gov.ae PDF, not read in full; added 2026-11-26 after
+the Plan 9 engine review): "The Worker may not be required to work
+for more than two consecutive rest days, excluding day laborers."
+The day-laborer exclusion is not modelled by the engine.
 Note: night work is only addressed as overtime between 10 pm and 4 am.
 No separate night-shift premium for ordinary hours: NOT FOUND.
 ER Art 15(3): extra hours beyond 2 per day allowed only to prevent

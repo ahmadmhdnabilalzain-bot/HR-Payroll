@@ -1,5 +1,6 @@
 import { addDays, parseIsoDate, toDayNumber } from "../dates";
 import { EngineError } from "../errors";
+import type { TraceRule } from "../trace-types";
 import { daySheetTrace, type Fields, type Overtime } from "./day-sheet-trace";
 import {
   type Interval,
@@ -7,11 +8,10 @@ import {
   nightWindows,
   outside,
   overlapMinutes,
-  tail,
   totalMinutes,
 } from "./intervals";
 import type { TimeParams } from "./params";
-import type { DayInput, DaySheet, TimeFlag } from "./types";
+import type { DayInput, DaySheet, ShiftSlot, TimeFlag } from "./types";
 
 const NONE: Overtime = { minutes: 0, night: 0, limit: null, nightPool: 0,
   rules: [], nightRules: [] };
@@ -20,20 +20,37 @@ function bad(code: string, message: string, value: string): never {
   throw new EngineError(code, message, { value });
 }
 
+const whole = (...xs: number[]) => xs.every((x) => Number.isSafeInteger(x));
+
 function validate(day: DayInput): void {
   parseIsoDate(day.date, "date");
   const s = day.shift;
-  if (s !== null && (s.end <= s.start || s.end - s.start > 1440 ||
+  if (s !== null && (!whole(s.start, s.end, s.breakMinutes) ||
+    s.end <= s.start || s.end - s.start > 1440 ||
     s.breakMinutes < 0 || s.breakMinutes > s.end - s.start)) {
-    bad("INVALID_SHIFT", "shift needs end > start, at most 1440 minutes" +
-      " and a break within it", `${s.start}-${s.end}/${s.breakMinutes}`);
+    bad("INVALID_SHIFT", "shift needs whole minutes, end > start, at" +
+      " most 1440 minutes and a break within it",
+    `${s.start}-${s.end}/${s.breakMinutes}`);
   }
   for (const w of day.worked) {
-    if (w.end <= w.start || w.start < -1440 || w.end > 2880) {
-      bad("INVALID_INTERVAL", "interval needs end > start within" +
-        " -1440..2880", `${w.start}-${w.end}`);
+    if (!whole(w.start, w.end) || w.end <= w.start) {
+      bad("INVALID_INTERVAL", "interval needs whole minutes and" +
+        " end > start", `${w.start}-${w.end}`);
     }
   }
+}
+
+/** Longer than 24 hours, or outside -1440..2880 (engine bound). */
+const isLong = (w: Interval) =>
+  w.end - w.start > 1440 || w.start < -1440 || w.end > 2880;
+
+/** Overlong records are left out and treated as a missed clock-out. */
+function longFlags(day: DayInput): TimeFlag[] {
+  return day.worked.filter(isLong).map((w) => ({
+    code: "LONG_RECORD", dates: [day.date], rule: null,
+    detail: { start: String(w.start), end: String(w.end),
+      minutes: String(w.end - w.start) },
+  }));
 }
 
 const isHalf = (day: DayInput) => day.leave === "am" || day.leave === "pm";
@@ -45,13 +62,29 @@ function scheduledOf(day: DayInput): number {
   return isHalf(day) ? Math.floor(net / 2) : net;
 }
 
-/** A rostered break is assumed taken (convention). */
-function workedOf(day: DayInput, clocked: number): number {
-  const s = day.shift;
-  if (s !== null && !isHalf(day) && clocked > s.breakMinutes) {
-    return clocked - s.breakMinutes;
+/** Unclocked minutes between consecutive records, inside the shift. */
+function gapsInShift(merged: Interval[], s: ShiftSlot): number {
+  let gaps = 0;
+  for (let i = 1; i < merged.length; i++) {
+    const from = Math.max(merged[i - 1]!.end, s.start);
+    const to = Math.min(merged[i]!.start, s.end);
+    gaps += Math.max(0, to - from);
   }
-  return clocked;
+  return gaps;
+}
+
+/**
+ * The part of the rostered break not already clocked out is assumed
+ * taken (convention). Never negative, and never falls as clocked time
+ * rises. A half day assumes no break (plan rule 3; see the plan's
+ * note on half-day overtime).
+ */
+function workedOf(day: DayInput, merged: Interval[], clocked: number):
+  number {
+  const s = day.shift;
+  if (s === null || isHalf(day)) return clocked;
+  const assumed = Math.max(0, s.breakMinutes - gapsInShift(merged, s));
+  return Math.max(0, clocked - assumed);
 }
 
 function lateEarly(day: DayInput, merged: Interval[]): [number, number] {
@@ -68,28 +101,40 @@ function lateEarly(day: DayInput, merged: Interval[]): [number, number] {
   return [late, early];
 }
 
+/** The daily normal limit, less the Ramadan reduction, with rules. */
+function dailyLimit(day: DayInput, p: TimeParams):
+  { limit: number; rules: TraceRule[] } {
+  if (!day.ramadan) {
+    return { limit: p.maxNormalMinutesPerDay.v,
+      rules: [p.maxNormalMinutesPerDay.rule] };
+  }
+  return {
+    limit: p.maxNormalMinutesPerDay.v - p.ramadanReductionMinutes.v,
+    rules: [p.maxNormalMinutesPerDay.rule, p.ramadanReductionMinutes.rule],
+  };
+}
+
+/**
+ * Overtime candidate = worked beyond the shift's net minutes or the
+ * daily normal limit, whichever is lower (no shift: beyond the limit).
+ * Night minutes = the candidate's night-window minutes: worked time
+ * outside the shift, or all worked time when the limit is binding.
+ */
 function overtimeOf(day: DayInput, p: TimeParams, merged: Interval[],
   worked: number, scheduled: number): Overtime {
   if (day.kind !== "work" || day.leave === "full") return NONE;
   const nights = nightWindows(p.nightWindow.v);
   const nightRules = [p.nightWindow.rule];
+  const { limit, rules } = dailyLimit(day, p);
   const s = day.shift;
-  if (s !== null) {
-    const minutes = Math.max(0, worked - scheduled);
-    const out = outside(merged, { start: s.start, end: s.end });
-    const nightPool = overlapMinutes(out, nights);
-    const night = Math.min(minutes, nightPool);
-    return { minutes, night, limit: null, nightPool, rules: [], nightRules };
-  }
-  const rules = [p.maxNormalMinutesPerDay.rule];
-  let limit = p.maxNormalMinutesPerDay.v;
-  if (day.ramadan) {
-    limit -= p.ramadanReductionMinutes.v;
-    rules.push(p.ramadanReductionMinutes.rule);
-  }
-  const minutes = Math.max(0, worked - limit);
-  const night = overlapMinutes(tail(merged, minutes), nights);
-  return { minutes, night, limit, nightPool: night, rules, nightRules };
+  const binding = s === null || limit < scheduled;
+  const base = s === null ? limit : Math.min(scheduled, limit);
+  const minutes = Math.max(0, worked - base);
+  const candidate = binding ? merged
+    : outside(merged, { start: s.start, end: s.end });
+  const nightPool = overlapMinutes(candidate, nights);
+  return { minutes, night: Math.min(minutes, nightPool), limit,
+    nightPool, rules: binding ? rules : [], nightRules };
 }
 
 function flagsOf(day: DayInput, p: TimeParams, worked: number,
@@ -106,18 +151,19 @@ function flagsOf(day: DayInput, p: TimeParams, worked: number,
       detail: { minutes: String(ot) },
       rule: p.overtimeMaxMinutesPerDay.rule });
   }
-  if (day.openRecord) {
+  const long = longFlags(day);
+  if (day.openRecord || long.length > 0) {
     flags.push({ code: "MISSED_CLOCK_OUT", dates, detail: {}, rule: null });
   }
-  return flags;
+  return [...flags, ...long];
 }
 
 export function computeDaySheet(day: DayInput, p: TimeParams): DaySheet {
   validate(day);
-  const merged = mergeIntervals(day.worked);
+  const merged = mergeIntervals(day.worked.filter((w) => !isLong(w)));
   const clocked = totalMinutes(merged);
   const scheduledMinutes = scheduledOf(day);
-  const workedMinutes = workedOf(day, clocked);
+  const workedMinutes = workedOf(day, merged, clocked);
   const [lateMinutes, earlyLeaveMinutes] = lateEarly(day, merged);
   const ot = overtimeOf(day, p, merged, workedMinutes, scheduledMinutes);
   const fields: Fields = {

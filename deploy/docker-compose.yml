@@ -1,0 +1,106 @@
+# PostgreSQL 16, a one-shot migration job and the payroll API.
+#
+#   cp deploy/.env.example deploy/.env    # then replace every CHANGE_ME
+#   node deploy/check-env.mjs --target compose --file deploy/.env
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env \
+#     up -d --build
+#
+# Roles (deploy/init-roles.sql): the migrate job connects as
+# payroll_owner; the API connects as payroll_runtime and never sees the
+# owner password (it runs deploy/serve.ts, which skips migrations);
+# the verify tool connects as payroll_backup (read-only):
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env \
+#     run --rm verify
+#
+# Long URLs are split with YAML's escaped line break ("...\ newline
+# ...") which joins the parts with no space.
+
+name: payroll
+
+x-api-image: &api-image
+  image: payroll-api:${PAYROLL_API_TAG:-local}
+  build:
+    context: ..
+    dockerfile: deploy/Dockerfile
+    args:
+      NODE_IMAGE: ${NODE_IMAGE:-node:22-bookworm-slim}
+
+x-api-env: &api-env
+  DATABASE_URL: "postgres://payroll_runtime:${PAYROLL_RUNTIME_PASSWORD:?}\
+    @db:5432/payroll"
+  PAYROLL_MASTER_KEY: ${PAYROLL_MASTER_KEY:?}
+  PORT: "8787"
+
+services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: payroll
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --data-checksums"
+      PAYROLL_OWNER_PASSWORD: ${PAYROLL_OWNER_PASSWORD:?}
+      PAYROLL_RUNTIME_PASSWORD: ${PAYROLL_RUNTIME_PASSWORD:?}
+      PAYROLL_BACKUP_PASSWORD: ${PAYROLL_BACKUP_PASSWORD:?}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+      - ./init-roles.sql:/payroll/init-roles.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d payroll"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Not published to the host. Reach it with
+    # `docker compose exec db psql -U postgres -d payroll`.
+
+  migrate:
+    <<: *api-image
+    command: ["migrate"]
+    restart: "no"
+    environment:
+      <<: *api-env
+      MIGRATE_DATABASE_URL: "postgres://payroll_owner:\
+        ${PAYROLL_OWNER_PASSWORD:?}@db:5432/payroll"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *api-image
+    command: ["serve"]
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      <<: *api-env
+    ports:
+      - "127.0.0.1:${API_PORT:-8787}:8787"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # Tool, not started by `up`: recomputes every audit hash chain.
+  verify:
+    <<: *api-image
+    profiles: ["tools"]
+    # Arguments after `run --rm verify` are company ids (default: all).
+    entrypoint: ["/app/deploy/entrypoint.sh", "verify-audit"]
+    command: []
+    restart: "no"
+    environment:
+      VERIFY_DATABASE_URL: "postgres://payroll_backup:\
+        ${PAYROLL_BACKUP_PASSWORD:?}@db:5432/payroll"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

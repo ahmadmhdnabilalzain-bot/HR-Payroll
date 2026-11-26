@@ -1,7 +1,7 @@
 # Handover
 
 Read this first. Keep it current: update it in the same commit as any change
-of state. Last updated: 2026-11-26 (Plan 3).
+of state. Last updated: 2026-11-26 (overnight autonomous build).
 
 ## What this project is
 
@@ -38,9 +38,28 @@ source-cited, with an open API and Arabic from the start.
   whole-branch money and law review found nothing Critical (READY AFTER
   FIXES); its Important findings and most Minor ones are fixed (LEDGER
   section 10, Rulings B7 to B13). Open: review items M1, M5, M10, M11.
-- **Plan 3 (backend) is built** on a worktree branch (Tasks 1 to 8 plus
-  the security review's fixes), not yet merged into
-  `claude/quirky-wozniak-b7xkvr`. `packages/contract` (zod schemas, 50
+- **Plan 3 (backend) is built and merged** into this branch:
+  `packages/contract` (zod schemas, 50 routes, error codes, OpenAPI) and
+  `packages/api` (Hono over PostgreSQL with row-level security, sealed
+  salary and bank fields, hash-chained audit log, pay runs, payslips and
+  SIF files). Two independent reviews (security, money) found no Critical
+  items; their fixes are being applied (see the table below).
+  Report: `docs/superpowers/plans/plan-3-build-report-1.md`.
+- **Engine parts of Plans 7, 8, 9, 11 and 12 are built and merged**
+  (employment and Emiratisation packs, time and leave logic, deadlines
+  and payslip preview, VAT, corporate tax and e-invoicing packs).
+- **The web app is paused on purpose.** The owner wants an advanced,
+  non-standard interface (no sidebar, motion, light and dark). Three
+  concepts are published as artifacts for the owner to pick:
+  A Command, B Orbit, C Pipeline (links in the owner's chat; sources in
+  the session scratchpad, not in the repo). The web groundwork
+  (`apps/web`: contract adapter, mock API, typed Arabic and English text)
+  is merged; no screens yet.
+- All 17 plans are written (`docs/superpowers/plans/`).
+- **Plan 3 (backend) is built and merged** into
+  `claude/quirky-wozniak-b7xkvr` (merge `08ec440`); the fixes for the
+  money review (Task 7) and the data-protection review (Tasks 5 and 6)
+  are on the worktree branch, not yet merged. `packages/contract` (zod schemas, 50
   routes, error codes, OpenAPI) and `packages/api` (Hono over
   PostgreSQL with row-level security, sealed salary and bank fields,
   hash-chained audit log, pay runs, payslips and SIF files).
@@ -81,8 +100,14 @@ to `DATABASE_URL`), `PAYROLL_MASTER_KEY` (32 bytes, base64) and `PORT`
 (default 8787). It refuses to start with a bad key or an unsafe runtime
 role. Checked on 2026-11-26 against a throwaway PostgreSQL 16 (health,
 signup, the superuser and table-owner refusals). The real-PostgreSQL
-test suite runs when `DATABASE_URL` points at a superuser (it creates
-`plan3_owner` and `plan3_runtime` and a schema per case):
+test suite (it creates `plan3_owner` and `plan3_runtime` and a schema
+per case) runs inside `pnpm check` whenever a PostgreSQL server binary
+is installed under `/usr/lib/postgresql/<version>/bin`: a Vitest global
+setup (`packages/api/tests/global-pg.ts`) starts a throwaway cluster in
+a temp dir on a free port (as the `postgres` user when run as root),
+points `DATABASE_URL` at it, and stops and deletes it afterwards. With
+no binary it prints one line and skips. `PAYROLL_TEST_PG=0` turns it
+off; an existing superuser URL can be given instead:
 
 ```bash
 DATABASE_URL=postgres://postgres@127.0.0.1:55433/postgres \
@@ -152,7 +177,7 @@ engine refuses to run without an explicit value.
 
 | Area | Files |
 |---|---|
-| Database, migrations, tenancy | `src/db/`, `migrations/001` to `008` |
+| Database, migrations, tenancy | `src/db/`, `migrations/001` to `013` |
 | HTTP plumbing (one transaction per request) | `src/app.ts`, `src/http/` |
 | Sign-in, sessions, TOTP, guards | `src/auth/` |
 | Field encryption | `src/crypto/keyring.ts` |
@@ -173,6 +198,10 @@ engine refuses to run without an explicit value.
   (an invite can be accepted by whoever holds the token), anyone can
   lock an account for 15 minutes with five wrong passwords, no rate
   limiting, no pay-run corrections. Real payroll waits for the owner.
+  The pay-run `input_hash` is an unkeyed hash over salary amounts and
+  `pay_runs.gross` is in clear (make the hash an HMAC before real
+  data). No warning yet when a leaver gets both a leave-encashment
+  one-off and a settlement.
 
 - The gratuity pack applies to leavers on or after 2022-02-02 (Decree-Law 33
   of 2021). Earlier leavers throw `NO_PACK_FOR_DATE` (old law not modelled).
@@ -248,17 +277,44 @@ website insights, documents module, VAT, corporate tax and e-invoicing,
 in-app meetings, remote-work tracking. All research is snippet-level and
 needs checking against official sources before anything is built on it.
 
+## Program status (plans)
+
+| Plan | Subject | State |
+|---|---|---|
+| 1, 2 | End-of-service engine; WPS SIF file | built, reviewed |
+| 3 | Backend: contract, database, audit, auth, employees, leave, pay runs, SIF | built, merged; review fixes in progress |
+| 4 | Web app | groundwork merged; screens wait for the design pick |
+| 5 | Monthly payroll engine | built, reviewed, fixed, merged |
+| 6 | Expenses and claims (approval spine, receipts) | API build running |
+| 7 | Documents, letters, Emiratisation | engine part merged; API waits for Plan 6 |
+| 8 | Hiring, tasks, exit flow | engine part merged; API build running |
+| 9 | Time, attendance, leave policies, WFH | engine part merged (review running); API build running |
+| 10 | Performance, learning, surveys | planned; waits for 7 and 8 |
+| 11 | Owner view, pre-pay gate, evidence | deadline and preview engine merged; API waits for 5, 6, 7 |
+| 12 | VAT, corporate tax, e-invoicing | engine merged, reviewed, fixed; API waits for Plan 6 |
+| 13 | Channels and integrations | planned; waits for Plan 6 |
+| 14 | Meetings | planned; blocked until a telecom position is confirmed |
+| 15 | Social and website insights | planned; waits for 8, 11, 13 |
+| 16 | Finance modules | planned; waits for 6, 7, 12 |
+| 17 | Governed assistant, import, intranet, chat | planned; waits for 6, 13 |
+
+Also in the repo: the Arabic native-review pack (`docs/review/`) and the
+deployment and CI kit (`deploy/`: Docker, compose, role setup, env check;
+`.github/workflows/ci.yml`; `docs/ops/runbook.md` and
+`docs/ops/security-checklist.md`). The CI workflow has never run on GitHub;
+the images and compose stack were tested locally. Known gaps: no rate
+limiting, the API image runs TypeScript through tsx (no compile step),
+backups are not encrypted or copied off the host.
+
 ## Next step
 
-Plan 5: merge the review-fix commits of the worktree branch. Plan 3: data model, API, tenancy and
-security baseline (`LEDGER.md` section 4). The Plan 2 whole-branch review and its fix round are done.
-Write the plan, build it test-first, keep this handover current. Plan 3
-gets one whole-branch review at the end, plus separate reviews of the
-money, security and tenancy tasks (speed ruling, `LEDGER.md`). The owner
-wants no technical questions: decide, record a ruling, continue.
-Review Plan 3 (whole branch, plus Tasks 5 and 7 for data protection and
-money), merge it into `claude/quirky-wozniak-b7xkvr`, then finish Plan 4
-(web app) against `packages/contract`. The owner wants no technical
+Keep building in parallel (the owner allows up to 10 agents): merge each
+finished worktree branch, run `pnpm install`, typecheck and per-package
+tests, push; start the next plan whose prerequisites are merged; send
+money, security and tenancy tasks to a read-only reviewer and forward the
+findings to the builder. When the owner has chosen a design concept,
+re-plan the web app and build the screens in parallel against
+`packages/contract` and the mock API. The owner wants no technical
 questions: decide, record a ruling, continue.
 
 ## Tooling (25 Nov 2026)

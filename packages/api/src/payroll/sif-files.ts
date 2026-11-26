@@ -10,7 +10,7 @@ import { ApiError } from "../http/errors";
 import { sealerFor } from "../people/employees";
 import { dubaiDate } from "../time/dubai";
 import { loadRun } from "./pay-runs";
-import { loadSifBatch } from "./sif";
+import { bankDrift, loadSifBatch } from "./sif";
 
 interface SifRow {
   id: string;
@@ -22,6 +22,7 @@ interface SifRow {
   error_count: number;
   warning_count: number;
   created_at: string;
+  bank_drift: string[];
 }
 
 /**
@@ -40,7 +41,8 @@ async function toSifFile(tx: Db, ctx: ReqCtx, r: SifRow): Promise<SifFile> {
   return { id: r.id, payRunId: r.pay_run_id, fileName: r.file_name,
     total: toMoney(fils(BigInt(r.total))), createdAt: r.created_at,
     findings: findings.map(shown), errorCount: r.error_count,
-    warningCount: r.warning_count, statement: SIF_STATEMENT };
+    warningCount: r.warning_count, statement: SIF_STATEMENT,
+    bankChangedSinceApproval: r.bank_drift };
 }
 
 async function byRun(tx: Db, companyId: string, runId: string) {
@@ -79,11 +81,13 @@ async function store(ctx: ReqCtx, runId: string, at: Date) {
   await tx.query(
     `INSERT INTO sif_files (id, company_id, pay_run_id, file_name, total,
        text_enc, findings_enc, error_count, warning_count, created_by,
-       created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+       created_at, bank_drift)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [id, c, runId, out.fileName, out.total.toString(),
       s.seal("text_enc", id, out.text), s.seal("findings_enc", id,
         JSON.stringify(findings)), errors, findings.length - errors,
-      ctx.user!.id, at.toISOString()]);
+      ctx.user!.id, at.toISOString(),
+      JSON.stringify(await bankDrift(tx, deps, c, runId))]);
   await appendAudit(tx, { companyId: c, at: at.toISOString(),
     actorUserId: ctx.user!.id, action: "sif.generated",
     entityType: "sif-file", entityId: id, data: { fileName: out.fileName,
