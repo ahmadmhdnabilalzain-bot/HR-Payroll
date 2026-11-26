@@ -191,6 +191,15 @@ function phone(): boolean {
     matchMedia("(max-width: 760px)").matches;
 }
 
+/** Where the demo banner ends on screen (0 once it has scrolled away
+ * or on a phone sheet): the drawer starts below it, never over it. */
+function bannerBottom(): number {
+  if (phone()) return 0;
+  const r = document.querySelector("[data-demo-banner]")
+    ?.getBoundingClientRect();
+  return r === undefined ? 0 : Math.max(0, Math.round(r.bottom));
+}
+
 const FOCUSABLE = "button, [href], input, [tabindex]:not([tabindex='-1'])";
 
 /**
@@ -211,6 +220,7 @@ export function ExplainPanel(p: { explanation: Explanation;
   const [leaving, setLeaving] = useState(false);
   const layer = useRef<HTMLDivElement>(null);
   const closing = useRef(false);
+  const [top] = useState(bannerBottom);
   const close = (): void => {
     if (closing.current) return;
     closing.current = true;
@@ -261,7 +271,8 @@ export function ExplainPanel(p: { explanation: Explanation;
   };
   return createPortal(
     <div ref={layer} className={s.layer} data-leaving={leaving} dir={dir}
-      data-reduced={reducedMotion()} onKeyDown={onKey}>
+      data-reduced={reducedMotion()} onKeyDown={onKey}
+      style={{ "--banner": `${top}px` } as object}>
       <div className={s.scrim} onClick={close} aria-hidden="true" />
       <div ref={panel} className={s.panel} role="dialog" aria-modal="true"
         aria-labelledby={`${id}-t`}

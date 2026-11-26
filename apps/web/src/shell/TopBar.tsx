@@ -28,6 +28,7 @@ export function Ribbon() {
   return (
     <div
       className={s.ribbon}
+      data-demo-banner=""
       title={t("shell.ribbonHint")}
       role="button"
       tabIndex={0}

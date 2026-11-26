@@ -6,7 +6,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
 import { useDemo } from "../demo/state";
-import { nowMs } from "./model";
+import { demoClockIso, nowMs } from "./model";
 import { FILE_DOWNLOADED } from "./RunBar";
 import s from "./PayRun.module.css";
 
@@ -67,7 +67,8 @@ export function PayStep() {
             <span className={s.pip} aria-hidden="true" />
             {!ready ? t("payrun.draft")
               : got !== null ? t("payrun.downloaded", { bank: f.bank,
-                time: formatTime(new Date(got).toISOString(), lang) })
+                time: formatTime(demoClockIso(got, f.dated, f.time),
+                  lang) })
                 : t("payrun.ready", { bank: f.bank })}
           </p>
         </div>

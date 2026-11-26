@@ -42,28 +42,37 @@ const days = (halves: number): string => {
   return Number.isInteger(d) ? String(d) : `${Math.floor(d)}½`;
 };
 
-/** The inputs a person can read, in plain words, in order. */
+/** The inputs a person can read, in plain words, in order. Every
+ * step carries its figure: money as money, the rest as short words. */
 function stepsOf(line: TraceLine): ExplainStep[] {
   const i = line.inputs;
   const out: ExplainStep[] = [];
-  const add = (t: string, v?: ExplainValue): void => {
-    out.push(v === undefined ? { text: t } : { text: t, value: v });
+  const add = (t: string, v: ExplainValue): void => {
+    out.push({ text: t, value: v });
   };
   if (isInt(i["monthly"])) add("Monthly amount", money(i["monthly"]));
   if (isInt(i["paidHalfDays"]) && isInt(i["totalHalfDays"])) {
-    add(`Days paid: ${days(Number(i["paidHalfDays"]))} of ` +
-      `${days(Number(i["totalHalfDays"]))}`);
+    add("Days paid", text(`${days(Number(i["paidHalfDays"]))} of ` +
+      `${days(Number(i["totalHalfDays"]))}`));
   }
   if (isInt(i["basicMonthly"])) add("Basic salary", money(i["basicMonthly"]));
+  if (isInt(i["basicMonthly"]) && isInt(i["dailyDivisor"]) &&
+    isInt(i["hoursPerDay"])) {
+    const rate = Number(i["basicMonthly"]) /
+      (Number(i["dailyDivisor"]) * Number(i["hoursPerDay"]));
+    add(`Hourly rate: basic salary over ${i["dailyDivisor"]} days of ` +
+      `${i["hoursPerDay"]} hours`, money(String(Math.round(rate))));
+  }
   if (isInt(i["minutes"])) {
-    add(`Overtime worked: ${hours(Number(i["minutes"]))}`);
+    add("Overtime worked", text(hours(Number(i["minutes"]))));
   }
   if (isInt(i["upliftBps"])) {
-    add(`Paid at ${100 + Number(i["upliftBps"]) / 100}% of the hourly rate`);
+    add("Paid at this share of the hourly rate",
+      text(`${100 + Number(i["upliftBps"]) / 100}%`));
   }
   if (isInt(i["instalment"])) add("Instalment due", money(i["instalment"]));
   if (i["capPercent"] !== undefined) {
-    add(`Limit on deductions: ${i["capPercent"]} of the wage`);
+    add("Limit on deductions", text(`${i["capPercent"]} of the wage`));
   }
   if (isInt(i["deferred"]) && i["deferred"] !== "0") {
     add("Moved to next month", money(i["deferred"]));
@@ -71,7 +80,8 @@ function stepsOf(line: TraceLine): ExplainStep[] {
   if (isInt(i["gross"])) add("Gross pay", money(i["gross"]));
   if (isInt(i["deductions"])) add("Less deductions", money(i["deductions"]));
   if (isInt(i["lines"]) && out.length === 0) {
-    add(`Sum of ${i["lines"]} ${i["lines"] === "1" ? "line" : "lines"}`);
+    add("Lines added up", text(`${i["lines"]} ${i["lines"] === "1"
+      ? "line" : "lines"}`));
   }
   return out;
 }
@@ -79,25 +89,83 @@ function stepsOf(line: TraceLine): ExplainStep[] {
 const STATUSES: readonly SourceStatus[] = ["official", "secondary",
   "convention", "unsourced"];
 
-/** "HALF_UP" and "calendar-days" read as "half up", "calendar days". */
-function valueText(v: string | number | boolean): string {
-  if (typeof v === "boolean") return v ? "yes" : "no";
-  const x = String(v);
-  return /^[A-Za-z]+([_-][A-Za-z]+)*$/.test(x)
-    ? x.replace(/[_-]/g, " ").toLowerCase() : x;
+const pct = (bps: unknown): string => `${Number(bps) / 100}%`;
+const mins = (m: unknown): string => hours(Number(m));
+
+/**
+ * Each rule-pack parameter as a plain sentence. A parameter that only
+ * pins a rounding or a technical choice is left out (null): it is not
+ * something a person reads to follow the sum.
+ */
+const SENTENCES: Record<string, (v: string | number | boolean)
+  => string | null> = {
+  prorationBasis: () => "A part month is worked out on calendar days.",
+  maxNormalHoursPerDay: (v) => `A normal working day is up to ${v} hours.`,
+  paidLeaveBase: () => "Paid leave is paid on the full wage.",
+  roundingMode: () => null,
+  capRoundingMode: () => null,
+  deductionCapBase: () =>
+    "The limit on deductions is worked out on the wage earned.",
+  deductionOverallCapBps: (v) =>
+    `Deductions may take at most ${pct(v)} of the wage.`,
+  loanConsentRequired: (v) => v === true
+    ? "A loan is taken from pay only with the employee's consent." : null,
+  deductionOrder: () => "Deductions are taken in a set order, loans last.",
+  sickFullPayDays: (v) => `Sick leave is paid in full for ${v} days.`,
+  sickHalfPayDays: (v) => `Then at half pay for the next ${v} days.`,
+  sickMaxDays: (v) => `Sick leave counts for at most ${v} days a year.`,
+  sickPaidInProbation: (v) => v === false
+    ? "Sick leave in the probation period is unpaid." : null,
+  overtimeUpliftBps: (v) =>
+    `Overtime is paid at ${100 + Number(v) / 100}% of the hourly rate.`,
+  dailyDivisor: (v) =>
+    `A day's pay is the monthly wage divided by ${v}.`,
+  shiftWorkersNightExcluded: (v) => v === true
+    ? "Shift workers do not get night overtime for their own shifts."
+    : null,
+  overtimeMaxMinutesPerDay: (v) =>
+    `Overtime counts for at most ${mins(v)} a day.`,
+  nightOvertimeUpliftBps: (v) =>
+    `Overtime at night is paid at ${100 + Number(v) / 100}% of the ` +
+    "hourly rate.",
+  nightWindow: (v) => `Night hours are ${String(v).replace("-", " to ")}.`,
+};
+
+/** A key with no sentence yet: its name in words, never "key: value". */
+function fallback(key: string): string {
+  const w = key.replace(/Bps$/, "").replace(/([a-z])([A-Z])/g, "$1 $2")
+    .toLowerCase();
+  return `${w[0]?.toUpperCase() ?? ""}${w.slice(1)} applies.`;
 }
 
-function ruleOf(r: LineSource["rules"][number]): ExplainRule {
-  const bps = /Bps$/.test(r.key) && typeof r.value === "number";
-  const name = r.key.replace(/Bps$/, "").replace(/([a-z])([A-Z])/g, "$1 $2")
-    .toLowerCase();
-  const shown = bps ? `${Number(r.value) / 100}%` : valueText(r.value);
+/** The source note in our words: no internal paths, no jargon. */
+function citationOf(note: string | null, status: SourceStatus)
+  : string | null {
+  if (note === null) return null;
+  if (status === "convention" || /convention/i.test(note)) {
+    return "Our own working, as we apply it";
+  }
+  return /^docs\//.test(note) ? "Our research notes" : note;
+}
+
+function ruleOf(r: LineSource["rules"][number]): ExplainRule | null {
+  const sentence = (SENTENCES[r.key] ?? (() => fallback(r.key)))(r.value);
+  if (sentence === null) return null;
   const known = STATUSES.find((x) => x === r.presentedStatus);
-  const citation = r.source?.note ?? null;
-  const status: SourceStatus = citation === null ? "unsourced"
+  const status: SourceStatus = r.source === null ? "unsourced"
     : known ?? "unsourced";
-  return { text: `${name[0]?.toUpperCase() ?? ""}${name.slice(1)}: ` +
-    shown, status, statusLabel: r.presentedLabel, citation };
+  return { text: sentence, status, statusLabel: r.presentedLabel,
+    citation: citationOf(r.source?.note ?? null, status) };
+}
+
+/** One sentence once, whichever parameters said it. */
+function rulesOf(src: LineSource["rules"]): ExplainRule[] {
+  const seen = new Set<string>();
+  return src.map(ruleOf).filter((r): r is ExplainRule => {
+    if (r === null || seen.has(r.text)) return false;
+    seen.add(r.text);
+    return true;
+  });
 }
 
 /** The engine's sentence without its closing status list. */
@@ -112,7 +180,7 @@ export function toExplanation(id: string, src: LineSource, x: {
   return { id, title: x.label, subject: x.subject,
     summary: plain(src.text[x.lang]),
     result: { label: x.label, value: result }, inputs: [],
-    rules: src.rules.map(ruleOf),
+    rules: rulesOf(src.rules),
     steps: [...steps, { text: x.label, value: result }],
     notComputed: x.notComputed === null ? [] : [x.notComputed],
     scope: x.scope };

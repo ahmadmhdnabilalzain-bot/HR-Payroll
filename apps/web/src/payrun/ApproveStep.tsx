@@ -10,6 +10,7 @@ import { SignStamp } from "../ui/SignStamp";
 import b from "../ui/button.module.css";
 import {
   decisionTime,
+  demoClockIso,
   forgetDecision,
   nowMs,
   recordDecision,
@@ -59,7 +60,8 @@ export function ApproveStep(p: { go: Go }) {
         : t("payrun.payAfter", { name: checker.name[lang] });
   const decidedAt = at === null ? formatDate(cal.asOf, lang)
     : t("payrun.recordedWhen", { date: formatDate(cal.asOf, lang),
-      time: formatTime(new Date(at).toISOString(), lang) });
+      time: formatTime(demoClockIso(at, detail.preparedOn,
+        detail.preparedAt), lang) });
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>

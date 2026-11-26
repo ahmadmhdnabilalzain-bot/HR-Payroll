@@ -75,7 +75,7 @@
   --steps-ms: 160ms;
   --after-steps: 260ms;
   position: fixed;
-  inset: 0;
+  inset: var(--banner, 0px) 0 0;
   z-index: 50;
 }
 
@@ -397,10 +397,14 @@
   background: currentColor;
 }
 
-.status[data-status="official"] { color: var(--color-success); }
-.status[data-status="secondary"] { color: var(--color-warning); }
-.status[data-status="convention"] { color: var(--color-info); }
-.status[data-status="unsourced"] { color: var(--color-danger); }
+/* Ink and a word only: a filled dot for what has a source, a
+ * hollow one for our own working rule or no source yet. */
+.status { color: var(--color-text); }
+.status[data-status="convention"] .dot,
+.status[data-status="unsourced"] .dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
 
 .cite {
   color: var(--color-text-muted);

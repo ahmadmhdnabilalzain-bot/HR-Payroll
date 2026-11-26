@@ -42,6 +42,19 @@ export function nowMs(): number {
   return performance.timeOrigin + performance.now();
 }
 
+/**
+ * A moment of this visit on the demo's own clock: the demo's day
+ * starts when the run was prepared (09:30 on 27 October, Dubai), and
+ * time runs on from the page opening. A stamp can therefore never
+ * read earlier than the preparation it follows.
+ */
+export function demoClockIso(atMs: number, preparedOn: string,
+  preparedAt: string): string {
+  const start = Date.parse(`${preparedOn}T${preparedAt}:00+04:00`);
+  return new Date(start + Math.max(0, atMs - performance.timeOrigin))
+    .toISOString();
+}
+
 export function recordDecision(id: string): void {
   decidedAt.set(id, nowMs());
 }
