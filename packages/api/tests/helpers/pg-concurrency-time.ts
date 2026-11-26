@@ -97,6 +97,32 @@ export function pgTimeConcurrencyCases(
       expect(n.length).toBe(0);
     });
 
+  // Review N5: a /v1/wfh/ request takes the employee lock before its
+  // purge, so it never holds purged rows while waiting for the lock.
+  it("wfh requests lock the employee before purging", async () => {
+    const { db, admin } = await open();
+    const w = await wfhSetup(db, admin);
+    await admin.query(
+      `INSERT INTO wfh_activity_minutes (company_id, employee_id,
+         attendance_id, at, active, category)
+       VALUES ($1, $2, $3, '2020-01-01T00:00:00Z', true, NULL)`,
+      [w.s.companyId, w.s.emp.report, w.rec.id]);
+    let free = false;
+    let req!: ReturnType<typeof w.as>;
+    await admin.transaction(async (tx) => {
+      await tx.query("SELECT 1 FROM employees WHERE id = $1 FOR UPDATE",
+        [w.s.emp.report]);
+      req = w.as(w.s.employee, "GET", "/v1/wfh/me/status");
+      await sleep(300);
+      // The expired row is neither deleted nor locked by the request.
+      free = (await tx.query(`SELECT 1 FROM wfh_activity_minutes
+        WHERE at < '2021-01-01' FOR UPDATE NOWAIT`)).length === 1;
+    });
+    const r = await req;
+    expect(free).toBe(true);
+    expect(r.status, r.text).toBe(200);
+  });
+
   it("purge-wfh as the deployed roles purges every company (N3)",
     async () => {
       const { db, admin, owner } = await open();
