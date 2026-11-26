@@ -4,6 +4,7 @@ import { Home } from "./home/Home";
 import { PayRun } from "./payrun/PayRun";
 import { People } from "./people/People";
 import { Reports } from "./reports/Reports";
+import { SetupAccess } from "./setup/access/SetupAccess";
 import { SectionPage } from "./shell/SectionPage";
 import { TimeOff } from "./timeoff/TimeOff";
 
@@ -24,5 +25,6 @@ export const VIEWS: Partial<Record<Section, ComponentType<ViewProps>>> = {
   people: People,
   "time-off": TimeOff,
   reports: Reports,
+  setup: SetupAccess,
   s: SectionPage,
 };
