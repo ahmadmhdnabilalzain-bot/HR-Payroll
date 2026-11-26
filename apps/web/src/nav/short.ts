@@ -95,16 +95,22 @@ export function shortOf(a: Area, lang: Lang): string {
 }
 
 /**
- * Counts that are not "waiting for a decision": totals and work in
- * progress (everyone on the payroll, open positions, goals set,
+ * Counts that are not "waiting for a decision": totals and open work
+ * in progress (everyone on the payroll, open positions, goals set,
  * appraisals in a cycle, candidates in the process, today's register,
- * compliance items to look at). The panel's waiting column leaves
- * them out; the area pages still show them.
+ * compliance items to look at, documents running out, open incidents,
+ * insurance cards with the insurer, ILOE subscriptions due, overdue
+ * training, punches to match, draft roster weeks, salaries on hold,
+ * help desk tickets to answer, and answers back to the employee). The
+ * panel's waiting column leaves them out; the area pages still show
+ * them.
  */
 const NOT_A_DECISION = new Set([
   "people.everyone", "people.positions", "people.goals",
   "people.appraisals", "people.board", "people.compliance", "time.today",
-  "me.documents",
+  "me.documents", "people.expiring", "people.incidents",
+  "people.insurance", "people.iloe", "people.training", "time.punches",
+  "time.plan", "pay.hold", "people.helpdesk", "requests.asks",
 ]);
 
 export function isDecision(a: Area): boolean {
