@@ -2,6 +2,12 @@ import { dispatchDue } from "../../src/channels/dispatch";
 import { withTenant } from "../../src/db/tenant";
 import type { Hitter } from "./api-flow";
 import { waBody } from "./wa-world";
+import {
+  hashOf,
+  INBOUND_BASIC,
+  PNG,
+  postmarkPayload,
+} from "./email-in";
 import type { makeApp } from "./test-app";
 
 type Ctx = Awaited<ReturnType<typeof makeApp>>;
@@ -27,6 +33,34 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
   await notifications(hit, u);
   await optInFlow(_ctx, hit, u);
   await waHookFlow(hit);
+  await inboundFlow(hit, u);
+}
+
+async function inboundFlow(hit: Hitter, u: FlowUsers) {
+  const c = u.company;
+  const cur = await hit("getInboundSettings", u.owner, c);
+  await hit("putInboundSettings", u.owner, c, {}, {
+    enabled: true, allowlist: ["@vendor.test"],
+    acknowledgedProcessing: true, expectedVersion: cur.body.version });
+  const rot = await hit("rotateInboundAddress", u.owner, c);
+  const pay = postmarkPayload({ from: "ap@vendor.test",
+    hash: hashOf(rot.body.address), atts: [{ name: "r.png",
+      type: "image/png", bytes: PNG }, { name: "s.png", type: "image/png",
+      bytes: PNG }] });
+  const basic = `Basic ${Buffer.from(INBOUND_BASIC).toString("base64")}`;
+  await hit("inboundEmailHook", null, null, { provider: "postmark" }, pay,
+    { headers: { authorization: basic } });
+  await hit("inboundEmailHook", null, null, { provider: "postmark" },
+    { ...pay, MessageID: "msg-2" }, { headers: { authorization: basic } });
+  const list = await hit("listInboundItems", u.owner, c);
+  const [a, b] = list.body.items.map((x: { id: string }) => x.id);
+  await hit("getInboundItem", u.owner, c, { id: a });
+  await hit("downloadInboundAttachment", u.owner, c, { id: a,
+    index: "0" });
+  await hit("acceptInboundItem", u.owner, c, { id: a }, { as: "receipt",
+    employeeId: u.empId, attachmentIndexes: [0] });
+  await hit("dismissInboundItem", u.owner, c, { id: b },
+    { reason: "duplicate" });
 }
 
 async function waHookFlow(hit: Hitter) {

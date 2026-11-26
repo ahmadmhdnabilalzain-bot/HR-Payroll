@@ -2,6 +2,7 @@ import { ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { enableMfa, call, makeApp, signup } from "./helpers/test-app";
 import { PLAN6_PENDING } from "./helpers/plan6-pending";
+import { inboundItemFor } from "./helpers/email-in";
 import {
   addOwner,
   march,
@@ -37,7 +38,8 @@ function forbidden(role: Role): string[] {
   });
 }
 
-type Kind = "employee" | "payslip" | "payRun" | "sifFile" | null;
+type Kind = "employee" | "payslip" | "payRun" | "sifFile" |
+  "inboundItem" | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
 const ID_KIND: Record<string, Kind> = {
   getCompany: null, listUsers: null, listEmployees: null,
@@ -51,6 +53,8 @@ const ID_KIND: Record<string, Kind> = {
   getChannelSettings: null, listNotifications: null,
   getNotificationPrefs: null, listNotificationDeliveries: null,
   listNotificationTemplates: null, getMyChannels: null,
+  getInboundSettings: null, listInboundItems: null,
+  getInboundItem: "inboundItem", downloadInboundAttachment: "inboundItem",
 };
 
 /** Query strings a route needs. */
@@ -81,6 +85,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   let s: Seeded;
   let runId: string;
   let sifId: string;
+  let inboundId: string;
   const slips = {} as Record<Target, string>;
   beforeAll(async () => {
     ctx = await makeApp();
@@ -99,15 +104,18 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       { wps: { employerId: "0000000123456", bankRoutingCode: "802420101" } });
     sifId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
       `/v1/pay-runs/${runId}/sif`)).body.id;
+    inboundId = await inboundItemFor(ctx, s);
   });
   /** Every `{id}` to try for a route, with the record it belongs to. */
   const idsFor = (kind: Kind): [Target | null, string | null][] =>
     kind === "employee" ? TARGETS.map((t) => [t, s.emp[t]])
     : kind === "payslip" ? TARGETS.map((t) => [t, slips[t]])
     : kind === "payRun" ? [[null, runId]]
-    : kind === "sifFile" ? [[null, sifId]] : [[null, null]];
+    : kind === "sifFile" ? [[null, sifId]]
+    : kind === "inboundItem" ? [[null, inboundId]] : [[null, null]];
   const path = (r: RouteDef, id: string | null) =>
-    (id === null ? r.path : r.path.replace("{id}", id)) +
+    (id === null ? r.path : r.path.replace("{id}", id)
+      .replace("{index}", "0")) +
     (QUERY[r.id] ?? "");
 
   it("every GET tenant route has a fixture", () => {

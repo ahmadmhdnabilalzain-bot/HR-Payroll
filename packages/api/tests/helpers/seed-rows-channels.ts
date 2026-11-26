@@ -46,4 +46,23 @@ export async function seedChannelRows(admin: Db, c: string, _emp: string,
        recipient_user_id, phone_hash, delivery_id, status, expires_at,
        created_at) VALUES ($1, $2, $3, 1, $4, 'h', $5, 'open', $6, $6)`,
     [rowId(c, "d4"), c, rowId(c, "c2"), user, rowId(c, "d2"), AT]);
+  await seedInbound(admin, c, user);
+}
+
+async function seedInbound(admin: Db, c: string, user: string) {
+  await admin.query(
+    `INSERT INTO inbound_mailboxes (company_id, secret_hash, secret_enc,
+       version, rotated_at) VALUES ($1, 'h', 'x', 1, $2)`, [c, AT]);
+  await admin.query(
+    `INSERT INTO inbound_settings (company_id, version, body, updated_by,
+       updated_at) VALUES ($1, 1, '{}', $2, $3)`, [c, user, AT]);
+  await admin.query(
+    `INSERT INTO inbound_items (id, company_id, status, received_at,
+       message_id, auth) VALUES ($1, $2, 'rejected', $3, 'm', '{}')`,
+    [rowId(c, "d5"), c, AT]);
+  await admin.query(
+    `INSERT INTO inbound_attachments (id, company_id, item_id, idx,
+       file_name, size, status, skip)
+     VALUES ($1, $2, $3, 0, 'x', 1, 'skipped', 'TOO_MANY')`,
+    [rowId(c, "d6"), c, rowId(c, "d5")]);
 }

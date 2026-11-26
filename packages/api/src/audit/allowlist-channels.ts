@@ -21,4 +21,10 @@ export const CHANNEL_AUDIT_CHECKS: Record<string, Check> = {
   errorCode: oneOf(ERROR_CODES),
   decision: oneOf(["approve", "reject"]),
   approvalId: (v) => typeof v === "string" && UUID_RE.test(v),
+  attachmentCount: isInt,
+  keptCount: isInt,
+  receiptCount: isInt,
+  flags: listOf(["SENDER_UNVERIFIED", "ATTACHMENT_SKIPPED"]),
+  as: oneOf(["receipt", "claim-draft"]),
+  dismissReason: oneOf(["spam", "duplicate", "not-relevant", "other"]),
 };

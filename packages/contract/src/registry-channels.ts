@@ -4,6 +4,7 @@ import * as notifications from "./notifications";
 import * as templates from "./templates";
 import * as whatsapp from "./whatsapp";
 import * as waActions from "./whatsapp-actions";
+import * as inbound from "./inbound";
 
 /** Plan 13's named schemas (OpenAPI components and EXAMPLES keys). */
 const NAMES: [Record<string, unknown>, string[]][] = [
@@ -15,6 +16,9 @@ const NAMES: [Record<string, unknown>, string[]][] = [
   [templates, ["TemplateInfo", "TemplateInfoList"]],
   [whatsapp, ["WhatsAppOptInStart", "WhatsAppVerify", "MyChannels"]],
   [waActions, ["HookChallenge", "HookAck"]],
+  [inbound, ["InboundSettingsBody", "InboundSettings",
+    "InboundSettingsUpdate", "SenderAuth", "InboundItem", "InboundItemList",
+    "InboundAccept", "InboundDismiss", "InboundAttachmentContent"]],
 ];
 
 export const CHANNEL_SCHEMAS: Readonly<Record<string, z.ZodType>> =

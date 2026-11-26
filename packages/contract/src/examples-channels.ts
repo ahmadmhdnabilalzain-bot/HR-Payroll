@@ -12,6 +12,7 @@ import {
 } from "./notifications";
 import { TEMPLATES } from "./templates";
 import { WHATSAPP_CONSENT_TEXT, type MyChannels } from "./whatsapp";
+import { INBOUND_EXAMPLES } from "./examples-inbound";
 
 const ID = "00000000-0000-4000-8000-000000000d01";
 const USER = "00000000-0000-4000-8000-000000000d02";
@@ -69,4 +70,5 @@ export const CHANNEL_EXAMPLES: Readonly<Record<string, unknown>> = {
   MyChannels: mine,
   HookChallenge: "1158201444",
   HookAck: { ok: true },
+  ...INBOUND_EXAMPLES,
 };

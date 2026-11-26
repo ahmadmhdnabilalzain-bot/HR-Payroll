@@ -19,6 +19,19 @@ import {
 } from "./route-def";
 import { HookAck, HookChallenge, WhatsAppHookQuery } from
   "./whatsapp-actions";
+import {
+  InboundAccept,
+  InboundAttachmentContent,
+  InboundAttachmentParams,
+  InboundDismiss,
+  InboundHookParams,
+  InboundItem,
+  InboundItemList,
+  InboundQuery,
+  InboundSettings,
+  InboundSettingsUpdate,
+} from "./inbound";
+import { IdParams } from "./primitives";
 import { TemplateInfoList } from "./templates";
 import {
   MyChannels,
@@ -78,10 +91,43 @@ const WA_HOOK: readonly RouteDef[] = [
     response: HookAck, rawBody: true }),
 ];
 
+const one = { params: IdParams };
+
+/** Task 5: email-in settings, the provider hook and the review inbox. */
+const INBOUND: readonly RouteDef[] = [
+  ten(PAYROLL, { id: "getInboundSettings", method: "GET",
+    path: "/v1/inbound/settings", response: InboundSettings }),
+  ten(OWNER, { id: "putInboundSettings", method: "PUT",
+    path: "/v1/inbound/settings", body: InboundSettingsUpdate,
+    response: InboundSettings, mfa: true }),
+  ten(OWNER, { id: "rotateInboundAddress", method: "POST",
+    path: "/v1/inbound/address/rotate", response: InboundSettings,
+    mfa: true }),
+  pub({ id: "inboundEmailHook", method: "POST",
+    path: "/v1/hooks/email/{provider}", params: InboundHookParams,
+    response: HookAck, rawBody: true, bodyLimit: 36_000_000 }),
+  ten(PAYROLL, { id: "listInboundItems", method: "GET",
+    path: "/v1/inbound/items", query: InboundQuery,
+    response: InboundItemList }),
+  ten(PAYROLL, { id: "getInboundItem", method: "GET",
+    path: "/v1/inbound/items/{id}", ...one, response: InboundItem }),
+  ten(PAYROLL, { id: "downloadInboundAttachment", method: "GET",
+    path: "/v1/inbound/items/{id}/attachments/{index}",
+    params: InboundAttachmentParams, response: InboundAttachmentContent,
+    contentType: "binary" }),
+  ten(PAYROLL, { id: "acceptInboundItem", method: "POST",
+    path: "/v1/inbound/items/{id}/accept", ...one, body: InboundAccept,
+    response: InboundItem }),
+  ten(PAYROLL, { id: "dismissInboundItem", method: "POST",
+    path: "/v1/inbound/items/{id}/dismiss", ...one, body: InboundDismiss,
+    response: InboundItem }),
+];
+
 /** Plan 13: channels and integrations (the last route group). */
 export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SETTINGS,
   ...NOTIFY,
   ...OPT_IN,
   ...WA_HOOK,
+  ...INBOUND,
 ];

@@ -152,3 +152,28 @@ In progress (updated after each task).
   consulted before any work, forged and expired tokens dropped before
   any database access, and no phone number, token or text in audit
   data (tested).
+
+### Task 5: email-in with a review inbox
+
+- Stricter than the plan (advisor finding): SPF and DKIM passes count
+  as "pass" only when at least one of them is for the From domain (or
+  a subdomain), read from `smtp.mailfrom` and `header.d`. Mail from
+  an attacker's domain with valid SPF and DKIM for that domain and a
+  forged `From: sara@acme.test` is flagged `SENDER_UNVERIFIED` for the
+  human review, not passed. DMARC pass still passes (it implies
+  alignment). Tested.
+- `storeReceiptBytes(ctx, employeeId, fileName, bytes)` was split out
+  of Plan 6's `uploadReceipt` (the checks run again inside); the
+  receipt blob key pattern accepts `inbound` (test added).
+- Rejected items store a SHA-256 of the provider message id (the
+  plan's `message_id` column) and nothing about the sender.
+- The daily inbound limit uses a window aligned to Dubai midnight.
+- Attachment file names are kept in clear (control characters and
+  slashes removed, 255 characters at most); sender, subject and text
+  are sealed.
+- Security self-review: credentials compared in constant time; the
+  mailbox secret is compared by hash; a refused mailbox stores
+  nothing; duplicates are dropped by message id; nothing reaches a
+  receipt or claim without a person (owner or hr) accepting; accepted
+  files go through Plan 6's size and magic-byte checks again; downloads
+  are attachments with `nosniff` and `no-store`; no reply email.

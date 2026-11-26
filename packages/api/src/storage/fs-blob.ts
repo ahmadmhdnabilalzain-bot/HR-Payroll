@@ -3,8 +3,11 @@ import { dirname, join } from "node:path";
 import { CodedError } from "../coded-error";
 import type { BlobStore } from "./blob";
 
-/** `<companyId>/receipts/<receiptId>`, nothing else (no `..`, no `/`). */
-const KEY = /^[0-9a-f-]{36}\/receipts\/[0-9a-f-]{36}$/;
+/**
+ * `<companyId>/receipts/<id>` or `<companyId>/inbound/<id>` (Plan 13
+ * email-in), nothing else (no `..`, no `/`).
+ */
+const KEY = /^[0-9a-f-]{36}\/(receipts|inbound)\/[0-9a-f-]{36}$/;
 
 function pathOf(dir: string, key: string): string {
   if (!KEY.test(key)) {

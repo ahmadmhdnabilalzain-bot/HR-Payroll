@@ -1,5 +1,6 @@
 import { notConfiguredPorts } from "../../src/channels/not-configured";
 import { metaWhatsAppInbound } from "../../src/whatsapp/meta-inbound";
+import { postmarkInbound } from "../../src/inbound/postmark-inbound";
 import type {
   ChannelPorts,
   EmailMessage,
@@ -14,6 +15,7 @@ export interface FakeOpts {
   email: boolean;
   whatsapp: boolean;
   whatsappInbound: boolean;
+  inboundEmail: boolean;
 }
 
 /** The fake provider's webhook secret and verify token (tests only). */
@@ -64,7 +66,7 @@ function fakeHttp(): FakeHttp & { send: (r: HttpRequest) =>
 /** Every port as an in-memory fake; configured unless `opts` says. */
 export function fakeChannels(opts: Partial<FakeOpts> = {}): FakeChannels {
   const o: FakeOpts = { email: true, whatsapp: true,
-    whatsappInbound: true, ...opts };
+    whatsappInbound: true, inboundEmail: true, ...opts };
   const outbox: FakeChannels["outbox"] = { email: [], whatsapp: [] };
   const queue: Queue = { email: [], whatsapp: [] };
   const dns = new Map<string, string[]>();
@@ -89,6 +91,9 @@ export function fakeChannels(opts: Partial<FakeOpts> = {}): FakeChannels {
     whatsappInbound: o.whatsappInbound ? metaWhatsAppInbound({
       appSecret: WA_APP_SECRET, verifyToken: WA_VERIFY_TOKEN })
       : base.whatsappInbound,
+    inboundEmail: o.inboundEmail ? postmarkInbound({
+      basicAuth: "hook:test-inbound-secret" }) : base.inboundEmail,
+    inboundEmailDomain: o.inboundEmail ? "in.test.example" : null,
     resolveHost: async (host) => dns.get(host) ?? [] };
   return { ports, outbox, http, dns,
     failNext: (ch, out) => queue[ch].push(out) };

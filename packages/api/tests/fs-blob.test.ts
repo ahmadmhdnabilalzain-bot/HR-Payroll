@@ -21,6 +21,14 @@ describe("fsBlobStore", () => {
     expect(readdirSync(join(dir, C, "receipts"))).toEqual([R]);
   });
 
+  it("accepts an inbound key; refuses any other folder", async () => {
+    await store.put(`${C}/inbound/${R}`, new Uint8Array([4]));
+    expect(await store.get(`${C}/inbound/${R}`)).toEqual(
+      new Uint8Array([4]));
+    await expect(store.put(`${C}/other/${R}`, new Uint8Array(1))).rejects
+      .toThrow(/BLOB_KEY_INVALID/);
+  });
+
   it("refuses keys outside the receipts layout", async () => {
     for (const bad of ["../x", `${C}/../${R}`, `${C}/receipts/../../x`,
       `/${KEY}`, `${KEY}/x`]) {

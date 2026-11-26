@@ -30,5 +30,5 @@ export const PLAN6_IDS: readonly string[] = [
 
 /** Plan 13's public route ids (Tasks 4 to 10 append). */
 export const PUBLIC_CHANNEL_IDS: readonly string[] = [
-  "whatsAppHookVerify", "whatsAppHook",
+  "whatsAppHookVerify", "whatsAppHook", "inboundEmailHook",
 ];

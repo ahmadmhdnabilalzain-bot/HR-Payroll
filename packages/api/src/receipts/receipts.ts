@@ -97,9 +97,22 @@ async function storeBytes(ctx: ReqCtx, id: string, key: string,
 /** POST /v1/receipts. */
 export async function uploadReceipt(ctx: ReqCtx<ReceiptUpload>)
   : Promise<Receipt> {
-  const c = ctx.tenant!.companyId;
   const employeeId = await targetEmployee(ctx, ctx.body.employeeId);
-  const { bytes, type } = checkedFile(ctx.body);
+  const { bytes } = checkedFile(ctx.body);
+  return storeReceiptBytes(ctx, employeeId, ctx.body.fileName, bytes);
+}
+
+/**
+ * Stores decoded bytes as the employee's receipt: size and magic-byte
+ * checks (again), suggestion, encryption, row and audit. The caller
+ * has checked who may file for `employeeId` (upload, email-in review).
+ */
+export async function storeReceiptBytes(ctx: ReqCtx, employeeId: string,
+  fileName: string, bytes: Uint8Array): Promise<Receipt> {
+  const c = ctx.tenant!.companyId;
+  if (bytes.length > RECEIPT_MAX_BYTES) throw new ApiError("RECEIPT_TOO_LARGE");
+  const type = sniffContentType(bytes);
+  if (type === null) throw new ApiError("RECEIPT_TYPE_NOT_ALLOWED");
   const id = ctx.deps.newId();
   const key = `${c}/receipts/${id}`;
   const suggestion = await readSuggestion(ctx.deps.receiptReader, bytes,
@@ -110,7 +123,7 @@ export async function uploadReceipt(ctx: ReqCtx<ReceiptUpload>)
     `INSERT INTO receipts (id, company_id, employee_id, uploaded_by,
        file_name, content_type, size, sha256, blob_key, suggestion,
        uploaded_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-    [id, c, employeeId, ctx.user!.id, ctx.body.fileName, type, bytes.length,
+    [id, c, employeeId, ctx.user!.id, fileName, type, bytes.length,
       createHash("sha256").update(bytes).digest("hex"), key,
       JSON.stringify(suggestion), at]);
   await appendAudit(ctx.tx, { companyId: c, at, actorUserId: ctx.user!.id,
