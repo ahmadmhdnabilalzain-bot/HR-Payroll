@@ -1,4 +1,4 @@
-import type { Role } from "../demo/state";
+import type { Role, Section } from "../demo/state";
 import type { MessageKey } from "../i18n/t";
 import type { IconName } from "../ui/Icon";
 import { VIEWS } from "../views";
@@ -20,9 +20,50 @@ const BAR: Record<Role, readonly SectionId[]> = {
  * reach is theirs too (WP8 and WP9 list only hr and gm). People and
  * Reports areas must name "it" themselves (no company pay).
  */
-function roleAllows(a: Area, role: Role): boolean {
+export function roleAllows(a: Area, role: Role): boolean {
   if (a.roles === undefined || a.roles.includes(role)) return true;
   return role === "it" && a.section === "setup" && a.roles.includes("hr");
+}
+
+const keyOf = (r: AreaRoute): string[] => [r.section, ...(r.rest ?? [])];
+
+/**
+ * Route sections whose views open whatever path they are handed: a
+ * path no area names is judged by the area named here (the section's
+ * front page). Other sections (People, Time, Home) check the person
+ * themselves, so an unnamed path there is left to the view.
+ */
+const UNLISTED: Partial<Record<Section, string>> = {
+  "pay-run": "pay.run", reports: "reports.all", setup: "setup.company",
+  me: "me.profile",
+};
+
+/**
+ * The shell's one route guard: may this role open this path? The
+ * live area whose static route is the longest prefix of the path
+ * decides (a record follows its list); when several areas share that
+ * route, any of them may let the role in. An area at a section's bare
+ * front (`#/people`) does not match deeper paths. Per-viewer routes
+ * ("my payslip") are left to the view, which checks the person.
+ */
+export function mayOpen(role: Role, r: AreaRoute): boolean {
+  const path = keyOf(r);
+  let best: Area[] = [];
+  let len = 0;
+  for (const a of ALL_AREAS) {
+    if (a.status !== "live" || typeof a.route === "function") continue;
+    const k = keyOf(a.route);
+    if (k.length < 2 || k.length > path.length || k.length < len) continue;
+    if (!k.every((x, i) => path[i] === x)) continue;
+    if (k.length > len) best = [];
+    len = k.length;
+    best.push(a);
+  }
+  if (best.length > 0) return best.some((a) => roleAllows(a, role));
+  const front = UNLISTED[r.section];
+  if (front === undefined) return true;
+  const a = ALL_AREAS.find((x) => x.id === front);
+  return a !== undefined && roleAllows(a, role);
 }
 
 export const WORD: Record<SectionId, MessageKey> = {

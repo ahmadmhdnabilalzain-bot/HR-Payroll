@@ -4,8 +4,9 @@ import { useRoute } from "./demo/route";
 import { useDemo } from "./demo/state";
 import { useLocale } from "./i18n/LocaleProvider";
 import { CommandPalette, usePaletteHotkeys } from "./shell/CommandPalette";
+import { Outside } from "./shell/Outside";
 import { PhoneTabs, TopBar } from "./shell/TopBar";
-import { canOpenPayArea } from "./pay/derive";
+import { mayOpen } from "./nav/registry";
 import { VIEWS } from "./views";
 import s from "./App.module.css";
 
@@ -14,12 +15,9 @@ export function App() {
   const { lang, t, setLang } = useLocale();
   const { data, state } = useDemo();
   const route = useRoute();
-  /* Company pay is HR's and the GM's: a typed link shows Home. The
-   * IT manager opens pay groups and elements (Setup pages, no pay). */
-  const company = state.role === "hr" || state.role === "gm";
-  const paySetup = canOpenPayArea(state.role, route.rest[0] ?? "");
-  const shown = route.section === "pay-run" && !company && !paySetup
-    ? "home" : route.section;
+  /* The one route guard: a deep link the role may not open. */
+  const allowed = mayOpen(state.role, route);
+  const shown = route.section;
   const [palette, setPalette] = useState(false);
   const open = useCallback(() => setPalette(true), []);
   usePaletteHotkeys(open);
@@ -37,7 +35,8 @@ export function App() {
             {t("common.arReviewBanner")}
           </p>
         )}
-        <View key={shown} rest={shown === route.section ? route.rest : []} />
+        {allowed ? <View key={shown} rest={route.rest} />
+          : <Outside key={`outside-${shown}`} />}
       </main>
       <PhoneTabs route={route} />
       <CommandPalette open={palette} arabicShown={arabicShown}

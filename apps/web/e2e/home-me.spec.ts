@@ -59,3 +59,18 @@ test("manager-sees-team-today", async ({ page }) => {
   const team = page.getByRole("region", { name: "Team today" });
   await expect(team.getByRole("listitem").first()).toBeVisible();
 });
+
+test("deep-links-outside-the-role-are-turned-away", async ({ page }) => {
+  await page.goto("/");
+  await asRole(page, "Employee");
+  for (const hash of ["#/reports/summary", "#/reports/files",
+    "#/setup/access/users", "#/setup/rules/end-of-service",
+    "#/pay-run/review", "#/time-off/attendance"]) {
+    await page.evaluate((h) => { location.hash = h; }, hash);
+    await expect(page.getByRole("heading", { level: 1,
+      name: "This page is outside your view." })).toBeVisible();
+    await expect(page.getByText(/933,730\.94|938,680\.94/)).toHaveCount(0);
+  }
+  await page.getByRole("link", { name: "Back to Home" }).click();
+  await expect(page).toHaveURL(/#\/home$|\/$/);
+});

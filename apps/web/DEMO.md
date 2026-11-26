@@ -320,11 +320,24 @@ the explain panel. Severity words: "Stops pay" and "Check".
   Verified in Chromium emulation of iPhone 13, 15 and 15 Pro sizes.
   WebKit is not installed.
 
+## The route guard (integration)
+
+- One guard in the shell, `mayOpen` in `nav/registry.ts`, read by
+  `App.tsx` before any view: the live area whose static route is the
+  longest prefix of the path decides, from its `roles` (a record
+  follows its list). A path no area names under Pay run, Reports,
+  Setup or Me is judged by that section's front area; People, Time
+  and Home check the person in the view. A refused deep link shows
+  "This page is outside your view." and a link back to Home
+  (`shell/Outside.tsx`). Package guards stay as a second line.
+
 ## Home inbox, Me and the IT manager (WP10, Claude's calls)
 
 - **IT manager** (`role: "it"`): bar Home, People, Reports, Setup.
   Sees the directory but no one's pay (`canSeePay`); a typed
-  `#/pay-run` shows Home. Every Setup area HR reaches is IT's too
+  `#/pay-run` is outside the view, but Setup > Pay groups and Pay
+  elements (`#/pay-run/groups|elements`) open. Every Setup area HR
+  reaches is IT's too
   (`roleAllows` in `nav/registry.ts`); People and Reports areas must
   list "it" themselves. IT Home: connections, access review, import,
   and the audit chain checked on demand (the one action).
