@@ -59,6 +59,8 @@ them apart is deliberate.
 
 | Date | Call | Reason |
 |---|---|---|
+| 2026-11-26 | Supersedes the runner note in Plan 6 ruling 26: the migration runner accepts three- or four-digit numbers and sorts them numerically (001 to 013, 070 to 075, 601 to 605, 801 to 807, 901 to 908, 1301 to 1309). After main merged into Plan 13: a role step needs the role at decision time on WhatsApp too (`verdictFor`), a named chain approver must be a human member (never an API key's service user), and revoked memberships (Plan 8) get no notices, cannot act through WhatsApp and lose their calendar feeds. | Plan 13 merge; recorded in `plan-13-build-report.md`. |
+| 2026-11-26 | Plan 13 rulings 1 to 36 adopted as written in `docs/superpowers/plans/2026-11-26-plan-13-channels.md`, with the changes in `plan-13-build-report.md` (stricter email-in sender check, no WhatsApp reply after a withdrawal, SSO invites never link an existing account, job-scan RLS policies for the cross-company functions, holidays and deadlines empty until Plans 9 and 11 merge). | Recorded by reference, as for Plan 3. |
 | 2026-11-25 | Lawyer, bank and pilots become an optional verification track, not gates. | Follows the owner's decision above. |
 | 2026-11-25 | Every statutory value in code carries a source URL and a status (`sourced` or `unsourced`); unsourced values have no default. | With no lawyer, checkable sources replace sign-off. |
 | 2026-11-25 | Real customer payroll and any "verified compliant" claim wait until the rules are sourced. The owner decides when. | Wrong pay harms real employees. |

@@ -4,6 +4,8 @@ import type {
   ErrorCode,
 } from "@payroll/contract";
 import { appendAudit } from "../audit/audit";
+import { emitEvent } from "../channels/events";
+import { eventCtx } from "../channels/notify";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import {
@@ -15,7 +17,7 @@ import {
   type RequestRow,
   type StepRow,
 } from "./requests";
-import { mayDecide } from "./resolve";
+import { mayDecide, type Verdict } from "./resolve";
 import {
   linkedUsers,
   type Outcome,
@@ -42,8 +44,8 @@ async function checkVisible(ctx: ReqCtx, handlers: SubjectHandlers,
  * steps may not decide. A role step also needs the role now: a user
  * demoted after submit loses the step (revises Ruling 11).
  */
-async function checkActor(ctx: ReqCtx, r: RequestRow, steps: StepRow[])
-  : Promise<void> {
+async function actorVerdict(ctx: ReqCtx, r: RequestRow,
+  steps: StepRow[]): Promise<Verdict> {
   const linked = await linkedUsers(ctx.tx, ctx.tenant!.companyId,
     r.claimant_employee_id);
   const excluded = [r.submitted_by, ...linked, ...r.excluded_list];
@@ -53,11 +55,27 @@ async function checkActor(ctx: ReqCtx, r: RequestRow, steps: StepRow[])
   const verdict = mayDecide(steps.map((s) => ({ order: s.step_order,
     approver: s.approver, eligible: s.eligible })), r.current_step!,
   ctx.user!.id, prior, excluded);
-  if (verdict !== "ok") throw new ApiError(verdict as ErrorCode);
+  if (verdict !== "ok") return verdict;
   const step = steps.find((s) => s.step_order === r.current_step)!;
-  if (!holdsStepRole(ctx, step.approver)) {
-    throw new ApiError("NOT_AN_APPROVER");
-  }
+  return holdsStepRole(ctx, step.approver) ? "ok" : "NOT_AN_APPROVER";
+}
+
+async function checkActor(ctx: ReqCtx, r: RequestRow, steps: StepRow[])
+  : Promise<void> {
+  const verdict = await actorVerdict(ctx, r, steps);
+  if (verdict !== "ok") throw new ApiError(verdict as ErrorCode);
+}
+
+/**
+ * The verdict `decide` would reach for the caller on the current step
+ * (separation of duties and the step's role held now); WhatsApp checks
+ * it before deciding.
+ */
+export async function verdictFor(ctx: ReqCtx, approvalId: string)
+  : Promise<Verdict> {
+  const c = ctx.tenant!.companyId;
+  const r = await loadRequest(ctx.tx, c, approvalId);
+  return actorVerdict(ctx, r, await loadSteps(ctx.tx, c, r.id));
 }
 
 async function markStep(ctx: ReqCtx, r: RequestRow, status: string,
@@ -141,5 +159,18 @@ export async function decide(ctx: ReqCtx<ApprovalDecision>,
     await handlerFor(handlers, r.subject_type).onClosed(ctx, r.subject_id,
       closed);
   }
+  await emitDecision(ctx, r, closed);
   return viewFor(ctx.tx, c, r.id);
+}
+
+/** The claimant hears of a close; the next step's approvers of a move. */
+async function emitDecision(ctx: ReqCtx, r: RequestRow,
+  closed: Outcome | null): Promise<void> {
+  await emitEvent(eventCtx(ctx), closed === null
+    ? { type: "approval.pending", approvalId: r.id,
+      stepOrder: r.current_step! + 1, subjectType: r.subject_type,
+      requesterEmployeeId: r.claimant_employee_id }
+    : { type: "approval.closed", approvalId: r.id,
+      subjectType: r.subject_type, subjectId: r.subject_id,
+      outcome: closed, claimantUserId: r.claimant_user_id });
 }

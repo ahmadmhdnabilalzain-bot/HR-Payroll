@@ -5,6 +5,7 @@ import {
   FILE_BODY_LIMIT,
   ROUTES,
 } from "../src/index";
+import { PUBLIC_CHANNEL_IDS } from "./route-ids";
 
 function paramNames(path: string): string[] {
   return [...path.matchAll(/\{([a-zA-Z]+)\}/g)].map((m) => m[1] ?? "");
@@ -42,8 +43,12 @@ describe("ROUTES", () => {
         "getEmployeeBank", "putApprovalChain", "putEmployeeBank",
         "putEmployeeSalary"]);
   });
-  it("public routes are exactly the four", () => {
-    const pub = ROUTES.filter((r) => r.auth === "public")
+  it("public routes are the four plus the listed channel ids", () => {
+    const ids = ROUTES.filter((r) => r.auth === "public").map((r) => r.id);
+    expect(ids.sort()).toEqual(["acceptInvite", "health", "login",
+      "signup", ...PUBLIC_CHANNEL_IDS].sort());
+    const pub = ROUTES.filter((r) => r.auth === "public" &&
+      !PUBLIC_CHANNEL_IDS.includes(r.id))
       .map((r) => `${r.method} ${r.path}`).sort();
     expect(pub).toEqual([
       "GET /v1/health",
@@ -51,9 +56,6 @@ describe("ROUTES", () => {
       "POST /v1/auth/login",
       "POST /v1/signup",
     ]);
-    const ids = ROUTES.filter((r) => r.auth === "public").map((r) => r.id);
-    expect(ids.sort()).toEqual(["acceptInvite", "health", "login",
-      "signup"]);
   });
   it("POST /v1/pay-runs declares Idempotency-Key", () => {
     const r = ROUTES.find((x) => x.method === "POST" &&
@@ -78,7 +80,7 @@ describe("ROUTES", () => {
       "updateCompany"]);
   });
   it("only the SIF download is text/plain", () => {
-    const text = ROUTES.filter((r) => r.contentType === "text/plain");
+    const text = CORE_ROUTES.filter((r) => r.contentType === "text/plain");
     expect(text.map((r) => r.id)).toEqual(["downloadSifFile"]);
   });
   it("binary routes are GETs; the upload has a 7.5 MB body limit", () => {

@@ -1,4 +1,5 @@
 import type { Db } from "../../src/db/db";
+import { seedChannelRows } from "./seed-rows-channels";
 import { seedDocumentRows } from "./seed-rows-documents";
 import { seedTimeRows } from "./seed-rows-time";
 import { seedHrRows } from "./seed-rows-hr";
@@ -112,6 +113,7 @@ async function seedOne(admin: Db, s: SeedCompany): Promise<void> {
     "INSERT INTO audit_heads (company_id, seq, hash) VALUES ($1, 1, $2)",
     [c, H0]);
   await seedExpenseRows(admin, c, rowId(c, "f1"), s.userId);
+  await seedChannelRows(admin, c, rowId(c, "f1"), s.userId);
   await seedDocumentRows(admin, c, rowId(c, "f1"), s.userId);
 }
 

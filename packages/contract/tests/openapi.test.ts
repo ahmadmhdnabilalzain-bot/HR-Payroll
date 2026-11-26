@@ -51,7 +51,7 @@ describe("buildOpenApi", () => {
     for (const [, , op] of operations()) {
       const r = ROUTES.find((x) => x.id === op.operationId)!;
       if (r.auth === "public") expect(op.security).toEqual([]);
-      else expect(op.security).toEqual([{ bearer: [] }]);
+      else expect(op.security?.[0]).toEqual({ bearer: [] });
     }
   });
   it("tenant operations take the X-Company-Id header", () => {

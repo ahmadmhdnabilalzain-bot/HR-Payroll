@@ -16,7 +16,13 @@ import { registerAuditRoutes } from "./routes/audit";
 import { registerUserRoutes } from "./routes/users";
 import { registerTimeRoutes } from "./routes/time-index";
 import { registerHrRoutes } from "./routes/hr";
-import { registerExpenseApp, type ExpenseAppOpts } from "./expense-app";
+import {
+  DEFAULT_SUBJECTS,
+  registerExpenseApp,
+  type ExpenseAppOpts,
+} from "./expense-app";
+import { handlerMap } from "./approvals/subjects";
+import { registerChannelApp } from "./channel-app";
 import { registerDocumentApp } from "./document-app";
 
 function internalLine(err: unknown): Record<string, unknown> {
@@ -74,5 +80,7 @@ export function createApp(deps: AppDeps, opts: ExpenseAppOpts = {}): App {
   registerHrRoutes(app, deps);
   registerExpenseApp(app, deps, opts);
   registerDocumentApp(app, deps);
+  registerChannelApp(app, deps,
+    handlerMap(opts.subjects ?? DEFAULT_SUBJECTS));
   return app;
 }

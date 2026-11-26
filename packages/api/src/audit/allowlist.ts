@@ -1,4 +1,5 @@
 import { CodedError } from "../coded-error";
+import { CHANNEL_AUDIT_CHECKS } from "./allowlist-channels";
 import { DOCUMENT_AUDIT_CHECKS } from "./allowlist-documents";
 import { ISO_DATE, TIME_CHECKS } from "./allowlist-time";
 import { HR_CHECKS } from "./hr-allowlist";
@@ -66,6 +67,7 @@ const CHECKS: Record<string, Check> = {
   ...TIME_CHECKS,
   ...HR_CHECKS,
   ...EXPENSE_AUDIT_CHECKS,
+  ...CHANNEL_AUDIT_CHECKS,
   ...DOCUMENT_AUDIT_CHECKS,
 };
 

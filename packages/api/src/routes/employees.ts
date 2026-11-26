@@ -5,6 +5,8 @@ import type {
   SalaryUpdate,
 } from "@payroll/contract";
 import { appendAudit, type AuditData } from "../audit/audit";
+import { emitEvent } from "../channels/events";
+import { eventCtx } from "../channels/notify";
 import type { AppDeps } from "../deps";
 import { register, type App, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
@@ -55,6 +57,8 @@ async function create(ctx: ReqCtx<EmployeeCreate>) {
   await checkEmployeeRefs(ctx.tx, company(ctx), ctx.body, null);
   await insertEmployee(ctx.tx, ctx.deps, company(ctx), id, ctx.body);
   await audit(ctx, "employee.created", id);
+  await emitEvent(eventCtx(ctx), { type: "employee.created",
+    employeeId: id });
   return view(ctx, id);
 }
 
@@ -65,6 +69,8 @@ async function update(ctx: IdCtx<EmployeeUpdate>) {
   await checkEmployeeRefs(ctx.tx, company(ctx), ctx.body, row.id);
   await updateEmployee(ctx.tx, ctx.deps, company(ctx), row.id, ctx.body);
   await audit(ctx, "employee.updated", row.id, { changed });
+  await emitEvent(eventCtx(ctx), { type: "employee.updated",
+    employeeId: row.id });
   return view(ctx, row.id);
 }
 

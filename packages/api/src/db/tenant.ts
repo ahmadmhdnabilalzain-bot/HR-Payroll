@@ -7,7 +7,8 @@ export interface TenantCtx {
 }
 
 /** Tables without company_id and without RLS. Everything else has both. */
-export const GLOBAL_TABLES = ["schema_migrations", "users", "sessions"];
+export const GLOBAL_TABLES = ["schema_migrations", "users", "sessions",
+  "sso_states", "sso_identities"];
 
 export const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

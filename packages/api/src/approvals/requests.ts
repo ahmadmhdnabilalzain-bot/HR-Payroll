@@ -8,6 +8,8 @@ import type {
 } from "@payroll/contract";
 import { daysBetween } from "@payroll/engine";
 import { appendAudit } from "../audit/audit";
+import { emitEvent } from "../channels/events";
+import { eventCtx } from "../channels/notify";
 import type { Db } from "../db/db";
 import { parseAed } from "../db/money";
 import type { ReqCtx } from "../http/context";
@@ -83,7 +85,8 @@ export async function viewFor(tx: Db, companyId: string,
 
 async function members(tx: Db, companyId: string) {
   const rows = await tx.query<{ user_id: string; role: Role }>(
-    "SELECT user_id, role FROM memberships WHERE company_id = $1",
+    `SELECT m.user_id, m.role FROM memberships m JOIN users u
+     ON u.id = m.user_id WHERE m.company_id = $1 AND u.kind = 'human'`,
     [companyId]);
   return rows.map((m) => ({ userId: m.user_id, role: m.role }));
 }
@@ -131,6 +134,9 @@ export async function openRequest(ctx: ReqCtx, handlers: SubjectHandlers,
   await appendAudit(ctx.tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "approval.opened", entityType: "approval", entityId: id,
     data: { subjectType: type, stepCount: steps.length } });
+  await emitEvent(eventCtx(ctx), { type: "approval.pending",
+    approvalId: id, stepOrder: 1, subjectType: type,
+    requesterEmployeeId: facts.claimantEmployeeId });
   return viewFor(ctx.tx, c, id);
 }
 

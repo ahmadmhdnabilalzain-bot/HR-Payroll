@@ -42,22 +42,18 @@ describe("HR_ROUTES", () => {
   it("ids are exactly the planned list, in order", () => {
     expect(HR_ROUTES.map((r) => r.id)).toEqual(HR_ROUTE_IDS);
   });
-  it("final counts: 46 HR routes, 121 in all (core 75)", () => {
+  it("final counts: 46 HR routes, core 75", () => {
     expect(HR_ROUTES.length).toBe(46);
-    // Plan 7's DOCUMENT_ROUTES and Plan 9's TIME_ROUTES join
-    // ROUTES too; each plan counts its own.
-    expect(ROUTES.filter((r) => !TIME_ROUTES.includes(r) &&
-      !DOCUMENT_ROUTES.includes(r)).length).toBe(121);
+    expect(CORE_ROUTES.length).toBe(75);
   });
   it("every HR route is a tenant route", () => {
     for (const r of HR_ROUTES) expect(r.auth, r.id).toBe("tenant");
   });
-  it("ROUTES joins the core, HR, document and time lists", () => {
-    expect(ROUTES.length).toBe(CORE_ROUTES.length + HR_ROUTES.length +
-      DOCUMENT_ROUTES.length + TIME_ROUTES.length);
+  it("ROUTES holds the core, HR, document and time lists", () => {
+    const ids = ROUTES.map((r) => r.id);
     for (const r of [...CORE_ROUTES, ...HR_ROUTES, ...DOCUMENT_ROUTES,
       ...TIME_ROUTES]) {
-      expect(ROUTES, r.id).toContain(r);
+      expect(ids, r.id).toContain(r.id);
     }
   });
   it("no (method, path) pair repeats across both lists", () => {

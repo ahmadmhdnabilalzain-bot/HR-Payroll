@@ -9,10 +9,11 @@
  * Targets:
  *   compose  the variables deploy/docker-compose.yml reads
  *   api      packages/api main.ts (migrates, then serves): DATABASE_URL,
- *            MIGRATE_DATABASE_URL, PAYROLL_MASTER_KEY, PORT
+ *            MIGRATE_DATABASE_URL, PAYROLL_MASTER_KEY, PORT,
+ *            RECEIPTS_DIR (an absolute path; the config loader needs it)
  *   migrate  the one-shot migration job (same variables as api)
- *   serve    deploy/serve.ts (serve only): DATABASE_URL, key, PORT;
- *            MIGRATE_DATABASE_URL must not be set
+ *   serve    deploy/serve.ts (serve only): DATABASE_URL, key, PORT,
+ *            RECEIPTS_DIR; MIGRATE_DATABASE_URL must not be set
  *   verify   the audit chain check: VERIFY_DATABASE_URL
  *
  * Exit 0 when every check passes, 1 when any fails, 2 on bad usage.
@@ -135,6 +136,26 @@ function checkPort(env, name, problems) {
   }
 }
 
+/** Our own provider secrets, when set (Plan 13, review M9). */
+const OWN_SECRETS = ["WHATSAPP_APP_SECRET", "WHATSAPP_VERIFY_TOKEN",
+  "INBOUND_EMAIL_BASIC_AUTH"];
+function checkProviderSecrets(env, problems) {
+  for (const name of OWN_SECRETS) {
+    const v = env[name];
+    if (v !== undefined && v !== "" && v.length < MIN_PASSWORD) {
+      problems.push(`${name} is shorter than ${MIN_PASSWORD} characters`);
+    }
+  }
+}
+
+/** Encrypted receipt files (Plan 6): required, an absolute path. */
+function checkReceiptsDir(env, problems) {
+  const dir = required(env, "RECEIPTS_DIR", problems);
+  if (dir !== null && !dir.startsWith("/")) {
+    problems.push("RECEIPTS_DIR must be an absolute path");
+  }
+}
+
 function checkCompose(env, problems) {
   const seen = new Map();
   for (const name of COMPOSE_PASSWORDS) {
@@ -167,6 +188,8 @@ function checkApi(env, problems) {
   }
   checkMasterKey(env, problems);
   checkPort(env, "PORT", problems);
+  checkReceiptsDir(env, problems);
+  checkProviderSecrets(env, problems);
 }
 
 function checkServe(env, problems) {
@@ -177,6 +200,8 @@ function checkServe(env, problems) {
   }
   checkMasterKey(env, problems);
   checkPort(env, "PORT", problems);
+  checkReceiptsDir(env, problems);
+  checkProviderSecrets(env, problems);
 }
 
 /** Pure: returns the list of problems (empty when all is well). */

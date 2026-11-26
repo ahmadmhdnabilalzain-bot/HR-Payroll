@@ -1,6 +1,7 @@
 import { routeById } from "@payroll/contract";
 import { timeFlow } from "./conformance-time";
 import { base32Decode, totpCode } from "../../src/auth/totp";
+import { channelFlow } from "./api-flow-channels";
 import { documentFlow } from "./api-flow-documents";
 import { expenseReports, expensesFlow } from "./conformance-expenses";
 import { hrFlow } from "./conformance-hr";
@@ -27,7 +28,7 @@ export function recorder(ctx: Ctx, hits: Hit[]) {
   };
 }
 
-type Hitter = ReturnType<typeof recorder>;
+export type Hitter = ReturnType<typeof recorder>;
 
 async function mfaToken(ctx: Ctx, hit: Hitter, token: string,
   email: string): Promise<string> {
@@ -78,6 +79,8 @@ export async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
   await expensesFlow(hit, owner, e.body.token, c);
   const runId = await payroll(hit, owner, owner2, e.body.token, c);
   await expenseReports(hit, owner, c, runId);
+  await channelFlow(ctx, hit, { owner, owner2, emp: e.body.token,
+    empId: emp, company: c });
   await timeFlow({ hit, owner, emp: e.body.token, c, empId: emp });
   await hrFlow(hit, { owner, ownerId: su.body.user.id, owner2,
     emp: e.body.token, empUserId: e.body.user.id, employeeId: emp, c });

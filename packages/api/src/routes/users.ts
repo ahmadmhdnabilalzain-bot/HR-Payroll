@@ -36,7 +36,8 @@ async function listUsers(ctx: ReqCtx) {
     `SELECT m.user_id, u.email, u.display_name, m.role, m.employee_id,
        u.mfa_enrolled
      FROM memberships m JOIN users u ON u.id = m.user_id
-     WHERE m.company_id = $1 AND m.revoked_at IS NULL
+     WHERE m.company_id = $1 AND u.kind = 'human'
+       AND m.revoked_at IS NULL
      ORDER BY u.email`, [companyId]);
   return { items: rows.map((r) => ({ userId: r.user_id, email: r.email,
     displayName: r.display_name, role: r.role, employeeId: r.employee_id,
@@ -95,7 +96,8 @@ async function inviteUser(ctx: ReqCtx<InviteRequest>) {
 }
 
 /** Locks the invite row: parallel accepts queue, the losers get 410. */
-async function openInvite(tx: Db, deps: HandlerDeps, token: string) {
+export async function openInvite(tx: Db, deps: HandlerDeps,
+  token: string) {
   const [inv] = await tx.query<InviteRow>(
     `SELECT id, email, role, employee_id, expires_at, used_at
      FROM invites WHERE token_hash = $1 FOR UPDATE`, [tokenHash(token)]);

@@ -4,10 +4,11 @@ import { CodedError } from "../coded-error";
 import type { BlobStore } from "./blob";
 
 /**
- * `<companyId>/receipts/<id>` or `<companyId>/files/<id>`, nothing
- * else (no `..`, no extra `/`).
+ * `<companyId>/receipts/<id>`, `<companyId>/files/<id>` (Plan 7) or
+ * `<companyId>/inbound/<id>` (Plan 13 email-in), nothing else (no
+ * `..`, no extra `/`).
  */
-const KEY = /^[0-9a-f-]{36}\/(receipts|files)\/[0-9a-f-]{36}$/;
+const KEY = /^[0-9a-f-]{36}\/(receipts|files|inbound)\/[0-9a-f-]{36}$/;
 
 function pathOf(dir: string, key: string): string {
   if (!KEY.test(key)) {

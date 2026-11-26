@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { buildChannelPorts } from "../src/channels/wire";
 import { loadConfig } from "../src/config";
 import { letterRenderer } from "../src/pdf/setup";
 
 const KEY = Buffer.alloc(32, 7).toString("base64");
+const BASE_ENV = { DATABASE_URL: "postgres://runtime@h/db",
+  PAYROLL_MASTER_KEY: KEY, RECEIPTS_DIR: "/r" };
 
 describe("loadConfig", () => {
   it("refuses a missing or short master key", () => {
@@ -33,6 +36,51 @@ describe("loadConfig", () => {
     expect(c.migrateUrl).toBe("postgres://owner@h/db");
     expect(c.port).toBe(9000);
     expect(c.receiptsDir).toBe("/r");
+  });
+  it("channel groups: none set means every provider not configured",
+    () => {
+      const c = loadConfig(BASE_ENV);
+      expect(c.channels.email).toBeNull();
+      expect(c.channels.whatsapp).toBeNull();
+      expect(c.channels.inbound).toBeNull();
+      expect(c.channels.google).toBeNull();
+      expect(c.channels.microsoft).toBeNull();
+      const ports = buildChannelPorts(c);
+      expect(ports.email.configured).toBe(false);
+      expect(ports.whatsapp.configured).toBe(false);
+      expect(ports.inboundEmail.configured).toBe(false);
+      expect(ports.oidc.configured("google")).toBe(false);
+      expect(ports.oidc.configured("microsoft")).toBe(false);
+    });
+  it("a partial channel group names the missing variables", () => {
+    expect(() => loadConfig({ ...BASE_ENV, POSTMARK_SERVER_TOKEN: "t" }))
+      .toThrow(/EMAIL settings are incomplete: .*EMAIL_FROM/);
+    expect(() => loadConfig({ ...BASE_ENV, WHATSAPP_APP_SECRET: "s" }))
+      .toThrow(/WHATSAPP_PHONE_NUMBER_ID/);
+  });
+  it("M9: our own provider secrets have a minimum length", () => {
+    const wa = { WHATSAPP_PHONE_NUMBER_ID: "1", WHATSAPP_ACCESS_TOKEN: "t",
+      WHATSAPP_GRAPH_VERSION: "v21.0",
+      WHATSAPP_APP_SECRET: "a".repeat(24),
+      WHATSAPP_VERIFY_TOKEN: "b".repeat(24) };
+    expect(loadConfig({ ...BASE_ENV, ...wa }).channels.whatsapp)
+      .not.toBeNull();
+    expect(() => loadConfig({ ...BASE_ENV, ...wa,
+      WHATSAPP_APP_SECRET: "short" })).toThrow(/at least 24/);
+    expect(() => loadConfig({ ...BASE_ENV, INBOUND_EMAIL_DOMAIN: "in.x",
+      INBOUND_EMAIL_BASIC_AUTH: "hook-only-no-password-here-x" }))
+      .toThrow(/user:password/);
+  });
+  it("public base URLs must be https", () => {
+    expect(() => loadConfig({ ...BASE_ENV,
+      PUBLIC_API_BASE_URL: "http://x" }))
+      .toThrow("PUBLIC_API_BASE_URL must be an https URL");
+    expect(() => loadConfig({ ...BASE_ENV,
+      PUBLIC_APP_BASE_URL: "ftp://x" }))
+      .toThrow("PUBLIC_APP_BASE_URL must be an https URL");
+    const c = loadConfig({ ...BASE_ENV,
+      PUBLIC_API_BASE_URL: "https://api.example.com/" });
+    expect(c.publicApiBaseUrl).toBe("https://api.example.com");
   });
   it("needs a receipts directory", () => {
     expect(() => loadConfig({ DATABASE_URL: "postgres://runtime@h/db",

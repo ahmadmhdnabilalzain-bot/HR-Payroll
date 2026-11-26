@@ -32,6 +32,11 @@ export interface Keyring {
   decrypt(dekWrapped: string, aad: string, cipher: string): string;
   encryptGlobal(aad: string, plain: string): string;
   decryptGlobal(aad: string, cipher: string): string;
+  /**
+   * HKDF-SHA256 over the master key (empty salt, 32 bytes) for a
+   * purpose named by `info` (e.g. "payroll/wa-action/v1").
+   */
+  derive(info: string): Uint8Array;
 }
 
 const IV_LEN = 12;
@@ -148,5 +153,7 @@ export function keyringFromKey(kek: Uint8Array, random: Random): Keyring {
       Buffer.from(plain, "utf8"), random(IV_LEN)),
     decryptGlobal: (aad, cipher) =>
       open(globalKey, kid, aad, cipher).toString("utf8"),
+    derive: (info) => new Uint8Array(hkdfSync("sha256", kek,
+      new Uint8Array(0), info, 32)),
   };
 }

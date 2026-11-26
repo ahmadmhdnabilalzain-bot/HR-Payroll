@@ -239,6 +239,14 @@ engine refuses to run without an explicit value.
 | Receipt storage port (memory, local disk) | `src/storage/` |
 | Receipts (sniffing, base64, OCR port, service) | `src/receipts/`, `src/routes/receipts.ts` |
 | Expenses (pure policy, checks and reimbursement; claims, submit, reports) | `src/expenses/`, `src/routes/expense-*.ts`, `src/http/csv.ts` |
+| Plan 13 channel platform, notifications, outbox | `src/channels/`, `src/channel-app.ts`, `migrations/1301` to `1303` |
+| Plan 13 WhatsApp opt-in and approvals | `src/whatsapp/`, `migrations/1304` |
+| Plan 13 email-in review inbox | `src/inbound/`, `migrations/1305` |
+| Plan 13 calendar feeds | `src/calendar/`, `src/export/ics.ts`, `migrations/1306` |
+| Plan 13 SSO (OIDC) | `src/sso/`, `migrations/1307` |
+| Plan 13 webhooks | `src/webhooks/`, `migrations/1308` |
+| Plan 13 API keys | `src/apikeys/`, `migrations/1309` |
+| Background jobs (`tsx src/main.ts jobs`) | `src/jobs/jobs.ts` |
 | Plan 7 files (encrypted, sniffed) | `src/files/`, `src/routes/files.ts`, `migrations/070` |
 | Employee documents, alerts, retention | `src/documents/`, `migrations/071` |
 | Company library and receipts | `src/library/`, `migrations/072` |
@@ -247,6 +255,26 @@ engine refuses to run without an explicit value.
 | Emiratisation report | `src/emiratisation/`, `migrations/075` |
 
 ## Known limits and open questions
+
+- Plan 13 (channels, branch `api-plan-13`): the ten features are
+  notifications (in-app, email, WhatsApp), preferences and quiet
+  hours, templates (Arabic NEEDS NATIVE REVIEW, never sent), WhatsApp
+  approvals, email-in, calendar feeds, SSO (Google, Entra), webhooks,
+  API keys and the developer surface (`/v1/openapi.json`,
+  `/v1/developer/guide`). Every provider is `not-configured` until its
+  environment group is complete: `POSTMARK_SERVER_TOKEN`, `EMAIL_FROM`;
+  `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`,
+  `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`,
+  `WHATSAPP_GRAPH_VERSION`; `INBOUND_EMAIL_DOMAIN`,
+  `INBOUND_EMAIL_BASIC_AUTH`; `GOOGLE_OIDC_CLIENT_ID`,
+  `GOOGLE_OIDC_CLIENT_SECRET`; `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`;
+  plus `PUBLIC_API_BASE_URL` and `PUBLIC_APP_BASE_URL` (https).
+  Limits: no scheduler runs `main.ts jobs`; no Meta business
+  verification started; WhatsApp UAE prices and verification lead time
+  unknown; Postmark inbound needs a paid plan; where inbound mail is
+  stored was not verified; no malware scan; SAML and Okta not built;
+  no TDRA position; provider wire formats are UNVERIFIED (one adapter
+  file each). See `docs/superpowers/plans/plan-13-build-report.md`.
 
 - Plan 6 limits: reimbursements are paid with the run but are **not in
   the WPS salary file** (whether they must be is not sourced; HR pays
@@ -406,7 +434,7 @@ needs checking against official sources before anything is built on it.
 | 10 | Performance, learning, surveys | API build running (branch `api-plan-10`) |
 | 11 | Owner view, pre-pay gate, evidence | API build running (branch `api-plan-11`; engine part merged) |
 | 12 | VAT, corporate tax, e-invoicing | API built (branch `api-plan-12`); money review found 1 critical + 6 important, fixes in progress; not merged |
-| 13 | Channels and integrations | API built and merged with main on branch `api-plan-13`; security review found 5 important, fixes in progress; not merged |
+| 13 | Channels and integrations | merged to main; independent security review fixes applied (re-check of SSO changes I3/I4 advised) |
 | 14 | Meetings | planned; blocked until a telecom position is confirmed |
 | 15 | Social and website insights | planned; waits for 8, 11, 13 |
 | 16 | Finance modules | planned; waits for 6, 7, 12 |
@@ -437,6 +465,12 @@ a Plan 4 follow-up.
 
 Plan 8: review Task 6 (exit and settlement) and Task 7 (revocation),
 then the whole branch, then merge `api-plan-8` after Plan 3.
+
+Plan 13 (branch `api-plan-13`, main merged in): a fresh security
+review of Tasks 4, 5, 7, 8 and 9 (self-reviewed only), then merge.
+Migrations 1301 to 1309 run after 908 (the runner sorts numerically).
+The API now needs `RECEIPTS_DIR` in every environment, also in the
+serve-only container (`deploy/serve.ts`, compose `receipts` volume).
 
 ## Tooling (25 Nov 2026)
 

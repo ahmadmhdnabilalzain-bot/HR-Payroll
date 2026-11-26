@@ -1,6 +1,12 @@
-import { DOCUMENT_ROUTES, ROUTES, type RouteDef } from "@payroll/contract";
+import {
+  API_KEY_SCOPES,
+  DOCUMENT_ROUTES,
+  ROUTES,
+  type RouteDef,
+} from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { enableMfa, call, makeApp, signup } from "./helpers/test-app";
+import { inboundItemFor } from "./helpers/email-in";
 import { EXPENSE_SENTINELS, seedExpenses } from "./helpers/seed-expenses";
 import {
   addOwner,
@@ -71,6 +77,14 @@ const ID_KIND: Record<string, Kind> = {
   expenseUnpaid: null, expensePayouts: null,
   ...TIME_ID_KIND,
   ...HR_ID_KIND,
+  getChannelSettings: null, listNotifications: null,
+  getNotificationPrefs: null, listNotificationDeliveries: null,
+  listNotificationTemplates: null, getMyChannels: null,
+  getInboundSettings: null, listInboundItems: null,
+  getInboundItem: "inboundItem", downloadInboundAttachment: "inboundItem",
+  listCalendarFeeds: null, getSsoSettings: null,
+  listWebhookEndpoints: null, listWebhookDeliveries: null,
+  listApiKeys: null,
 };
 
 /** Query strings a route needs. */
@@ -119,6 +133,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   let s: Seeded;
   let runId: string;
   let sifId: string;
+  let inboundId: string;
   let hr: HrSeeded;
   const slips = {} as Record<Target, string>;
   let exp: Awaited<ReturnType<typeof seedExpenses>>;
@@ -143,6 +158,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       { wps: { employerId: "0000000123456", bankRoutingCode: "802420101" } });
     sifId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
       `/v1/pay-runs/${runId}/sif`)).body.id;
+    inboundId = await inboundItemFor(ctx, s);
     sheets = await sheetFixtures(ctx, s);
     await wfhFixtures(ctx, s);
     leaveTypeId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
@@ -157,6 +173,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     : kind === "payslip" ? TARGETS.map((t) => [t, slips[t]])
     : kind === "payRun" ? [[null, runId]]
     : kind === "sifFile" ? [[null, sifId]]
+    : kind === "inboundItem" ? [[null, inboundId]]
     : kind === "claim" ? TARGETS.map((t) => [t, exp.claims[t]])
     : kind === "receipt" ? TARGETS.map((t) => [t, exp.receipts[t]])
     : kind === "timesheet" ? TARGETS.map((t) => [t, sheets[t]])
@@ -166,7 +183,8 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   const path = (r: RouteDef, id: string | null) =>
     ID_KIND[r.id] === "employeeQuery"
       ? `${r.path}?from=2026-03-01&to=2026-03-01&employeeId=${id}`
-      : (id === null ? r.path : r.path.replace("{id}", id)) +
+      : (id === null ? r.path : r.path.replace("{id}", id)
+        .replace("{index}", "0")) +
         (r.id === "expensePayouts" ? `?payRunId=${runId}`
           : QUERY[r.id] ?? "");
 
@@ -234,11 +252,56 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     }
   });
 
+  /** Every sentinel of every employee (an API key without payroll). */
+  const allPayroll = () => TARGETS.flatMap((t) => {
+    const v = SENTINELS[t];
+    return [v.salary, v.fils, v.gross, v.iban, v.labour, v.eid];
+  });
+  const keyFor = async (scopes: string[]) => {
+    const r = await call(ctx.app, s.owner.token, s.companyId, "POST",
+      "/v1/api-keys", { name: `leak-${scopes.length}`, scopes,
+        rateLimitPerMinute: 1200 });
+    expect(r.status, r.text).toBe(201);
+    return r.body.secret as string;
+  };
+
+  it("an API key without payroll:read never receives a sentinel",
+    async () => {
+      const scopes = ["employees:read", "employees:write", "leave:read",
+        "leave:write", "attendance:read", "expenses:read"];
+      const key = await keyFor(scopes);
+      for (const r of getRoutes) {
+        const scope = API_KEY_SCOPES[r.id];
+        const want = scope !== undefined && scopes.includes(scope)
+          ? r.status : 403;
+        for (const [t, id] of idsFor(ID_KIND[r.id] ?? null)) {
+          const res = await call(ctx.app, key, s.companyId, "GET",
+            path(r, id));
+          const label = `${r.id} as API key on ${t}`;
+          expect(res.status, `${label}: ${res.text}`).toBe(want);
+          const leaked = [...allPayroll(), ...hrSentinels(hr)]
+            .filter((x) => res.text.includes(x));
+          expect(leaked, label).toEqual([]);
+        }
+      }
+    });
+
+  it("an API key with payroll:read does see salaries (not vacuous)",
+    async () => {
+      const key = await keyFor(["employees:read", "payroll:read"]);
+      const list = await call(ctx.app, key, s.companyId, "GET",
+        "/v1/employees");
+      for (const t of TARGETS) {
+        expect(list.text, t).toContain(SENTINELS[t].salary);
+      }
+    });
+
   it("company B's owner gets 404 for every A id", async () => {
     const b = await signup(ctx.app, "other");
     const mfa = await enableMfa(ctx.app, ctx.clock, b);
     const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile",
-      "claim", "receipt", "timesheet", "leaveType", ...HR_KINDS];
+      "claim", "receipt", "inboundItem", "timesheet", "leaveType",
+      ...HR_KINDS];
     const allIds = kinds.flatMap((k) => idsFor(k).map(([, id]) => id!));
     for (const r of getRoutes.filter((x) => x.path.includes("{id}"))) {
       for (const id of allIds) {

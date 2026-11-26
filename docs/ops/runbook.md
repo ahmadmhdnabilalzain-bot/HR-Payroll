@@ -94,7 +94,9 @@ reserve BYPASSRLS or `pg_read_all_data` for their admin role, in which
 case back up with the platform's snapshots and run the audit check as
 that admin), then run the image with `migrate` and `serve` and set
 `DATABASE_URL`, `MIGRATE_DATABASE_URL` (migrate job only),
-`PAYROLL_MASTER_KEY` and `PORT`. Add `?sslmode=require` (or stricter)
+`PAYROLL_MASTER_KEY`, `PORT` and `RECEIPTS_DIR` (an absolute,
+persistent directory for encrypted receipt files; back it up with the
+database). Add `?sslmode=require` (or stricter)
 to the URLs when the database is across a network.
 
 ## 3. Migrations
@@ -119,7 +121,8 @@ to the URLs when the database is across a network.
   ```
 
 - Without compose: `pnpm api:migrate` with `MIGRATE_DATABASE_URL` (the
-  owner) and `DATABASE_URL` set (both are read by the config loader).
+  owner), `DATABASE_URL` and `RECEIPTS_DIR` set (all are read by the
+  config loader).
   **Untested** with these roles.
 - `pnpm api:dev` and the image's `main` command migrate and then serve,
   so they need the owner URL in the serving process. Production uses
@@ -149,6 +152,12 @@ $DC exec -T -e PGPASSWORD="$PAYROLL_BACKUP_PASSWORD" db \
   store it apart from the master key. Not automated here: see the
   security checklist.
 - The dump carries no roles. A restore needs `init-roles.sql` first.
+- Receipt files are not in the dump: they live in the `receipts`
+  volume (`RECEIPTS_DIR`), encrypted with the company keys. Copy the
+  volume with every dump (for example `docker run --rm -v
+  payroll_receipts:/r -v "$PWD":/out alpine tar -C /r -czf
+  /out/receipts.tgz .`, **untested**); a database restored without it
+  lists receipts whose files are gone.
 
 ### Restore test (monthly, and after any backup change)
 

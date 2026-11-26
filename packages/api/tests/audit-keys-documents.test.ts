@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CHANNEL_AUDIT_CHECKS } from "../src/audit/allowlist-channels";
 import { DOCUMENT_AUDIT_CHECKS } from "../src/audit/allowlist-documents";
 import { EXPENSE_AUDIT_CHECKS } from "../src/audit/allowlist-expenses";
 import { TIME_CHECKS } from "../src/audit/allowlist-time";
@@ -16,4 +17,12 @@ describe("Plan 7 audit keys", () => {
     expect(Object.keys(DOCUMENT_AUDIT_CHECKS).filter((k) => others.has(k)))
       .toEqual([]);
   });
+  it("Plan 13 shares no key with the expense, HR, time or Plan 7 lists",
+    () => {
+      const others = new Set([...Object.keys(EXPENSE_AUDIT_CHECKS),
+        ...Object.keys(HR_CHECKS), ...Object.keys(TIME_CHECKS),
+        ...Object.keys(DOCUMENT_AUDIT_CHECKS)]);
+      expect(Object.keys(CHANNEL_AUDIT_CHECKS)
+        .filter((k) => others.has(k))).toEqual([]);
+    });
 });

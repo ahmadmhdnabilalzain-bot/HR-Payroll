@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { SCHEMAS, schemaName } from "./registry";
 import { ROUTES, type RouteDef } from "./routes";
+import { API_KEY_SCOPES } from "./api-keys";
+import { WEBHOOK_EVENT_TYPES, WEBHOOK_SIGNATURE_NOTE } from "./webhooks";
 
 export interface OpenApiDocument {
   openapi: "3.1.0";
@@ -10,6 +12,7 @@ export interface OpenApiDocument {
     schemas: Record<string, unknown>;
     securitySchemes: Record<string, unknown>;
   };
+  webhooks: Record<string, unknown>;
 }
 
 type Io = "input" | "output";
@@ -88,9 +91,11 @@ function responsesOf(r: RouteDef): Json {
 }
 
 function operationOf(r: RouteDef): Json {
+  const scope = API_KEY_SCOPES[r.id];
   const op: Json = {
     operationId: r.id,
-    security: r.auth === "public" ? [] : [{ bearer: [] }],
+    security: r.auth === "public" ? [] : scope === undefined
+      ? [{ bearer: [] }] : [{ bearer: [] }, { apiKey: [] }],
     parameters: parametersOf(r),
     responses: responsesOf(r),
   };
@@ -100,6 +105,7 @@ function operationOf(r: RouteDef): Json {
   }
   if (r.mfa) op["x-mfa-required"] = true;
   if (r.roles.length > 0) op["x-roles"] = [...r.roles];
+  if (scope !== undefined) op["x-api-key-scope"] = scope;
   return op;
 }
 
@@ -109,6 +115,19 @@ function components(): Json {
     out[name] = jsonSchema(s, "output");
   }
   return out;
+}
+
+const HOOK_HEADERS = ["X-Webhook-Id", "X-Webhook-Timestamp",
+  "X-Webhook-Signature"].map((name) => ({ name, in: "header",
+  required: true, schema: { type: "string" } }));
+
+/** One entry per webhook event type (Task 10). */
+function webhooks(): Json {
+  return Object.fromEntries(WEBHOOK_EVENT_TYPES.map((t) => [t, { post: {
+    description: WEBHOOK_SIGNATURE_NOTE, parameters: HOOK_HEADERS,
+    requestBody: { required: true, content: { "application/json": {
+      schema: { $ref: "#/components/schemas/WebhookEvent" } } } },
+    responses: { "200": { description: "Received" } } } }]));
 }
 
 export function buildOpenApi(): OpenApiDocument {
@@ -123,7 +142,10 @@ export function buildOpenApi(): OpenApiDocument {
     paths,
     components: {
       schemas: components(),
-      securitySchemes: { bearer: { type: "http", scheme: "bearer" } },
+      securitySchemes: { bearer: { type: "http", scheme: "bearer" },
+        apiKey: { type: "http", scheme: "bearer", description: "API key " +
+          "(hrk_...). Send X-Company-Id with the key's company." } },
     },
+    webhooks: webhooks(),
   };
 }

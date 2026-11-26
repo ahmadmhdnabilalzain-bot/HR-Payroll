@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CHANNEL_ERROR_STATUS } from "./errors-channels";
 import { TIME_ERROR_STATUS } from "./errors-time";
 import { HR_ERROR_STATUS } from "./errors-hr";
 
@@ -120,6 +121,7 @@ export const ERROR_STATUS = {
   INTERNAL: 500,
   ...HR_ERROR_STATUS,
   ...EXPENSE_ERROR_STATUS,
+  ...CHANNEL_ERROR_STATUS,
   ...DOCUMENT_ERROR_STATUS,
 } as const;
 

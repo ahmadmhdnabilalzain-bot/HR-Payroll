@@ -1,0 +1,343 @@
+import { describe, expect, it } from "vitest";
+import { sha256Hex } from "../src/audit/canonical";
+import { withTenant } from "../src/db/tenant";
+import { fakeChannels } from "./helpers/fake-channels";
+import type { FakeOidc } from "./helpers/fake-oidc";
+import { seedCompany, type Seeded } from "./helpers/seed";
+import { call, enableMfa, makeApp, signup } from "./helpers/test-app";
+
+type Ctx = Awaited<ReturnType<typeof makeApp>>;
+const TID = "11111111-1111-4111-8111-111111111111";
+const oidcOf = (ctx: Ctx) => ctx.deps.channels.oidc as FakeOidc;
+let n = 0;
+
+/** Start (or link-start), sign the token with the sent nonce, call back. */
+async function sso(ctx: Ctx, p: "google" | "microsoft",
+  claims: Record<string, unknown>, o: { start?: Record<string, unknown>;
+    link?: string; bearer?: string | null; totp?: string;
+    binding?: string } = {}) {
+  const start = o.link !== undefined
+    ? await call(ctx.app, o.link, null, "POST",
+      `/v1/me/sso-identities/${p}/link`)
+    : await call(ctx.app, null, null, "POST", `/v1/auth/sso/${p}/start`,
+      o.start ?? { intent: "login" });
+  if (start.status !== 200) return start;
+  const s = oidcOf(ctx).starts.at(-1)!;
+  const now = Math.floor(ctx.clock.now.getTime() / 1000);
+  const iss = p === "google" ? "https://accounts.google.com"
+    : `https://login.microsoftonline.com/${claims.tid}/v2.0`;
+  const code = `code-${n++}`;
+  oidcOf(ctx).codes.set(code, oidcOf(ctx).issuer.idToken({ iss,
+    aud: `client-${p}`, nonce: s.nonce, exp: now + 600, iat: now,
+    ...claims }));
+  const bearer = o.bearer === undefined ? o.link ?? null : o.bearer;
+  return call(ctx.app, bearer, null, "POST", `/v1/auth/sso/${p}/callback`,
+    { code, state: s.state, binding: o.binding ?? start.body.binding,
+      ...(o.totp ? { totp: o.totp } : {}) });
+}
+
+const google = (sub: string, email: string) => ({ sub, email,
+  email_verified: true, hd: "acme.test" });
+
+async function setSso(ctx: Ctx, s: Seeded, over = {}) {
+  const cur = await call(ctx.app, s.owner.token, s.companyId, "GET",
+    "/v1/sso-settings");
+  const r = await call(ctx.app, s.owner.token, s.companyId, "PUT",
+    "/v1/sso-settings", { allowedDomains: ["acme.test"],
+      googleHostedDomains: ["acme.test"], microsoftTenantIds: [],
+      jitEmployees: true, enforceSso: false, ...over,
+      expectedVersion: cur.body.version });
+  if (r.status !== 200) throw new Error(r.text);
+}
+
+/** Proves `domain` for the company through the fake TXT resolver. */
+async function proveDomain(ctx: Ctx, s: Seeded, domain = "acme.test",
+  publish = true) {
+  const a = await call(ctx.app, s.owner.token, s.companyId, "POST",
+    "/v1/sso-settings/domains", { domain });
+  if (a.status !== 200) return a;
+  const d = a.body.domains.find((x: { domain: string }) =>
+    x.domain === domain);
+  if (publish) ctx.fakes.txt.set(d.txtName, [d.txtValue]);
+  return call(ctx.app, s.owner.token, s.companyId, "POST",
+    "/v1/sso-settings/domains/verify", { domain });
+}
+
+const db = (ctx: Ctx, sql: string, args: unknown[] = []) =>
+  withTenant(ctx.deps.db, { companyId: null, userId: null },
+    (tx) => tx.query<Record<string, unknown>>(sql, args));
+
+describe("SSO with OpenID Connect", () => {
+  it("sso_login_linked", async () => {
+    const ctx = await makeApp();
+    const a = await signup(ctx.app, "ssoa");
+    const m = await enableMfa(ctx.app, ctx.clock, a);
+    const linked = await sso(ctx, "google", google("g-1", a.email),
+      { link: m.token });
+    expect(linked.status, linked.text).toBe(200);
+    const notes = await call(ctx.app, m.token, a.companyId, "GET",
+      "/v1/me/notifications");
+    expect(notes.body.items.map((x: { kind: string }) => x.kind))
+      .toContain("security-sso-linked");
+    const r = await sso(ctx, "google", google("g-1", a.email));
+    expect(r.status, r.text).toBe(200);
+    const [row] = await db(ctx, "SELECT auth_method, mfa FROM sessions " +
+      "WHERE token_hash = $1", [sha256Hex(r.body.token)]);
+    expect(row).toEqual({ auth_method: "sso:google", mfa: false });
+    ctx.clock.advance(30_000);
+    const withCode = await sso(ctx, "google", google("g-1", a.email),
+      { totp: m.code() });
+    await db(ctx, "UPDATE users SET locked_until = $2 WHERE id = $1",
+      [a.userId, "2099-01-01T00:00:00.000Z"]);
+    const locked = await sso(ctx, "google", google("g-1", a.email));
+    expect(locked.body.error.code).toBe("SSO_NOT_LINKED");
+    const [r2] = await db(ctx, "SELECT mfa FROM sessions WHERE " +
+      "token_hash = $1", [sha256Hex(withCode.body.token)]);
+    expect(r2!.mfa).toBe(true);
+  });
+
+  it("sso_unlinked_owner_email_refused (Review Focus 2)", async () => {
+    const ctx = await makeApp();
+    const s = await seedCompany(ctx, "ssob");
+    await setSso(ctx, s);
+    await db(ctx, "UPDATE users SET email = 'o@acme.test' WHERE id = $1",
+      [s.owner.userId]);
+    const before = await db(ctx, "SELECT count(*)::int AS n FROM sessions");
+    const g = await sso(ctx, "google", google("g-o", "o@acme.test"));
+    expect(g.status).toBe(401);
+    expect(g.body.error.code).toBe("SSO_NOT_LINKED");
+    const ms = await sso(ctx, "microsoft", { tid: TID,
+      oid: "33333333-3333-4333-8333-333333333333", email: "o@acme.test" });
+    expect(ms.body.error.code).toBe("SSO_NOT_LINKED");
+    expect(await db(ctx, "SELECT * FROM sso_identities")).toEqual([]);
+    expect(await db(ctx, "SELECT count(*)::int AS n FROM sessions"))
+      .toEqual(before);
+    const mem = await withTenant(ctx.deps.db, { companyId: s.companyId,
+      userId: null }, (tx) => tx.query("SELECT role FROM memberships " +
+      "WHERE user_id = $1", [s.owner.userId]));
+    expect(mem).toEqual([{ role: "owner" }]);
+  });
+
+  it("sso_jit_employee_only", async () => {
+    const ctx = await makeApp();
+    const s = await seedCompany(ctx, "ssoc");
+    await call(ctx.app, s.hr.token, s.companyId, "PATCH",
+      `/v1/employees/${s.emp.outsider}`, { email: "e@acme.test",
+        jobTitle: "HR manager" });
+    const off = await sso(ctx, "google", google("g-e", "e@acme.test"));
+    expect(off.status).toBe(401);
+    await setSso(ctx, s);
+    // Review I4: an unproven domain gives no just-in-time account.
+    const unproven = await sso(ctx, "google", google("g-e", "e@acme.test"));
+    expect(unproven.body.error.code).toBe("SSO_NOT_LINKED");
+    expect((await proveDomain(ctx, s)).status).toBe(200);
+    const r = await sso(ctx, "google", google("g-e", "e@acme.test"));
+    expect(r.status, r.text).toBe(200);
+    expect(r.body.memberships).toEqual([expect.objectContaining({
+      companyId: s.companyId, role: "employee" })]);
+    const [u] = await db(ctx, "SELECT password_hash FROM users WHERE id = $1",
+      [r.body.user.id]);
+    expect(u!.password_hash).toBeNull();
+    const last = await call(ctx.app, r.body.token, null, "GET",
+      "/v1/me/sso-identities");
+    const un = await call(ctx.app, r.body.token, null, "POST",
+      `/v1/me/sso-identities/${last.body.items[0].id}/unlink`);
+    expect(un.status).toBe(409);
+    expect(un.body.error.code).toBe("LAST_SIGN_IN_METHOD");
+  });
+
+  it("sso_state_rules and sso_link_bound_to_session", async () => {
+    const ctx = await makeApp();
+    const a = await signup(ctx.app, "ssod");
+    const b = await signup(ctx.app, "ssoe");
+    const started = await call(ctx.app, null, null, "POST",
+      "/v1/auth/sso/google/start", { intent: "login" });
+    const st = oidcOf(ctx).starts.at(-1)!;
+    const cb = (p: string) => call(ctx.app, null, null, "POST",
+      `/v1/auth/sso/${p}/callback`, { code: "x", state: st.state,
+        binding: started.body.binding });
+    expect((await cb("microsoft")).body.error.code).toBe("SSO_STATE_INVALID");
+    ctx.clock.advance(11 * 60_000);
+    expect((await cb("google")).body.error.code).toBe("SSO_STATE_INVALID");
+    for (const bearer of [null, b.token]) {
+      const r = await sso(ctx, "google", google("g-x", a.email),
+        { link: a.token, bearer });
+      expect(r.body.error.code).toBe("SSO_STATE_INVALID");
+    }
+    expect(await db(ctx, "SELECT * FROM sso_identities")).toEqual([]);
+    const ok = await sso(ctx, "google", google("g-x", a.email),
+      { link: a.token });
+    expect(ok.status).toBe(200);
+    const again = await sso(ctx, "google", google("g-x", a.email),
+      { link: b.token });
+    expect(again.body.error.code).toBe("SSO_IDENTITY_IN_USE");
+  });
+
+  it("sso_invite and sso_enforced", async () => {
+    const ctx = await makeApp();
+    const s = await seedCompany(ctx, "ssof");
+    const inv = await call(ctx.app, s.owner.token, s.companyId, "POST",
+      "/v1/users/invite", { email: "h@acme.test", role: "hr" });
+    const bad = await sso(ctx, "google", google("g-h", "x@acme.test"),
+      { start: { intent: "invite", inviteToken: inv.body.setupToken } });
+    expect(bad.body.error.code).toBe("INVITE_EMAIL_MISMATCH");
+    const ok = await sso(ctx, "google", google("g-h", "h@acme.test"),
+      { start: { intent: "invite", inviteToken: inv.body.setupToken } });
+    expect(ok.status, ok.text).toBe(200);
+    expect(ok.body.memberships[0].role).toBe("hr");
+    await setSso(ctx, s, { jitEmployees: false, enforceSso: true });
+    // Review I4: an unproven hosted domain does not satisfy enforcement.
+    expect((await call(ctx.app, ok.body.token, s.companyId, "GET",
+      "/v1/employees")).body.error.code).toBe("SSO_REQUIRED");
+    expect((await proveDomain(ctx, s)).status).toBe(200);
+    const pw = await call(ctx.app, s.hr.token, s.companyId, "GET",
+      "/v1/employees");
+    expect(pw.body.error.code).toBe("SSO_REQUIRED");
+    expect((await call(ctx.app, s.owner.token, s.companyId, "GET",
+      "/v1/employees")).status).toBe(200);
+    expect((await call(ctx.app, ok.body.token, s.companyId, "GET",
+      "/v1/employees")).status).toBe(200);
+  });
+
+  it("I3: enforcement needs the company's own domain or tenant",
+    async () => {
+      const ctx = await makeApp();
+      const s = await seedCompany(ctx, "ssoi3");
+      await setSso(ctx, s, { jitEmployees: false, enforceSso: true,
+        microsoftTenantIds: [TID] });
+      // A personal Gmail (no hd) cannot be linked while enforced.
+      const gmail = await sso(ctx, "google", { sub: "g-p", email:
+        "someone@gmail.com", email_verified: true }, { link: s.hr.token });
+      expect(gmail.status).toBe(403);
+      expect(gmail.body.error.code).toBe("SSO_IDENTITY_NOT_ALLOWED");
+      const other = "22222222-2222-4222-8222-222222222222";
+      const foreign = await sso(ctx, "microsoft", { tid: other,
+        oid: "33333333-3333-4333-8333-333333333333", email: "h@x.test" },
+      { link: s.hr.token });
+      expect(foreign.body.error.code).toBe("SSO_IDENTITY_NOT_ALLOWED");
+      // The company's own tenant links and satisfies enforcement.
+      const own = await sso(ctx, "microsoft", { tid: TID,
+        oid: "44444444-4444-4444-8444-444444444444", email: "h@acme.test" },
+      { link: s.hr.token });
+      expect(own.status, own.text).toBe(200);
+      expect((await call(ctx.app, own.body.token, s.companyId, "GET",
+        "/v1/employees")).status).toBe(200);
+      // An identity linked before enforcement, from a personal account,
+      // does not satisfy it.
+      await setSso(ctx, s, { jitEmployees: false, enforceSso: false });
+      const early = await sso(ctx, "google", { sub: "g-q", email:
+        "me@gmail.com", email_verified: true }, { link: s.manager.token });
+      expect(early.status, early.text).toBe(200);
+      await setSso(ctx, s, { jitEmployees: false, enforceSso: true });
+      const signIn = await sso(ctx, "google", { sub: "g-q", email:
+        "me@gmail.com", email_verified: true });
+      expect(signIn.status, signIn.text).toBe(200);
+      const r = await call(ctx.app, signIn.body.token, s.companyId, "GET",
+        "/v1/employees");
+      expect(r.body.error.code).toBe("SSO_REQUIRED");
+      // Enforcement cannot be turned on with no domain or tenant.
+      const cur = await call(ctx.app, s.owner.token, s.companyId, "GET",
+        "/v1/sso-settings");
+      const bad = await call(ctx.app, s.owner.token, s.companyId, "PUT",
+        "/v1/sso-settings", { allowedDomains: [], googleHostedDomains: [],
+          microsoftTenantIds: [], jitEmployees: false, enforceSso: true,
+          expectedVersion: cur.body.version });
+      expect(bad.status).toBe(400);
+    });
+
+  it("I4: domain ownership by DNS TXT, one company per domain",
+    async () => {
+      const ctx = await makeApp();
+      const victim = await seedCompany(ctx, "ssovic");
+      const evil = await seedCompany(ctx, "ssoevil");
+      const noTxt = await proveDomain(ctx, evil, "acme.test", false);
+      expect(noTxt.status).toBe(422);
+      expect(noTxt.body.error.code).toBe("SSO_DOMAIN_NOT_VERIFIED");
+      // The attacker's company sets up JIT for the victim's domain.
+      await call(ctx.app, evil.hr.token, evil.companyId, "PATCH",
+        `/v1/employees/${evil.emp.outsider}`, { email: "v@acme.test" });
+      await setSso(ctx, evil);
+      const r = await sso(ctx, "google", google("g-v", "v@acme.test"));
+      expect(r.body.error.code).toBe("SSO_NOT_LINKED");
+      // The real owner proves it; the attacker can no longer claim it.
+      expect((await proveDomain(ctx, victim)).status).toBe(200);
+      const claim = await call(ctx.app, evil.owner.token, evil.companyId,
+        "POST", "/v1/sso-settings/domains/verify", { domain: "acme.test" });
+      expect(claim.body.error.code).toBe("SSO_DOMAIN_CLAIMED");
+      const add = await call(ctx.app, evil.owner.token, evil.companyId,
+        "POST", "/v1/sso-settings/domains", { domain: "acme.test" });
+      expect(add.body.error.code).toBe("SSO_DOMAIN_CLAIMED");
+      const view = await call(ctx.app, victim.owner.token,
+        victim.companyId, "GET", "/v1/sso-settings");
+      expect(view.body.domains).toEqual([expect.objectContaining({
+        domain: "acme.test", status: "verified" })]);
+      const again = await sso(ctx, "google", google("g-v", "v@acme.test"));
+      expect(again.body.error.code).toBe("SSO_NOT_LINKED");
+    });
+
+  it("M3: wrong TOTP codes at the SSO callback lock the account",
+    async () => {
+      const ctx = await makeApp();
+      const a = await signup(ctx.app, "ssom3");
+      const m = await enableMfa(ctx.app, ctx.clock, a);
+      expect((await sso(ctx, "google", google("g-m3", a.email),
+        { link: m.token })).status).toBe(200);
+      for (let i = 0; i < 5; i++) {
+        const r = await sso(ctx, "google", google("g-m3", a.email),
+          { totp: "000000" });
+        expect(r.status).toBe(401);
+      }
+      const [u] = await db(ctx, "SELECT locked_until FROM users WHERE " +
+        "id = $1", [a.userId]);
+      expect(u!.locked_until).not.toBeNull();
+    });
+
+  it("M9: SSO starts are limited; expired states are purged",
+    async () => {
+      const ctx = await makeApp();
+      const exp = new Date(ctx.clock.now.getTime() + 600_000).toISOString();
+      await db(ctx, `INSERT INTO sso_states (state_hash, provider, intent,
+        nonce, code_verifier_enc, expires_at) SELECT 'h' || g, 'google',
+        'login', 'n', 'v', $1 FROM generate_series(1, 300) g`, [exp]);
+      const r = await call(ctx.app, null, null, "POST",
+        "/v1/auth/sso/google/start", { intent: "login" });
+      expect(r.status).toBe(429);
+      ctx.clock.advance(2 * 86400_000);
+      const { JOBS } = await import("../src/jobs/jobs");
+      const purge = JOBS.find((j) => j.name === "channel-purge")!;
+      const { db: _d, ...deps } = ctx.deps;
+      const out = await purge.run((t, fn) => withTenant(ctx.deps.db, t, fn),
+        deps);
+      expect(out.states).toBe(300);
+      expect((await call(ctx.app, null, null, "POST",
+        "/v1/auth/sso/google/start", { intent: "login" })).status).toBe(200);
+    });
+
+  it("M2: the callback needs the start's browser binding", async () => {
+    const ctx = await makeApp();
+    const a = await signup(ctx.app, "ssom2");
+    const m = await enableMfa(ctx.app, ctx.clock, a);
+    expect((await sso(ctx, "google", google("g-m2", a.email),
+      { link: m.token })).status).toBe(200);
+    // A callback URL sent to a victim carries code and state, but not
+    // the binding kept in the attacker's own browser.
+    const r = await sso(ctx, "google", google("g-m2", a.email),
+      { binding: "not-the-binding-of-this-start" });
+    expect(r.body.error.code).toBe("SSO_STATE_INVALID");
+    expect((await sso(ctx, "google", google("g-m2", a.email))).status)
+      .toBe(200);
+  });
+
+  it("sso_not_configured and settings need owner MFA", async () => {
+    const ctx = await makeApp({ channels: fakeChannels({ oidc: false }) });
+    const r = await call(ctx.app, null, null, "POST",
+      "/v1/auth/sso/google/start", { intent: "login" });
+    expect(r.body.error.code).toBe("SSO_NOT_CONFIGURED");
+    const s = await seedCompany(ctx, "ssog");
+    const put = await call(ctx.app, s.hr.token, s.companyId, "PUT",
+      "/v1/sso-settings", { allowedDomains: [], googleHostedDomains: [],
+        microsoftTenantIds: [], jitEmployees: false, enforceSso: false,
+        expectedVersion: 0 });
+    expect(put.status).toBe(403);
+  });
+});
