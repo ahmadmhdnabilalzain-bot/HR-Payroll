@@ -9,14 +9,11 @@ import type { AppDeps } from "../deps";
 import { register, type App, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import {
-  asCreate,
-  checkEmployeeRefs,
-  checkSalary,
-  insertEmployee,
-  saveBank,
-  saveSalary,
+  createEmployee,
+  setSalary,
   updateEmployee,
-} from "../people/employee-writes";
+} from "../people/employee-actions";
+import { saveBank } from "../people/employee-writes";
 import { listEmployees, loadEmployee } from "../people/employees";
 import { inScope, toEmployeeView, viewerScope } from "../people/redact";
 import { dubaiDate } from "../time/dubai";
@@ -56,30 +53,19 @@ async function list(ctx: ReqCtx) {
 }
 
 async function create(ctx: ReqCtx<EmployeeCreate>) {
-  const id = ctx.deps.newId();
-  await checkEmployeeRefs(ctx.tx, company(ctx), ctx.body, null);
-  await insertEmployee(ctx.tx, ctx.deps, company(ctx), id, ctx.body);
-  await audit(ctx, "employee.created", id);
-  return view(ctx, id);
+  const row = await createEmployee(ctx, ctx.body);
+  return view(ctx, row.id);
 }
 
 async function update(ctx: IdCtx<EmployeeUpdate>) {
   const row = await visible(ctx);
-  const changed = Object.keys(ctx.body).filter((k) =>
-    ctx.body[k as keyof EmployeeUpdate] !== undefined).sort();
-  const next = { ...asCreate(row), ...ctx.body } as EmployeeCreate;
-  await checkEmployeeRefs(ctx.tx, company(ctx), next, row.id);
-  await updateEmployee(ctx.tx, ctx.deps, company(ctx), row.id, next);
-  await audit(ctx, "employee.updated", row.id, { changed });
+  await updateEmployee(ctx, row.id, ctx.body);
   return view(ctx, row.id);
 }
 
 async function putSalary(ctx: IdCtx<SalaryUpdate>) {
   const row = await visible(ctx);
-  checkSalary(ctx.body.components);
-  const version = await saveSalary(ctx.tx, ctx.deps, company(ctx), row.id,
-    ctx.body.components);
-  await audit(ctx, "employee.salary.updated", row.id, { version });
+  await setSalary(ctx, row.id, ctx.body);
   return view(ctx, row.id);
 }
 

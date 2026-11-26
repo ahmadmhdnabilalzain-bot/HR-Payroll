@@ -18,6 +18,7 @@ type Ctx = Awaited<ReturnType<typeof makeApp>>;
 let ctx: Ctx;
 let s: Seeded;
 let h: HrSeeded;
+let req: string;
 let n = 0;
 
 const P = EMPLOYMENT_PACKS[0]!.params;
@@ -34,7 +35,7 @@ async function freshApplication(stage = "offer"): Promise<string> {
   const c = await by(s.hr, "POST", "/v1/candidates",
     { fullName: `Offer Cand ${n++}`, source: "direct" });
   const a = await by(s.hr, "POST", "/v1/applications",
-    { requisitionId: h.requisitionId, candidateId: c.body.id });
+    { requisitionId: req, candidateId: c.body.id });
   if (stage !== "applied") {
     await by(s.hr, "POST", `/v1/applications/${a.body.id}/stage`,
       { stage });
@@ -55,6 +56,11 @@ beforeAll(async () => {
   ctx = await makeApp();
   s = await seedCompany(ctx, "offers");
   h = await seedHr(ctx, s);
+  const r = await by(s.hr, "POST", "/v1/requisitions", { title: "Many",
+    headcount: 20, hiringManagerUserId: s.manager.userId });
+  await by(s.owner, "POST", `/v1/requisitions/${r.body.id}/decision`,
+    { approve: true });
+  req = r.body.id;
 });
 
 describe("offers", () => {

@@ -7,13 +7,14 @@ on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`. Task 1 (the engine
 
 ## Status
 
-In progress. Tasks 2 to 4 done.
+In progress. Tasks 2 to 5 done.
 
 | Task | Commit message |
 |---|---|
 | 2 | `feat(api): task manager` |
 | 3 | `feat(api): requisitions and applicant tracker` |
 | 4 | `feat(api): offers with approval` |
+| 5 | `feat(api): offer to hire and onboarding` |
 
 ## Gate
 
@@ -22,7 +23,12 @@ In progress. Tasks 2 to 4 done.
 `src/api/mock/handlers-payroll.ts`, `src/api/mock/seed-history.ts`; Plan
 4's files, not touched here). Each commit is gated instead on `pnpm
 lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
-`engine`, `wps` and `api`.
+`engine`, `wps` and `api`. The machine is shared with other builders
+(load average above 20 on 4 cores), so the gate runs vitest with
+`--maxWorkers=2 --testTimeout=60000`: under that load a 5-second wps
+property test timed out and one api worker was killed (SIGKILL) with
+the default settings; both pass with the flags. No repository test
+setting was changed.
 
 ## Adaptations to the plan (real Plan 3 code differs)
 
@@ -55,6 +61,21 @@ lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
 9. **Engine terms helper.** `src/onboarding/engine-terms.ts` runs
    `calculateProbation` and `validateContractNotice` for offers (and
    Task 5 terms). Offers check both at `startDate`, as planned.
+10. **Employee actions.** Plan 3 had no ReqCtx-level
+    `createEmployee`, `setSalary` or `updateEmployee` (the handlers
+    lived in `routes/employees.ts`). They are now in
+    `src/people/employee-actions.ts` (not `employees.ts`, which is the
+    data layer) with the planned signatures, each writing its Plan 3
+    audit event; the Plan 3 handlers call them, so behaviour is
+    unchanged (Plan 3's employee tests pass). `updateEmployee` accepts
+    `lastWorkingDate: null` to clear it.
+11. **No `altStatus` in `RouteDef`.** `hireFromOffer` declares 201 and
+    answers a replay with Plan 3's `Reply(200, ...)`; the route file
+    documents it.
+12. **Probation reminders created by the hire** carry the onboarding
+    flow link, so the hire's task list is the template items plus the
+    two reminders (as the plan's test expects); `saveTerms` takes an
+    optional flow for this.
 6. **Leak test.** HR fixtures live in `tests/helpers/leak-hr.ts` and
    `seed-hr.ts` (`seedHr` runs after Plan 3's pay run and SIF, so the
    HR records never change those fixtures).
@@ -96,6 +117,22 @@ lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
     managers: the requisition's hiring manager only (salary null).
 12. **Offer example trace** in the contract carries no rule values, so
     the contract holds no statutory number.
+13. **Pre-law joiners (joined before 2022-02-02).** The employment
+    pack starts on 2022-02-02, so `calculateProbation` refuses any
+    earlier joining date, even with zero months. Terms for such an
+    employee are accepted only with `probationMonths: 0` (no dates, no
+    probation trace); with months they are refused (422
+    `ENGINE_REFUSED`, `NO_PACK_FOR_DATE`). Without this, no existing
+    employee could ever get terms, and so could never leave through the
+    exit flow.
+14. **Contract notice check date for terms** is the later of the
+    joining date and today (Dubai): notice is given under the law in
+    force, and a future joiner is checked at the start date (as offers
+    are).
+15. **Default template tasks** say "From the default onboarding
+    checklist (product default, not law)." in their description.
+16. **Hire uses only the request's fields** for email and the other
+    optional employee fields (the candidate's email is not copied).
 10. **Duplicates** (candidate email, application, scorecard) are found
     with `INSERT ... ON CONFLICT DO NOTHING RETURNING`, so a unique
     violation never aborts the request's one transaction.
@@ -109,6 +146,8 @@ lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
 - Task 3: `approvals`, `requisitions` and `applications` tests were
   written first and seen red (20 failing); the contract schemas came
   just before them.
+- Task 5: `expand`, `terms` and `hire` tests were written first and
+  seen red (12 failing).
 - Task 4: `offers.test.ts` was written first and seen red (seed
   failed: no offer routes).
 

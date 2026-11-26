@@ -1,4 +1,4 @@
-import { IDS } from "./examples-people";
+import { IDS, PEOPLE_EXAMPLES } from "./examples-people";
 
 /** Example ids for Plan 8's records. All invented. */
 export const HR_IDS = {
@@ -11,6 +11,7 @@ export const HR_IDS = {
   interview: "00000000-0000-4000-8000-000000000807",
   scorecard: "00000000-0000-4000-8000-000000000808",
   offer: "00000000-0000-4000-8000-000000000809",
+  flow: "00000000-0000-4000-8000-00000000080a",
 } as const;
 
 const AT = "2026-03-01T08:00:00Z";
@@ -101,6 +102,24 @@ const offer = {
   decidedAt: AT, respondedOn: null, employeeId: null, createdAt: AT,
 };
 
+const template = {
+  kind: "onboarding", version: 0, isDefault: true,
+  label: "product default, not law",
+  items: [{ title: "Collect bank details for salary",
+    category: "payroll", assignee: "hr", dueOffsetDays: 0 }],
+};
+
+const terms = {
+  employeeId: IDS.employee, probationMonths: 3,
+  probationEndDate: "2026-06-30", employerNoticeDeadline: "2026-06-16",
+  contractNoticeDays: 30, trace: termsTrace, updatedAt: AT,
+};
+
+const hireResult = {
+  employee: PEOPLE_EXAMPLES.EmployeeView, terms,
+  flowId: HR_IDS.flow, tasks: [taskSummary],
+};
+
 /** One example per Plan 8 response schema. */
 export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   TaskSummary: taskSummary,
@@ -115,4 +134,8 @@ export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   ApplicationList: { items: [application] },
   Offer: offer,
   OfferList: { items: [offer] },
+  ChecklistTemplate: template,
+  ChecklistTemplateList: { items: [template] },
+  EmploymentTerms: terms,
+  HireResult: hireResult,
 };

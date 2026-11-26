@@ -17,6 +17,8 @@ export const HR_ID_KIND: Record<string, string | null> = {
   getApplication: "application",
   listOffers: null,
   getOffer: "offer",
+  listChecklistTemplates: null,
+  getEmploymentTerms: "employee",
 };
 
 const FIXTURE: Record<string, keyof HrSeeded> = {

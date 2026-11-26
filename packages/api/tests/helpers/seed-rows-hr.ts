@@ -71,4 +71,26 @@ export async function seedHrRows(admin: Db, c: string, user: string,
        terms_trace, status, created_by, created_at)
      VALUES ($1, $2, $3, 'Clerk', '2026-04-01', 'x', 0, 1, '[]',
        'pending-approval', $4, $5)`, [rowId(c, "7a"), c, app, user, AT]);
+  await seedOnboarding(admin, c, user, emp, rowId(c, "7a"));
+}
+
+async function seedOnboarding(admin: Db, c: string, user: string,
+  emp: string, offer: string): Promise<void> {
+  await admin.query(
+    `INSERT INTO checklist_templates (company_id, kind, version, items,
+       updated_by, updated_at) VALUES ($1, 'exit', 1, '[]', $2, $3)`,
+    [c, user, AT]);
+  await admin.query(
+    `INSERT INTO employment_terms (company_id, employee_id,
+       probation_months, contract_notice_days, trace, updated_by,
+       updated_at) VALUES ($1, $2, 0, 1, '[]', $3, $4)`,
+    [c, emp, user, AT]);
+  await admin.query(
+    `INSERT INTO offer_hires (company_id, offer_id, employee_id, flow_id,
+       created_at) VALUES ($1, $2, $3, $4, $5)`,
+    [c, offer, emp, rowId(c, "7b"), AT]);
+  await admin.query(
+    `INSERT INTO onboarding_flows (id, company_id, employee_id, offer_id,
+       template_version, started_at) VALUES ($1, $2, $3, $4, 0, $5)`,
+    [rowId(c, "7b"), c, emp, offer, AT]);
 }

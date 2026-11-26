@@ -16,6 +16,7 @@ export * from "./lists";
 export * from "./tasks";
 export * from "./hiring";
 export * from "./offers";
+export * from "./onboarding";
 export * from "./routes";
 export { ALL_ROLES, DECIDERS, OWNER, PAYROLL } from "./route-def";
 export * from "./registry";

@@ -14,8 +14,10 @@ export interface HrSeeded {
   candidateId: string;
   /** On the requisition above, at stage `offer`. */
   applicationId: string;
-  /** Accepted offer on that application, basic OFFER_SENTINEL. */
+  /** Offer on that application (basic OFFER_SENTINEL), now hired. */
   offerId: string;
+  hiredEmployeeId: string;
+  onboardingFlowId: string;
 }
 
 async function must(p: Promise<{ status: number; text: string; body: any }>,
@@ -79,12 +81,27 @@ async function offer(ctx: Ctx, s: Seeded, applicationId: string) {
   return o.id as string;
 }
 
+/** Zero-month terms for the four seeded people (joined 2019). */
+async function terms(ctx: Ctx, s: Seeded) {
+  const days = EMPLOYMENT_PACKS[0]!.params.empNoticeMinDays!.value;
+  for (const id of Object.values(s.emp)) {
+    await must(call(ctx.app, s.hr.token, s.companyId, "PUT",
+      `/v1/employees/${id}/terms`, { probationMonths: 0,
+        contractNoticeDays: days }), 200);
+  }
+}
+
 /** Plan 8 fixtures on top of `seedCompany`. */
 export async function seedHr(ctx: Ctx, s: Seeded): Promise<HrSeeded> {
   const task = await must(call(ctx.app, s.hr.token, s.companyId, "POST",
     "/v1/tasks", { title: "Upload signed contract",
       assigneeUserId: s.employee.userId, employeeId: s.emp.report }), 201);
   const hired = await hiring(ctx, s);
-  return { taskId: task.id, ...hired,
-    offerId: await offer(ctx, s, hired.applicationId) };
+  const offerId = await offer(ctx, s, hired.applicationId);
+  const h = await must(call(ctx.app, s.hr.token, s.companyId, "POST",
+    `/v1/offers/${offerId}/hire`, { number: "E-90", nationality: "IN",
+      workerClass: "expat-full-time" }), 201);
+  await terms(ctx, s);
+  return { taskId: task.id, ...hired, offerId,
+    hiredEmployeeId: h.employee.id, onboardingFlowId: h.flowId };
 }

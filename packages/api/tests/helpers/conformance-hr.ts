@@ -95,6 +95,25 @@ export async function offers(hit: Hitter, f: HrFlowCtx,
 export async function hrFlow(hit: Hitter, f: HrFlowCtx): Promise<void> {
   await tasks(hit, f);
   const h = await hiring(hit, f);
-  await offers(hit, f, h.applicationId,
-    EMPLOYMENT_PACKS[0]!.params.empNoticeMinDays!.value as number);
+  const days = EMPLOYMENT_PACKS[0]!.params.empNoticeMinDays!.value as number;
+  const offerId = await offers(hit, f, h.applicationId, days);
+  await onboarding(hit, f, offerId, days);
+}
+
+/** Hire, templates and terms; returns the new employee's id. */
+export async function onboarding(hit: Hitter, f: HrFlowCtx,
+  offerId: string, days: number): Promise<string> {
+  const body = { number: "E-77", nationality: "IN",
+    workerClass: "expat-full-time" };
+  const h = await hit("hireFromOffer", f.owner, f.c, { id: offerId }, body);
+  await hit("hireFromOffer", f.owner, f.c, { id: offerId }, body);
+  await hit("listChecklistTemplates", f.owner, f.c);
+  await hit("putChecklistTemplate", f.owner, f.c, { kind: "exit" },
+    { items: [{ title: "Return laptop", category: "equipment",
+      assignee: "employee", dueOffsetDays: 0 }] });
+  const id = h.body.employee.id as string;
+  await hit("getEmploymentTerms", f.owner, f.c, { id });
+  await hit("putEmploymentTerms", f.owner, f.c, { id: f.employeeId },
+    { probationMonths: 0, contractNoticeDays: days });
+  return id;
 }

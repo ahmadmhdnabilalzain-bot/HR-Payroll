@@ -15,6 +15,9 @@ const HR_ROUTE_IDS = [
   // Task 4: offers
   "createOffer", "listOffers", "getOffer", "decideOffer",
   "recordOfferResponse", "withdrawOffer",
+  // Task 5: offer to hire, templates, employment terms
+  "hireFromOffer", "listChecklistTemplates", "putChecklistTemplate",
+  "getEmploymentTerms", "putEmploymentTerms",
 ];
 
 /** Plan 8 routes that need an MFA session (Ruling 16). */
