@@ -29,9 +29,7 @@ export function NotificationsButton(p: { className: string }) {
         onClick={() => setOpen(true)}>
         <Icon name="bell" size={18} />
         {unread.length > 0 && (
-          <span className={`${s.badge} tabular`} aria-hidden="true">
-            {unread.length}
-          </span>
+          <span className={s.badge} aria-hidden="true" />
         )}
       </button>
       <Sheet open={open} title={t("inbox.notes")}

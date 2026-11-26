@@ -4,6 +4,7 @@ import { money, text, type Explanation }
 import { hrefOf } from "../../demo/route";
 import { Icon } from "../../ui/Icon";
 import { ReportPage } from "../../ui/templates";
+import { MINUS } from "../../i18n/format";
 import { percent, plural, useMoney } from "../fmt";
 import { useReportsSource } from "../load";
 import type { VarianceView } from "../types";
@@ -88,5 +89,5 @@ export function Variance(props: { rest: string[] }) {
 
 function headcountText(n: number): string {
   if (n === 0) return "Same number of people";
-  return `${n > 0 ? "+" : "-"}${plural(Math.abs(n), "person", "people")}`;
+  return `${n > 0 ? "+" : MINUS}${plural(Math.abs(n), "person", "people")}`;
 }

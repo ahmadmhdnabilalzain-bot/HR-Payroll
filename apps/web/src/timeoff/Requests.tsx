@@ -4,7 +4,8 @@ import { useDemo, type Verdict } from "../demo/state";
 import {
   personFor,
   requestRows,
-  visibleIds,
+  leaveIds,
+  ownLeaveOnly,
   type RequestRow,
 } from "../demo/time-off";
 import type { MessageKey } from "../i18n/t";
@@ -48,13 +49,13 @@ export function Requests(q: { fresh: string | null }) {
   const demo = useDemo();
   const { data, state } = demo;
   const me = personFor(data, state.role);
-  const ids = new Set(visibleIds(data, state));
+  const ids = new Set(leaveIds(data, state));
   const rows = requestRows(data, state).filter((r) => ids.has(r.employeeId));
   const mine = (r: RequestRow): boolean =>
     r.state === "waiting" && r.approverId === me;
   const ordered = [...rows.filter(mine), ...rows.filter((r) => !mine(r))];
   const forMe = rows.filter(mine).length;
-  const onlyOwn = state.role === "employee";
+  const onlyOwn = ownLeaveOnly(state);
   return (
     <section className={p.section} aria-labelledby="req-title">
       <header className={p.sectionHead}>
@@ -68,7 +69,8 @@ export function Requests(q: { fresh: string | null }) {
         )}
       </header>
       {ordered.length === 0 ? (
-        <p className={p.empty}>{t("timeoff.requestsEmpty")}</p>
+        <p className={p.empty}>{t(onlyOwn ? "timeoff.requestsEmpty"
+          : "timeoff.requestsEmptyAll")}</p>
       ) : (
         <ul className={s.requests}>
           {ordered.map((r) => (

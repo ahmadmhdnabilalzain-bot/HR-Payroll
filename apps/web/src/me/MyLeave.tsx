@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { dayCountVars } from "../people/words";
 import { useDemo } from "../demo/state";
 import { annualNow, personFor, requestRows } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -10,7 +11,7 @@ import s from "../home/Self.module.css";
 
 /** E03: the viewer's annual leave left, Request leave, and their leave. */
 export function MyLeave() {
-  const { t } = useLocale();
+  const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const [asking, setAsking] = useState(false);
   const me = personFor(data, state.role);
@@ -25,8 +26,8 @@ export function MyLeave() {
         <h2 id="me-leave-left" className={s.label}>{t("home.leaveLeft")}</h2>
         <p className={s.big}>
           {balance === null ? t("timeoff.notJoined")
-            : t("timeoff.annualLeft", { count: balance.availableDays,
-              n: String(balance.availableDays) })}
+            : t("timeoff.annualLeft",
+              dayCountVars(balance.availableDays, lang))}
         </p>
         {!asking && (
           <button type="button" className={`${b.btn} ${b.primary}`}

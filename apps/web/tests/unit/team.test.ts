@@ -133,8 +133,9 @@ describe("team areas", () => {
   it("counts-are-things-waiting", () => {
     const n = (id: string): number | null =>
       AREAS.find((a) => a.id === id)?.count?.(ctx) ?? null;
-    expect(n("people.positions")).toBe(
-      T.positions().filter((x) => x.status === "vacant").length);
+    // Seats and goals are totals, not decisions: no count.
+    expect(n("people.positions")).toBeNull();
+    expect(n("people.goals")).toBeNull();
     expect(n("people.probation")).toBe(1);
     expect(AREAS.every((a) => a.stopsPay !== true)).toBe(true);
   });

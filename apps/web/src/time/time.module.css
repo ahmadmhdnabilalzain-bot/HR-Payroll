@@ -182,19 +182,28 @@
   background: var(--color-surface-2);
 }
 
+/* Calendar bars are neutral: teal is for actions only (DEMO.md). */
 .legend [data-tone="shift"]::before,
 .grid td[data-tone="shift"] {
-  background: var(--color-bar-3);
+  background: color-mix(in srgb, var(--color-text-muted) 30%,
+    var(--color-surface));
 }
 
 .legend [data-tone="booked"]::before,
 .grid td[data-tone="booked"] {
-  background: var(--color-accent);
+  background: var(--color-text-muted);
 }
 
-.legend [data-tone="waiting"]::before,
+.legend [data-tone="waiting"]::before {
+  background: transparent;
+  outline: 2px dashed var(--color-text-muted);
+  outline-offset: -2px;
+}
+
 .grid td[data-tone="waiting"] {
-  background: var(--color-accent-soft);
+  background: transparent;
+  outline: 2px dashed var(--color-text-muted);
+  outline-offset: -4px;
 }
 
 .gridScroll {

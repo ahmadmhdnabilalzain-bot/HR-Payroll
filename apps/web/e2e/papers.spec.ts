@@ -43,13 +43,12 @@ test("papers-are-for-hr-and-the-gm-only", async ({ page }, info) => {
 
 test("areas-are-reachable-from-the-people-section", async ({ page }) => {
   await page.goto("/#/s/people");
-  for (const name of ["Staff requests", "Letters and salary certificates",
-    "Visas and government cases", "Warnings", "Compliance overview",
-    "Compliance calendar", "Emiratisation", "Pension (GPSSA)"]) {
+  for (const name of ["Staff requests", "Letters", "Visas", "Warnings",
+    "Compliance", "Due dates", "Emiratisation", "Pension"]) {
     await expect(page.getByRole("link", { name }).first())
       .toBeVisible();
   }
-  await page.getByRole("link", { name: "Letters and salary certificates" })
+  await page.getByRole("link", { name: /^Letters/ })
     .first().click();
   await expect(page.getByRole("heading", { level: 1, name: "Letters" }))
     .toBeVisible();

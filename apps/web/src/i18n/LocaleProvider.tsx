@@ -6,7 +6,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { documentTitle } from "../brand";
 import { loadPrefs, savePrefs } from "../lib/prefs";
 import { dirOf } from "./format";
 import { createT, type T } from "./t";
@@ -29,7 +28,6 @@ export function LocaleProvider(p: { children: ReactNode }) {
     const html = document.documentElement;
     html.lang = lang;
     html.dir = dirOf(lang);
-    document.title = documentTitle(lang);
   }, [lang]);
   const value = useMemo<Locale>(() => ({
     lang,

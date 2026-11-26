@@ -134,5 +134,6 @@ export const home = {
   teamWaiting: "Waiting for you",
   teamLeave: "Your team's leave",
   teamLeaveEmpty: "No one in your team is off or waiting.",
+  teamLeaveEmptyOther: "No other leave in your team from today.",
   openTimeOff: "Open Time off",
 } satisfies EnNamespace;

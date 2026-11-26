@@ -65,5 +65,5 @@ test("a-manager-is-sent-outside-the-view", async ({ page }, info) => {
   await page.getByRole("button", { name: /HR manager/ }).click();
   await page.getByRole("menuitemradio", { name: /Team manager/ }).click();
   await expect(page.getByRole("heading", { level: 1,
-    name: "This profile is outside your view." })).toBeVisible();
+    name: "This page is outside your view." })).toBeVisible();
 });

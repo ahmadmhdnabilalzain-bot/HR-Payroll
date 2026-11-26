@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { useDemo } from "../demo/state";
-import { canSeePayRecords } from "./derive";
+import { canOpenPayArea } from "./derive";
 import { CorrectionRecord, Corrections } from "./Corrections";
 import { ExpenseRecord, Expenses } from "./Expenses";
 import { FineRecord, Fines } from "./Fines";
@@ -51,7 +51,7 @@ export function PayArea(p: { rest: string[] }) {
   const [area, id] = p.rest;
   if (!isPayArea(area)) return null;
   return (
-    canSeePayRecords(state.role) ? (
+    canOpenPayArea(state.role, area) ? (
       <Suspense fallback={<Loading />}>{screen(area, id)}</Suspense>
     ) : <Outside />
   );

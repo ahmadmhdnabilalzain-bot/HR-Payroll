@@ -1,4 +1,5 @@
 import { useDemo } from "../demo/state";
+import { dayVars } from "../people/words";
 import { personFor, type RequestRow } from "../demo/time-off";
 import { formatDayMonth } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
@@ -54,8 +55,7 @@ export function RequestList(p: { title: string; rows: RequestRow[];
                     {r.endDate === r.startDate ? "" :
                       ` – ${formatDayMonth(r.endDate, lang)}`}
                     {" · "}
-                    {t("timeoff.workingDays", { count: r.halves / 2,
-                      n: String(r.halves / 2) })}
+                    {t("timeoff.workingDays", dayVars(r.halves, lang))}
                   </span>
                 </div>
                 {decide ? (

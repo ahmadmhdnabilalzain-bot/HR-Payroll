@@ -163,5 +163,6 @@ export const home: ArOf<typeof en> = {
   teamWaiting: "بانتظارك",
   teamLeave: "إجازات فريقك",
   teamLeaveEmpty: "لا أحد في فريقك في إجازة أو بانتظار قرار.",
+  teamLeaveEmptyOther: "لا إجازات أخرى في فريقك من اليوم.",
   openTimeOff: "فتح الإجازات",
 };

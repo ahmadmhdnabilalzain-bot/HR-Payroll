@@ -7,6 +7,11 @@
   unicode-bidi: isolate;
 }
 
+/* The sign sits against the currency: "−AED 14,719.06". */
+.sign {
+  margin-inline-end: -0.28em;
+}
+
 .cur {
   font-size: max(0.7em, 14px);
   font-weight: 500;

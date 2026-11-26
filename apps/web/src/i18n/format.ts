@@ -8,14 +8,25 @@ const LOCALE: Record<Lang, string> = {
   ar: "ar-AE-u-ca-gregory-nu-latn",
 };
 
-/** "AED 38,333.33"; in Arabic wrapped in left-to-right isolates. */
-export function formatMoney(f: Fils, lang: Lang): string {
+/**
+ * The one minus sign for amounts and changes on screen (U+2212), set
+ * before the currency: "−AED 14,719.06". CSV keeps a plain hyphen.
+ */
+export const MINUS = "\u2212";
+
+/**
+ * "AED 38,333.33"; in Arabic wrapped in left-to-right isolates. A
+ * negative reads "−AED 38,333.33"; `plus` adds "+" to a rise.
+ */
+export function formatMoney(f: Fils, lang: Lang,
+  opts?: { plus?: boolean }): string {
   const [open, close] = LTR_ISOLATE[lang];
-  return open + formatAed(f) + close;
+  const m = moneyParts(f, opts?.plus === true);
+  return `${open}${m.sign}${m.currency} ${m.whole}.${m.frac}${close}`;
 }
 
 export interface MoneyParts {
-  sign: "" | "-";
+  sign: "" | "+" | typeof MINUS;
   currency: "AED";
   /** Grouped whole dirhams, "612,430". */
   whole: string;
@@ -26,11 +37,11 @@ export interface MoneyParts {
 /**
  * The same amount as formatMoney, split so the fils can be set
  * smaller. Built from formatAed's own output, so there is still one
- * formatter.
+ * formatter; the sign is MINUS, or "+" on a rise when asked.
  */
-export function moneyParts(f: Fils): MoneyParts {
+export function moneyParts(f: Fils, plus = false): MoneyParts {
   const text = formatAed(f);
-  const sign = text.startsWith("-") ? "-" : "";
+  const sign = text.startsWith("-") ? MINUS : plus && f > 0n ? "+" : "";
   const [whole = "0", frac = "00"] = text.replace(/^-?AED /, "")
     .split(".");
   return { sign, currency: "AED", whole, frac };

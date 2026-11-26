@@ -3,8 +3,6 @@ import type { DemoData } from "../../demo/data/types";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { personFor } from "../../demo/time-off";
-import { useLocale } from "../../i18n/LocaleProvider";
-import { PageHead } from "../../ui/templates";
 import s from "./team.module.css";
 
 /** Team and Growth are for HR and the General manager (map section 7). */
@@ -13,17 +11,11 @@ export function useAllowed(): boolean {
   return state.role === "hr" || state.role === "gm";
 }
 
-/** The page a manager or employee lands on from a deep link. */
-export function Outside() {
-  const { t } = useLocale();
-  return (
-    <div className={s.page}>
-      <PageHead title={t("people.notVisible")}
-        lede={t("people.notVisibleHint")}
-        back={{ label: t("people.back"), href: hrefOf("people") }} />
-    </div>
-  );
-}
+/**
+ * The page a manager or employee lands on from a deep link: the
+ * shell's own refusal ("This page is outside your view.").
+ */
+export { Outside } from "../../shell/Outside";
 
 export const teamHref = (...rest: string[]): string =>
   hrefOf("people", "team", ...rest);

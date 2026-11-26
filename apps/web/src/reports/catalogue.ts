@@ -1,5 +1,8 @@
+import { COST_BLURBS } from "./cost";
+
 /** What each report answers, by area id: the home page's one line. */
 export const BLURB: Readonly<Record<string, string>> = {
+  ...COST_BLURBS,
   "reports.summary": "What is this month's pay, and how does it compare " +
     "with last month?",
   "reports.departments": "Which department costs the most?",

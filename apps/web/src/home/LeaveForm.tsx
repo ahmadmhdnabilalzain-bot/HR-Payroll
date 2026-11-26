@@ -1,4 +1,5 @@
 import { useId, useState, type FormEvent } from "react";
+import { dayCountVars, dayVars } from "../people/words";
 import type { LeaveTypeId } from "../demo/data/people-types";
 import { useDemo } from "../demo/state";
 import { annualNow } from "../demo/time-off";
@@ -43,7 +44,8 @@ export function LeaveForm(p: { employeeId: string; onDone(): void }) {
     if (to < from) return setError(t("timeoff.errEnd"));
     if (count.halves === 0) return setError(t("timeoff.errNone"));
     if (type === "lt-annual" && days > left) {
-      return setError(t("timeoff.errOver", { days: String(left) }));
+      return setError(t("timeoff.errOver",
+        { days: dayCountVars(left, lang).n }));
     }
     dispatch({ type: "request-leave", draft: { employeeId: p.employeeId,
       leaveTypeId: type, startDate: from, endDate: to,
@@ -89,8 +91,7 @@ export function LeaveForm(p: { employeeId: string; onDone(): void }) {
       </div>
       <p id={`${id}-sum`} className={error === null ? s.sum : s.error}
         role={error === null ? undefined : "alert"}>
-        {error ?? [t("timeoff.workingDays", { count: days,
-          n: String(days) }),
+        {error ?? [t("timeoff.workingDays", dayVars(count.halves, lang)),
         approver === null ? "" : t("timeoff.goesTo", {
           name: approver.name[lang], role: approver.role[lang] })]
           .filter(Boolean).join(" · ")}

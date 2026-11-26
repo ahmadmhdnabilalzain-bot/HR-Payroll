@@ -49,8 +49,7 @@ export function SignedMoney(p: { value: Fils }) {
   }
   return (
     <span className={s.signed} data-dir={p.value > 0n ? "up" : "down"}>
-      <span aria-hidden="true">{p.value > 0n ? "+" : "−"}</span>
-      <Money value={abs(p.value)} size="sm" />
+      <Money value={p.value} size="sm" signed />
     </span>
   );
 }

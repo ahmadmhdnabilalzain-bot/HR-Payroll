@@ -1,0 +1,42 @@
+/* Cost reports: the one summary block above a template's own page. */
+.summary {
+  display: grid;
+  gap: var(--space-2);
+  max-inline-size: var(--container);
+  margin-inline: auto;
+  padding: var(--space-5) var(--page-pad) 0;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.total {
+  font-size: var(--text-3xl);
+  font-weight: 500;
+}
+
+.basis {
+  max-inline-size: 72ch;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.dot {
+  display: inline-block;
+  inline-size: 8px;
+  block-size: 8px;
+  margin-inline-end: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-text-faint);
+}
+
+.loading {
+  padding: var(--space-7) var(--page-pad);
+  color: var(--color-text-muted);
+}
