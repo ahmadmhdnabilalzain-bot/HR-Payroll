@@ -84,7 +84,9 @@ export function Corrections() {
                 <button type="button" className={`${b.btn} ${b.quiet}`}
                   onClick={() => step(l.ask!, "declined")}>
                   {W.decline}</button>
-              </span>) : null)
+              </span>) : l.now === "waiting-gm" || l.now === "waiting-hr"
+                ? <span className={f.row}>{`Waiting for ${names.name(
+                  l.now === "waiting-gm" ? gm : hr)}`}</span> : null)
             : state.role === "hr" ? (
               <button type="button" className={`${b.btn} ${b.secondary}`}
                 onClick={() => { setPre({ who: l.employeeId,

@@ -9,6 +9,7 @@ import {
   KeyValues,
   Paper,
   RecordTabs,
+  RowDecision,
 } from "../../ui/templates";
 import { History, type HistoryItem } from "./History";
 import { letterIsOpen, letterRows, type LetterRow } from "./model";
@@ -37,6 +38,13 @@ export function Letters() {
         searchText={(l) => `${LETTER_KIND[l.kind]} ${p.nameOf(l.employeeId)}
           ${l.purpose}`}
         rowHref={(l) => hrefOf("people", "papers", "letters", l.id)}
+        avatar={(l) => ({ id: l.employeeId, name: p.nameOf(l.employeeId) })}
+        rowActions={(l) => (
+          <RowDecision open={l.status === "pending"}
+            mine={p.state.role === "gm"} waitingFor={p.nameOf(gm)}
+            yes={{ label: "Sign and issue", run: () => p.record(l.id,
+              "issued", "Letter signed and issued.", l.step) }} />
+        )}
         segments={[
           { id: "todo", label: "To do", match: letterIsOpen },
           { id: "issued", label: "Issued", match: (l) =>

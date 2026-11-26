@@ -5,6 +5,9 @@ test("staff-request-decision-and-undo", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1,
     name: "Staff requests" })).toBeVisible();
   await page.getByRole("link", { name: /Update bank details/ }).click();
+  // The list rows carry Start too: wait for the request's own page.
+  await expect(page.getByRole("heading", { level: 1,
+    name: "Update bank details" })).toBeVisible();
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page.getByRole("status")).toContainText("Request started");
   await page.getByRole("button", { name: "Mark done" }).click();

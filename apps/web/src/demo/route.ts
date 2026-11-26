@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
+import { changeRoute } from "../ui/templates/listMotion";
 import type { Section } from "./state";
 
 /**
@@ -26,9 +28,11 @@ export function parseHash(hash: string): Route {
 export function useRoute(): Route {
   const [route, setRoute] = useState<Route>(() => parseHash(location.hash));
   useEffect(() => {
-    const on = (): void => {
-      setRoute(parseHash(location.hash));
-      scrollTo({ top: 0 });
+    // Between a list and its record the change is animated; anything
+    // else renders and goes to the top (ui/templates/listMotion.ts).
+    const on = (e: HashChangeEvent): void => {
+      changeRoute(e.oldURL, () => flushSync(() =>
+        setRoute(parseHash(location.hash))));
     };
     addEventListener("hashchange", on);
     return () => removeEventListener("hashchange", on);

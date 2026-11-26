@@ -70,6 +70,39 @@ function onHome(e: Env, then: () => void): void {
   setTimeout(then, 120);
 }
 
+/**
+ * The three things people come to do, first under "Do": sign off the
+ * month's pay (the shared run approval, only for the one who decides),
+ * enter the missing bank details, and open one's own payslip.
+ */
+function doFirst(e: Env, company: boolean): Command[] {
+  const list: Command[] = [];
+  if (e.run.canDecide) {
+    list.push({ id: "approve-run", group: "actions",
+      label: e.t("shell.actApprove", { month: e.month }), hint: "",
+      icon: "check", keywords: "approve pay run sign off",
+      run: () => e.run.decide("approve") });
+  }
+  const iban = !company ? [] : openIssues(e.data, e.state)
+    .filter((i) => i.fixKind === "enter-iban");
+  const first = iban[0];
+  if (first !== undefined) {
+    list.push({ id: "bank", group: "actions", label: e.t("shell.actBank"),
+      hint: e.t("shell.actBankHint", { count: iban.length }),
+      icon: "alert", keywords: "iban bank account details held",
+      run: () => onHome(e, () =>
+        e.dispatch({ type: "focus-issue", id: first.id })) });
+  }
+  const me = personOf(e.data, e.state.role);
+  if (e.peopleShown && e.data.people.payslip(me) !== null) {
+    list.push({ id: "my-payslip", group: "actions",
+      label: e.t("shell.actMyPayslip"), hint: e.month, icon: "file",
+      keywords: "my payslip pay salary", run: () =>
+        navigate("people", me, "payslip") });
+  }
+  return list;
+}
+
 function actions(e: Env): Command[] {
   const company = e.state.role === "hr" || e.state.role === "gm";
   const list: Command[] = e.areas.map((a) => ({ id: `go:${a.id}`,
@@ -89,12 +122,6 @@ function actions(e: Env): Command[] {
       hint: e.data.employee(personOf(e.data, r)).name[e.lang],
       icon: "user", keywords: "role switch view as",
       run: () => e.switchRole(r) })));
-  if (e.run.canDecide) {
-    list.push({ id: "approve-run", group: "actions",
-      label: e.t("shell.actApprove", { month: e.month }), hint: "",
-      icon: "check", keywords: "approve pay run sign off",
-      run: () => e.run.decide("approve") });
-  }
   if (e.timeOffShown && !company) {
     list.push({ id: "request-leave", group: "actions",
       label: e.t("shell.actRequestLeave"), hint: "", icon: "calendar",
@@ -115,7 +142,7 @@ function actions(e: Env): Command[] {
       hint: "", icon: "chevronEnd", keywords: "arabic english language",
       run: e.toggleLang });
   }
-  return list;
+  return [...doFirst(e, company), ...list];
 }
 
 function people(e: Env): Command[] {
@@ -162,8 +189,12 @@ function people(e: Env): Command[] {
   return [...fromIssues, ...fromApprovals, ...profiles, ...payslips];
 }
 
+/** Do, then people with open items, then the pages to go to. */
+export const GROUP_ORDER: Group[] = ["actions", "people", "go"];
+
 export function commands(e: Env): Command[] {
-  return [...actions(e), ...people(e)];
+  const all = [...actions(e), ...people(e)];
+  return GROUP_ORDER.flatMap((g) => all.filter((c) => c.group === g));
 }
 
 /** Every word of the query must appear in the label, hint or keywords. */

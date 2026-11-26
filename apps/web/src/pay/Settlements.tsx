@@ -17,6 +17,7 @@ import { usePay } from "./load";
 import {
   NotFound,
   RequestPanel,
+  RequestRow,
   RequestStatus,
   Status,
   useMakerChecker,
@@ -32,6 +33,11 @@ function useSent(employeeId: string): PayRequest | undefined {
   const { state } = useDemo();
   return requestsOf(state, ["settlement"]).find((r) =>
     r.employeeId === employeeId && requestState(state, r) !== "withdrawn");
+}
+
+function SentDecision(p: { x: SettlementView }) {
+  return <RequestRow r={useSent(p.x.employeeId) ?? null}
+    what="Settlement" />;
 }
 
 function SentStatus(p: { x: SettlementView }) {
@@ -50,6 +56,8 @@ export function Settlements() {
       rows={pay.settlements} rowKey={(x) => x.employeeId}
       searchText={(x) => x.name}
       rowHref={(x) => hrefOf("pay-run", "settlements", x.employeeId)}
+      avatar={(x) => ({ id: x.employeeId, name: x.name })}
+      rowActions={(x) => <SentDecision x={x} />}
       columns={[
         { key: "who", label: "Person", render: (x) => x.name },
         { key: "last", label: "Last day", render: (x) => x.lastDay },

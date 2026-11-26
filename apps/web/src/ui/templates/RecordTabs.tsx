@@ -1,5 +1,6 @@
 import { isValidElement, useState, type ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { Avatar } from "../Avatar";
 import { StatusPill, type StatusTone } from "./StatusPill";
 import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
@@ -56,6 +57,8 @@ export function RecordTabs(p: {
   next?: string;
   /** What happened so far, newest last. */
   history?: RecordEvent[];
+  /** The person the record is about: their face before the title. */
+  avatar?: { id: string; name: string } | undefined;
 }) {
   const { t } = useLocale();
   const [own, setOwn] = useState(p.tabs[0]?.id ?? "");
@@ -73,9 +76,11 @@ export function RecordTabs(p: {
   const panel = figures.length > 0 || hasNext;
   return (
     <div className={`${s.page} ${s.record}`} data-side={side}>
-      <div className={s.recordHead}>
+      <div className={s.recordHead} data-record-head="">
         <PageHead title={p.title} lede={p.lede} back={p.back}
-          crumbs={p.crumbs} badge={badge} />
+          crumbs={p.crumbs} badge={badge} face={p.avatar === undefined
+            ? undefined : <Avatar id={p.avatar.id} name={p.avatar.name}
+              size="md" className={s.headFace} />} />
       </div>
       {panel && <aside className={s.aside} aria-label={t("tpl.summary")}>
         {figures.length > 0 && (
@@ -111,25 +116,39 @@ export function RecordTabs(p: {
         </aside>
       )}
       <div className={s.recordMain}>
-        <div className={s.tabs} role="tablist">
-          {p.tabs.map((x) => (
-            <button key={x.id} type="button" role="tab" id={`tab-${x.id}`}
-              aria-selected={x.id === current?.id}
-              aria-controls={`tabpanel-${x.id}`}
-              onClick={() => (p.onTab ?? setOwn)(x.id)}>
-              {x.label}
-            </button>
-          ))}
-        </div>
-        {current !== undefined && (
-          <div role="tabpanel" id={`tabpanel-${current.id}`}
-            aria-labelledby={`tab-${current.id}`} className={s.tabPanel}>
-            {current.render()}
-          </div>
-        )}
+        {p.tabs.length === 1
+          // One tab is not a choice: its content stands on its own.
+          ? <div className={s.tabPanel}>{current?.render()}</div>
+          : <Tabbed tabs={p.tabs} current={current}
+            onTab={p.onTab ?? setOwn} />}
       </div>
       <PageFoot />
     </div>
+  );
+}
+
+function Tabbed(p: { tabs: RecordTab[]; current: RecordTab | undefined;
+  onTab(id: string): void }) {
+  const current = p.current;
+  return (
+    <>
+      <div className={s.tabs} role="tablist">
+        {p.tabs.map((x) => (
+          <button key={x.id} type="button" role="tab" id={`tab-${x.id}`}
+            aria-selected={x.id === current?.id}
+            aria-controls={`tabpanel-${x.id}`}
+            onClick={() => p.onTab(x.id)}>
+            {x.label}
+          </button>
+        ))}
+      </div>
+      {current !== undefined && (
+        <div role="tabpanel" id={`tabpanel-${current.id}`}
+          aria-labelledby={`tab-${current.id}`} className={s.tabPanel}>
+          {current.render()}
+        </div>
+      )}
+    </>
   );
 }
 

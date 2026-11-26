@@ -83,6 +83,13 @@
   min-block-size: var(--text-title-lh);
 }
 
+/* The record's face: 44 px, the row's face (36 px) grows into it. */
+.headFace {
+  inline-size: 44px;
+  block-size: 44px;
+  font-size: 15px;
+}
+
 .titleWrap {
   display: flex;
   flex: 1 1 240px;
@@ -280,7 +287,7 @@
   align-items: center;
   gap: var(--space-2);
   flex: none;
-  min-block-size: 44px;
+  block-size: 44px;
   padding-inline: var(--space-3);
   border: 0;
   border-radius: 6px;
@@ -366,6 +373,17 @@ a.row:hover {
   background: var(--color-surface-secondary);
 }
 
+/* The row whose record was open last: marked when you come back. */
+a.row[aria-current="true"] {
+  background: var(--color-surface-secondary);
+  box-shadow: inset 2px 0 0 var(--color-text);
+}
+
+a.row:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-text));
+  outline-offset: -2px;
+}
+
 /* Cells wrap rather than cut: a row grows to two lines if it must. */
 .cell {
   min-inline-size: 0;
@@ -374,7 +392,8 @@ a.row:hover {
   overflow-wrap: anywhere;
 }
 
-.cell > * {
+.cell > *,
+.cell [data-tone] {
   white-space: normal;
 }
 
@@ -425,6 +444,19 @@ li + li.actRow > .row {
   justify-content: flex-end;
   gap: var(--space-2);
   padding-inline-end: var(--space-4);
+}
+
+/* A row's decision: the buttons, or who it waits for. */
+.decide {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.waitFor {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 18px;
+  text-align: end;
 }
 
 /* A 44 px hit area for small buttons inside a row. */
@@ -1607,4 +1639,39 @@ li + li.actRow > .row {
 .asideActions:empty,
 .asideBlock:has(> .asideActions:empty):not(:has(> p)) {
   display: none;
+}
+
+/* List to record (listMotion.ts): the face and the name travel, 280 ms
+ * on the sheet curve; the rest of the page crossfades under them. */
+:global(html[data-list-motion])::view-transition-group(*) {
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The old page leaves quickly, so two pages never read as one. */
+:global(html[data-list-motion])::view-transition-old(root) {
+  animation-duration: 140ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+:global(html[data-list-motion])::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The name keeps its proportions: it scales from its start edge. */
+:global(html[data-list-motion])::view-transition-old(list-name),
+:global(html[data-list-motion])::view-transition-new(list-name) {
+  block-size: 100%;
+  inline-size: auto;
+  object-fit: contain;
+  object-position: left center;
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+:global(html[data-list-motion])::view-transition-old(list-face),
+:global(html[data-list-motion])::view-transition-new(list-face) {
+  block-size: 100%;
+  animation-duration: 280ms;
 }

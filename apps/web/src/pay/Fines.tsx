@@ -5,7 +5,12 @@ import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { useToast } from "../ui/Toast";
-import { FilterList, KeyValues, RecordTabs } from "../ui/templates";
+import {
+  FilterList,
+  KeyValues,
+  RecordTabs,
+  RowDecision,
+} from "../ui/templates";
 import { dayMonth, whoIs } from "./derive";
 import { usePay } from "./load";
 import { NotFound, Status } from "./parts";
@@ -23,6 +28,26 @@ function FineStatus(p: { d: FineDecision | undefined }) {
     : <Status tone="done">{CHOICE[p.d.choice]}</Status>;
 }
 
+/** Who pays a fine, on its row: the same buttons as the record. */
+function FineRow(p: { f: FineView }) {
+  const { data, state, dispatch } = useDemo();
+  const toast = useToast();
+  const d = state.fineDecisions[p.f.id];
+  const decide = (choice: FineChoice) => (): void => {
+    dispatch({ type: "fine-decide", id: p.f.id, decision: { choice,
+      by: personOf(data, state.role), on: data.payCalendar().asOf } });
+    toast.show(choice === "bank" ? "Noted: the bank pays this fine"
+      : "Noted: to recover from the employee",
+    () => dispatch({ type: "fine-undo", id: p.f.id }));
+  };
+  return (
+    <RowDecision open={d === undefined} mine
+      yes={{ label: "Bank pays", run: decide("bank") }}
+      no={{ label: "Recover", run: decide("recover") }}
+      undo={() => dispatch({ type: "fine-undo", id: p.f.id })} />
+  );
+}
+
 /** R24: traffic fines on bank cars, waiting for a decision. */
 export function Fines() {
   const { state } = useDemo();
@@ -35,6 +60,8 @@ export function Fines() {
       rows={pay.fines} rowKey={(f) => f.id}
       searchText={(f) => `${f.name} ${f.offence}`}
       rowHref={(f) => hrefOf("pay-run", "fines", f.id)}
+      rowActions={(f) => <FineRow f={f} />}
+      avatar={(f) => ({ id: f.employeeId, name: f.name })}
       segments={[
         { id: "open", label: "To decide", match: (f) =>
           d[f.id] === undefined },

@@ -71,7 +71,7 @@ export function Profile(q: { id: string }) {
             <span aria-current="page">{x.name[lang]}</span>
           </nav>
         )}
-        <div className={s.who}>
+        <div className={s.who} data-record-head="">
           <Avatar id={x.id} name={x.name.en} size="lg" />
           <div className={s.whoText}>
             <h1 className={p.title}>{x.name[lang]}</h1>

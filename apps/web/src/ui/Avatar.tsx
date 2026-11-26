@@ -40,7 +40,7 @@ export function Avatar(p: { id: string; name: string;
   return (
     <span className={`${s.avatar} ${p.className ?? ""}`}
       data-size={p.size ?? "md"} data-tone={toneOf(p.id)}
-      data-palette={PALETTE}
+      data-palette={PALETTE} data-face=""
       aria-hidden="true">
       {initialsOf(p.name)}
     </span>

@@ -26,5 +26,7 @@ export const tpl = {
   summary: "Summary",
   open: "Open",
   inList: "In this list",
+  noMatch: "Nothing matches. Clear the search, or pick another filter.",
+  clearAll: "Clear search and filter",
   axisFrom: "Axis starts at {v}",
 } satisfies EnNamespace;

@@ -3,11 +3,17 @@ import type { Approval } from "../demo/data/types";
 import { personOf } from "../demo/derive";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
+import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { useToast } from "../ui/Toast";
-import { FilterList, KeyValues, RecordTabs } from "../ui/templates";
-import { whoIs } from "./derive";
+import {
+  FilterList,
+  KeyValues,
+  RecordTabs,
+  RowDecision,
+} from "../ui/templates";
+import { dayMonth, whoIs } from "./derive";
 import { usePay } from "./load";
 import { NotFound, Status, type Tone } from "./parts";
 import s from "./pay.module.css";
@@ -41,20 +47,20 @@ function ClaimActions(p: { x: ExpenseView }) {
   const { data, state, dispatch } = useDemo();
   const toast = useToast();
   const a = useApproval(p.x);
-  if (a === undefined || state.decided[a.id] !== undefined ||
-    personOf(data, state.role) !== a.checkerId) return null;
+  if (a === undefined) return null;
+  const mine = personOf(data, state.role) === a.checkerId;
   const decide = (v: "approve" | "decline") => (): void => {
     dispatch({ type: "decide", id: a.id, verdict: v });
     toast.show(v === "approve" ? "Claim agreed" : "Claim declined",
       () => dispatch({ type: "undecide", id: a.id }));
   };
   return (
-    <>
-      <button type="button" className={`${b.btn} ${b.secondary}`}
-        onClick={decide("decline")}>Decline</button>
-      <button type="button" className={`${b.btn} ${b.secondary}`}
-        onClick={decide("approve")}>Agree</button>
-    </>
+    <RowDecision open={state.decided[a.id] === undefined} mine={mine}
+      waitingFor={data.employee(a.checkerId).name.en}
+      yes={{ label: "Agree", run: decide("approve") }}
+      no={{ label: "Decline", run: decide("decline") }}
+      undo={mine ? () => dispatch({ type: "undecide", id: a.id })
+        : undefined} />
   );
 }
 
@@ -94,9 +100,11 @@ export function ExpenseRecord(p: { id: string }) {
 
 function ClaimPage(p: { x: ExpenseView }) {
   const x = p.x;
+  const { lang } = useLocale();
   const { data, state, dispatch } = useDemo();
   const toast = useToast();
   const switchRole = useSwitchRole();
+  const [word, tone] = useClaimState(x);
   const a = useApproval(x);
   const verdict = a === undefined ? undefined : state.decided[a.id];
   const isChecker = a !== undefined &&
@@ -109,6 +117,14 @@ function ClaimPage(p: { x: ExpenseView }) {
   };
   return (
     <RecordTabs title={x.name} lede={`${x.title}, ${x.date}`}
+      avatar={{ id: x.employeeId, name: x.name }}
+      status={{ word, tone: tone === "check" ? "warn" : tone === "bad"
+        ? "stop" : tone }}
+      history={[{ when: x.date, what: `Sent by ${x.name}` },
+        ...(a === undefined || verdict === undefined ? [] : [{
+          when: dayMonth(data.payCalendar().asOf, lang),
+          what: `Claim ${verdict === "approve" ? "agreed" : "declined"} by ` +
+            whoIs(data, a.checkerId) }])]}
       back={{ label: "Expense claims", href: LIST }}
       actions={a !== undefined && verdict === undefined && isChecker ? (
         <>
@@ -125,7 +141,6 @@ function ClaimPage(p: { x: ExpenseView }) {
       tabs={[{ id: "details", label: "Details", render: () => (
         <div className={s.stack}>
           <KeyValues items={[
-            { label: "Status", value: <ClaimStatus x={x} /> },
             ...(a === undefined ? [] : [{ label: "Decides",
               value: whoIs(data, a.checkerId) }]),
             { label: "Receipt", value: x.receipt },

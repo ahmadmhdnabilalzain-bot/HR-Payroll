@@ -28,5 +28,7 @@ export const tpl: ArOf<typeof en> = {
   summary: "ملخص",
   open: "فتح",
   inList: "في هذه القائمة",
+  noMatch: "لا نتائج. امسح البحث أو اختر تصفية أخرى.",
+  clearAll: "مسح البحث والتصفية",
   axisFrom: "يبدأ المحور عند {v}",
 };
