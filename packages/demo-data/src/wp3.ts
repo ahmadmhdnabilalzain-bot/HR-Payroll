@@ -363,7 +363,7 @@ const CANDS: readonly CandSpec[] = [
   { id: "cand-005", req: "req-002", name: "Layla Barakat", nat: "LB",
     stage: "interview", applied: "2026-10-05", source: "Referral",
     interviews: [["2026-10-14", "pass", "First round"],
-      ["2026-10-29", "scheduled", "Second round with the GM"]],
+      ["2026-10-29", "scheduled", "Second round with the hiring manager"]],
     note: "Second round booked." },
   { id: "cand-006", req: "req-002", name: "Peter Lindqvist", nat: "SE",
     stage: "screening", applied: "2026-10-20", source: "Job portal",

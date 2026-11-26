@@ -26,3 +26,4 @@ export type { DemoLabelKey } from "./labels-en";
 export { expiryState } from "./workplace";
 export * from "./wp3";
 export * from "./wp2";
+export * from "./wp10";

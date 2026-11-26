@@ -157,3 +157,32 @@ like it, derives every date and amount from the employee records.
   new hire's in progress with the engine's last notice day and notes
   taken from the leave and attendance records. Skills, training and
   surveys (P63 to P65) are not covered.
+
+## WP10: home and the employee bar (`src/wp10.ts`)
+
+Fictional tasks, notifications and notices for five roles (`HomeRole`:
+`hr`, `gm`, `it`, `manager`, `employee`). The people are read from the
+data the way the demo's role switcher reads them (`homeRolePersonas`:
+the pay run's maker and checker, the overtime case, that employee's
+manager, the IT manager). Nothing is typed twice: every item is derived
+from the approvals inbox, the document list, the pay run's issues, the
+WP2 appraisal cycle and the WP3 checklists, offers, interviews and
+moves, so a task cannot disagree with the screen it opens.
+
+- Tasks (`homeTasksFor(c, role)`, `homeTasksForEmployee`): open first,
+  soonest due first, with urgency (overdue, soon, later), priority
+  (high when overdue or due within 3 days), a target route hint and a
+  display due text ("Was due 19 Oct 2026, 8 days ago"). Approval tasks
+  are exactly the approvals inbox; checklist tasks are exactly the open
+  steps (done ones from the last 14 days show as done).
+- Notifications (`homeNotificationsFor`, `unreadNotificationCount`):
+  newest first, read or unread, info, action or warning. A net pay
+  figure is never shown here (it needs its pension caveat).
+- Notices (`homeNoticesFor`, `homeNoticesForEmployee`): live notices
+  for the person's place, pinned first; an expired notice is kept in
+  the data and not shown. Dates for the National Day holiday are
+  sample planning dates, to follow the official announcement.
+- `homeSummary` (counts of those lists), `teamToday` (E10, from
+  today's attendance), `myDocumentViews` (E05, plain dates).
+- Not covered: leave cover for approvals (H10), approval splits (H11),
+  help videos (H12), the employee's own KPIs beyond `goalViews` (E13).
