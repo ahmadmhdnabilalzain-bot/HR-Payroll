@@ -111,12 +111,12 @@ export function ReportPage(p: {
   const fig = useRef<HTMLDivElement>(null);
   const swap = p.figure?.swap;
   const swapWas = useRef(swap);
-  // Render phase, on a swap: where each section is drawn now, so the
-  // ones under a chart that grows or shrinks glide to their new place.
-  const tops = useRef<number[] | null>(null);
+  // Render phase, on a swap: where each section is drawn now and how
+  // tall, so nothing under a chart that grows or shrinks jumps.
+  const tops = useRef<DOMRect[] | null>(null);
   if (swapWas.current !== swap && page.current !== null) {
     tops.current = [...page.current.children].map((c) =>
-      c.getBoundingClientRect().top);
+      c.getBoundingClientRect());
   }
   useLayoutEffect(() => {
     if (swapWas.current === swap) return;
@@ -129,12 +129,23 @@ export function ReportPage(p: {
     const z = Number(root.getPropertyValue("zoom")) || 1;
     const inOut = root.getPropertyValue("--ease-in-out").trim() ||
       "cubic-bezier(0.4, 0, 0.2, 1)";
+    const timing = { duration: dur("--dur-slow"), easing: inOut };
+    // A section that grew (the chart) opens on its height, so what is
+    // under it is pushed down in step; what moved up (under a section
+    // that shrank) glides up from where it was, never across it.
     [...page.current.children].forEach((c, i) => {
-      const dy = ((was?.[i] ?? 0) - c.getBoundingClientRect().top) / z;
-      if (was === null || Math.abs(dy) < 0.5) return;
-      c.animate([{ transform: `translateY(${dy}px)` },
-        { transform: "none" }],
-      { duration: dur("--dur-slow"), easing: inOut });
+      const old = was?.[i];
+      if (old === undefined) return;
+      const now = c.getBoundingClientRect();
+      const dy = (old.top - now.top) / z;
+      if (dy > 0.5) {
+        c.animate([{ transform: `translateY(${dy}px)` },
+          { transform: "none" }], timing);
+      }
+      if (c.tagName !== "TABLE" && now.height - old.height > 0.5) {
+        c.animate([{ height: `${old.height / z}px`, overflow: "hidden" },
+          { height: `${now.height / z}px`, overflow: "hidden" }], timing);
+      }
     });
   }, [swap]);
   return (
