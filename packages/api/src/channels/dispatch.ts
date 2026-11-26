@@ -62,10 +62,25 @@ async function rateOk(c: EventCtx, d: DeliveryRowDb, now: Date) {
   return user.allowed && all.allowed;
 }
 
+/** The recipient still has an unrevoked membership (review M5). */
+async function stillMember(tx: Db, c: string, userId: string) {
+  const r = await tx.query("SELECT 1 FROM memberships WHERE company_id = " +
+    "$1 AND user_id = $2 AND revoked_at IS NULL", [c, userId]);
+  return r.length > 0;
+}
+
 /** Locks, leases and readies one row; or ends it as skipped. */
 async function claim(c: EventCtx, id: string, now: Date): Promise<Claim> {
   const d = await lockDue(c.tx, c.companyId, id, now);
   if (d === null) return null;
+  if (!(await stillMember(c.tx, c.companyId, d.user_id))) {
+    // Queued before the access was revoked: dropped, no fallback.
+    await c.tx.query(
+      `UPDATE notification_deliveries SET status = 'skipped',
+         reason = 'not-a-member', lease_until = NULL
+       WHERE company_id = $1 AND id = $2`, [c.companyId, d.id]);
+    return { skipped: true, fellBack: false };
+  }
   const s = await channelSealer(c.tx, c.deps, c.companyId);
   const raw = s.open("notification_deliveries", "payload", d.id,
     d.payload_enc);

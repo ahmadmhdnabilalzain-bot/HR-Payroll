@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { dispatch, rowsOf } from "./helpers/channel-jobs";
+import { meal, submitted } from "./helpers/expense-fixtures";
 import { FAKE_API_BASE } from "./helpers/fake-channels";
 import { call } from "./helpers/test-app";
 import {
@@ -49,5 +50,28 @@ describe("a revoked member and the channels", () => {
       m.toE164 === M_PHONE).length).toBe(sentBefore);
     expect((await mine()).length).toBe(before);
     expect((await ctx.app.request(path)).status).toBe(404);
+  });
+
+  it("M5: notices queued before the revocation are dropped", async () => {
+    const w = await waWorld("revokedq");
+    const { ctx, s } = w;
+    await submitted(ctx, s.employee, s, [meal(w.cats, "54.00")]);
+    const queued = await rowsOf<{ id: string }>(ctx, s.companyId,
+      `SELECT id FROM notification_deliveries WHERE user_id = $1
+         AND status = 'queued'`, [s.manager.userId]);
+    expect(queued.length).toBeGreaterThan(0);
+    await rowsOf(ctx, s.companyId, `UPDATE memberships SET revoked_at = $2
+      WHERE company_id = $1 AND user_id = $3 RETURNING user_id`,
+    [s.companyId, ctx.clock.now.toISOString(), s.manager.userId]);
+    const emails = ctx.fakes.outbox.email.length;
+    const wa = ctx.fakes.outbox.whatsapp.length;
+    await dispatch(ctx);
+    const rows = await rowsOf<{ status: string; reason: string }>(ctx,
+      s.companyId, `SELECT status, reason FROM notification_deliveries
+        WHERE user_id = $1`, [s.manager.userId]);
+    const mine = rows.filter((r) => r.reason === "not-a-member");
+    expect(mine.length).toBe(queued.length);
+    expect(ctx.fakes.outbox.email.length).toBe(emails);
+    expect(ctx.fakes.outbox.whatsapp.length).toBe(wa);
   });
 });

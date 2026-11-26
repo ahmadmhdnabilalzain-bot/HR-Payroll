@@ -56,7 +56,7 @@ export type DeliveryStatus = z.infer<typeof DeliveryStatus>;
 
 export const DeliverySkipReason = z.enum(["channel-off", "no-address",
   "no-opt-in", "not-configured", "rate-limited", "company-disabled",
-  "fallback-not-needed"]);
+  "fallback-not-needed", "not-a-member"]);
 export type DeliverySkipReason = z.infer<typeof DeliverySkipReason>;
 
 export const Notification = z.object({
