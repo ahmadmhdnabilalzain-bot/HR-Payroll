@@ -21,12 +21,23 @@ const TIME_ROUTE_IDS = [
   "getLeavePolicy", "putLeavePolicy", "listLeaveBlackouts",
   "createLeaveBlackout", "updateLeaveBlackout", "previewLeaveRequest",
   "runLeaveCarryOver",
+  "getWfhSettings", "updateWfhSettings", "publishWfhNotice",
+  "getCurrentWfhNotice", "recordWfhConsent", "withdrawWfhConsent",
+  "getWfhStatus", "pauseWfh", "resumeWfh",
 ];
+
+const MFA_IDS = ["updateWfhSettings"];
 
 const FORBIDDEN_PATH =
   /screenshot|screen|keystroke|keylog|capture|webcam|camera|microphone/i;
 
 describe("TIME_ROUTES", () => {
+  it("MFA and owner-only time routes are exactly these", () => {
+    expect(TIME_ROUTES.filter((r) => r.mfa).map((r) => r.id).sort())
+      .toEqual(MFA_IDS);
+    expect(TIME_ROUTES.filter((r) => r.roles.length === 1)
+      .map((r) => r.id)).toEqual(["updateWfhSettings"]);
+  });
   it("lists exactly Plan 9's ids in order", () => {
     expect(TIME_ROUTES.map((r) => r.id)).toEqual(TIME_ROUTE_IDS);
   });

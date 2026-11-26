@@ -1,4 +1,5 @@
 import { PAY_INPUTS_STATEMENT } from "./time-pay-inputs";
+import { NEVER_COLLECTED, RETENTION_SOURCE } from "./time-wfh";
 
 /**
  * Plan 9 examples. Fixture names only ("Company Day A"), arbitrary
@@ -54,7 +55,30 @@ const blackout = { id: id(11), name: "Test period", from: "2026-12-01",
   to: "2026-12-10", leaveTypeIds: [], departmentId: null, mode: "warn",
   status: "active" };
 
+const collects = { activeTime: true, categories: true,
+  locationHourly: true };
+const consent = { employeeId: TIME_IDS.employee, noticeVersion: 1,
+  decision: "granted", at: "2026-03-01T08:00:00.000Z" };
+
 const ROSTER_EXAMPLES = {
+  WfhSettings: { enabled: false, retentionDays: null,
+    activityCategories: true, locationHourly: true,
+    maxTrackedMinutesPerRecord: 960,
+    impactAssessment: { done: false, date: null },
+    legalReview: "not-reviewed", noticeVersion: null,
+    neverCollected: [...NEVER_COLLECTED],
+    retentionSource: RETENTION_SOURCE },
+  WfhNotice: { version: 1, publishedAt: "2026-03-01T08:00:00.000Z",
+    textEn: "Work-from-home tracking notice (version 1)", textAr: null,
+    arabicStatus: "not-reviewed", collects,
+    neverCollected: [...NEVER_COLLECTED], retentionDays: 30,
+    legalReview: "not-reviewed", companyNote: null },
+  WfhConsent: consent,
+  WfhWithdrawResult: { consent: { ...consent, decision: "withdrawn" },
+    erasedRows: 0 },
+  WfhStatus: { state: "ready", attendanceId: null, trackedUntil: null,
+    lastLocationAt: null, nextLocationDueAt: null, collects,
+    noticeVersion: 1 },
   LeavePolicy: { leaveTypeId: id(12), payrollKind: "annual",
     accrual: "upfront", joiningYearProRata: false, dayCount: "calendar",
     halfDays: false, carryOverMaxDays: null, carryOverExpiresMonths: null,

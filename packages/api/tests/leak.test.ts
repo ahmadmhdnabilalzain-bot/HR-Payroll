@@ -11,7 +11,9 @@ import {
   type Seeded,
 } from "./helpers/seed";
 import {
+  SELF_ROUTES,
   sheetFixtures,
+  wfhFixtures,
   TIME_ID_KIND,
   TIME_QUERY,
 } from "./helpers/leak-time";
@@ -59,6 +61,9 @@ function visible(role: Role, t: Target, kind: Kind): boolean {
 
 function expected(r: RouteDef, role: Role, t: Target | null): number {
   if (!r.roles.includes(role)) return 403;
+  if (SELF_ROUTES.has(r.id) && (role === "owner" || role === "hr")) {
+    return 422;
+  }
   if (t !== null && !visible(role, t, ID_KIND[r.id] ?? null)) return 404;
   return r.status;
 }
@@ -92,6 +97,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     sifId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
       `/v1/pay-runs/${runId}/sif`)).body.id;
     sheets = await sheetFixtures(ctx, s);
+    await wfhFixtures(ctx, s);
     leaveTypeId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
       "/v1/leave-types", { name: "Type A", paid: true, annualDays: 30 }))
       .body.id;

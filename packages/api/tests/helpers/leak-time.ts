@@ -14,7 +14,20 @@ export const TIME_ID_KIND: Record<string, "employee" | "timesheet" |
   listCorrectionRequests: null, listTimesheets: null,
   getTimesheet: "timesheet", getPayInputs: null,
   getLeavePolicy: "leaveType", listLeaveBlackouts: null,
+  getWfhSettings: null, getCurrentWfhNotice: null, getWfhStatus: null,
 };
+
+/** Routes about the caller's own employee: owner and hr have none. */
+export const SELF_ROUTES = new Set(["getWfhStatus"]);
+
+/** Retention set and a WFH notice published (tracking stays off). */
+export async function wfhFixtures(ctx: { app: App }, s: Seeded) {
+  await call(ctx.app, s.owner.token, s.companyId, "PUT",
+    "/v1/wfh/settings", { retentionDays: 30 });
+  const r = await call(ctx.app, s.hr.token, s.companyId, "POST",
+    "/v1/wfh/notices", {});
+  if (r.status !== 201) throw new Error(`notice ${r.status} ${r.text}`);
+}
 
 export const TIME_QUERY: Record<string, string> = {
   listHolidays: "?year=2026",

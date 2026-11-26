@@ -27,6 +27,7 @@ import { TIME_ROSTER_ROUTES } from "./routes-time-rosters";
 import { TIME_CLOCK_ROUTES } from "./routes-time-clock";
 import { TIME_TIMESHEET_ROUTES } from "./routes-time-timesheets";
 import { TIME_LEAVE_ROUTES } from "./routes-time-leave";
+import { TIME_WFH_ROUTES } from "./routes-time-wfh";
 import { ClockBody } from "./time-clock";
 import {
   ALL_ROLES,
@@ -97,4 +98,5 @@ export const TIME_ROUTES: readonly RouteDef[] = [
   ...TIME_CLOCK_ROUTES,
   ...TIME_TIMESHEET_ROUTES,
   ...TIME_LEAVE_ROUTES,
+  ...TIME_WFH_ROUTES,
 ];

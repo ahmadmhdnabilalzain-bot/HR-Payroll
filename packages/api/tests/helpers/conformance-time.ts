@@ -149,6 +149,33 @@ async function leaveFlow(f: TimeFlowCtx) {
   await hit("runLeaveCarryOver", owner, c, {}, { fromYear: 2025 });
 }
 
+/** Tracking on for the employee, a remote record, then pause. */
+async function wfhOn(f: TimeFlowCtx) {
+  const { hit, owner, emp, c, empId } = f;
+  await hit("updateTimeProfile", owner, c, { id: empId }, {
+    workMode: "hybrid", geofenceMode: "off", workSiteIds: [],
+    wfhTracked: true, shiftWorker: false });
+  await hit("getWfhSettings", emp, c);
+  await hit("updateWfhSettings", owner, c, {}, { retentionDays: 30,
+    impactAssessment: { done: true, date: "2026-02-01" } });
+  const n = await hit("publishWfhNotice", owner, c, {}, {});
+  await hit("updateWfhSettings", owner, c, {}, { enabled: true });
+  await hit("getCurrentWfhNotice", emp, c);
+  await hit("recordWfhConsent", emp, c, {}, {
+    noticeVersion: n.body.version, decision: "granted" });
+  await hit("clockIn", emp, c, {}, { method: "web",
+    workLocation: "remote" });
+  await hit("getWfhStatus", emp, c);
+  await hit("pauseWfh", emp, c);
+  await hit("resumeWfh", emp, c);
+}
+
+async function wfhOff(f: TimeFlowCtx) {
+  const { hit, emp, c } = f;
+  await hit("clockOut", emp, c);
+  await hit("withdrawWfhConsent", emp, c, {}, { erase: false });
+}
+
 /** Every Plan 9 route, in task order. */
 export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await settingsFlow(f);
@@ -158,4 +185,6 @@ export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await correctionFlow(f);
   await timesheetFlow(f);
   await leaveFlow(f);
+  await wfhOn(f);
+  await wfhOff(f);
 }

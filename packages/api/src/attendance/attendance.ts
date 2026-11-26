@@ -11,6 +11,7 @@ import { ApiError } from "../http/errors";
 import type { ClockFacts } from "../time/clock-geofence";
 import { dubaiDate } from "../time/dubai";
 import { assertUnlocked } from "../time/locks";
+import { closePauses } from "../wfh/pause";
 
 export interface AttendanceRow {
   id: string;
@@ -106,6 +107,7 @@ export async function clockOut(tx: Db, t: Tenant, now: Date)
     `UPDATE attendance SET clock_out = $3, minutes = $4
      WHERE company_id = $1 AND id = $2 RETURNING *`,
     [t.companyId, open.id, at, minutesBetween(open.clock_in, at)]);
+  await closePauses(tx, t.companyId, open.id, at);
   return r!;
 }
 

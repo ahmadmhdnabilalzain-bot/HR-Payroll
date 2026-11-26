@@ -87,4 +87,26 @@ async function seedLeaveRows(admin: Db, c: string, emp: string) {
   await admin.query(
     `INSERT INTO leave_carryover_runs (company_id, from_year, created_at)
      VALUES ($1, 2025, $2)`, [c, AT]);
+  await seedWfhRows(admin, c, emp);
+}
+
+async function seedWfhRows(admin: Db, c: string, emp: string) {
+  await admin.query(
+    `INSERT INTO wfh_settings (company_id, enabled, retention_days,
+       activity_categories, location_each_hour, max_tracked_minutes,
+       impact_assessment_done, legal_review, notice_version, updated_at)
+     VALUES ($1, false, 30, true, true, 960, true, 'not-reviewed', 1, $2)`,
+    [c, AT]);
+  await admin.query(
+    `INSERT INTO wfh_notices (company_id, version, published_at, text_en,
+       collects, retention_days, legal_review) VALUES ($1, 1, $2, 'seed',
+       '{}', 30, 'not-reviewed')`, [c, AT]);
+  await admin.query(
+    `INSERT INTO wfh_consents (id, company_id, employee_id, notice_version,
+       decision, at) VALUES ($1, $2, $3, 1, 'declined', $4)`,
+    [rowId(c, "99"), c, emp, AT]);
+  await admin.query(
+    `INSERT INTO wfh_pauses (id, company_id, employee_id, attendance_id,
+       started_at, ended_at) VALUES ($1, $2, $3, $4, $5, $5)`,
+    [rowId(c, "9a"), c, emp, rowId(c, "a4"), AT]);
 }

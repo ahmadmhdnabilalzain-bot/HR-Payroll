@@ -56,6 +56,10 @@ export async function seedTime(ctx: Ctx, s: Seeded): Promise<TimeSeed> {
       workMode: "site", geofenceMode: "off", workSiteIds: [site.id],
       wfhTracked: false, shiftWorker: false }), 200, "profile");
   }
+  // The report works hybrid and is tracked (tracking itself stays off).
+  await must(as(s.hr, "PUT", `/v1/employees/${s.emp.report}/time-profile`,
+    { workMode: "hybrid", geofenceMode: "off", workSiteIds: [site.id],
+      wfhTracked: true, shiftWorker: false }), 200, "wfh profile");
   const shiftId = await seedRoster(ctx, s);
   return { holidayId: h.id, siteId: site.id, shiftId,
     ...await seedLeaveTypes(ctx, s) };
