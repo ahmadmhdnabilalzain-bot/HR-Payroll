@@ -50,7 +50,7 @@ saved. To change who you are, tap the round initials at the top right."
 ## Step 1. Home as HR (0:00 to 2:30)
 
 **Open with one question (30 seconds).** "Before I show anything: what was
-the last thing that went wrong in Keka?" Listen. Write it down. If it
+the last thing that went wrong in your current system?" Listen. Write it down. If it
 matches a step below, say "I will show you that in a minute".
 
 **Click.** Nothing yet. The demo opens on Home, viewing as HR manager
@@ -199,9 +199,9 @@ rely on a secondary source, it says so. You can check it by hand."
   the gratuity, not part of it.
 - Sources named: Federal Decree-Law 33 of 2021, Article 51.
 
-**Say, carefully.** "How does Keka work out gratuity for you today: how
-many days a year, and on a 30-day or 365-day basis?" Do not say Keka is
-wrong. Let them compare.
+**Say, carefully.** "How does your current system work out gratuity today: how
+many days a year, and on a 30-day or 365-day basis?" Do not say it is
+wrong. Never name their vendor; say "your current system". Let them compare.
 
 **If it goes wrong.** If "Settlements" is not in the panel, press
 Cmd K, type "settlement" and press Return. If the side panel is long,
@@ -333,7 +333,7 @@ the top bar (or press /). If a panel does not close, press Esc.
   discovery questions. Do not guess a rate.
 - Price, contract and support hours: say only what you have decided. If
   not decided: "I will send it in writing next week."
-- Close: agree the next step (for example a sample of their Keka exports
+- Close: agree the next step (for example a sample of exports from their current system
   and their regulator's requirements for the IT review).
 
 ---
@@ -358,7 +358,7 @@ Say the first four out loud during the demo; keep the rest for questions.
    In the real system the chain is in the database, which refuses edits
    and deletions.
 6. **Import.** The import screen checks a 12-row sample file. A tool that
-   moves data out of Keka is not built yet.
+   moves data out of your current system is not built yet.
 7. **Pension for UAE nationals** is not computed until the fund is
    confirmed (see the discovery questions).
 8. **Not built yet:** native iPhone and Android apps (the demo is a
