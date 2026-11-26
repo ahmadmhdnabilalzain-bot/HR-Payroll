@@ -1,11 +1,12 @@
-import type { GratuityProvisionRow } from "@payroll/demo-data";
 import { Explainable } from "../../components/explain";
 import { Money } from "../../ui/Money";
 import { FilterList } from "../../ui/templates";
 import { useCostSource } from "./load";
+import type { CostSource } from "./source";
 import s from "./cost.module.css";
 
-const COUNTED = (r: GratuityProvisionRow): boolean => r.amount !== null;
+type Row = CostSource["gratuity"]["rows"][number];
+const COUNTED = (r: Row): boolean => r.amount !== null;
 
 /** R33: gratuity per person as of the demo day, and the company total. */
 export function GratuityProvisionScreen() {

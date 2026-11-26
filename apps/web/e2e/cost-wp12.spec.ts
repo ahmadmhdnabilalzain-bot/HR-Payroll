@@ -16,8 +16,8 @@ test("gratuity-provision-to-explain-to-liability-to-employer-cost",
     await expect(page.getByText("Not applicable (UAE national)").first())
       .toBeVisible();
     await expect(page.getByText("Not yet eligible").first()).toBeVisible();
-    await page.getByRole("button", { name: /How this is worked out: Gratuity provision/ })
-      .first().click();
+    await page.getByRole("button", {
+      name: /How this is worked out: Gratuity provision/ }).first().click();
     await expect(page.getByRole("dialog")).toContainText("as we read");
     await page.keyboard.press("Escape");
     const bad = await new AxeBuilder({ page }).analyze();
