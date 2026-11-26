@@ -452,7 +452,7 @@ then the whole branch, then merge `api-plan-8` after Plan 3.
 
 Plan 13 (branch `api-plan-13`, main merged in): a fresh security
 review of Tasks 4, 5, 7, 8 and 9 (self-reviewed only), then merge.
-Migrations 1301 to 1309 run after 807 (the runner sorts numerically).
+Migrations 1301 to 1309 run after 908 (the runner sorts numerically).
 The API now needs `RECEIPTS_DIR` in every environment, also in the
 serve-only container (`deploy/serve.ts`, compose `receipts` volume).
 

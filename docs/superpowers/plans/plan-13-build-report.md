@@ -523,3 +523,47 @@ Both sides were kept everywhere.
   `/tmp/p9pg`) and dropped it again at once; the throwaway server's
   data directory `/var/lib/postgresql/smoke-p13` is left behind,
   stopped (safe to delete).
+
+### Second merge: Plan 9 (main at `9eec775`)
+
+Main moved on while this merge was finishing (Plan 9: time,
+attendance, leave policies, WFH; migrations 901 to 908;
+`packages/time-client`). Merged again in `410c9c2`; nine files
+conflicted, all resolved keeping both sides:
+
+- `contract/src/routes.ts`: Plan 9 renamed Plan 3's time routes to
+  `LEAVE_ATTENDANCE_ROUTES` (inside `CORE_ROUTES`) and added a new
+  `TIME_ROUTES`; `ROUTE_GROUPS = [CORE, HR, TIME, CHANNEL]` (channels
+  stay last, as `routes-channels.test.ts` expects). `routes-hr.test.ts`
+  checks that every core, HR and time id is in `ROUTES` (subset, no
+  total). `errors.ts`, `audit/allowlist.ts`: both spreads (no code
+  appears in two maps; checked).
+- `main.ts`: the `jobs` command and Plan 9's `purge-wfh` side by side.
+- `routes/leave.ts`: Plan 9's half days, blackout-override audit and
+  warnings plus the `leave.requested` event.
+- Tests: `api-flow` runs channels, then `timeFlow`, then `hrFlow`;
+  `seed-rows` seeds both; the leak test holds both fixture sets, the
+  `employeeQuery` path and both kinds in the company-B list.
+- Plan 9's forbidden-capture column scan (`wfh-settings.test.ts`)
+  flagged six Plan 13 columns; they are allowed by table and column
+  (`webhook_endpoints.url`, `rate_counters.window_start`,
+  `notifications.title`, `inbound_items.content_enc`,
+  `inbound_attachments.content_type`, `calendar_feeds.url_hint`):
+  none holds a window title, page content or capture.
+- Web: Plan 9's own `errors-time.ts` texts came with main; the
+  every-error-code test passes with Plan 13's texts. The lockfile
+  change came from main; `pnpm install` changed nothing more.
+- Migration order is now 001-013, 601-605, 801-807, 901-908,
+  1301-1309 (the numeric runner needed no change); the RLS catalog
+  and real-PostgreSQL suites pass.
+
+Checks after the second merge (one package at a time):
+`packages/api` 124 files, 868 tests: one failure (the column scan
+above), fixed and that file re-run green (6 tests); `packages/contract`
+13 files, 141 tests; `packages/engine` 53 files, 584 tests;
+`packages/wps` 11 files, 173 tests (one round-trip test timed out at
+5 s under machine load on the first run, then passed alone and in a
+full re-run); `packages/time-client` 2 files, 13 tests; `apps/web` 17
+files, 103 tests. `pnpm typecheck`, `pnpm ops:typecheck`,
+`pnpm lines`, `pnpm lines:ops`, `pnpm lines:test` (9), `pnpm ops:test`
+(11): green.

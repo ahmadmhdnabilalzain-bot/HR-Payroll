@@ -99,12 +99,17 @@ describe("wfh settings and notice", () => {
     // Every table, not only wfh_ ones (review M2b, M2c). Allowed by
     // table and column: job titles (employee, offer, requisition),
     // the names of claims, tasks and goals, an expense claim deadline
-    // and a receipt's MIME type. None is a window title, page content
-    // or capture.
+    // and a receipt's MIME type. Plan 13: a webhook endpoint's target
+    // URL, a rate counter's window start, a notification title, a
+    // sealed email-in body, an attachment's MIME type and a feed URL's
+    // last characters. None is a window title, page content or capture.
     const innocent = new Set(["employees.job_title",
       "expense_policies.claim_window_days", "receipts.content_type",
       "expense_claims.title", "offers.job_title", "requisitions.title",
-      "requisitions.title_ar", "goals.title", "tasks.title"]);
+      "requisitions.title_ar", "goals.title", "tasks.title",
+      "webhook_endpoints.url", "rate_counters.window_start",
+      "notifications.title", "inbound_items.content_enc",
+      "inbound_attachments.content_type", "calendar_feeds.url_hint"]);
     const cols = await ctx.deps.db.query<{ table_name: string;
       column_name: string }>(`SELECT table_name, column_name
       FROM information_schema.columns
