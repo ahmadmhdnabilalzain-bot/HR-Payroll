@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LeaveTypeId } from "../demo/data/people-types";
 import { useDemo } from "../demo/state";
-import { requestRows, visibleIds, type RequestRow } from "../demo/time-off";
+import { requestRows, leaveIds, type RequestRow } from "../demo/time-off";
 import { formatMonth } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -53,7 +53,7 @@ export function TeamCalendar() {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const today = data.people.asOf;
-  const ids = new Set(visibleIds(data, state));
+  const ids = new Set(leaveIds(data, state));
   const all = requestRows(data, state).filter((r) => ids.has(r.employeeId));
   // Opens on this month, or the next one with someone off (two ahead).
   const [ym, setYm] = useState(() => [0, 1, 2].map((n) =>

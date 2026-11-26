@@ -20,23 +20,28 @@ const area = (id: string, group: string, en: string, archetype:
  */
 export const AREAS: readonly Area[] = [
   area("people.overview", "team", "Overview", "RP",
-    ["team", "overview"], "P01 dashboard headcount joiners leavers"),
+    ["team", "overview"], "P01 people overview dashboard headcount " +
+      "joiners leavers"),
   area("people.org", "team", "Org chart", "custom",
-    ["team", "org"], "P05 org chart reporting line manager hierarchy"),
+    ["team", "org"], "P05 org organisation chart reporting line " +
+      "manager hierarchy"),
   area("people.positions", "team", "Positions", "LF",
     ["team", "positions"], "P06 seats vacancies establishment budget " +
     "headcount"),
   area("people.sites", "team", "Sites", "RP",
-    ["team", "sites"], "P07 branches locations sites offices"),
+    ["team", "sites"], "P07 staff across the group branches locations " +
+      "sites offices"),
   area("people.centres", "team", "Cost centres", "LF",
     ["team", "cost-centres"], "P08 multi-entity cost centre department"),
   area("people.appraisals", "growth", "Appraisals", "LF",
-    ["growth", "appraisals"], "P60 review rating self assessment cycle"),
+    ["growth", "appraisals"], "P60 appraisals cycles review rating " +
+      "self assessment"),
   area("people.goals", "growth", "Goals", "LF",
-    ["growth", "goals"], "P61 objectives okr targets progress kpi"),
+    ["growth", "goals"], "P61 goals kpis objectives okr targets progress"),
   area("people.performance", "growth", "Performance", "RP",
-    ["growth", "performance"], "P62 ratings goals by department"),
+    ["growth", "performance"], "P62 department performance ratings goals"),
   area("people.probation", "moves", "Probation", "FA",
-    ["growth", "probation"], "P19 probation confirm evaluate new hire " +
+    ["growth", "probation"], "P19 probation evaluations confirm " +
+      "evaluate new hire " +
     "decide by", toDecide),
 ];

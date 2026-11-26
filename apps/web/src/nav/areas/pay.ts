@@ -29,7 +29,8 @@ export const AREAS: readonly Area[] = [
   { id: "pay.runs", section: "pay", group: "month",
     label: { en: "Past runs", ar: "دورات الرواتب السابقة" },
     status: "live", archetype: "LF", roles: HR_GM, route: pay("runs"),
-    keywords: "past runs history trend payslips june july august " +
+    keywords: "pay runs month by month past history trend payslips " +
+      "june july august " +
       "september variance" },
   { id: "pay.offcycle", section: "pay", group: "month",
     label: { en: "Off-cycle", ar: "مدفوعات خارج الدورة" },
@@ -58,11 +59,11 @@ export const AREAS: readonly Area[] = [
     label: { en: "Traffic fines", ar: "المخالفات المرورية" },
     status: "live", archetype: "LF", roles: HR_GM, route: pay("fines"),
     count: withPay((c, v) => finesToDecide(v, c.state)),
-    keywords: "traffic fine car speeding parking" },
+    keywords: "traffic fines to decide car speeding parking" },
   { id: "pay.deductions", section: "pay", group: "changes",
     label: { en: "Deductions", ar: "سجل الاستقطاعات" },
     status: "live", archetype: "LF", roles: HR_GM, route: pay("deductions"),
-    keywords: "deduction ledger loan repayment taken from pay" },
+    keywords: "deductions ledger loan repayment taken from pay" },
   { id: "pay.loans", section: "pay", group: "owed",
     label: { en: "Loans and advances", ar: "القروض والسلف" },
     status: "live", archetype: "FA", roles: HR_GM, route: pay("loans"),

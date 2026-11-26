@@ -17,7 +17,8 @@ export const AREAS: readonly Area[] = [
     label: { en: "Variance", ar: "الفرق عن الشهر السابق" },
     status: "live", archetype: "RP",
     roles: HR_GM, route: rep("variance"),
-    keywords: "why pay moved change drivers month on month" },
+    keywords: "variance against last month why pay moved change " +
+      "drivers month on month" },
   { id: "reports.overtime", section: "reports", group: "pay",
     label: { en: "Overtime cost", ar: "تكلفة العمل الإضافي" },
     status: "live", archetype: "RP", roles: HR_GM, route: rep("overtime"),

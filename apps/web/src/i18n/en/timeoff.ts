@@ -26,6 +26,7 @@ export const timeoff = {
   requestsMine: "Your requests",
   requestsEmpty: "No requests yet. Leave you ask for shows here, with " +
     "who decides it.",
+  requestsEmptyAll: "No leave requests yet.",
   waitingFor: "Waiting for {name}, {role}",
   booked: "Booked",
   bookedBy: "Booked by {name}, {role}, {date}",

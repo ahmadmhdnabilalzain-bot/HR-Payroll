@@ -40,7 +40,7 @@ export const CORE_AREAS: readonly Area[] = [
     status: "live", archetype: "SF", roles: HR_GM,
     route: { section: "pay-run", rest: ["review"] },
     count: (c) => approvalBlockedBy(c.data, c.state).length, stopsPay: true,
-    keywords: "payroll run approve salary" },
+    keywords: "payroll run review fix approve salary" },
   { id: "pay.approve", section: "pay", group: "month",
     label: { en: "Approval", ar: "الاعتماد" }, status: "live",
     archetype: "SF", roles: HR_GM,
@@ -76,10 +76,11 @@ export const CORE_AREAS: readonly Area[] = [
     label: { en: "Nationalities", ar: "العدد حسب الجنسية" },
     status: "live", archetype: "RP", roles: HR_GM,
     route: { section: "reports", rest: ["nationality"] },
-    keywords: "emiratisation nationals" },
+    keywords: "headcount by nationality emiratisation nationals" },
   { id: "reports.documents", section: "reports", group: "people",
     label: { en: "Document expiry", ar: "تقرير المستندات" },
     status: "live", archetype: "RP", roles: HR_GM,
-    route: { section: "reports", rest: ["documents"] } },
+    route: { section: "reports", rest: ["documents"] },
+    keywords: "documents expiring report visa passport" },
   /* Requests and Me: nav/areas/home-me.ts (WP10). */
 ];

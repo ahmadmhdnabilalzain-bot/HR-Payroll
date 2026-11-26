@@ -7,7 +7,12 @@ import {
   type DemoState,
   type Role,
 } from "../../src/demo/state";
-import { canSeePay, personFor, visibleIds } from "../../src/demo/time-off";
+import {
+  canSeePay,
+  leaveIds,
+  personFor,
+  visibleIds,
+} from "../../src/demo/time-off";
 import {
   inboxNotes,
   inboxTasks,
@@ -45,6 +50,9 @@ describe("home inbox (WP10)", () => {
     const other = d.people.people().find((p) => p.id !== me)!;
     expect(canSeePay(d, s, other.id)).toBe(false);
     expect(canSeePay(d, s, me)).toBe(true);
+    // Time off: only their own leave, not everyone's reasons.
+    expect(leaveIds(d, s)).toEqual([me]);
+    expect(leaveIds(d, as("hr"))).toHaveLength(d.people.people().length);
     expect(barFor("it")).toContain("people");
     expect(barFor("it")).not.toContain("pay");
     expect(barFor("it")).toEqual(["home", "people", "time", "reports",

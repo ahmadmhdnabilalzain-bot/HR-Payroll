@@ -334,7 +334,8 @@ the explain panel. Severity words: "Stops pay" and "Check".
 ## Home inbox, Me and the IT manager (WP10, Claude's calls)
 
 - **IT manager** (`role: "it"`): bar Home, People, Time, Reports,
-  Setup (map section 1). Time holds Leave requests (their own) and
+  Setup (map section 1). Time holds Leave requests (their own only,
+  `leaveIds` in `demo/time-off.ts`) and
   attendance as the clocks record it: Attendance today and the
   register (`WATCH` in `time/routes.ts`); no overtime, no pay.
   Sees the directory but no one's pay (`canSeePay`); a typed

@@ -33,7 +33,8 @@ export const AREAS: readonly Area[] = [
     label: { en: "Letters", ar: "الخطابات" },
     status: "live", archetype: "FA", roles: HR_GM, route: papers("letters"),
     count: waitingLetters,
-    keywords: "salary certificate noc no objection experience letter" },
+    keywords: "letters salary certificate noc no objection " +
+      "experience letter" },
   { id: "people.visas", section: "people", group: "papers",
     label: { en: "Visas", ar: "التأشيرات" },
     status: "live", archetype: "LF", roles: HR_GM, route: papers("visas"),
@@ -51,7 +52,8 @@ export const AREAS: readonly Area[] = [
   { id: "people.calendar", section: "people", group: "compliance",
     label: { en: "Due dates", ar: "تقويم الامتثال" },
     status: "live", archetype: "CA", roles: HR_GM,
-    route: papers("calendar"), keywords: "due dates calendar expiry" },
+    route: papers("calendar"), keywords: "compliance calendar due " +
+      "dates expiry" },
   { id: "people.emiratisation", section: "people", group: "compliance",
     label: { en: "Emiratisation", ar: "التوطين" },
     status: "live", archetype: "RP", roles: HR_GM,
