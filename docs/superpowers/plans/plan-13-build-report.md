@@ -67,3 +67,20 @@ In progress (updated after each task).
   before `601_`); test `migrate_numeric_order`.
 - `INBOUND_PAYLOAD_INVALID` and `SSO_NOT_CONFIGURED` were added in
   Task 1 (the not-configured ports throw them).
+
+### Task 2: notifications, templates, quiet hours
+
+- `emitEvent(c: EventCtx, e)` takes `{ tx, deps, companyId }` instead
+  of `ReqCtx | JobCtx` (`eventCtx(ctx)` builds it from a request);
+  Plan 11's `JobCtx` does not exist on this branch.
+- Events are emitted from the leave route handlers (create, approve,
+  reject), pay-run approval, Plan 6's `openRequest` and `decide` (a
+  moved step notifies the next step's approvers; a close notifies the
+  claimant).
+- Template variable errors are internal `CodedError`s (never API
+  codes), as the plan says.
+- A field-crypto helper for Plan 13 tables (`channels/crypto.ts`) uses
+  the company key with AAD `<company>:<table>:<column>:<row>`, so
+  Plan 3's sealed-column union is not widened.
+- Notification titles and bodies are stored in clear (the plan's
+  table); only the outbox payload is sealed.

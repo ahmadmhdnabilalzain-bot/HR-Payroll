@@ -11,6 +11,9 @@ import {
 /** Every Plan 13 route id, in task order (each task appends). */
 const CHANNEL_ROUTE_IDS = [
   "getChannelSettings", "putChannelSettings",
+  "listNotifications", "markNotificationsRead", "getNotificationPrefs",
+  "putNotificationPrefs", "listNotificationDeliveries",
+  "listNotificationTemplates",
 ];
 
 describe("CHANNEL_ROUTES", () => {

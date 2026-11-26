@@ -1,10 +1,16 @@
 import type { z } from "zod";
 import * as settings from "./channel-settings";
+import * as notifications from "./notifications";
+import * as templates from "./templates";
 
 /** Plan 13's named schemas (OpenAPI components and EXAMPLES keys). */
 const NAMES: [Record<string, unknown>, string[]][] = [
   [settings, ["ProviderStatus", "ChannelSettingsBody", "ChannelSettings",
     "ChannelSettingsUpdate"]],
+  [notifications, ["QuietHours", "NotificationPrefs",
+    "NotificationPrefsView", "Notification", "NotificationPage",
+    "MarkRead", "MarkReadResult", "DeliveryRow", "DeliveryRowList"]],
+  [templates, ["TemplateInfo", "TemplateInfoList"]],
 ];
 
 export const CHANNEL_SCHEMAS: Readonly<Record<string, z.ZodType>> =

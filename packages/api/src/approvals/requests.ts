@@ -8,6 +8,8 @@ import type {
 } from "@payroll/contract";
 import { daysBetween } from "@payroll/engine";
 import { appendAudit } from "../audit/audit";
+import { emitEvent } from "../channels/events";
+import { eventCtx } from "../channels/notify";
 import type { Db } from "../db/db";
 import { parseAed } from "../db/money";
 import type { ReqCtx } from "../http/context";
@@ -124,6 +126,9 @@ export async function openRequest(ctx: ReqCtx, handlers: SubjectHandlers,
   await appendAudit(ctx.tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "approval.opened", entityType: "approval", entityId: id,
     data: { subjectType: type, stepCount: steps.length } });
+  await emitEvent(eventCtx(ctx), { type: "approval.pending",
+    approvalId: id, stepOrder: 1, subjectType: type,
+    requesterEmployeeId: facts.claimantEmployeeId });
   return viewFor(ctx.tx, c, id);
 }
 

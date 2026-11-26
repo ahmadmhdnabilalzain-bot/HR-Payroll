@@ -21,6 +21,18 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
   const s = await hit("getChannelSettings", u.owner, c);
   await hit("putChannelSettings", u.owner, c, {}, { ...settingsBody(s.body),
     emailEnabled: true, expectedVersion: s.body.version });
+  await notifications(hit, u);
+}
+
+async function notifications(hit: Hitter, u: FlowUsers) {
+  const c = u.company;
+  await hit("listNotifications", u.emp, c);
+  await hit("markNotificationsRead", u.emp, c, {}, { all: true });
+  const p = await hit("getNotificationPrefs", u.emp, c);
+  const { note: _n, ...prefs } = p.body;
+  await hit("putNotificationPrefs", u.emp, c, {}, prefs);
+  await hit("listNotificationDeliveries", u.owner, c);
+  await hit("listNotificationTemplates", u.owner, c);
 }
 
 function settingsBody(b: Record<string, unknown>) {

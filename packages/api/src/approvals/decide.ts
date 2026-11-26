@@ -4,6 +4,8 @@ import type {
   ErrorCode,
 } from "@payroll/contract";
 import { appendAudit } from "../audit/audit";
+import { emitEvent } from "../channels/events";
+import { eventCtx } from "../channels/notify";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import {
@@ -134,5 +136,18 @@ export async function decide(ctx: ReqCtx<ApprovalDecision>,
     await handlerFor(handlers, r.subject_type).onClosed(ctx, r.subject_id,
       closed);
   }
+  await emitDecision(ctx, r, closed);
   return viewFor(ctx.tx, c, r.id);
+}
+
+/** The claimant hears of a close; the next step's approvers of a move. */
+async function emitDecision(ctx: ReqCtx, r: RequestRow,
+  closed: Outcome | null): Promise<void> {
+  await emitEvent(eventCtx(ctx), closed === null
+    ? { type: "approval.pending", approvalId: r.id,
+      stepOrder: r.current_step! + 1, subjectType: r.subject_type,
+      requesterEmployeeId: r.claimant_employee_id }
+    : { type: "approval.closed", approvalId: r.id,
+      subjectType: r.subject_type, subjectId: r.subject_id,
+      outcome: closed, claimantUserId: r.claimant_user_id });
 }

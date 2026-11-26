@@ -5,6 +5,8 @@ import {
 } from "@payroll/contract";
 import { fils } from "@payroll/engine";
 import { appendAudit } from "../audit/audit";
+import { emitEvent } from "../channels/events";
+import { eventCtx } from "../channels/notify";
 import { canonicalJson, sha256Hex } from "../audit/canonical";
 import type { Db } from "../db/db";
 import { toMoney } from "../db/money";
@@ -199,6 +201,8 @@ export async function approvePayRun(ctx: ReqCtx<unknown, unknown,
     action: "pay-run.approved", entityType: "pay-run", entityId: r.id,
     data: { year: r.year, month: r.month } });
   await markReimbursed(ctx, r.id);
+  await emitEvent(eventCtx(ctx), { type: "pay-run.approved",
+    payRunId: r.id, period: { year: r.year, month: r.month } });
   return toPayRun(await loadRun(tx, c, r.id));
 }
 

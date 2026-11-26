@@ -21,4 +21,16 @@ export async function seedChannelRows(admin: Db, c: string, _emp: string,
   await admin.query(
     `INSERT INTO inbound_seen (company_id, provider, message_id, seen_at)
      VALUES ($1, 'seed', $2, $3)`, [c, rowId(c, "d9"), AT]);
+  await admin.query(
+    `INSERT INTO notifications (id, company_id, user_id, kind, title, body,
+       created_at) VALUES ($1, $2, $3, 'inbound-received', 't', 'b', $4)`,
+    [rowId(c, "d1"), c, user, AT]);
+  await admin.query(
+    `INSERT INTO notification_prefs (company_id, user_id, body,
+       updated_at) VALUES ($1, $2, '{}', $3)`, [c, user, AT]);
+  await admin.query(
+    `INSERT INTO notification_deliveries (id, company_id, notification_id,
+       user_id, channel, kind, status, created_at)
+     VALUES ($1, $2, $3, $4, 'email', 'inbound-received', 'sent', $5)`,
+    [rowId(c, "d2"), c, rowId(c, "d1"), user, AT]);
 }

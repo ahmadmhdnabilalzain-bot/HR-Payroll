@@ -6,6 +6,8 @@ import type {
   LeaveTypeUpdate,
 } from "@payroll/contract";
 import { appendAudit, type AuditData } from "../audit/audit";
+import { emitEvent } from "../channels/events";
+import { eventCtx } from "../channels/notify";
 import type { AppDeps } from "../deps";
 import { register, type App, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
@@ -95,6 +97,9 @@ async function createReq(ctx: ReqCtx<LeaveRequestCreate>) {
   await audit(ctx, "leave.requested", "leave-request", r.id,
     { employeeId: r.employee_id, leaveTypeId: r.leave_type_id,
       days: r.days });
+  await emitEvent(eventCtx(ctx), { type: "leave.requested",
+    leaveRequestId: r.id, employeeId: r.employee_id, start: r.start_date,
+    end: r.end_date });
   return toLeaveRequest(r, s);
 }
 
@@ -106,6 +111,9 @@ function decider(to: "approved" | "rejected") {
       s);
     await audit(ctx, `leave.${to}`, "leave-request", r.id,
       { employeeId: r.employee_id });
+    await emitEvent(eventCtx(ctx), { type: "leave.decided",
+      leaveRequestId: r.id, employeeId: r.employee_id,
+      start: r.start_date, end: r.end_date, outcome: to });
     return toLeaveRequest(r, s);
   };
 }
