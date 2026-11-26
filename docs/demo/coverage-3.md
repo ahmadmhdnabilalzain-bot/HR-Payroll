@@ -6,6 +6,9 @@ live, see section 3a; the counts below are the updated ones.
 Updated 2026-11-26 on branch release (motion, features and ft4 merged): no
 change to the count. P20 is now Hiring budget and stays live; hiring
 requests sit under P10, which was live already. See section 3b.
+Updated 2026-11-26 on branch release (mfa, ft5, ft6, kit and mfb merged): 4
+more rows live (E16, X34, H15, H12), 187 of 207. See section 3c; the counts
+below are the updated ones.
 Map: docs/design/2026-11-26-navigation-map.md, section 8 (207 UAE-scope rows:
 208 less R45, Saudi payroll). Method as in docs/demo/coverage-2.md. Coverage 2
 was counted at HEAD 0448198 (160 live).
@@ -30,26 +33,26 @@ was counted at HEAD 0448198 (160 live).
 | Measure | Rows | Share |
 |---|---|---|
 | UAE-scope rows (base) | 207 | 100% |
-| Live | 183 | 88.4% |
-| Partial | 5 | 2.4% |
-| Missing | 19 | 9.2% |
+| Live | 187 | 90.3% |
+| Partial | 4 | 1.9% |
+| Missing | 16 | 7.7% |
 | of which skipped on purpose | 8 | |
-| Target, 80% of 207 | 166 | met, 17 rows over |
-| Live without the 8 skipped rows | 183 of 199 | 92.0% |
+| Target, 80% of 207 | 166 | met, 21 rows over |
+| Live without the 8 skipped rows | 187 of 199 | 94.0% |
 
 HR and payroll rows: the 207 are the HR and payroll rows already. The other
 Manar One modules are section 9 of the map and are not in the base. So the HR
-and payroll figure is 183 of 207, 88.4 percent. The 80 percent target was
+and payroll figure is 187 of 207, 90.3 percent. The 80 percent target was
 reached at 166; coverage 2 stood at 160 (77.3 percent), so wave 4 added 16
 live rows and moved 2 partial rows to live (176), and the features merge
-added 7 more (183).
+added 7 more (183), and ft5 and ft6 added 4 (187).
 
 | Origin | Rows | Live | Share |
 |---|---|---|---|
-| Manar-origin (M and B) | 145 | 137 | 94.5% |
-| Market-only (K), in scope | 62 | 46 | 74.2% |
+| Manar-origin (M and B) | 145 | 138 | 95.2% |
+| Market-only (K), in scope | 62 | 49 | 79.0% |
 
-If the 5 partial rows were finished: 188 of 207, 90.8 percent.
+If the 4 partial rows were finished: 191 of 207, 92.3 percent.
 
 ## 3. Rows that became live since coverage 2 (16)
 
@@ -80,7 +83,7 @@ live now and not new rows: people.doc-expiry (expiry list) and the signing
 areas (WP27 and the earlier e-signature work), which sit under rows already
 counted.
 
-Judgement call: H12 stays partial. WP31 added a "Video to record" marker to
+Judgement call (at coverage 3; superseded by section 3c): H12 stayed partial. WP31 added a "Video to record" marker to
 each help card, but no card has a real clip, and the row says videos. If the
 owner accepts markers, live is 177 (85.5 percent).
 
@@ -126,10 +129,40 @@ registry now has 195 areas (193 less 1 plus 3). The search still finds
 
 So live stays 183 of 207 (88.4 percent); partial 5, missing 19.
 
+## 3c. The ft5 and ft6 merges: 187
+
+Branch release = motion, features, ft4, then mfa, ft5 (with ft2), ft6, kit
+and mfb. ft5 and ft6 add two registry areas, reports.ask (X34, HR and GM)
+and me.policies (H15, every role): 195 + 2 = 197 areas, all live. E16 is a
+sheet on the payslip, not an area. H12 has no new area: me.help gains the
+walkthroughs. Each was opened on a fresh vite build served the way
+render.live.yaml serves it (port 4881), at 1440 x 900, as the role named.
+
+| ID | Row | Was | Where | Opened as | Seen |
+|---|---|---|---|---|---|
+| E16 | Ask about a payslip line | missing | #/me/payslips, October, "About this line" (7 lines) | Employee (Jose Reyes) | sheet "About this line", worked answers, "Ask HR about this line", "Sent to HR" |
+| X34 | Ask for a report in words | missing | Reports home, "Ask for a report"; reports.ask | HR manager | "variance for september" opens #/reports/variance/2026-09; unknown words read "No report matched those words" |
+| H15 | AI assistant, cited policy Q&A | missing | #/me/policies, heading "Ask about a policy" | HR manager, Employee, IT manager | a quote with "Leave policy, section 3.2", Acknowledge, "Not covered in our policies" with Ask HR |
+| H12 | Help and training videos | partial | #/me/help, heading "Help" | HR manager | 14 cards, each with "Walkthrough: 90 seconds" (Step 1 of 5, Next, Back, Close) |
+
+Judgement calls, said plainly:
+- H12 is counted live with an honest walkthrough instead of videos. The
+  "Video to record" markers are gone; each card has a guided list of steps
+  that says it is not a video. No clip is recorded. If the owner wants real
+  video for this row, H12 goes back to partial and live is 186.
+- H15 and E16 are rule-based: answers quote the policy text or are worked
+  out from the payslip and the rules, and the screens say no model writes
+  them. They are counted live because the rows ask for cited answers, and
+  the citation is there. X34 matches words to the report list.
+
+So live is 187 of 207 (90.3 percent); partial 4, missing 16 (8 of them
+skipped on purpose).
+
 ## 4. Wave 4 work packages not yet landed
 
 Update: WP21 (bonus run) and WP30 (commission) have landed (section 3a), and
-the anomaly checks of WP29 have landed; the ask screens of WP29 have not. The
+the anomaly checks of WP29 have landed; the ask screens of WP29 (E16, H15)
+and X34 have landed in ft5 and ft6 (section 3c). The
 paragraph below is as counted at HEAD 2d8e196.
 
 
@@ -140,7 +173,7 @@ register and the employer cost report; the off-cycle screen says "There is no
 bonus run this year"; DEMO_AR_REVIEWED is false, so Arabic stays behind
 ?ar=1; no ask screen or anomaly checks exist; no commission area exists.
 
-## 5. Rows not live, 24 in all, by priority for the 80 percent target
+## 5. Rows not live, 20 in all, by priority for the 80 percent target
 
 Target already met, so the order is value to the bank HR manager, General
 manager and IT manager: law and money first, then time saved, then nice to
@@ -153,30 +186,26 @@ partial, missing (not built), not for a bank, skipped.
 | 2 | P44 | Pension (GPSSA) register | partial | register of 14 nationals, no contribution figures (WP20) |
 | 3 | X04 | Employer cost and costing | partial | employer cost leaves pension out and says so (WP20) |
 | 4 | S41 | Arabic screens (switch) | partial | hidden unless ?ar=1; labels not native-reviewed (WP24) |
-| 5 | H12 | Help and training videos | partial | how-to cards with a "Video to record" marker, no clips |
-| 6 | H15 | AI assistant, cited policy Q&A | missing | not built (WP29) |
-| 7 | E16 | Ask about a payslip line | missing | not built (WP29) |
-| 8 | R47 | Direct WPS submission | missing | not built; file download only |
-| 9 | X34 | Ask for a report in words | missing | not built |
-| 10 | H16 | Agent actions you confirm | missing | not built |
-| 11 | P21 | AI resume screening | missing | not built |
-| 12 | R42 | Pay from evidence (KPI pay) | missing | not built |
-| 13 | R46 | Earned wage access, cards | missing | not built |
-| 14 | R40 | Multi-currency payroll | not for a bank | the bank pays in AED |
-| 15 | R44 | DIFC DEWS, other GCC pensions | not for a bank | bank is mainland, not DIFC; GCC part dropped by owner ruling |
-| 16 | X09 | Recharges between companies | not for a bank | one company in the data |
-| 17 | H13 | Team chat and intranet | skipped | the bank has its own intranet and chat |
-| 18 | H14 | Meetings with transcript | skipped | meeting tools sit outside HR |
-| 19 | P49 | Labour crews and documents | skipped | labour crews, not a bank workforce |
-| 20 | P50 | Accommodation (camps) | skipped | labour camps, not a bank workforce |
-| 21 | P55 | Sector packs, licence gates | skipped | construction licence gates |
-| 22 | S07 | Trades | skipped | not a bank workforce |
-| 23 | S42 | Bureau console (accountants) | skipped | for accountancy firms |
-| 24 | X36 | Public accuracy scoreboard | skipped | vendor marketing scoreboard |
+| 5 | R47 | Direct WPS submission | missing | not built; file download only |
+| 6 | H16 | Agent actions you confirm | missing | not built |
+| 7 | P21 | AI resume screening | missing | not built |
+| 8 | R42 | Pay from evidence (KPI pay) | missing | not built |
+| 9 | R46 | Earned wage access, cards | missing | not built |
+| 10 | R40 | Multi-currency payroll | not for a bank | the bank pays in AED |
+| 11 | R44 | DIFC DEWS, other GCC pensions | not for a bank | bank is mainland, not DIFC; GCC part dropped by owner ruling |
+| 12 | X09 | Recharges between companies | not for a bank | one company in the data |
+| 13 | H13 | Team chat and intranet | skipped | the bank has its own intranet and chat |
+| 14 | H14 | Meetings with transcript | skipped | meeting tools sit outside HR |
+| 15 | P49 | Labour crews and documents | skipped | labour crews, not a bank workforce |
+| 16 | P50 | Accommodation (camps) | skipped | labour camps, not a bank workforce |
+| 17 | P55 | Sector packs, licence gates | skipped | construction licence gates |
+| 18 | S07 | Trades | skipped | not a bank workforce |
+| 19 | S42 | Bureau console (accountants) | skipped | for accountancy firms |
+| 20 | X36 | Public accuracy scoreboard | skipped | vendor marketing scoreboard |
 
-Counts: 5 partial, 11 missing (rows 6 to 13 and
-the 3 "not for a bank" rows), 8 skipped. 5 + 11 + 8 = 24, and
-207 - 183 = 24.
+Counts: 4 partial, 8 missing (rows 5 to 9 and
+the 3 "not for a bank" rows), 8 skipped. 4 + 8 + 8 = 20, and
+207 - 187 = 20.
 
 Out of scope: R45, Saudi payroll: other country.
 

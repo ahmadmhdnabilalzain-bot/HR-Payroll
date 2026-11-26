@@ -8,7 +8,8 @@ General Manager (GM) and IT Manager. They open the same link on their own
 iPhones (Safari).
 
 Every figure below was read from the demo itself on 26 Nov 2026 (build of
-branch release: motion, the new features and hiring merged). Link:
+branch release: motion, the new features, hiring, and the payslip-line,
+report, policy and help screens merged). Link:
 https://hr-payroll-demo-site-223y.onrender.com (add ?v= and the time to
 get the newest copy if a cached page shows). If a figure on screen differs, trust
 the screen and say "this is the sample bank's figure".
@@ -78,7 +79,7 @@ saved. To change who you are, tap the round initials at the top right."
 | 6 | Employee asks for leave, manager decides | 12:00 to 15:00 | MUST |
 | 7 | IT manager view | 15:00 to 19:00 | MUST (short form if late) |
 | 8 | Menu panels and Cmd K | 19:00 to 21:00 | MUST (2 minutes) |
-| 9 | New features: hiring, bonus and commission, checks, sandbox, templates, referrals, audit | 21:00 to 25:00 | OPTIONAL, pick two |
+| 9 | New features: hiring, bonus and commission, checks, sandbox, templates, referrals, payslip line, ask for a report, policies, help | 21:00 to 25:00 | OPTIONAL, pick two |
 | 10 | Questions and answers | 25:00 on | MUST |
 
 If you are behind at the 15:00 mark, skip the optional extras and go
@@ -432,6 +433,35 @@ from.
 
 **F. Referrals and agencies.** People, "Hiring", "Referrals and agencies":
 who referred whom, and what becomes payable after probation.
+
+**G. About this line (employee payslip).** As "Employee, Jose Reyes":
+Pay, "My payslips", October. Each line has an "About this line" button.
+Click the one for Overtime: a sheet reads "Overtime on this payslip is
+AED 250.00", basic salary AED 8,000.00, hourly rate AED 33.33, "Overtime
+worked: 6 hours", 125%. Under "Questions you may have" click "Why is
+overtime AED 250.00?". Then "Ask HR about this line", "Send to HR": it
+reads "Sent to HR with the line and the amount". Say: "The answer is
+worked out from the payslip and the rules, not written by a person; the
+sheet says so."
+
+**H. Ask for a report in words.** As HR manager: Reports. In "Ask for a
+report" type "variance for september" and click "Show report": it opens
+"Variance against last month" for September. Type something it does not
+know ("tell me a joke"): "No report matched those words". Say: "It
+matches your words to the report list. Nothing is made up."
+
+**I. Ask about a policy.** Cmd K, "Policy answers". Type
+"How do I report sick?" and click "Find in policies": a quote from the
+policy ("add a medical certificate from a licensed clinic") with the
+link "Leave policy, section 3.2". Open it and click "Acknowledge". A
+question the policies do not cover reads "Not covered in our policies"
+with "Ask HR". Say: "The answer is a quote with its section. The match
+is by shared words: no model writes it."
+
+**J. Help walkthroughs.** Cmd K, type "Help", choose "Help" (Setup, the
+second line; the first is the HR help desk). Each card has "Walkthrough: 90
+seconds": a guided list of steps ("Step 1 of 5", Next, Back, Close), not
+a video. Say so if asked: the videos are not recorded yet.
 
 If a screen is not where this says, press Cmd K and type its name.
 
