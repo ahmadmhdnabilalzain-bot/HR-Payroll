@@ -68,7 +68,10 @@ export const timeoff: ArOf<typeof en> = {
   workingDays: days("", " عمل"),
   weekendsSkipped: counted("لا يُحتسب ", " من عطلة نهاية الأسبوع"),
   afterThis: "يتبقى {days} بعد هذا الطلب",
-  holidayNote: "العطلات الرسمية غير محمّلة في هذا العرض.",
+  holidaysSkipped: counted("لا يُحتسب ", " من العطلات الرسمية"),
+  holidayNote: "تُحتسب أيام العمل فقط: تُستثنى عطلة نهاية الأسبوع " +
+    "والعطلات الرسمية التجريبية في الإعدادات.",
+  legendRest: "عطلة نهاية الأسبوع أو عطلة رسمية (لا تُحتسب)",
   goesTo: "يُرسل إلى {name}، {role}",
   send: "إرسال الطلب",
   cancel: "إلغاء",

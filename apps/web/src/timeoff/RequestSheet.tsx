@@ -53,7 +53,7 @@ export function RequestSheet(q: { open: boolean; onClose(): void;
   };
   const approver = data.people.person(data.people.approverOf(me));
   const count = end >= start && start !== "" && end !== ""
-    ? data.people.countDays(start, end) : { halves: 0, weekendDays: 0 };
+    ? data.people.countDays(start, end) : { halves: 0, weekendDays: 0, holidayDays: 0 };
   const bal = annualNow(data, state, me);
   const taken = requestRows(data, state).filter((r) => r.employeeId === me
     && (r.state === "booked" || r.state === "waiting"));
@@ -140,6 +140,8 @@ export function RequestSheet(q: { open: boolean; onClose(): void;
               <p className={s.countSub}>
                 {[count.weekendDays > 0 ? t("timeoff.weekendsSkipped",
                   { count: count.weekendDays }) : "",
+                count.holidayDays > 0 ? t("timeoff.holidaysSkipped",
+                  { count: count.holidayDays }) : "",
                 type === "lt-annual" && left !== null ? t(
                   "timeoff.afterThis", { days: dayCountText(left, t,
                     lang) }) : ""].filter((x) => x !== "").join(" · ")}
