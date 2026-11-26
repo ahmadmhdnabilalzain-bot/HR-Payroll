@@ -3,7 +3,7 @@ import { ExplainLink } from "../components/explain";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
-import { formatDate } from "../i18n/format";
+import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
@@ -91,7 +91,8 @@ export function Revisions() {
         columns={[
           { key: "who", label: "Person", render: (r) => r.name },
           { key: "eff", label: "From", render: (r) => r.rev !== null
-            ? r.rev.effective : formatDate(r.req!.effective ?? "", lang) },
+            ? r.rev.effective
+            : formatDayMonth(r.req!.effective ?? "", lang) },
           { key: "to", label: "New basic", end: true, render: (r) =>
             <Money value={r.rev?.to ?? r.req!.amount} size="sm" /> },
           { key: "back", label: "Back pay", end: true, render: (r) =>
@@ -184,14 +185,15 @@ function RequestPage(p: { r: PayRequest }) {
   const before = pay.people.find((x) => x.id === r.employeeId)?.basic;
   return (
     <RecordTabs title={data.employee(r.employeeId).name.en}
-      lede={`Salary revision, sent ${formatDate(r.requestedOn, lang)}`}
+      lede={"Salary revision, sent " +
+        formatDayMonth(r.requestedOn, lang)}
       back={{ label: "Salary revisions", href: LIST }}
       stats={[
         { label: "New basic", value: <Money value={r.amount} size="lg" /> },
         ...(before === undefined ? [] : [{ label: "Now",
           value: <Money value={before} size="lg" /> }]),
         { label: "Takes effect",
-          value: formatDate(r.effective ?? "", lang) },
+          value: formatDayMonth(r.effective ?? "", lang) },
       ]}
       tabs={[
         { id: "decision", label: "Decision", render: () => (

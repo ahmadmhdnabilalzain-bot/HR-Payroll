@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useSwitchRole } from "../demo/actions";
 import { personOf } from "../demo/derive";
 import { useDemo } from "../demo/state";
-import { formatDate } from "../i18n/format";
+import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import b from "../ui/button.module.css";
@@ -86,7 +86,7 @@ export function RequestPanel(p: { r: PayRequest; what: string }) {
   const me = personOf(data, state.role);
   const isChecker = me === p.r.checkerId;
   const gmDecides = p.r.checkerId === data.runPeople().checkerId;
-  const today = formatDate(data.payCalendar().asOf, lang);
+  const today = formatDayMonth(data.payCalendar().asOf, lang);
   const checker = whoIs(data, p.r.checkerId);
   const decide = (v: "approve" | "decline"): void => {
     dispatch({ type: "decide", id: p.r.approvalId, verdict: v });
@@ -104,7 +104,7 @@ export function RequestPanel(p: { r: PayRequest; what: string }) {
             <p className={s.chainLabel}>Prepared</p>
             <p className={s.chainWho}>{whoIs(data, p.r.makerId)}</p>
             <p className={s.chainLabel}>
-              {formatDate(p.r.requestedOn, lang)}</p>
+              {formatDayMonth(p.r.requestedOn, lang)}</p>
           </div>
         </li>
         <li className={s.chainItem} data-state={st === "agreed" ? "done"

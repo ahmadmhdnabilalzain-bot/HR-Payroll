@@ -4,7 +4,7 @@ import { Explainable } from "../components/explain";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
-import { formatDate } from "../i18n/format";
+import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
@@ -239,12 +239,12 @@ function RequestPage(p: { r: PayRequest }) {
   const what = r.kind === "advance" ? "Salary advance" : "Loan";
   return (
     <RecordTabs title={data.employee(r.employeeId).name.en}
-      lede={`${what} request, sent ${formatDate(r.requestedOn, lang)}`}
+      lede={`${what} request, sent ` +
+        formatDayMonth(r.requestedOn, lang)}
       back={{ label: "Loans and advances", href: LIST }}
       stats={[
         { label: "Amount", value: <Money value={r.amount} size="lg" /> },
         { label: "Months to repay", value: String(r.months ?? 0) },
-        { label: "First deduction", value: r.month ?? "" },
       ]}
       tabs={[
         { id: "decision", label: "Decision", render: () => (
@@ -253,6 +253,7 @@ function RequestPage(p: { r: PayRequest }) {
           <div className={s.stack}>
             <KeyValues items={[
               { label: "Status", value: <RequestStatus r={r} /> },
+              { label: "First deduction", value: r.month ?? "" },
               { label: "Reason", value: r.reason === "" ? "None given"
                 : r.reason },
             ]} />

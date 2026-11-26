@@ -76,6 +76,14 @@ describe("WP6 pay view", () => {
     }
   });
 
+  it("deductions-ledger-sums-to-each-run", () => {
+    for (const r of view.runs) {
+      const sum = view.deductions.filter((d) => d.month === r.label)
+        .reduce((n, d) => n + d.amount, 0n);
+      expect(sum).toBe(r.deductions);
+    }
+  });
+
   it("loan-balances-follow-the-ledger", () => {
     for (const l of view.loans) {
       const last = l.ledger.at(-1);

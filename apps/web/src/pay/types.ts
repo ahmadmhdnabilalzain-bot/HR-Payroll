@@ -140,7 +140,21 @@ export interface PayPerson {
   basic: Fils;
 }
 
+export interface DeductionLine {
+  id: string;
+  month: string;
+  employeeId: string;
+  name: string;
+  /** "Loan repayment LN-2041". */
+  label: string;
+  amount: Fils;
+  /** The loan the line repays, when it is one ("LN-2041"). */
+  ref: string | null;
+}
+
 export interface PayView {
+  /** Every deduction line in the pay runs, June to October. */
+  deductions: DeductionLine[];
   loans: LoanView[];
   revisions: RevisionView[];
   corrections: CorrectionView[];

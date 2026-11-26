@@ -3,6 +3,7 @@ import { useDemo } from "../demo/state";
 import { canSeePayRecords } from "./derive";
 import { CorrectionRecord, Corrections } from "./Corrections";
 import { FineRecord, Fines } from "./Fines";
+import { Deductions, OffCycle } from "./Ledger";
 import { LoanRecord, Loans } from "./Loans";
 import { Loading, Outside } from "./parts";
 import { PastRuns, RunRecord } from "./PastRuns";
@@ -16,7 +17,8 @@ import { SettlementRecord, Settlements } from "./Settlements";
  * paths; PayRun.tsx hands any other first segment here.
  */
 export const PAY_AREAS = ["loans", "revisions", "corrections",
-  "settlements", "runs", "fines", "groups", "elements"] as const;
+  "settlements", "runs", "fines", "groups", "elements", "deductions",
+  "off-cycle"] as const;
 export type PayAreaId = (typeof PAY_AREAS)[number];
 
 export const isPayArea = (x: string | undefined): x is PayAreaId =>
@@ -36,6 +38,8 @@ function screen(area: PayAreaId, id: string | undefined): ReactNode {
     case "fines": return id === undefined ? <Fines /> : <FineRecord id={id} />;
     case "groups": return <PayGroups />;
     case "elements": return <PayElements />;
+    case "deductions": return <Deductions />;
+    case "off-cycle": return <OffCycle />;
   }
 }
 

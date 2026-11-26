@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Explainable } from "../components/explain";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
-import { formatDate } from "../i18n/format";
+import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
@@ -153,9 +153,7 @@ function CorrectionPage(p: { c: CorrectionView }) {
         <div className={s.stack}>
           <KeyValues items={[
             { label: "What was wrong", value: c.reason },
-            { label: "Paid in", value: `${c.payIn} 2026, in the pay run` },
-            { label: "Status", value: <Status tone="neutral">
-              Pays in November</Status> },
+            { label: "To pay in", value: `The ${c.payIn} 2026 pay run` },
           ]} />
           <p className={s.note}>Net pay for the month is worked out again
             by the same engine; nothing is typed by hand.</p>
@@ -171,7 +169,7 @@ function RequestPage(p: { r: PayRequest }) {
   return (
     <RecordTabs title={data.employee(r.employeeId).name.en}
       lede={`Correction to ${r.month ?? ""}, sent ` +
-        formatDate(r.requestedOn, lang)}
+        formatDayMonth(r.requestedOn, lang)}
       back={{ label: "Pay corrections", href: LIST }}
       stats={[
         { label: "Owed", value: <Money value={r.amount} size="lg" /> },

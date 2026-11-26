@@ -124,6 +124,18 @@ function runsOf(c: DemoCompany): PastRunView[] {
   });
 }
 
+/** Every deduction line in the runs, newest month first. */
+function deductionsOf(c: DemoCompany): PayView["deductions"] {
+  const months = [...pastRuns(c).map((r) => ({ m: r.month,
+    slips: r.payslips })), { m: 10, slips: c.payRun.payslips }];
+  return months.reverse().flatMap(({ m, slips }) => slips.flatMap((s) =>
+    s.payslip.deductions.map((d, i) => ({
+      id: `${keyOf(m)}-${s.employeeId}-${i}`,
+      month: `${monthName(m)} 2026`, employeeId: s.employeeId,
+      name: nameOf(c, s.employeeId), label: d.label, amount: d.amount,
+      ref: d.kind === "loan" ? d.traceId.split("#")[1] ?? null : null }))));
+}
+
 /** Every WP6 record, as the screens show it. */
 export function payViewOf(c: DemoCompany): PayView {
   const loanCut = c.employees.find((e) => e.cases.includes("loan-over-cap"));
@@ -133,6 +145,7 @@ export function payViewOf(c: DemoCompany): PayView {
     paidNet: x.paidNet, correctNet: x.correctNet, amount: x.amount,
     payIn: x.payIn, explanation: correctionExplain(c, x) }));
   return {
+    deductions: deductionsOf(c),
     loans: loans(c).map((l) => ({ ref: l.ref, employeeId: l.employeeId,
       name: l.display.name, kind: l.kind,
       status: l.status === "approved" ? "starts" : l.status,
