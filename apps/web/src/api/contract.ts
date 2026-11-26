@@ -25,8 +25,11 @@ export {
   EXAMPLES,
   IBAN_SENTINEL,
   NOT_COMPUTED_PAY,
+  PAY_TRACE_RESULT,
+  PayRunProblem,
   ROUTES,
   routeById,
+  SERVICE_UNPAID_LEAVE_NOT_ENTERED,
   SIF_STATEMENT,
 } from "@payroll/contract";
 export type {
@@ -41,7 +44,7 @@ export type {
   CompanyUser,
   Department,
   ErrorCode,
-  ErrorDetail as WireErrorDetail,
+  ErrorDetail,
   Finding,
   InviteRequest,
   InviteResponse,
@@ -55,7 +58,6 @@ export type {
   Me,
   Membership,
   MfaEnrolResponse,
-  PayRunProblem,
   Period,
   Role,
   RouteDef,
@@ -90,9 +92,9 @@ type Computed = Extract<Settlement, { status: "computed" }>;
 export type AppSettlement =
   | Money<Computed, "gratuity" | "leavePay" | "total">
   | Extract<Settlement, { status: "refused" }>;
-type SlipMoney = "gross" | "net" | "salaryNet" | "reimbursementTotal";
 export type AppPayslip = Omit<
-  Money<Payslip, SlipMoney>, "lines" | "settlement" | "reimbursements"
+  Money<Payslip, "gross" | "net" | "salaryNet" | "reimbursementTotal">,
+  "lines" | "settlement" | "reimbursements"
 > & { lines: AppPayslipLine[]; settlement: AppSettlement | null;
   reimbursements: AppReimbursementLine[] };
 export type AppSifFile = Money<SifFile, "total">;
@@ -104,6 +106,8 @@ export type AppPayRunEntry = {
   componentOverrides?: Override[];
   oneOffs?: (Omit<OneOff, "amount"> & { amount: Fils })[];
   unusedLeaveDays?: number;
+  /** Leavers only; omitted means 0 and the settlement says so. */
+  serviceUnpaidLeaveDays?: number;
 };
 export type AppPayRunCreate = {
   period: PayRunCreate["period"];
@@ -144,7 +148,8 @@ export const fromWirePayRun = (w: PayRun): AppPayRun =>
   ({ ...w, gross: from(w.gross),
     reimbursementTotal: from(w.reimbursementTotal) });
 export const toWirePayRun = (a: AppPayRun): PayRun =>
-  ({ ...a, gross: to(a.gross), reimbursementTotal: to(a.reimbursementTotal) });
+  ({ ...a, gross: to(a.gross),
+    reimbursementTotal: to(a.reimbursementTotal) });
 export const fromWireSifFile = (w: SifFile): AppSifFile =>
   ({ ...w, total: from(w.total) });
 export const toWireSifFile = (a: AppSifFile): SifFile =>
@@ -204,6 +209,9 @@ function toWireEntry(e: AppPayRunEntry): PayRunEntry {
   if (e.unusedLeaveDays !== undefined) {
     out.unusedLeaveDays = e.unusedLeaveDays;
   }
+  if (e.serviceUnpaidLeaveDays !== undefined) {
+    out.serviceUnpaidLeaveDays = e.serviceUnpaidLeaveDays;
+  }
   return out;
 }
 
@@ -222,6 +230,9 @@ function fromWireEntry(e: PayRunEntry): AppPayRunEntry {
   }
   if (e.unusedLeaveDays !== undefined) {
     out.unusedLeaveDays = e.unusedLeaveDays;
+  }
+  if (e.serviceUnpaidLeaveDays !== undefined) {
+    out.serviceUnpaidLeaveDays = e.serviceUnpaidLeaveDays;
   }
   return out;
 }

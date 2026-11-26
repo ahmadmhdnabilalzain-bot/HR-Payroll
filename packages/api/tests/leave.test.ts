@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { withTenant } from "../src/db/tenant";
 import { unpaidLeaveDaysIn } from "../src/leave/balances";
-import { seedCompany, type Seeded } from "./helpers/seed";
+import { member, seedCompany, type Seeded } from "./helpers/seed";
 import { call, makeApp } from "./helpers/test-app";
 
 type Ctx = Awaited<ReturnType<typeof makeApp>>;
@@ -117,7 +117,8 @@ describe("leave", () => {
         employeeId: s.emp.outsider, leaveTypeId: unpaid,
         startDate: "2026-01-30", endDate: "2026-02-02" });
       expect(r.status, r.text).toBe(201);
-      await as("hr", "POST", `/v1/leave-requests/${r.body.id}/approve`, {});
+      await as("owner", "POST", `/v1/leave-requests/${r.body.id}/approve`,
+        {});
       const n = await withTenant(ctx.deps.db, { companyId: s.companyId,
         userId: null }, (tx) => unpaidLeaveDaysIn(tx, s.companyId,
         s.emp.outsider, { year: 2026, month: 2 }));
@@ -136,4 +137,58 @@ describe("leave", () => {
     const none = await as("hr", "GET", "/v1/leave-requests?year=2025");
     expect(none.body.items).toEqual([]);
   });
+
+  it("nobody decides a request they filed or their own", async () => {
+    const filed = await request("manager", { employeeId: s.emp.report,
+      startDate: "2026-11-02", endDate: "2026-11-02" });
+    expect(filed.status, filed.text).toBe(201);
+    const self = await as("manager", "POST",
+      `/v1/leave-requests/${filed.body.id}/approve`, {});
+    expect(self.body.error.code).toBe("SOD_VIOLATION");
+    const ok = await as("hr", "POST",
+      `/v1/leave-requests/${filed.body.id}/approve`, {});
+    expect(ok.status, ok.text).toBe(200);
+    const own = await as("hr", "POST", "/v1/employees", { number: "L-1",
+      fullName: "Hr Leave", jobTitle: "HR", nationality: "IN",
+      workerClass: "expat-full-time", joiningDate: "2020-01-01" });
+    const hr2 = await member(ctx, s.owner, s.companyId,
+      "hr2.leave@example.com", "hr", own.body.id);
+    const hr2req = await call(ctx.app, hr2.token, s.companyId, "POST",
+      "/v1/leave-requests", { leaveTypeId: annual, startDate: "2026-11-09",
+        endDate: "2026-11-09" });
+    expect(hr2req.status, hr2req.text).toBe(201);
+    const decideOwn = await call(ctx.app, s.owner.token, s.companyId,
+      "POST", `/v1/leave-requests/${hr2req.body.id}/approve`, {});
+    expect(decideOwn.status).toBe(200);
+    const adj = await call(ctx.app, hr2.token, s.companyId, "POST",
+      "/v1/leave-adjustments", { employeeId: own.body.id,
+        leaveTypeId: annual, year: 2026, days: 300, reason: "for me" });
+    expect(adj.body.error.code).toBe("SOD_VIOLATION");
+  });
+
+  it("approval rechecks the balance", async () => {
+    const t = (await as("hr", "POST", "/v1/leave-types", { name: "Short",
+      paid: true, annualDays: 5 })).body.id;
+    const r = await as("employee", "POST", "/v1/leave-requests", {
+      leaveTypeId: t, startDate: "2026-12-07", endDate: "2026-12-09" });
+    expect(r.status, r.text).toBe(201);
+    await as("hr", "PATCH", `/v1/leave-types/${t}`, { annualDays: 1 });
+    const a = await as("manager", "POST",
+      `/v1/leave-requests/${r.body.id}/approve`, {});
+    expect(a.status).toBe(422);
+    expect(a.body.error.code).toBe("INSUFFICIENT_BALANCE");
+  });
+
+  it("reasons are sealed and shown to the people on the request",
+    async () => {
+      const r = await as("employee", "POST", "/v1/leave-requests", {
+        leaveTypeId: annual, startDate: "2026-12-14", endDate: "2026-12-14",
+        reason: "doctor visit for asthma" });
+      expect(r.body.reason).toBe("doctor visit for asthma");
+      const raw = await withTenant(ctx.deps.db, { companyId: s.companyId,
+        userId: null }, (tx) => tx.query("SELECT * FROM leave_requests"));
+      expect(JSON.stringify(raw)).not.toContain("asthma");
+      const m = await as("manager", "GET", "/v1/leave-requests?year=2026");
+      expect(m.text).toContain("asthma");
+    });
 });

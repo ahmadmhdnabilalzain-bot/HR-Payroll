@@ -406,3 +406,67 @@ The cancel lock-order fix (Further adaptations, item 1) touches Task
    approvers; claim amounts are stored in clear (Ruling 15).
 7. Old pay-run snapshots without `reimbursements` open as an empty
    list; none exist outside tests.
+
+## Merge of `claude/quirky-wozniak-b7xkvr` (Plan 3 review fixes)
+
+Merged origin `a574b38` into `api-plan-6` (merge commit holds the
+resolutions and the fixes below).
+
+Conflicts and resolutions:
+
+- `contract/src/payroll.ts`: `PayRun` keeps both `changedSinceLastRun`
+  (origin) and the reimbursement fields. `contract/tests/routes.test.ts`:
+  the MFA list is the union (`putApprovalChain`, `putEmployeeBank`,
+  `putEmployeeSalary`).
+- `api/src/payroll/compute.ts`: origin's frozen bank and labour id,
+  `EMPLOYEE_BANK_MISSING` and the wire-cap check stay; reimbursements
+  are applied before the cap check, and the cap check also reports a
+  payslip `net` that only reimbursements push over the cap.
+- `api/src/payroll/snapshot.ts`: origin's employee share-lock and
+  unreadable-data problems come first, then the claim source
+  (`newRun` or `runId`).
+- `api/src/payroll/pay-runs.ts`: origin's keyed `snapshotHash(snap,
+  mac)`, `changes` column, `RUN_EMPTY` and flattened audit period kept;
+  the insert also stores the reimbursement columns, claims are linked
+  after a successful insert, approval rebuilds from the linked claims
+  (still refuses changed inputs), approve marks claims reimbursed and
+  void releases them.
+- `api/src/people/employees.ts`: column union has origin's
+  `reason_enc`, `decision_note_enc` plus `content`.
+- `api/tests/conformance.test.ts`: origin moved the flow into
+  `tests/helpers/api-flow.ts`; the Plan 6 flow is called from there
+  (`expensesFlow` before payroll, `expenseReports` after, `payroll`
+  returns the run id). The pending-route list is gone (the exact
+  registration check is origin's again); a new case checks the binary
+  and CSV media types from the recorded hits.
+- `api/tests/leak.test.ts`: origin's per-field `forbidden()` sentinels
+  plus the expense sentinels and claim/receipt fixtures.
+- `apps/web`: origin's files taken whole, then only what Plan 6 needs:
+  the mocks fill the new pay-run and payslip fields, the web's App
+  types carry the new money fields as `Fils` with wire conversion, and
+  English and Arabic texts for the 19 new error codes (the Arabic is
+  not human-reviewed).
+- `HANDOVER.md`, `LEDGER.md`: both sides kept (section headings were
+  already unique after origin's renumbering).
+
+Regressions fixed after the merge:
+
+- `reimburse.test.ts` builder gained `bank` and `labourPersonId`.
+- A Plan 6 leaver test now sends `serviceUnpaidLeaveDays` (now required).
+- `createPayRun`: a request whose key was committed by a twin between
+  the key lookup and the month check now replays (200) instead of 409
+  `RUN_EXISTS_FOR_PERIOD`; the Plan 3 real-PostgreSQL idempotency race
+  failed once on that window. Moved into `priorRun` to keep functions
+  short.
+
+Migrations: lexical order is 001 to 013, then 601 to 604; the RLS
+catalog and tenancy suites pass (every tenant table forced RLS with a
+company policy). `pnpm-lock.yaml` regenerated (no change).
+
+Tests after the merge, one package at a time: contract 98, engine 584,
+wps 173, web 103 (all pass, typecheck green), api 357 (all pass,
+including both real-PostgreSQL suites started by origin's
+`tests/global-pg.ts`; under memory pressure from other processes a
+worker was SIGKILLed twice, so the killed files were re-run on their
+own and pass). The keyring test failed once by chance (a random IV
+encoded to text containing "7777"); it is origin's and flaky by design.

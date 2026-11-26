@@ -114,7 +114,7 @@ describe("which claims join a run", () => {
       { lastWorkingDate: "2026-03-31" });
     const c = await claimFor(w, w.s.emp.outsider, "80.00");
     const body = { ...MARCH, entries: [{ employeeId: w.s.emp.outsider,
-      unusedLeaveDays: 5 }] };
+      unusedLeaveDays: 5, serviceUnpaidLeaveDays: 0 }] };
     const withClaim = await run(w, "s-1", body);
     expect(withClaim.body.claimCount).toBe(1);
     const a = await slipOf(w, withClaim.body.id, w.s.emp.outsider);

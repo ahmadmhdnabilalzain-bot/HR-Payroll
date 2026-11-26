@@ -17,6 +17,8 @@ const EC = "ENGINE_CONVENTION";
 /** Working hours, DL Arts 17 and 18, ER Art 15(2). */
 const HOURS: Record<string, RuleParam> = {
   // 17(1): "eight (8) hours per day or forty-eight (48) hours per week".
+  // The daily value is also the overtime base on a shift day when it is
+  // lower than the shift's net minutes (Ruling 4, amended).
   timeMaxNormalMinutesPerDay: param(480, o, "DL33_ART17"),
   timeMaxNormalMinutesPerWeek: param(2880, o, "DL33_ART17"),
   // ER 15(2): "reduced by two hours during the holy month of Ramadan".
@@ -35,7 +37,9 @@ const OVERTIME: Record<string, RuleParam> = {
   timeMaxMinutesPer3Weeks: param(8640, o, "DL33_ART19"),
   // 19(3): "between 10 pm and 4 am".
   timeNightWindow: param("22:00-04:00", o, "DL33_ART19"),
-  // 19(5): no more than two consecutive rest days of work.
+  // 19(5): "The Worker may not be required to work for more than two
+  // consecutive rest days, excluding day laborers" (search excerpt of
+  // the official PDF, not read in full; day laborers not modelled).
   timeMaxConsecutiveRestDaysWorked: param(2, o, "DL33_ART19"),
   // 21: "paid weekly rest not less than one day".
   timeMinWeeklyRestDays: param(1, o, "DL33_ART21"),
@@ -66,7 +70,11 @@ const OTHER: Record<string, RuleParam> = {
   timeWfhRetentionDays: { value: null, status: "unsourced", source: null },
 };
 
-/** Time, attendance and leave, Federal Decree-Law 33 of 2021. */
+/**
+ * Time, attendance and leave, Federal Decree-Law 33 of 2021. Minute
+ * values assume Dubai time, a fixed UTC+4 with no daylight saving, so
+ * every day has 1440 minutes.
+ */
 const AE_TIME_2022: RulePack = {
   id: "ae-time",
   version: "2022-02-02",

@@ -155,8 +155,8 @@ describe("VAT 201 boxes", () => {
       .not.toContain("VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED");
   });
   it("correction_effect_formula_as_written", () => {
-    // Sale VAT minus claimed purchase VAT (plan Task 4); the Box 3
-    // output VAT of a reverse-charge purchase is not counted.
+    // Each document's Box 14 effect: sale +100, reverse charge
+    // 500 - 0 = +500, standard purchase -50.
     const r = computeVat201(input([
       doc({ net: 2000n, vat: 100n, correctsPeriodStart: "2026-01-01" }),
       purchase(10000n, 500n, 0n, { treatment: "reverse-charge",
@@ -166,8 +166,45 @@ describe("VAT 201 boxes", () => {
     expect(r.corrections).toEqual([
       { periodStart: "2025-10-01", netVatEffect: -50n,
         overThreshold: false },
-      { periodStart: "2026-01-01", netVatEffect: 100n,
+      { periodStart: "2026-01-01", netVatEffect: 600n,
         overThreshold: false }]);
+  });
+  it("reverse_charge_correction_over_threshold_warns", () => {
+    const r = computeVat201(input([purchase(30000000n, 1500000n, 0n,
+      { treatment: "reverse-charge",
+        correctsPeriodStart: "2026-01-01" })])).value;
+    expect(r.corrections).toEqual([{ periodStart: "2026-01-01",
+      netVatEffect: 1500000n, overThreshold: true }]);
+    expect(r.warnings.map((w) => w.code))
+      .toContain("VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED");
+  });
+  it("reverse_charge_fully_claimed_correction_no_warning", () => {
+    const r = computeVat201(input([purchase(40000000n, 2000000n,
+      2000000n, { treatment: "reverse-charge",
+        correctsPeriodStart: "2026-01-01" })])).value;
+    expect(r.corrections).toEqual([{ periodStart: "2026-01-01",
+      netVatEffect: 0n, overThreshold: false }]);
+    expect(r.warnings.map((w) => w.code))
+      .not.toContain("VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED");
+  });
+  it("excluded_purchase_correction_has_no_effect", () => {
+    const p = purchase(40000000n, 0n, 2000000n, { treatment:
+      "zero-rated", correctsPeriodStart: "2026-01-01" });
+    const r = computeVat201(input([p])).value;
+    expect(r.corrections).toEqual([{ periodStart: "2026-01-01",
+      netVatEffect: 0n, overThreshold: false }]);
+    expect(r.warnings.map((w) => w.code))
+      .not.toContain("VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED");
+    expect(r.excludedDocIds).toEqual([p.id]);
+  });
+  it("claimed_on_untaxed_purchase_problem", () => {
+    const p = purchase(1000n, 0n, 5n, { treatment: "exempt" });
+    const r = computeVat201(input([p])).value;
+    expect(r.problems).toEqual([{ code: "CLAIMED_ON_UNTAXED",
+      docIds: [p.id], box: null }]);
+    expect(r.status).toBe("incomplete");
+    const zero = purchase(1000n, 0n, 0n, { treatment: "out-of-scope" });
+    expect(computeVat201(input([zero])).value.problems).toEqual([]);
   });
   it("sale_reverse_charge_invalid", () => {
     const r = computeVat201(input([doc({ treatment: "reverse-charge",

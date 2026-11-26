@@ -78,12 +78,20 @@ export const TAX_SOURCES: Record<string, RuleSource> = {
   FTA_EINV_FAQ: { url: FAQ_URL,
     note: "FTA e-invoicing page and FAQ, updated 17 Nov 2026" },
   MOF_EINV_GUIDELINES: { url: GUIDELINES_URL,
-    note: "MoF E-invoicing Guidelines V2.1, glossary only" },
+    note: "MoF E-invoicing Guidelines V2.1, glossary only (V1.1 path; " +
+      "link serves V2.1)" },
   CD106_2025: { url: CD106_URL,
     note: "Cabinet Decision 106 of 2025, table rows 1 to 3 (search " +
       "extract)" },
   FTA_CT_SB_BULLETIN: { url: CT_BULLETIN_URL,
     note: "FTA Basic Tax Information Bulletin: Small Business (snippet)" },
+  // The bulletin snippet (section 4) cut off the 0% word; only the
+  // 25 Nov note, itself snippet level with no URL, shows the figure.
+  RESEARCH_CT_ZERO_RATE: { url: "",
+    note: "docs/research/2026-11-25-vat-corporate-tax-einvoicing.md, " +
+      "corporate tax: \"0% on taxable income up to AED 375,000\" " +
+      "(snippet level; the 0% word was cut off in the FTA bulletin " +
+      "snippet)" },
   FTA_CT_SBR_TOPIC: { url: FTA,
     note: "FTA corporate tax topics page (extract); exact page URL not " +
       "recorded" },

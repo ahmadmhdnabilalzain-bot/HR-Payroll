@@ -11,11 +11,13 @@ import { LEAVE_HANDLERS } from "./handlers-leave";
 import { PAYROLL_HANDLERS } from "./handlers-payroll";
 import { PEOPLE_HANDLERS } from "./handlers-people";
 import { SIF_HANDLERS } from "./handlers-sif";
+import { USER_HANDLERS } from "./handlers-users";
 import type { MockOptions } from "./options";
 import { createState, type MockState } from "./state";
 
 const HANDLERS: Record<ApiMethod, Handler> = {
   ...AUTH_HANDLERS,
+  ...USER_HANDLERS,
   ...PEOPLE_HANDLERS,
   ...LEAVE_HANDLERS,
   ...PAYROLL_HANDLERS,

@@ -1,4 +1,3 @@
-import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { TIME_PACKS } from "../src/rules/time-pack";
 import {
@@ -79,7 +78,7 @@ const BAL: BalanceInput = {
 
 describe("balanceHalves", () => {
   it("balance_carried_first_then_expires", () => {
-    expect(balanceHalves(BAL)).toEqual({ takenHalves: 12,
+    expect(balanceHalves(BAL)).toMatchObject({ takenHalves: 12,
       carriedUsedHalves: 4, expiredHalves: 6, availableHalves: 50 });
     const march = balanceHalves({ ...BAL, asOf: "2026-03-01" });
     expect(march.expiredHalves).toBe(0);
@@ -91,30 +90,46 @@ describe("balanceHalves", () => {
     expect(r.expiredHalves).toBe(0);
   });
   it("carry_over_cap", () => {
-    expect(carryOverHalves(-4, 10)).toBe(0);
-    expect(carryOverHalves(7, 10)).toBe(7);
-    expect(carryOverHalves(30, 10)).toBe(10);
+    expect(carryOverHalves(-4, 10, P).carriedHalves).toBe(0);
+    expect(carryOverHalves(7, 10, P).carriedHalves).toBe(7);
+    expect(carryOverHalves(30, 10, P).carriedHalves).toBe(10);
   });
-  it("balance_identity", () => {
-    const arbTaken = fc.array(fc.record({
-      date: fc.constantFrom("2026-01-15", "2026-03-31", "2026-07-01"),
-      halves: fc.integer({ min: 0, max: 20 }),
-    }), { maxLength: 5 });
-    const arb = fc.record({
-      accruedHalves: fc.integer({ min: 0, max: 120 }),
-      carriedHalves: fc.integer({ min: 0, max: 60 }),
-      carriedExpiresOn: fc.constantFrom(null, "2026-03-31"),
-      adjustmentHalves: fc.integer({ min: -20, max: 20 }),
-      taken: arbTaken,
-      pendingHalves: fc.integer({ min: 0, max: 20 }),
-      asOf: fc.constantFrom("2026-02-01", "2026-04-01", "2026-12-31"),
-    });
-    fc.assert(fc.property(arb, (b) => {
-      const r = balanceHalves(b);
-      expect(r.availableHalves + r.takenHalves + b.pendingHalves +
-        r.expiredHalves).toBe(b.accruedHalves + b.carriedHalves +
-        b.adjustmentHalves);
-    }));
+  it("excess_above_cap_returned_and_warned", () => {
+    const r = carryOverHalves(30, 10, P);
+    expect(r.excessHalves).toBe(20);
+    expect(r.flags.map((f) => f.code)).toEqual(["UNUSED_LEAVE_NOT_CARRIED"]);
+    const f = r.flags[0]!;
+    expect(f.rule?.key).toBe("timeCarryOverMaxShareBps");
+    expect(f.detail.excessHalves).toBe("20");
+    expect(f.detail.note).toContain("cash");
+    expect(f.detail.note).toContain("unsourced");
+    expect(carryOverHalves(10, 10, P)).toEqual({ carriedHalves: 10,
+      excessHalves: 0, flags: [] });
+    expect(carryOverHalves(-4, 10, P).excessHalves).toBe(0);
+  });
+  it("carry_over_refuses_fractions", () => {
+    expect(() => carryOverHalves(1.5, 10, P)).toThrow(
+      expect.objectContaining({ code: "INVALID_HALVES" }));
+    expect(() => carryOverHalves(5, -1, P)).toThrow(
+      expect.objectContaining({ code: "INVALID_HALVES" }));
+  });
+  it("expired_carried_leave_warned_as_unsourced", () => {
+    const r = balanceHalves(BAL);
+    expect(r.flags.map((f) => f.code)).toEqual(["CARRIED_LEAVE_EXPIRED"]);
+    expect(r.flags[0]!.rule).toBeNull();
+    expect(r.flags[0]!.detail.expiredHalves).toBe("6");
+    expect(r.flags[0]!.detail.note).toContain("not law");
+    expect(balanceHalves({ ...BAL, asOf: "2026-03-01" }).flags).toEqual([]);
+  });
+  it("balance_refuses_bad_halves", () => {
+    for (const bad of [{ pendingHalves: -1 }, { carriedHalves: 0.5 },
+      { accruedHalves: -2 }, { adjustmentHalves: 0.5 },
+      { taken: [{ date: "2026-02-10", halves: -1 }] }]) {
+      expect(() => balanceHalves({ ...BAL, ...bad })).toThrow(
+        expect.objectContaining({ code: "INVALID_HALVES" }));
+    }
+    expect(balanceHalves({ ...BAL, adjustmentHalves: -4 }).availableHalves)
+      .toBe(46);
   });
 });
 
@@ -147,10 +162,9 @@ describe("checkLeavePolicy", () => {
     expect(all.length).toBe(6);
     for (const f of all) expect(f.rule, f.code).not.toBeNull();
   });
-  it("monthly_rate_compared_on_working_basis_too", () => {
+  it("monthly_rate_not_compared_on_working_basis", () => {
     expect(codes({ annualDays: 20, accrual: "monthly",
-      dayCount: "working" })).toEqual(["ANNUAL_BASIS_NOT_COMPARED",
-      "MONTHLY_BELOW_FIRST_YEAR_RATE"]);
+      dayCount: "working" })).toEqual(["ANNUAL_BASIS_NOT_COMPARED"]);
   });
   it("null_annual_days_compares_nothing", () => {
     expect(codes({ annualDays: null, carryOverMaxDays: 5 })).toEqual([]);

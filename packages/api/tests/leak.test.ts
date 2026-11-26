@@ -1,28 +1,41 @@
 import { ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { enableMfa, call, makeApp, signup } from "./helpers/test-app";
-import { PLAN6_PENDING } from "./helpers/plan6-pending";
 import { EXPENSE_SENTINELS, seedExpenses } from "./helpers/seed-expenses";
 import {
   addOwner,
   march,
   postRun,
-  IBAN_SENTINEL,
-  SALARY_SENTINEL,
+  SENTINELS,
   seedCompany,
   type Seeded,
+  type Target,
 } from "./helpers/seed";
 
 /**
- * Review Focus 1. The sentinels sit only on records the manager and
- * employee users may not see (the manager's second report and an
- * outsider); their own records carry other values. So only owner and
- * hr may ever receive a sentinel.
+ * Review Focus 1. Each employee carries distinct values per field
+ * (SENTINELS). For every role, every GET tenant route and every id,
+ * no value the role may not see appears in the body: salary (also as
+ * fils and as payslip gross), the full IBAN, the labour person id and
+ * the Emirates ID.
  */
 type Role = "owner" | "hr" | "manager" | "employee";
 const ROLES: Role[] = ["owner", "hr", "manager", "employee"];
-type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
+const OWN: Record<Role, Target | null> = { owner: null, hr: null,
+  manager: "manager", employee: "report" };
+
+/** The strings a role must never receive. */
+function forbidden(role: Role): string[] {
+  if (role === "owner" || role === "hr") return [];
+  return TARGETS.flatMap((t) => {
+    const v = SENTINELS[t];
+    // The full IBAN and the ids are owner/hr only, even for oneself.
+    const always = [v.iban, v.labour, v.eid];
+    return t === OWN[role] ? always
+      : [...always, v.salary, v.fils, v.gross];
+  });
+}
 
 type Kind = "employee" | "payslip" | "payRun" | "sifFile" | "claim" |
   "receipt" | null;
@@ -73,7 +86,7 @@ function expected(r: RouteDef, role: Role, t: Target | null): number {
 }
 
 const getRoutes = ROUTES.filter((r) => r.method === "GET" &&
-  r.auth === "tenant" && !PLAN6_PENDING.has(r.id));
+  r.auth === "tenant");
 
 describe("no sensitive value leaks to a viewer who may not see it", () => {
   let ctx: Awaited<ReturnType<typeof makeApp>>;
@@ -128,11 +141,8 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
           const label = `${r.id} as ${role} on ${t}`;
           expect(res.status, `${label}: ${res.text}`)
             .toBe(expected(r, role, t));
-          const leaked = res.text.includes(SALARY_SENTINEL) ||
-            res.text.includes(IBAN_SENTINEL);
-          if (role === "manager" || role === "employee") {
-            expect(leaked, label).toBe(false);
-          }
+          const leaked = forbidden(role).filter((x) => res.text.includes(x));
+          expect(leaked, label).toEqual([]);
           for (const x of TARGETS.filter((x) => !seesClaimsOf(role, x))) {
             expect(res.text.includes(EXPENSE_SENTINELS[x]),
               `${label}: expense of ${x}`).toBe(false);
@@ -144,23 +154,27 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
 
   it("owner bodies do carry the sentinels (the test is not vacuous)",
     async () => {
-      const list = await call(ctx.app, s.owner.token, s.companyId, "GET",
-        "/v1/employees");
-      expect(list.text).toContain(SALARY_SENTINEL);
-      const bank = await call(ctx.app, s.owner.token, s.companyId, "GET",
-        `/v1/employees/${s.emp.outsider}/bank`);
-      expect(bank.text).toContain(IBAN_SENTINEL);
-      const slips = await call(ctx.app, s.owner.token, s.companyId, "GET",
-        `/v1/pay-runs/${runId}/payslips`);
-      expect(slips.text).toContain(SALARY_SENTINEL);
+      const get = (path: string) => call(ctx.app, s.owner.token,
+        s.companyId, "GET", path);
+      const list = await get("/v1/employees");
+      const slips = await get(`/v1/pay-runs/${runId}/payslips`);
+      for (const t of TARGETS) {
+        const v = SENTINELS[t];
+        for (const x of [v.salary, v.labour, v.eid]) {
+          expect(list.text, `${t} ${x}`).toContain(x);
+        }
+        for (const x of [v.fils, v.gross]) {
+          expect(slips.text, `${t} ${x}`).toContain(x);
+        }
+        const bank = await get(`/v1/employees/${s.emp[t]}/bank`);
+        expect(bank.text).toContain(v.iban);
+      }
       const mine = await call(ctx.app, s.employee.token, s.companyId,
         "GET", "/v1/me/payslips");
       expect(mine.body.items.length).toBe(1);
-      const file = await call(ctx.app, s.owner.token, s.companyId, "GET",
-        `/v1/sif-files/${sifId}/download`);
-      expect(file.text).toContain(IBAN_SENTINEL);
-      const claims = await call(ctx.app, s.hr.token, s.companyId, "GET",
-        "/v1/expense-claims");
+      const file = await get(`/v1/sif-files/${sifId}/download`);
+      expect(file.text).toContain(SENTINELS.report2.iban);
+      const claims = await get("/v1/expense-claims");
       for (const t of TARGETS) {
         expect(claims.text).toContain(EXPENSE_SENTINELS[t]);
       }

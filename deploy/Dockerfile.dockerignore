@@ -1,0 +1,14 @@
+# Read by BuildKit for `docker build -f deploy/Dockerfile .` (the
+# context is the repository root). Keep secrets and local state out.
+**/node_modules
+**/dist
+**/out
+**/.env
+**/.env.*
+!deploy/.env.example
+.git
+.claude
+.superpowers
+apps/web/test-results
+apps/web/playwright-report
+**/*.SIF

@@ -61,4 +61,46 @@ export const errors = {
   ACCOUNT_LOCKED: "This account is locked after too many attempts. Try " +
     "again later.",
   INTERNAL: "The server had a problem. Try again.",
+  INVITE_NOT_FOUND: "This invite was not found. Ask for a new one.",
+  LAST_OWNER: "The company needs at least one owner. Make someone else " +
+    "an owner first.",
+  RUN_INPUTS_CHANGED: "Salaries or unpaid leave changed since this " +
+    "draft was made. Void it and create the pay run again.",
+  SALARY_MISSING: "This person has no salary set.",
+  PAYLOAD_TOO_LARGE: "The request was too large.",
+  EMPLOYEE_ALREADY_LINKED: "This person is already linked to a user " +
+    "account.",
+  MANAGER_CYCLE: "A person cannot report to someone who reports to them.",
+  EMPLOYEE_DATA_UNREADABLE: "Some saved employee data could not be " +
+    "read. Ask support to check it.",
+  RUN_EMPTY: "This pay run has no employees. Add people first.",
+  // Plan 6: approvals, receipts and expense claims.
+  RECEIPT_BASE64_INVALID: "The receipt file could not be read. Try " +
+    "uploading it again.",
+  NOT_AN_APPROVER: "You are not an approver for this step.",
+  APPROVER_NEEDED_LATER: "You are needed for a later step, so someone " +
+    "else must approve this one.",
+  APPROVAL_NOT_PENDING: "This approval is already closed.",
+  APPROVAL_STEP_CHANGED: "This approval moved on meanwhile. Refresh and " +
+    "check it again.",
+  CHAIN_VERSION_CONFLICT: "Someone else changed the approval chain. " +
+    "Refresh and try again.",
+  CATEGORY_CODE_TAKEN: "An expense category already uses this code.",
+  POLICY_VERSION_CONFLICT: "Someone else changed the expense policy. " +
+    "Refresh and try again.",
+  CLAIM_NOT_EDITABLE: "This claim can no longer be changed.",
+  CLAIM_NOT_CANCELLABLE: "This claim can no longer be cancelled.",
+  RECEIPT_TOO_LARGE: "The receipt is larger than 5 MB.",
+  RECEIPT_TYPE_NOT_ALLOWED: "Receipts must be JPEG, PNG or PDF files.",
+  NO_ELIGIBLE_APPROVER: "Nobody else can approve this. Add another " +
+    "owner, HR user or approver first.",
+  CHAIN_INVALID: "The approval chain is not valid. Check the tiers and " +
+    "approvers.",
+  RECEIPT_TYPE_MISMATCH: "The file type does not match its contents.",
+  POLICY_INVALID: "The expense policy is not valid. Check the marked " +
+    "rows.",
+  CANCEL_NOTE_REQUIRED: "Add a note to cancel an approved claim.",
+  CLAIM_PROBLEMS: "The claim has problems. Fix the marked items.",
+  EXCLUDED_CLAIM_INVALID: "Only approved claims waiting for payment can " +
+    "be left out of a run.",
 } satisfies EnNamespace;

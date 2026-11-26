@@ -58,6 +58,9 @@ describe("e-invoicing rules", () => {
       { month: "2027-08", amount: 520000n },
       { month: "2027-09", amount: 30000n }]);
     expect(r.value.amount).toBe(550000n);
+    const credit = missingDocumentFineExposure([
+      { month: "2027-08", invoices: 30, creditNotes: 70 }]);
+    expect(credit.value.amount).toBe(800000n);
     expect(r.trace[0]!.id).toBe("einv.fine.missing");
     expect(codeOf(() => missingDocumentFineExposure([
       { month: "2027-08", invoices: -1, creditNotes: 0 }])))
@@ -82,6 +85,10 @@ describe("e-invoicing rules", () => {
       scheme: "0235", id: "1001234567" });
     expect(tinFromTrn("100123456700003")).toBe("1001234567");
     expect(codeOf(() => tinFromTrn("12345"))).toBe("INVALID_TRN");
+    // Ruling 9: a TRN is assumed to be exactly 15 digits.
+    expect(codeOf(() => tinFromTrn("12345678901"))).toBe("INVALID_TRN");
+    expect(codeOf(() => tinFromTrn("1001234567000031")))
+      .toBe("INVALID_TRN");
     expect(codeOf(() => tinFromTrn("10012345670000A")))
       .toBe("INVALID_TRN");
   });
