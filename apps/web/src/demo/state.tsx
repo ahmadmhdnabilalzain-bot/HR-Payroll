@@ -67,6 +67,18 @@ import {
   type FilesSlice,
 } from "./files-state";
 import {
+  CONNECT_INITIAL,
+  reduceConnect,
+  type ConnectAction,
+  type ConnectSlice,
+} from "../setup/more/state";
+import {
+  PRIOR_INITIAL,
+  reducePrior,
+  type PriorAction,
+  type PriorSlice,
+} from "../pay/more/state";
+import {
   PAY_INITIAL,
   reducePay,
   type PayAction,
@@ -90,7 +102,7 @@ export type Resolution = "reviewed" | "renewal";
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
-    FilesSlice {
+    FilesSlice, ConnectSlice, PriorSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -129,6 +141,8 @@ export type Action =
   | SafetyAction
   | RequestsAction
   | { type: "files"; op: FilesOp }
+  | ConnectAction
+  | PriorAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -140,6 +154,7 @@ export const INITIAL: DemoState = {
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL, ...TEAM_INITIAL,
   ...MOVES_INITIAL, ...PAY_INITIAL, ...SAFETY_INITIAL, ...REQUESTS_INITIAL,
   ...FILES_INITIAL,
+  ...CONNECT_INITIAL, ...PRIOR_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -222,6 +237,12 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "pay-restore":
     case "fine-decide":
     case "fine-undo": return reducePay(s, a);
+    case "connect-edit":
+    case "connect-undo": return reduceConnect(s, a);
+    case "prior-add":
+    case "prior-check":
+    case "prior-uncheck":
+    case "prior-undo": return reducePrior(s, a);
   }
 }
 
