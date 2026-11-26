@@ -58,8 +58,10 @@ async function chainProblems(tx: Db, companyId: string,
   });
   for (const [i, t] of tiers.entries()) {
     if (t.approver.kind !== "user") continue;
+    // A human member only: an API key's service user never approves.
     const m = await tx.query(
-      "SELECT 1 FROM memberships WHERE company_id = $1 AND user_id = $2",
+      `SELECT 1 FROM memberships m JOIN users u ON u.id = m.user_id
+       WHERE m.company_id = $1 AND m.user_id = $2 AND u.kind = 'human'`,
       [companyId, t.approver.userId]);
     if (m.length === 0) paths.push(`tiers.${i}.approver.userId`);
   }

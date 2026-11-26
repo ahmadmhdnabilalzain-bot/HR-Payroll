@@ -1,4 +1,4 @@
-import { ROUTES, type RouteDef } from "@payroll/contract";
+import { API_KEY_SCOPES, ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { enableMfa, call, makeApp, signup } from "./helpers/test-app";
 import { inboundItemFor } from "./helpers/email-in";
@@ -218,6 +218,50 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       expect(r.text, path).toContain(sentinel);
     }
   });
+
+  /** Every sentinel of every employee (an API key without payroll). */
+  const allPayroll = () => TARGETS.flatMap((t) => {
+    const v = SENTINELS[t];
+    return [v.salary, v.fils, v.gross, v.iban, v.labour, v.eid];
+  });
+  const keyFor = async (scopes: string[]) => {
+    const r = await call(ctx.app, s.owner.token, s.companyId, "POST",
+      "/v1/api-keys", { name: `leak-${scopes.length}`, scopes,
+        rateLimitPerMinute: 1200 });
+    expect(r.status, r.text).toBe(201);
+    return r.body.secret as string;
+  };
+
+  it("an API key without payroll:read never receives a sentinel",
+    async () => {
+      const scopes = ["employees:read", "employees:write", "leave:read",
+        "leave:write", "attendance:read", "expenses:read"];
+      const key = await keyFor(scopes);
+      for (const r of getRoutes) {
+        const scope = API_KEY_SCOPES[r.id];
+        const want = scope !== undefined && scopes.includes(scope)
+          ? r.status : 403;
+        for (const [t, id] of idsFor(ID_KIND[r.id] ?? null)) {
+          const res = await call(ctx.app, key, s.companyId, "GET",
+            path(r, id));
+          const label = `${r.id} as API key on ${t}`;
+          expect(res.status, `${label}: ${res.text}`).toBe(want);
+          const leaked = [...allPayroll(), ...hrSentinels(hr)]
+            .filter((x) => res.text.includes(x));
+          expect(leaked, label).toEqual([]);
+        }
+      }
+    });
+
+  it("an API key with payroll:read does see salaries (not vacuous)",
+    async () => {
+      const key = await keyFor(["employees:read", "payroll:read"]);
+      const list = await call(ctx.app, key, s.companyId, "GET",
+        "/v1/employees");
+      for (const t of TARGETS) {
+        expect(list.text, t).toContain(SENTINELS[t].salary);
+      }
+    });
 
   it("company B's owner gets 404 for every A id", async () => {
     const b = await signup(ctx.app, "other");

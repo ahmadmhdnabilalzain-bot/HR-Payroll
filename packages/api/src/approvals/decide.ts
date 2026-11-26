@@ -55,22 +55,21 @@ async function actorVerdict(ctx: ReqCtx, r: RequestRow,
   const verdict = mayDecide(steps.map((s) => ({ order: s.step_order,
     approver: s.approver, eligible: s.eligible })), r.current_step!,
   ctx.user!.id, prior, excluded);
-  return verdict;
+  if (verdict !== "ok") return verdict;
+  const step = steps.find((s) => s.step_order === r.current_step)!;
+  return holdsStepRole(ctx, step.approver) ? "ok" : "NOT_AN_APPROVER";
 }
 
 async function checkActor(ctx: ReqCtx, r: RequestRow, steps: StepRow[])
   : Promise<void> {
   const verdict = await actorVerdict(ctx, r, steps);
   if (verdict !== "ok") throw new ApiError(verdict as ErrorCode);
-  const step = steps.find((s) => s.step_order === r.current_step)!;
-  if (!holdsStepRole(ctx, step.approver)) {
-    throw new ApiError("NOT_AN_APPROVER");
-  }
 }
 
 /**
- * The separation-of-duties verdict `decide` would reach for the
- * caller on the current step (WhatsApp checks it before deciding).
+ * The verdict `decide` would reach for the caller on the current step
+ * (separation of duties and the step's role held now); WhatsApp checks
+ * it before deciding.
  */
 export async function verdictFor(ctx: ReqCtx, approvalId: string)
   : Promise<Verdict> {
