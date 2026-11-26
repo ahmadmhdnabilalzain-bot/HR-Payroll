@@ -32,6 +32,22 @@
   background: var(--color-surface);
 }
 
+/* The veil (listEnter.ts): a layer in the colour behind the element,
+ * over it; only its opacity animates. */
+:global([data-veil]) {
+  position: relative;
+}
+
+:global([data-veil])::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--veil, var(--color-surface));
+  pointer-events: none;
+  content: "";
+}
+
 /* Reveal: a section below the fold waits, then rises in once. */
 :global([data-reveal="wait"]) {
   opacity: 0;

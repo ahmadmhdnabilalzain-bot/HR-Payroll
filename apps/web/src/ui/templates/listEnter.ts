@@ -15,8 +15,10 @@ import { useLayoutEffect, useRef, type RefObject } from "react";
  *   rows below slide up over it. Measured from the screen, so a change
  *   in the middle of a slide carries on from where the row is.
  *
- * Transform and opacity only. Durations come from the motion tokens
- * (theme), read at run time, with the agreed values as fallbacks.
+ * Transform and opacity only. Fades are veils (a layer in the colour
+ * behind fades off the element), so text is never drawn half-faded.
+ * Durations come from the motion tokens (theme), read at run time,
+ * with the agreed values as fallbacks.
  * Reduced motion: nothing moves and nothing waits hidden.
  */
 
@@ -63,6 +65,46 @@ function zoom(): number {
     .getPropertyValue("zoom")) || 1;
 }
 
+/** The colour behind `el`: the first ancestor that paints one. */
+function behind(el: HTMLElement): string {
+  for (let p = el.parentElement; p !== null; p = p.parentElement) {
+    const c = getComputedStyle(p).backgroundColor;
+    if (c !== "" && c !== "transparent" && c !== "rgba(0, 0, 0, 0)") {
+      return c;
+    }
+  }
+  return getComputedStyle(document.body).backgroundColor;
+}
+
+/**
+ * A veil: a layer in the colour behind `el`, drawn over it (::after,
+ * motion.module.css), whose opacity animates. Text under it keeps full
+ * contrast at every frame (a checker never reads a half-faded word);
+ * the eye sees the element fade. `out` veils it instead of unveiling.
+ */
+export function veil(el: HTMLElement, o: { duration: number;
+  delay?: number; easing?: string; out?: boolean }): Animation {
+  el.style.setProperty("--veil", behind(el));
+  el.dataset["veil"] = "";
+  const kf = [{ opacity: 1 }, { opacity: 0 }];
+  const a = el.animate(o.out === true ? [...kf].reverse() : kf, {
+    duration: o.duration, delay: o.delay ?? 0,
+    easing: o.easing ?? "linear", pseudoElement: "::after",
+    fill: o.out === true ? "forwards" : "backwards" });
+  const done = (): void => {
+    if (o.out === true) return;
+    if (el.getAnimations({ subtree: true }).some((x) => x !== a &&
+      (x.effect as KeyframeEffect | null)?.pseudoElement === "::after")) {
+      return;
+    }
+    delete el.dataset["veil"];
+    el.style.removeProperty("--veil");
+  };
+  a.addEventListener("finish", done);
+  a.addEventListener("cancel", done);
+  return a;
+}
+
 const inView = (r: DOMRect): boolean =>
   r.bottom > 0 && r.top < innerHeight && r.height > 0;
 
@@ -93,11 +135,7 @@ export function enter(items: HTMLElement[], fade = true): void {
     const delay = Math.min(i, STAGGER_CAP - 1) * STAGGER_MS;
     el.animate([{ transform: "translateY(8px)" }, { transform: "none" }],
       { duration: slow, delay, easing: ease, fill: "backwards" });
-    // The fade ends early so text reaches full contrast quickly.
-    if (fade) {
-      el.animate([{ opacity: 0 }, { opacity: 1 }],
-        { duration: base, delay, easing: "linear", fill: "backwards" });
-    }
+    if (fade) veil(el, { duration: base, delay });
   });
 }
 
@@ -140,9 +178,9 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
       if (el.dataset["reveal"] !== "wait") return;
       el.dataset["reveal"] = "done";
       if (!animate || reduced()) return;
-      el.animate([{ opacity: 0, transform: "translateY(16px)" },
-        { opacity: 1, transform: "none" }],
-      { duration: dur("--dur-slow"), easing: easeOut() });
+      el.animate([{ transform: "translateY(16px)" }, { transform: "none" }],
+        { duration: dur("--dur-slow"), easing: easeOut() });
+      veil(el, { duration: dur("--dur-base") });
     };
     const io = new IntersectionObserver((es) => {
       es.forEach((e) => {
@@ -294,9 +332,7 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
       ghosts.current.get(k)?.remove();
       ghosts.current.set(k, g);
       root.appendChild(g);
-      const a = g.animate([{ opacity: 1, transform: "none" },
-        { opacity: 0, transform: "scale(0.98)" }],
-      { duration: fast, easing: ease, fill: "forwards" });
+      const a = veil(g, { duration: fast, easing: ease, out: true });
       const drop = (): void => {
         g.remove();
         if (ghosts.current.get(k) === g) ghosts.current.delete(k);
@@ -308,10 +344,11 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
       const empty = root.firstElementChild;
       if (empty instanceof HTMLElement &&
         empty.dataset["ghost"] === undefined) {
-        empty.animate([{ opacity: 0, transform: "translateY(4px)" },
-          { opacity: 1, transform: "none" }], { duration: base,
-          easing: ease, fill: "backwards",
-          delay: leaving > 0 ? fast / 2 : 0 });
+        const delay = leaving > 0 ? fast / 2 : 0;
+        empty.animate([{ transform: "translateY(4px)" },
+          { transform: "none" }], { duration: base, easing: ease,
+          fill: "backwards", delay });
+        veil(empty, { duration: base, delay });
       }
       return;
     }
@@ -330,11 +367,12 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
         if (was === undefined) {
           if (!inView(r)) return;
           // New rows wait for the leaving ones to clear, then fade in.
-          el.animate([{ opacity: 0, transform: "translateY(6px)" },
-            { opacity: 1, transform: "none" }],
-          { duration: base, easing: ease, fill: "backwards",
-            delay: (leaving > 0 ? fast : 0) +
-              Math.min(fresh++, STAGGER_CAP - 1) * (STAGGER_MS / 2) });
+          const delay = (leaving > 0 ? fast : 0) +
+            Math.min(fresh++, STAGGER_CAP - 1) * (STAGGER_MS / 2);
+          el.animate([{ transform: "translateY(6px)" },
+            { transform: "none" }],
+          { duration: base, easing: ease, fill: "backwards", delay });
+          veil(el, { duration: base, delay });
           return;
         }
         const dy = (was.top - (r.top - h.top)) / z;
@@ -371,8 +409,8 @@ export function useSwapIn(ref: RefObject<HTMLElement | null>,
     }
     const el = ref.current;
     if (el === null || reduced() || !canAnimate()) return;
-    el.animate([{ opacity: 0, transform: "translateY(4px)" },
-      { opacity: 1, transform: "none" }],
-    { duration: dur("--dur-base"), easing: easeOut() });
+    el.animate([{ transform: "translateY(4px)" }, { transform: "none" }],
+      { duration: dur("--dur-base"), easing: easeOut() });
+    veil(el, { duration: dur("--dur-base") });
   }, [state]);
 }
