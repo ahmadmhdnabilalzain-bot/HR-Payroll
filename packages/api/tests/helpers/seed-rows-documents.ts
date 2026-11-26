@@ -27,6 +27,7 @@ export async function seedDocumentRows(admin: Db, c: string, emp: string,
      VALUES ($1, $2, $3, 1, $4, $5, $6)`,
     [rowId(c, "d3"), c, doc, file, user, AT]);
   await seedLibraryRows(admin, c, emp, user);
+  await seedTemplateRows(admin, c, user);
   await admin.query(
     `INSERT INTO document_settings (company_id, lead_days, retention,
        updated_at) VALUES ($1, '{}', '{}', $2)`, [c, AT]);
@@ -55,4 +56,19 @@ async function seedLibraryRows(admin: Db, c: string, emp: string,
     `INSERT INTO library_receipts (company_id, version_id, user_id,
        employee_id, viewed_at) VALUES ($1, $2, $3, $4, $5)`,
     [c, ver, user, emp, AT]);
+}
+
+async function seedTemplateRows(admin: Db, c: string, user: string)
+  : Promise<void> {
+  const t = rowId(c, "d7");
+  await admin.query(
+    `INSERT INTO letter_templates (id, company_id, kind, name, lang,
+       starter, created_at) VALUES ($1, $2, 'noc', 'N', 'en', false, $3)`,
+    [t, c, AT]);
+  await admin.query(
+    `INSERT INTO letter_template_versions (id, company_id, template_id,
+       version, status, body, fields, uses_salary, created_by, created_at,
+       published_at) VALUES ($1, $2, $3, 1, 'published',
+       '{"title":"N","paragraphs":["x"]}', '{}', false, $4, $5, $5)`,
+    [rowId(c, "d8"), c, t, user, AT]);
 }

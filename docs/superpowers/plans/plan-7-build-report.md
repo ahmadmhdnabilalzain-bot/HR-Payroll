@@ -40,7 +40,7 @@ After the merge: api 330 tests pass; contract 98 pass; web 102 of 103
 | 3 | `feat(api): encrypted file storage and upload` | done |
 | 4 | `feat(api): employee documents and expiry alerts` | done |
 | 5 | `feat(api): company library and receipts` | done |
-| 6 | `feat(api): letter templates and merge` | |
+| 6 | `feat(api): letter templates and merge` | done |
 | 7 | `feat(api): letters rendered to PDF` | |
 | 8 | `feat(api): Emiratisation report, handover` | |
 
@@ -161,6 +161,33 @@ Task 2 (engine pack and tracker) was already merged and is used as is.
    documentId, version }`.
 5. The leak suite covers the library routes with a file marker the
    manager (outside the audience) must never receive.
+
+### Task 6 (letter templates)
+
+1. **Files:** the template store (rows, inserts, starter seeding,
+   views) is `letters/template-store.ts`; the route handlers are
+   `letters/templates.ts`, to stay under 300 lines.
+2. **A version created through `POST /v1/letter-templates` is a
+   draft**, like every later version; only the seeded starters start
+   published. `letter.template.created` audit data is `{ templateId,
+   kind, lang }`; version, publish and review rows carry `{ templateId,
+   version }`.
+3. **The reviewer's name is not in the audit row** (the allowlist
+   refuses free text); it stays on the version. A native review is
+   recorded once; a later call keeps the first record.
+4. **Database guards:** one published version per template (partial
+   unique index); a trigger keeps body, fields and number immutable,
+   lets the status only move forward and keeps a review once
+   recorded; the runtime role may update only status, publish time and
+   review columns.
+5. **Malformed placeholders:** any `{{` left after removing the
+   well-formed placeholders is refused. A stray single brace (as in
+   `{{{employee.fullName}}}`) is allowed and printed literally.
+6. **`buildMergeValues`** also checks money inputs (`parseAed`, else
+   422 `VALIDATION_FAILED` naming `inputs.<key>`) and date inputs (ISO
+   dates). `letter.reference` is the letter id.
+7. Signup seeds the ten starters in its existing transaction (20 more
+   ids per signup).
 
 ## Decisions
 

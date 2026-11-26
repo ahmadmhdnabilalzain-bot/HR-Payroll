@@ -8,7 +8,9 @@ const SERVED: readonly string[] = [
   "documentSettingsGet", "documentSettingsPut", "documentRetentionDue",
   "libraryList", "libraryCreate", "libraryGet", "libraryVersionAdd",
   "libraryAudiencePut", "libraryDownload", "libraryAcknowledge",
-  "libraryReceipts",
+  "libraryReceipts", "letterFields", "letterTemplatesList",
+  "letterTemplateCreate", "letterTemplateGet", "letterTemplateVersionAdd",
+  "letterTemplatePublish", "letterTemplateNativeReview",
 ];
 
 /**

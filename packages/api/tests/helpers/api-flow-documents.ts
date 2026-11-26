@@ -59,9 +59,29 @@ async function library(hit: Hitter, f: DocFlow): Promise<void> {
     departmentIds: [], employeeIds: [f.id], roles: [] });
 }
 
+async function templates(hit: Hitter, f: DocFlow): Promise<void> {
+  const { owner, c } = f;
+  await hit("letterFields", owner, c);
+  const list = await hit("letterTemplatesList", owner, c);
+  const ar = list.body.items.find((t: { lang: string }) =>
+    t.lang === "ar");
+  const body = { title: "Note", paragraphs: ["To: {{input.addressee}}"] };
+  const t = await hit("letterTemplateCreate", owner, c, {}, { kind: "noc",
+    name: "Custom", lang: "en", body });
+  const id = t.body.id as string;
+  await hit("letterTemplateGet", owner, c, { id });
+  const v = await hit("letterTemplateVersionAdd", owner, c, { id },
+    { body });
+  await hit("letterTemplatePublish", owner, c, { id,
+    versionId: v.body.versions[1].id });
+  await hit("letterTemplateNativeReview", owner, c, { id: ar.id,
+    versionId: ar.current.id }, { reviewerName: "Native Reviewer" });
+}
+
 /** One call to every Plan 7 route served so far, in a working order. */
 export async function documentFlow(hit: Hitter, f: DocFlow)
   : Promise<void> {
   await vault(hit, f);
   await library(hit, f);
+  await templates(hit, f);
 }

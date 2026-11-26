@@ -22,13 +22,15 @@ const OWN: Record<Role, Target | null> = { owner: null, hr: null,
   manager: "manager", employee: "report" };
 const REPORTS: Target[] = ["report", "report2"];
 
-type Kind = "employee" | "document" | "download" | "library" | null;
+type Kind = "employee" | "document" | "download" | "library" |
+  "template" | null;
 const ID_KIND: Record<string, Kind> = {
   employeeDocumentsList: "employee", employeeDocumentGet: "document",
   employeeDocumentDownload: "download", documentAlerts: null,
   documentSettingsGet: null, documentRetentionDue: null,
   libraryList: null, libraryGet: "library", libraryDownload: "library",
-  libraryReceipts: "library",
+  libraryReceipts: "library", letterFields: null,
+  letterTemplatesList: null, letterTemplateGet: "template",
 };
 
 /** In a library file shared with the employee's record only. */
@@ -55,6 +57,7 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
   let s: Seeded;
   let docs: Record<Target, SeededDoc>;
   let lib: string;
+  let tmpl: string;
   beforeAll(async () => {
     ctx = await makeApp({ start: "2026-11-26T08:00:00.000Z" });
     s = await seedCompany(ctx, "leakdoc");
@@ -66,9 +69,12 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
         fileId: f.id, requiresAck: false, audience: { allStaff: false,
           departmentIds: [], employeeIds: [s.emp.report], roles: [] } }))
       .body.id;
+    tmpl = (await call(ctx.app, s.hr.token, s.companyId, "GET",
+      "/v1/letter-templates")).body.items[0].id;
   });
   const pathOf = (r: RouteDef, t: Target | null): string => {
     if (ID_KIND[r.id] === "library") return r.path.replace("{id}", lib);
+    if (ID_KIND[r.id] === "template") return r.path.replace("{id}", tmpl);
     if (t === null) return r.path;
     const d = docs[t];
     return r.path.replace("{id}", ID_KIND[r.id] === "employee"
@@ -86,7 +92,8 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
   for (const r of routes) {
     it(r.id, async () => {
       const k = ID_KIND[r.id];
-      const targets = k === null || k === "library" ? [null] : TARGETS;
+      const targets = k === null || k === "library" || k === "template"
+        ? [null] : TARGETS;
       for (const role of ROLES) {
         for (const t of targets) {
           const res = await ctx.app.request(pathOf(r, t), { headers: {
