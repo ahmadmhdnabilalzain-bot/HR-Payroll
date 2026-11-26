@@ -553,3 +553,16 @@ The owner can overrule any of these. Full list with reasons:
   to clients; the real production hosting comes later on another plan.
   Nothing is created on Render until the owner has seen the plan and
   the cost.
+- 2026-11-26: Owner asked (twice) for a separate Render project. Created
+  Blueprint `hr-payroll` (`exs-dc3urcui0phs738l6ol0`) from `render.yaml`
+  on this branch, project `hr-payroll`, environment `demo`, with one
+  free static placeholder `hr-payroll-demo-site-223y`
+  (`srv-dc3urhajnfac73avp20g`). `autoSync` is OFF on purpose: pushes to
+  `render.yaml` must never create resources by themselves.
+  Every later addition (API, private Postgres, disks, paid plans) needs
+  `plan_blueprint`, the plan and monthly cost shown to the owner, and
+  their yes before `approve_blueprint`. Verified: Render Postgres has no
+  superuser; static sites are free to deploy. Existing `manar-erp`
+  resources were checked before and after and are unchanged.
+- Advisor (owner set it to Fable 5.2 on 2026-11-26): consult it before
+  decisions; it had lapsed for a long stretch and was resumed.
