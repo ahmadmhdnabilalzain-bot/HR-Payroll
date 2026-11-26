@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../button.module.css";
+import { maskNode, useMaskText } from "../mask";
 import { PageHead } from "./PageHead";
 import { Sheet } from "./Sheet";
 import s from "./templates.module.css";
@@ -38,6 +39,7 @@ export function SettingsPage(p: {
   onSave?(key: string, value: string): string | null;
 }) {
   const { t } = useLocale();
+  const mask = useMaskText();
   const [edit, setEdit] = useState<Setting | null>(null);
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -52,10 +54,11 @@ export function SettingsPage(p: {
             {g.items.map((x) => (
               <li key={x.key} className={s.groupedRow}>
                 <span className={s.rowText}>
-                  <span>{x.label}</span>
-                  {x.help !== undefined && <small>{x.help}</small>}
+                  <span>{maskNode(mask, x.label)}</span>
+                  {x.help !== undefined && (
+                    <small>{maskNode(mask, x.help)}</small>)}
                 </span>
-                <span className={s.rowValue}>{x.value}</span>
+                <span className={s.rowValue}>{maskNode(mask, x.value)}</span>
                 {x.editable === true && p.onSave !== undefined && (
                   <button type="button"
                     className={`${b.btn} ${b.quiet} ${s.tap}`}

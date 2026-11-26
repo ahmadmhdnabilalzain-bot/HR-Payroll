@@ -1,5 +1,3 @@
-import { useState } from "react";
-import type { ChainCheck } from "../demo/data/home-types";
 import { useDemo } from "../demo/state";
 import { formatLongDay, formatNumber } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -23,8 +21,9 @@ function Open(p: { href: string | null; label: string }) {
  */
 export function ItHome() {
   const { lang, t } = useLocale();
-  const { data, state } = useDemo();
-  const [chain, setChain] = useState<ChainCheck | null>(null);
+  const { data, state, dispatch } = useDemo();
+  // The same check as the Audit trail page and the IT dashboard.
+  const chain = state.auditCheck;
   const it = data.home.it();
   const c = { data, state };
   const failing = it.hooks.filter((h) => h.status === "failing").length;
@@ -88,7 +87,8 @@ export function ItHome() {
         <section className={s.card} aria-labelledby="it-audit">
           <h2 id="it-audit" className={s.label}>{t("inbox.itAudit")}</h2>
           <p className={`${s.big} tabular`}>
-            {t("inbox.itAuditBig", { count: it.auditCount })}
+            {t("inbox.itAuditBig", { count: it.auditCount +
+              state.auditAdded.length })}
           </p>
           <p className={s.meta} role="status">
             {chain === null ? t("inbox.itChainNote") : chain.ok
@@ -96,7 +96,9 @@ export function ItHome() {
               : t("inbox.itChainBroken", { at: chain.brokenAt ?? 0 })}
           </p>
           <button type="button" className={`${b.btn} ${b.primary}`}
-            onClick={() => setChain(it.verifyChain())}>
+            onClick={() => dispatch({ type: "audit-check",
+              result: it.verifyChain(state.auditAdded,
+                state.auditTampered) })}>
             {chain === null ? t("inbox.itCheck") : t("inbox.itCheckAgain")}
           </button>
         </section>

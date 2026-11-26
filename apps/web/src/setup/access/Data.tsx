@@ -1,6 +1,9 @@
 import { downloadText } from "../../lib/download";
 import { toCsv } from "../../reports/csv";
+import { useDemo } from "../../demo/state";
 import b from "../../ui/button.module.css";
+import { amountsHidden, maskCsvColumns, useMaskText }
+  from "../../ui/mask";
 import { useToast } from "../../ui/Toast";
 import { FilterList } from "../../ui/templates";
 import type { AccessData } from "./data";
@@ -15,6 +18,12 @@ const COLUMN: Record<string, string> = { number: "Employee number",
 export function Import(p: { d: AccessData }) {
   const { sample } = p.d;
   const toast = useToast();
+  const { state } = useDemo();
+  const mask = useMaskText();
+  // The IT manager sees no one's pay: the sample's salary and IBAN
+  // columns are masked in the file it downloads.
+  const fileText = amountsHidden(state) ? maskCsvColumns(sample.text,
+    ["Basic salary (AED)", "IBAN"]) : sample.text;
   const tone = (st: string): Tone => st === "ready" ? "ok"
     : st === "warning" ? "warn" : "danger";
   const fixes = sample.rows.filter((r) => r.problems.length > 0);
@@ -32,7 +41,7 @@ export function Import(p: { d: AccessData }) {
         actions={(
           <>
             <button type="button" className={`${b.btn} ${b.secondary} ${s.tap}`}
-              onClick={() => downloadText(sample.fileName, sample.text,
+              onClick={() => downloadText(sample.fileName, fileText,
                 "text/csv;charset=utf-8")}>Download the sample file</button>
             <button type="button" className={`${b.btn} ${b.primary} ${s.tap}`}
               onClick={() => toast.show(`Nothing imported. ${
@@ -60,7 +69,8 @@ export function Import(p: { d: AccessData }) {
                 {r.problems.map((x) => (
                   <small key={x.column} className={s.wrap}>
                     {x.severity === "error" ? "Fix: " : "Check: "}
-                    {x.message} <span className={s.fix}>{x.fix}</span>
+                    {mask(x.message)} <span className={s.fix}>
+                      {mask(x.fix)}</span>
                   </small>
                 ))}
               </span>

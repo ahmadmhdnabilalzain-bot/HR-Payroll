@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { maskNode, useMaskText } from "../mask";
 import { PageHead } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -28,6 +29,7 @@ export function RecordTabs(p: {
   onTab?(id: string): void;
   actions?: ReactNode;
 }) {
+  const mask = useMaskText();
   const [own, setOwn] = useState(p.tabs[0]?.id ?? "");
   const at = p.tab ?? own;
   const current = p.tabs.find((x) => x.id === at) ?? p.tabs[0];
@@ -39,7 +41,7 @@ export function RecordTabs(p: {
         {p.stats.slice(0, 3).map((x) => (
           <div key={x.label}>
             <dt>{x.label}</dt>
-            <dd>{x.value}</dd>
+            <dd>{maskNode(mask, x.value)}</dd>
           </div>
         ))}
       </dl>
@@ -65,12 +67,13 @@ export function RecordTabs(p: {
 
 /** A two-column key-value grid (13 px labels, 15 px values). */
 export function KeyValues(p: { items: { label: string; value: ReactNode }[] }) {
+  const mask = useMaskText();
   return (
     <dl className={s.kv}>
       {p.items.map((x) => (
         <div key={x.label}>
           <dt>{x.label}</dt>
-          <dd>{x.value}</dd>
+          <dd>{maskNode(mask, x.value)}</dd>
         </div>
       ))}
     </dl>

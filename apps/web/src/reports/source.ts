@@ -1,6 +1,8 @@
 import {
+  appendAuditEvents,
   auditEvents,
   auditRows,
+  auditRowsOf,
   buildDemoCompany,
   DEMO_LABELS,
   employeeById,
@@ -11,9 +13,11 @@ import {
   varianceBetween,
   verifyAuditChain,
   workingDaysBetween,
+  type AuditEvent,
   type DemoCompany,
   type DemoEmployee,
 } from "@payroll/demo-data";
+import { auditDrafts } from "../demo/audit-state";
 import type {
   AuditCheck,
   AuditView,
@@ -54,6 +58,8 @@ const ACTION: Record<string, string> = {
   "employee.created": "Employee added",
   "employee.resignation-recorded": "Resignation recorded",
   "settlement.prepared": "Settlement prepared",
+  "access.api-key-revoked": "Key revoked",
+  "access.api-key-restored": "Key restored",
 };
 
 const AREA: Record<string, string> = { pay: "Pay", people: "People",
@@ -100,13 +106,22 @@ function varianceView(c: DemoCompany, month: string,
         employeeById(c, id).fullName) })) };
 }
 
-function auditViews(c: DemoCompany): AuditView[] {
-  const ev = auditEvents(c);
-  return auditRows(c).map((r, i) => ({ id: r.id, seq: ev[i]!.seq,
+function auditViews(c: DemoCompany,
+  ev: readonly AuditEvent[] = auditEvents(c)): AuditView[] {
+  const rows = ev === auditEvents(c) ? auditRows(c) : auditRowsOf(c, ev);
+  return rows.map((r, i) => ({ id: r.id, seq: ev[i]!.seq,
     when: r.when, who: r.who, area: AREA[r.area] ?? r.area,
     action: ACTION[r.action] ?? r.action,
     summary: plainAudit(r.summary), subject: plainAudit(r.subjectLabel),
     shortHash: r.shortHash, shortPrev: r.shortPrev }));
+}
+
+/** The chain check, with entry `tamperSeq` edited in this copy. */
+function verify(events: readonly AuditEvent[], tamperSeq: number | null)
+  : AuditCheck {
+  return verifyAuditChain(tamperSeq === null ? events
+    : events.map((e) => e.seq === tamperSeq
+      ? { ...e, summary: `${e.summary} (edited)` } : e));
 }
 
 function departmentHeads(c: DemoCompany): DeptHeads[] {
@@ -166,9 +181,13 @@ export function buildReportsSource(): ReportsSource {
     months: monthRows(c),
     variance: (month, against) => varianceView(c, month, against),
     audit: auditViews(c),
-    verifyAudit: (tamperSeq): AuditCheck => verifyAuditChain(
-      tamperSeq === null ? events : events.map((e) => e.seq === tamperSeq
-        ? { ...e, summary: `${e.summary} (edited)` } : e)),
+    verifyAudit: (tamperSeq): AuditCheck => verify(events, tamperSeq),
+    auditWith: (added) => {
+      const all = appendAuditEvents(events, auditDrafts(added,
+        events.at(-1)!.at));
+      return { rows: auditViews(c, all),
+        verify: (tamperSeq) => verify(all, tamperSeq) };
+    },
     departments: departmentHeads(c),
     joiners: c.employees.filter((e) => e.joiningDate > "2026-01-01" &&
       e.joiningDate <= c.asOf).map((e) => e.fullName),

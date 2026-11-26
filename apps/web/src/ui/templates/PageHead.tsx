@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
+import { useMaskText } from "../mask";
 import s from "./templates.module.css";
 
 /** Every template's head: title (28), an optional lede and actions. */
 export function PageHead(p: { title: string; lede?: string | undefined;
   actions?: ReactNode;
   back?: { label: string; href: string } | undefined }) {
+  const mask = useMaskText();
   return (
     <header className={s.head}>
       {p.back !== undefined && (
@@ -16,7 +18,7 @@ export function PageHead(p: { title: string; lede?: string | undefined;
           <div className={s.actions}>{p.actions}</div>
         )}
       </div>
-      {p.lede !== undefined && <p className={s.lede}>{p.lede}</p>}
+      {p.lede !== undefined && <p className={s.lede}>{mask(p.lede)}</p>}
     </header>
   );
 }

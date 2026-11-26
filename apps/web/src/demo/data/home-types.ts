@@ -10,6 +10,7 @@ import type {
   MyDocumentView,
   TeamTodayRow,
 } from "@payroll/demo-data";
+import type { AuditAddition } from "../audit-state";
 import type { Role } from "../state";
 
 export type {
@@ -47,8 +48,10 @@ export interface ItOverview {
   importText: string;
   /** Entries in the audit chain. */
   auditCount: number;
-  /** Walks the chain again, entry by entry (real SHA-256). */
-  verifyChain(): ChainCheck;
+  /** Walks the chain again, entry by entry (real SHA-256), with the
+   * demo's own entries and the "edit one entry" demo when given. */
+  verifyChain(added?: readonly AuditAddition[], tampered?: boolean)
+    : ChainCheck;
 }
 
 /**

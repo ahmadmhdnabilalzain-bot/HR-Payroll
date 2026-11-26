@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../button.module.css";
+import { useMaskText } from "../mask";
 import { PageHead } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -33,10 +34,14 @@ export function ReportPage(p: {
   bars?: number[];
   note?: string;
   csvName: string;
+  /** One more action before Download and Print (e.g. run a check). */
+  actions?: ReactNode;
 }) {
   const { t } = useLocale();
+  const mask = useMaskText();
+  const rows = p.rows.map((r) => r.map(mask));
   const download = (): void => {
-    const url = URL.createObjectURL(new Blob([toCsv(p.columns, p.rows)],
+    const url = URL.createObjectURL(new Blob([toCsv(p.columns, rows)],
       { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
@@ -48,6 +53,7 @@ export function ReportPage(p: {
     <div className={s.page}>
       <PageHead title={p.title} lede={p.period} actions={(
         <>
+          {p.actions}
           <button type="button" className={`${b.btn} ${b.secondary}`}
             onClick={download}>{t("tpl.csv")}</button>
           <button type="button" className={`${b.btn} ${b.quiet}`}
@@ -68,7 +74,7 @@ export function ReportPage(p: {
           ))}</tr>
         </thead>
         <tbody>
-          {p.rows.map((r, i) => (
+          {rows.map((r, i) => (
             <tr key={i}>
               {r.map((v, j) => (
                 <td key={j} data-end={p.columns[j]?.end === true}
@@ -84,7 +90,7 @@ export function ReportPage(p: {
           ))}
         </tbody>
       </table>
-      {p.note !== undefined && <p className={s.note}>{p.note}</p>}
+      {p.note !== undefined && <p className={s.note}>{mask(p.note)}</p>}
     </div>
   );
 }

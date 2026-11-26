@@ -2,6 +2,7 @@ import {
   accessApiKeys,
   accessReview,
   accessWebhooks,
+  appendAuditEvents,
   auditEvents,
   homeNoticesFor,
   homeNotificationsFor,
@@ -13,6 +14,7 @@ import {
   verifyAuditChain,
   type DemoCompany,
 } from "@payroll/demo-data";
+import { auditDrafts, TAMPER_AT } from "../audit-state";
 import type { HomeData, ItOverview } from "./home-types";
 
 /**
@@ -39,7 +41,14 @@ export function adaptHome(c: DemoCompany): HomeData {
       .text) }, keys: accessApiKeys(c),
     hooks: accessWebhooks(c).map((h) => ({ ...h, name: clean(h.name) })),
     importSummary: sample.summary, importText: sample.summaryText,
-    auditCount: events.length, verifyChain: () => verifyAuditChain(events) };
+    auditCount: events.length,
+    verifyChain: (added = [], tampered = false) => {
+      const all = appendAuditEvents(events, auditDrafts(added,
+        events.at(-1)!.at));
+      return verifyAuditChain(tampered ? all.map((e) =>
+        e.seq === TAMPER_AT ? { ...e, summary: `${e.summary} (edited)` }
+          : e) : all);
+    } };
   });
   const history = memo(() => payrollHistory(c)
     .filter((m) => m.status === "paid"));

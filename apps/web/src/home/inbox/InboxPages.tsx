@@ -1,5 +1,6 @@
 import { useDemo } from "../../demo/state";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { useMaskText } from "../../ui/mask";
 import { FilterList } from "../../ui/templates";
 import { inboxNotices, inboxTasks } from "./model";
 import { TaskAction, TaskTitle, TONE_KEY } from "./TaskList";
@@ -7,6 +8,7 @@ import s from "./inbox.module.css";
 
 /** `#/home/tasks`: every task for the role (LF), open first. */
 export function TasksPage() {
+  const mask = useMaskText();
   const { t } = useLocale();
   const { data, state } = useDemo();
   const rows = inboxTasks(data, state);
@@ -22,7 +24,7 @@ export function TasksPage() {
         { key: "task", label: t("inbox.colTask"), render: (x) => (
           <span className={s.main}>
             <TaskTitle task={x} />
-            <span className={s.meta}>{x.detail}</span>
+            <span className={s.meta}>{mask(x.detail)}</span>
           </span>) },
         { key: "due", label: t("inbox.colDue"), render: (x) => x.dueText },
         { key: "status", label: t("inbox.colStatus"), render: (x) => (
@@ -37,6 +39,7 @@ export function TasksPage() {
 
 /** `#/home/notices`: every notice the viewer's place sees (LF). */
 export function NoticesPage() {
+  const mask = useMaskText();
   const { t } = useLocale();
   const { data, state } = useDemo();
   const rows = inboxNotices(data, state);
@@ -48,7 +51,7 @@ export function NoticesPage() {
         { key: "notice", label: t("inbox.colNotice"), render: (x) => (
           <span className={s.main}>
             <span className={s.what}>{x.title}</span>
-            <span className={s.meta}>{x.body}</span>
+            <span className={s.meta}>{mask(x.body)}</span>
           </span>) },
         { key: "posted", label: t("inbox.colPosted"), render: (x) =>
           t("inbox.postedBy", { name: x.postedBy.name,

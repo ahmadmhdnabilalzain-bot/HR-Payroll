@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDemo } from "../../demo/state";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { amountsHidden, maskMoney } from "../../ui/mask";
 import b from "../../ui/button.module.css";
 import { Icon } from "../../ui/Icon";
 import { Sheet } from "../../ui/templates";
@@ -47,7 +48,8 @@ export function NotificationsButton(p: { className: string }) {
                       setOpen(false);
                     }}>{n.title}</a>
                   )}
-                  <span className={s.body}>{n.body}</span>
+                  <span className={s.body}>{amountsHidden(state)
+                    ? maskMoney(n.body) : n.body}</span>
                   <span className={s.meta}>
                     {n.agoText}
                     {n.unread && (

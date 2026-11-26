@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useDemo } from "../../demo/state";
+import { useMaskText } from "../../ui/mask";
 import { FilterList } from "../../ui/templates";
 import b from "../../ui/button.module.css";
 import { useReportsSource } from "../load";
@@ -7,15 +8,16 @@ import s from "../Audit.module.css";
 
 const GROUPS: [string, string[]][] = [["Pay", ["Pay"]],
   ["People", ["People", "Time off"]], ["Setup", ["Access", "Setup"]]];
-const TAMPER_AT = 11;
+import { TAMPER_AT } from "../../demo/audit-state";
 
-const LEDE = "Every action is written down once and cannot be changed " +
-  "quietly. Each entry carries a fingerprint (SHA-256) made from the " +
-  "entry and the one before it, so an edited or removed entry shows up " +
-  "when the chain is checked. This is a demo of the idea, worked out " +
-  "when the page loads; it is not a legal proof.";
+const LEDE = "Each action is written down as an entry linked to the " +
+  "one before it by a fingerprint (SHA-256), so an edited or removed " +
+  "entry shows up when the chain is checked: the check detects a " +
+  "change, it does not prevent one. In this demo the check runs in " +
+  "your browser; it is not a legal proof.";
 
-function statusText(c: AuditCheck | null, tampered: boolean): string {
+export function statusText(c: AuditCheck | null, tampered: boolean)
+  : string {
   if (c === null) {
     return tampered ? `Entry ${TAMPER_AT} edited in this copy. Not checked`
       : "Not checked yet";
@@ -28,10 +30,16 @@ function statusText(c: AuditCheck | null, tampered: boolean): string {
 /** Audit trail (LF): every entry, the chain check, and a tamper demo. */
 export function Audit() {
   const src = useReportsSource();
-  const [check, setCheck] = useState<AuditCheck | null>(null);
-  const [tampered, setTampered] = useState(false);
-  const rows: AuditView[] = src.audit.map((r) => tampered &&
-    r.seq === TAMPER_AT ? { ...r, summary: `${r.summary} (edited)` } : r);
+  const { state, dispatch } = useDemo();
+  const mask = useMaskText();
+  const trail = src.auditWith(state.auditAdded);
+  const check = state.auditCheck;
+  const tampered = state.auditTampered;
+  // Amounts in entry text are masked for display only; the chain is
+  // checked on the entries as written.
+  const rows: AuditView[] = trail.rows.map((r) => ({ ...r,
+    summary: mask(tampered && r.seq === TAMPER_AT
+      ? `${r.summary} (edited)` : r.summary), subject: mask(r.subject) }));
   const tone = check === null ? "" : check.ok ? s.ok : s.broken;
   return (
     <FilterList<AuditView> title="Audit trail" lede={LEDE} rows={rows}
@@ -57,12 +65,14 @@ export function Audit() {
             {statusText(check, tampered)}
           </span>
           <button type="button" className={`${b.btn} ${b.quiet}`}
-            onClick={() => { setTampered((t) => !t); setCheck(null); }}>
+            onClick={() => dispatch({ type: "audit-tamper",
+              on: !tampered })}>
             {tampered ? "Restore the entry" : "Edit one entry"}
           </button>
           <button type="button" className={`${b.btn} ${b.primary}`}
-            onClick={() => setCheck(src.verifyAudit(
-              tampered ? TAMPER_AT : null))}>Check the chain</button>
+            onClick={() => dispatch({ type: "audit-check",
+              result: trail.verify(tampered ? TAMPER_AT : null) })}>
+            Check the chain</button>
         </>
       )} />
   );

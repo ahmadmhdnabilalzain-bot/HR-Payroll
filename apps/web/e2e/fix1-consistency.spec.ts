@@ -39,3 +39,49 @@ test("the GM decides crew overtime and the expense from Home",
     await expect(list.getByText("Crew overtime").first()).toBeVisible();
     await expect(list.getByText(/Waiting for Arjun Menon/)).toHaveCount(0);
   });
+
+const MONEY = /AED[\s ]*[+−-]?\d|\d{1,3}(,\d{3})+\.\d{2}/;
+
+async function noAmounts(page: Page, hashes: string[]): Promise<void> {
+  for (const h of hashes) {
+    await go(page, h);
+    await page.locator("main h1").first().waitFor();
+    await page.waitForTimeout(300);
+    const text = await page.locator("main").innerText();
+    expect(text.match(MONEY)?.[0] ?? "", h).toBe("");
+  }
+}
+
+test("hide amounts masks every amount written as text", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Hide amounts" }).click();
+  await noAmounts(page, ["#/home", "#/home/tasks",
+    "#/time-off/more/liability", "#/reports/audit", "#/setup/access/rules"]);
+});
+
+test("the IT manager reads no pay figure", async ({ page }) => {
+  await page.goto("/");
+  await asRole(page, "IT manager");
+  await noAmounts(page, ["#/reports/audit", "#/people/requests/splits",
+    "#/setup/data/import"]);
+});
+
+test("revoking a key writes the trail; the IT dashboard waits for a check",
+  async ({ page }) => {
+    await page.goto("/");
+    await asRole(page, "IT manager");
+    await go(page, "#/reports/it-dashboard");
+    await expect(page.getByText(/Not checked yet in this session/))
+      .toBeVisible();
+    await go(page, "#/setup/connections/keys");
+    await page.getByRole("button", { name: "Revoke", exact: true }).first()
+      .click();
+    await go(page, "#/reports/audit");
+    await expect(page.getByText("Key revoked").first()).toBeVisible();
+    await page.getByRole("button", { name: "Check the chain" }).click();
+    await expect(page.getByText(/Chain checked: all \d+ entries fit/))
+      .toBeVisible();
+    await go(page, "#/reports/it-dashboard");
+    await expect(page.getByText(/Checked in this session: all/))
+      .toBeVisible();
+  });

@@ -1,6 +1,7 @@
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { amountsHidden, maskMoney } from "../../ui/mask";
 import { inboxNotices } from "./model";
 import s from "./inbox.module.css";
 
@@ -28,7 +29,8 @@ export function NoticeList(p: { limit: number }) {
             <li key={n.id} className={s.row}>
               <div className={s.main}>
                 <span className={s.what}>{n.title}</span>
-                <span className={s.body}>{n.body}</span>
+                <span className={s.body}>{amountsHidden(state)
+                  ? maskMoney(n.body) : n.body}</span>
                 <span className={s.meta}>
                   {t("inbox.postedBy", { name: n.postedBy.name,
                     date: n.postedOn.display })}

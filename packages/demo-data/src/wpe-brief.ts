@@ -332,11 +332,12 @@ export function itDashboard(c: DemoCompany): ItDashboard {
         "not go through.", failing.length === 0, "setup.hooks"),
     r("import", "Data", "Import sample", imp.summaryText,
       imp.summary.errors === 0, "setup.import"),
+    // Never "OK" before anyone has run the check: the screen overlays
+    // this row with the check run in the session.
     r("chain", "Audit", "Audit trail chain",
-      chain.ok ? `${plural(chain.checked, "entry", "entries")} checked, ` +
-        "none changed since they were written."
-        : `Entry ${chain.brokenAt} does not match the one before it.`,
-      chain.ok, "reports.audit"),
+      `${plural(chain.checked, "entry", "entries")} in the chain. Not ` +
+        "checked yet: run the check on the Audit trail.", false,
+      "reports.audit"),
   ];
   return { rows, checks: rows.filter((x) => x.state === "check").length,
     note: "Worked out from this demo's own access data. Nothing here " +

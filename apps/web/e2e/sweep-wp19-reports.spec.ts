@@ -38,7 +38,11 @@ test("loans-report-and-it-dashboard", async ({ page }) => {
   await page.evaluate(() => { location.hash = "#/reports/it-dashboard"; });
   await expect(page.getByRole("heading", { level: 1,
     name: "IT dashboard" })).toBeVisible();
-  await expect(page.getByText(/entries checked, none changed/)).toBeVisible();
+  await expect(page.getByText(/Not checked yet in this session/))
+    .toBeVisible();
+  await page.getByRole("button", { name: "Check the chain" }).click();
+  await expect(page.getByText(/Checked in this session: all \d+ entries/))
+    .toBeVisible();
   await expect(page.getByText(/AED \d/)).toHaveCount(0);
   const bad = await new AxeBuilder({ page }).analyze();
   expect(bad.violations).toEqual([]);

@@ -2,6 +2,7 @@ import type { Fils } from "@payroll/engine";
 import { useDemo } from "../demo/state";
 import { formatMoney, MINUS } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { amountsHidden } from "../ui/mask";
 
 const MASK = "AED ••••••";
 
@@ -37,9 +38,9 @@ export interface Money {
 export function useMoney(): Money {
   const { lang } = useLocale();
   const { state } = useDemo();
-  const m = (f: Fils): string => state.hideAmounts ? MASK
-    : formatMoney(f, lang);
-  return { m, signed: (f) => state.hideAmounts ? MASK
+  const hide = amountsHidden(state);
+  const m = (f: Fils): string => hide ? MASK : formatMoney(f, lang);
+  return { m, signed: (f) => hide ? MASK
     : formatMoney(f, lang, { plus: true }) };
 }
 

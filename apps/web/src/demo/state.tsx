@@ -91,6 +91,12 @@ import {
   type PaySlice,
 } from "../pay/pay-state";
 import {
+  AUDIT_INITIAL,
+  reduceAudit,
+  type AuditAction,
+  type AuditSlice,
+} from "./audit-state";
+import {
   HOLD_INITIAL,
   reduceHolds,
   type HoldAction,
@@ -114,7 +120,8 @@ export type Resolution = "reviewed" | "renewal";
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
-    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice {
+    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
+    AuditSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -157,6 +164,7 @@ export type Action =
   | PriorAction
   | HoldAction
   | MoreAction
+  | AuditAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -171,6 +179,7 @@ export const INITIAL: DemoState = {
   ...CONNECT_INITIAL, ...PRIOR_INITIAL,
   ...HOLD_INITIAL,
   ...MORE_INITIAL,
+  ...AUDIT_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -275,6 +284,9 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "prior-undo": return reducePrior(s, a);
     case "salary-hold":
     case "salary-release": return reduceHolds(s, a);
+    case "audit-append":
+    case "audit-check":
+    case "audit-tamper": return reduceAudit(s, a);
   }
 }
 
@@ -303,6 +315,11 @@ export function DemoProvider(p: { source: DemoSource;
   return (
     <DemoContext.Provider value={value}>{p.children}</DemoContext.Provider>
   );
+}
+
+/** The store, or null outside the provider (shared templates). */
+export function useOptionalDemo(): Demo | null {
+  return useContext(DemoContext);
 }
 
 export function useDemo(): Demo {

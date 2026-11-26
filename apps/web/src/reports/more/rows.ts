@@ -65,6 +65,28 @@ export function briefRows(brief: OwnerBrief, x: BriefLiveInput,
     [`Dates: ${d.label}`, d.text, ""])];
 }
 
+type ItDashboard = MoreSource["it"];
+type ItRow = ItDashboard["rows"][number];
+
+/** The IT dashboard's audit row follows the check run in this session:
+ * "Not checked yet" until someone runs it, never "OK" unchecked. */
+export function itRows(it: ItDashboard, check: { ok: boolean;
+  brokenAt: number | null; checked: number } | null,
+  entries: number): ItRow[] {
+  return it.rows.map((r) => {
+    if (r.id !== "chain") return r;
+    if (check === null) return { ...r, state: "check",
+      stateText: "Check", text: `Not checked yet in this session ` +
+        `(${entries} entries). Press Check the chain.` };
+    return check.ok ? { ...r, state: "ok", stateText: "OK",
+      text: `Checked in this session: all ${check.checked} entries fit ` +
+        "the one before them." }
+      : { ...r, state: "check", stateText: "Check",
+        text: `Checked in this session: entry ${check.brokenAt} does ` +
+          "not match the one before it." };
+  });
+}
+
 /** The board pack's rows, the live ones read from the shared figures. */
 export function boardRows(board: BoardPack, fig: Figures,
   m: (f: Fils) => string): string[][] {

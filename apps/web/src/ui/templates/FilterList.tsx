@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../Icon";
+import { maskNode, useMaskText } from "../mask";
 import { PageHead } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -44,6 +45,7 @@ export function FilterList<T>(p: {
   actions?: ReactNode;
 }) {
   const { t } = useLocale();
+  const mask = useMaskText();
   const [q, setQ] = useState("");
   const [seg, setSeg] = useState(p.segments?.[0]?.id ?? "");
   const active = p.segments?.find((x) => x.id === seg);
@@ -95,9 +97,9 @@ export function FilterList<T>(p: {
                 <span className={s.cellLabel}>{c.label}</span>
                 {i === 0 ? (
                   <span className={s.cellText} ref={fullTitle}>
-                    {c.render(r)}
+                    {maskNode(mask, c.render(r))}
                   </span>
-                ) : c.render(r)}
+                ) : maskNode(mask, c.render(r))}
               </span>
             ));
             const href = p.rowHref?.(r);
