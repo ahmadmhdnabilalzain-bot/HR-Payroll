@@ -27,7 +27,7 @@ export function Holds() {
   const release = (h: SalaryHold): void => {
     dispatch({ type: "salary-release", employeeId: h.employeeId });
     toast.show(`Released: ${data.employee(h.employeeId).name.en}'s ` +
-      "salary is back in the advice", () =>
+      "salary is to be paid again", () =>
       dispatch({ type: "salary-hold", hold: h }));
   };
   const hold = (employeeId: string, reason: string): void => {
@@ -55,22 +55,39 @@ export function Holds() {
           { key: "dept", label: "Department", render: (p) => p.department },
           { key: "net", label: "Net pay", end: true, render: (p) =>
             <Money value={p.net} size="sm" tween={false} /> },
-          { key: "st", label: "Status", render: (p) => {
+          { key: "st", label: "Status", render: (p) =>
+            held.has(p.id) ? <Status tone="check">Held</Status>
+              : p.inFile ? <Status tone="done">To be paid</Status>
+                : <Status tone="bad">No IBAN yet</Status> },
+          { key: "why", label: "Held by", render: (p) => {
             const h = held.get(p.id);
-            if (h !== undefined) {
-              return <span>
-                <Status tone="check">Held</Status>{" "}
-                <span className={s.muted}>{h.reason}. By {whoIs(data,
-                  h.by)}, {dayMonth(h.on, lang)}.</span>{" "}
-                <button type="button" className={`${b.btn} ${b.quiet} ` +
-                  s.inlineBtn} onClick={() => release(h)}>Release</button>
-              </span>;
-            }
-            return p.inFile ? <Status tone="done">To be paid</Status>
-              : <Status tone="bad">No IBAN yet</Status>;
+            return h === undefined ? "" : `${whoIs(data, h.by)}, ` +
+              `${dayMonth(h.on, lang)}: ${h.reason}`;
           } },
         ]}
         empty="No salary is held. Choose Hold a salary to keep one back." />
+      {state.salaryHolds.length > 0 && (
+        <section className={s.page} aria-labelledby="held-now">
+          <h2 id="held-now" className={s.blockTitle}>Held now</h2>
+          <ul className={s.list}>
+            {state.salaryHolds.map((h) => {
+              const name = data.employee(h.employeeId).name.en;
+              return (
+                <li key={h.employeeId} className={s.listRow}>
+                  <span>
+                    <strong>{name}</strong>
+                    <span className={s.muted}> {h.reason}. Held by{" "}
+                      {whoIs(data, h.by)}, {dayMonth(h.on, lang)}.</span>
+                  </span>
+                  <button type="button" className={`${b.btn} ${b.secondary}`}
+                    aria-label={`Release ${name}'s salary`}
+                    onClick={() => release(h)}>Release</button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
       <HoldSheet open={open} onClose={() => setOpen(false)}
         people={d.people.filter((p) => !held.has(p.id))
           .map((p) => ({ id: p.id, name: p.name }))}

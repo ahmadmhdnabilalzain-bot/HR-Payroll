@@ -74,6 +74,15 @@ describe("WPE analysis builder (X30)", () => {
     expect(analyse(ot!, "month", "minutes").total)
       .toBe(BigInt(h.reduce((n, m) => n + m.overtimeMinutes, 0)));
   }));
+  it("no group label is a raw id or empty", () => each((c) => {
+    for (const d of analysisDatasets(c)) {
+      for (const dim of d.dims) {
+        for (const r of analyse(d, dim.id, d.measures[0]!.id).rows) {
+          expect(r.label).not.toMatch(/^(lt-|dept-|hq-|br-)|^$/);
+        }
+      }
+    }
+  }));
   it("months come in calendar order", () => {
     const c = buildDemoCompany();
     const r = analyse(analysisDatasets(c)[0]!, "month", "gross");
@@ -89,6 +98,8 @@ describe("WPE sign-off report (X32)", () => {
       expect(r.filter((x) => x.outcome === "waiting").map((x) =>
         x.inboxId).sort()).toEqual(c.approvals.map((a) => a.id).sort());
       expect(r.some((x) => x.outcome === "signed-off")).toBe(true);
+      for (const x of r.filter((y) => y.outcome !== "waiting" &&
+        y.askedOn !== "")) expect(x.askedBy).not.toBe(x.decider);
       for (const x of r.filter((y) => y.outcome === "waiting")) {
         const a = c.approvals.find((y) => y.id === x.inboxId)!;
         expect(a.makerEmployeeId).not.toBe(a.checkerEmployeeId);

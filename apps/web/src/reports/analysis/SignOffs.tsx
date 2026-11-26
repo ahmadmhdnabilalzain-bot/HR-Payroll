@@ -31,7 +31,8 @@ export function SignOffs() {
       columns={[{ label: "Item" }, { label: "Kind" }, { label: "Asked by" },
         { label: "Asked" }, { label: "Decided by" }, { label: "Decided" },
         { label: "Outcome" }, { label: "Took" }]}
-      rows={rows.map((r) => [r.subject, r.kindText, r.askedBy,
+      rows={rows.map((r) => [state.hideAmounts ? r.subject.replace(
+        /AED [\d,.]+/g, "AED ••••••") : r.subject, r.kindText, r.askedBy,
         r.askedOn, r.outcome === "waiting" ? `Waiting for ${r.decider}`
           : r.decider, r.decidedOn, r.outcomeText, r.tookText])}
       csvName="sign-off-report-2026.csv"

@@ -1,4 +1,4 @@
-import { loadExtras, useExtras } from "../../demo/data/payroll-extras-load";
+import { useExtras } from "../../demo/data/payroll-extras-load";
 import { approvalBlockedBy } from "../../demo/derive";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
@@ -11,8 +11,6 @@ import { waitingOf } from "../derive";
 import { usePay } from "../load";
 import { Status } from "../parts";
 import { gateChecks, type GateCheck } from "./checks";
-
-void loadExtras();
 
 const go = (c: GateCheck): string => {
   const [section, ...rest] = c.to;

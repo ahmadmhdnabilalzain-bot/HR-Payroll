@@ -142,3 +142,25 @@
 .inlineBtn {
   min-block-size: 44px;
 }
+
+.list {
+  margin: 0;
+  padding: 0;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  list-style: none;
+}
+
+.listRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: 56px;
+  padding: var(--space-3) var(--space-4);
+}
+
+.listRow + .listRow {
+  border-block-start: 1px solid var(--color-divider);
+}

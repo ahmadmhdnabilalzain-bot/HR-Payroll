@@ -22,13 +22,24 @@ test("gate-to-what-if-to-hold-to-advice-to-parallel-run",
     const sheet = page.getByRole("dialog");
     await sheet.getByLabel("Person").selectOption({ label: "Maria Santos" });
     await sheet.getByRole("button", { name: "Hold salary" }).click();
-    await expect(page.getByRole("button", { name: "Release" }))
-      .toBeVisible();
+    await expect(page.getByRole("button", {
+      name: "Release Maria Santos's salary" })).toBeVisible();
 
     await page.goto("/#/pay-run/gate/advice");
     await expect(page.getByText("Held: do not pay")).toBeVisible();
     await page.goto("/#/pay-run/gate");
     await expect(page.getByText(/held by choice/)).toBeVisible();
+    await page.goto("/#/pay-run/gate/holds");
+    await page.getByRole("button", {
+      name: "Release Maria Santos's salary" }).click();
+    await expect(page.getByRole("button", { name: /^Release / }))
+      .toHaveCount(0);
+
+    await page.getByRole("button", { name: "Hide amounts" }).click();
+    await page.goto("/#/pay-run/gate/what-if");
+    await expect(page.getByText(/Amounts are hidden/)).toBeVisible();
+    await page.getByRole("button", { name: /Show amounts|Hide amounts/ })
+      .click();
 
     await page.goto("/#/setup/migration/parallel");
     await expect(page.getByText(/6 differ, 6 of them with a likely/))

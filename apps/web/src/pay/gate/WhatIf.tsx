@@ -73,6 +73,15 @@ export function WhatIf() {
   };
   const reset = (): void => pick(who);
   const changed = r.asked.length > 0;
+  if (state.hideAmounts) {
+    return (
+      <div className={s.page}>
+        <PageHead title="What-if"
+          lede={"Amounts are hidden. Show amounts (the eye in the top bar) " +
+            "to try a change to someone's pay."} />
+      </div>
+    );
+  }
   return (
     <div className={s.page}>
       <PageHead title="What-if"

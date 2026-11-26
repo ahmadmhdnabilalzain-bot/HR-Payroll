@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useDemo } from "../../demo/state";
 import { useExtras } from "../../demo/data/payroll-extras-load";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
@@ -12,6 +13,7 @@ import s from "../../pay/gate/gate.module.css";
  */
 export function ParallelRun() {
   const x = useExtras();
+  const { state } = useDemo();
   const { m, signed } = useMoney();
   const [id, setId] = useState(x.samples[0]!.id);
   const sample = x.samples.find((y) => y.id === id) ?? x.samples[0]!;
@@ -31,10 +33,12 @@ export function ParallelRun() {
               {y.label}</button>
           ))}
         </div>
-        <details className={s.details}>
-          <summary>Show the file, {sample.fileName}</summary>
-          <pre className={s.file}>{sample.text}</pre>
-        </details>
+        {!state.hideAmounts && (
+          <details className={s.details}>
+            <summary>Show the file, {sample.fileName}</summary>
+            <pre className={s.file}>{sample.text}</pre>
+          </details>
+        )}
       </div>
       <ReportPage title="Parallel run: October"
         period={`Our run against the old system (Keka). ${r.summaryText}`}
@@ -47,8 +51,9 @@ export function ParallelRun() {
         rows={rows} csvName={`parallel-run-${sample.id}-2026-10.csv`}
         note={`${sample.note} Old system total ${m(r.theirsTotal)}. Each ` +
           "likely cause is the difference the engine gets when it runs " +
-          "the person's month on the old system's assumption. Sample " +
-          "files made for the demo: nothing is imported."} />
+          "the person's month on the old system's assumption, as set up in " +
+          "this sample. Sample files made for the demo: nothing is " +
+          "imported."} />
     </>
   );
 }
