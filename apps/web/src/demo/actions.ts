@@ -48,7 +48,11 @@ export function useSwitchRole(): (role: Role) => void {
     const doc = document as Document & {
       startViewTransition?: (cb: () => void) => unknown;
     };
-    const run = (): void => flushSync(() => dispatch({ type: "role", role }));
+    // The new role's Home opens at its top, status sentence in view.
+    const run = (): void => {
+      flushSync(() => dispatch({ type: "role", role }));
+      scrollTo({ top: 0, left: 0, behavior: "instant" });
+    };
     if (reducedMotion() || typeof doc.startViewTransition !== "function") {
       run();
     } else doc.startViewTransition(run);

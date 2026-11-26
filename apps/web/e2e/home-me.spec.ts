@@ -95,3 +95,10 @@ test("it-manager-has-the-time-word-and-sees-attendance", async ({ page }) => {
   await expect(page.getByText("This page is outside your view."))
     .toBeVisible();
 });
+
+test("switching-role-opens-the-new-home-at-the-top", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => scrollTo(0, 400));
+  await asRole(page, "IT manager");
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+});
