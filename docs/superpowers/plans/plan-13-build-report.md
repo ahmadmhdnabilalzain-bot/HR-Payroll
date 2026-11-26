@@ -567,3 +567,25 @@ full re-run); `packages/time-client` 2 files, 13 tests; `apps/web` 17
 files, 103 tests. `pnpm typecheck`, `pnpm ops:typecheck`,
 `pnpm lines`, `pnpm lines:ops`, `pnpm lines:test` (9), `pnpm ops:test`
 (11): green.
+
+### Third merge: Plan 7 (main at `70c763f`)
+
+Merged in `cc9e9fe`; 22 files conflicted, all kept both sides:
+`ROUTE_GROUPS = [CORE, HR, DOCUMENT, TIME, CHANNEL]` with subset
+route tests; error, example, schema and audit maps spread both (no
+shared error code or audit key; the audit collision test now also
+checks Plan 13's list); `systemDeps(db, kek, blobs, { channels, pdf
+})` so `main.ts` and `deploy/serve.ts` pass both (Plan 7's graceful
+stop kept); the blob key accepts `receipts`, `files` and `inbound`;
+config holds the channel groups, public URLs and Chrome settings; the
+capture-column allowlist adds Plan 7's library titles to Plan 13's
+six columns; web and `HANDOVER.md` keep both plans' entries. The
+lockfile came from main (`pnpm install --frozen-lockfile` clean).
+Migration order: 001-013, 070-075, 601-605, 801-807, 901-908,
+1301-1309 (numeric).
+
+Checks: `packages/api` 145 files, 990 tests, green (full run,
+`--maxWorkers=1`); contract 14/159, engine 53/584, wps 11/173,
+time-client 2/13, web 17/103; typecheck, ops:typecheck, lines,
+lines:ops, lines:test (9), ops:test (11) green. The smoke-test data
+directory `/var/lib/postgresql/smoke-p13` was deleted.
