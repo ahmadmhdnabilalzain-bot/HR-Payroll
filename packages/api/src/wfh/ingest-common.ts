@@ -5,6 +5,7 @@ import { co, selfEmployee } from "../time/ctx";
 import { loadProfile } from "../time/profiles";
 import { checkSampleTime, type SampleWindow } from "./sample-window";
 import { getWfhSettings } from "./settings";
+import { lockEmployee } from "./pause";
 import { latestConsent } from "./status";
 
 export interface Upload { employeeId: string; settings: WfhSettings;
@@ -19,6 +20,9 @@ export interface Upload { employeeId: string; settings: WfhSettings;
 export async function uploadContext(ctx: ReqCtx, attendanceId: string)
   : Promise<Upload> {
   const emp = selfEmployee(ctx);
+  // Before reading consent: a parallel withdrawal either commits
+  // first (this upload is refused) or waits for it (and erases it).
+  await lockEmployee(ctx.tx, co(ctx), emp);
   const s = await getWfhSettings(ctx.tx, co(ctx));
   if (!s.enabled) throw new ApiError("TRACKING_DISABLED");
   if (!(await loadProfile(ctx.tx, co(ctx), emp)).wfhTracked) {

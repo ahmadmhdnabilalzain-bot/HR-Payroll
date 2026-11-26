@@ -1,4 +1,7 @@
 import { expect, it } from "vitest";
+import { seedCompany } from "./seed";
+import { asUser, seedTime } from "./seed-time";
+import { enableWfh, minutes, nextMinute } from "./seed-wfh";
 import { call, makeApp, signup } from "./test-app";
 import type { DbPair } from "./test-db";
 
@@ -23,6 +26,32 @@ export function pgTimeConcurrencyCases(open: () => Promise<DbPair>): void {
       "SELECT count(*) AS n FROM timesheets WHERE employee_id = $1",
       [e.body.id]);
     expect(Number(n[0]!.n)).toBe(1);
+  });
+
+  it("withdraw with erase during an upload leaves no rows", async () => {
+    const { db, admin } = await open();
+    const app = await makeApp({ db });
+    // Seed helpers extend sessions through deps.db: give them admin.
+    const ctx = { ...app, deps: { ...app.deps, db: admin } };
+    const s = await seedCompany(ctx, "wrace");
+    await seedTime(ctx, s);
+    await enableWfh(ctx, s);
+    const as = asUser(ctx, s);
+    await as(s.employee, "POST", "/v1/wfh/consent", { noticeVersion: 1,
+      decision: "granted" });
+    const rec = (await as(s.employee, "POST", "/v1/attendance/clock-in",
+      { method: "web", workLocation: "remote" })).body;
+    const first = nextMinute(new Date(Date.parse(rec.clockIn)));
+    ctx.clock.now = new Date(first.getTime() + 239 * 60_000);
+    const [up, wd] = await Promise.all([
+      as(s.employee, "POST", "/v1/wfh/activity", { attendanceId: rec.id,
+        minutes: minutes(first, 240) }),
+      new Promise((r) => setTimeout(r, 20)).then(() => as(s.employee,
+        "POST", "/v1/wfh/consent/withdraw", { erase: true }))]);
+    expect([200, 422]).toContain(up.status);
+    expect(wd.status, wd.text).toBe(200);
+    const n = await admin.query("SELECT 1 FROM wfh_activity_minutes");
+    expect(n.length).toBe(0);
   });
 
   it("two carry-over runs at once store one set of rows", async () => {

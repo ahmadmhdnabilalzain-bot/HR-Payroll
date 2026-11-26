@@ -49,8 +49,6 @@ export async function ingestLocation(ctx: ReqCtx, b: WfhLocationUpload)
   if (!u.settings.locationHourly) {
     throw new ApiError("LOCATION_NOT_COLLECTED");
   }
-  await ctx.tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
-    "id = $2 FOR UPDATE", [co(ctx), u.employeeId]);
   const near = await ctx.tx.query(
     `SELECT 1 FROM wfh_location_samples WHERE company_id = $1
      AND employee_id = $2 AND at > $3::timestamptz - $4 * interval '1 minute'

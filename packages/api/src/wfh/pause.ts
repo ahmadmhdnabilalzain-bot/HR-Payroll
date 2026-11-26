@@ -30,7 +30,12 @@ export async function resume(ctx: ReqCtx, employeeId: string)
   await closePauses(ctx.tx, co(ctx), s.record!.id, nowIso(ctx));
 }
 
-async function lockEmployee(tx: Db, companyId: string, id: string) {
+/**
+ * One lock serialises every consent decision, upload and pause of an
+ * employee, so a withdrawal never misses an upload in flight.
+ */
+export async function lockEmployee(tx: Db, companyId: string,
+  id: string) {
   await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
     "id = $2 FOR UPDATE", [companyId, id]);
 }

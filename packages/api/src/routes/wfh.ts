@@ -11,7 +11,7 @@ import { audit, changedKeys, co, nowIso, selfEmployee } from "../time/ctx";
 import { dubaiDate } from "../time/dubai";
 import { eraseOnWithdraw, recordConsent } from "../wfh/consent";
 import { currentNotice, publishNotice } from "../wfh/notice";
-import { pause, resume } from "../wfh/pause";
+import { lockEmployee, pause, resume } from "../wfh/pause";
 import {
   assertEnablable,
   getWfhSettings,
@@ -60,6 +60,7 @@ async function notice(ctx: ReqCtx) {
 
 async function withdraw(ctx: ReqCtx<{ erase: boolean }>) {
   const emp = selfEmployee(ctx);
+  await lockEmployee(ctx.tx, co(ctx), emp);
   const consent = await recordConsent(ctx.tx, co(ctx), emp, null,
     "withdrawn", { id: ctx.deps.newId(), at: nowIso(ctx) });
   const erasedRows = ctx.body.erase
@@ -72,6 +73,7 @@ async function withdraw(ctx: ReqCtx<{ erase: boolean }>) {
 async function consent(ctx: ReqCtx<{ noticeVersion: number;
   decision: "granted" | "declined" }>) {
   const emp = selfEmployee(ctx);
+  await lockEmployee(ctx.tx, co(ctx), emp);
   const c = await recordConsent(ctx.tx, co(ctx), emp, ctx.body.noticeVersion,
     ctx.body.decision, { id: ctx.deps.newId(), at: nowIso(ctx) });
   await audit(ctx, `wfh.consent.${ctx.body.decision}`, "wfh-consent", null);
