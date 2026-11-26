@@ -6,7 +6,7 @@ import type { DayInput, DaySheet } from "./types";
 export interface Overtime {
   minutes: number;
   night: number;
-  /** Daily normal limit used without a shift; null with a shift. */
+  /** Daily normal limit (Ramadan-reduced); null when no overtime. */
   limit: number | null;
   /** Night-window minutes of the candidate time, before the cap. */
   nightPool: number;
@@ -51,21 +51,26 @@ function lateEarlyLines(day: DayInput, f: Fields, c: TraceCtx):
   ];
 }
 
+const RAMADAN_READING = "; reading: overtime beyond the Ramadan-reduced" +
+  " day (not stated in ER 15(2))";
+
 function overtimeLines(day: DayInput, f: Fields, ot: Overtime):
   TraceLine[] {
   const noShift = day.shift === null;
+  const formula = (noShift ? "max(0, worked - daily normal limit)"
+    : "max(0, worked - min(scheduled, daily normal limit))") +
+    (day.ramadan ? RAMADAN_READING : "");
   return [
-    line("time.overtime", "Overtime minutes", noShift
-      ? "max(0, worked - daily normal limit)"
-      : "max(0, worked - scheduled)", f.overtimeMinutes,
-    { worked: String(f.workedMinutes),
-      scheduled: String(f.scheduledMinutes), limit: str(ot.limit),
-      ramadan: String(day.ramadan) }, ot.rules),
-    line("time.overtimeNight", "Night overtime minutes", noShift
-      ? "night-window minutes of the last overtime minutes worked"
-      : "min(overtime, night-window minutes worked outside the shift)",
-    f.overtimeNightMinutes, { overtime: String(f.overtimeMinutes),
-      nightMinutes: String(ot.nightPool) }, ot.nightRules),
+    line("time.overtime", "Overtime minutes", formula, f.overtimeMinutes,
+      { worked: String(f.workedMinutes),
+        scheduled: String(f.scheduledMinutes), limit: str(ot.limit),
+        ramadan: String(day.ramadan) }, ot.rules),
+    line("time.overtimeNight", "Night overtime minutes",
+      "min(overtime, night-window minutes of the candidate time: worked" +
+      " time outside the shift, or all worked time when the daily limit" +
+      " binds or there is no shift)",
+      f.overtimeNightMinutes, { overtime: String(f.overtimeMinutes),
+        nightMinutes: String(ot.nightPool) }, ot.nightRules),
   ];
 }
 

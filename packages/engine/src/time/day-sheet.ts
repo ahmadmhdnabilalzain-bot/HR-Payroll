@@ -1,5 +1,6 @@
 import { addDays, parseIsoDate, toDayNumber } from "../dates";
 import { EngineError } from "../errors";
+import type { TraceRule } from "../trace-types";
 import { daySheetTrace, type Fields, type Overtime } from "./day-sheet-trace";
 import {
   type Interval,
@@ -7,7 +8,6 @@ import {
   nightWindows,
   outside,
   overlapMinutes,
-  tail,
   totalMinutes,
 } from "./intervals";
 import type { TimeParams } from "./params";
@@ -84,28 +84,40 @@ function lateEarly(day: DayInput, merged: Interval[]): [number, number] {
   return [late, early];
 }
 
+/** The daily normal limit, less the Ramadan reduction, with rules. */
+function dailyLimit(day: DayInput, p: TimeParams):
+  { limit: number; rules: TraceRule[] } {
+  if (!day.ramadan) {
+    return { limit: p.maxNormalMinutesPerDay.v,
+      rules: [p.maxNormalMinutesPerDay.rule] };
+  }
+  return {
+    limit: p.maxNormalMinutesPerDay.v - p.ramadanReductionMinutes.v,
+    rules: [p.maxNormalMinutesPerDay.rule, p.ramadanReductionMinutes.rule],
+  };
+}
+
+/**
+ * Overtime candidate = worked beyond the shift's net minutes or the
+ * daily normal limit, whichever is lower (no shift: beyond the limit).
+ * Night minutes = the candidate's night-window minutes: worked time
+ * outside the shift, or all worked time when the limit is binding.
+ */
 function overtimeOf(day: DayInput, p: TimeParams, merged: Interval[],
   worked: number, scheduled: number): Overtime {
   if (day.kind !== "work" || day.leave === "full") return NONE;
   const nights = nightWindows(p.nightWindow.v);
   const nightRules = [p.nightWindow.rule];
+  const { limit, rules } = dailyLimit(day, p);
   const s = day.shift;
-  if (s !== null) {
-    const minutes = Math.max(0, worked - scheduled);
-    const out = outside(merged, { start: s.start, end: s.end });
-    const nightPool = overlapMinutes(out, nights);
-    const night = Math.min(minutes, nightPool);
-    return { minutes, night, limit: null, nightPool, rules: [], nightRules };
-  }
-  const rules = [p.maxNormalMinutesPerDay.rule];
-  let limit = p.maxNormalMinutesPerDay.v;
-  if (day.ramadan) {
-    limit -= p.ramadanReductionMinutes.v;
-    rules.push(p.ramadanReductionMinutes.rule);
-  }
-  const minutes = Math.max(0, worked - limit);
-  const night = overlapMinutes(tail(merged, minutes), nights);
-  return { minutes, night, limit, nightPool: night, rules, nightRules };
+  const binding = s === null || limit < scheduled;
+  const base = s === null ? limit : Math.min(scheduled, limit);
+  const minutes = Math.max(0, worked - base);
+  const candidate = binding ? merged
+    : outside(merged, { start: s.start, end: s.end });
+  const nightPool = overlapMinutes(candidate, nights);
+  return { minutes, night: Math.min(minutes, nightPool), limit,
+    nightPool, rules: binding ? rules : [], nightRules };
 }
 
 function flagsOf(day: DayInput, p: TimeParams, worked: number,

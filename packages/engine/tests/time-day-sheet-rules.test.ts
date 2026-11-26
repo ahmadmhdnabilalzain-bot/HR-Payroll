@@ -23,6 +23,52 @@ const shift = (start: number, end: number, breakMinutes: number):
 
 const sheet = (over: Partial<DayInput>) => computeDaySheet(day(over), P);
 
+const keys = (s: ReturnType<typeof sheet>, id: string) =>
+  s.trace.find((l) => l.id === id)!.rules.map((r) => r.key);
+
+describe("legal daily limit on shift days (review I1)", () => {
+  it("long_shift_counts_hours_beyond_normal", () => {
+    const s = sheet({ shift: shift(480, 1140, 60),
+      worked: ivs([[480, 1140]]) });
+    expect([s.scheduledMinutes, s.workedMinutes, s.overtimeMinutes])
+      .toEqual([600, 600, 120]);
+    expect(keys(s, "time.overtime")).toEqual(["timeMaxNormalMinutesPerDay"]);
+  });
+  it("ramadan_shift_counts_hours_beyond_reduced_day", () => {
+    const s = sheet({ ramadan: true, shift: shift(540, 1080, 60),
+      worked: ivs([[540, 1080]]) });
+    expect(s.overtimeMinutes).toBe(120);
+    expect(keys(s, "time.overtime")).toEqual(["timeMaxNormalMinutesPerDay",
+      "timeRamadanReductionMinutes"]);
+    const line = s.trace.find((l) => l.id === "time.overtime")!;
+    expect(line.formula).toContain("not stated in ER 15(2)");
+  });
+  it("shift_within_limit_cites_no_limit", () => {
+    const s = sheet({ shift: shift(540, 1080, 60),
+      worked: ivs([[540, 1140]]) });
+    expect(s.overtimeMinutes).toBe(60);
+    expect(keys(s, "time.overtime")).toEqual([]);
+  });
+  it("long_night_shift_night_minutes_inside_the_shift", () => {
+    // 16:00 to 04:00, break 60: net 660, 180 beyond the 480 limit.
+    const s = sheet({ shift: shift(960, 1680, 60),
+      worked: ivs([[960, 1680]]) });
+    expect([s.overtimeMinutes, s.overtimeNightMinutes]).toEqual([180, 180]);
+  });
+});
+
+describe("night overtime without a shift (review M5)", () => {
+  it("night_minutes_worked_in_window_count", () => {
+    // 20:00 to 09:00: overtime 300; 360 minutes fell in 22:00-04:00.
+    const s = sheet({ worked: ivs([[1200, 1980]]) });
+    expect([s.overtimeMinutes, s.overtimeNightMinutes]).toEqual([300, 300]);
+  });
+  it("night_capped_by_window_minutes", () => {
+    const s = sheet({ worked: ivs([[600, 1380]]) });
+    expect([s.overtimeMinutes, s.overtimeNightMinutes]).toEqual([300, 60]);
+  });
+});
+
 describe("rostered break (review C1)", () => {
   it("break_clocked_out_not_double_counted", () => {
     const s = sheet({ shift: shift(540, 1080, 60),

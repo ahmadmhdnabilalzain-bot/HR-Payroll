@@ -330,14 +330,21 @@ Law task: fresh per-task review.
     5. Rest or holiday: `restDayWorkMinutes = workedMinutes`, overtime
        0. `full` leave with work: overtime 0, flag `WORK_ON_LEAVE_DAY`
        (detail `minutes`).
-    6. Work day with a shift: `overtimeMinutes = max(0, workedMinutes -
-       scheduledMinutes)`; `overtimeNightMinutes = min(overtime,
-       overlapMinutes(outside(worked, [shift.start, shift.end]),
-       nightWindows))`.
-    7. Work day without a shift: limit = `maxNormalMinutesPerDay` minus
-       `ramadanReductionMinutes` when `ramadan`; `overtime = max(0,
-       workedMinutes - limit)`; night = `overlapMinutes(tail(worked,
-       overtime), nightWindows)`.
+    6. Work day with a shift: limit = `maxNormalMinutesPerDay` minus
+       `ramadanReductionMinutes` when `ramadan`; `overtimeMinutes =
+       max(0, workedMinutes - min(scheduledMinutes, limit))` (review
+       I1: hours beyond the legal day count even inside a long shift);
+       `overtimeNightMinutes = min(overtime, overlapMinutes(candidate,
+       nightWindows))` where `candidate` is `outside(worked,
+       [shift.start, shift.end])`, or all of `worked` when `limit <
+       scheduledMinutes`.
+    7. Work day without a shift: same limit; `overtime = max(0,
+       workedMinutes - limit)`; night = `min(overtime,
+       overlapMinutes(worked, nightWindows))` (review M5: the night
+       minutes actually worked count, not only the tail of the day).
+       Overtime in Ramadan as minutes beyond the reduced day is a
+       reading (ER 15(2) states the reduction only); the trace says
+       so (review M2).
     8. Flags: `OVERTIME_DAILY_CAP_EXCEEDED` when overtime >
        `overtimeMaxMinutesPerDay` (detail `minutes`; rule
        `timeOvertimeMaxMinutesPerDay`; overtime is never cut);
@@ -2306,15 +2313,21 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`.
    with a per-birth grant. Cost: a
    convention that counsel reads differently changes flags and
    balances; one pack value or function changes.
-4. **Overtime candidate = worked beyond the shift's net minutes, or
-   beyond the daily normal limit (minus the Ramadan reduction) when no
-   shift is published;** night minutes come from the worked time
-   outside the shift, or the tail of the day without a shift. Work on a
-   rest day or holiday is a whole day of rest-day work, not overtime,
-   as Plan 5 models it. The daily cap is a flag and never cuts minutes
-   (Plan 5 Ruling 8). Cost: a company paying overtime only beyond 8
-   hours even on longer shifts sees more candidates; reviewers approve
-   fewer.
+4. **Overtime candidate = worked beyond the shift's net minutes or
+   beyond the daily normal limit (minus the Ramadan reduction),
+   whichever is lower; beyond the limit when no shift is published**
+   (amended after the engine review, I1: a 10-hour shift or an 8-hour
+   Ramadan shift worked exactly gives 120 candidate minutes, since Art
+   17(1) and ER 15(2) set the normal day); night minutes come from the
+   candidate time's minutes inside the night window: the worked time
+   outside the shift, or all worked time when the limit binds or there
+   is no shift (M5). Work on a rest day or holiday is a whole day of
+   rest-day work, not overtime, as Plan 5 models it. The daily cap is
+   a flag and never cuts minutes (Plan 5 Ruling 8). Cost: a company
+   paying overtime only beyond 8 hours even on longer shifts sees more
+   candidates; a company with long rostered shifts also sees the hours
+   beyond the legal day as candidates; reviewers approve fewer. A
+   candidate never pays by itself, so this cannot overpay.
 5. **Registry and numbering:** `TIME_ROUTES` in `routes-time.ts`, 66
    routes, tests assert membership in `ROUTES` and Plan 9's own count,
    never a total, so Plans 6, 7 and 8 can merge in any order (rename
