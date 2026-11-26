@@ -5,7 +5,8 @@ import { useDemo } from "../../demo/state";
 import { Money } from "../../ui/Money";
 import b from "../../ui/button.module.css";
 import { useToast } from "../../ui/Toast";
-import { FilterList, KeyValues, RecordTabs } from "../../ui/templates";
+import { FilterList, KeyValues, RecordTabs, type StatusTone }
+  from "../../ui/templates";
 import { Dot } from "./Dot";
 import { Letter } from "./Letter";
 import { Missing } from "./Missing";
@@ -17,6 +18,17 @@ const TONE: Record<OfferNow, Tone> = { draft: "neutral", waiting: "warn",
 
 const hrefOffer = (id: string): string =>
   hrefOf("people", "moves", "offers", id);
+
+const OFFER_TONE: Record<OfferNow, StatusTone> = { draft: "neutral",
+  waiting: "warn", sent: "neutral", accepted: "ok", declined: "neutral" };
+
+/** The one thing that happens next, said beside the buttons. */
+const OFFER_NEXT: Record<OfferNow, string> = {
+  draft: "The General manager signs off before the letter goes out.",
+  waiting: "Waiting for the General manager to sign off.",
+  sent: "Record the candidate's answer when it comes.",
+  accepted: "The joiner checklist takes it from here.",
+  declined: "The seat stays open." };
 
 /** Offers and offer letters (P12). */
 export function Offers(p: { id?: string | undefined }) {
@@ -101,9 +113,20 @@ function OfferRecord(p: { id: string }) {
     <RecordTabs title={o.candidateName} lede={`${o.title}, ${o.number}`}
       back={{ label: "Offers", href: hrefOf("people", "moves", "offers") }}
       actions={actions}
+      status={{ word: OFFER_SHORT[now], tone: OFFER_TONE[now] }}
+      next={OFFER_NEXT[now]}
+      history={[
+        { what: "Prepared", when: o.preparedOn.display },
+        ...(o.approvedBy === null ? [] : [{ what: "Signed off by " +
+          o.approvedBy.name, when: o.approvedBy.on.display }]),
+        ...(o.sentOn === null ? [] : [{ what: "Sent to the candidate",
+          when: o.sentOn.display }]),
+        ...(o.respondedOn === null ? [] : [{ what: "Answered",
+          when: o.respondedOn.display }]),
+        ...(step === undefined ? [] : [{ what: OFFER_WORD[now],
+          when: `By ${stepWho(data, step)}` }])]}
       stats={[{ label: "Monthly pay", value: <Money value={o.gross}
-        size="lg" /> }, { label: "Status", value: OFFER_SHORT[now] },
-      { label: "Starts", value: o.joiningDate.display }]}
+        size="lg" /> }, { label: "Starts", value: o.joiningDate.display }]}
       tabs={[
         { id: "letter", label: "Letter", render: () => (
           <Letter lines={data.moves.letter(o.id)} /> ) },
