@@ -1,12 +1,22 @@
 import type { DayPart } from "@payroll/engine";
 import type { Db } from "../db/db";
 
-export interface LeaveOnDate {
+/** One request's share of a date. */
+export interface LeavePartRef {
   part: DayPart;
-  halves: 1 | 2;
   requestId: string;
   leaveTypeId: string;
   status: "approved" | "pending";
+}
+
+/**
+ * The leave on a date. `part`, `leaveTypeId` and `requestId` are the
+ * first share's; `parts` keeps every share with its own type (an `am`
+ * and a `pm` of two types are two shares, never one full day of one).
+ */
+export interface LeaveOnDate extends LeavePartRef {
+  halves: 1 | 2;
+  parts: LeavePartRef[];
 }
 
 /** employeeId to date to the leave on that date. */
@@ -21,7 +31,7 @@ function merge(a: LeaveOnDate | undefined, b: LeaveOnDate): LeaveOnDate {
   if (a === undefined) return b;
   if (a.status === "approved" && b.status !== "approved") return a;
   if (b.status === "approved" && a.status !== "approved") return b;
-  return { ...a, part: "full", halves: 2 };
+  return { ...a, part: "full", halves: 2, parts: [...a.parts, ...b.parts] };
 }
 
 /**
@@ -46,9 +56,10 @@ export async function leaveMap(tx: Db, companyId: string,
   for (const r of rows) {
     const m = out.get(r.employee_id) ?? new Map<string, LeaveOnDate>();
     out.set(r.employee_id, m);
-    m.set(r.date, merge(m.get(r.date), { part: r.part, halves: r.halves,
-      requestId: r.request_id, leaveTypeId: r.leave_type_id,
-      status: r.status }));
+    const ref: LeavePartRef = { part: r.part, requestId: r.request_id,
+      leaveTypeId: r.leave_type_id, status: r.status };
+    m.set(r.date, merge(m.get(r.date), { ...ref, halves: r.halves,
+      parts: [ref] }));
   }
   return out;
 }

@@ -28,8 +28,11 @@ export const TimesheetDay = z.object({
   records: z.array(z.object({ attendanceId: Id, clockIn: Timestamp,
     clockOut: Timestamp.nullable() })),
   leave: z.object({ part: z.enum(["full", "am", "pm"]),
-    typeName: z.string().nullable(), payrollKind: z.string().nullable() })
-    .nullable(),
+    typeName: z.string().nullable(), payrollKind: z.string().nullable(),
+    /** Present when a date holds two half days (each with its type). */
+    parts: z.array(z.object({ part: z.enum(["am", "pm"]),
+      typeName: z.string().nullable(),
+      payrollKind: z.string().nullable() })).optional() }).nullable(),
   scheduledMinutes: NonNeg,
   workedMinutes: NonNeg,
   lateMinutes: NonNeg,

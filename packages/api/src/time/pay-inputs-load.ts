@@ -36,6 +36,18 @@ async function halvesOf(tx: Db, companyId: string, ids: string[],
   return out;
 }
 
+type Day = PayInputSource["timesheets"][number]["days"][number];
+
+/** Each half of a two-type date is its own share (Review I3). */
+function leaveShares(employeeId: string, d: Day) {
+  if (d.leave === null) return [];
+  const parts = d.leave.parts ?? [{ part: d.leave.part,
+    payrollKind: d.leave.payrollKind }];
+  return parts.map((p) => ({ employeeId, date: d.date,
+    halves: (p.part === "full" ? 2 : 1) as 1 | 2,
+    payrollKind: p.payrollKind ?? "other-paid" }));
+}
+
 /** Days of the unbroken run of dates ending the day before `first`. */
 function runBefore(dates: Map<string, number> | undefined,
   first: string) {
@@ -63,10 +75,7 @@ export async function loadPayInputSource(tx: Db, companyId: string,
       status: r.status, stale: v.stale, days: v.days });
   }
   const leaveDates = timesheets.filter((t) => t.status === "approved")
-    .flatMap((t) => t.days.filter((d) => d.leave !== null).map((d) => ({
-      employeeId: t.employeeId, date: d.date,
-      halves: (d.leave!.part === "full" ? 2 : 1) as 1 | 2,
-      payrollKind: d.leave!.payrollKind ?? "other-paid" })));
+    .flatMap((t) => t.days.flatMap((d) => leaveShares(t.employeeId, d)));
   const ids = employees.map((e) => e.employeeId);
   const sick = await halvesOf(tx, companyId, ids, `${year}-01-01`,
     addDays(first, -1), "sick");

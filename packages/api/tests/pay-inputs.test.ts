@@ -87,6 +87,16 @@ describe("buildPayInputs (pure)", () => {
     expect(codes(s)).toEqual(["DECISION_CLIPPED"]);
   });
 
+  it("two_halves_of_two_types_on_one_date", () => {
+    const s = src([], { leaveDates: [
+      { employeeId: E, date: "2026-03-10", halves: 1,
+        payrollKind: "annual" },
+      { employeeId: E, date: "2026-03-10", halves: 1,
+        payrollKind: "unpaid" }] });
+    expect(one(s).absences).toEqual([]);
+    expect(codes(s)).toEqual(["HALF_DAY_ABSENCE"]);
+  });
+
   it("half_day_absence_manual", () => {
     const s = src([], { leaveDates: [{ employeeId: E, date: "2026-03-03",
       halves: 1, payrollKind: "unpaid" }] });

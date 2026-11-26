@@ -88,6 +88,27 @@ describe("half-day leave", () => {
     expect(JSON.stringify(body)).toContain("ENTERED_AMOUNTS_REQUIRED");
   });
 
+  it("am_and_pm_of_two_types_keep_their_own_types", async () => {
+    const u = await typeWith("Type U2", null, { halfDays: true,
+      payrollKind: "unpaid" }, false);
+    const p = await typeWith("Type P2", 30, { halfDays: true,
+      payrollKind: "annual" });
+    for (const [id, part] of [[u, "am"], [p, "pm"]] as const) {
+      const r = await ask(id, "2026-03-12", part);
+      expect(r.status, r.text).toBe(201);
+      await as(s.manager, "POST", `${LR}/${r.body.id}/approve`, {});
+    }
+    ctx.clock.now = new Date("2026-03-15T08:00:00.000Z");
+    const sheet = await as(s.employee, "POST", "/v1/time/timesheets",
+      { year: 2026, month: 3 });
+    const d = sheet.body.days.find((x: { date: string }) =>
+      x.date === "2026-03-12");
+    expect(d.leave.part).toBe("full");
+    expect(d.leave.parts.map((x: { part: string; payrollKind: string }) =>
+      `${x.part}:${x.payrollKind}`).sort()).toEqual(["am:unpaid",
+      "pm:annual"]);
+  });
+
   it("timesheet_shows_half_day", async () => {
     const id = await typeWith("Type H3", 30, { halfDays: true });
     const am = await ask(id, "2026-03-05", "am");

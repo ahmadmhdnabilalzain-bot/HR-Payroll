@@ -16,7 +16,7 @@ import type { Db } from "../db/db";
 import { leaveTypeKinds } from "../leave/payroll-kind";
 import { isCompanyRestDay, isRamadan, loadCalendar } from "./calendar";
 import { recordShape } from "./clock-math";
-import { leaveMap } from "./leave-map";
+import { leaveMap, type LeaveOnDate } from "./leave-map";
 import { publishedSlot, readEntries } from "./rosters";
 import { slotToShiftSlot } from "./shifts";
 
@@ -33,6 +33,20 @@ interface Rec { id: string; date: string; clock_in: string;
   clock_out: string | null }
 
 const pad = (n: number) => String(n).padStart(2, "0");
+
+type Kinds = Awaited<ReturnType<typeof leaveTypeKinds>>;
+
+/** The day's leave; two half days keep their own types in `parts`. */
+function leaveView(l: LeaveOnDate, kinds: Kinds): TimesheetDay["leave"] {
+  const k = kinds.get(l.leaveTypeId);
+  const base = { part: l.part, typeName: k?.name ?? null,
+    payrollKind: k?.payrollKind ?? null };
+  if (l.parts.length < 2) return base;
+  return { ...base, parts: l.parts.map((p) => ({
+    part: p.part as "am" | "pm",
+    typeName: kinds.get(p.leaveTypeId)?.name ?? null,
+    payrollKind: kinds.get(p.leaveTypeId)?.payrollKind ?? null })) };
+}
 export const monthBounds = (y: number, m: number) => ({
   first: `${y}-${pad(m)}-01`, last: `${y}-${pad(m)}-${pad(daysInMonth(y,
     m))}` });
@@ -79,7 +93,6 @@ export async function buildDayInputs(tx: Db, companyId: string,
     const dayRecs = recs.filter((r) => r.date === d);
     const w = worked(dayRecs, d, today);
     const l = leave?.get(d);
-    const kind = l === undefined ? null : kinds.get(l.leaveTypeId);
     const restDay = slot?.kind === "rest" ||
       (slot === null && isCompanyRestDay(cal, d));
     const shift = slot?.kind === "shift" ? slotToShiftSlot(slot) : null;
@@ -88,8 +101,7 @@ export async function buildDayInputs(tx: Db, companyId: string,
     worked: w.worked, openRecord: w.open, ramadan: isRamadan(cal, d),
     leave: l?.part ?? "none" }, slot, records: dayRecs.map((r) => ({
       attendanceId: r.id, clockIn: r.clock_in, clockOut: r.clock_out })),
-    leave: l === undefined ? null : { part: l.part,
-      typeName: kind?.name ?? null, payrollKind: kind?.payrollKind ?? null },
+    leave: l === undefined ? null : leaveView(l, kinds),
     extraFlags: w.flags });
   }
   return out;
