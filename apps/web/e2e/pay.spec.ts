@@ -69,3 +69,15 @@ test("expense-claim-is-decided-through-the-inbox-id", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Rashid Al Falasi/ }))
     .toContainText("Agreed");
 });
+
+test("it-opens-pay-groups-and-elements-from-setup", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Viewing as/ }).first().click();
+  await page.getByRole("menuitemradio", { name: /IT manager/ }).click();
+  for (const [hash, title] of [["groups", "Pay groups"],
+    ["elements", "Pay elements"]] as const) {
+    await page.evaluate((h) => { location.hash = `#/pay-run/${h}`; }, hash);
+    await expect(page.getByRole("heading", { level: 1, name: title }))
+      .toBeVisible();
+  }
+});

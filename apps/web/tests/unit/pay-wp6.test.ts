@@ -8,6 +8,7 @@ import { buildRunSource } from "../../src/demo/data/run-detail";
 import { INITIAL, reduce } from "../../src/demo/state";
 import { AREAS } from "../../src/nav/areas/pay";
 import {
+  canOpenPayArea,
   finesToDecide,
   requestState,
   settlementsToSend,
@@ -145,5 +146,15 @@ describe("WP6 registry", () => {
       expect(r?.section).toBe("pay-run");
       expect(isPayArea(r?.rest?.[0])).toBe(true);
     }
+  });
+});
+
+describe("who opens a pay area", () => {
+  it("it-opens-pay-groups-and-elements-but-no-pay-records", () => {
+    expect(canOpenPayArea("it", "groups")).toBe(true);
+    expect(canOpenPayArea("it", "elements")).toBe(true);
+    expect(canOpenPayArea("it", "loans")).toBe(false);
+    expect(canOpenPayArea("employee", "groups")).toBe(false);
+    expect(canOpenPayArea("hr", "loans")).toBe(true);
   });
 });
