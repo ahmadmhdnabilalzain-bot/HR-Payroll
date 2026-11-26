@@ -333,7 +333,10 @@ the explain panel. Severity words: "Stops pay" and "Check".
 
 ## Home inbox, Me and the IT manager (WP10, Claude's calls)
 
-- **IT manager** (`role: "it"`): bar Home, People, Reports, Setup.
+- **IT manager** (`role: "it"`): bar Home, People, Time, Reports,
+  Setup (map section 1). Time holds Leave requests (their own) and
+  attendance as the clocks record it: Attendance today and the
+  register (`WATCH` in `time/routes.ts`); no overtime, no pay.
   Sees the directory but no one's pay (`canSeePay`); a typed
   `#/pay-run` is outside the view, but Setup > Pay groups and Pay
   elements (`#/pay-run/groups|elements`) open. Every Setup area HR

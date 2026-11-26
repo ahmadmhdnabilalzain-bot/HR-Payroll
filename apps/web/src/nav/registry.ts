@@ -10,7 +10,7 @@ import type { Area, AreaRoute, Group, NavCtx, SectionId } from "./types";
 const BAR: Record<Role, readonly SectionId[]> = {
   hr: ["home", "people", "time", "pay", "reports", "setup"],
   gm: ["home", "people", "time", "pay", "reports", "setup"],
-  it: ["home", "people", "reports", "setup"],
+  it: ["home", "people", "time", "reports", "setup"],
   manager: ["home", "pay", "time", "requests", "me"],
   employee: ["home", "pay", "time", "requests", "me"],
 };

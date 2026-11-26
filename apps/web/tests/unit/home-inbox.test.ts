@@ -47,6 +47,8 @@ describe("home inbox (WP10)", () => {
     expect(canSeePay(d, s, me)).toBe(true);
     expect(barFor("it")).toContain("people");
     expect(barFor("it")).not.toContain("pay");
+    expect(barFor("it")).toEqual(["home", "people", "time", "reports",
+      "setup"]);
   });
 
   it("leaves-decisions-and-bank-details-to-their-own-rows", () => {

@@ -6,7 +6,7 @@ import {
   draftWeeks,
   punchesToMatch,
 } from "../../time/counts";
-import { HR_GM, TEAM } from "../../time/routes";
+import { HR_GM, TEAM, WATCH } from "../../time/routes";
 import type { Area } from "../types";
 
 const at = (rest: string[]) => ({ section: "time-off" as const, rest });
@@ -24,12 +24,12 @@ export const AREAS: readonly Area[] = [
     keywords: "annual sick unpaid days left entitlement" },
   { id: "time.today", section: "time", group: "attendance",
     label: { en: "Attendance today", ar: "الحضور اليوم" }, status: "live",
-    archetype: "LF", roles: TEAM, route: at(["attendance"]),
+    archetype: "LF", roles: WATCH, route: at(["attendance"]),
     count: attendanceLook,
     keywords: "clock in out present absent late who is in" },
   { id: "time.register", section: "time", group: "attendance",
     label: { en: "Attendance register", ar: "سجل الحضور" }, status: "live",
-    archetype: "LF", roles: TEAM, route: at(["register"]),
+    archetype: "LF", roles: WATCH, route: at(["register"]),
     keywords: "timesheet hours worked late absence month" },
   { id: "time.punches", section: "time", group: "attendance",
     label: { en: "Punches to match", ar: "بصمات بلا صاحب" }, status: "live",

@@ -7,8 +7,13 @@ import type { Role } from "../demo/state";
  */
 export const HR_GM: readonly Role[] = ["hr", "gm"];
 export const TEAM: readonly Role[] = ["hr", "gm", "manager"];
+/**
+ * Attendance as the clocks record it: the IT manager runs the clock
+ * feeds (map section 1 gives IT the Time word). No pay is on these.
+ */
+export const WATCH: readonly Role[] = [...TEAM, "it"];
 
 export const SLUG_ROLES: Record<string, readonly Role[]> = {
-  attendance: TEAM, register: TEAM, against: TEAM, punches: HR_GM,
+  attendance: WATCH, register: WATCH, against: TEAM, punches: HR_GM,
   overtime: TEAM, roster: TEAM, plan: HR_GM, balances: TEAM,
 };

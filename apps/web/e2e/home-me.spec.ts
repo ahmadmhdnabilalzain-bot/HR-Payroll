@@ -83,3 +83,15 @@ test("manager-home-never-says-no-one-waits-under-a-waiting-request",
       .toHaveText(/waits? for you/);
     await expect(page.getByText(/off or waiting/)).toHaveCount(0);
   });
+
+test("it-manager-has-the-time-word-and-sees-attendance", async ({ page }) => {
+  await page.goto("/");
+  await asRole(page, "IT manager");
+  await page.evaluate(() => { location.hash = "#/time-off/attendance"; });
+  await expect(page.getByText("This page is outside your view."))
+    .toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.evaluate(() => { location.hash = "#/time-off/overtime"; });
+  await expect(page.getByText("This page is outside your view."))
+    .toBeVisible();
+});
