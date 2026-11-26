@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("IT manager: who can approve, review, key, import", async ({ page }) => {
   await page.goto("/#/setup/access/who/pay.approve");
-  await expect(page.getByRole("heading", { name: "Approve a pay run" }))
+  await expect(page.getByRole("heading", { name: "Sign off a pay run" }))
     .toBeVisible();
   await expect(page.getByText("Khalid Al Nuaimi").first()).toBeVisible();
 
@@ -16,7 +16,7 @@ test("IT manager: who can approve, review, key, import", async ({ page }) => {
 
   await page.goto("/#/setup/connections/hooks/hook-002");
   await page.getByRole("button", { name: "Send again" }).click();
-  await expect(page.getByText(/sends nothing outside/).first())
+  await expect(page.getByText(/nothing is sent outside/).first())
     .toBeVisible();
 
   await page.goto("/#/setup/data/import");

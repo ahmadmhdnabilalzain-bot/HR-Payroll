@@ -15,7 +15,7 @@ test("skills-training-and-surveys-flow", async ({ page }, info) => {
   await page.goto("/#/people/talent/skills");
   await expect(page.getByRole("heading", { level: 1, name: "Skills" }))
     .toBeVisible();
-  await expect(page.getByText(/^Sample levels/)).toBeVisible();
+  await expect(page.getByText(/^Levels worked out/)).toBeVisible();
   await page.getByRole("searchbox", { name: "Find a person" })
     .fill("Aisha");
   await expect(page.getByRole("link", { name: "Aisha Al Marri" }).first())
