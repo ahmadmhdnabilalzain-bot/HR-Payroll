@@ -31,7 +31,7 @@ export const GROUPS: readonly Group[] = [
   g("setup", "people", "People rules", "قواعد الموظفين"),
   g("setup", "time", "Time rules", "قواعد الوقت"),
   g("setup", "pay", "Pay rules", "قواعد الرواتب"),
-  g("setup", "access", "Access and approvals", "الصلاحيات والموافقات"),
+  g("setup", "access", "Access and sign-off", "الصلاحيات والموافقات"),
   g("setup", "connections", "Connections", "الربط"),
   g("setup", "data", "Data and company", "البيانات والشركة"),
   g("requests", "mine", "Requests", "الطلبات"),

@@ -133,7 +133,7 @@ function approvalTasks(c: DemoCompany): HomeTask[] {
         title, detail, due, subject: who?.id ?? null,
         target: `approvals/${a.id}` });
     if (a.kind === "pay-run") {
-      return [open("Approve the October pay run", `Prepared by ` +
+      return [open("Sign off the October pay run", `Prepared by ` +
         `${maker.fullName} on ${shortDateText(a.requestedOn)}. ` +
         `${a.amountNote ?? ""}`.trim(), PAY_CALENDAR.approveBy),
       mkTask({ assignee: maker.id, kind: "approval", id: a.id,
@@ -216,7 +216,7 @@ function peopleTasks(c: DemoCompany): HomeTask[] {
       : [];
   });
   const offers = d.offers.flatMap((o) => o.status === "draft" ? [mkTask({
-    assignee: hr, kind: "offer", id: o.id, title: `Approve and send the ` +
+    assignee: hr, kind: "offer", id: o.id, title: `Sign off and send the ` +
       `offer to ${o.candidateName}`, detail: `${o.title}, ${o.grossText} ` +
       `a month, starts ${o.joiningDate.display}`,
     due: addDays(o.preparedOn.iso, 3), target: `people/hiring/${o.id}` })]
@@ -337,7 +337,7 @@ function notesOf(c: DemoCompany, role: HomeRole): NoteIn[] {
   };
   if (role === "hr") {
     add(run.requestedOn, "info", "October pay run sent to the GM",
-      `${find(es, run.checkerEmployeeId).fullName} has it for approval ` +
+      `${find(es, run.checkerEmployeeId).fullName} has it for sign-off ` +
       `by ${shortDateText(PAY_CALENDAR.approveBy)}.`, true, "approval",
       run.id, `approvals/${run.id}`);
     near.forEach((x) => docNote(x, false));
@@ -374,7 +374,7 @@ function notesOf(c: DemoCompany, role: HomeRole): NoteIn[] {
       add(a.requestedOn, "action", a.kind === "pay-run"
         ? "October pay run needs your decision"
         : `${find(es, a.employeeId!).fullName}'s expense claim`,
-      a.kind === "pay-run" ? `${maker} sent it for approval.`
+      a.kind === "pay-run" ? `${maker} sent it for sign-off.`
         : `Claim of ${formatAed(a.amount!)}, waiting for you.`, false,
       "approval", a.id, `approvals/${a.id}`);
     }
@@ -386,7 +386,7 @@ function notesOf(c: DemoCompany, role: HomeRole): NoteIn[] {
     }
     for (const o of d.offers.filter((x) =>
       x.approvedBy?.employeeId === me)) {
-      add(o.approvedBy!.on.iso, "info", `You approved the offer for ` +
+      add(o.approvedBy!.on.iso, "info", `You signed off the offer for ` +
         `${o.candidateName}`, `${o.title}, starts ${o.joiningDate.display}.`,
       true, "offer", o.id, `people/hiring/${o.id}`);
     }
@@ -591,8 +591,8 @@ export function homeSummary(c: DemoCompany, role: HomeRole): HomeSummary {
     notices: homeNoticesFor(c, role).length,
     text: `${plural(tasks.length, "open task", "open tasks")} ` +
       `(${overdue} overdue), ${plural(unread, "unread notification",
-        "unread notifications")}, ${plural(pending, "approval",
-        "approvals")} waiting for you` };
+        "unread notifications")}, ${plural(pending, "decision",
+        "decisions")} waiting for you` };
 }
 
 export interface TeamTodayRow {

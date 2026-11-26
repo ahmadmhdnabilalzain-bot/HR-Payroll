@@ -86,7 +86,7 @@ export function WhatIf() {
     <div className={s.page}>
       <PageHead title="What-if"
         lede={"Change one person's October basic salary or add overtime, " +
-          "and the engine works the run out again. Nothing is saved, and " +
+          "and the run is worked out again. Nothing is saved, and " +
           "the pay run is not changed."} />
       <form className={s.block} onSubmit={submit} noValidate
         aria-label="Change to try">
@@ -122,7 +122,7 @@ export function WhatIf() {
         </div>
       </form>
       <section className={s.block} aria-live="polite"
-        aria-label="What the engine worked out">
+        aria-label="What changes">
         <p className={s.lead}>{changed ? r.asked.join(". ") + "."
           : `${r.name} as run. Change a figure and choose Work it out.`}
         </p>
@@ -144,8 +144,10 @@ export function WhatIf() {
           { label: "Salary file", value: <Moved before={r.run.before.inFile}
             after={r.run.after.inFile} /> },
         ]} />
-        <p className={s.muted}>Worked out by the same engine as the pay run,
-          on UAE mainland rules as we read them.</p>
+        <p className={s.muted}>
+          Worked out by the same calculation as the pay run, on UAE
+          mainland rules as we read them.
+        </p>
       </section>
     </div>
   );

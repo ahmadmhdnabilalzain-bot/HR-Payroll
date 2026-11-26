@@ -32,8 +32,8 @@ const PLAIN: Record<string, string> = {
   endDateInclusive: "The last working day counts as a day of service.",
   leapDayAnniversary: "A 29 February joiner's anniversary falls on the " +
     "last day of February in other years.",
-  roundingMode: "Amounts are rounded once, at the end, to the nearest " +
-    "fils.",
+  roundingMode: "Amounts are rounded once, at the end, to two " +
+    "decimal places.",
   gccNationalGratuity: "Gratuity for other Gulf nationals has no source " +
     "yet, so no value is held.",
   // Pay: overtime and rest days
@@ -95,7 +95,7 @@ const PLAIN: Record<string, string> = {
     "month.",
   deductionOrder: "Deductions come off in a set order; a loan comes " +
     "last.",
-  capRoundingMode: "A limit is rounded down to the fils.",
+  capRoundingMode: "A limit is rounded down to two decimals.",
   // Time
   timeMaxNormalMinutesPerDay: "A normal working day is 8 hours.",
   timeMaxNormalMinutesPerWeek: "A normal working week is 48 hours.",

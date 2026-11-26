@@ -47,7 +47,7 @@ export const shell = {
   actSources: "Show where the figures come from",
   actIssue: "Open issue: {name}",
   actApproval: "Decide: {title}",
-  actApprove: "Approve {month} pay",
+  actApprove: "Sign off {month} pay",
   actIban: "Enter bank details for {name}",
   actPayslip: "Payslip: {name}",
   actStep: "Pay run: {step}",

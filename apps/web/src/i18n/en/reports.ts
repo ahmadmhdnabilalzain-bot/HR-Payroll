@@ -12,7 +12,7 @@ export const reports = {
   foot: "{count} rows. {scope}. Fictional data.",
   summaryTitle: "Payroll summary",
   summaryBlurb: "This month's totals beside last month's.",
-  summaryNote: "Totals are sums of the payslips, in whole fils. {scope}.",
+  summaryNote: "Totals are sums of the payslips, exactly. {scope}.",
   deptTitle: "Cost by department",
   deptBlurb: "Monthly gross pay and headcount for each department.",
   deptNote: "Cost is monthly gross pay from this run.",
@@ -49,6 +49,6 @@ export const reports = {
   colMonth: "Month",
   colTotal: "Total",
   colDated: "Dated",
-  fileDraft: "Draft, waiting for approval",
+  fileDraft: "Draft, waiting for sign-off",
   fileReady: "Ready to upload",
 } satisfies EnNamespace;

@@ -446,7 +446,7 @@ export function wfhRows(c: DemoCompany): WfhRow[] {
 
 export const COVER_NOTE = "Sample rule: a team keeps all but one person " +
   "on shift. Cover is priced as 8 hours of overtime for each missing " +
-  "seat, at the engine's overtime rate, as an estimate.";
+  "seat, at the overtime rate, as an estimate.";
 
 export interface CoverLeave { employeeId: string; name: string;
   from: string; to: string; waiting: boolean }

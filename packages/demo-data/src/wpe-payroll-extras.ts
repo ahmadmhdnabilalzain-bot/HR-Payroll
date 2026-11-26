@@ -250,7 +250,7 @@ export function analysisDatasets(c: DemoCompany): AnalysisDataset[] {
     ? demoLabel(d.labelKey, "en") : "");
   const payroll: AnalysisDataset = { id: "payroll",
     label: "Payroll history", source: "Pay runs January to October " +
-      "2026, each person's payslip from the engine",
+      "2026, each person's payslip from the payroll",
     dims: [{ id: "month", label: "Month" },
       { id: "department", label: "Department" }],
     measures: [{ id: "gross", label: "Gross pay", kind: "money" },
@@ -295,7 +295,7 @@ export function analysisDatasets(c: DemoCompany): AnalysisDataset[] {
     order: { department: deptOrder } };
   const overtime: AnalysisDataset = { id: "overtime",
     label: "Overtime", source: "Overtime paid January to October 2026, " +
-      "valued by the engine",
+      "valued by the payroll",
     dims: [{ id: "month", label: "Month" },
       { id: "department", label: "Department" }],
     measures: [{ id: "amount", label: "Overtime pay", kind: "money" },
@@ -712,7 +712,7 @@ export function compareParallel(c: DemoCompany, csv: string)
   const theirsTotal = sum(rows.map((r) => r.theirs ?? 0n));
   return { rows, matches: n("matches"), differs, explained, oursTotal,
     theirsTotal, summaryText: `${rows.length} people in the file: ` +
-      `${n("matches")} match to the fils, ${differs} differ` +
+      `${n("matches")} match exactly, ${differs} differ` +
       (differs === 0 ? "." : `, ${explained} of them with a likely ` +
         "cause.") };
 }

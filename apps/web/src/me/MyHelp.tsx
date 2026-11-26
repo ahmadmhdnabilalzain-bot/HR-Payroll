@@ -62,7 +62,7 @@ const CARDS: readonly Card[] = [
       "Press Update the record. Every step names who and when."],
     href: hrefOf("people", "requests", "changes"), go: "Open the requests" },
   { id: "reset", title: "Send a sign-off back to waiting", hr: true,
-    steps: ["Open Approval splits and resets and choose the item.",
+    steps: ["Open Sign-off splits and resets and choose the item.",
       "Press Send back to waiting and give a reason.",
       "The toast offers an undo."],
     href: hrefOf("people", "requests", "splits"), go: "Open splits" },

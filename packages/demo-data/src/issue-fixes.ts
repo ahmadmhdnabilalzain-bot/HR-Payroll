@@ -41,4 +41,4 @@ export const FIX: Record<string, Fix> = {
 };
 
 export const GENERIC: Fix = { kind: "review", fix: { en: "Review " +
-  "before approving.", ar: "راجع قبل الاعتماد." } };
+  "before sign-off.", ar: "راجع قبل الاعتماد." } };

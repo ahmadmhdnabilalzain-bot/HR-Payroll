@@ -81,7 +81,7 @@ function flagIssue(c: DemoCompany, s: DemoPayslip, f: PayslipFlag)
     return [issue({ code: f.code, source: "engine",
       employeeId: s.employeeId, subjectId: s.id, title: "Payroll check",
       raisedAs: f.message, en: `${possessive(nameOf(c, s.employeeId))} ` +
-        "payslip needs a look before approval." })];
+        "payslip needs a look before sign-off." })];
   }
   const day = f.detail["date"]!;
   const mins = Number(f.detail["minutes"]);

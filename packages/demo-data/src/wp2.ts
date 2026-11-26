@@ -424,7 +424,7 @@ const GOAL_TEMPLATES: Record<string, [string, number, string][]> = {
   "dept-fin": [["Month-end closes within 5 working days", 95, "%"],
     ["Supplier invoices paid on time", 97, "%"],
     ["Budget variances explained", 100, "%"]],
-  "dept-hr": [["Pay runs approved before the cut-off", 100, "%"],
+  "dept-hr": [["Pay runs signed off before the cut-off", 100, "%"],
     ["Joiner checklists done within 30 days", 95, "%"],
     ["Appraisal forms finished on time", 100, "%"]],
   "dept-it": [["Core system availability", 99, "%"],

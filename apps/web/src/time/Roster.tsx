@@ -127,7 +127,7 @@ export function Plan() {
   };
   return (
     <FilterList title="Roster planning"
-      lede="Each week's roster, and what the engine's checks found."
+      lede="Each week's roster, and what the checks found."
       rows={weeksOf(t)} rowKey={(w) => w.id}
       columns={[
         { key: "w", label: "Week", render: (w) =>

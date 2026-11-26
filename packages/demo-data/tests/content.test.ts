@@ -204,7 +204,8 @@ describe("selectors, explanations and labels", () => {
     const h = headline(c);
     expect(h.basis.ruleSet).toBe("UAE mainland");
     expect(Object.keys(h.basis).sort()).toEqual(["pension", "ruleSet"]);
-    expect(h.basis.pension).toMatch(/^Pension for UAE nationals: Not computed\. /);
+    expect(h.basis.pension)
+      .toMatch(/^Pension for UAE nationals: Not computed\. /);
     const d = documents(c);
     expect(d[0]!.daysLeft).toBeLessThanOrEqual(d[1]!.daysLeft);
     const p = payCalendar(c);

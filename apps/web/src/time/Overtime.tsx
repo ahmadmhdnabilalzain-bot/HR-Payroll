@@ -13,7 +13,7 @@ import { Status, useTimeData, useWho, type Who } from "./shared";
 import s from "./time.module.css";
 import { hm, plural } from "./words";
 
-const NOTE = "The amount is what the payroll engine adds to gross pay for " +
+const NOTE = "The amount is what the payroll adds to gross pay for " +
   "this claim. For a claim still to decide it is an estimate for the " +
   "November run, and nothing changes in October.";
 
@@ -25,7 +25,7 @@ function useDecide(id: string, text: string) {
   const made = state.timeDecided[id];
   const put = (verdict: "accept" | "decline") => (): void => {
     dispatch({ type: "time-decide", id, verdict, by: who.me });
-    toast.show(verdict === "accept" ? `${text} accepted.`
+    toast.show(verdict === "accept" ? `${text} signed off.`
       : `${text} declined.`, () => dispatch({ type: "time-undo", id }));
   };
   const undo = (): void => dispatch({ type: "time-undo", id });

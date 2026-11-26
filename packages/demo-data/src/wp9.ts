@@ -30,7 +30,7 @@ export const ACCESS_PERMISSIONS: readonly AccessPermission[] = [
   { id: "pay.view", label: "See pay runs", area: "Pay" },
   { id: "pay.prepare", label: "Prepare a pay run and settlements",
     area: "Pay" },
-  { id: "pay.approve", label: "Approve a pay run", area: "Pay" },
+  { id: "pay.approve", label: "Sign off a pay run", area: "Pay" },
   { id: "pay.export-sif", label: "Create and send the salary file",
     area: "Pay" },
   { id: "reports.view", label: "See reports", area: "Reports" },
@@ -66,7 +66,7 @@ export const ACCESS_ROLES: readonly AccessRole[] = [
       "reports.view"] },
   { id: "hr-manager", label: "HR manager", admin: true,
     description: "Prepares the pay run and the salary file; cannot " +
-      "approve it.", permissions: [...SELF, "people.view", "people.edit",
+      "sign it off.", permissions: [...SELF, "people.view", "people.edit",
       "people.salary-view", "leave.approve", "pay.view", "pay.prepare",
       "pay.export-sif", "reports.view", "data.import"] },
   { id: "finance-manager", label: "Finance manager", admin: true,
@@ -81,7 +81,7 @@ export const ACCESS_ROLES: readonly AccessRole[] = [
     description: "Sees pay runs and reports; changes nothing.",
     permissions: [...SELF, "pay.view", "reports.view"] },
   { id: "general-manager", label: "General manager", admin: true,
-    description: "Approves the pay run, large expenses and raises.",
+    description: "Signs off the pay run, large expenses and raises.",
     permissions: [...SELF, "people.view", "people.salary-view",
       "leave.approve", "expense.approve", "pay.view", "pay.approve",
       "reports.view", "audit.view", "access.manage", "access.review"] },
@@ -250,9 +250,9 @@ export const APPROVAL_RULES: readonly ApprovalRule[] = [
       "also for a manager's own claim." },
   { id: "pay-run", label: "Pay run", roleId: "general-manager",
     text: "The HR manager prepares it and the General manager " +
-      "approves it, never the same person." },
+      "signs it off, never the same person." },
   { id: "salary-change", label: "Salary raise",
-    roleId: "general-manager", text: "The General manager approves " +
+    roleId: "general-manager", text: "The General manager signs off " +
       "before HR enters it." },
 ];
 
@@ -274,11 +274,11 @@ const PAIRS: [string, string, string][] = [
 ];
 
 const SOD_LABEL: Record<string, string> = {
-  "pay-run": "No one both prepares and approves a pay run",
-  "salary-pay": "No one sees salaries and approves the run, apart from " +
+  "pay-run": "No one both prepares and signs off a pay run",
+  "salary-pay": "No one sees salaries and signs off the run, apart from " +
     "the General manager", "access-pay": "No one both manages access and " +
-    "approves the run, apart from the General manager",
-  "file-approve": "No one both sends the salary file and approves " +
+    "signs off the run, apart from the General manager",
+  "file-approve": "No one both sends the salary file and signs off " +
     "the run" };
 
 /** Checks the demo's own users; an empty `breaches` means it holds. */

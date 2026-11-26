@@ -38,7 +38,7 @@ export function PastRuns() {
   const rows = [...pay.runs].reverse();
   return (
     <FilterList title="Pay runs"
-      lede={"Each month as paid, worked out by the same engine. Open a " +
+      lede={"Each month as paid, worked out the same way. Open a " +
         "month to see who changed and why, and every payslip."}
       rows={rows} rowKey={(r) => r.id}
       rowHref={(r) => r.paid ? hrefOf("pay-run", "runs", r.key)

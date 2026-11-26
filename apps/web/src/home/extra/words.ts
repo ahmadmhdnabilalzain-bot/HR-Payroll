@@ -1,11 +1,11 @@
 /** The words of the extra Home, Me and Time screens (English only). */
 export const X = {
   cover: {
-    title: "Approval cover",
-    lede: "Who decides leave and claims while an approver is away. HR or " +
-      "the General manager agrees every cover, so no one covers for " +
-      "themself.",
-    approver: "Approver",
+    title: "Decision cover",
+    lede: "Who decides leave and claims while the person who decides " +
+      "is away. HR or the General manager agrees every cover, so no one " +
+      "covers for themself.",
+    approver: "Person who decides",
     cover: "Cover",
     status: "Status",
     set: "Set cover",
@@ -32,7 +32,7 @@ export const X = {
     taken: "Taken back",
     overlap: "There is already cover for some of those days. Take it back " +
       "first.",
-    empty: "No approvers to show.",
+    empty: "No one who decides to show.",
     all: "All",
     open: "To agree",
     active: "In place",

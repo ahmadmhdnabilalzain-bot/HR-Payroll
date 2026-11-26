@@ -113,7 +113,7 @@ export function holidaysPage(): PageSpec {
           { edit: { unit: "hours", min: 2, max: 4, why: LAW_MIN } }),
         { key: "ramadan:dates", label: "Ramadan dates",
           value: "None loaded",
-          help: "The packs hold no Ramadan dates. The shorter day is " +
+          help: "The rule sets hold no Ramadan dates. The shorter day is " +
             "not applied to any date yet." }),
     ] };
 }

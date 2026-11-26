@@ -11,7 +11,7 @@ import { newId, record, replace } from "./state";
 function createSif(c: Ctx, runId: string): MockSif {
   const run = findRun(c, runId);
   if (run.status !== "approved") {
-    throw new MockFail("RUN_NOT_APPROVED", "approve the run first");
+    throw new MockFail("RUN_NOT_APPROVED", "sign off the run first");
   }
   const stored = c.s.sifs.find((x) => x.file.payRunId === run.id);
   if (stored !== undefined) return stored;

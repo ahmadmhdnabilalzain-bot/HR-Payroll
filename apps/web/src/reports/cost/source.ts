@@ -84,7 +84,7 @@ function personExplain(c: DemoCompany, id: string, amount: Fils)
     { text: "Years after the fifth at 30 days a year: " +
       `${daysText(t2?.result)} days of basic wage.` },
     { text: `Together ${daysText(total?.inputs["daysOwed"])} days, ` +
-      "worked out exactly and rounded once, to the fils." },
+      "worked out exactly and rounded once, to two decimals." },
     { text: "The limit is two years' basic wage. " +
       (cap?.inputs["capApplied"] === "true" ? "It is reached, so the " +
         "gratuity stops there." : "It is not reached."),

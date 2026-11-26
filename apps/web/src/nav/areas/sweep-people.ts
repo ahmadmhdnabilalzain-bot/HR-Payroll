@@ -55,7 +55,7 @@ export const AREAS: readonly Area[] = [
     keywords: "P04 new employee add record hire joiner create staff " +
       "accepted offer sign off" },
   { id: "setup.cover", section: "setup", group: "access",
-    label: { en: "Approval cover", ar: "بدلاء الموافقة" }, status: "live",
+    label: { en: "Decision cover", ar: "بدلاء الموافقة" }, status: "live",
     archetype: "LF", roles: HR_GM, route: more("cover"),
     count: coversWaiting,
     keywords: "H10 leave cover delegate deputy away holiday approver " +

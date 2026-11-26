@@ -39,7 +39,7 @@ export const DEMO_LABELS_EN = {
   "reason.personal": "Personal matters",
   "status.approved": "Approved", "status.pending": "Pending",
   "status.rejected": "Rejected",
-  "status.awaiting-approval": "Waiting for approval",
+  "status.awaiting-approval": "Waiting for sign-off",
   "case.probation": "New hire on probation",
   "case.leaver": "Leaving this month", "case.unpaid-leave": "Unpaid " +
     "leave this month", "case.overtime": "Overtime this month",
@@ -54,11 +54,11 @@ export const DEMO_LABELS_EN = {
     "30 days", "expiry.expiring-90": "Expires within 90 days",
   "expiry.valid": "Valid",
   "approval.pay-run": "October pay run: HR manager prepared, General " +
-    "manager approves",
+    "manager signs off",
   "approval.leave": "Leave request",
   "expense.entertainment": "Client lunch",
   "expense.travel": "Taxi and parking, client visits",
-  "issues.title": "Found before approval",
+  "issues.title": "Found before sign-off",
   "pension.title": "Not computed",
   "nationality.label": "Sample data, regime for banks to be confirmed",
 } as const;

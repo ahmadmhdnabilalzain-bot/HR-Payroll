@@ -31,9 +31,9 @@ export function phaseWord(p: Phase, who: Who, decider: string)
   }
 }
 
-/** "Accepted by Arjun Menon, Operations manager, 27 October". */
+/** "Signed off by Arjun Menon, Operations manager, 27 October". */
 export function decidedLine(d: TimeDecision, who: Who, date: string)
   : string {
-  const what = d.verdict === "accept" ? "Accepted" : "Declined";
+  const what = d.verdict === "accept" ? "Signed off" : "Declined";
   return `${what} by ${who.name(d.by)}, ${who.jobOf(d.by)}, ${date}`;
 }

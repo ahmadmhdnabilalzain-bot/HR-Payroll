@@ -35,7 +35,7 @@ export const timeoff = {
   withdrawn: "Withdrawn",
   withdraw: "Withdraw",
   withdrew: "Request withdrawn",
-  approve: "Approve",
+  approve: "Book",
   decline: "Decline",
   bookedToast: "{name}'s time off is booked",
   declinedToast: "{name}'s request is declined",

@@ -309,7 +309,7 @@ export function loans(c: DemoCompany): LoanRecord[] {
     loanRow(c, { ref: "ADV-1007", employeeId: "emp-018", kind: "advance",
       status: "approved", principal: fils(300000n),
       instalment: fils(100000n), balance: fils(300000n), ledger: [] },
-    "November", "Salary advance approved on 26 October; recovered in " +
+    "November", "Salary advance agreed on 26 October; recovered in " +
       "three instalments, each checked against the limits on the day."),
   ];
 }
@@ -342,7 +342,7 @@ export function payCorrections(c: DemoCompany): PayCorrection[] {
       "work.", (i) => ({ ...i, absences: i.absences.filter((a) =>
       !WRONG_UNPAID.dates.includes(a.date)) })),
     correction(c, "cor-002", MISSED_OT.employeeId, 9, "Three hours of " +
-      "overtime on 17 September were approved but not paid.",
+      "overtime on 17 September were agreed but not paid.",
     (i) => ({ ...i, overtime: [...i.overtime, ot] })),
   ];
 }
@@ -428,9 +428,9 @@ export function payElements(): PayElement[] {
       "Conveyance"),
     el("phone", "Phone allowance", "earning", "Contract", "Other"),
     el("back-pay", "Back pay on basic salary", "earning", "Owed minus " +
-      "paid, from two engine runs", "Other"),
-    el("overtime", "Overtime", "earning", "Computed by the engine from " +
-      "approved hours", "Overtime"),
+      "paid, from two runs", "Other"),
+    el("overtime", "Overtime", "earning", "Computed by the payroll from " +
+      "agreed hours", "Overtime"),
     el("loan", "Loan instalment", "deduction", "Entered; limited by the " +
       "engine", "Taken from pay before the file"),
     el("traffic-fine", "Traffic fine recovery", "deduction", "Not " +
