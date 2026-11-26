@@ -91,10 +91,10 @@ export function Probation() {
                 <span className={s.sub}>{st.sub}</span>
               </span>);
           } },
-          { key: "d", label: g.decideBy, render: (x) => x.status ===
+          { key: "d", label: g.decision, render: (x) => x.status ===
             "in-progress" && recordOf(x)?.verdict == null ? (
               <Explainable explanation={decideByExplanation(x, scope)}>
-                {x.decideBy.display}
+                {fill(g.decideOn, { date: x.decideBy.display })}
               </Explainable>) : "" },
           { key: "a", label: "", end: true, render: (x) => {
             const r = recordOf(x);
