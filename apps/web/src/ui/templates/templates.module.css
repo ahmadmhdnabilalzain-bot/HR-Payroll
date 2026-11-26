@@ -363,7 +363,8 @@ a.row:hover {
   overflow-wrap: anywhere;
 }
 
-.cell > * {
+.cell > *,
+.cell [data-tone] {
   white-space: normal;
 }
 
@@ -414,6 +415,19 @@ li + li.actRow > .row {
   justify-content: flex-end;
   gap: var(--space-2);
   padding-inline-end: var(--space-4);
+}
+
+/* A row's decision: the buttons, or who it waits for. */
+.decide {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.waitFor {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 18px;
+  text-align: end;
 }
 
 /* A 44 px hit area for small buttons inside a row. */

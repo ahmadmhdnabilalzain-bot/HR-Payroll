@@ -6,7 +6,12 @@ import { useDemo } from "../demo/state";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { useToast } from "../ui/Toast";
-import { FilterList, KeyValues, RecordTabs } from "../ui/templates";
+import {
+  FilterList,
+  KeyValues,
+  RecordTabs,
+  RowDecision,
+} from "../ui/templates";
 import { whoIs } from "./derive";
 import { usePay } from "./load";
 import { NotFound, Status, type Tone } from "./parts";
@@ -41,20 +46,20 @@ function ClaimActions(p: { x: ExpenseView }) {
   const { data, state, dispatch } = useDemo();
   const toast = useToast();
   const a = useApproval(p.x);
-  if (a === undefined || state.decided[a.id] !== undefined ||
-    personOf(data, state.role) !== a.checkerId) return null;
+  if (a === undefined) return null;
+  const mine = personOf(data, state.role) === a.checkerId;
   const decide = (v: "approve" | "decline") => (): void => {
     dispatch({ type: "decide", id: a.id, verdict: v });
     toast.show(v === "approve" ? "Claim agreed" : "Claim declined",
       () => dispatch({ type: "undecide", id: a.id }));
   };
   return (
-    <>
-      <button type="button" className={`${b.btn} ${b.secondary}`}
-        onClick={decide("decline")}>Decline</button>
-      <button type="button" className={`${b.btn} ${b.secondary}`}
-        onClick={decide("approve")}>Agree</button>
-    </>
+    <RowDecision open={state.decided[a.id] === undefined} mine={mine}
+      waitingFor={data.employee(a.checkerId).name.en}
+      yes={{ label: "Agree", run: decide("approve") }}
+      no={{ label: "Decline", run: decide("decline") }}
+      undo={mine ? () => dispatch({ type: "undecide", id: a.id })
+        : undefined} />
   );
 }
 

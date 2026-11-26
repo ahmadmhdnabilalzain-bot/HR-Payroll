@@ -18,6 +18,7 @@ import { usePay } from "./load";
 import {
   NotFound,
   RequestPanel,
+  RequestRow,
   RequestStatus,
   Status,
   useMakerChecker,
@@ -75,6 +76,7 @@ export function Corrections() {
         rows={rows} rowKey={(r) => r.key}
         searchText={(r) => `${r.name} ${r.month}`}
         rowHref={(r) => hrefOf("pay-run", "corrections", r.key)}
+        rowActions={(r) => <RequestRow r={r.req} what="Correction" />}
         segments={[
           { id: "all", label: "All", match: () => true },
           { id: "due", label: `To pay in ${pay.nextRun}`, match: (r) =>

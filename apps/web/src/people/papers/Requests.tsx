@@ -6,6 +6,7 @@ import {
   FilterList,
   KeyValues,
   RecordTabs,
+  RowDecision,
 } from "../../ui/templates";
 import { NotFound } from "./Outside";
 import { History, type HistoryItem } from "./History";
@@ -32,6 +33,18 @@ export function Requests() {
         rows={rows} rowKey={(r) => r.id}
         searchText={(r) => `${r.title} ${p.nameOf(r.employeeId)}`}
         rowHref={(r) => hrefOf("people", "papers", "requests", r.id)}
+        avatar={(r) => ({ id: r.employeeId, name: p.nameOf(r.employeeId) })}
+        rowActions={(r) => (
+          <RowDecision open={requestIsOpen(r)} mine
+            yes={r.status === "open" ? { label: "Start", run: () =>
+              p.record(r.id, "in-progress", "Request started.", r.step) }
+              : { label: "Mark done", run: () => p.record(r.id, "done",
+                "Request marked done.", r.step) }}
+            no={{ label: "Decline", run: () => p.record(r.id, "declined",
+              "Request declined.", r.step) }}
+            undo={r.step === null ? undefined
+              : () => p.dispatch({ type: "paper-undo", id: r.id })} />
+        )}
         segments={[
           { id: "todo", label: "To do", match: requestIsOpen },
           { id: "done", label: "Closed", match: (r) => !requestIsOpen(r) },

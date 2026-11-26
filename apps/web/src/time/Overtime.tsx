@@ -1,11 +1,16 @@
 import { hrefOf } from "../demo/route";
 import type { ClaimRow, CrewRequest } from "../demo/data/time-types";
 import { useDemo } from "../demo/state";
-import { dayText } from "../people/words";
+import { dayText, type Tone } from "../people/words";
 import { Money } from "../ui/Money";
 import b from "../ui/button.module.css";
 import { useToast } from "../ui/Toast";
-import { FilterList, KeyValues, RecordTabs } from "../ui/templates";
+import {
+  FilterList,
+  KeyValues,
+  RecordTabs,
+  RowDecision,
+} from "../ui/templates";
 import { crewPhase, decidedLine, phaseOf, phaseWord, type Phase }
   from "./decisions";
 import { Outside } from "./Outside";
@@ -55,6 +60,27 @@ function Buttons(q: { id: string; text: string; phase: Phase;
   return null;
 }
 
+/** The decision on a claim's row: the same rule as its record. */
+function RowButtons(q: { id: string; text: string; phase: Phase;
+  allowed: boolean; decider: string }) {
+  const d = useDecide(q.id, q.text);
+  return (
+    <RowDecision open={q.phase === "waiting"} mine={q.allowed}
+      waitingFor={d.who.name(q.decider)}
+      yes={{ label: "Accept", run: d.put("accept") }}
+      no={{ label: "Decline", run: d.put("decline") }}
+      undo={d.made !== undefined && q.allowed ? d.undo : undefined} />
+  );
+}
+
+/** "Waiting for Arjun Menon or you" when HR may decide it too. */
+function waitWord(p: Phase, who: Who, decider: string, forId: string)
+  : [string, Tone] {
+  const [word, tone] = phaseWord(p, who, decider);
+  return p === "waiting" && decider !== who.me && who.canDecide(forId)
+    ? [`${word} or you`, tone] : [word, tone];
+}
+
 function claimsFor(t: { claims: ClaimRow[] }, who: Who): ClaimRow[] {
   return t.claims.filter((c) => who.visible.has(c.employeeId));
 }
@@ -79,8 +105,9 @@ export function Overtime() {
       avatar={(c) => ({ id: c.employeeId,
         name: who.name(c.employeeId) })}
       rowActions={(c) => (
-        <Buttons id={c.id} text="The claim" phase={ph(c)} row
-          allowed={who.canDecide(c.employeeId)} />
+        <RowButtons id={c.id} text="The claim" phase={ph(c)}
+          allowed={who.canDecide(c.employeeId)}
+          decider={who.approverOf(c.employeeId)} />
       )}
       segments={[
         { id: "wait", label: "To decide", match: (c) => ph(c) === "waiting" },
@@ -98,8 +125,8 @@ export function Overtime() {
           ph(c) === "declined" ? "None" : <Money value={c.value} size="sm" />
         },
         { key: "s", label: "Status", render: (c) => {
-          const [word, tone] = phaseWord(ph(c), who,
-            who.approverOf(c.employeeId));
+          const [word, tone] = waitWord(ph(c), who,
+            who.approverOf(c.employeeId), c.employeeId);
           return <Status tone={tone}>{word}</Status>;
         } },
       ]}

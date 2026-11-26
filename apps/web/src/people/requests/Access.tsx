@@ -1,6 +1,11 @@
 import { hrefOf } from "../../demo/route";
 import b from "../../ui/button.module.css";
-import { FilterList, KeyValues, RecordTabs } from "../../ui/templates";
+import {
+  FilterList,
+  KeyValues,
+  RecordTabs,
+  RowDecision,
+} from "../../ui/templates";
 import { History, type HistoryItem } from "../papers/History";
 import { NotFound } from "../papers/Outside";
 import { Stack, Status } from "../papers/Status";
@@ -22,6 +27,17 @@ export function AccessQueue() {
       rows={rows} rowKey={(r) => r.id}
       searchText={(r) => `${r.roleLabel} ${p.nameOf(r.employeeId)}`}
       rowHref={(r) => hrefOf("people", "requests", "access", r.id)}
+      avatar={(r) => ({ id: r.employeeId, name: p.nameOf(r.employeeId) })}
+      rowActions={(r) => (
+        <RowDecision open={accessIsOpen(r)} mine
+          yes={{ label: "Give role", run: () => p.record(r.id, "granted",
+            `${r.roleLabel} given to ${p.nameOf(r.employeeId)}.`,
+            r.step) }}
+          no={{ label: "Decline", run: () => p.record(r.id, "declined",
+            "Access request declined.", r.step) }}
+          undo={r.step === null ? undefined
+            : () => p.dispatch({ type: "req-undo", id: r.id })} />
+      )}
       segments={[
         { id: "todo", label: "To do", match: accessIsOpen },
         { id: "done", label: "Closed", match: (r) => !accessIsOpen(r) },

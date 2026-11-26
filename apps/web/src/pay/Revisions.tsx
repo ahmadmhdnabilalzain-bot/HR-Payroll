@@ -20,6 +20,7 @@ import { usePay } from "./load";
 import {
   NotFound,
   RequestPanel,
+  RequestRow,
   RequestStatus,
   Status,
   useMakerChecker,
@@ -84,6 +85,7 @@ export function Revisions() {
           "back pay in the next run."}
         rows={rows} rowKey={(r) => r.key} searchText={(r) => r.name}
         rowHref={(r) => hrefOf("pay-run", "revisions", r.key)}
+        rowActions={(r) => <RequestRow r={r.req} what="Salary revision" />}
         segments={[
           { id: "all", label: "All", match: () => true },
           { id: "back", label: "With back pay", match: (r) =>

@@ -20,6 +20,7 @@ import { usePay } from "./load";
 import {
   NotFound,
   RequestPanel,
+  RequestRow,
   RequestStatus,
   Status,
   useMakerChecker,
@@ -97,6 +98,10 @@ export function Loans() {
         rows={rows} rowKey={(r) => r.key}
         searchText={(r) => `${r.name} ${r.ref} ${KIND[r.kind]}`}
         rowHref={(r) => hrefOf("pay-run", "loans", r.key)}
+        avatar={(r) => ({ id: r.loan?.employeeId ?? r.req?.employeeId ?? "",
+          name: r.name })}
+        rowActions={(r) => <RequestRow r={r.req}
+          what={r.kind === "advance" ? "Salary advance" : "Loan"} />}
         segments={[
           { id: "all", label: "All", match: () => true },
           { id: "now", label: "Repaying", match: (r) =>

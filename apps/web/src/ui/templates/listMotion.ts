@@ -140,19 +140,32 @@ export function changeRoute(oldUrl: string, render: () => void): void {
     return;
   }
   const html = document.documentElement;
-  const clearOld = nameParts(forward ? rowParts(to) : recordParts());
+  const old = forward ? rowParts(to) : recordParts();
+  const clearOld = nameParts(old);
   let clearNew = (): void => undefined;
   html.dataset["listMotion"] = back ? "back" : "open";
   const vt = doc.startViewTransition(async () => {
     clearOld();
     swap();
     const parts = await until(back ? () => rowParts(from) : recordParts);
-    clearNew = nameParts(parts);
+    // The name travels only into a title that carries it ("Rafiq
+    // Hossain, 26 October"); otherwise only the face moves.
+    const [row, rec] = back ? [parts, old] : [old, parts];
+    const said = row?.name?.textContent?.trim() ?? "";
+    const same = said !== "" &&
+      (rec?.name?.textContent ?? "").includes(said);
+    clearNew = nameParts(parts === null ? null
+      : { face: parts.face, name: same ? parts.name : null });
   });
   vt.finished.finally(() => {
     clearNew();
     delete html.dataset["listMotion"];
   }).catch(() => undefined);
+}
+
+/** The record opened last from a list: its row shows as selected. */
+export function lastRecord(): string | null {
+  return trail?.record ?? null;
 }
 
 /** A list's search and filter, kept while its records are open. */

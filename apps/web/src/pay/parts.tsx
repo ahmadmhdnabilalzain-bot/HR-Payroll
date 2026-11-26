@@ -6,7 +6,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import b from "../ui/button.module.css";
 import { useToast } from "../ui/Toast";
-import { PageHead } from "../ui/templates";
+import { PageHead, RowDecision } from "../ui/templates";
 import { dayMonth, requestState, type RequestState, whoIs } from "./derive";
 import type { PayRequest } from "./pay-state";
 import s from "./pay.module.css";
@@ -148,6 +148,35 @@ export function RequestPanel(p: { r: PayRequest; what: string }) {
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * A request's decision on its list row: Agree and Decline for the
+ * checker (the same rule as RequestPanel), who it waits for otherwise,
+ * and Undo for the checker once decided. `decide` records who, role and
+ * date; the toast offers undo.
+ */
+export function RequestRow(p: { r: PayRequest | null; what: string }) {
+  const { data, state, dispatch } = useDemo();
+  const toast = useToast();
+  const r = p.r;
+  if (r === null) return null;
+  const st = requestState(state, r);
+  if (st === "withdrawn") return null;
+  const mine = personOf(data, state.role) === r.checkerId;
+  const decide = (v: "approve" | "decline") => (): void => {
+    dispatch({ type: "decide", id: r.approvalId, verdict: v });
+    toast.show(v === "approve" ? `${p.what} agreed` : `${p.what} declined`,
+      () => dispatch({ type: "undecide", id: r.approvalId }));
+  };
+  return (
+    <RowDecision open={st === "waiting"} mine={mine}
+      waitingFor={data.employee(r.checkerId).name.en}
+      yes={{ label: "Agree", run: decide("approve") }}
+      no={{ label: "Decline", run: decide("decline") }}
+      undo={mine ? () => dispatch({ type: "undecide",
+        id: r.approvalId }) : undefined} />
   );
 }
 
