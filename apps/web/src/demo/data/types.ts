@@ -45,6 +45,10 @@ export interface Issue {
   id: string;
   code: string;
   employeeId: string | null;
+  /** The document, payslip or file line the issue is about. */
+  subjectId: string | null;
+  /** Net pay held, for a held payslip; null otherwise. */
+  amountFils: Fils | null;
   severity: Severity;
   fixKind: FixKind;
   count: number;
@@ -101,6 +105,20 @@ export interface RunPeople {
   checkerId: string;
 }
 
+/** The salary file check, re-run with the IBANs entered so far. */
+export interface SifCheck {
+  totalFils: Fils;
+  recordCount: number;
+  /** Payslips held out of the file: no IBAN yet. */
+  heldIds: string[];
+  heldFils: Fils;
+  /** IBANs in the file that fail the check digits. */
+  badAccountIds: string[];
+  /** The demo bank's routing code is invented (one quiet note). */
+  routingInvented: boolean;
+  otherFindings: number;
+}
+
 export interface DemoData {
   companyName: Localized;
   /** False until a native speaker has read the package's Arabic. */
@@ -114,4 +132,7 @@ export interface DemoData {
   payCalendar(): PayCalendar;
   basis(): Basis;
   runPeople(): RunPeople;
+  sifCheck(entered: Readonly<Record<string, string>>): SifCheck;
+  bankLetterIban(employeeId: string): string;
+  ibanOk(value: string): boolean;
 }

@@ -10,10 +10,12 @@ import {
   isDemoLabelKey,
   issuesOf,
   payCalendar,
+  payslipByEmployee,
   PENSION_NOT_COMPUTED,
   type DemoCompany,
   type DemoIssue,
 } from "@payroll/demo-data";
+import { bankLetterIban, ibanOk, runSifCheck } from "./adapter-sif";
 import type {
   Approval,
   DemoData,
@@ -28,9 +30,15 @@ function label(key: string): Localized {
   return { en: DEMO_LABELS.en[key], ar: DEMO_LABELS.ar[key] };
 }
 
-function toIssue(x: DemoIssue, n: number): Issue {
+/** Raised by the file check about the invented demo bank code. */
+const NOT_A_PERSON_ISSUE = new Set(["ROUTING_UNKNOWN"]);
+
+function toIssue(c: DemoCompany, x: DemoIssue, n: number): Issue {
+  const held = x.code === "SIF_HELD_NO_IBAN" && x.employeeId !== null
+    ? payslipByEmployee(c, x.employeeId)?.payslip.net ?? null : null;
   return { id: `${x.code}:${x.subjectId ?? x.employeeId ?? n}`,
-    code: x.code, employeeId: x.employeeId, severity: x.severity,
+    code: x.code, employeeId: x.employeeId, subjectId: x.subjectId,
+    amountFils: held, severity: x.severity,
     fixKind: x.fixKind, count: x.count, plainReason: x.plainReason,
     suggestedFix: x.suggestedFix };
 }
@@ -52,7 +60,8 @@ function payRunApproval(c: DemoCompany) {
 
 /** The screens' view of one built demo company. */
 export function adapt(c: DemoCompany): DemoData {
-  const issues = issuesOf(c).map(toIssue);
+  const issues = issuesOf(c).filter((x) =>
+    !NOT_A_PERSON_ISSUE.has(x.code)).map((x, n) => toIssue(c, x, n));
   const approvals: Approval[] = approvalsInbox(c).map((a) => ({ id: a.id,
     kind: a.kind, employeeId: a.employeeId, title: label(a.titleKey),
     requestedOn: a.requestedOn, amountFils: a.amount,
@@ -89,6 +98,8 @@ export function adapt(c: DemoCompany): DemoData {
         ar: PENSION_NOT_COMPUTED.ar } }),
     runPeople: () => ({ makerId: run.makerEmployeeId,
       checkerId: run.checkerEmployeeId }),
+    sifCheck: (entered) => runSifCheck(c, entered),
+    bankLetterIban, ibanOk,
   };
 }
 
