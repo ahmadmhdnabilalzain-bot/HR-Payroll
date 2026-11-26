@@ -15,6 +15,7 @@ import { en } from "../../src/i18n/en";
 import { flatten } from "../../src/i18n/t";
 import { filterPeople, shortBranch } from "../../src/people/filter";
 import { halvesText } from "../../src/people/words";
+import { nextWeek, problemOf } from "../../src/timeoff/draft";
 
 const d = buildDemoData();
 const P = d.people;
@@ -158,6 +159,24 @@ describe("time off", () => {
     const r = requestRows(d, s).find((x) => x.approvalId === "ap-002");
     expect(r?.state).toBe("declined");
     expect(annualNow(d, s, "emp-018")?.pendingHalves).toBe(0);
+  });
+
+  it("draft-defaults-and-problems", () => {
+    expect(nextWeek("2026-10-27")).toEqual({ start: "2026-11-02",
+      end: "2026-11-06" });
+    expect(nextWeek("2026-11-02").start).toBe("2026-11-09");
+    const bal = annualNow(d, INITIAL, P.personas().employeeId);
+    const c = (a: string, b: string) => P.countDays(a, b);
+    expect(problemOf("lt-annual", "2026-11-06", "2026-11-02",
+      c("2026-11-06", "2026-11-02"), bal)).toBe("errEnd");
+    expect(problemOf("lt-annual", "2026-11-07", "2026-11-08",
+      c("2026-11-07", "2026-11-08"), bal)).toBe("errNone");
+    expect(problemOf("lt-annual", "2026-11-02", "2026-12-31",
+      c("2026-11-02", "2026-12-31"), bal)).toBe("errOver");
+    expect(problemOf("lt-unpaid", "2026-11-02", "2026-12-31",
+      c("2026-11-02", "2026-12-31"), bal)).toBeNull();
+    expect(problemOf("lt-annual", "2026-11-02", "2026-11-06",
+      c("2026-11-02", "2026-11-06"), bal)).toBeNull();
   });
 
   it("half-days-read-plainly", () => {
