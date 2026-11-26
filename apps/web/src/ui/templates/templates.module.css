@@ -355,6 +355,17 @@ a.row:hover {
   background: var(--color-surface-secondary);
 }
 
+/* The row whose record was open last: marked when you come back. */
+a.row[aria-current="true"] {
+  background: var(--color-surface-secondary);
+  box-shadow: inset 2px 0 0 var(--color-text);
+}
+
+a.row:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-text));
+  outline-offset: -2px;
+}
+
 /* Cells wrap rather than cut: a row grows to two lines if it must. */
 .cell {
   min-inline-size: 0;

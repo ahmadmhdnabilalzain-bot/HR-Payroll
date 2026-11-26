@@ -1,9 +1,10 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../Icon";
 import { Avatar } from "../Avatar";
+import b from "../button.module.css";
 import { PageFoot } from "./PageFoot";
-import { saveView, savedView } from "./listMotion";
+import { lastRecord, saveView, savedView } from "./listMotion";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -25,6 +26,28 @@ export interface ListSegment<T> {
 export interface ListSummary {
   label: string;
   value: ReactNode;
+}
+
+/**
+ * The column headers stick under the app bar: its height (the demo
+ * strip and the bar, which differ on phones) goes in --bar-h.
+ */
+function useBarHeight(): void {
+  useEffect(() => {
+    const bar = document.querySelector("header");
+    if (bar === null || getComputedStyle(bar).position !== "sticky") {
+      return undefined;
+    }
+    const put = (): void => {
+      const top = parseFloat(getComputedStyle(bar).top) || 0;
+      document.documentElement.style.setProperty("--bar-h",
+        `${top + bar.offsetHeight}px`);
+    };
+    put();
+    const watch = new ResizeObserver(put);
+    watch.observe(bar);
+    return () => watch.disconnect();
+  }, []);
 }
 
 /** At this many rows or fewer, a summary band sits above the table. */
@@ -79,6 +102,7 @@ export function FilterList<T>(p: {
   actions?: ReactNode;
 }) {
   const { t } = useLocale();
+  useBarHeight();
   // Search and filter outlive a trip to a record and back.
   const [key] = useState(() => location.hash);
   const [q, setQRaw] = useState(() => savedView()?.q ?? "");
@@ -148,8 +172,22 @@ export function FilterList<T>(p: {
       </div>
       {shown.length === 0 ? (
         <div className={s.emptyState}>
-          <p>{p.empty}</p>
-          {p.emptyAction}
+          {p.rows.length > 0 && (q !== "" || active !== p.segments?.[0]) ? (
+            <>
+              <p>{t("tpl.noMatch")}</p>
+              <button type="button" className={`${b.btn} ${b.secondary}`}
+                onClick={() => {
+                  setQRaw("");
+                  setSegRaw(p.segments?.[0]?.id ?? "");
+                  saveView(key, { q: "", seg: p.segments?.[0]?.id ?? "" });
+                }}>{t("tpl.clearAll")}</button>
+            </>
+          ) : (
+            <>
+              <p>{p.empty}</p>
+              {p.emptyAction}
+            </>
+          )}
         </div>
       ) : (
         <ul className={s.list} aria-label={p.title}
@@ -191,6 +229,7 @@ function Row<T>(q: { p: RowProps<T>; r: T }) {
   ));
   const row = href === undefined ? <div className={s.row}>{cells}</div>
     : <a className={s.row} href={href} data-row=""
+      aria-current={href === lastRecord() ? "true" : undefined}
       data-row-name={who?.name}>{cells}</a>;
   if (p.rowActions === undefined) return <li>{row}</li>;
   return (
