@@ -3,6 +3,7 @@ import { errors } from "./errors";
 import { explain } from "./explain";
 import { home } from "./home";
 import { inbox } from "./inbox";
+import { me } from "./me";
 import { payrun } from "./payrun";
 import { people } from "./people";
 import { reports } from "./reports";
@@ -12,6 +13,6 @@ import { tpl } from "./tpl";
 
 /** The English catalog; the Arabic one is typed from it. */
 export const en = { common, errors, shell, home, people,
-  timeoff, explain, payrun, reports, tpl, inbox };
+  timeoff, explain, payrun, reports, tpl, inbox, me };
 
 export type EnCatalog = typeof en;

@@ -41,7 +41,9 @@ export function SectionList(p: { section: SectionId; variant: "panel" |
           aria-labelledby={`grp-${p.variant}-${group.section}-${group.id}`}>
           <Heading level={p.level ?? 3}
             id={`grp-${p.variant}-${group.section}-${group.id}`}
-            className={s.heading}>{group.label[lang]}</Heading>
+            className={groups.length === 1 ? "visually-hidden" : s.heading}>
+            {group.label[lang]}
+          </Heading>
           <ul className={s.areas}>
             {areas.map((a) => {
               const r = routeOf(a, c);

@@ -82,16 +82,5 @@ export const CORE_AREAS: readonly Area[] = [
     label: { en: "Documents expiring report", ar: "تقرير المستندات" },
     status: "live", archetype: "RP", roles: HR_GM,
     route: { section: "reports", rest: ["documents"] } },
-  { id: "requests.leave", section: "requests", group: "mine",
-    label: { en: "Leave requests", ar: "طلبات الإجازة" }, status: "live",
-    archetype: "custom", roles: STAFF, route: { section: "time-off" },
-    count: waitingLeave },
-  { id: "me.profile", section: "me", group: "mine",
-    label: { en: "My profile", ar: "ملفي" }, status: "live",
-    archetype: "RT", roles: STAFF,
-    route: (c) => ({ section: "people", rest: [me(c)] }) },
-  { id: "me.payslip", section: "me", group: "mine",
-    label: { en: "My payslip", ar: "قسيمة راتبي" }, status: "live",
-    archetype: "RT", roles: STAFF,
-    route: (c) => ({ section: "people", rest: [me(c), "payslip"] }) },
+  /* Requests and Me: nav/areas/home-me.ts (WP10). */
 ];
