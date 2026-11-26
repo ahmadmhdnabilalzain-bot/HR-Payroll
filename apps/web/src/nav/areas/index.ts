@@ -1,5 +1,6 @@
 import type { Area } from "../types";
 import { CORE_AREAS } from "./core";
+import { AREAS as COST } from "./cost";
 import { AREAS as HOME_ME } from "./home-me";
 import { AREAS as PAY } from "./pay";
 import { AREAS as PEOPLE_MOVES } from "./people-moves";
@@ -16,4 +17,4 @@ import { AREAS as TIME } from "./time";
  */
 export const ALL_AREAS: readonly Area[] = [...CORE_AREAS, ...PEOPLE_TEAM,
   ...PEOPLE_MOVES, ...PEOPLE_PAPERS, ...TIME, ...PAY, ...REPORTS,
-  ...SETUP_RULES, ...SETUP_ACCESS, ...HOME_ME];
+  ...SETUP_RULES, ...SETUP_ACCESS, ...HOME_ME, ...COST];
