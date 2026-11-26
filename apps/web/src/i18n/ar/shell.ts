@@ -1,0 +1,44 @@
+// NEEDS NATIVE REVIEW: authored by Claude, not yet confirmed by a
+// native speaker.
+import type { shell as en } from "../en/shell";
+import type { ArOf } from "../types";
+
+export const shell: ArOf<typeof en> = {
+  ribbon: "عرض {product} التجريبي: بيانات وهمية",
+  ribbonHint: "كل الأشخاص والأرقام والمبالغ هنا وهمية. لا يُحفظ شيء؛ " +
+    "إعادة التحميل تبدأ من جديد.",
+  sections: "الأقسام",
+  navHome: "الرئيسية",
+  navPayRun: "دورة الرواتب",
+  navPeople: "الموظفون",
+  navTimeOff: "الإجازات",
+  navReports: "التقارير",
+  notInDemo: "ليس ضمن هذا العرض",
+  search: "بحث",
+  searchHint: "ابحث عن الموظفين والإجراءات",
+  viewingAs: "العرض بصفة",
+  roleHr: "مديرة الموارد البشرية",
+  roleGm: "المدير العام",
+  toLight: "التبديل إلى المظهر الفاتح",
+  toDark: "التبديل إلى المظهر الداكن",
+  hideAmounts: "إخفاء المبالغ",
+  showAmounts: "إظهار المبالغ",
+  amountsHidden: "المبلغ مخفي",
+  paletteLabel: "ابحث عن الموظفين والإجراءات",
+  palettePlaceholder: "اكتب اسمًا أو إجراءً",
+  paletteEmpty: "لا توجد نتائج. جرّب اسمًا أو \"إجازة\" أو \"المظهر\".",
+  groupActions: "الإجراءات",
+  groupPeople: "موظفون لديهم بنود مفتوحة",
+  groupGo: "انتقل إلى",
+  actTheme: "تبديل المظهر",
+  actHide: "إخفاء المبالغ أو إظهارها",
+  actLang: "تبديل اللغة",
+  actRole: "العرض بصفة {role}",
+  actSources: "عرض مصدر الأرقام",
+  actIssue: "فتح البند: {name}",
+  actApproval: "اتخاذ قرار: {title}",
+  keyMove: "تنقّل",
+  keyOpen: "فتح",
+  keyClose: "إغلاق",
+  breadcrumb: "الموقع",
+};

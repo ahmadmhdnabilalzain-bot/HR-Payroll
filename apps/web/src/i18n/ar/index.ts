@@ -4,5 +4,7 @@ import type { EnCatalog } from "../en";
 import type { ArOf } from "../types";
 import { common } from "./common";
 import { errors } from "./errors";
+import { home } from "./home";
+import { shell } from "./shell";
 
-export const ar: ArOf<EnCatalog> = { common, errors };
+export const ar: ArOf<EnCatalog> = { common, errors, shell, home };

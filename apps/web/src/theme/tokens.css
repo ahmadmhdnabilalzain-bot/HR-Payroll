@@ -1,24 +1,41 @@
 /*
- * Design tokens: the only place colours are written. Placeholder values
- * from Plan 4; the visual design is being redone, so these may change,
- * but every pair must keep passing tests/unit/tokens.test.ts.
+ * Design tokens: the only place colours are written. Every pair must
+ * keep passing tests/unit/tokens.test.ts. Quiet neutrals, one accent
+ * (deep petrol) for actions and current state, status colours for
+ * meaning only. Light and dark are designed as equals.
  */
 :root {
-  --color-bg: #f5f7fa;
+  --color-bg: #f6f6f4;
   --color-surface: #ffffff;
-  --color-surface-2: #edf1f6;
-  --color-border: #7d8ea4;
-  --color-divider: #d5dce5;
-  --color-text: #0f1b2d;
-  --color-text-muted: #4a5868;
-  --color-accent: #0b6e78;
+  --color-surface-2: #efefec;
+  --color-border: #8a8f96;
+  --color-divider: #e3e3df;
+  --color-divider-strong: #cfd0cc;
+  --color-text: #15171a;
+  --color-brand: #10151c;
+  --color-text-muted: #5b6068;
+  --color-text-faint: #6d727a;
+  --color-accent: #0d5c63;
+  --color-accent-hover: #0a4a50;
+  --color-accent-soft: #e3eeee;
   --color-on-accent: #ffffff;
   --color-trace: #4b4fc4;
   --color-danger: #b42318;
-  --color-warning: #8a5a00;
-  --color-warning-bg: #fff4d6;
-  --color-success: #13795b;
+  --color-danger-soft: #fbe9e7;
+  --color-warning: #8a5300;
+  --color-warning-bg: #fdf1dc;
+  --color-success: #17734a;
+  --color-success-soft: #e4f2ea;
+  --color-info: #3d5a80;
   --color-focus: #2f6feb;
+  --color-ribbon: #15171a;
+  --color-on-ribbon: #f6f6f4;
+  --color-scrim: #15171a;
+  --color-bar-1: #0d5c63;
+  --color-bar-2: #4f8a8f;
+  --color-bar-3: #8fb5b8;
+  --color-bar-4: #c4d8d9;
+  --color-shadow: #15171a;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -29,38 +46,66 @@
   --space-7: 48px;
   --space-8: 64px;
 
+  --text-2xs: 11px;
   --text-xs: 12px;
-  --text-sm: 14px;
-  --text-md: 16px;
-  --text-lg: 19px;
-  --text-xl: 23px;
-  --text-2xl: 28px;
-  --text-3xl: 33px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-hero: 56px;
 
   --radius-control: 6px;
   --radius-panel: 10px;
   --radius-pill: 999px;
 
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 250ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
+
   --font-sans: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui,
     sans-serif;
+  --shadow-pop: 0 1px 2px color-mix(in srgb, var(--color-shadow) 6%,
+      transparent),
+    0 8px 24px color-mix(in srgb, var(--color-shadow) 10%, transparent);
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #0e1726;
-  --color-surface: #152033;
-  --color-surface-2: #1c2a40;
-  --color-border: #5c6e8a;
-  --color-divider: #2c3b54;
-  --color-text: #e6edf5;
-  --color-text-muted: #a3b1c2;
-  --color-accent: #3fc1c9;
-  --color-on-accent: #06222a;
+  --color-bg: #0e0f11;
+  --color-surface: #16181b;
+  --color-surface-2: #1d2024;
+  --color-border: #6b717a;
+  --color-divider: #25282d;
+  --color-divider-strong: #33373d;
+  --color-text: #ecedee;
+  --color-brand: #f4f6f8;
+  --color-text-muted: #a2a7ae;
+  --color-text-faint: #8d939b;
+  --color-accent: #5fb8bf;
+  --color-accent-hover: #7cc8ce;
+  --color-accent-soft: #1a2e30;
+  --color-on-accent: #071c1e;
   --color-trace: #a5a8ff;
-  --color-danger: #ff8a80;
-  --color-warning: #f2c14e;
-  --color-warning-bg: #3a2e10;
-  --color-success: #5dd3a6;
+  --color-danger: #ff8a7a;
+  --color-danger-soft: #2e1a18;
+  --color-warning: #f0bd5e;
+  --color-warning-bg: #2e2412;
+  --color-success: #62cc96;
+  --color-success-soft: #15291f;
+  --color-info: #9db7d9;
   --color-focus: #8ab4ff;
+  --color-ribbon: #ecedee;
+  --color-on-ribbon: #0e0f11;
+  --color-scrim: #000000;
+  --color-bar-1: #5fb8bf;
+  --color-bar-2: #3f8c92;
+  --color-bar-3: #2c6368;
+  --color-bar-4: #234448;
+  --color-shadow: #000000;
   color-scheme: dark;
 }
