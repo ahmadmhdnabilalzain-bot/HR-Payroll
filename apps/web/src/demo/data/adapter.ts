@@ -104,7 +104,7 @@ export function adapt(c: DemoCompany): DemoData {
 }
 
 /** The company after the IBANs entered, each through applyIbanFix. */
-function withIbans(base: DemoCompany,
+export function withIbans(base: DemoCompany,
   ibans: Readonly<Record<string, string>>): DemoCompany {
   return Object.entries(ibans).reduce((c, [id, iban]) => {
     const r = applyIbanFix(c, id, iban);

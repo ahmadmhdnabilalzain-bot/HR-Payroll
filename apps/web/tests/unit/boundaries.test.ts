@@ -29,8 +29,10 @@ describe("boundaries", () => {
   });
 
   it("demo-data-only-in-adapter", () => {
+    // adapter.ts, plus the pay run's lazy detail chunk beside it.
     expect(filesImporting(/^@payroll\/demo-data/))
-      .toEqual(["src/demo/data/adapter.ts"]);
+      .toEqual(["src/demo/data/adapter.ts", "src/demo/data/run-detail.ts",
+        "src/demo/data/run-explain.ts"]);
   });
 
   it("money-wire-only-in-contract", () => {
