@@ -68,7 +68,7 @@ export function Expenses() {
       rows={pay.expenses} rowKey={(x) => x.id}
       searchText={(x) => `${x.name} ${x.title}`}
       rowHref={(x) => hrefOf("pay-run", "expenses", x.id)}
-      avatar={(x) => x.name}
+      avatar={(x) => ({ id: x.employeeId, name: x.name })}
       rowActions={(x) => <ClaimActions x={x} />}
       columns={[
         { key: "who", label: "Person", render: (x) => x.name },

@@ -118,11 +118,10 @@ export function NetTrend() {
       </figure>
       <p className={s.change}>
         <span className={s.delta}>
-          <span aria-hidden="true">{change < 0n ? "−" : "+"}</span>
           <span className="visually-hidden">
             {change < 0n ? t("home.trendDown") : t("home.trendUp")}
           </span>
-          <Money value={fils(abs(change))} size="sm" tween={false} />
+          <Money value={fils(change)} size="sm" signed tween={false} />
         </span>
         <span className={s.against}>
           {t("home.trendAgainst", { month:
@@ -157,11 +156,11 @@ function Signed(p: { value: bigint }) {
   const { t } = useLocale();
   return (
     <span className={`${s.amount} tabular`}>
-      <span aria-hidden="true">{p.value < 0n ? "−" : "+"}</span>
       <span className="visually-hidden">
         {p.value < 0n ? t("home.trendDown") : t("home.trendUp")}
       </span>
-      <Money value={fils(abs(p.value)) as Fils} size="sm" tween={false} />
+      <Money value={fils(p.value) as Fils} size="sm" signed
+        tween={false} />
     </span>
   );
 }

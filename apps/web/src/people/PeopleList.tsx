@@ -52,7 +52,7 @@ export function PeopleList() {
         `${x.number}`}
       searchPlaceholder={t("people.searchPlaceholder")}
       rowHref={(x) => hrefOf("people", x.id)}
-      avatar={(x) => x.name.en}
+      avatar={(x) => ({ id: x.id, name: x.name.en })}
       filters={depts.length > 1 && (
         <Picker label={t("people.department")} value={dept ?? ""}
           onChange={(v) => setDept(v === "" ? null : v)}

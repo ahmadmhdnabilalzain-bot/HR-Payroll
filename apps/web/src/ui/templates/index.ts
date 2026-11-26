@@ -6,8 +6,8 @@
  */
 export { ApprovalForm } from "./ApprovalForm";
 export type { FieldKind, FormField, FormValues } from "./ApprovalForm";
-export { Avatar, initials, StatusPill, tintOf } from "./Avatar";
-export type { StatusTone } from "./Avatar";
+export { StatusPill } from "./StatusPill";
+export type { StatusTone } from "./StatusPill";
 export { FilterList, SHORT_LIST } from "./FilterList";
 export type { ListColumn, ListSegment, ListSummary } from "./FilterList";
 export { MonthCalendar } from "./MonthCalendar";

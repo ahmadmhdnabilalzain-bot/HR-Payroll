@@ -1,10 +1,5 @@
 /* Shared by the six screen templates: one page frame, one rhythm. */
 .page {
-  /* Template type sizes (lane 1 may promote these to tokens). */
-  --text-title: 34px;
-  --text-title-lh: 40px;
-  --text-figure: 48px;
-  --text-figure-lh: 52px;
   display: grid;
   gap: var(--space-5);
   max-inline-size: var(--container);
@@ -426,20 +421,6 @@ li + li.actRow > .row {
 
 .cellLabel {
   display: none;
-}
-
-.avatar {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  inline-size: var(--size, 32px);
-  block-size: var(--size, 32px);
-  border-radius: 50%;
-  background: var(--tint, var(--color-avatar-1));
-  color: var(--color-text);
-  font-size: calc(var(--size, 32px) * 0.38);
-  font-weight: 600;
-  letter-spacing: 0.02em;
 }
 
 /* Status: a dot and a word. The word stays ink; the dot is the state. */
@@ -1417,10 +1398,6 @@ li + li.actRow > .row {
 
 @media (max-width: 760px) {
   .page {
-    --text-title: 28px;
-    --text-title-lh: 34px;
-    --text-figure: 40px;
-    --text-figure-lh: 44px;
     padding-block-start: var(--space-4);
     padding-block-end: calc(var(--space-8) + 56px +
       env(safe-area-inset-bottom));
@@ -1494,11 +1471,11 @@ li + li.actRow > .row {
   }
 
   .list[data-avatar="true"] .row {
-    padding-inline-start: calc(var(--space-4) + 32px + var(--space-3));
+    padding-inline-start: calc(var(--space-4) + 36px + var(--space-3));
   }
 
   .list[data-avatar="true"] .cellMain {
-    margin-inline-start: calc(-32px - var(--space-3));
+    margin-inline-start: calc(-36px - var(--space-3));
   }
 
   .cell {
@@ -1520,7 +1497,7 @@ li + li.actRow > .row {
   }
 
   .list[data-avatar="true"] .rowActs {
-    padding-inline-start: calc(var(--space-4) + 32px + var(--space-3));
+    padding-inline-start: calc(var(--space-4) + 36px + var(--space-3));
   }
 
   .band > div {

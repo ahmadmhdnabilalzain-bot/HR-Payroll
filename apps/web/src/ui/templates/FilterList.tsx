@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../Icon";
-import { Avatar } from "./Avatar";
+import { Avatar } from "../Avatar";
 import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
@@ -66,8 +66,8 @@ export function FilterList<T>(p: {
   segments?: ListSegment<T>[];
   /** The row's record; undefined leaves that row unlinked. */
   rowHref?(row: T): string | undefined;
-  /** The person a row is about: initials beside the first column. */
-  avatar?(row: T): string | undefined;
+  /** The person a row is about: their face beside the first column. */
+  avatar?(row: T): { id: string; name: string } | undefined;
   /** Buttons on the row (secondary only; one filled button a page). */
   rowActions?(row: T): ReactNode;
   /** The short-list band; by default the segments' counts. */
@@ -165,7 +165,7 @@ type RowProps<T> = Pick<Parameters<typeof FilterList<T>>[0],
 function Row<T>(q: { p: RowProps<T>; r: T }) {
   const { p, r } = q;
   const href = p.rowHref?.(r);
-  const name = p.avatar?.(r);
+  const who = p.avatar?.(r);
   const cells = p.columns.map((c, i) => i > 0 ? (
     <span key={c.key} className={s.cell} data-end={c.end === true}>
       <span className={s.cellLabel}>{c.label}</span>
@@ -173,7 +173,7 @@ function Row<T>(q: { p: RowProps<T>; r: T }) {
     </span>
   ) : (
     <span key={c.key} className={s.cellMain}>
-      {name !== undefined && <Avatar name={name} />}
+      {who !== undefined && <Avatar id={who.id} name={who.name} />}
       <span className={s.cellText}>{c.render(r)}</span>
     </span>
   ));

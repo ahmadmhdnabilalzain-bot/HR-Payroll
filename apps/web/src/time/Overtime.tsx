@@ -76,7 +76,8 @@ export function Overtime() {
       rows={rows} rowKey={(c) => c.id}
       searchText={(c) => who.name(c.employeeId)}
       rowHref={(c) => hrefOf("time-off", "overtime", c.id)}
-      avatar={(c) => who.name(c.employeeId)}
+      avatar={(c) => ({ id: c.employeeId,
+        name: who.name(c.employeeId) })}
       rowActions={(c) => (
         <Buttons id={c.id} text="The claim" phase={ph(c)} row
           allowed={who.canDecide(c.employeeId)} />
