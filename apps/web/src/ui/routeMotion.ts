@@ -69,13 +69,78 @@ export function directionOf(from: string, to: string): number | null {
 }
 
 /** Waits (a few frames at most) for the new page's heading. */
-function settled(ms = 240): Promise<void> {
+function settled(): Promise<void> {
+  return until(() => document.querySelector("main h1") !== null, 240);
+}
+
+/**
+ * Pace: "page" slides 24 to 32 px, out over --dur-base, in over
+ * --dur-slow. "quick" (pay run steps, role switch) slides 8 px, out
+ * over 120 ms and in over 200 ms, overlapped, so no frame is empty.
+ */
+type Pace = "page" | "quick";
+
+/** Runs `change` inside the route transition, in direction `dir`. */
+function run(dir: number, pace: Pace,
+  change: () => Promise<void> | void): void {
+  const doc = document as Doc;
+  const html = document.documentElement;
+  const rtl = getComputedStyle(html).direction === "rtl";
+  html.style.setProperty("--route-dir", String(rtl ? -dir : dir));
+  html.dataset["routeMotion"] = dir > 0 ? "forward" : dir < 0 ? "back"
+    : "fade";
+  html.dataset["routePace"] = pace;
+  const vt = doc.startViewTransition!(change);
+  running = vt;
+  vt.ready?.catch(() => undefined);
+  vt.finished.finally(() => {
+    if (running !== vt) return;
+    running = null;
+    delete html.dataset["routeMotion"];
+    delete html.dataset["routePace"];
+    html.style.removeProperty("--route-dir");
+  }).catch(() => undefined);
+}
+
+/** Whether a route transition can play now. */
+export function canMove(): boolean {
+  const doc = document as Doc;
+  return !reducedMotion() && typeof doc.startViewTransition === "function"
+    && document.querySelector("main")?.closest("[inert]") == null;
+}
+
+/**
+ * A quick move inside one place (a pay run step, a role switch): the
+ * top bar and the step bar hold still, the page fades through, 8 px
+ * the way of travel (`dir` 1, -1, or 0 for none). `change` makes the
+ * change; `ready` resolves once the new page is on screen (the old
+ * one stays until then, so no blank frame shows). Without the View
+ * Transitions API, or with reduced motion, it just changes.
+ */
+export function moveWithin(dir: number, change: () => void,
+  ready: () => boolean = () => true): void {
+  if (!canMove()) {
+    change();
+    return;
+  }
+  run(dir, "quick", () => {
+    change();
+    return until(ready);
+  });
+}
+
+/**
+ * Resolves once `ready()` holds, or after `ms` at most. Polled on a
+ * timer, not on animation frames: while a view transition waits for
+ * its update, the browser runs no frames, so a frame loop would stall
+ * until the browser gives up on the transition (about 4 s).
+ */
+function until(ready: () => boolean, ms = 400): Promise<void> {
   const end = performance.now() + ms;
   return new Promise((done) => {
     const tick = (): void => {
-      if (document.querySelector("main h1") !== null ||
-        performance.now() > end) done();
-      else requestAnimationFrame(tick);
+      if (ready() || performance.now() > end) done();
+      else setTimeout(tick, 16);
     };
     tick();
   });
@@ -88,32 +153,14 @@ function settled(ms = 240): Promise<void> {
  */
 export function slideRoute(from: string, to: string, render: () => void,
   trusted: boolean): boolean {
-  const doc = document as Doc;
-  if (!trusted || reducedMotion() ||
-    typeof doc.startViewTransition !== "function") return false;
-  // The opening plays over an inert product: leave it alone.
-  if (document.querySelector("main")?.closest("[inert]") != null) {
-    return false;
-  }
+  // Script-sent changes and the opening (an inert product) just render.
+  if (!trusted || !canMove()) return false;
   const dir = directionOf(from, to);
   if (dir === null) return false;
-  const html = document.documentElement;
-  const rtl = getComputedStyle(html).direction === "rtl";
-  html.style.setProperty("--route-dir", String(rtl ? -dir : dir));
-  html.dataset["routeMotion"] = dir > 0 ? "forward" : dir < 0 ? "back"
-    : "fade";
-  const vt = doc.startViewTransition(async () => {
+  run(dir, "page", () => {
     render();
     scrollTo({ top: 0, behavior: "instant" });
-    await settled();
+    return settled();
   });
-  running = vt;
-  vt.ready?.catch(() => undefined);
-  vt.finished.finally(() => {
-    if (running !== vt) return;
-    running = null;
-    delete html.dataset["routeMotion"];
-    html.style.removeProperty("--route-dir");
-  }).catch(() => undefined);
   return true;
 }

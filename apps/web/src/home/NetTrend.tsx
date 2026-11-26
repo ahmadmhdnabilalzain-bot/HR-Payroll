@@ -162,6 +162,10 @@ function Signed(p: { value: bigint }) {
   );
 }
 
+/** Drawn once per session: a role switch or a return to Home shows
+ * the finished chart rather than replaying the draw. */
+let drawn = false;
+
 /**
  * The opening pass: the line draws left to right (path length 1, so
  * the page zoom cannot skew it), the area and the October tail fade
@@ -170,11 +174,12 @@ function Signed(p: { value: bigint }) {
 function useDraw(box: RefObject<SVGSVGElement | null>): void {
   useLayoutEffect(() => {
     const svg = box.current;
-    if (svg === null || reducedMotion()) return undefined;
+    if (svg === null || reducedMotion() || drawn) return undefined;
     const root = svg.parentElement;
     const q = (k: string) => root?.querySelectorAll(`[data-draw="${k}"]`)
       ?? [];
-    const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+    const tl = gsap.timeline({ defaults: { ease: "power2.out" },
+      onComplete: () => { drawn = true; } });
     tl.fromTo(q("line"), { strokeDashoffset: 1 },
       { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" })
       .fromTo(q("area"), { opacity: 0 }, { opacity: 1, duration: 0.5 },

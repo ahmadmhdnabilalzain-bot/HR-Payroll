@@ -89,9 +89,31 @@ html[data-route-motion] [data-vt="phone"] {
   view-transition-name: shell-phone;
 }
 
+/* The pay run's step bar holds still between steps (its pill moves). */
+html[data-route-motion] [data-vt="steps"] {
+  view-transition-name: shell-steps;
+}
+
+/* Page pace by default; "quick" (steps, role switch): 8 px, 120 ms
+ * out and 200 ms in, overlapped. */
+html[data-route-motion] {
+  --route-out: var(--dur-base, 200ms);
+  --route-in: var(--dur-slow, 320ms);
+  --route-shift-out: -24px;
+  --route-shift-in: 32px;
+}
+
+html[data-route-motion][data-route-pace="quick"] {
+  --route-out: var(--dur-fast, 120ms);
+  --route-in: var(--dur-base, 200ms);
+  --route-shift-out: -8px;
+  --route-shift-in: 8px;
+}
+
 html[data-route-motion]::view-transition-group(shell-bar),
 html[data-route-motion]::view-transition-group(shell-tabs),
-html[data-route-motion]::view-transition-group(shell-phone) {
+html[data-route-motion]::view-transition-group(shell-phone),
+html[data-route-motion]::view-transition-group(shell-steps) {
   animation: none;
 }
 
@@ -99,26 +121,28 @@ html[data-route-motion]::view-transition-group(shell-phone) {
  * come or go): it slides and fades with the page. */
 html[data-route-motion]::view-transition-old(shell-bar):not(:only-child),
 html[data-route-motion]::view-transition-old(shell-tabs):not(:only-child),
-html[data-route-motion]::view-transition-old(shell-phone):not(:only-child) {
+html[data-route-motion]::view-transition-old(shell-phone):not(:only-child),
+html[data-route-motion]::view-transition-old(shell-steps):not(:only-child) {
   animation: none;
   opacity: 0;
 }
 
 html[data-route-motion]::view-transition-new(shell-bar):not(:only-child),
 html[data-route-motion]::view-transition-new(shell-tabs):not(:only-child),
-html[data-route-motion]::view-transition-new(shell-phone):not(:only-child) {
+html[data-route-motion]::view-transition-new(shell-phone):not(:only-child),
+html[data-route-motion]::view-transition-new(shell-steps):not(:only-child) {
   animation: none;
 }
 
 html[data-route-motion]::view-transition-old(root),
 html[data-route-motion]::view-transition-old(shell-tabs):only-child {
-  animation: route-out var(--dur-base, 200ms)
+  animation: route-out var(--route-out, 200ms)
     var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1)) both;
 }
 
 html[data-route-motion]::view-transition-new(root),
 html[data-route-motion]::view-transition-new(shell-tabs):only-child {
-  animation: route-in var(--dur-slow, 320ms)
+  animation: route-in var(--route-in, 320ms)
     var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) both;
 }
 
@@ -127,13 +151,15 @@ html[data-route-motion]::view-transition-new(shell-tabs):only-child {
 @keyframes route-out {
   to {
     opacity: 0;
-    transform: translateX(calc(var(--route-dir, 0) * -24px));
+    transform: translateX(calc(var(--route-dir, 0) *
+      var(--route-shift-out, -24px)));
   }
 }
 
 @keyframes route-in {
   from {
     opacity: 0;
-    transform: translateX(calc(var(--route-dir, 0) * 32px));
+    transform: translateX(calc(var(--route-dir, 0) *
+      var(--route-shift-in, 32px)));
   }
 }

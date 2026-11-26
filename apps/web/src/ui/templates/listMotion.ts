@@ -98,9 +98,11 @@ function until(find: () => Parts | null, ms = 400): Promise<Parts | null> {
   return new Promise((done) => {
     const tick = (): void => {
       const p = find();
+      // A timer, not a frame loop: no frames run while a view
+      // transition waits for its update (see ui/routeMotion.ts).
       if ((p !== null && p.name !== null) || performance.now() > end) {
         done(p);
-      } else requestAnimationFrame(tick);
+      } else setTimeout(tick, 16);
     };
     tick();
   });
