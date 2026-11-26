@@ -2,6 +2,10 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 const clean = async (page: Page) => {
+  // Let entrances (a toast, a step) settle: axe reads colours mid-fade.
+  await page.waitForFunction(() => document.getAnimations().every((x) =>
+    x.playState !== "running" ||
+    x.effect?.getTiming().iterations === Infinity));
   const r = await new AxeBuilder({ page }).analyze();
   expect(r.violations.map((v) => v.id)).toEqual([]);
 };

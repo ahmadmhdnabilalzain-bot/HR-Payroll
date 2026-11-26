@@ -19,7 +19,7 @@ export const AREAS: readonly Area[] = [
     "S20 role permissions admin"),
   area("setup.who", "access", "Permissions", "LF", ["access", "who"],
     "S20 who can do what matrix permissions approve"),
-  area("setup.rules", "access", "Approval rules", "ST",
+  area("setup.rules", "access", "Sign-off rules", "ST",
     ["access", "rules"], "S21 approval rules limits expense maker checker"),
   area("setup.separation", "access", "Duties kept apart", "ST",
     ["access", "separation"], "S22 sod conflict four eyes"),

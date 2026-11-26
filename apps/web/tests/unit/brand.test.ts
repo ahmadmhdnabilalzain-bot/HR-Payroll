@@ -15,6 +15,11 @@ describe("brand", () => {
     expect(hits).toEqual([]);
   });
 
+  it("spelled-mubinflow-with-capital-m-and-f", () => {
+    expect(PRODUCT_NAME.en).toBe("MubinFlow");
+    expect(PRODUCT_NAME.ar).toBe("MubinFlow");
+  });
+
   it("title-from-product-name", () => {
     expect(documentTitle("en")).toBe(PRODUCT_NAME.en);
     expect(documentTitle("ar")).toBe(PRODUCT_NAME.ar);

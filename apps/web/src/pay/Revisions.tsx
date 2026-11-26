@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ExplainLink } from "../components/explain";
 import { hrefOf } from "../demo/route";
+import type { PlanItem } from "../demo/planning-state";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -30,7 +31,7 @@ import type { RevisionView } from "./types";
 const LIST = hrefOf("pay-run", "revisions");
 
 type Row = { key: string; name: string; rev: RevisionView | null;
-  req: PayRequest | null };
+  req: PayRequest | null; plan: PlanItem | null };
 
 const DATE = /^2026-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
@@ -44,11 +45,14 @@ export function Revisions() {
   const [open, setOpen] = useState(false);
   const reqs = requestsOf(state, ["revision"]).filter((r) =>
     requestState(state, r) !== "withdrawn");
+  const plans = state.planBatches.flatMap((x) => x.items);
   const rows: Row[] = [
-    ...reqs.map((r) => ({ key: r.id, rev: null, req: r,
+    ...plans.map((i) => ({ key: `plan-${i.employeeId}`, rev: null,
+      req: null, plan: i, name: i.name })),
+    ...reqs.map((r) => ({ key: r.id, rev: null, req: r, plan: null,
       name: data.employee(r.employeeId).name.en })),
     ...pay.revisions.map((r) => ({ key: r.id, name: r.name, rev: r,
-      req: null })),
+      req: null, plan: null })),
   ];
   const submit = (v: FormValues): string | null => {
     const who = pay.people.find((p) => p.id === v["person"]);
@@ -89,17 +93,21 @@ export function Revisions() {
         ]}
         columns={[
           { key: "who", label: "Person", render: (r) => r.name },
-          { key: "eff", label: "From", render: (r) => r.rev !== null
-            ? r.rev.effective
-            : dayMonth(r.req!.effective ?? "", lang) },
+          { key: "eff", label: "From", render: (r) => r.plan !== null
+            ? r.plan.effective : r.rev !== null
+              ? r.rev.effective
+              : dayMonth(r.req!.effective ?? "", lang) },
           { key: "to", label: "New basic", end: true, render: (r) =>
-            <Money value={r.rev?.to ?? r.req!.amount} size="sm" /> },
+            <Money value={r.plan?.to ?? r.rev?.to ?? r.req!.amount}
+              size="sm" /> },
           { key: "back", label: "Back pay", end: true, render: (r) =>
             r.rev === null || r.rev.arrears === 0n
               ? <span className={s.muted}>None</span>
               : <Money value={r.rev.arrears} size="sm" /> },
-          { key: "st", label: "Status", render: (r) => r.req !== null
-            ? <RequestStatus r={r.req} /> : (
+          { key: "st", label: "Status", render: (r) => r.plan !== null
+            ? <Status tone="done">2027 plan, signed off</Status>
+            : r.req !== null
+              ? <RequestStatus r={r.req} /> : (
               <Status tone="done">{r.rev!.arrears > 0n
                 ? `In the ${pay.thisRun} run` : "In pay"}</Status>) },
         ]}
@@ -134,12 +142,36 @@ export function Revisions() {
 export function RevisionRecord(p: { id: string }) {
   const { state } = useDemo();
   const pay = usePay();
+  const plan = state.planBatches.flatMap((x) => x.items).find((i) =>
+    `plan-${i.employeeId}` === p.id);
+  if (plan !== undefined) return <PlanRevisionPage i={plan} />;
   const rev = pay.revisions.find((r) => r.id === p.id);
   if (rev !== undefined) return <RevisionPage r={rev} />;
   const req = requestsOf(state, ["revision"]).find((r) => r.id === p.id);
   if (req !== undefined) return <RequestPage r={req} />;
   return <NotFound what="revision" back={{ label: "Salary revisions",
     href: LIST }} />;
+}
+
+/** A signed-off 2027 plan increase, now a salary revision. */
+function PlanRevisionPage(p: { i: PlanItem }) {
+  const i = p.i;
+  return (
+    <RecordTabs title={i.name} lede="From the 2027 compensation plan"
+      back={{ label: "Salary revisions", href: LIST }}
+      stats={[
+        { label: "New basic", value: <Money value={i.to} size="lg" /> },
+        { label: "Before", value: <Money value={i.from} size="lg" /> },
+        { label: "Takes effect", value: i.effective },
+      ]}
+      tabs={[{ id: "details", label: "Details", render: () => (
+        <KeyValues items={[
+          { label: "Department", value: i.departmentText },
+          { label: "Steps", value: String(i.steps) },
+          { label: "Source", value: "Compensation planning, signed " +
+            "off by the General manager" },
+        ]} />) }]} />
+  );
 }
 
 function RevisionPage(p: { r: RevisionView }) {

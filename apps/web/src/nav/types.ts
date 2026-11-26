@@ -49,6 +49,12 @@ export interface Area {
   stopsPay?: boolean;
   /** Roles that see the area; all roles when left out. */
   roles?: readonly Role[];
+  /**
+   * True for a Setup area that lists "hr" but shows people's pay or
+   * records: the IT manager does not inherit it, so search never offers
+   * what the screen refuses (the screen's own guard says the same).
+   */
+  noIt?: true;
   /** Extra words search should match (both languages welcome). */
   keywords?: string;
 }

@@ -13,14 +13,89 @@
   box-shadow: none;
 }
 
+.top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 1fr);
+  gap: var(--space-7);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .top {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+}
+
 .lead {
   display: grid;
+  align-content: start;
   gap: var(--space-1);
   min-inline-size: 0;
 }
 
 .figure {
-  margin: 0;
+  margin: var(--space-4) 0 0;
+}
+
+.ready {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  max-inline-size: 520px;
+}
+
+.bar {
+  display: flex;
+  gap: 3px;
+  block-size: 8px;
+}
+
+.bar > span {
+  flex-basis: 0;
+  border-radius: 4px;
+  transition: flex-grow 420ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.barReady {
+  background: var(--color-accent);
+}
+
+.barHeld {
+  background: var(--color-danger);
+}
+
+.readyLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.readyCount {
+  font-weight: 500;
+}
+
+.heldCount {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.heldDot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
+}
+
+.act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  margin-block: var(--space-5) var(--space-3);
 }
 
 .line {
@@ -43,6 +118,10 @@
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-1);
+}
+
+.held {
+  color: var(--color-text-muted);
 }
 
 .held[data-zero="true"] {
@@ -112,5 +191,114 @@
 @media (pointer: coarse) {
   .why {
     min-block-size: 44px;
+  }
+}
+
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-7);
+  margin: var(--space-2) 0 0;
+}
+
+.totals dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.totals dd {
+  margin: 0;
+}
+
+.totals .held {
+  color: var(--color-text);
+}
+
+.totals .held[data-zero="true"] {
+  display: inline-block;
+  padding-block: 4px;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.cardIban {
+  margin-block: var(--space-4) var(--space-2);
+  overflow: hidden;
+}
+
+.hero {
+  position: relative;
+}
+
+/* The amount in flight from the form to the file total. */
+.flyer {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 5;
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.netCard {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/*
+ * Phone: Home gets its own first screen. The sentence, then the one
+ * action with "Step 2 of 5", then net pay as a card of its own with
+ * a 56 pt figure; the chart and its people follow below.
+ */
+@media (max-width: 760px) {
+  .hero {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .lead > header {
+    order: 0;
+  }
+
+  .act,
+  .cardIban {
+    order: 1;
+    margin-block: var(--space-4) var(--space-5);
+  }
+
+  .act {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .netCard {
+    --text-hero: 56px;
+    order: 2;
+    padding: var(--space-5) var(--space-4) var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  .netCard .figure {
+    margin-block-start: 0;
+  }
+
+  .caveat {
+    order: 3;
+    margin-block-start: var(--space-3);
+  }
+
+  .top > :last-child {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
   }
 }

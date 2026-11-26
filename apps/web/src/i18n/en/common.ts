@@ -9,9 +9,9 @@ export const common = {
   themeLight: "Light",
   themeDark: "Dark",
   themeSystem: "System",
-  sampleData: "Sample data",
-  sampleDataHint: "Demo data in this browser only. Reloading the page " +
-    "starts again from the sample, so changes are not kept.",
+  sampleData: "Demo: fictional data",
+  sampleDataHint: "Every person, number and amount here is invented. " +
+    "Nothing is saved; reloading starts again.",
   arReviewBanner: "Arabic text awaiting native review",
   building: "This app is being built. The screens come next.",
   loading: "Loading",

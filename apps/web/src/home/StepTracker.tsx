@@ -3,7 +3,6 @@ import { useDemo } from "../demo/state";
 import { formatDayMonth } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
-import { Icon } from "../ui/Icon";
 import s from "./StepTracker.module.css";
 
 const LABEL: Record<StepId, MessageKey> = {
@@ -15,41 +14,37 @@ const LABEL: Record<StepId, MessageKey> = {
 };
 
 /**
- * The pay month as five dated steps. The filled track runs to the
- * current step and moves on when the last open issue is settled.
+ * The pay month in one line: "Step 2 of 5 · Bank details", five small
+ * dots, and what comes next with its date. Every part comes from the
+ * shared steps(); the dots fill as the run moves on.
  */
 export function StepTracker() {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const list = steps(data, state);
-  const at = list.findIndex((x) => x.state === "now");
-  const fill = list.length > 1 ? at / (list.length - 1) : 0;
+  const at = Math.max(list.findIndex((x) => x.state === "now"), 0);
+  const now = list[at];
+  const next = list[at + 1];
+  if (now === undefined) return null;
   return (
-    <div className={s.wrap}>
-      <h3 className="visually-hidden">{t("home.progress")}</h3>
-      <ol className={s.steps} style={{ "--fill": fill } as object}>
-        <li className={s.track} aria-hidden="true">
-          <span className={s.trackFill} />
-        </li>
+    <div className={s.wrap} role="group" aria-label={t("home.progress")}>
+      <ol className={s.dots} aria-hidden="true">
         {list.map((x) => (
-          <li key={x.id} className={s.step} data-state={x.state}
-            aria-current={x.state === "now" ? "step" : undefined}>
-            <span className={s.node} aria-hidden="true">
-              {x.state === "done" && <Icon name="check" size={12} />}
-            </span>
-            <span className={s.label}>{t(LABEL[x.id])}</span>
-            <span className={s.meta}>
-              <span className="tabular">{formatDayMonth(x.date, lang)}</span>
-              {x.state !== "next" && (
-                <span className={s.tag}>
-                  {x.state === "done" ? t("home.stepDone")
-                    : t("home.stepNow")}
-                </span>
-              )}
-            </span>
-          </li>
+          <li key={x.id} data-state={x.state} title={t(LABEL[x.id])} />
         ))}
       </ol>
+      <p className={s.line}>
+        <span className={s.now} aria-current="step">
+          {t("home.stepOf", { n: at + 1, count: list.length })}
+          {" · "}{t(LABEL[now.id])}
+        </span>
+        {next !== undefined && (
+          <span className={s.next}>
+            {t("home.stepNext", { step: t(LABEL[next.id]),
+              date: formatDayMonth(next.date, lang) })}
+          </span>
+        )}
+      </p>
     </div>
   );
 }

@@ -21,6 +21,55 @@ pnpm --filter @payroll/web build:offline
 - `?ar=1` shows the Arabic switch; `?ar=0` hides it. By default Arabic
   follows `DEMO_AR_REVIEWED` from the data package (false today).
 
+## Look and shell (ink and grey)
+
+- **Palette** (`src/theme/tokens.css`, the only place colours are
+  written; `tests/unit/tokens.test.ts` checks every pair): ink and
+  paper with one cool grey family (`--color-grey-100..700`). There is
+  no accent hue: actions, the current state and the focus ring are
+  near-black ink in light and near-white in dark. Colour is for state
+  only and always with a word: red stops pay, amber is a check, muted
+  green is done. Charts draw the month in focus in ink and the rest in
+  grey (`--color-bar-1..4`). Light and dark are designed as equals.
+- **Type:** body 15 (17 on phones), page title `--text-title` 34/40
+  (28/34 on phones), a report's lead figure `--text-figure` 48/52
+  (40/44), the Home figure `--text-hero` 56 (48). All in tokens.css.
+- **Avatars** (`src/ui/Avatar.tsx`): initials on one of eight neutral
+  tints (`--color-avatar-1..8`), picked by a hash of the person's id,
+  so a rename keeps the face. Decorative: the name is always beside
+  it. `?avatars=colour` shows the restrained colour set for comparison.
+  Every face in the product, templates included, is this component.
+- **Top bar** (`shell/TopBar.tsx`): wordmark, the role's section words
+  (from the registry, `barFor`), search (Cmd+K and /), the bell (an
+  ink dot when there is something unread), hide amounts, theme and the
+  role menu. Home is a link; any other word opens its **section
+  panel**.
+- **Section panel** (`shell/SectionPanel.tsx`): a sheet under the bar.
+  Left, **Waiting**: the section's areas whose count means a decision
+  waits (the one that stops pay first, in red). Totals and open work
+  in progress (documents running out, open incidents, punches to
+  match, draft roster weeks, holds, help desk tickets, ...) are left
+  out (`NOT_A_DECISION` in `nav/short.ts`); their own pages keep the
+  count. Right, **Go to**: one row per group, opening its first area.
+  Esc, a click outside or a pick closes it; arrow keys move.
+- **Group tabs** (`shell/GroupTabs.tsx`): on an area's own page, the
+  other areas of its group are tabs under the bar (not on records,
+  not on the pay run's own steps).
+- **Phone:** its own Home, four tabs at the bottom (Home and the next
+  three words, "More" holds the rest) and one overflow menu on the
+  role avatar for notifications, hide amounts and the theme. Sheets
+  rise from the bottom; targets are 44 px.
+- **One footnote a page:** `PageFoot` (templates) writes the sources
+  line "Fictional demo data. Rules as we read them." Pages not built
+  on a template use `Footnote` (`components/explain`), which renders
+  the same `PageFoot`. Provenance never goes in body copy, letters or
+  anything a third party gets: no "(demo)", "(sample)" or
+  "(fictional)" tags. Rule statuses live in the explain drawer.
+- **Print:** a report (`ReportPage`), a letter (`Paper`) and the
+  payslip print alone, black on white; the rules apply only while
+  one is on the page (`body:has(...)`), so every other page prints as
+  it is.
+
 ## For builders of other sections (stable API)
 
 **Add a view.** One line in `src/views.tsx`:
@@ -68,7 +117,12 @@ Role switches go through `useSwitchRole()`
 
 **Show money** only with `<Money value={fils} />` (`src/ui/Money.tsx`):
 one formatter, tabular figures, eased on change, masked when amounts
-are hidden. Never type a figure in a component.
+are hidden. Never type a figure in a component. A change is
+`<Money value={d} signed />`: "+AED 5.00" on a rise, "−AED 5.00" (the
+true minus, U+2212, before the currency) on a fall, never a hand-set
+sign beside it. Text is `formatMoney(f, lang)` or
+`formatSignedMoney(f, lang)` (`src/i18n/format.ts`); CSV files keep a
+plain hyphen (`lib/csv`).
 
 **Copy.** Strings go in `src/i18n/en/*` with the Arabic twin in
 `src/i18n/ar/*` (NEEDS NATIVE REVIEW). Data text comes from the
@@ -121,12 +175,29 @@ the template shows itself come from the `tpl` catalogue; your own
 labels go in your package's catalogue file or as `Localized` values.
 Money is always `<Money/>` or `formatMoney`; dates via `formatDate`.
 
+Every template opens with **`PageHead`** and ends with **`PageFoot`**;
+use them directly on a page of your own. `PageHead` props: `title`,
+`lede?` (17/24, 72ch), `crumbs?: { label, href }[]` or `back?`,
+`badge?` (a status pill beside the title), `actions?` (at most one
+filled button a page), `meta?` (a line under the lede, such as a
+period stepper). The breadcrumb row is always reserved, so the title
+sits at the same y on every page, 40 px under the bar (16 on phones).
+`StatusPill { tone: ok|warn|stop|neutral|done, pill? }` is a dot and
+a word; the word stays ink. `MoreMenu { items: { label, onSelect,
+disabled?, hint? }[] }` holds secondary actions.
+
 **LF, `FilterList`**: lists, queues, ledgers, boards.
 Props: `title`, `lede?`, `columns: { key, label, end?, render(row) }[]`
 (column 0 is the row's name), `rows`, `rowKey(row)`, `searchText?(row)`
-(enables search), `segments?: { id, label, match(row) }[]` (the first
-is selected; each shows its count), `rowHref?(row)`, `empty`,
-`actions?`. Rows are 48 px; on phones two lines.
+(enables search), `searchPlaceholder?`, `filters?` (more controls
+beside the search), `segments?: { id, label, match(row) }[]` (the
+first is selected; each shows its count; past four they scroll
+sideways), `rowHref?(row)`, `avatar?(row): { id, name }` (the
+person's face beside column 0), `rowActions?(row)` (secondary buttons
+in a column of their own), `summary?` (five rows or fewer get a band
+of counts above the table, by default the segments'), `empty`,
+`emptyAction?`, `actions?`, `crumbs?` / `back?`. Column headers are
+sticky, rows 56 px; on phones each row is two lines.
 
 ```tsx
 <FilterList title="Loans and advances" rows={loans}
@@ -141,9 +212,13 @@ is selected; each shows its count), `rowHref?(row)`, `empty`,
 ```
 
 **RT, `RecordTabs`** (+ `KeyValues`): one record with a summary strip
-of at most three figures, then tabs. Props: `title`, `lede?`, `back?`,
-`stats: { label, value }[]`, `tabs: { id, label, render() }[]`,
-`tab?` and `onTab?` (drive the tab from the route), `actions?`.
+of at most three figures, then tabs. Props: `title`, `lede?`, `back?`
+or `crumbs?`, `stats: { label, value }[]`, `tabs: { id, label,
+render() }[]`, `tab?` and `onTab?` (drive the tab from the route),
+`actions?`, `status?: { word, tone }` (a pill beside the title),
+`next?` (what happens next, one sentence above the actions),
+`history?: { when, what }[]` (newest last; after the tabs on
+phones).
 
 ```tsx
 <RecordTabs title={p.name} back={{ label: "Loans", href: hrefOf(
@@ -175,7 +250,11 @@ way `time-off.ts` does (`sessionApprovals`).
 **CA, `MonthCalendar`**: people as rows, days as columns, weekends
 shaded. Props: `title`, `lede?`, `month` (`YYYY-MM`), `monthLabel`,
 `rows: { id, label }[]`, `events: { rowId, start, end, tone:
-booked|waiting|holiday|shift, label }[]`, `onMonth?(step)`.
+booked|waiting|holiday|shift, label }[]`, `onMonth?(step)`,
+`agenda?` (one row: a month grid with the day's labels), `legend?`
+(what each tone means here), `children?` (the page's own list under
+the grid). On phones the cells keep dots and the day names are
+listed under the grid.
 
 ```tsx
 <MonthCalendar title="Rosters" month="2026-10" monthLabel="October 2026"
@@ -184,10 +263,16 @@ booked|waiting|holiday|shift, label }[]`, `onMonth?(step)`.
     tone: "shift", label: s.name }))} />
 ```
 
-**RP, `ReportPage`**: title, period, one figure, one table with
-optional bars (per mille of the largest), CSV (formula-safe, BOM) and
-print. Props: `title`, `period`, `figure?`, `columns: { label, end? }[]`,
-`rows: string[][]` (already formatted), `bars?`, `note?`, `csvName`.
+**RP, `ReportPage`**: title, period, one figure (`--text-figure`),
+an optional chart, one table with optional bars (per mille of the
+largest), CSV (formula-safe, BOM) and print. Props: `title`,
+`period`, `figure?`, `chart?` (`BarChart { data: { label, value,
+focus? }[], label }` or `Waterfall { steps: { label, kind:
+total|change, value }[], label }`), `columns: { label, end? }[]`,
+`rows: Cell[][]` (a `Cell` is text, a number, or `{ fils, signed? }`,
+drawn through `<Money/>` and written to CSV as a plain number),
+`total?` (bold under a 2 px rule), `bars?`, `note?`, `meta?`,
+`crumbs?`, `foot?` (before the sources line), `csvName`.
 
 ```tsx
 <ReportPage title="Loans report" period="October 2026"
@@ -210,7 +295,14 @@ label, value, help?, editable? }[] }[]`, `log: { when, who, what }[]`,
     key: k, value: v }); return null; }} />
 ```
 
-**SF** (step flow) is the Pay run stepper; reuse it through WP6.
+**Letters, `Paper` and `PaperLine`**: a letter as a page (letterhead,
+reference, date, signature, a readable measure) that prints alone.
+Props: `company`, `title`, `label`, `reference?`, `date?`, `sign?`,
+`children`; `PaperLine { label, value, total? }` for figures. The
+letter's own text never carries a caveat.
+
+**SF** (step flow) is the Pay run stepper; reuse it through WP6. The
+pay run's head is `PageHead` at the templates' y.
 
 **3. Words.** Never "compliant", "approved", "certified" or
 "guaranteed" on screen (tests enforce it). Source statuses stay inside
@@ -218,10 +310,8 @@ the explain panel. Severity words: "Stops pay" and "Check".
 
 ## Decisions (Claude's calls)
 
-- **Shell:** no sidebar. Slim top bar: wordmark, sections with a
-  view, search (Cmd+K and /), hide amounts, theme, language (only
-  when Arabic is shown) and role. On a phone: a bottom bar of at most
-  four sections plus Search (Reports lives in search).
+- **Shell:** no sidebar. Slim top bar, section panels and group tabs
+  (see "Look and shell" above).
 - **Home:** the first screenful answers "can October be paid, and what
   is my next step": one status sentence with one primary action, the
   net figure with its make-up and the salary-file split, the progress
@@ -297,8 +387,8 @@ the explain panel. Severity words: "Stops pay" and "Check".
     16 px, no bordered cards.
   - Severity is an 8 px dot beside a neutral word. Open items say
     "Stops pay" (no IBAN, or an IBAN that fails its check) or "Check".
-  - Teal is for actions only, so calendar bars and status words are
-    neutral.
+  - Colour is for state only, so calendar bars and status words are
+    neutral (ink and grey).
   - People has segments: all, needs attention (open items) and
     leavers. Its department picker is our own listbox, not a native
     select.
@@ -314,10 +404,11 @@ the explain panel. Severity words: "Stops pay" and "Check".
   - A request must fall inside 2026 and may not overlap time off
     already booked or waiting.
   - Type sizes follow the new scale: body 15, secondary 13.
-- **Phones:** People becomes rows (name and status, role, branch), not
-  a squeezed table. Who is off becomes a list. Sheets come up from the
-  bottom (dvh, safe-area padding). Targets are 44 px and inputs 17 px.
-  Verified in Chromium emulation of iPhone 13, 15 and 15 Pro sizes.
+- **Phones:** People becomes rows (face, name and status, role,
+  branch), not a squeezed table. Who is off becomes a list. Sheets
+  come up from the bottom (dvh, safe-area padding). Targets are 44 px
+  and inputs 17 px. Verified in Chromium emulation of iPhone 13, 15
+  and 15 Pro sizes.
   WebKit is not installed.
 
 ## The route guard (integration)
@@ -341,8 +432,9 @@ the explain panel. Severity words: "Stops pay" and "Check".
   Sees the directory but no one's pay (`canSeePay`); a typed
   `#/pay-run` is outside the view, but Setup > Pay groups and Pay
   elements (`#/pay-run/groups|elements`) open. Every Setup area HR
-  reaches is IT's too
-  (`roleAllows` in `nav/registry.ts`); People and Reports areas must
+  reaches is IT's too (`roleAllows` in `nav/registry.ts`), except one
+  marked `notForIt` (the parallel run, approval cover); People and
+  Reports areas must
   list "it" themselves. IT Home: connections, access review, import,
   and the audit chain checked on demand (the one action).
 - **Data:** `data.home` (`demo/data/home.ts`) wraps the package's

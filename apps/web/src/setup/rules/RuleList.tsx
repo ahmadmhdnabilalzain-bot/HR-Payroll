@@ -31,7 +31,7 @@ export function RuleList() {
   return (
     <>
       <FilterList title="Rules and sources"
-        lede={`${rows.length} rules in ${packs.length} rule packs. Each ` +
+        lede={`${rows.length} rules in ${packs.length} rule sets. Each ` +
           "says where it comes from. A rule with no source yet is held " +
           "back until the company enters a value."}
         rows={rows} rowKey={(r) => r.id}
@@ -42,16 +42,18 @@ export function RuleList() {
         columns={[
           { key: "t", label: "Rule", render: (r) => r.text },
           { key: "v", label: "Value", render: (r) => r.value },
-          { key: "p", label: "Rule pack", render: (r) => r.packName },
+          { key: "p", label: "Rule set", render: (r) => r.packName },
           { key: "s", label: "Source",
             render: (r) => <StatusWord status={r.status} /> },
         ]}
         empty="No rule matches. Clear the search or choose All."
-        actions={<button type="button" className={`${b.btn} ${b.secondary}`}
-          onClick={() => setOpen(true)}>Change log</button>} />
+        actions={<><a className={`${b.btn} ${b.secondary}`}
+          href={hrefOf("setup", "rule-change")}>Pending change</a>
+        <button type="button" className={`${b.btn} ${b.secondary}`}
+          onClick={() => setOpen(true)}>Change log</button></>} />
       <Sheet open={open} title="Change log" onClose={() => setOpen(false)}>
         <div className={s.sheetBody}>
-          <h3>Rule packs in force</h3>
+          <h3>Rule sets in use</h3>
           <ul className={s.history}>
             {packs.map((v) => (
               <li key={v.packId}>

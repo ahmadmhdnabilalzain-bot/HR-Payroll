@@ -10,7 +10,7 @@ import type { PastRunView } from "./types";
 
 const LIST = hrefOf("pay-run", "runs");
 
-/** "+AED 2,000.00" or "−AED 1,180.64"; <Money/> writes the sign. */
+/** "+AED 2,000.00" or "−AED 1,180.64", signed by <Money signed>. */
 export function Change(p: { value: bigint; size?: "sm" | "lg" }) {
   if (p.value === 0n) return <span className={s.muted}>No change</span>;
   return (
@@ -38,7 +38,7 @@ export function PastRuns() {
   const rows = [...pay.runs].reverse();
   return (
     <FilterList title="Pay runs"
-      lede={"Each month as paid, worked out by the same engine. Open a " +
+      lede={"Each month as paid, worked out the same way. Open a " +
         "month to see who changed and why, and every payslip."}
       rows={rows} rowKey={(r) => r.id}
       rowHref={(r) => r.paid ? hrefOf("pay-run", "runs", r.key)

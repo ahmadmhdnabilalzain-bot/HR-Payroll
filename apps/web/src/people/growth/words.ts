@@ -64,6 +64,5 @@ export const G = {
     exRule: "The employer has to decide before probation ends, with " +
       "time left for notice.",
     exStatus: "secondary-sourced, as we read it",
-    exCite: "Decree-Law 33/2021, probation (our notes cite Article 9; " +
-      "the primary text is not yet checked)" },
+    exCite: "Decree-Law 33/2021, Article 9 (probation)" },
 };

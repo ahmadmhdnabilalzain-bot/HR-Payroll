@@ -57,7 +57,7 @@ const PACKS: readonly { id: string; name: string;
   { id: "ae-time", name: "Time and leave", packs: TIME_PACKS },
   { id: "ae-payroll", name: "Monthly pay", packs: PAYROLL_PACKS },
   { id: "ae-gratuity", name: "End-of-service gratuity",
-    packs: GRATUITY_PACKS },
+    packs: GRATUITY_PACKS, skip: /^gccNational/ },
   { id: "ae-employment", name: "Probation, notice and settlement",
     packs: EMPLOYMENT_PACKS },
   { id: "ae-deadlines", name: "Salary file dates",

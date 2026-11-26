@@ -174,8 +174,8 @@ export function newHirePlan(c: DemoCompany, nationality: string)
       "The joiner checklist opens for HR, IT and the line manager.",
       "Bank details, Emirates ID and visa papers are collected before " +
         "the first pay run."],
-    pensionNote: nationality === "AE" ? "Pension for UAE nationals is " +
-      "not computed in this demo." : null };
+    pensionNote: nationality === "AE"
+      ? "Pension for UAE nationals: Not computed." : null };
 }
 
 /* ---------------------------------------------------------------- *
@@ -304,7 +304,7 @@ export function coverRows(c: DemoCompany): CoverRow[] {
 export function checkCover(c: DemoCompany, approverId: string,
   coverId: string, from: string, to: string): string | null {
   const row = coverRows(c).find((r) => r.approverId === approverId);
-  if (row === undefined) return "That person does not approve anything.";
+  if (row === undefined) return "That person does not sign off anything.";
   if (coverId === approverId) return "Choose someone other than the person " +
     "they cover for.";
   if (!row.candidates.some((x) => x.id === coverId)) {

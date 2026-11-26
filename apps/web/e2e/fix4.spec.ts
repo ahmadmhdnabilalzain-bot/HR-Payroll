@@ -13,7 +13,7 @@ test("unknown-route-says-so-and-links-home", async ({ page }) => {
 
 test("letter-prints-alone-on-a-light-a4-page", async ({ page }) => {
   await page.goto("/#/people/papers/letters/lt-1");
-  await expect(page.getByText(/Ref: ZB-LTR-2026-\d{4}/)).toBeVisible();
+  await expect(page.getByText(/^ZB-LTR-2026-\d{4}$/).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Save as PDF" }))
     .toBeVisible();
   await page.emulateMedia({ media: "print", colorScheme: "dark" });
@@ -22,8 +22,8 @@ test("letter-prints-alone-on-a-light-a4-page", async ({ page }) => {
       const el = document.querySelector(sel);
       return el !== null && getComputedStyle(el).display !== "none";
     };
-    const paper = document.querySelector("[data-letter]")!;
-    return { paper: shown("[data-letter]"), top: shown("header"),
+    const paper = document.querySelector("article[aria-label=Letter]")!;
+    return { paper: shown("article[aria-label=Letter]"), top: shown("header"),
       ribbon: shown("nav"),
       bg: getComputedStyle(paper).backgroundColor,
       fg: getComputedStyle(paper).color };

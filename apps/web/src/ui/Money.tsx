@@ -54,10 +54,9 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
     <span className={`${s.money} ${s[size]}`} dir="ltr">
       <span className="visually-hidden">
         {formatMoney(p.value, lang, { plus })}</span>
-      {m.sign !== "" && (
-        <span className={s.sign} aria-hidden="true">{m.sign}</span>
-      )}
-      <span className={s.cur} aria-hidden="true">{m.currency}</span>
+      <span aria-hidden="true" className={s.lead}>
+        {m.sign}<span className={s.cur}>{m.currency}</span>
+      </span>
       <span aria-hidden="true" className={rolling ? s.rolling : s.settled}>
         {m.whole}<span className={s.frac}>.{m.frac}</span>
       </span>

@@ -1,44 +1,8 @@
-/* Reports: one job per page; figures right-aligned and tabular. */
-/* The same column as the template pages, so reports do not jump. */
-.page {
-  max-inline-size: var(--container);
-  margin-inline: auto;
-  padding: var(--space-5) var(--page-pad) var(--space-8);
-  font-size: var(--text-lg);
-}
+/* Reports home: the catalogue list. Report pages use the RP template. */
 
 .loading {
   padding-block: var(--space-7);
   color: var(--color-text-muted);
-}
-
-.header {
-  display: grid;
-  gap: var(--space-1);
-  margin-block-end: var(--space-5);
-}
-
-.crumbs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
-}
-
-.crumbs a {
-  color: var(--color-accent);
-  text-underline-offset: 4px;
-}
-
-.sep {
-  color: var(--color-text-faint);
-}
-
-.title {
-  font-size: var(--text-3xl);
-  font-weight: 500;
-  letter-spacing: -0.02em;
 }
 
 .sub {
@@ -102,207 +66,6 @@
   font-size: var(--text-base);
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-block-start: var(--space-3);
-}
-
-.act {
-  min-block-size: 44px;
-  font-size: var(--text-base);
-}
-
-.note {
-  margin-block-start: var(--space-3);
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
-}
-
-.table {
-  inline-size: 100%;
-  border-collapse: collapse;
-  font-size: var(--text-base);
-}
-
-.table th,
-.table td {
-  padding: var(--space-3);
-  border-block-end: 1px solid var(--color-divider);
-  text-align: start;
-  vertical-align: baseline;
-}
-
-.table th:first-child,
-.table td:first-child {
-  padding-inline-start: 0;
-}
-
-.table th:last-child,
-.table td:last-child {
-  padding-inline-end: 0;
-}
-
-.table thead th {
-  color: var(--color-text-muted);
-  font-weight: 500;
-  border-block-end-color: var(--color-divider-strong);
-}
-
-.table tbody tr {
-  animation: row-in var(--dur-slow) var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 90ms);
-}
-
-.table .end {
-  text-align: end;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.first {
-  display: grid;
-  gap: 6px;
-  font-weight: 500;
-}
-
-.bar {
-  display: block;
-  block-size: 6px;
-  max-inline-size: 360px;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-2);
-  overflow: hidden;
-}
-
-.fill {
-  display: block;
-  block-size: 100%;
-  background: var(--color-bar-1);
-  transform-origin: 0 50%;
-  transition: transform var(--dur-slow) var(--ease-out);
-}
-
-[dir="rtl"] .fill {
-  transform-origin: 100% 50%;
-}
-
-.none {
-  color: var(--color-text-faint);
-}
-
-.foot {
-  margin-block-start: var(--space-4);
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
-}
-
-@media (max-width: 760px) {
-  .page {
-    padding: var(--space-4) var(--space-4)
-      calc(var(--space-8) + 40px + env(safe-area-inset-bottom));
-  }
-
-  .title {
-    font-size: var(--text-2xl);
-  }
-
-  .report .crumbs [aria-current="page"],
-  .report .crumbs .sep:last-of-type {
-    display: none;
-  }
-
-  .table thead {
-    display: none;
-  }
-
-  .table,
-  .table tbody,
-  .table tr,
-  .table th,
-  .table td {
-    display: block;
-  }
-
-  /* Two lines per row: the name, then its values side by side. */
-  .table tr {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 2px var(--space-4);
-    padding-block: var(--space-3);
-    border-block-end: 1px solid var(--color-divider);
-  }
-
-  .table th,
-  .table td {
-    padding: 0;
-    border: 0;
-  }
-
-  .table tbody th,
-  .table td:first-child {
-    flex-basis: 100%;
-    font-weight: 500;
-  }
-
-  .table td {
-    display: inline-flex;
-    align-items: baseline;
-    gap: var(--space-1);
-  }
-
-  .table td[data-label]:not(:first-child)::before {
-    content: attr(data-label);
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .list li,
-  .table tbody tr {
-    animation: none;
-  }
-}
-
-/* Print: the report alone, black on white, no controls. */
-@media print {
-  /* Only where a report is on screen: other pages print as they are. */
-  :global(body):has(.report) * {
-    visibility: hidden;
-  }
-
-  :global(body):has(.report) .report,
-  :global(body):has(.report) .report * {
-    visibility: visible;
-  }
-
-  .report {
-    position: absolute;
-    inset-block-start: 0;
-    inset-inline: 0;
-    color: CanvasText;
-    background: Canvas;
-  }
-
-  .actions,
-  .crumbs a,
-  .crumbs .sep {
-    display: none;
-  }
-
-  .table tbody tr {
-    animation: none;
-    break-inside: avoid;
-  }
-
-  .page {
-    padding: 0;
-  }
-}
-
 .group {
   margin-block: var(--space-6) var(--space-2);
   color: var(--color-text-muted);
@@ -310,4 +73,11 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .list li {
+    animation: none;
+  }
 }

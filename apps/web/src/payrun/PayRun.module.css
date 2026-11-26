@@ -1,43 +1,16 @@
 /*
- * Pay run: one job per step, on the shared 1200 px container. Teal is
- * for actions only; red stops pay, amber is a check, green is done.
+ * Pay run: one job per step, on the shared 1200 px container. Ink is
+ * for actions; red stops pay, amber is a check, green is done.
  * Figures are right-aligned and tabular.
  */
 .page {
   max-inline-size: var(--container);
   margin-inline: auto;
-  padding: var(--space-5) var(--page-pad) var(--space-7);
+  /* The title sits at the templates' y: 40 under the bar. */
+  padding: 40px var(--page-pad) var(--space-7);
   font-size: var(--text-md);
-  /* The step slide starts 24px aside; it must not widen the page. */
+  /* A step slides 24 px in; it must not widen a phone's page. */
   overflow-x: clip;
-}
-
-.header {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.crumbs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.sep {
-  color: var(--color-text-faint);
-}
-
-.title {
-  font-size: var(--text-3xl);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.sub {
-  color: var(--color-text-muted);
 }
 
 /* The stepper: one element; the ring slides, the line fills. */
@@ -328,51 +301,63 @@
   font-size: var(--text-2xs);
 }
 
-/* The first-time hint beside the first figure. */
+/* A step's title and subtitle, with room at the end for the hint. */
+.stepHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+}
+
+/*
+ * The first-time hint: a small tooltip in the step header, in the
+ * flow, so it never covers a figure and dismissing it moves none.
+ */
 .hint {
   position: relative;
-  z-index: 6;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  inline-size: fit-content;
-  max-inline-size: min(380px, 100%);
-  margin-block: 12px 4px;
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  border-radius: var(--radius-panel);
+  gap: var(--space-2);
+  max-inline-size: 360px;
+  margin: 0;
+  padding: 4px 4px 4px var(--space-3);
+  border-radius: var(--radius-control);
   background: var(--color-text);
   color: var(--color-bg);
   font-size: var(--text-sm);
+  line-height: 1.35;
   box-shadow: var(--shadow-pop);
-  animation: hint-in var(--dur-slow) var(--ease-out) 400ms both;
+  animation: hint-in 320ms var(--ease-out) 600ms both;
 }
 
-.hint::before {
+.hint::after {
   content: "";
   position: absolute;
-  inset-block-start: -5px;
-  inset-inline-start: 24px;
-  inline-size: 10px;
-  block-size: 10px;
+  inset-block-end: -4px;
+  inset-inline-start: var(--space-4);
+  inline-size: 8px;
+  block-size: 8px;
   background: inherit;
   transform: rotate(45deg);
 }
 
 .hintBtn {
   flex: none;
-  min-block-size: 36px;
+  min-block-size: 32px;
   padding-inline: var(--space-3);
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: 6px;
   background: color-mix(in srgb, var(--color-bg) 16%, transparent);
   color: inherit;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
 @keyframes hint-in {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(4px);
   }
 }
 
@@ -391,15 +376,17 @@
 .row {
   position: relative;
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  gap: var(--space-1) var(--space-3);
+  gap: var(--space-1) var(--space-4);
+  min-block-size: 56px;
   padding: 14px var(--space-4);
   animation: row-in var(--dur-slow) var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 90ms);
 }
 
 .row + .row::before,
+.sumLine + .sumLine::before,
 .disclosureRow::before {
   content: "";
   position: absolute;
@@ -421,10 +408,18 @@
   color: var(--color-text-muted);
 }
 
-.dotCol {
-  display: grid;
-  place-items: center;
-  block-size: 22px;
+/* A row's kind: an 8 px dot (the colour) and a word (ink). */
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.kindIcon {
+  display: inline-flex;
   color: var(--color-success);
 }
 
@@ -472,7 +467,7 @@
 }
 
 .rowForm {
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
   margin-block-start: var(--space-2);
 }
 
@@ -499,17 +494,24 @@
   font-size: var(--text-sm);
 }
 
+/* State is a dot plus a word; the word stays ink, the dot carries
+ * the colour. */
 .flag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   margin-block-start: 2px;
+  color: var(--color-text);
   font-size: var(--text-sm);
   font-weight: 500;
 }
 
-.flag[data-tone="bad"] { color: var(--color-danger); }
-.flag[data-tone="warn"] { color: var(--color-warning); }
+/* Review: a face for each person on the row. */
+.faceRow {
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+}
+
 
 .pip {
   flex: none;
@@ -526,7 +528,7 @@
 }
 
 .doneWord {
-  color: var(--color-success);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
   font-weight: 500;
 }
@@ -634,10 +636,18 @@
   }
 }
 
-/* Approve: maker and checker as a short chain. */
+/* Approve: maker and checker beside what the approval covers. */
+.approveGrid {
+  display: grid;
+  grid-template-columns: minmax(240px, 4fr) 8fr;
+  align-items: start;
+  gap: var(--space-6);
+  margin-block-start: var(--space-5);
+}
+
 .chain {
   display: grid;
-  margin: var(--space-5) 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -682,15 +692,29 @@
   color: var(--color-danger);
 }
 
+.chainText {
+  display: grid;
+  gap: 2px;
+}
+
 .chainLabel,
+.chainRole,
 .chainWhen {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
 
+.chainLabel {
+  font-weight: 500;
+}
+
 .chainWho {
   font-size: var(--text-lg);
   font-weight: 600;
+}
+
+.chainItem[data-state="now"] .chainNode {
+  border-style: dashed;
 }
 
 .approveBox {
@@ -720,33 +744,26 @@
   margin: 0;
 }
 
-.reasonBox {
+/* Why an action is not open yet: a dot and a sentence, by the
+ * buttons it explains. */
+.why {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
-  background: var(--color-danger-soft);
+  background: var(--color-surface-secondary);
 }
 
-.reasonBox > svg {
+.why > .dot8 {
   flex: none;
-  margin-block-start: 3px;
-  color: var(--color-danger);
+  margin-block-start: 7px;
 }
 
-.reasonBox[data-tone="info"] {
-  background: var(--color-surface-2);
-}
-
-.reasonBox[data-tone="info"] > svg {
-  color: var(--color-text-muted);
-}
-
-.reasonBox > div {
+.whyText {
   display: grid;
   justify-items: start;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .inlineLink {
@@ -755,7 +772,11 @@
   min-block-size: 44px;
   color: var(--color-accent);
   font-weight: 500;
-  text-underline-offset: 4px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%,
+    transparent);
+  text-underline-offset: 3px;
 }
 
 .checksLine {
@@ -821,21 +842,28 @@
 .status[data-tone="ok"] { color: var(--color-success); }
 .status[data-tone="warn"] { color: var(--color-warning); }
 
-.facts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, auto));
-  justify-content: start;
-  gap: var(--space-3) var(--space-7);
-  margin: var(--space-5) 0 0;
-}
-
-.facts dt {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.facts dd {
+/* Pay: the file summary, one fact per line. */
+.summary {
   margin: 0;
+}
+
+.sumLine {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-block-size: 48px;
+  padding: 13px var(--space-4);
+}
+
+.sumLine dt {
+  color: var(--color-text-muted);
+}
+
+.sumLine dd {
+  margin: 0;
+  text-align: end;
   overflow-wrap: anywhere;
 }
 
@@ -985,19 +1013,14 @@ a.navNext:active,
 
 .footLine {
   margin-block-start: var(--space-4);
-  color: var(--color-text-muted);
-  font-size: var(--text-2xs);
 }
 
 /* Phone: own composition. A one-line stepper; lists as rows. */
 @media (max-width: 760px) {
   .page {
+    padding-block-start: var(--space-4);
     padding-block-end: calc(var(--space-8) + 40px +
       env(safe-area-inset-bottom));
-  }
-
-  .title {
-    font-size: var(--text-xl);
   }
 
   .stepper {
@@ -1082,18 +1105,26 @@ a.navNext:active,
   }
 
   .row {
-    grid-template-columns: 16px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .faceRow {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .rowAction {
+    grid-column: 1;
   }
 
   .rowAction,
   .rowFigures {
-    grid-column: 2;
     justify-content: flex-start;
     justify-items: start;
     text-align: start;
   }
 
   .rowFigures {
+    grid-column: 2;
     grid-auto-flow: column;
     justify-content: space-between;
     inline-size: 100%;
@@ -1103,8 +1134,18 @@ a.navNext:active,
     grid-column: 1 / -1;
   }
 
-  .act {
+  .act,
+  .hintBtn {
     min-block-size: 44px;
+  }
+
+  .sumLine {
+    display: grid;
+    gap: 2px;
+  }
+
+  .sumLine dd {
+    text-align: start;
   }
 
   .table thead {
@@ -1166,8 +1207,8 @@ a.navNext:active,
     justify-self: start;
   }
 
+  .approveGrid,
   .fileCard,
-  .facts,
   .approveFigures {
     grid-template-columns: 1fr;
   }
@@ -1192,5 +1233,11 @@ a.navNext:active,
 
   .swap[data-leaving="true"] {
     transform: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .approveGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

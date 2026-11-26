@@ -68,7 +68,10 @@ function Preview(p: { d: StructureData; id: string }) {
       </div>
       <Filled text={d.render(p.id, who, purpose, to)}
         salary={person.salary} />
-      <p className={s.note}>A preview only. Nothing is issued or sent.</p>
+      <p className={s.note}>
+        A preview only. Nothing is issued or sent. Demo letter, not an
+        official document.
+      </p>
     </div>
   );
 }

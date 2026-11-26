@@ -20,7 +20,7 @@ export const timeErrors: Record<keyof typeof en, string> = {
   CORRECTION_TIMES_INVALID: "راجع الأوقات: اليوم نفسه، ليس في " +
     "المستقبل، ولا تزيد على 24 ساعة.",
   ATTENDANCE_OVERLAP: "هذه الأوقات تتداخل مع سجل آخر في ذلك اليوم.",
-  TIMESHEET_LOCKED: "كشف دوام ذلك اليوم مقدَّم أو معتمد.",
+  TIMESHEET_LOCKED: "كشف دوام ذلك اليوم مقدَّم أو موقَّع عليه.",
   CLOCK_OUT_TOO_LATE: "مرت أكثر من 24 ساعة على تسجيل الدخول. اطلب " +
     "تصحيحًا بدلًا من ذلك.",
   TIMESHEET_TRANSITION: "لا يمكن نقل كشف الدوام إلى هذه الحالة الآن.",

@@ -21,8 +21,8 @@ export const errors = {
   MFA_REQUIRED: "Sign in again with your authenticator code to continue.",
   MFA_ENROLMENT_REQUIRED: "Add an authenticator app to your account " +
     "first.",
-  SOD_VIOLATION: "You cannot approve something you created. Another " +
-    "person must approve it.",
+  SOD_VIOLATION: "You cannot sign off something you created. Another " +
+    "person must sign it off.",
   NOT_FOUND: "This item was not found. It may have been removed.",
   EMAIL_TAKEN: "This email already has an account.",
   ALREADY_MEMBER: "This person is already a member of the company.",
@@ -38,7 +38,7 @@ export const errors = {
     "details. Start the pay run again.",
   RUN_EXISTS_FOR_PERIOD: "A pay run already exists for this month.",
   RUN_NOT_DRAFT: "This pay run is no longer a draft.",
-  RUN_NOT_APPROVED: "Approve the pay run before preparing its salary " +
+  RUN_NOT_APPROVED: "Sign off the pay run before preparing its salary " +
     "file.",
   INVITE_USED: "This invite was already used.",
   INVITE_EXPIRED: "This invite has expired. Ask for a new one.",
@@ -78,13 +78,13 @@ export const errors = {
   // Plan 6: approvals, receipts and expense claims.
   RECEIPT_BASE64_INVALID: "The receipt file could not be read. Try " +
     "uploading it again.",
-  NOT_AN_APPROVER: "You are not an approver for this step.",
+  NOT_AN_APPROVER: "You are not the person who signs off this step.",
   APPROVER_NEEDED_LATER: "You are needed for a later step, so someone " +
-    "else must approve this one.",
-  APPROVAL_NOT_PENDING: "This approval is already closed.",
-  APPROVAL_STEP_CHANGED: "This approval moved on meanwhile. Refresh and " +
+    "else must sign off this one.",
+  APPROVAL_NOT_PENDING: "This sign-off is already closed.",
+  APPROVAL_STEP_CHANGED: "This sign-off moved on meanwhile. Refresh and " +
     "check it again.",
-  CHAIN_VERSION_CONFLICT: "Someone else changed the approval chain. " +
+  CHAIN_VERSION_CONFLICT: "Someone else changed the sign-off chain. " +
     "Refresh and try again.",
   CATEGORY_CODE_TAKEN: "An expense category already uses this code.",
   POLICY_VERSION_CONFLICT: "Someone else changed the expense policy. " +
@@ -93,18 +93,18 @@ export const errors = {
   CLAIM_NOT_CANCELLABLE: "This claim can no longer be cancelled.",
   RECEIPT_TOO_LARGE: "The receipt is larger than 5 MB.",
   RECEIPT_TYPE_NOT_ALLOWED: "Receipts must be JPEG, PNG or PDF files.",
-  NO_ELIGIBLE_APPROVER: "Nobody else can approve this. Add another " +
-    "owner, HR user or approver first.",
-  CHAIN_INVALID: "The approval chain is not valid. Check the tiers and " +
-    "approvers.",
+  NO_ELIGIBLE_APPROVER: "Nobody else can sign this off. Add another " +
+    "owner, HR user or person who signs off first.",
+  CHAIN_INVALID: "The sign-off chain is not valid. Check the tiers and " +
+    "people who sign off.",
   RECEIPT_TYPE_MISMATCH: "The file type does not match its contents.",
   POLICY_INVALID: "The expense policy is not valid. Check the marked " +
     "rows.",
-  CANCEL_NOTE_REQUIRED: "Add a note to cancel an approved claim.",
+  CANCEL_NOTE_REQUIRED: "Add a note to cancel an agreed claim.",
   CLAIM_PROBLEMS: "The claim has problems. Fix the marked items.",
   RECEIPT_QUOTA_EXCEEDED: "Too many receipts uploaded today. Try again " +
     "tomorrow or ask HR to raise the limit.",
-  EXCLUDED_CLAIM_INVALID: "Only approved claims waiting for payment can " +
+  EXCLUDED_CLAIM_INVALID: "Only agreed claims waiting for payment can " +
     "be left out of a run.",
   ...timeErrors,
   // Plan 8 (hiring, onboarding, tasks, exits, goals).
@@ -116,12 +116,12 @@ export const errors = {
   SCORECARD_EXISTS: "You already sent a scorecard for this.",
   APPLICATION_NOT_AT_OFFER: "Move the application to the offer stage.",
   OFFER_EXISTS: "This application already has a live offer.",
-  OFFER_NOT_APPROVED: "The offer is not approved yet.",
+  OFFER_NOT_APPROVED: "The offer is not signed off yet.",
   OFFER_EXPIRED: "The offer expired before this response date.",
   OFFER_NOT_WITHDRAWABLE: "This offer can no longer be withdrawn.",
   OFFER_NOT_ACCEPTED: "Only an accepted offer can become a hire.",
   EXIT_EXISTS: "This person already has an open exit.",
-  EXIT_NOT_APPROVED: "Approve the exit first.",
+  EXIT_NOT_APPROVED: "Sign off the exit first.",
   EXIT_NOT_OPEN: "This exit is no longer open.",
   EXIT_ACCESS_REVOKED: "Access was revoked; the exit stays.",
   SETTLEMENT_REQUIRED: "Compute the final settlement first.",

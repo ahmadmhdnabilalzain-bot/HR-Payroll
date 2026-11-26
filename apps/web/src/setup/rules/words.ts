@@ -32,8 +32,8 @@ const PLAIN: Record<string, string> = {
   endDateInclusive: "The last working day counts as a day of service.",
   leapDayAnniversary: "A 29 February joiner's anniversary falls on the " +
     "last day of February in other years.",
-  roundingMode: "Amounts are rounded once, at the end, to the nearest " +
-    "fils.",
+  roundingMode: "Amounts are rounded once, at the end, to two " +
+    "decimal places.",
   gccNationalGratuity: "Gratuity for other Gulf nationals has no source " +
     "yet, so no value is held.",
   // Pay: overtime and rest days
@@ -95,7 +95,7 @@ const PLAIN: Record<string, string> = {
     "month.",
   deductionOrder: "Deductions come off in a set order; a loan comes " +
     "last.",
-  capRoundingMode: "A limit is rounded down to the fils.",
+  capRoundingMode: "A limit is rounded down to two decimals.",
   // Time
   timeMaxNormalMinutesPerDay: "A normal working day is 8 hours.",
   timeMaxNormalMinutesPerWeek: "A normal working week is 48 hours.",
@@ -107,15 +107,16 @@ const PLAIN: Record<string, string> = {
     "working day.",
   timeOvertimeMaxMinutesPerDay: "Overtime should not pass 2 hours a " +
     "day. More is flagged; pay is never cut.",
-  timeMaxMinutesPer3Weeks: "At most 144 hours of overtime in three " +
-    "weeks.",
+  timeMaxMinutesPer3Weeks: "Overtime and normal hours together: at " +
+    "most 144 hours in three weeks.",
   timeNightWindow: "Night work is between 10 pm and 4 am.",
   timeMaxConsecutiveRestDaysWorked: "No one may be asked to work more " +
     "than two rest days in a row.",
   timeMinWeeklyRestDays: "At least one paid rest day every week.",
   timeHolidayWorkCompensated: "Work on an official holiday earns a " +
     "rest day or extra pay.",
-  timeAnnualLeaveMinDays: "At least 30 days of annual leave a year.",
+  timeAnnualLeaveMinDays: "At least 30 days of annual leave a year. " +
+    "The leave form counts working days.",
   timeFirstYearDaysPerMonth: "Between six months and a year of " +
     "service: 2 days of leave for each month.",
   timeCarryOverMaxShareBps: "Up to half of the annual leave may be " +

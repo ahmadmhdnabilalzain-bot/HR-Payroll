@@ -91,6 +91,8 @@ export function Location(p: { d: AccessData }) {
       tone: "none" },
     { id: "claims", topic: "What we do not claim",
       text: L.statements[3]!.text, tone: "none" },
+    { id: "roles", topic: "Role limits",
+      text: L.statements[4]!.text, tone: "none" },
     { id: "export-users", topic: "People with access",
       text: `${d.users.length} users and their roles, as a spreadsheet file.`,
       tone: "ok", download: { name: "people-with-access.csv",
@@ -105,7 +107,8 @@ export function Location(p: { d: AccessData }) {
   ];
   return (
     <FilterList title="Data location and export"
-      lede={`Demo only. Data region of this site: ${L.region}.`}
+      lede={`The demo is hosted in ${L.region}; the hosting region ` +
+        "for a live service is not decided."}
       rows={facts} rowKey={(f) => f.id}
       columns={[{ key: "t", label: "Topic", render: (f) => f.topic },
         { key: "x", label: "What we can say", render: (f) => (

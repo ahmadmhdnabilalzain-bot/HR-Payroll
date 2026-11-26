@@ -49,7 +49,7 @@ export function Checks() {
           Open the first stop</a>
       ) : (
         <a className={`${b.btn} ${b.primary}`}
-          href={hrefOf("pay-run", "approve")}>Go to approval</a>
+          href={hrefOf("pay-run", "approve")}>Go to sign-off</a>
       )}
       columns={[
         { key: "check", label: "Check", render: (c) => c.label },

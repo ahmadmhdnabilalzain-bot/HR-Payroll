@@ -8,21 +8,25 @@ const LOCALE: Record<Lang, string> = {
   ar: "ar-AE-u-ca-gregory-nu-latn",
 };
 
-/**
- * The one minus sign for amounts and changes on screen (U+2212), set
- * before the currency: "−AED 14,719.06". CSV keeps a plain hyphen.
- */
+/** The typographic minus (U+2212): every negative amount on screen. */
 export const MINUS = "\u2212";
 
 /**
- * "AED 38,333.33"; in Arabic wrapped in left-to-right isolates. A
- * negative reads "−AED 38,333.33"; `plus` adds "+" to a rise.
+ * "AED 38,333.33", "−AED 1,180.64"; in Arabic wrapped in left-to-right
+ * isolates. The one money formatter: <Money/> and every table read
+ * it; `plus` adds "+" to a rise. CSV files keep a plain hyphen
+ * (lib/csv, filsDecimal).
  */
 export function formatMoney(f: Fils, lang: Lang,
   opts?: { plus?: boolean }): string {
   const [open, close] = LTR_ISOLATE[lang];
   const m = moneyParts(f, opts?.plus === true);
   return `${open}${m.sign}${m.currency} ${m.whole}.${m.frac}${close}`;
+}
+
+/** The same with a plus sign on a rise: "+AED 5.00", "−AED 5.00". */
+export function formatSignedMoney(f: Fils, lang: Lang): string {
+  return formatMoney(f, lang, { plus: true });
 }
 
 export interface MoneyParts {

@@ -47,6 +47,17 @@ export function ApproveStep(p: { go: Go }) {
     if (id !== null) recordDecision(id);
     a.decide(v);
   };
+  const waiting = verdict === undefined;
+  const blocked = a.blockedBy.length > 0;
+  // Why Approve, or Continue to Pay, cannot be pressed yet, in words.
+  const reason = !waiting ? null
+    : blocked ? t("payrun.blocked", { count: blockedNames.length,
+      names: names(blockedNames) })
+      : !a.isChecker ? t("payrun.onlyGm", { name: checker.name[lang] })
+        : t("payrun.payAfter", { name: checker.name[lang] });
+  const decidedAt = at === null ? formatDate(cal.asOf, lang)
+    : t("payrun.recordedWhen", { date: formatDate(cal.asOf, lang),
+      time: formatTime(new Date(at).toISOString(), lang) });
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>
@@ -54,138 +65,132 @@ export function ApproveStep(p: { go: Go }) {
       </h2>
       <p className={s.stepSub}>{t("payrun.approveSub")}</p>
 
-      <ol className={s.chain}>
-        <li className={s.chainItem} data-state="done">
-          <span className={s.chainNode} aria-hidden="true">
-            <Icon name="check" size={14} />
-          </span>
-          <div>
-            <p className={s.chainLabel}>{t("payrun.prepared")}</p>
-            <p className={s.chainWho}>
-              {t("payrun.preparedBy", { name: maker.name[lang],
-                role: maker.role[lang] })}
-            </p>
-            <p className={s.chainWhen}>
-              {t("payrun.preparedWhen", { date: formatDate(
-                detail.preparedOn, lang), time: detail.preparedAt })}
-            </p>
-          </div>
-        </li>
-        <li className={s.chainItem}
-          data-state={verdict === "approve" ? "done"
-            : verdict === "decline" ? "bad" : "now"}>
-          <span className={s.chainNode} aria-hidden="true">
-            {verdict === "approve" ? <Icon name="check" size={14} />
-              : verdict === "decline" ? <Icon name="x" size={14} /> : null}
-          </span>
-          <div>
-            <p className={s.chainLabel}>{t("payrun.approval")}</p>
-            <p className={s.chainWho}>
-              {verdict === "approve" ? t("payrun.recorded",
-                { name: checker.name[lang], role: checker.role[lang] })
-                : verdict === "decline" ? t("payrun.declined",
-                  { name: checker.name[lang], role: checker.role[lang] })
-                  : t("payrun.waitingFor", { name: checker.name[lang],
-                    role: checker.role[lang] })}
-            </p>
-            {verdict !== undefined && (
+      <div className={s.approveGrid}>
+        <ol className={s.chain} aria-label={t("payrun.chainLabel")}>
+          <li className={s.chainItem} data-state="done">
+            <span className={s.chainNode} aria-hidden="true">
+              <Icon name="check" size={14} />
+            </span>
+            <div className={s.chainText}>
+              <p className={s.chainLabel}>{t("payrun.prepared")}</p>
+              <p className={s.chainWho}>{maker.name[lang]}</p>
+              <p className={s.chainRole}>{maker.role[lang]}</p>
               <p className={s.chainWhen}>
-                {at === null ? t("payrun.recordedDay",
-                  { date: formatDate(cal.asOf, lang) })
-                  : t("payrun.recordedWhen", { date: formatDate(cal.asOf,
-                    lang), time: formatTime(new Date(at).toISOString(),
-                    lang) })}
+                {t("payrun.preparedWhen", { date: formatDate(
+                  detail.preparedOn, lang), time: detail.preparedAt })}
               </p>
+            </div>
+          </li>
+          <li className={s.chainItem}
+            data-state={verdict === "approve" ? "done"
+              : verdict === "decline" ? "bad" : "now"}>
+            <span className={s.chainNode} aria-hidden="true">
+              {verdict === "approve" ? <Icon name="check" size={14} />
+                : verdict === "decline" ? <Icon name="x" size={14} /> : null}
+            </span>
+            <div className={s.chainText}>
+              <p className={s.chainLabel}>
+                {verdict === "approve" ? t("payrun.chainRecorded")
+                  : verdict === "decline" ? t("payrun.chainDeclined")
+                    : t("payrun.chainWaiting")}
+              </p>
+              <p className={s.chainWho}>{checker.name[lang]}</p>
+              <p className={s.chainRole}>{checker.role[lang]}</p>
+              <p className={s.chainWhen}>
+                {waiting ? t("payrun.notYet") : decidedAt}
+              </p>
+            </div>
+          </li>
+        </ol>
+
+        <div className={s.approveBox}>
+          <h3 className={s.blockTitle}>{t("payrun.whatYouApprove")}</h3>
+          <dl className={s.approveFigures}>
+            <div>
+              <dt>{t("payrun.netTo", { count: h.headcount })}</dt>
+              <dd><Money value={h.netTotalFils} size="lg" /></dd>
+            </div>
+            <div>
+              <dt>{t("payrun.fileTo", { count: h.sifPeople })}</dt>
+              <dd><Money value={h.sifTotalFils} size="lg" /></dd>
+            </div>
+          </dl>
+          <p className={s.checksLine}>
+            {open === 0 ? t("payrun.allChecked")
+              : t("payrun.openChecks", { count: open })}
+          </p>
+
+          <div className={s.approveActions}>
+            {waiting ? (
+              <>
+                <button type="button"
+                  className={`${b.btn} ${b.primary} ${b.large} ${s.act}`}
+                  disabled={!a.canDecide}
+                  aria-describedby={reason === null || a.canDecide
+                    ? undefined : "approve-why"}
+                  onClick={() => decide("approve")}>
+                  {t("payrun.approveBtn")}
+                </button>
+                {a.isChecker && (
+                  <button type="button"
+                    className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
+                    disabled={!a.canDecide}
+                    onClick={() => decide("decline")}>
+                    {t("payrun.declineBtn")}
+                  </button>
+                )}
+                <button type="button"
+                  className={`${b.btn} ${b.secondary} ${b.large} ${s.act}`}
+                  disabled aria-describedby="approve-why">
+                  {t("payrun.continueTo", { step: t("payrun.pay") })}
+                </button>
+              </>
+            ) : (
+              <>
+                {verdict === "approve" && (
+                  <a href="#/pay-run/pay"
+                    className={`${b.btn} ${b.primary} ${b.large} ${s.act}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      p.go("pay");
+                    }}>{t("payrun.continueTo", { step: t("payrun.pay") })}
+                    <Icon name="arrowEnd" /></a>
+                )}
+                {a.isChecker && id !== null && (
+                  <button type="button"
+                    className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
+                    onClick={() => {
+                      forgetDecision(id);
+                      dispatch({ type: "undecide", id });
+                    }}>{t("payrun.undo")}</button>
+                )}
+              </>
             )}
           </div>
-        </li>
-      </ol>
 
-      <div className={s.approveBox}>
-        <h3 className={s.blockTitle}>{t("payrun.whatYouApprove")}</h3>
-        <dl className={s.approveFigures}>
-          <div>
-            <dt>{t("payrun.netTo", { count: h.headcount })}</dt>
-            <dd><Money value={h.netTotalFils} size="lg" /></dd>
-          </div>
-          <div>
-            <dt>{t("payrun.fileTo", { count: h.sifPeople })}</dt>
-            <dd><Money value={h.sifTotalFils} size="lg" /></dd>
-          </div>
-        </dl>
-
-        {verdict === undefined && a.blockedBy.length > 0 && (
-          <div className={s.reasonBox} role="status">
-            <Icon name="alert" size={18} />
-            <div>
-              <p>{t("payrun.blocked", { count: blockedNames.length,
-                names: names(blockedNames) })}</p>
-              <a href="#/pay-run/fix" className={s.inlineLink}
-                onClick={(e) => {
-                  e.preventDefault();
-                  p.go("fix");
-                }}>{t("payrun.goFix")}</a>
+          {reason !== null && (
+            <div className={s.why} data-tone={blocked ? "bad" : "info"}
+              role="status">
+              <span className={s.dot8} aria-hidden="true"
+                data-tone={blocked ? "bad" : "info"} />
+              <div className={s.whyText}>
+                <p id="approve-why">{reason}</p>
+                {blocked && (
+                  <a href="#/pay-run/fix" className={s.inlineLink}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      p.go("fix");
+                    }}>{t("payrun.goFix")}</a>
+                )}
+                {!blocked && !a.isChecker && (
+                  <button type="button"
+                    className={`${b.btn} ${b.secondary} ${s.act}`}
+                    onClick={() => switchRole("gm")}>
+                    {t("payrun.viewAsGm")}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-        {verdict === undefined && a.blockedBy.length === 0 &&
-          !a.isChecker && (
-          <div className={s.reasonBox} data-tone="info" role="status">
-            <Icon name="info" size={18} />
-            <div>
-              <p>{t("payrun.onlyGm", { name: checker.name[lang] })}</p>
-              <button type="button"
-                className={`${b.btn} ${b.secondary} ${s.act}`}
-                onClick={() => switchRole("gm")}>
-                {t("payrun.viewAsGm")}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <p className={s.checksLine}>
-          {open === 0 ? t("payrun.allChecked")
-            : t("payrun.openChecks", { count: open })}
-        </p>
-
-        <div className={s.approveActions}>
-          {verdict === undefined ? (
-            <>
-              <button type="button"
-                className={`${b.btn} ${b.primary} ${b.large} ${s.act}`}
-                disabled={!a.canDecide}
-                onClick={() => decide("approve")}>
-                {t("payrun.approveBtn")}
-              </button>
-              {a.isChecker && (
-                <button type="button"
-                  className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
-                  disabled={!a.canDecide}
-                  onClick={() => decide("decline")}>
-                  {t("payrun.declineBtn")}
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              {verdict === "approve" && (
-                <a href="#/pay-run/pay"
-                  className={`${b.btn} ${b.primary} ${b.large} ${s.act}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    p.go("pay");
-                  }}>{t("payrun.continueTo", { step: t("payrun.pay") })}
-                  <Icon name="arrowEnd" /></a>
-              )}
-              {a.isChecker && id !== null && (
-                <button type="button"
-                  className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
-                  onClick={() => {
-                    forgetDecision(id);
-                    dispatch({ type: "undecide", id });
-                  }}>{t("payrun.undo")}</button>
-              )}
-            </>
           )}
         </div>
       </div>

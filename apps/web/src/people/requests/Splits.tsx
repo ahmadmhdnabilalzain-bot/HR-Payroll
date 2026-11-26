@@ -43,7 +43,7 @@ export function Splits() {
   const p = useRequests();
   const rows = p.data.approvalsInbox();
   return (
-    <FilterList title="Approval splits and resets"
+    <FilterList title="Sign-off splits and resets"
       lede={"Send a signed-off item back to waiting, or name a second " +
         "checker for one that is still waiting. Each change names who, " +
         "their role and the date, and can be undone."}

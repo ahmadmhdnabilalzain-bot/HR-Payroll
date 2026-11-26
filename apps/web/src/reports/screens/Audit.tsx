@@ -12,11 +12,11 @@ const GROUPS: [string, string[]][] = [["Pay", ["Pay"]],
   ["People", ["People", "Time off"]], ["Setup", ["Access", "Setup"]]];
 const TAMPER_AT = 11;
 
-const LEDE = "Every action is written down once and cannot be changed " +
-  "quietly. Each entry carries a fingerprint (SHA-256) made from the " +
-  "entry and the one before it, so an edited or removed entry shows up " +
-  "when the chain is checked. This is a demo of the idea, worked out " +
-  "when the page loads; it is not a legal proof.";
+const LEDE = "Each action is written down as an entry linked to the one " +
+  "before it (a SHA-256 fingerprint made from the entry and the one " +
+  "before it), so an edited or removed entry shows up when the chain " +
+  "is checked. In this demo the check runs in your browser when the " +
+  "page loads; it is not a legal proof.";
 
 function statusText(c: AuditCheck | null, tampered: boolean): string {
   if (c === null) {

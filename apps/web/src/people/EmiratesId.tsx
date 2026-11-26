@@ -25,7 +25,7 @@ export function EmiratesId(q: { person: Person }) {
   return (
     <span className={s.eid}>
       <span dir="ltr" className="tabular">
-        {full ?? q.person.emiratesIdMasked}</span>
+        {full ?? q.person.emiratesIdMasked.replace(/\*/g, "•")}</span>
       {state.role === "hr" && (
         <button type="button" className={`${b.btn} ${b.quiet}`}
           aria-describedby="eid-note"

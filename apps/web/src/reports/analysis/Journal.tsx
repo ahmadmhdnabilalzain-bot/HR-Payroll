@@ -21,8 +21,8 @@ export function Journal() {
   return (
     <ReportPage title="Payroll journal"
       period={`${j.period}, a view for the finance team`}
-      figure={{ label: j.balanced ? "Debits and credits balance, to the " +
-        "fils" : "Debits and credits do not balance",
+      figure={{ label: j.balanced ? "Debits and credits balance, " +
+        "exactly" : "Debits and credits do not balance",
       value: <Money value={j.debits} size="lg" tween={false} /> }}
       columns={[{ label: "Line" }, { label: "Department" },
         { label: "Debit", end: true }, { label: "Credit", end: true }]}

@@ -4,10 +4,11 @@ import { useDemo } from "../../demo/state";
 import b from "../../ui/button.module.css";
 import { Icon } from "../../ui/Icon";
 import { PageHead } from "../../ui/templates";
-import { initials } from "../words";
 import { profileHref } from "./common";
 import { fill, W } from "./words";
 import s from "./org.module.css";
+import { Avatar } from "../../ui/Avatar";
+import { Footnote } from "../../components/explain";
 
 /** Everyone at and below a node, counting the node itself. */
 function sizeOf(n: OrgChartNode): number {
@@ -137,6 +138,7 @@ export function OrgChart() {
           </ul>
         </div>
       )}
+      <Footnote />
     </div>
   );
 }
@@ -179,9 +181,7 @@ function Branch(p: BranchProps) {
         <a className={s.person} href={profileHref(n.employeeId)}
           data-person={n.employeeId}
           data-match={p.lead && p.hit(n) ? "true" : undefined}>
-          <span className={s.avatar} aria-hidden="true">
-            {initials(n.name)}
-          </span>
+          <Avatar id={n.employeeId} name={n.name} className={s.avatar} />
           <span className={s.who}>
             <span className={s.name}>{n.name}</span>
             <span className={s.title}>

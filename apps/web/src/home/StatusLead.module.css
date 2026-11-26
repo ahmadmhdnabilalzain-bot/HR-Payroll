@@ -8,16 +8,7 @@
   font-size: var(--text-sm);
 }
 
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4) var(--space-6);
-}
-
 .sentence {
-  flex: 1 1 520px;
   max-inline-size: 30ch;
   font-size: var(--text-3xl);
   font-weight: 500;
@@ -35,7 +26,7 @@
 
 .action {
   display: grid;
-  justify-items: end;
+  justify-items: start;
   gap: var(--space-2);
   max-inline-size: 360px;
 }
@@ -43,7 +34,6 @@
 .why {
   color: var(--color-text-muted);
   font-size: var(--text-xs);
-  text-align: end;
 }
 
 @media (max-width: 760px) {
@@ -60,9 +50,5 @@
 
   .action > button {
     inline-size: 100%;
-  }
-
-  .why {
-    text-align: start;
   }
 }

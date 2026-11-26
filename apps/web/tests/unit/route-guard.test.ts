@@ -27,6 +27,18 @@ describe("the shell's route guard", () => {
     }
   });
 
+  it("it-is-not-offered-what-shows-pay-or-people-records", () => {
+    const ids = ["setup.parallel", "setup.cover"];
+    for (const id of ids) {
+      const a = ALL_AREAS.find((x) => x.id === id)!;
+      expect([id, roleAllows(a, "it")]).toEqual([id, false]);
+      expect([id, roleAllows(a, "hr")]).toEqual([id, true]);
+    }
+    expect(mayOpen("it", at("setup/migration/parallel"))).toBe(false);
+    expect(mayOpen("it", at("people/more/cover"))).toBe(false);
+    expect(mayOpen("it", at("setup/migration/fields"))).toBe(true);
+  });
+
   it("own-profile-and-payslip-open", () => {
     expect(mayOpen("employee", at("people/emp-017"))).toBe(true);
     expect(mayOpen("employee", at("people/emp-017/payslip"))).toBe(true);

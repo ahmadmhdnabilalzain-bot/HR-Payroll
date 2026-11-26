@@ -4,7 +4,7 @@ import type { AccessData } from "./data";
 /** S21: who decides each kind of request (read only in the demo). */
 export function ApprovalRules(p: { d: AccessData }) {
   return (
-    <SettingsPage title="Approval rules and limits"
+    <SettingsPage title="Sign-off rules and limits"
       lede="Who decides each kind of request. The person who prepares
         something never decides it too."
       groups={[{ title: "Who decides", items: p.d.rules.map((r) => ({

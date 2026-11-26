@@ -46,17 +46,14 @@ export interface LetterTemplate {
 
 const BODIES: Record<LetterKind, string> = {
   "salary-certificate": "To {addressee}. This letter confirms that " +
-    "{name} ({number}) works at Zarqan Demo Bank (fictional) as {job}, " +
+    "{name} ({number}) works at Zarqan Demo Bank as {job}, " +
     "joined {joined}. Monthly salary: {salary}. Issued at the " +
-    "employee's request for {purpose}. Demo letter, not an official " +
-    "document.",
-  noc: "To {addressee}. Zarqan Demo Bank (fictional) has no objection " +
+    "employee's request for {purpose}.",
+  noc: "To {addressee}. Zarqan Demo Bank has no objection " +
     "to {name}, {job}, applying for {purpose}. This letter does not " +
-    "commit the bank to anything else. Demo letter, not an official " +
-    "document.",
+    "commit the bank to anything else.",
   experience: "To {addressee}. {name} ({number}) worked at Zarqan Demo " +
-    "Bank (fictional) as {job}, joined {joined}. Issued for {purpose}. " +
-    "Demo letter, not an official document.",
+    "Bank as {job}, joined {joined}. Issued for {purpose}.",
 };
 
 const FIELD_RE = /\{([a-z]+)\}/g;
@@ -225,11 +222,11 @@ export interface AttendanceDevice {
 
 const DEVICE_DEFS: readonly { id: string; label: string;
   kind: "reader" | "phone"; locations: string[]; feeds: string[] }[] = [
-  { id: "dev-hq", label: "Head office reader (demo)", kind: "reader",
-    locations: [HQ], feeds: ["Head office reader (demo)"] },
-  { id: "dev-branch", label: "Branch reader (demo)", kind: "reader",
+  { id: "dev-hq", label: "Head office reader", kind: "reader",
+    locations: [HQ], feeds: ["Head office reader"] },
+  { id: "dev-branch", label: "Branch reader", kind: "reader",
     locations: [KHALIDIYA, AL_AIN],
-    feeds: ["Branch reader (demo)", "Al Ain branch reader (demo)"] },
+    feeds: ["Branch reader", "Al Ain branch reader"] },
   { id: "dev-phone", label: "Phone, inside the office area",
     kind: "phone", locations: [HQ, KHALIDIYA, AL_AIN],
     feeds: ["Phone, inside the office area"] },
@@ -259,8 +256,8 @@ export function attendanceDevices(c: DemoCompany): AttendanceDevice[] {
  * T07 Holidays (SAMPLE dates)
  * ---------------------------------------------------------------- */
 
-export const HOLIDAY_NOTE = "Sample dates. The real dates follow the " +
-  "official announcement.";
+export const HOLIDAY_NOTE = "Expected dates. The Cabinet announces the " +
+  "final ones.";
 
 export interface HolidayView {
   id: string;

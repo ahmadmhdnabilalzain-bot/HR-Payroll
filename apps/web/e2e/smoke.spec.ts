@@ -30,7 +30,15 @@ test("switches-to-arabic", async ({ page }) => {
 
 test("dark-theme", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Switch to dark theme" }).click();
+  await page.getByRole("heading", { level: 1 }).waitFor();
+  const desk = page.getByRole("button", { name: "Switch to dark theme" });
+  // On a phone the theme sits in the one overflow menu (the avatar).
+  if (await desk.isVisible()) await desk.click();
+  else {
+    await page.getByRole("button", { name: /Viewing as/ }).click();
+    await page.getByRole("menuitem", { name: "Switch to dark theme" })
+      .click();
+  }
   await expect(page.locator("html[data-theme=dark]")).toHaveCount(1);
   await expect.poll(() => page.evaluate(() =>
     getComputedStyle(document.body).backgroundColor))

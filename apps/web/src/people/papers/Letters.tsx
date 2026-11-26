@@ -7,6 +7,7 @@ import {
   ApprovalForm,
   FilterList,
   KeyValues,
+  Paper,
   RecordTabs,
 } from "../../ui/templates";
 import { History, type HistoryItem } from "./History";
@@ -102,47 +103,37 @@ function historyOf(p: Papers, l: LetterRow): HistoryItem[] {
   return out;
 }
 
-/** The letter as it would be handed over. */
-function Paper(props: { p: Papers; l: LetterRow }) {
+/** The letter as it would be handed over, drawn as a page. */
+function LetterPage(props: { p: Papers; l: LetterRow }) {
   const { p, l } = props;
   const e = p.data.people.person(l.employeeId);
   const joined = e === null ? "" : p.when(e.joinedOn);
-  const dated = l.step?.on ?? l.requestedOn;
+  const company = p.data.companyName[p.lang];
   return (
-    <article className={s.paper} aria-label="Letter" data-letter>
-      <header className={s.letterhead}>
-        <span className={s.company}>{p.data.companyName[p.lang]}</span>
-        <span className={s.ref}>
-          <span>Ref: <span dir="ltr">{l.reference}</span></span>
-          <span>Date: {p.when(dated)}</span>
-        </span>
-      </header>
-      <h2 className={s.paperTitle}>{LETTER_KIND[l.kind]}</h2>
+    <Paper label="Letter" company={company} title={LETTER_KIND[l.kind]}
+      reference={l.reference} date={p.when(l.step?.on ?? l.requestedOn)}
+      sign={l.status === "issued" && l.step !== null
+        ? p.byLine("Signed", l.step)
+        : l.status === "issued" ? "Signed and issued"
+          : `To be signed by ${p.nameOf(l.signerId)}, ` +
+            p.roleOf(l.signerId)}>
       <p>{l.addressee}</p>
       {l.kind === "salary-certificate" && l.monthlySalary !== null ? (
         <p>This confirms that {p.nameOf(l.employeeId)},{" "}
-          {p.roleOf(l.employeeId)}, has worked for{" "}
-          {p.data.companyName[p.lang]} since {joined}, on a monthly salary
-          of <Money value={l.monthlySalary} tween={false} />, as per
+          {p.roleOf(l.employeeId)}, has worked for {company} since{" "}
+          {joined}, on a monthly salary of{" "}
+          <Money value={l.monthlySalary} tween={false} />, as per
           contract. Issued at the employee's request for:{" "}
           {l.purpose}.</p>
       ) : l.kind === "noc" ? (
-        <p>{p.data.companyName[p.lang]} has no objection to{" "}
-          {p.nameOf(l.employeeId)}, {p.roleOf(l.employeeId)}. Purpose:{" "}
-          {l.purpose}.</p>
+        <p>{company} has no objection to {p.nameOf(l.employeeId)},{" "}
+          {p.roleOf(l.employeeId)}. Purpose: {l.purpose}.</p>
       ) : (
         <p>This confirms that {p.nameOf(l.employeeId)} worked for{" "}
-          {p.data.companyName[p.lang]} as {p.roleOf(l.employeeId)}, from{" "}
-          {joined}. Purpose: {l.purpose}.</p>
+          {company} as {p.roleOf(l.employeeId)}, from {joined}.
+          Purpose: {l.purpose}.</p>
       )}
-      <p className={s.paperSign}>
-        {l.status === "issued" && l.step !== null
-          ? p.byLine("Signed", l.step)
-          : l.status === "issued" ? "Signed and issued"
-            : `To be signed by ${p.nameOf(l.signerId)}, ` +
-              p.roleOf(l.signerId)}
-      </p>
-    </article>
+    </Paper>
   );
 }
 
@@ -205,7 +196,7 @@ export function LetterRecord(props: { id: string }) {
     actions={actions}
     tabs={[
       { id: "letter", label: "Letter",
-        render: () => <Paper p={p} l={l} /> },
+        render: () => <LetterPage p={p} l={l} /> },
       { id: "details", label: "Details", render: () => (
         <KeyValues items={[
           { label: "Person", value: <a className={s.link}

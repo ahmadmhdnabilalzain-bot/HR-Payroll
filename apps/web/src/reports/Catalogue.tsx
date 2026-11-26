@@ -4,7 +4,10 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { panelOf, routeOf } from "../nav/registry";
 import { Icon } from "../ui/Icon";
 import { BLURB } from "./catalogue";
+import { PageHead } from "../ui/templates";
+import tp from "../ui/templates/templates.module.css";
 import s from "./Reports.module.css";
+import { Footnote } from "../components/explain";
 
 /** Reports home: every report, grouped, with the question it answers. */
 export function Catalogue() {
@@ -13,11 +16,8 @@ export function Catalogue() {
   const groups = panelOf(ctx.state.role, "reports");
   let n = 0;
   return (
-    <>
-      <header className={s.header}>
-        <h1 className={s.title}>{t("reports.title")}</h1>
-        <p className={s.sub}>{t("reports.sub")}</p>
-      </header>
+    <div className={tp.page}>
+      <PageHead title={t("reports.title")} lede={t("reports.sub")} />
       {groups.length === 0 && (
         <p className={s.sub}>Reports are for the HR manager and the
           General manager.</p>
@@ -45,6 +45,7 @@ export function Catalogue() {
           </ul>
         </section>
       ))}
-    </>
+      <Footnote />
+    </div>
   );
 }

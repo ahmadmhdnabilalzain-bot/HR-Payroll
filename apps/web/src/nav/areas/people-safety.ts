@@ -1,4 +1,5 @@
 // NEEDS NATIVE REVIEW: the Arabic labels are authored by Claude.
+import { logRows } from "../../time/finish/views";
 import type { Area, AreaRoute, NavCtx } from "../types";
 
 const HR_GM = ["hr", "gm"] as const;
@@ -7,7 +8,7 @@ const safety = (...rest: string[]): AreaRoute =>
 
 const openIncidents = (c: NavCtx): number => {
   const m = c.state.safetyMarks;
-  return c.data.safety.incidents().filter((i) => (m[`inc:${i.id}`]?.status
+  return logRows(c.data, c.state).filter((i) => (m[`inc:${i.id}`]?.status
     ?? i.status) !== "closed").length;
 };
 const cardsPending = (c: NavCtx): number =>
@@ -44,5 +45,5 @@ export const AREAS: readonly Area[] = [
     label: { en: "Safety incidents report", ar: "تقرير حوادث السلامة" },
     status: "live", archetype: "RP", roles: HR_GM,
     route: { section: "reports", rest: ["safety-incidents"] },
-    keywords: "E14 safety report incidents by month severity" },
+    keywords: "safety report incidents by month severity" },
 ];

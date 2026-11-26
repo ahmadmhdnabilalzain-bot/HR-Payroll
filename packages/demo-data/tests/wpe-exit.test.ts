@@ -32,7 +32,7 @@ describe("WPE exit flow (R34)", () => {
       expect(f.daysToPay).toBe(2);
       const by = f.flags.find((x) => x.id === "pay-by")!;
       expect(by.word).toBe("Check");
-      expect(by.text).toMatch(/As we read it/);
+      expect(by.text).toMatch(/within 14 days/);
     }));
 
   it("names what is not worked out and keeps the run's separation", () =>

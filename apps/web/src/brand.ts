@@ -9,11 +9,11 @@ import type { Lang } from "./i18n/types";
  * No trademark symbols are used anywhere.
  */
 export const PRODUCT_NAME: Readonly<Record<Lang, string>> = Object.freeze({
-  en: "Mubinflow",
-  ar: "Mubinflow",
+  en: "MubinFlow",
+  ar: "MubinFlow",
 });
 
-/** "Pay groups · Mubinflow": the page first, so tabs tell apart. */
+/** "Pay groups · MubinFlow": the page first, so tabs tell apart. */
 export function documentTitle(lang: Lang, page?: string): string {
   const p = page?.trim().replace(/\s+/g, " ").replace(/\.$/, "") ?? "";
   return p === "" ? PRODUCT_NAME[lang] : `${p} · ${PRODUCT_NAME[lang]}`;

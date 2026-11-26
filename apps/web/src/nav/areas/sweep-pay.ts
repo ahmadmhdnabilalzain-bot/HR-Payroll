@@ -33,7 +33,7 @@ export const AREAS: readonly Area[] = [
     status: "live", archetype: "RP", roles: HR_GM, route: rep("owner-brief"),
     keywords: "X25 weekly pack owner general manager week to do" },
   { id: "reports.board-pack", section: "reports", group: "people",
-    label: { en: "Board pack", ar: "حزمة مجلس الإدارة" },
+    label: { en: "Board report", ar: "حزمة مجلس الإدارة" },
     status: "live", archetype: "RP", roles: ["gm"], route: rep("board-pack"),
     keywords: "X26 board directors year to date figures" },
   { id: "reports.loans", section: "reports", group: "pay",

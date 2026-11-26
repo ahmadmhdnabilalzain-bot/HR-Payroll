@@ -1,8 +1,11 @@
 /*
  * Design tokens: the only place colours are written. Every pair must
- * keep passing tests/unit/tokens.test.ts. Quiet neutrals, one accent
- * (deep petrol) for actions and current state, status colours for
- * meaning only. Light and dark are designed as equals.
+ * keep passing tests/unit/tokens.test.ts. Ink only, no accent hue (the
+ * owner's choice C): actions and current state are near-black ink in
+ * light and near-white in dark. Colour is for state only and sparingly
+ * (red stops pay, amber is a check, muted green is done), always with
+ * a word. Avatars are neutral grey and warm-grey tints with ink text.
+ * Light and dark are designed as equals.
  */
 :root {
   --color-bg: #f6f6f4;
@@ -15,27 +18,60 @@
   --color-brand: #10151c;
   --color-text-muted: #5b6068;
   --color-text-faint: #6d727a;
-  --color-accent: #0d5c63;
-  --color-accent-hover: #0a4a50;
-  --color-accent-soft: #e3eeee;
+  --color-accent: #10151c;
+  --color-accent-hover: #2b323c;
+  --color-accent-soft: #ebecee;
   --color-on-accent: #ffffff;
-  --color-trace: #4b4fc4;
+  --color-trace: #3b414a;
   --color-danger: #b42318;
   --color-danger-soft: #fbe9e7;
   --color-warning: #8a5300;
   --color-warning-bg: #fdf1dc;
-  --color-success: #17734a;
-  --color-success-soft: #e4f2ea;
-  --color-info: #3d5a80;
-  --color-focus: #2f6feb;
+  --color-success: #2d6a4f;
+  --color-success-soft: #e7efea;
+  --color-info: #5b6068;
+  --color-focus: #10151c;
   --color-ribbon: #15171a;
   --color-on-ribbon: #f6f6f4;
   --color-scrim: #15171a;
-  --color-bar-1: #0d5c63;
-  --color-bar-2: #4f8a8f;
-  --color-bar-3: #8fb5b8;
-  --color-bar-4: #c4d8d9;
+  --color-bar-1: #10151c;
+  --color-bar-2: #5b6068;
+  --color-bar-3: #a3a7ad;
+  --color-bar-4: #d5d7da;
   --color-shadow: #15171a;
+  /* One cool grey family (under 4 degrees of chroma): secondary
+   * surfaces, secondary and meta text (700 is 4.5:1 on 100), hairlines,
+   * the comparison series in charts, secondary buttons, disabled. */
+  --color-grey-100: #f1f2f4;
+  --color-grey-200: #e4e6e9;
+  --color-grey-300: #c9ccd1;
+  --color-grey-500: #868c95;
+  --color-grey-700: #5b6068;
+  --color-surface-secondary: var(--color-grey-100);
+  --color-hairline: var(--color-grey-200);
+  --color-chart-compare: var(--color-grey-500);
+  --color-button-secondary: var(--color-grey-200);
+  --color-button-secondary-hover: var(--color-grey-300);
+  --color-disabled-bg: var(--color-grey-200);
+  --color-disabled-text: var(--color-grey-500);
+  --color-avatar-1: #ecebe7;
+  --color-avatar-2: #e4e6e9;
+  --color-avatar-3: #ebe6df;
+  --color-avatar-4: #e0e0dc;
+  --color-avatar-5: #e8e3dc;
+  --color-avatar-6: #dde0e3;
+  --color-avatar-7: #e6e2d9;
+  /* Preview only (?avatars=colour): a restrained colour set for the
+   * owner to compare with the neutral tints; ink text on every one. */
+  --color-avatar-c1: #f3dcdc;
+  --color-avatar-c2: #f3e2cb;
+  --color-avatar-c3: #ede6c2;
+  --color-avatar-c4: #d8e8d6;
+  --color-avatar-c5: #d6e2f0;
+  --color-avatar-c6: #e1dcf2;
+  --color-avatar-c7: #eedbe8;
+  --color-avatar-c8: #e0e5d3;
+  --color-avatar-8: #e2e2e2;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -58,6 +94,11 @@
   --text-2xl: 22px;
   --text-3xl: 28px;
   --text-hero: 56px;
+  /* Template type: a page title and a report's lead figure. */
+  --text-title: 34px;
+  --text-title-lh: 40px;
+  --text-figure: 48px;
+  --text-figure-lh: 52px;
 
   --radius-control: 8px;
   --radius-panel: 12px;
@@ -94,27 +135,55 @@
   --color-brand: #f4f6f8;
   --color-text-muted: #a2a7ae;
   --color-text-faint: #8d939b;
-  --color-accent: #5fb8bf;
-  --color-accent-hover: #7cc8ce;
-  --color-accent-soft: #1a2e30;
-  --color-on-accent: #071c1e;
-  --color-trace: #a5a8ff;
+  --color-accent: #f4f6f8;
+  --color-accent-hover: #ffffff;
+  --color-accent-soft: #2c2e32;
+  --color-on-accent: #10151c;
+  --color-trace: #c9ccd1;
   --color-danger: #ff8a7a;
   --color-danger-soft: #2e1a18;
   --color-warning: #f0bd5e;
   --color-warning-bg: #2e2412;
-  --color-success: #62cc96;
-  --color-success-soft: #15291f;
-  --color-info: #9db7d9;
-  --color-focus: #8ab4ff;
+  --color-success: #7fbf9c;
+  --color-success-soft: #1a2620;
+  --color-info: #a2a7ae;
+  --color-focus: #f4f6f8;
   --color-ribbon: #1c1c1e;
   --color-on-ribbon: #a1a1a6;
   --color-scrim: #000000;
-  --color-bar-1: #5fb8bf;
-  --color-bar-2: #3f8c92;
-  --color-bar-3: #2c6368;
-  --color-bar-4: #234448;
+  --color-bar-1: #f4f6f8;
+  --color-bar-2: #a2a7ae;
+  --color-bar-3: #6b717a;
+  --color-bar-4: #3a3e44;
   --color-shadow: #000000;
+  --color-grey-100: #1f2124;
+  --color-grey-200: #2a2d31;
+  --color-grey-300: #3d4147;
+  --color-grey-500: #7f858e;
+  --color-grey-700: #a8adb4;
+  --color-surface-secondary: var(--color-grey-100);
+  --color-hairline: var(--color-grey-200);
+  --color-chart-compare: var(--color-grey-500);
+  --color-button-secondary: var(--color-grey-200);
+  --color-button-secondary-hover: var(--color-grey-300);
+  --color-disabled-bg: var(--color-grey-200);
+  --color-disabled-text: var(--color-grey-500);
+  --color-avatar-1: #2e2e30;
+  --color-avatar-2: #2a2e33;
+  --color-avatar-3: #35312c;
+  --color-avatar-4: #303030;
+  --color-avatar-5: #38332d;
+  --color-avatar-6: #2b2f33;
+  --color-avatar-7: #343029;
+  --color-avatar-c1: #4a2f31;
+  --color-avatar-c2: #4a3a28;
+  --color-avatar-c3: #45402a;
+  --color-avatar-c4: #2f4232;
+  --color-avatar-c5: #2c3a4a;
+  --color-avatar-c6: #3a3450;
+  --color-avatar-c7: #47324a;
+  --color-avatar-c8: #3a4130;
+  --color-avatar-8: #333335;
   color-scheme: dark;
 }
 
@@ -132,6 +201,10 @@
     --text-md: 17px;
     --text-base: 17px;
     --text-hero: 48px;
+    --text-title: 28px;
+    --text-title-lh: 34px;
+    --text-figure: 40px;
+    --text-figure-lh: 44px;
     --page-pad: 16px;
   }
 }

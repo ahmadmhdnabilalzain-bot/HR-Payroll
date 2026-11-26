@@ -2,6 +2,8 @@ import { Suspense, useState } from "react";
 import { useRunApproval } from "../demo/actions";
 import { reducedMotion } from "../demo/motion";
 import { hrefOf, navigate } from "../demo/route";
+import { Footnote } from "../components/explain";
+import { PageHead } from "../ui/templates";
 import { useDemo } from "../demo/state";
 import { formatDayMonth, formatMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -28,10 +30,15 @@ const LEAVE_MS = 200;
 
 export type Go = (to: StepId) => void;
 
-/** Moves to a step in the direction of travel (forward or back). */
-export function useGoStep(at: StepId): [boolean, 1 | -1, Go] {
+/**
+ * Moves to a step in the direction of travel (forward or back). The
+ * step being left fades out first; `toward` names the step the stepper
+ * ring should already be sliding to, so it starts with the tap.
+ */
+export function useGoStep(at: StepId): [boolean, 1 | -1, Go, StepId] {
   const [leaving, setLeaving] = useState(false);
   const [dir, setDir] = useState<1 | -1>(1);
+  const [toward, setToward] = useState<StepId | null>(null);
   const go: Go = (to) => {
     const d = STEPS.indexOf(to) >= STEPS.indexOf(at) ? 1 : -1;
     setDir(d);
@@ -39,13 +46,15 @@ export function useGoStep(at: StepId): [boolean, 1 | -1, Go] {
       navigate("pay-run", to);
       return;
     }
+    setToward(to);
     setLeaving(true);
     setTimeout(() => {
       navigate("pay-run", to);
       setLeaving(false);
+      setToward(null);
     }, LEAVE_MS);
   };
-  return [leaving, dir, go];
+  return [leaving, dir, go, toward ?? at];
 }
 
 /**
@@ -61,11 +70,10 @@ export function PayRun(p: ViewProps) {
 function RunSteps(p: ViewProps) {
   const { lang, t } = useLocale();
   const { data } = useDemo();
-  const a = useRunApproval();
   const step = stepOf(p.rest);
   const h = data.headline();
   const cal = data.payCalendar();
-  const [leaving, dir, go] = useGoStep(step);
+  const [leaving, dir, go, toward] = useGoStep(step);
   const at = STEPS.indexOf(step);
   const next = STEPS[at + 1];
   const prev = STEPS[at - 1];
@@ -74,20 +82,11 @@ function RunSteps(p: ViewProps) {
   const nextLocked = step === "approve";
   return (
     <div className={s.page}>
-      <header className={s.header}>
-        <nav aria-label={t("shell.breadcrumb")} className={s.crumbs}>
-          <span>{data.companyName[lang]}</span>
-          <span aria-hidden="true" className={s.sep}>/</span>
-          <span aria-current="page">{t("shell.navPayRun")}</span>
-        </nav>
-        <h1 className={s.title}>
-          {t("payrun.title", { month: formatMonth(h.runMonth, lang) })}
-        </h1>
-        <p className={s.sub}>
-          {t("payrun.sub", { date: formatDayMonth(cal.payday, lang) })}
-        </p>
-      </header>
-      <Stepper step={step} go={go} />
+      <PageHead crumbs={[{ label: data.companyName[lang],
+        href: hrefOf("home") }]}
+        title={t("payrun.title", { month: formatMonth(h.runMonth, lang) })}
+        lede={t("payrun.sub", { date: formatDayMonth(cal.payday, lang) })} />
+      <Stepper step={toward} go={go} />
       <div key={step} className={s.swap} data-leaving={leaving}
         data-dir={dir}>
         <Suspense fallback={<p className={s.loading}>
@@ -119,15 +118,8 @@ function RunSteps(p: ViewProps) {
             <Icon name="arrowEnd" />
           </a>
         )}
-        {next !== undefined && nextLocked && a.phase !== "file" && (
-          <span className={s.navNext} aria-disabled="true"
-            title={t("payrun.payLocked")}>
-            {t("payrun.continueTo", { step: t(STEP_LABEL[next]) })}
-            <Icon name="arrowEnd" />
-          </span>
-        )}
       </nav>
-      <p className={s.footLine}>{t("payrun.footLine")}</p>
+      <Footnote className={s.footLine} />
     </div>
   );
 }

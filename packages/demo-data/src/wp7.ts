@@ -123,7 +123,7 @@ export interface AuditEvent {
   hash: string;
 }
 
-export const AUDIT_CHAIN_NOTE = "Demo only: each entry's fingerprint " +
+export const AUDIT_CHAIN_NOTE = "Each entry's fingerprint " +
   "(SHA-256) is worked out from the entry and the one before it when " +
   "the demo loads, so a changed or removed entry shows up when the " +
   "chain is checked. It shows the idea; it is not a legal proof, and " +
@@ -561,7 +561,7 @@ export function trendRows(c: DemoCompany): TrendRow[] {
     const before = h[i - 1];
     const l = m.leaveTaken;
     return { month: m.month, monthText: reportMonth(m.month),
-      statusText: m.status === "paid" ? "Paid" : "Awaiting approval",
+      statusText: m.status === "paid" ? "Paid" : "Awaiting sign-off",
       headcountText: `${m.headcount} people`,
       grossText: formatAed(m.gross), netText: formatAed(m.net),
       overtimeText: m.overtimeMinutes === 0 ? "None"

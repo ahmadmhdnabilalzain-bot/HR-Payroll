@@ -11,6 +11,8 @@ import {
   DEMO_LABELS,
   explainPayslipLine,
   isDemoLabelKey,
+  holidays,
+  isHoliday,
   isWorkingDay,
   PENSION_NOT_COMPUTED,
   payslipByEmployee,
@@ -181,19 +183,34 @@ function balanceOf(c: DemoCompany, employeeId: string, uses: LeaveUse[])
     availableDays: b.availableHalves / 2, basis: null };
 }
 
-/** The engine's working-day count; the demo's weekend is Sat and Sun. */
+/**
+ * The engine's working-day count: the weekend is Sat and Sun, and the
+ * sample public holidays (Setup, Public holidays) are skipped too.
+ */
 export function countDays(startDate: string, endDate: string): DayCount {
-  if (endDate < startDate) return { halves: 0, weekendDays: 0 };
+  if (endDate < startDate) {
+    return { halves: 0, weekendDays: 0, holidayDays: 0 };
+  }
   const restDates = new Set<string>();
+  const holidayDates = new Set<string>();
   const n = daysBetween(startDate, endDate) + 1;
   for (let i = 0; i < n; i++) {
     const d = addDays(startDate, i);
     if (!isWorkingDay(d)) restDates.add(d);
+    else if (isHoliday(d)) holidayDates.add(d);
   }
   const r = countLeaveHalves({ start: startDate, end: endDate,
     startPart: "full", endPart: "full" }, "working",
-  { restDates, holidayDates: new Set() });
-  return { halves: r.halves, weekendDays: r.skipped.length };
+  { restDates, holidayDates });
+  const why = (w: string): number => r.skipped.filter((x) => x.why === w)
+    .length;
+  return { halves: r.halves, weekendDays: why("rest-day"),
+    holidayDays: why("holiday") };
+}
+
+/** The sample public holiday a date falls in, or null. */
+export function holidayOn(iso: string): string | null {
+  return holidays().find((h) => iso >= h.from && iso <= h.to)?.name ?? null;
 }
 
 export function adaptPeople(c: DemoCompany): PeopleData {
@@ -236,6 +253,7 @@ export function adaptPeople(c: DemoCompany): PeopleData {
     leaveApprovalTitle: label("approval.leave"),
     annualBalance: (id, uses) => balanceOf(c, id, uses),
     countDays,
+    holidayOn,
     approverOf: (id) => approverIn(c.employees, id),
   };
 }

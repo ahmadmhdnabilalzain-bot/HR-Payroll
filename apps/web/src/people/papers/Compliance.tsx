@@ -9,7 +9,7 @@ export function Compliance() {
   const p = usePapers();
   const rows = complianceRows(p.data, p.state);
   return (
-    <FilterList title="Compliance overview"
+    <FilterList title="Checklist and due dates"
       lede="What is waiting on papers and rules, with a way in. It lists
         what we track; it does not say the company meets any rule."
       rows={rows} rowKey={(r) => r.id}

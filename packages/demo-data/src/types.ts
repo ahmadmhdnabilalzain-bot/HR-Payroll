@@ -232,7 +232,7 @@ export interface DemoDocument {
 /** Headcount by nationality only: no target, status or fine. */
 export interface NationalityHeadcount {
   asOf: string;
-  label: "sample data, regime for banks to be confirmed";
+  label: "The rules for banks are not confirmed yet";
   headcount: number;
   /** The one headcount sentence (payroll, active, leavers). */
   headcountText: string;

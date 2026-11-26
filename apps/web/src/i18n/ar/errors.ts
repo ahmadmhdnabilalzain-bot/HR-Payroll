@@ -21,8 +21,8 @@ export const errors: ArOf<typeof en> = {
   TENANT_FORBIDDEN: "لست عضوًا في هذه الشركة.",
   MFA_REQUIRED: "سجّل الدخول مرة أخرى برمز تطبيق المصادقة للمتابعة.",
   MFA_ENROLMENT_REQUIRED: "أضف تطبيق مصادقة إلى حسابك أولًا.",
-  SOD_VIOLATION: "لا يمكنك اعتماد شيء أنشأته بنفسك. يجب أن يعتمده شخص " +
-    "آخر.",
+  SOD_VIOLATION: "لا يمكنك التوقيع على شيء أنشأته بنفسك. يجب أن " +
+    "يوقّع عليه شخص آخر.",
   NOT_FOUND: "لم يُعثر على هذا العنصر. ربما حُذف.",
   EMAIL_TAKEN: "لهذا البريد الإلكتروني حساب بالفعل.",
   ALREADY_MEMBER: "هذا الشخص عضو في الشركة بالفعل.",
@@ -38,7 +38,7 @@ export const errors: ArOf<typeof en> = {
     "مسير الرواتب من جديد.",
   RUN_EXISTS_FOR_PERIOD: "يوجد مسير رواتب لهذا الشهر بالفعل.",
   RUN_NOT_DRAFT: "لم يعد مسير الرواتب هذا مسودة.",
-  RUN_NOT_APPROVED: "اعتمد مسير الرواتب قبل إعداد ملف الرواتب.",
+  RUN_NOT_APPROVED: "وقّع على مسير الرواتب قبل إعداد ملف الرواتب.",
   INVITE_USED: "استُخدمت هذه الدعوة بالفعل.",
   INVITE_EXPIRED: "انتهت صلاحية هذه الدعوة. اطلب دعوة جديدة.",
   BASIC_COMPONENT_REQUIRED: "يلزم وجود مكوّن الراتب الأساسي.",
@@ -73,13 +73,13 @@ export const errors: ArOf<typeof en> = {
   RUN_EMPTY: "لا يوجد موظفون في مسير الرواتب هذا. أضف أشخاصًا أولًا.",
   // Plan 6: approvals, receipts and expense claims.
   RECEIPT_BASE64_INVALID: "تعذّرت قراءة ملف الإيصال. حاول رفعه مرة أخرى.",
-  NOT_AN_APPROVER: "لست من المعتمدين لهذه الخطوة.",
-  APPROVER_NEEDED_LATER: "أنت مطلوب لخطوة لاحقة، لذا يجب أن يعتمد " +
-    "هذه الخطوة شخص آخر.",
-  APPROVAL_NOT_PENDING: "هذا الاعتماد مغلق بالفعل.",
-  APPROVAL_STEP_CHANGED: "تقدّم هذا الاعتماد في الأثناء. حدّث الصفحة " +
+  NOT_AN_APPROVER: "لست من الموقّعين على هذه الخطوة.",
+  APPROVER_NEEDED_LATER: "أنت مطلوب لخطوة لاحقة، لذا يجب أن يوقّع " +
+    "على هذه الخطوة شخص آخر.",
+  APPROVAL_NOT_PENDING: "هذا التوقيع مغلق بالفعل.",
+  APPROVAL_STEP_CHANGED: "تقدّم هذا التوقيع في الأثناء. حدّث الصفحة " +
     "وراجعه مرة أخرى.",
-  CHAIN_VERSION_CONFLICT: "غيّر شخص آخر سلسلة الاعتماد. حدّث الصفحة " +
+  CHAIN_VERSION_CONFLICT: "غيّر شخص آخر سلسلة التوقيع. حدّث الصفحة " +
     "وحاول مرة أخرى.",
   CATEGORY_CODE_TAKEN: "يوجد تصنيف مصروفات يستخدم هذا الرمز بالفعل.",
   POLICY_VERSION_CONFLICT: "غيّر شخص آخر سياسة المصروفات. حدّث الصفحة " +
@@ -89,16 +89,16 @@ export const errors: ArOf<typeof en> = {
   RECEIPT_TOO_LARGE: "حجم الإيصال أكبر من 5 ميغابايت.",
   RECEIPT_TYPE_NOT_ALLOWED: "يجب أن تكون الإيصالات ملفات JPEG أو PNG أو " +
     "PDF.",
-  NO_ELIGIBLE_APPROVER: "لا يوجد شخص آخر يمكنه الاعتماد. أضف مالكًا " +
-    "آخر أو مستخدم موارد بشرية أو معتمدًا أولًا.",
-  CHAIN_INVALID: "سلسلة الاعتماد غير صالحة. راجع المستويات والمعتمدين.",
+  NO_ELIGIBLE_APPROVER: "لا يوجد شخص آخر يمكنه التوقيع. أضف مالكًا " +
+    "آخر أو مستخدم موارد بشرية أو موقّعًا أولًا.",
+  CHAIN_INVALID: "سلسلة التوقيع غير صالحة. راجع المستويات والموقّعين.",
   RECEIPT_TYPE_MISMATCH: "نوع الملف لا يطابق محتواه.",
   POLICY_INVALID: "سياسة المصروفات غير صالحة. راجع الصفوف المحددة.",
-  CANCEL_NOTE_REQUIRED: "أضف ملاحظة لإلغاء مطالبة معتمدة.",
+  CANCEL_NOTE_REQUIRED: "أضف ملاحظة لإلغاء مطالبة متفق عليها.",
   CLAIM_PROBLEMS: "في المطالبة مشكلات. صحّح البنود المحددة.",
   RECEIPT_QUOTA_EXCEEDED: "رُفع عدد كبير من الإيصالات اليوم. حاول غدًا " +
     "أو اطلب من الموارد البشرية رفع الحد.",
-  EXCLUDED_CLAIM_INVALID: "لا يمكن استبعاد إلا المطالبات المعتمدة التي " +
+  EXCLUDED_CLAIM_INVALID: "لا يمكن استبعاد إلا المطالبات المتفق عليها التي " +
     "تنتظر الدفع من المسير.",
   ...timeErrors,
   // Plan 8 (hiring, onboarding, tasks, exits, goals).
@@ -115,7 +115,7 @@ export const errors: ArOf<typeof en> = {
   OFFER_NOT_WITHDRAWABLE: "لم يعد ممكناً سحب هذا العرض.",
   OFFER_NOT_ACCEPTED: "لا يتحول إلى تعيين إلا العرض المقبول.",
   EXIT_EXISTS: "لهذا الشخص طلب خروج مفتوح.",
-  EXIT_NOT_APPROVED: "اعتمد طلب الخروج أولاً.",
+  EXIT_NOT_APPROVED: "وقّع على طلب الخروج أولاً.",
   EXIT_NOT_OPEN: "طلب الخروج هذا لم يعد مفتوحاً.",
   EXIT_ACCESS_REVOKED: "أُلغي الوصول، فيبقى طلب الخروج.",
   SETTLEMENT_REQUIRED: "احسب التسوية النهائية أولاً.",

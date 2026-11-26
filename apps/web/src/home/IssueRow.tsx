@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { FixKind, Issue } from "../demo/data/types";
 import { useDemo, type Resolution } from "../demo/state";
-import { formatMoney } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Icon } from "../ui/Icon";
 import { useToast } from "../ui/Toast";
 import { IbanForm } from "./IbanForm";
+import { useSaveIban } from "./useSaveIban";
 import s from "./IssueList.module.css";
 
 const DONE: Record<Resolution, MessageKey> = {
@@ -23,7 +23,7 @@ const ONE_TAP: Partial<Record<FixKind, [Resolution, MessageKey]>> = {
 /** One issue: a short title, one plain sentence, one next step. */
 export function IssueRow(p: { issue: Issue; delay: number | null }) {
   const { lang, t } = useLocale();
-  const { source, data, state, dispatch } = useDemo();
+  const { data, state, dispatch } = useDemo();
   const toast = useToast();
   const [editing, setEditing] = useState(false);
   const row = useRef<HTMLLIElement>(null);
@@ -42,14 +42,8 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
     toast.show(t(DONE[how], { name }),
       () => dispatch({ type: "reopen", id: i.id }));
   };
-  const saveIban = (value: string): void => {
-    const id = i.employeeId ?? "";
-    const next = source.at({ ...state.ibans, [id]: value }).headline();
-    dispatch({ type: "iban", employeeId: id, value });
-    toast.show(t("home.doneIban", { name, count: next.sifPeople,
-      amount: formatMoney(next.sifTotalFils, lang) }),
-    () => dispatch({ type: "unset-iban", employeeId: id }));
-  };
+  const save = useSaveIban();
+  const saveIban = (value: string): void => save(i.employeeId ?? "", value);
   const step = ONE_TAP[i.fixKind];
   const canAct = state.role === "hr" && i.employeeId !== null;
   return (
@@ -73,7 +67,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
       {canAct && !editing && (
         <div className={s.actions}>
           {i.fixKind === "enter-iban" ? (
-            <button type="button" className={`${b.btn} ${b.primary}`}
+            <button type="button" className={`${b.btn} ${b.secondary}`}
               onClick={() => setEditing(true)}>{t("home.enterIban")}</button>
           ) : step !== undefined ? (
             <button type="button" className={`${b.btn} ${b.secondary}`}

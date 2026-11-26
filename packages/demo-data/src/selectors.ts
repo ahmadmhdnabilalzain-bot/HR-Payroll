@@ -45,7 +45,8 @@ export interface HeadlineBasis {
 }
 
 export const HEADLINE_BASIS: HeadlineBasis = { ruleSet: "UAE mainland",
-  pension: `UAE nationals: not computed (${PENSION_NOT_COMPUTED.en})` };
+  pension: "Pension for UAE nationals: Not computed. " +
+    PENSION_NOT_COMPUTED.en };
 
 /** The numbers the dashboard leads with; every one is a sum. */
 export function headlineTotals(c: DemoCompany): HeadlineTotals {

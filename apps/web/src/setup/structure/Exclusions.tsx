@@ -3,7 +3,7 @@ import type { StructureData } from "./data";
 import { Status, type Tone } from "./ui";
 
 const WORD: Record<string, [string, Tone]> = {
-  "not-computed": ["Not worked out", "warn"],
+  "not-computed": ["Not computed", "warn"],
   "not-applicable": ["Not applicable", "none"],
   "held-out": ["Held back", "danger"],
   "outside-run": ["Outside the run", "none"],

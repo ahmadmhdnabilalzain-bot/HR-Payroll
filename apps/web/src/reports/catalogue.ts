@@ -1,13 +1,17 @@
 import { SAFETY_BLURBS } from "../people/safety/Report";
 import { COST_BLURBS } from "./cost";
+import { INSPECTION_BLURBS } from "./inspection";
 import { MORE_BLURBS } from "./more";
+import { PLANNING_BLURBS } from "./planning";
 import { ANALYSIS_BLURBS } from "./analysis";
 
 /** What each report answers, by area id: the home page's one line. */
 export const BLURB: Readonly<Record<string, string>> = {
   ...COST_BLURBS,
+  ...PLANNING_BLURBS,
   ...SAFETY_BLURBS,
   ...MORE_BLURBS,
+  ...INSPECTION_BLURBS,
   ...ANALYSIS_BLURBS,
   "reports.summary": "What is this month's pay, and how does it compare " +
     "with last month?",
