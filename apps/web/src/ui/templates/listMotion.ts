@@ -129,7 +129,9 @@ function nameParts(p: Parts | null): () => void {
   });
 }
 
-/** Resolves once `find` returns parts (the record may still load). */
+/** Resolves once `find` returns parts (the record may still load).
+ * Polls on a timer: inside a view transition's update the browser runs
+ * no animation frames, so requestAnimationFrame would stall here. */
 function until(find: () => Parts | null, ms = 400): Promise<Parts | null> {
   const end = performance.now() + ms;
   return new Promise((done) => {
@@ -138,7 +140,7 @@ function until(find: () => Parts | null, ms = 400): Promise<Parts | null> {
       if ((p !== null && (p.name !== null || (p.box ?? null) !== null)) ||
         performance.now() > end) {
         done(p);
-      } else requestAnimationFrame(tick);
+      } else setTimeout(tick, 16);
     };
     tick();
   });
