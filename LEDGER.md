@@ -515,3 +515,23 @@ The owner can overrule any of these. Full list with reasons:
   user to approve their leave; cipher text from before migrations 010
   and 012 is unreadable (no real data existed).
 
+
+## 13. Design direction and skills (2026-11-26)
+
+- Owner: of concepts A, B, C, **C (Northline Pipeline) is the winner**,
+  but "way too far still" from what they want. Round 2 started: three
+  agents push C in different directions (Cinematic, Kinetic Control
+  Room, Fluid Luxe), each browser-checked with screenshots. The owner
+  still picks; web screens wait for that choice.
+- Owner asked whether installed skills are actually used. Standing
+  rule (Claude's call): load the relevant skill before design, merge,
+  review and verification work; name required skills in every agent
+  brief; handover lists which skills each piece of work used.
+- Third-party skills installed from the owner's list (pinned, skill
+  files only, no hooks or MCP): see `docs/third-party-skills.md`.
+  Headroom (prompt proxy) and 21st magic-mcp (needs an account and
+  key) were not installed; owner decision.
+- WPS Resolution 340/2026 primary text is still unread (law-firm
+  summaries only; the legislation portal blocks automated browsers and
+  the MOHRE pages did not load). Day-16 condition sources disagree;
+  nothing is encoded as official. Counsel item.
