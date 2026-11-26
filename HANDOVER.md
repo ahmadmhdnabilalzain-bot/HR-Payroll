@@ -400,13 +400,13 @@ needs checking against official sources before anything is built on it.
 | 4 | Web app | groundwork merged; screens wait for the design pick |
 | 5 | Monthly payroll engine | built, reviewed, fixed, merged |
 | 6 | Expenses and claims (approval spine, receipts) | API build running |
-| 7 | Documents, letters, Emiratisation | engine merged; API built on branch `api-plan-7` (report `plan-7-build-report.md`), not merged |
+| 7 | Documents, letters, Emiratisation | API merged to main (a038a5e+); independent security review done, fixes R1-R6 in progress |
 | 8 | Hiring, tasks, exit flow | engine part merged; API build running |
-| 9 | Time, attendance, leave policies, WFH | engine part merged (review running); API build running |
-| 10 | Performance, learning, surveys | planned; waits for 7 and 8 |
-| 11 | Owner view, pre-pay gate, evidence | deadline and preview engine merged; API waits for 5, 6, 7 |
-| 12 | VAT, corporate tax, e-invoicing | engine merged, reviewed, fixed; API waits for Plan 6 |
-| 13 | Channels and integrations | planned; waits for Plan 6 |
+| 9 | Time, attendance, leave policies, WFH | merged to main; re-review found migration 905 upgrade defect (N1) and others, fixes in progress |
+| 10 | Performance, learning, surveys | API build running (branch `api-plan-10`) |
+| 11 | Owner view, pre-pay gate, evidence | API build running (branch `api-plan-11`; engine part merged) |
+| 12 | VAT, corporate tax, e-invoicing | API built (branch `api-plan-12`); money review found 1 critical + 6 important, fixes in progress; not merged |
+| 13 | Channels and integrations | API built and merged with main on branch `api-plan-13`; security review found 5 important, fixes in progress; not merged |
 | 14 | Meetings | planned; blocked until a telecom position is confirmed |
 | 15 | Social and website insights | planned; waits for 8, 11, 13 |
 | 16 | Finance modules | planned; waits for 6, 7, 12 |
