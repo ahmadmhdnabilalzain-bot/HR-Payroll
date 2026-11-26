@@ -39,6 +39,15 @@
   --color-bar-3: #a3a7ad;
   --color-bar-4: #d5d7da;
   --color-shadow: #15171a;
+  /* The opening (#/welcome): the brand's ink and paper with the light
+   * greys, the same in both themes (it is one composed frame). */
+  --color-cine-ink: #10151c;
+  --color-cine-paper: #f4f6f8;
+  --color-cine-card: #ffffff;
+  --color-cine-grey-200: #e4e6e9;
+  --color-cine-grey-300: #c9ccd1;
+  --color-cine-grey-500: #868c95;
+  --color-cine-grey-700: #5b6068;
   /* One cool grey family (under 4 degrees of chroma): secondary
    * surfaces, secondary and meta text (700 is 4.5:1 on 100), hairlines,
    * the comparison series in charts, secondary buttons, disabled. */

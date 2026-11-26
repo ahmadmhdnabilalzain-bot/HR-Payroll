@@ -45,6 +45,7 @@ export const shell = {
   actLang: "Switch language",
   actRole: "View as {role}",
   actSources: "Show where the figures come from",
+  actReplay: "Replay opening",
   actIssue: "Open issue: {name}",
   actApproval: "Decide: {title}",
   actApprove: "Sign off {month} pay",
