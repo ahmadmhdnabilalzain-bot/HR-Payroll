@@ -280,7 +280,7 @@ names were built earlier).
 | I4 | `37d09a8` | `WfhExport.minutes` holds every stored minute from the cutoff on |
 | I5 | `e38c490` | Tests for the 24-hour clock-out bound, SoD by submitter, consent time and clock-out boundary, the manager summary scope, the pay-input import graph (side-effect imports too) and a forbidden-column check over every table; each was shown to fail under its mutation (M8, M5b, M14, M10, M17, M9, M2b, M2c) |
 | Minors | `8907545` | M1 real `now` for timesheet WFH totals; M2 paused minutes honour the cutoff; M3 an hr correction closes an open pause and the purge removes open pauses older than the cutoff; M8 future-day corrections refused; M14 clock-math tests in `clock-math.test.ts` |
-| I2 + merge | (merge commit) | `carry-over.ts` passes the time params and stores `excess_halves`; `CarryOverResult` rows show `excessDays` and the engine's `UNUSED_LEAVE_NOT_CARRIED` flags |
+| I2 + merge | `7d556ca` | `carry-over.ts` passes the time params and stores `excess_halves`; `CarryOverResult` rows show `excessDays` and the engine's `UNUSED_LEAVE_NOT_CARRIED` flags |
 
 Minors not done (need a ruling or are larger): M4 (scheduling the
 purge: handover now says operations should run it daily), M5 (raising
@@ -291,3 +291,31 @@ checks on clock-out, roster and swap approval), M10 (refuse approving
 a stale sheet), M11 (fixed on main by the Plan 3 review: nobody
 decides their own leave), M12 (handover now says the geofence is
 evidence, not enforcement), M13 (pending leave lowers carry-over).
+
+### Merge of `claude/quirky-wozniak-b7xkvr` (`7d556ca`)
+
+Conflicts, all resolved keeping both sides: contract `routes.ts`,
+`registry.ts`, `examples.ts` (EXPENSE and TIME lists side by side);
+api `app.ts`, `audit/allowlist.ts`, `main.ts` (expense app, blob store
+and `purge-wfh` together); `attendance.ts` (main's stricter
+`checkTimes`/`checkOpen` and `correct(old, now)` kept, Plan 9's
+`source`, pause closing and lock check added); `routes/attendance.ts`
+(Plan 9's `correctAttendance` wrapper kept; it now calls main's
+`correct`); `leave/requests.ts` and `routes/leave.ts` (main's sealed
+reason and stricter `decide` kept, Plan 9's half days, planning and
+warnings kept); `conformance.test.ts` (main's `api-flow.ts` kept;
+`timeFlow` called from it); `leak.test.ts` (both kinds, fixtures and
+paths); `seed-rows.ts`, `pg.integration.test.ts` (both);
+`HANDOVER.md` (both states, one "Known limits" section). `apps/web`:
+origin's files, plus `errors-time.ts` texts for Plan 9's error codes
+(English, and Arabic flagged NEEDS NATIVE REVIEW). Lockfile
+regenerated. Migrations run 001-013, 601-605, 901-908 in name order;
+the RLS catalog test confirms forced RLS and a policy on every tenant
+table. The forbidden-column check over every table allows, by table
+and column, `employees.job_title`, `expense_policies.claim_window_days`,
+`receipts.content_type` and `expense_claims.title`.
+
+Tests after the merge, one package at a time: contract 111, engine
+584, time-client 13, web 103 (typecheck clean), api 80 files / 568
+tests, real PostgreSQL 22 of 22 (throwaway server, stopped). wps 173
+with the known `roundtrip` 5-second timeout under load.
