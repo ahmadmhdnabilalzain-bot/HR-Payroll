@@ -109,19 +109,23 @@ export function fly(o: FlyOptions): () => void {
     { transform: `translate(${x0}px, ${y0}px)` },
     { transform: `translate(${x1}px, ${y1}px)` },
   ], { duration: FLIGHT_MS, easing: SPRING, fill: "forwards" });
-  let fade: Animation | null = null;
+  // The fade is scheduled at launch, on the compositor: if onLand's
+  // work blocks the main thread, the clone still fades on time rather
+  // than parking on the target.
+  const total = FLIGHT_MS + LAND_FADE_MS;
+  const fade = clone.animate([
+    { opacity: 1 },
+    { opacity: 1, offset: FLIGHT_MS / total },
+    { opacity: 0 },
+  ], { duration: total, easing: "linear", fill: "forwards" });
   const done = (): void => {
     clone.remove();
   };
-  travel.onfinish = () => {
-    land();
-    fade = clone.animate([{ opacity: 1 }, { opacity: 0 }],
-      { duration: LAND_FADE_MS, easing: "ease-out", fill: "forwards" });
-    fade.onfinish = done;
-  };
+  fade.onfinish = done;
+  travel.onfinish = land;
   return () => {
     travel.cancel();
-    fade?.cancel();
+    fade.cancel();
     done();
     land();
   };
