@@ -8,6 +8,7 @@ import { profileHref } from "./common";
 import { fill, W } from "./words";
 import s from "./org.module.css";
 import { Avatar } from "../../ui/Avatar";
+import { Footnote } from "../../components/explain";
 
 /** Everyone at and below a node, counting the node itself. */
 function sizeOf(n: OrgChartNode): number {
@@ -137,6 +138,7 @@ export function OrgChart() {
           </ul>
         </div>
       )}
+      <Footnote />
     </div>
   );
 }

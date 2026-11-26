@@ -22,7 +22,8 @@ const BAR: Record<Role, readonly SectionId[]> = {
  */
 export function roleAllows(a: Area, role: Role): boolean {
   if (a.roles === undefined || a.roles.includes(role)) return true;
-  return role === "it" && a.section === "setup" && a.roles.includes("hr");
+  return role === "it" && a.section === "setup" && a.roles.includes("hr")
+    && a.notForIt !== true;
 }
 
 const keyOf = (r: AreaRoute): string[] => [r.section, ...(r.rest ?? [])];

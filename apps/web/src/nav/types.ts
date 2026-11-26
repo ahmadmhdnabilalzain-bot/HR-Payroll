@@ -49,6 +49,12 @@ export interface Area {
   stopsPay?: boolean;
   /** Roles that see the area; all roles when left out. */
   roles?: readonly Role[];
+  /**
+   * A Setup area for HR and the General manager alone (people's pay,
+   * who decides for whom): IT, who otherwise reaches every Setup area
+   * HR reaches, does not.
+   */
+  notForIt?: boolean;
   /** Extra words search should match (both languages welcome). */
   keywords?: string;
 }

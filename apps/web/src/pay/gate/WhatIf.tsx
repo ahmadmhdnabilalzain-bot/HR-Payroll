@@ -10,6 +10,7 @@ import { Money } from "../../ui/Money";
 import { KeyValues, PageHead } from "../../ui/templates";
 import { filsOfInput } from "../derive";
 import s from "./gate.module.css";
+import { Footnote } from "../../components/explain";
 
 const aedOf = (f: Fils): string => {
   const v = f as bigint;
@@ -147,6 +148,7 @@ export function WhatIf() {
         <p className={s.muted}>Worked out by the same engine as the pay run,
           on the same rules.</p>
       </section>
+      <Footnote />
     </div>
   );
 }

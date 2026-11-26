@@ -7,6 +7,7 @@ import { BLURB } from "./catalogue";
 import { PageHead } from "../ui/templates";
 import tp from "../ui/templates/templates.module.css";
 import s from "./Reports.module.css";
+import { Footnote } from "../components/explain";
 
 /** Reports home: every report, grouped, with the question it answers. */
 export function Catalogue() {
@@ -44,6 +45,7 @@ export function Catalogue() {
           </ul>
         </section>
       ))}
+      <Footnote />
     </div>
   );
 }

@@ -9,6 +9,8 @@
   /* The title sits at the templates' y: 40 under the bar. */
   padding: 40px var(--page-pad) var(--space-7);
   font-size: var(--text-md);
+  /* A step slides 24 px in; it must not widen a phone's page. */
+  overflow-x: clip;
 }
 
 /* The stepper: one element; the ring slides, the line fills. */

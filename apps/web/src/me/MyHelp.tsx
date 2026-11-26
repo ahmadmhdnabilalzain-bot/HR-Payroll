@@ -4,6 +4,7 @@ import { useDemo } from "../demo/state";
 import { PageHead } from "../ui/templates";
 import s from "../people/requests/requests.module.css";
 import tpl from "../ui/templates/templates.module.css";
+import { Footnote } from "../components/explain";
 
 interface Card {
   id: string;
@@ -105,6 +106,7 @@ export function MyHelp() {
           </div>
         )}
       </div>
+      <Footnote />
     </div>
   );
 }

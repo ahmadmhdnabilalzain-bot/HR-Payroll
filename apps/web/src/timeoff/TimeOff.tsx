@@ -18,6 +18,7 @@ import { Requests } from "./Requests";
 import { TeamCalendar } from "./TeamCalendar";
 import p from "../people/page.module.css";
 import s from "./timeoff.module.css";
+import { Footnote } from "../components/explain";
 
 /**
  * Time off: your balance, the requests you may see (yours, your
@@ -49,6 +50,7 @@ export function TimeOff(_p: ViewProps) {
       {leaveIds(data, state).length > 1 && <TeamCalendar />}
       <RequestSheet open={open} onClose={() => setOpen(false)}
         onSent={(id) => setFresh(id)} />
+      <Footnote />
     </div>
   );
 }

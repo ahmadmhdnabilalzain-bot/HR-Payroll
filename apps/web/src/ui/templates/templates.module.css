@@ -629,6 +629,8 @@ li + li.actRow > .row {
 }
 
 .tabs button {
+  /* Never squeezed: long tab names scroll the row sideways. */
+  flex: none;
   min-block-size: 44px;
   padding-inline: var(--space-3);
   border: 0;

@@ -432,8 +432,9 @@ the explain panel. Severity words: "Stops pay" and "Check".
   Sees the directory but no one's pay (`canSeePay`); a typed
   `#/pay-run` is outside the view, but Setup > Pay groups and Pay
   elements (`#/pay-run/groups|elements`) open. Every Setup area HR
-  reaches is IT's too
-  (`roleAllows` in `nav/registry.ts`); People and Reports areas must
+  reaches is IT's too (`roleAllows` in `nav/registry.ts`), except one
+  marked `notForIt` (the parallel run, approval cover); People and
+  Reports areas must
   list "it" themselves. IT Home: connections, access review, import,
   and the audit chain checked on demand (the one action).
 - **Data:** `data.home` (`demo/data/home.ts`) wraps the package's

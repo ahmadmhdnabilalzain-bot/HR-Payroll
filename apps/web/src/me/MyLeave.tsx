@@ -8,6 +8,7 @@ import { PageHead } from "../ui/templates";
 import { LeaveForm } from "../home/LeaveForm";
 import { RequestList } from "../home/RequestList";
 import s from "../home/Self.module.css";
+import { Footnote } from "../components/explain";
 
 /** E03: the viewer's annual leave left, Request leave, and their leave. */
 export function MyLeave() {
@@ -37,6 +38,7 @@ export function MyLeave() {
       {asking && <LeaveForm employeeId={me} onDone={() => setAsking(false)} />}
       <RequestList title={t("me.upcoming")} rows={mine}
         empty={t("timeoff.requestsEmpty")} />
+      <Footnote />
     </div>
   );
 }
@@ -52,6 +54,7 @@ export function MyRequests() {
       <PageHead title={t("me.requestsTitle")} lede={t("me.requestsLede")} />
       <RequestList title={t("home.myRequests")} rows={mine}
         empty={t("timeoff.requestsEmpty")} />
+      <Footnote />
     </div>
   );
 }
