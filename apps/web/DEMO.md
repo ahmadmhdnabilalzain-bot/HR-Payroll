@@ -604,18 +604,19 @@ are in `docs/demo/copy-audit.md`.
   leaves the source figure at its own size (the hero's 56 px, scale about 2 to
   1) and lands in the header in 420 ms on the bank flight's spring, in its own
   top layer, so it never leads the sliding drawer; the source dims to 0.35 until
-  the copy lands; a short rule draws under the landed figure; then the
-  working assembles (`assembly.ts`): from 360 ms, one line every 96 ms (tighter
-  for long workings, 56 ms on phones), each rising in as its rule draws and its
-  amount slides up whole (never counted, so no line shows a number it does not
-  end on); a total waits for the line before it to land, and the sum check (the
-  last total) lands last on an ink rule; the rest follows. Gratuity steps
-  reconcile to the fils (tier 2 is the total less tier 1, both from the engine).
-  Notice pay, deductions and other dues are listed as not worked out. Rule
-  status comes from the engine, or from the package's `PRESENTED_STATUS` where
-  it differs (the 50% deduction limit reads "secondary-sourced, as we read it").
-  Citations name Decree-Law 33/2021 articles only where the primary text was
-  read (Art 51 for gratuity).
+  the copy lands; a short rule draws under the landed figure (on a phone there
+  is no copy: the figure rises with the sheet); then the working assembles
+  (`assembly.ts`): from 360 ms, one line every 96 ms (tighter for long workings,
+  56 ms on phones), each rising in as its rule draws and its amount slides up
+  whole (never counted, so no line shows a number it does not end on); a total
+  waits for the line before it to land, and the sum check (the last total) lands
+  last on an ink rule; the rest follows. Gratuity steps reconcile to the fils
+  (tier 2 is the total less tier 1, both from the engine). Notice pay,
+  deductions and other dues are listed as not worked out. Rule status comes from
+  the engine, or from the package's `PRESENTED_STATUS` where it differs (the 50%
+  deduction limit reads "secondary-sourced, as we read it"). Citations name
+  Decree-Law 33/2021 articles only where the primary text was read (Art 51 for
+  gratuity).
 - **Reports** (`#/reports/<id>`): payroll summary, cost by department
   (the department bars), headcount by nationality (headcount only,
   "sample data, regime for banks to be confirmed"), documents
