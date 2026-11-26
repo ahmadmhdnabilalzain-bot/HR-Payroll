@@ -39,6 +39,7 @@ export const timeoff: ArOf<typeof en> = {
     "ومن يقرر فيها.",
   requestsEmptyAll: "لا توجد طلبات إجازة بعد.",
   waitingFor: "بانتظار {name}، {role}",
+  overlapsWith: "نفس الأيام مثل {names}",
   booked: "محجوزة",
   bookedBy: "حجزها {name}، {role}، {date}",
   declined: "مرفوضة",

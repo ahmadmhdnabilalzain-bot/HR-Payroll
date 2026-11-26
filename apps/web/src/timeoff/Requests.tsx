@@ -5,9 +5,11 @@ import {
   personFor,
   requestRows,
   leaveIds,
+  overlapsOf,
   ownLeaveOnly,
   type RequestRow,
 } from "../demo/time-off";
+import { formatList } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import { dayText, daysText, rangeText, type Tone } from "../people/words";
@@ -45,7 +47,7 @@ export function statusOf(r: RequestRow, d: ReturnType<typeof useDemo>,
  * who it waits for. A new request can be withdrawn while it waits.
  */
 export function Requests(q: { fresh: string | null }) {
-  const { t } = useLocale();
+  const { lang, t } = useLocale();
   const demo = useDemo();
   const { data, state } = demo;
   const me = personFor(data, state.role);
@@ -56,6 +58,14 @@ export function Requests(q: { fresh: string | null }) {
   const ordered = [...rows.filter(mine), ...rows.filter((r) => !mine(r))];
   const forMe = rows.filter(mine).length;
   const onlyOwn = ownLeaveOnly(state);
+  const nameOf = (id: string): string =>
+    data.people.person(id)?.name[lang] ?? "";
+  const overlap = (r: RequestRow): string => {
+    const xs = overlapsOf(rows, r, ids);
+    return xs.length === 0 ? "" : t("timeoff.overlapsWith", {
+      names: formatList(xs.map((x) => `${nameOf(x.employeeId)} (` +
+        `${rangeText(x.startDate, x.endDate, lang)})`), lang) });
+  };
   return (
     <section className={p.section} aria-labelledby="req-title">
       <header className={p.sectionHead}>
@@ -75,7 +85,7 @@ export function Requests(q: { fresh: string | null }) {
         <ul className={s.requests}>
           {ordered.map((r) => (
             <Row key={r.id} r={r} showName={!onlyOwn} mine={mine(r)}
-              fresh={r.id === q.fresh} me={me} />
+              fresh={r.id === q.fresh} me={me} overlap={overlap(r)} />
           ))}
         </ul>
       )}
@@ -84,7 +94,7 @@ export function Requests(q: { fresh: string | null }) {
 }
 
 function Row(q: { r: RequestRow; showName: boolean; mine: boolean;
-  fresh: boolean; me: string }) {
+  fresh: boolean; me: string; overlap: string }) {
   const { lang, t } = useLocale();
   const demo = useDemo();
   const { data, dispatch } = demo;
@@ -126,6 +136,9 @@ function Row(q: { r: RequestRow; showName: boolean; mine: boolean;
             {daysText(r.halves, t, lang)}
           </span>
         </span>
+        {q.mine && q.overlap !== "" && (
+          <span className={s.reqReason} data-overlap="">{q.overlap}</span>
+        )}
         {(r.reason.en !== "" || r.note !== "") && (
           <span className={s.reqReason}>
             {[r.reason[lang], r.note].filter((x) => x !== "").join(" · ")}

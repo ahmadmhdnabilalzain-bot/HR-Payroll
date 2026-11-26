@@ -28,6 +28,7 @@ export const timeoff = {
     "who decides it.",
   requestsEmptyAll: "No leave requests yet.",
   waitingFor: "Waiting for {name}, {role}",
+  overlapsWith: "Same days as {names}",
   booked: "Booked",
   bookedBy: "Booked by {name}, {role}, {date}",
   declined: "Declined",

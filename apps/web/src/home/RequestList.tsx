@@ -1,7 +1,13 @@
 import { useDemo } from "../demo/state";
 import { dayVars } from "../people/words";
-import { personFor, type RequestRow } from "../demo/time-off";
-import { formatDayMonth } from "../i18n/format";
+import {
+  leaveIds,
+  overlapsOf,
+  personFor,
+  requestRows,
+  type RequestRow,
+} from "../demo/time-off";
+import { formatDayMonth, formatList } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
@@ -27,6 +33,16 @@ export function RequestList(p: { title: string; rows: RequestRow[];
   const types = data.people.leaveTypes();
   const nameOf = (id: string): string =>
     data.people.person(id)?.name[lang] ?? "";
+  const all = requestRows(data, state);
+  const visible = new Set(leaveIds(data, state));
+  /** "Same days as Rafiq Hossain (16 Nov – 20 Nov)", for the approver. */
+  const overlap = (r: RequestRow): string => {
+    const xs = overlapsOf(all, r, visible);
+    return xs.length === 0 ? "" : t("timeoff.overlapsWith", {
+      names: formatList(xs.map((x) => `${nameOf(x.employeeId)} (` +
+        `${formatDayMonth(x.startDate, lang)} – ` +
+        `${formatDayMonth(x.endDate, lang)})`), lang) });
+  };
   return (
     <section className={s.list} aria-label={p.title}>
       <h2 className={s.listTitle}>{p.title}</h2>
@@ -57,6 +73,10 @@ export function RequestList(p: { title: string; rows: RequestRow[];
                     {" · "}
                     {t("timeoff.workingDays", dayVars(r.halves, lang))}
                   </span>
+                  {decide && overlap(r) !== "" && (
+                    <span className={s.meta} data-overlap="">
+                      {overlap(r)}</span>
+                  )}
                 </div>
                 {decide ? (
                   <div className={s.rowActions}>
