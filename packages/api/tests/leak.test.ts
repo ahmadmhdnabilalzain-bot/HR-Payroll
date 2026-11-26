@@ -14,6 +14,7 @@ import {
   HR_ID_KIND,
   HR_KINDS,
   hrIdFor,
+  hrOwnerPaths,
   hrSentinels,
   hrVisible,
 } from "./helpers/leak-hr";
@@ -147,6 +148,14 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
         `/v1/sif-files/${sifId}/download`);
       expect(file.text).toContain(IBAN_SENTINEL);
     });
+
+  it("owner bodies carry the HR sentinels too", async () => {
+    for (const [path, sentinel] of hrOwnerPaths(hr)) {
+      const r = await call(ctx.app, s.owner.token, s.companyId, "GET",
+        path);
+      expect(r.text, path).toContain(sentinel);
+    }
+  });
 
   it("company B's owner gets 404 for every A id", async () => {
     const b = await signup(ctx.app, "other");

@@ -1,4 +1,4 @@
-import type { HrSeeded } from "./seed-hr";
+import { CANDIDATE_EMAIL_SENTINEL, type HrSeeded } from "./seed-hr";
 
 type Role = "owner" | "hr" | "manager" | "employee";
 
@@ -6,25 +6,46 @@ type Role = "owner" | "hr" | "manager" | "employee";
 export const HR_ID_KIND: Record<string, string | null> = {
   listTasks: null,
   getTask: "task",
+  listRequisitions: null,
+  getRequisition: "requisition",
+  listCandidates: null,
+  listApplications: null,
+  getApplication: "application",
 };
+
+const FIXTURE: Record<string, keyof HrSeeded> = {
+  task: "taskId",
+  requisition: "requisitionId",
+  application: "applicationId",
+};
+
+export const HR_KINDS = Object.keys(FIXTURE);
 
 /** The fixture id for an HR kind. */
 export function hrIdFor(kind: string, h: HrSeeded): string {
-  if (kind === "task") return h.taskId;
-  throw new Error(`no HR fixture for ${kind}`);
+  const key = FIXTURE[kind];
+  if (key === undefined) throw new Error(`no HR fixture for ${kind}`);
+  return h[key] as string;
 }
-
-export const HR_KINDS = ["task"];
 
 /** Who may open each HR fixture (others get 404). */
 export function hrVisible(role: Role, kind: string): boolean {
   if (role === "owner" || role === "hr") return true;
   // The seeded task is hr's, assigned to the employee user.
   if (kind === "task") return role === "employee";
+  // The seeded requisition's hiring manager is the manager user.
+  if (kind === "requisition" || kind === "application") {
+    return role === "manager";
+  }
   return false;
 }
 
-/** Values only owner and hr may receive; later tasks add sentinels. */
+/** GET paths whose owner body must carry the given sentinel. */
+export function hrOwnerPaths(_h: HrSeeded): [string, string][] {
+  return [["/v1/candidates", CANDIDATE_EMAIL_SENTINEL]];
+}
+
+/** Values only owner and hr may receive. */
 export function hrSentinels(_h: HrSeeded): string[] {
-  return [];
+  return [CANDIDATE_EMAIL_SENTINEL];
 }

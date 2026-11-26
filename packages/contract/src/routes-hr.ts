@@ -1,4 +1,5 @@
 import { IdParams } from "./primitives";
+import { HIRING_ROUTES } from "./routes-hiring";
 import { ALL_ROLES, ten, type RouteDef } from "./route-def";
 import {
   ChecklistItemUpdate,
@@ -33,4 +34,5 @@ const TASK_ROUTES: readonly RouteDef[] = [
 /** Plan 8: hiring, onboarding, tasks, exits and goals (all tenant). */
 export const HR_ROUTES: readonly RouteDef[] = [
   ...TASK_ROUTES,
+  ...HIRING_ROUTES,
 ];

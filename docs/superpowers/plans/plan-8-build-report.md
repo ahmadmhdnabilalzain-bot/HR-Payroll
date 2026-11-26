@@ -7,11 +7,12 @@ on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`. Task 1 (the engine
 
 ## Status
 
-In progress. Task 2 done.
+In progress. Tasks 2 and 3 done.
 
 | Task | Commit message |
 |---|---|
 | 2 | `feat(api): task manager` |
+| 3 | `feat(api): requisitions and applicant tracker` |
 
 ## Gate
 
@@ -63,6 +64,26 @@ lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
    hr or assignee); adding items needs the right to edit (creator,
    owner, hr). Comments: anyone who can see the task.
 4. `mine=true` means "assigned to me".
+5. **Hiring manager named by owner or hr** must be a member with role
+   owner, hr or manager (else 422 `ASSIGNEE_NOT_MEMBER`); an unknown
+   department is 404 with `detail.fields`.
+6. **Who sees an application:** owner, hr, the requisition's hiring
+   manager or requester, and anyone listed on one of its interviews
+   (so interviewers can open it to score). Stage moves and interview
+   scheduling or cancelling: owner, hr or the hiring manager (a
+   manager who can see it but is not the hiring manager gets 403).
+7. **Stage history order** uses a per-application `seq` column (not
+   the timestamp, which can tie).
+8. **A requisition's close reason** is stored in its own column
+   `close_reason` (not shown on `Requisition`, whose shape the plan
+   fixes) and is never audited.
+9. **Interview scheduling on a closed application** (hired, rejected,
+   withdrawn) is 409 `APPLICATION_CLOSED`; cancelling a cancelled
+   interview returns it unchanged. The calendar title is
+   `Interview: <requisition title>` (no candidate name leaves the app).
+10. **Duplicates** (candidate email, application, scorecard) are found
+    with `INSERT ... ON CONFLICT DO NOTHING RETURNING`, so a unique
+    violation never aborts the request's one transaction.
 
 ## Test order (honest)
 
@@ -70,6 +91,9 @@ lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
   red (module missing). The contract schemas and `routes-hr.test.ts`
   were written before the contract test was run, so that test was
   never seen red.
+- Task 3: `approvals`, `requisitions` and `applications` tests were
+  written first and seen red (20 failing); the contract schemas came
+  just before them.
 
 ## Concerns
 

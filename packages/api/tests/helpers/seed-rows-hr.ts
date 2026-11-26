@@ -24,8 +24,45 @@ async function seedTasks(admin: Db, c: string, user: string,
     [rowId(c, "73"), c, task, user, AT]);
 }
 
+async function seedHiring(admin: Db, c: string,
+  user: string): Promise<string> {
+  const req = rowId(c, "74");
+  const cand = rowId(c, "75");
+  const app = rowId(c, "76");
+  await admin.query(
+    `INSERT INTO requisitions (id, company_id, title, headcount, status,
+       requested_by, created_at)
+     VALUES ($1, $2, 'Clerk', 1, 'open', $3, $4)`, [req, c, user, AT]);
+  await admin.query(
+    `INSERT INTO candidates (id, company_id, full_name, source,
+       created_at) VALUES ($1, $2, 'Seed Candidate', 'direct', $3)`,
+    [cand, c, AT]);
+  await admin.query(
+    `INSERT INTO applications (id, company_id, requisition_id,
+       candidate_id, stage, created_at)
+     VALUES ($1, $2, $3, $4, 'offer', $5)`, [app, c, req, cand, AT]);
+  await admin.query(
+    `INSERT INTO application_stage_events (id, company_id,
+       application_id, seq, stage, at, by_user_id)
+     VALUES ($1, $2, $3, 1, 'applied', $4, $5)`,
+    [rowId(c, "77"), c, app, AT, user]);
+  await admin.query(
+    `INSERT INTO scorecards (id, company_id, application_id,
+       interviewer_user_id, criteria, recommendation, submitted_at)
+     VALUES ($1, $2, $3, $4, '[]', 'yes', $5)`,
+    [rowId(c, "78"), c, app, user, AT]);
+  await admin.query(
+    `INSERT INTO interviews (id, company_id, application_id, starts_at,
+       ends_at, interviewer_user_ids, status, calendar_status, created_by,
+       created_at) VALUES ($1, $2, $3, $4, $5, '[]', 'scheduled',
+       'not-connected', $6, $4)`,
+    [rowId(c, "79"), c, app, AT, "2026-03-01T09:00:00.000Z", user]);
+  return app;
+}
+
 /** One row in every Plan 8 tenant table for company `c`. */
 export async function seedHrRows(admin: Db, c: string, user: string,
   emp: string): Promise<void> {
   await seedTasks(admin, c, user, emp);
+  await seedHiring(admin, c, user);
 }

@@ -1,6 +1,6 @@
 import type { App } from "../../src/http/context";
-import type { Seeded } from "./seed";
-import { call, type Clock } from "./test-app";
+import type { Seeded, SeedUser } from "./seed";
+import { call, PASSWORD, type Clock } from "./test-app";
 
 type Ctx = { app: App; clock: Clock };
 
@@ -8,6 +8,11 @@ type Ctx = { app: App; clock: Clock };
 export interface HrSeeded {
   /** A manual task by hr, assigned to the seeded employee user. */
   taskId: string;
+  /** Open, hiring manager the seeded manager user, headcount 1. */
+  requisitionId: string;
+  candidateId: string;
+  /** On the requisition above, at stage `offer`. */
+  applicationId: string;
 }
 
 async function must(p: Promise<{ status: number; text: string; body: any }>,
@@ -17,10 +22,46 @@ async function must(p: Promise<{ status: number; text: string; body: any }>,
   return r.body;
 }
 
+/**
+ * Invites and accepts one more user (no MFA). Returns its token and
+ * user id.
+ */
+export async function addMember(ctx: Ctx, s: Seeded, email: string,
+  role: string, employeeId?: string): Promise<SeedUser> {
+  const body: Record<string, string> = { email, role };
+  if (employeeId !== undefined) body.employeeId = employeeId;
+  const inv = await must(call(ctx.app, s.owner.token, s.companyId, "POST",
+    "/v1/users/invite", body), 201);
+  const acc = await must(call(ctx.app, null, null, "POST",
+    "/v1/auth/accept-invite", { setupToken: inv.setupToken,
+      password: PASSWORD, displayName: role }), 200);
+  return { token: acc.token, userId: acc.user.id, email };
+}
+
+/** Candidate contact data: only owner and hr may ever see it. */
+export const CANDIDATE_EMAIL_SENTINEL = "cand.sentinel@example.com";
+
+async function hiring(ctx: Ctx, s: Seeded) {
+  const hit = (u: SeedUser, path: string, body: unknown, want = 201) =>
+    must(call(ctx.app, u.token, s.companyId, "POST", path, body), want);
+  const req = await hit(s.hr, "/v1/requisitions", { title: "Accountant",
+    headcount: 1, hiringManagerUserId: s.manager.userId });
+  await hit(s.owner, `/v1/requisitions/${req.id}/decision`,
+    { approve: true }, 200);
+  const cand = await hit(s.hr, "/v1/candidates", { fullName: "Hana Seed",
+    email: CANDIDATE_EMAIL_SENTINEL, source: "referral" });
+  const app = await hit(s.hr, "/v1/applications",
+    { requisitionId: req.id, candidateId: cand.id });
+  await hit(s.hr, `/v1/applications/${app.id}/stage`,
+    { stage: "offer" }, 200);
+  return { requisitionId: req.id as string,
+    candidateId: cand.id as string, applicationId: app.id as string };
+}
+
 /** Plan 8 fixtures on top of `seedCompany`. */
 export async function seedHr(ctx: Ctx, s: Seeded): Promise<HrSeeded> {
   const task = await must(call(ctx.app, s.hr.token, s.companyId, "POST",
     "/v1/tasks", { title: "Upload signed contract",
       assigneeUserId: s.employee.userId, employeeId: s.emp.report }), 201);
-  return { taskId: task.id };
+  return { taskId: task.id, ...await hiring(ctx, s) };
 }

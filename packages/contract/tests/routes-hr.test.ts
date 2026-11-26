@@ -6,6 +6,12 @@ const HR_ROUTE_IDS = [
   // Task 2: task manager
   "listTasks", "createTask", "getTask", "updateTask", "addTaskComment",
   "updateChecklistItem",
+  // Task 3: requisitions and the applicant tracker
+  "listRequisitions", "createRequisition", "getRequisition",
+  "decideRequisition", "closeRequisition", "listCandidates",
+  "createCandidate", "listApplications", "createApplication",
+  "getApplication", "moveApplicationStage", "submitScorecard",
+  "scheduleInterview", "cancelInterview",
 ];
 
 /** Plan 8 routes that need an MFA session (Ruling 16). */

@@ -1,6 +1,7 @@
 import { randomBytes as nodeRandomBytes, randomUUID } from "node:crypto";
 import { keyringFromKey, type Keyring } from "./crypto/keyring";
 import type { Db } from "./db/db";
+import { notConnectedCalendar, type CalendarPort } from "./ports/calendar";
 
 /** One structured log line. Never a request or response body. */
 export type Logger = (line: Record<string, unknown>) => void;
@@ -14,6 +15,8 @@ export interface AppDeps {
   keyring: Keyring;
   log: Logger;
   passwordCost: { N: number };
+  /** Plan 8 ports (Rulings 17 to 19): "not configured" by default. */
+  calendar: CalendarPort;
 }
 
 /** What handlers get: everything but the raw database. */
@@ -33,5 +36,6 @@ export function systemDeps(db: Db, kek: Uint8Array): AppDeps {
     keyring: keyringFromKey(kek, randomBytes),
     log: (line) => process.stdout.write(`${JSON.stringify(line)}\n`),
     passwordCost: PRODUCTION_PASSWORD_COST,
+    calendar: notConnectedCalendar,
   };
 }
