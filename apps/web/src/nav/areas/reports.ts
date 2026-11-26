@@ -1,4 +1,45 @@
 import type { Area } from "../types";
 
-/** WP7: owned by its package builder (navigation map, section 7). */
-export const AREAS: readonly Area[] = [];
+/** WP7: reports and dashboards (navigation map, sections 7 and 8). */
+const HR_GM = ["hr", "gm"] as const;
+const rep = (...rest: string[]) => ({ section: "reports" as const, rest });
+
+export const AREAS: readonly Area[] = [
+  { id: "reports.all", section: "reports", group: "analysis",
+    label: { en: "All reports", ar: "كل التقارير" }, status: "live",
+    archetype: "custom", roles: HR_GM, route: { section: "reports" },
+    keywords: "catalogue list index" },
+  { id: "reports.trend", section: "reports", group: "pay",
+    label: { en: "Payroll trend", ar: "اتجاه الرواتب" }, status: "live",
+    archetype: "RP", roles: HR_GM, route: rep("trend"),
+    keywords: "month january october gross net history" },
+  { id: "reports.variance", section: "reports", group: "pay",
+    label: { en: "Variance against last month",
+      ar: "الفرق عن الشهر السابق" }, status: "live", archetype: "RP",
+    roles: HR_GM, route: rep("variance"),
+    keywords: "why pay moved change drivers month on month" },
+  { id: "reports.overtime", section: "reports", group: "pay",
+    label: { en: "Overtime cost", ar: "تكلفة العمل الإضافي" },
+    status: "live", archetype: "RP", roles: HR_GM, route: rep("overtime"),
+    keywords: "extra hours night work" },
+  { id: "reports.headcount", section: "reports", group: "people",
+    label: { en: "Headcount and turnover", ar: "العدد ومعدل الدوران" },
+    status: "live", archetype: "RP", roles: HR_GM, route: rep("headcount"),
+    keywords: "joiners leavers attrition analytics" },
+  { id: "reports.leave", section: "reports", group: "people",
+    label: { en: "Leave and absence", ar: "الإجازات والغياب" },
+    status: "live", archetype: "RP", roles: HR_GM, route: rep("leave"),
+    keywords: "annual sick unpaid balance days" },
+  { id: "reports.dashboard-hr", section: "reports", group: "people",
+    label: { en: "HR dashboard", ar: "لوحة الموارد البشرية" },
+    status: "live", archetype: "RP", roles: HR_GM,
+    route: rep("dashboard-hr"), keywords: "overview kpi people" },
+  { id: "reports.dashboard-exec", section: "reports", group: "people",
+    label: { en: "Executive dashboard", ar: "لوحة الإدارة" },
+    status: "live", archetype: "RP", roles: ["gm"],
+    route: rep("dashboard-exec"), keywords: "general manager overview kpi" },
+  { id: "reports.audit", section: "reports", group: "analysis",
+    label: { en: "Audit trail", ar: "سجل التدقيق" }, status: "live",
+    archetype: "LF", roles: HR_GM, route: rep("audit"),
+    keywords: "log history who did what chain fingerprint" },
+];

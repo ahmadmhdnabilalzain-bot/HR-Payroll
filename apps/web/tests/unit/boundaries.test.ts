@@ -39,6 +39,7 @@ describe("boundaries", () => {
       "src/demo/data/run-detail.ts",
       "src/demo/data/run-explain.ts",
       "src/demo/data/time.ts",
+      "src/reports/source.ts",
       "src/setup/access/data.ts",
     ];
     expect([...filesImporting(/^@payroll\/demo-data/)].sort())
