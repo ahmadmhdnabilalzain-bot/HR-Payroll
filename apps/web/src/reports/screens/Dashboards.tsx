@@ -139,8 +139,11 @@ export function DashboardExec() {
     ["Overtime this month", { fils: now.overtimeAmount },
       { fils: before.overtimeAmount }, `${hours(now.overtimeMinutes)} hours ` +
         `across ${plural(now.overtimePeople, "person", "people")}`],
-    ["Held out of the salary file", { fils: head.heldNetFils }, "-",
-      "Net pay with no valid bank account yet"],
+    head.heldNetFils === 0n
+      ? ["Held out of the salary file", "None", "-",
+        "Everyone's pay is in the salary file"]
+      : ["Held out of the salary file", { fils: head.heldNetFils }, "-",
+        "Net pay with no valid bank account yet"],
     ["Waiting for your decision", String(waiting), "-",
       "Open Home to decide"],
     ["Biggest department", top === undefined ? "-"
