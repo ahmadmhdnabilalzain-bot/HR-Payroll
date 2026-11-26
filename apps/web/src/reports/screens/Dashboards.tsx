@@ -1,6 +1,7 @@
 import { pendingApprovals } from "../../demo/derive";
 import { useDemo } from "../../demo/state";
-import { ReportPage } from "../../ui/templates";
+import { Money } from "../../ui/Money";
+import { ReportPage, type Cell } from "../../ui/templates";
 import { hours, percent, plural, share, useMoney, useReportCrumbs }
   from "../fmt";
 import { useReportsSource } from "../load";
@@ -25,7 +26,7 @@ export function DashboardHr() {
     ["Open items that stop pay", String(stops), "-", "Fix these " +
       "before the run can be approved"],
     ["People on the payroll", String(sum("now")),
-      `${sum("start")} on 1 January`, "Employed on the demo date"],
+      `${sum("start")} on 1 January`, "Employed today"],
     ["Joined this year", String(sum("joined")), "-",
       src.joiners.join(", ") || "Nobody"],
     ["Left this year", String(sum("departed")), "-",
@@ -44,7 +45,7 @@ export function DashboardHr() {
   ];
   return (
     <ReportPage crumbs={crumbs}
-      title="HR dashboard" period={`As of the demo date, ` +
+      title="HR dashboard" period={`As of today, ` +
       `${last.label} run`}
     figure={{ label: "Open items that stop pay", value: String(stops) }}
     columns={COLUMNS} rows={rows} csvName="hr-dashboard-2026-10.csv"
@@ -58,7 +59,7 @@ export function DashboardExec() {
   const src = useReportsSource();
   const crumbs = useReportCrumbs();
   const { data, state } = useDemo();
-  const { m, signed } = useMoney();
+  const { signed } = useMoney();
   const now = src.months.at(-1)!;
   const before = src.months.at(-2)!;
   const head = data.headline();
@@ -67,30 +68,32 @@ export function DashboardExec() {
   const v = src.variance(now.month, before.month);
   const main = v.drivers[0];
   const waiting = pendingApprovals(data, state).length;
-  const rows = [
-    ["Gross pay", m(now.gross), m(before.gross),
+  const rows: Cell[][] = [
+    ["Gross pay", { fils: now.gross }, { fils: before.gross },
       `${signed(v.grossChange)} (${percent(v.grossChange,
         before.gross)}) on ${before.label}`],
     ["Biggest cause of the change", main === undefined ? "-"
-      : signed(main.amount), main?.label ?? "-",
+      : { fils: main.amount, signed: true }, main?.label ?? "-",
     main === undefined ? "Nothing moved" : main.people.join(", ")],
     ["People paid", String(now.headcount), String(before.headcount),
       "Includes the leaver's part month"],
-    ["Overtime this month", m(now.overtimeAmount),
-      m(before.overtimeAmount), `${hours(now.overtimeMinutes)} hours ` +
+    ["Overtime this month", { fils: now.overtimeAmount },
+      { fils: before.overtimeAmount }, `${hours(now.overtimeMinutes)} hours ` +
         `across ${plural(now.overtimePeople, "person", "people")}`],
-    ["Held out of the salary file", m(head.heldNetFils), "-",
+    ["Held out of the salary file", { fils: head.heldNetFils }, "-",
       "Net pay with no valid bank account yet"],
     ["Waiting for your decision", String(waiting), "-",
       "Open Home to decide"],
-    ["Biggest department", top === undefined ? "-" : m(top.costFils),
+    ["Biggest department", top === undefined ? "-"
+      : { fils: top.costFils },
       top === undefined ? "-" : top.name.en, "Gross cost for the month"],
   ];
   return (
     <ReportPage crumbs={crumbs}
       title="Executive dashboard"
       period={`${now.label} run against ${before.label}`}
-      figure={{ label: "Net pay for the run", value: m(head.netTotalFils) }}
+      figure={{ label: "Net pay for the run", value: (
+        <Money value={head.netTotalFils} tween={false} />) }}
       columns={COLUMNS} rows={rows}
       csvName="executive-dashboard-2026-10.csv"
       note={"Figures are the run as it stands today, including the pay " +

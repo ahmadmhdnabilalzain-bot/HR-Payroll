@@ -50,7 +50,9 @@ export function PageHead(p: { title: string; lede?: string | undefined;
           <div className={s.actions}>{p.actions}</div>
         )}
       </div>
-      {p.lede !== undefined && <p className={s.lede}>{p.lede}</p>}
+      {p.lede !== undefined && p.lede !== "" && (
+        <p className={s.lede}>{p.lede}</p>
+      )}
       {p.meta !== undefined && <div className={s.meta}>{p.meta}</div>}
     </header>
   );

@@ -8,14 +8,30 @@ const LOCALE: Record<Lang, string> = {
   ar: "ar-AE-u-ca-gregory-nu-latn",
 };
 
-/** "AED 38,333.33"; in Arabic wrapped in left-to-right isolates. */
+/** The typographic minus (U+2212): every negative amount on screen. */
+export const MINUS = "\u2212";
+
+/** The engine's text with its hyphen-minus turned into a true minus. */
+const aed = (f: Fils): string => formatAed(f).replace(/^-/, MINUS);
+
+/**
+ * "AED 38,333.33", "−AED 1,180.64"; in Arabic wrapped in left-to-right
+ * isolates. The one money formatter: <Money/> and every table read
+ * it. CSV files keep a plain hyphen (lib/csv, filsDecimal).
+ */
 export function formatMoney(f: Fils, lang: Lang): string {
   const [open, close] = LTR_ISOLATE[lang];
-  return open + formatAed(f) + close;
+  return open + aed(f) + close;
+}
+
+/** The same with a plus sign on a rise: "+AED 5.00", "−AED 5.00". */
+export function formatSignedMoney(f: Fils, lang: Lang): string {
+  const [open, close] = LTR_ISOLATE[lang];
+  return open + (f > 0n ? "+" : "") + aed(f) + close;
 }
 
 export interface MoneyParts {
-  sign: "" | "-";
+  sign: "" | typeof MINUS;
   currency: "AED";
   /** Grouped whole dirhams, "612,430". */
   whole: string;
@@ -30,7 +46,7 @@ export interface MoneyParts {
  */
 export function moneyParts(f: Fils): MoneyParts {
   const text = formatAed(f);
-  const sign = text.startsWith("-") ? "-" : "";
+  const sign = text.startsWith("-") ? MINUS : "";
   const [whole = "0", frac = "00"] = text.replace(/^-?AED /, "")
     .split(".");
   return { sign, currency: "AED", whole, frac };
