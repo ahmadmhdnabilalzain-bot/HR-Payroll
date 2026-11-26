@@ -109,6 +109,10 @@ export function FixStep() {
   const figure = useRef<HTMLSpanElement>(null);
   const shown = { total: h.sifTotalFils, held: h.heldNetFils,
     people: h.sifPeople };
+  // One chip in flight at a time: until it lands (and the IBAN is
+  // saved), no other row opens, so no row is edited while the list
+  // under it is about to change.
+  const [busy, setBusy] = useState(false);
   const heldBox = useRef<HTMLSpanElement>(null);
   const noneHeld = shown.held === 0n;
   useEffect(() => shortFade(heldBox.current), [noneHeld]);
@@ -149,7 +153,7 @@ export function FixStep() {
         <ul className={s.group}>
           {blockers.map((i) => (
             <BlockerRow key={i.id} issue={i} canFix={isHr}
-              target={figure} />
+              target={figure} busy={busy} setBusy={setBusy} />
           ))}
           {fixed.map((id) => (
             <li key={`fixed-${id}`} className={s.row} data-done="true">
@@ -189,7 +193,8 @@ export function FixStep() {
 }
 
 function BlockerRow(p: { issue: Issue; canFix: boolean;
-  target: RefObject<HTMLElement | null> }) {
+  target: RefObject<HTMLElement | null>; busy: boolean;
+  setBusy(b: boolean): void }) {
   const { lang, t } = useLocale();
   const { data, dispatch } = useDemo();
   const toast = useToast();
@@ -215,6 +220,7 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
         <span className={s.rowAction}>
           <button type="button"
             className={`${b.btn} ${b.secondary} ${s.act}`}
+            disabled={p.busy}
             onClick={() => setOpen(true)}>{t("payrun.enterIban")}</button>
         </span>
       )}
@@ -227,8 +233,10 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
               const from = row.current?.querySelector("input") ?? null;
               setFlying(true);
               setOpen(false);
+              p.setBusy(true);
               // The chip flies first; the row turns "Fixed" as it lands.
               flight({ from, id, value, save: () => {
+                  p.setBusy(false);
                   dispatch({ type: "iban", employeeId: id, value });
                   toast.show(t("payrun.fixedIban", { name }), () =>
                     dispatch({ type: "unset-iban", employeeId: id }));

@@ -23,7 +23,8 @@ const ONE_TAP: Partial<Record<FixKind, [Resolution, MessageKey]>> = {
 };
 
 /** One issue: a short title, one plain sentence, one next step. */
-export function IssueRow(p: { issue: Issue; delay: number | null }) {
+export function IssueRow(p: { issue: Issue; delay: number | null;
+  busy?: boolean; setBusy?(b: boolean): void }) {
   const { lang, t } = useLocale();
   const { data, state, dispatch } = useDemo();
   const toast = useToast();
@@ -52,7 +53,11 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
   const saveIban = (value: string): void => {
     const id = i.employeeId ?? "";
     const from = row.current?.querySelector("input") ?? null;
-    flight({ from, id, value, finish: () => save(id, value) });
+    p.setBusy?.(true);
+    flight({ from, id, value, finish: () => {
+      p.setBusy?.(false);
+      save(id, value);
+    } });
     setFlying(true);
     setEditing(false);
   };
@@ -81,6 +86,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
         <div className={s.actions}>
           {i.fixKind === "enter-iban" ? (
             <button type="button" className={`${b.btn} ${b.secondary}`}
+              disabled={p.busy === true}
               onClick={() => setEditing(true)}>{t("home.enterIban")}</button>
           ) : step !== undefined ? (
             <button type="button" className={`${b.btn} ${b.secondary}`}
