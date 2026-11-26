@@ -45,29 +45,46 @@ function domainAfter(text: string, key: RegExp): string | null {
   return v.includes("@") ? v.slice(v.lastIndexOf("@") + 1) : v;
 }
 
+const UNVERIFIED: Auth = { spf: "none", dkim: "none", dmarc: "none",
+  spfDomain: null, dkimDomain: null };
+
+const topmost = (headers: { Name: string; Value: string }[], name: string) =>
+  headers.find((h) => h.Name.toLowerCase() === name)?.Value;
+
+/** The authserv-id: the text before the first `;` (RFC 8601 2.2). */
+const servId = (v: string) =>
+  v.split(";")[0]!.trim().split(/\s+/)[0]!.toLowerCase();
+
 /**
- * From every Authentication-Results header: the first spf=, dkim= and
- * dmarc= token wins (case-insensitive); else Received-SPF gives spf;
- * missing gives "none"; unrecognised words give "unknown".
+ * Only results the provider itself added count (security review I1):
+ * the topmost Authentication-Results, and only when its authserv-id is
+ * the configured one; else the topmost Received-SPF, only when it
+ * names that server as `receiver=`. Anything else, or no configured
+ * id, is unverified ("none" everywhere: flagged for review, never a
+ * pass). Senders can write these headers themselves; the provider
+ * adds its own above them (UNVERIFIED for Postmark: the header order
+ * and whether it strips inbound headers that claim its id).
  */
-export function readAuthHeaders(headers: { Name: string; Value: string }[])
-  : Auth {
-  const results = headers.filter((h) =>
-    h.Name.toLowerCase() === "authentication-results").map((h) => h.Value);
-  const find = (kind: string) => {
-    for (const r of results) {
-      const m = new RegExp(`\\b${kind}=([a-z]+)`, "i").exec(r);
-      if (m !== null) return m[1];
-    }
-    return undefined;
-  };
-  const all = results.join(";");
-  const rspf = headers.find((h) => h.Name.toLowerCase() === "received-spf")
-    ?.Value.trim().split(/\s/)[0];
-  return { spf: verdict(find("spf") ?? rspf), dkim: verdict(find("dkim")),
-    dmarc: verdict(find("dmarc")),
-    spfDomain: domainAfter(all, /smtp\.mailfrom=([^\s;]+)/i),
-    dkimDomain: domainAfter(all, /header\.d=([^\s;]+)/i) };
+export function readAuthHeaders(headers: { Name: string; Value: string }[],
+  authservId: string | null): Auth {
+  if (authservId === null) return UNVERIFIED;
+  const id = authservId.toLowerCase();
+  const ar = topmost(headers, "authentication-results");
+  if (ar !== undefined && servId(ar) === id) {
+    const find = (kind: string) =>
+      new RegExp(`\\b${kind}=([a-z]+)`, "i").exec(ar)?.[1];
+    return { spf: verdict(find("spf")), dkim: verdict(find("dkim")),
+      dmarc: verdict(find("dmarc")),
+      spfDomain: domainAfter(ar, /smtp\.mailfrom=([^\s;]+)/i),
+      dkimDomain: domainAfter(ar, /header\.d=([^\s;]+)/i) };
+  }
+  const rspf = topmost(headers, "received-spf");
+  const receiver = rspf === undefined ? null
+    : /\breceiver=([^\s;]+)/i.exec(rspf)?.[1]?.toLowerCase() ?? null;
+  if (ar === undefined && rspf !== undefined && receiver === id) {
+    return { ...UNVERIFIED, spf: verdict(rspf.trim().split(/\s/)[0]) };
+  }
+  return UNVERIFIED;
 }
 
 function sameText(a: string, b: string): boolean {
@@ -76,7 +93,8 @@ function sameText(a: string, b: string): boolean {
   return x.length === y.length && timingSafeEqual(x, y);
 }
 
-export function postmarkInbound(cfg: { basicAuth: string })
+export function postmarkInbound(cfg: { basicAuth: string;
+  authservId: string | null })
   : InboundEmailAdapter {
   const want = `Basic ${Buffer.from(cfg.basicAuth).toString("base64")}`;
   return {
@@ -88,7 +106,7 @@ export function postmarkInbound(cfg: { basicAuth: string })
       const d = p.data;
       return { messageId: d.MessageID, from: d.FromFull.Email,
         mailboxHash: d.MailboxHash, subject: d.Subject, text: d.TextBody,
-        auth: readAuthHeaders(d.Headers),
+        auth: readAuthHeaders(d.Headers, cfg.authservId),
         attachments: d.Attachments.map((a) => ({ name: a.Name,
           contentType: a.ContentType,
           bytes: new Uint8Array(Buffer.from(a.Content, "base64")) })) };

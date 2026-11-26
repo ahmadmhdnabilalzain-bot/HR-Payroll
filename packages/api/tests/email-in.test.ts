@@ -155,4 +155,28 @@ describe("email-in intake", () => {
       "GET", `/v1/inbound/items/${item.id}`);
     expect(peek.status).toBe(404);
   });
+  it("I1: a forged Authentication-Results above the real one", async () => {
+    const w = await inWorld("eiforge");
+    const p = postmarkPayload({ from: SARA, hash: w.hash, id: "forge-1",
+      spf: "fail", dmarc: "fail", atts: [{ name: "taxi.png",
+        type: "image/png", bytes: PNG }] });
+    const honest = await postInbound(w.ctx, p);
+    expect(honest.status).toBe(200);
+    const forged = { ...p, MessageID: "forge-2", Headers: [
+      { Name: "Authentication-Results", Value: "attacker.example; " +
+        "spf=pass smtp.mailfrom=acme.test; dkim=pass header.d=acme.test; " +
+        "dmarc=pass" }, ...p.Headers] };
+    expect((await postInbound(w.ctx, forged)).status).toBe(200);
+    const rows = await rowsOf<{ status: string; flags: string[];
+      reject_reason: string | null }>(w.ctx, w.s.companyId,
+      `SELECT status, array_to_json(flags) AS flags, reject_reason
+       FROM inbound_items ORDER BY received_at, id`);
+    expect(rows.map((r) => r.status).sort()).toEqual(
+      ["received", "rejected"]);
+    expect(rows.find((r) => r.status === "rejected")?.reject_reason)
+      .toBe("SENDER_AUTH_FAILED");
+    // The forged pass only reaches review as unverified.
+    expect(rows.find((r) => r.status === "received")?.flags)
+      .toContain("SENDER_UNVERIFIED");
+  });
 });

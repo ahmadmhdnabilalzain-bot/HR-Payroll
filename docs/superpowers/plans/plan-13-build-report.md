@@ -589,3 +589,20 @@ Checks: `packages/api` 145 files, 990 tests, green (full run,
 time-client 2/13, web 17/103; typecheck, ops:typecheck, lines,
 lines:ops, lines:test (9), ops:test (11) green. The smoke-test data
 directory `/var/lib/postgresql/smoke-p13` was deleted.
+
+## Security review fixes
+
+Review: `.superpowers/sdd/plan13/security-review.md` (0 Critical, 5
+Important, 9 Minor). One commit per item, test first.
+
+- I1 (email-in trusted sender-written headers): only the topmost
+  `Authentication-Results` counts, and only when its authserv-id is
+  `INBOUND_EMAIL_AUTHSERV_ID` (optional, outside the all-or-nothing
+  inbound group); else the topmost `Received-SPF`, only with
+  `receiver=` that id and no `Authentication-Results`. Unset id, a
+  foreign id or no header: all results `none`, so the item is flagged
+  `SENDER_UNVERIFIED`, never passed. Domains come from that one header.
+  Tests: forged header above the real one (flagged, not passed), a
+  forged header with the right id below a real fail (still rejected),
+  end to end through the hook. UNVERIFIED: Postmark's header order and
+  whether it strips inbound headers that claim its id.

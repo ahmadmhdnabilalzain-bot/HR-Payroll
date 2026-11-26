@@ -94,7 +94,8 @@ export function fakeChannels(opts: Partial<FakeOpts> = {}): FakeChannels {
       appSecret: WA_APP_SECRET, verifyToken: WA_VERIFY_TOKEN })
       : base.whatsappInbound,
     inboundEmail: o.inboundEmail ? postmarkInbound({
-      basicAuth: "hook:test-inbound-secret" }) : base.inboundEmail,
+      basicAuth: "hook:test-inbound-secret", authservId: "mx.test" })
+      : base.inboundEmail,
     inboundEmailDomain: o.inboundEmail ? "in.test.example" : null,
     oidc: o.oidc ? fakeOidc() : base.oidc,
     resolveHost: async (host) => dns.get(host) ?? [] };

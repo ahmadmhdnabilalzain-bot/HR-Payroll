@@ -4,7 +4,9 @@ export interface ChannelConfig {
   email: { token: string; from: string } | null;
   whatsapp: { phoneNumberId: string; accessToken: string;
     appSecret: string; verifyToken: string; graphVersion: string } | null;
-  inbound: { domain: string; basicAuth: string } | null;
+  inbound: { domain: string; basicAuth: string;
+    /** The provider's authserv-id; null: sender results unverified. */
+    authservId: string | null } | null;
   google: { clientId: string; clientSecret: string } | null;
   microsoft: { clientId: string; clientSecret: string } | null;
 }
@@ -55,7 +57,9 @@ export function loadChannelConfig(env: Env): ChannelConfig {
     email: e && { token: e[0]!, from: e[1]! },
     whatsapp: w && { phoneNumberId: w[0]!, accessToken: w[1]!,
       appSecret: w[2]!, verifyToken: w[3]!, graphVersion: w[4]! },
-    inbound: i && { domain: i[0]!, basicAuth: i[1]! },
+    inbound: i && { domain: i[0]!, basicAuth: i[1]!,
+      authservId: (env.INBOUND_EMAIL_AUTHSERV_ID ?? "") === "" ? null
+        : env.INBOUND_EMAIL_AUTHSERV_ID! },
     google: g && { clientId: g[0]!, clientSecret: g[1]! },
     microsoft: m && { clientId: m[0]!, clientSecret: m[1]! },
   };
