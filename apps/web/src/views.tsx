@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { Section } from "./demo/state";
 import { Home } from "./home/Home";
+import { PayRun } from "./payrun/PayRun";
 
 /**
  * The views of the demo, one per top-level section. A section shows in
@@ -16,3 +17,4 @@ export interface ViewProps {
 export const VIEWS: Partial<Record<Section, ComponentType<ViewProps>>> = {
   home: Home,
 };
+VIEWS["pay-run"] = PayRun;

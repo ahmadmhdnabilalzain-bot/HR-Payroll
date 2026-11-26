@@ -6,6 +6,8 @@ import { common } from "./common";
 import { errors } from "./errors";
 import { explain } from "./explain";
 import { home } from "./home";
+import { payrun } from "./payrun";
 import { shell } from "./shell";
 
-export const ar: ArOf<EnCatalog> = { common, errors, shell, home, explain };
+export const ar: ArOf<EnCatalog> = { common, errors, shell, home, explain,
+  payrun };

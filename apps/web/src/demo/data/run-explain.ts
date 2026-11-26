@@ -133,7 +133,7 @@ function gratuity(c: DemoCompany, e: DemoEmployee): Explanation | null {
     { text: `Service from ${year(e.joiningDate)} to ` +
       `${year(e.leavingDate)}` + (unpaid === 0
       ? ", with no unpaid days to take off" : `, less ${unpaid} unpaid ` +
-        "days") + `: ${service}.`, value: text(service) },
+        "days") + ".", value: text(service) },
     { text: "A day's basic wage is the monthly basic divided by 30.",
       value: money(daily) },
     { text: `First 5 years at 21 days a year: ${daysText(t1?.result)} ` +

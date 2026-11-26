@@ -29,8 +29,8 @@ export const payrun: ArOf<typeof en> = {
   gross: "إجمالي الراتب",
   deductions: "الخصومات",
   people: "عدد الموظفين",
-  more: "{amount} أكثر من {month}",
-  less: "{amount} أقل من {month}",
+  more: "أكثر من {month}",
+  less: "أقل من {month}",
   same: "مثل {month}",
   morePeople: n("{count} أكثر من {month}"),
   fewerPeople: n("{count} أقل من {month}"),
@@ -88,8 +88,10 @@ export const payrun: ArOf<typeof en> = {
   approveBtn: "اعتماد الرواتب",
   declineBtn: "إعادة",
   undo: "تراجع",
-  blocked: n("{names}: لا يوجد حساب بنكي بعد. تنتظر الدورة كلها حتى " +
-    "يُدخل."),
+  blocked: n("ما زالت البيانات البنكية تحتاج تصحيحًا لـ {names}. تنتظر " +
+    "الدورة كلها حتى تُصحح."),
+  stepNav: "الخطوة السابقة والتالية",
+  ibanTypo: "في الملف: خطأ في الآيبان",
   goFix: "اذهب إلى التصحيح",
   onlyGm: "لا يعتمد هذه الدورة إلا {name}، المدير العام.",
   viewAsGm: "العرض كمدير عام",
@@ -123,7 +125,6 @@ export const payrun: ArOf<typeof en> = {
   colVariable: "الراتب المتغير",
   colTotal: "المجموع",
   showText: "اعرض الملف كما يستلمه البنك",
-  notYet: "يُنشأ الملف بعد اعتماد الدورة.",
   sideTitle: "طريقة حساب الأرقام",
   sideSub: "افتح أي رقم عليه خط منقط لترى مدخلاته والقواعد ومصادرها " +
     "وطريقة الحساب.",

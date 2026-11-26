@@ -207,7 +207,7 @@
 
 .step {
   display: grid;
-  grid-template-columns: 28px 1fr auto;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: baseline;
   gap: var(--space-3);
   padding-block: var(--space-3);
@@ -406,4 +406,9 @@
   .scrim {
     animation: none;
   }
+}
+
+.body:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
 }

@@ -25,8 +25,8 @@ export const payrun = {
   gross: "Gross pay",
   deductions: "Deductions",
   people: "People paid",
-  more: "{amount} more than {month}",
-  less: "{amount} less than {month}",
+  more: "more than {month}",
+  less: "less than {month}",
   same: "Same as {month}",
   morePeople: { one: "{count} more than {month}",
     other: "{count} more than {month}" },
@@ -62,7 +62,7 @@ export const payrun = {
   nothingToFix: "Nothing stops the salary file now.",
   fileNow: "Salary file now",
   fileLine: { one: "{count} person", other: "{count} people" },
-  heldNow: "Held out",
+  heldNow: "held out",
   enterIban: "Enter IBAN",
   markReviewed: "Mark reviewed",
   reviewed: "Reviewed",
@@ -84,16 +84,18 @@ export const payrun = {
   recordedWhen: "{date} at {time}",
   recordedDay: "{date}",
   declined: "Sent back by {name}, {role}",
-  whatYouApprove: "What is being approved",
+  whatYouApprove: "What the approval covers",
   netTo: { one: "Net pay to {count} person",
     other: "Net pay to {count} people" },
   fileTo: "Salary file, {count} people",
   approveBtn: "Approve pay run",
   declineBtn: "Send back",
   undo: "Undo",
-  blocked: { one: "{names} has no bank account yet. The whole run " +
-    "waits until it is entered.", other: "{names} have no bank account " +
-    "yet. The whole run waits until they are entered." },
+  blocked: { one: "Bank details still need fixing for {names}. The " +
+    "whole run waits until they are right.", other: "Bank details still " +
+    "need fixing for {names}. The whole run waits until they are right." },
+  stepNav: "Previous and next step",
+  ibanTypo: "In the file: IBAN typo",
   goFix: "Go to Fix",
   onlyGm: "Only {name}, the General Manager, can approve this run.",
   viewAsGm: "View as General Manager",
@@ -129,7 +131,6 @@ export const payrun = {
   colVariable: "Variable pay",
   colTotal: "Total",
   showText: "Show the file as the bank receives it",
-  notYet: "The file is made once the run is approved.",
 
   sideTitle: "How the figures are worked out",
   sideSub: "Open any figure with a dotted line to see its inputs, the " +

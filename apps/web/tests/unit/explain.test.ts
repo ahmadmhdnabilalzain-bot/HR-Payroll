@@ -32,7 +32,8 @@ describe("explain contract", () => {
     const tier2 = money(g.steps[3]?.value);
     expect(tier1 + tier2).toBe(money(g.result.value));
     expect(money(g.result.value)).toBe(17392808n);
-    expect(g.steps[0]?.text).toContain("7 years and 220 days");
+    expect(g.steps[0]?.value).toEqual({ kind: "text",
+      text: "7 years and 220 days" });
     expect(g.notComputed.join(" ")).toMatch(/Notice pay is not/);
     expect(g.notComputed.join(" ")).toMatch(/Deductions/);
   });
