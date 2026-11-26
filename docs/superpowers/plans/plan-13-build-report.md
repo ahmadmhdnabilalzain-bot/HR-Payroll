@@ -682,3 +682,31 @@ Important, 9 Minor). One commit per item, test first.
 - M8: with two rejects waiting for a typed reason on one phone (any companies), the text goes to neither: both expire and the approver gets a new reply asking to tap Reject again on the request they mean (migration `1314`: `find_awaiting_reason` returns up to two rows). Using Meta's reply `context.id` was not chosen (payload shape UNVERIFIED). Tested.
 - M2: `ssoStart` and `ssoLinkStart` return a random `binding` (hash stored in `sso_states.binding_hash`, migration `1315`); the callback must send it back (`SsoCallbackRequest.binding`), so a callback URL sent to someone else cannot complete the attacker's sign-in in their browser. The SPA must keep it in `sessionStorage` (no SSO screens exist yet). Tested.
 - Ruling 28 reworded in the plan: no pay-run actions; `payroll:read` exposes payslips and pay runs read-only by design.
+- Forced RLS as the owner (the Plan 9 migration 905 problem): no
+  Plan 13 migration (1301 to 1315) runs INSERT, UPDATE or DELETE on a
+  table outside a function body (checked by script), so none silently
+  touches zero rows; new columns use defaults or stay null, and the
+  domain proof is a new table where absence means unverified. Every
+  cross-company function runs as the owner through job-scan policies
+  (or clears `app.company_id` while it runs, for calls from a tenant
+  transaction), and each is exercised on real PostgreSQL with a
+  non-superuser owner and a runtime role granted `payroll_app WITH
+  INHERIT FALSE, SET TRUE`, the deployed shape (`init-roles.sql`; the
+  test owner also has CREATEROLE, which RLS ignores). The DELETE in
+  the purge needed a SELECT policy as well, found by that test.
+  `main.ts jobs` ran under the deployed roles in the earlier smoke test
+  (empty database); listing two companies' rows is covered by the
+  PostgreSQL suite.
+- Not done from the review: a per-run time budget or per-company
+  concurrency for webhook delivery (I5 extra), more than one JIT
+  candidate as a security event (I4 extra), re-verification of
+  WhatsApp numbers after N days (I2 extra), a per-day byte cap at
+  email-in intake (M7 extra).
+- Plan 9's capture-column scan flagged `sso_domains.domain` (a
+  company's own SSO domain); allowed by table and column.
+
+Checks after the security fixes (one package at a time):
+`packages/api` 148 files, 1011 tests: one failure (the column scan
+above), fixed and that file re-run green (6); contract 14/159, engine
+53/584, wps 11/173, time-client 2/13, web 17/103; typecheck,
+ops:typecheck, lines, lines:ops, lines:test (9), ops:test (12) green.
