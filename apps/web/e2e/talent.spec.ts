@@ -44,8 +44,12 @@ test("skills-training-and-surveys-flow", async ({ page }, info) => {
   await page.goto("/#/people/talent/surveys/sv-2026-12");
   await expect(page.getByText(/30 Nov 2026/).first()).toBeVisible();
   if (info.project.name === "phone") return;
+  const at = new URL(page.url()).hash;
   await page.getByRole("button", { name: /HR manager/ }).click();
   await page.getByRole("menuitemradio", { name: /Employee/ }).click();
+  // A role switch on a page outside the new view opens its Home.
+  await expect(page).toHaveURL(/#\/home$/);
+  await page.evaluate((h) => { location.hash = h; }, at);
   await expect(page.getByRole("heading", { level: 1,
     name: "Outside your view" })).toBeVisible();
 });
