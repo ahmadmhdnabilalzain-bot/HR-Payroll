@@ -768,3 +768,7 @@ The owner can overrule any of these. Full list with reasons:
   VAT and e-invoicing, meetings, channels, intranet, assistant and so on).
   Duplicates against the HR rows will exist; a dedupe pass against the
   navigation map's 208 rows comes first, so nothing is built twice.
+- Owner ruling (2026-11-26): **UAE only. Ignore Saudi** (and any other
+  country: India payroll, GCC multi-country). Rows for other countries are
+  removed from the coverage denominator and from every build list; the
+  "not buildable" count for the 80% target is recomputed without them.
