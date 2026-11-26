@@ -86,9 +86,16 @@ a.navItem:hover {
   color: var(--color-text);
 }
 
-.navItem[aria-current="page"] {
+.navItem[aria-current="page"],
+.navItem[aria-expanded="true"] {
   background: var(--color-surface-2);
   color: var(--color-text);
+}
+
+/* While a panel is open only its word wears the pill. */
+.nav:has([aria-expanded="true"])
+  .navItem[aria-current="page"]:not([aria-expanded="true"]) {
+  background: transparent;
 }
 
 .navItem[aria-disabled="true"] {

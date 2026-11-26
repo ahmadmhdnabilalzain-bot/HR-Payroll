@@ -75,10 +75,10 @@ export function NetTrend() {
   return (
     <section className={s.trend} aria-labelledby="trend-title">
       <div className={s.head}>
-        <h3 id="trend-title" className={s.title}>
+        <h2 id="trend-title" className={s.title}>
           {t("home.trendTitle", { from: first.label.split(" ")[0] ?? "",
             to: last.label.split(" ")[0] ?? "" })}
-        </h3>
+        </h2>
         <p className={s.note}>{t("home.trendNote")}</p>
       </div>
       <figure className={s.figure}>

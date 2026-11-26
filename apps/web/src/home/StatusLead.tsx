@@ -36,7 +36,9 @@ export function StatusSentence() {
         {t("home.dateLine", { date: formatLongDay(data.payCalendar().asOf,
           lang), company: data.companyName[lang] })}
       </p>
-      <h1 key={sentence} className={s.sentence}>{sentence}</h1>
+      <h1 key={sentence} id="run-title" className={s.sentence}>
+        {sentence}
+      </h1>
     </header>
   );
 }

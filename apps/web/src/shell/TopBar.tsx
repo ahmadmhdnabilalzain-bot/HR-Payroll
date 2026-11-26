@@ -6,6 +6,7 @@ import { showArabic } from "../demo/flags";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useTheme } from "../theme/ThemeProvider";
 import {
+  areasFor,
   barFor,
   firstRoute,
   WORD,
@@ -65,6 +66,9 @@ export function TopBar(p: { route: Route; onSearch(): void }) {
  * other word opens its panel, and a second click goes straight to the
  * word's first area. The words come from the registry, per role.
  */
+const hrefOfRoute = (r: { section: Route["section"]; rest?: string[] })
+  : string => hrefOf(r.section, ...(r.rest ?? []));
+
 function Words(p: { route: Route }) {
   const { t } = useLocale();
   const { data, state } = useDemo();
@@ -75,9 +79,11 @@ function Words(p: { route: Route }) {
   useEffect(() => setOpen(null), [p.route, state.role]);
   return (
     <nav className={s.nav} aria-label={t("shell.sections")}>
-      {barFor(state.role).map((w) => w === "home" ? (
-        <a key={w} href={hrefOf("home")} className={s.navItem}
-          aria-current={here === "home" ? "page" : undefined}>
+      {barFor(state.role).map((w) => w === "home" ||
+        areasFor(state.role, w).length === 1 ? (
+        <a key={w} className={s.navItem} href={w === "home" ? hrefOf("home")
+          : hrefOfRoute(firstRoute(state.role, w, c))}
+          aria-current={here === w ? "page" : undefined}>
           {t(WORD[w])}
         </a>
       ) : (

@@ -4,6 +4,7 @@ import { useRoute } from "./demo/route";
 import { useDemo } from "./demo/state";
 import { useLocale } from "./i18n/LocaleProvider";
 import { CommandPalette, usePaletteHotkeys } from "./shell/CommandPalette";
+import { GroupTabs } from "./shell/GroupTabs";
 import { PhoneTabs, TopBar } from "./shell/TopBar";
 import { VIEWS } from "./views";
 import s from "./App.module.css";
@@ -34,6 +35,7 @@ export function App() {
             {t("common.arReviewBanner")}
           </p>
         )}
+        {shown === route.section && <GroupTabs route={route} />}
         <View key={shown} rest={shown === route.section ? route.rest : []} />
       </main>
       <PhoneTabs route={route} />

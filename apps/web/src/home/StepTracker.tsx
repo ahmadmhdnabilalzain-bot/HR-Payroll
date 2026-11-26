@@ -27,8 +27,7 @@ export function StepTracker() {
   const next = list[at + 1];
   if (now === undefined) return null;
   return (
-    <div className={s.wrap}>
-      <h3 className="visually-hidden">{t("home.progress")}</h3>
+    <div className={s.wrap} role="group" aria-label={t("home.progress")}>
       <ol className={s.dots} aria-hidden="true">
         {list.map((x) => (
           <li key={x.id} data-state={x.state} title={t(LABEL[x.id])} />

@@ -36,7 +36,6 @@ export function PayRunHero() {
   const [editing, setEditing] = useState<Issue | null>(null);
   return (
     <section className={s.hero} aria-labelledby="run-title" data-card="">
-      <h2 id="run-title" className="visually-hidden">{t("home.net")}</h2>
       <div className={s.top}>
         <div className={s.lead}>
           <StatusSentence />
