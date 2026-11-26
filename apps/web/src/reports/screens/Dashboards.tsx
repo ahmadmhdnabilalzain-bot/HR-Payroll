@@ -164,8 +164,8 @@ export function DashboardExec() {
       explain={(r, c) => c === 0 ? undefined : why[r]?.[c - 1]}
       columns={COLUMNS} rows={rows}
       csvName="executive-dashboard-2026-10.csv"
-      note={"Figures are the run as it stands today, including the pay " +
-        "still held out of the file. Sparklines run January to October; " +
+      note={"Figures are the run as it stands today, including any pay " +
+        "held out of the salary file. Sparklines run January to October; " +
         "the dashed line is September's level. Open Variance for the " +
         "full split."} />
   );
