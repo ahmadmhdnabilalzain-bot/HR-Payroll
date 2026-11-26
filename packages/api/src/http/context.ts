@@ -11,7 +11,7 @@ import {
 import type { Db } from "../db/db";
 import { UUID, withTenant, type TenantCtx } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
-import { contentDisposition } from "../files/names";
+import { contentDisposition, nameForType } from "../files/names";
 import { routeBodyLimit } from "./body-limit";
 import { ApiError, asError } from "./errors";
 import { validate, type Validated } from "./validate";
@@ -141,7 +141,8 @@ function csv(c: Context<Env>, out: CsvReply) {
 function binary(c: Context<Env>, out: BinaryReply) {
   downloadHeaders(c);
   c.header("Content-Type", out.contentType);
-  c.header("Content-Disposition", contentDisposition(out.fileName));
+  c.header("Content-Disposition", contentDisposition(
+    nameForType(out.fileName, out.contentType)));
   c.header("Cache-Control", "no-store");
   return c.body(out.bytes as Uint8Array<ArrayBuffer>, 200);
 }
