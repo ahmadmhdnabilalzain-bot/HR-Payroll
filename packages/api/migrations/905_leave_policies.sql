@@ -27,6 +27,10 @@ ALTER TABLE leave_requests
   ADD COLUMN end_part text NOT NULL DEFAULT 'full'
     CHECK (end_part IN ('full', 'am', 'pm')),
   ADD COLUMN half_units integer;
+-- The owner role has no BYPASSRLS and RLS is forced on this table, so
+-- the backfill would see no rows: lift FORCE for the data statements
+-- only, and restore it below (review N1).
+ALTER TABLE leave_requests NO FORCE ROW LEVEL SECURITY;
 UPDATE leave_requests SET half_units = days * 2;
 ALTER TABLE leave_requests ALTER COLUMN half_units SET NOT NULL;
 ALTER TABLE leave_requests ADD CHECK (half_units >= 1);
@@ -48,6 +52,7 @@ INSERT INTO leave_request_dates (company_id, request_id, date, halves,
   part)
 SELECT r.company_id, r.id, d::date, 2, 'full' FROM leave_requests r,
   generate_series(r.start_date, r.end_date, interval '1 day') AS d;
+ALTER TABLE leave_requests FORCE ROW LEVEL SECURITY;
 
 CREATE TABLE leave_blackouts (
   id uuid PRIMARY KEY,
