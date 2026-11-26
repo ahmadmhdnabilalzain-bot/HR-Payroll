@@ -65,8 +65,9 @@ source-cited, with an open API and Arabic from the start.
   hash-chained audit log, pay runs, payslips and SIF files).
   Build report: `docs/superpowers/plans/plan-3-build-report-1.md`.
 - **Plan 9 API (time, attendance, leave policies, work-from-home) is
-  built** on worktree branch `api-plan-9` (Tasks 3 to 11; the engine
-  parts, Tasks 1 and 2, were merged before), not yet merged. 66 routes
+  built and merged** (commit a038a5e; review fixes C1, I1-I5 applied;
+  a scoped re-review is running; minors M4-M13 are listed in
+  `plan-9-build-report.md`; engine parts merged earlier). 66 routes
   in `TIME_ROUTES`, migrations 901 to 908, the `@payroll/time-client`
   package (sampler, indicator model, desktop agent interface).
   Work-from-home tracking is exactly the owner's decision: no
