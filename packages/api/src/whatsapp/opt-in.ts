@@ -103,7 +103,32 @@ export async function verifyOptIn(ctx: ReqCtx<WhatsAppVerify>)
     actorUserId: ctx.user!.id, action: "whatsapp.opted-in",
     entityType: "channel-opt-in", entityId: p.id,
     data: { consentVersion: WHATSAPP_CONSENT_VERSION } });
+  await replaceOthers(ctx, p.id);
   return myChannels(ctx);
+}
+
+/**
+ * Security review I2: the verified number now belongs to this user.
+ * Everyone else's opt-in on it ends in every company and their open
+ * actions are voided; withdrawals in this company are audited (other
+ * companies keep `withdrawn_via = 'replaced'` on the row: their audit
+ * chains cannot be written from this tenant).
+ */
+async function replaceOthers(ctx: ReqCtx, optInId: string): Promise<void> {
+  const c = ctx.tenant!.companyId;
+  const at = ctx.deps.now().toISOString();
+  const [h] = await ctx.tx.query<{ phone_hash: string }>(
+    "SELECT phone_hash FROM channel_opt_ins WHERE company_id = $1 " +
+    "AND id = $2", [c, optInId]);
+  const gone = await ctx.tx.query<{ company_id: string; opt_in_id: string }>(
+    "SELECT * FROM replace_whatsapp_phone($1, $2, $3)",
+    [h!.phone_hash, ctx.user!.id, at]);
+  for (const r of gone.filter((x) => x.company_id === c)) {
+    await channelAudit(ctx.tx, { companyId: c, at, actorUserId:
+      ctx.user!.id, action: "whatsapp.opted-out",
+    entityType: "channel-opt-in", entityId: r.opt_in_id,
+    data: { via: "replaced" } });
+  }
 }
 
 async function wrongCode(ctx: ReqCtx, p: Pending): Promise<Refuse> {

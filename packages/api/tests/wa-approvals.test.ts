@@ -175,10 +175,12 @@ describe("WhatsApp approvals", () => {
       const w = await waWorld("wag");
       const b = await seedCompany(w.ctx, "wagb");
       await enableWhatsApp(w.ctx, b);
-      await optIn(w.ctx, b, b.manager, M_PHONE);
       const id = await w.claim();
       const [ta] = w.buttons();
       await postHook(w.ctx, tap("t1", M_PHONE, ta!));
+      // A second person verifying the number ends A's opt-in already
+      // (review I2); STOP then ends B's.
+      await optIn(w.ctx, b, b.manager, M_PHONE);
       await postHook(w.ctx, [{ id: "t2", from: M_PHONE, text: " stop " }]);
       for (const [s, u] of [[w.s, w.s.manager], [b, b.manager]] as const) {
         const me = await call(w.ctx.app, u.token, s.companyId, "GET",

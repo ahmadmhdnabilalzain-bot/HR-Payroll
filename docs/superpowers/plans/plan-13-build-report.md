@@ -614,3 +614,19 @@ Important, 9 Minor). One commit per item, test first.
   ends near the deadline, the cap ends a never-ending body, and the
   real client still refuses http. Per-run budgets for the delivery job
   were not added (the deadline bounds each delivery).
+- I2 (a number that changes hands kept approving as the old holder):
+  migration `1310` adds `replace_whatsapp_phone` (SECURITY DEFINER,
+  EXECUTE for `payroll_app` only). On a successful verify it withdraws
+  every other user's opt-in on that phone hash in every company
+  (`withdrawn_via = 'replaced'`) and voids their open and
+  awaiting-reason actions. It clears `app.company_id` with
+  `set_config` while it works (a function-level `SET` of the
+  placeholder needs a superuser) so the job-scan policies match inside
+  the tenant transaction, and restores it. Decisions: the same user's
+  opt-ins in other companies are kept (same person); withdrawals in
+  the verifying company are audited `whatsapp.opted-out` `via:
+  "replaced"`, other companies keep the marker on the row (their audit
+  chains cannot be written from this tenant). Tests: the manager/HR
+  scenario (M withdrawn, H's tap on M's button decides nothing, no new
+  buttons to M), across companies, and on real PostgreSQL from a
+  tenant transaction. The STOP test now opts B in after A's tap.

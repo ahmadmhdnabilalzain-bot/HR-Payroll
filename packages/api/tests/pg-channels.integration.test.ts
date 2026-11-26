@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { withTenant } from "../src/db/tenant";
-import { dispatch } from "./helpers/channel-jobs";
+import { dispatch, enableWhatsApp, optIn } from "./helpers/channel-jobs";
 import {
   EXPENSE_START,
   meal,
@@ -10,7 +10,7 @@ import {
 import { ADMIN_URL, closeAll, freshPgPair } from "./helpers/pg-env";
 import { seedCompany } from "./helpers/seed";
 import { seedTwoCompanies } from "./helpers/test-db";
-import { makeApp } from "./helpers/test-app";
+import { call, makeApp } from "./helpers/test-app";
 
 /**
  * Plan 13's cross-company jobs run SECURITY DEFINER functions as the
@@ -83,4 +83,22 @@ describe.skipIf(!ADMIN_URL)("Plan 13 jobs on real PostgreSQL", () => {
     expect(await q("SELECT withdraw_whatsapp_by_phone('hx', $1) AS n",
       [now])).toEqual([{ n: 2 }]);
   });
+
+  it("I2: verifying a number in B ends A's opt-in (tenant tx)",
+    async () => {
+      const { db } = await freshPgPair(2);
+      const ctx = await makeApp({ db, start: EXPENSE_START });
+      const a = await seedCompany(ctx, "pgwa");
+      const b = await seedCompany(ctx, "pgwb");
+      await enableWhatsApp(ctx, a);
+      await enableWhatsApp(ctx, b);
+      await optIn(ctx, a, a.manager, "+971500000041");
+      await optIn(ctx, b, b.hr, "+971500000041");
+      const ma = await call(ctx.app, a.manager.token, a.companyId, "GET",
+        "/v1/me/channels");
+      expect(ma.body.whatsapp.status).toBe("withdrawn");
+      const hb = await call(ctx.app, b.hr.token, b.companyId, "GET",
+        "/v1/me/channels");
+      expect(hb.body.whatsapp.status).toBe("active");
+    });
 });
