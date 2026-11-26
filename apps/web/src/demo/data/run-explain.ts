@@ -3,6 +3,7 @@ import {
   duration,
   PENSION_NOT_COMPUTED,
   plural,
+  PRESENTED_STATUS,
   sourceOf,
   type DemoCompany,
   type DemoEmployee,
@@ -65,12 +66,18 @@ export function rulesOf(lines: (TraceLine | undefined)[]): ExplainRule[] {
   const out: ExplainRule[] = [];
   for (const r of lines.flatMap((l) => l?.rules ?? [])) {
     if (SKIP.has(r.key)) continue;
-    const plain = rulePlain(r.key, sourceOf(r)?.note ?? null,
-      statusOf(r));
+    const shown = r.overridden ? undefined
+      : PRESENTED_STATUS[`${r.packId}:${r.key}`];
+    const status = shown === undefined ? statusOf(r)
+      : shown.status as ExplainRule["status"];
+    const note = sourceOf(r)?.note ?? null;
+    const plain = rulePlain(r.key, note, status);
     if (seen.has(plain.text)) continue;
     seen.add(plain.text);
-    out.push({ text: plain.text, status: statusOf(r),
-      citation: plain.citation });
+    out.push({ text: plain.text, status,
+      statusLabel: shown?.label.en ?? null,
+      citation: shown === undefined || note === null ? plain.citation
+        : `${note}.` });
   }
   return out;
 }
@@ -126,7 +133,7 @@ function gratuity(c: DemoCompany, e: DemoEmployee): Explanation | null {
     { text: `Service from ${year(e.joiningDate)} to ` +
       `${year(e.leavingDate)}` + (unpaid === 0
       ? ", with no unpaid days to take off" : `, less ${unpaid} unpaid ` +
-        "days") + `: ${service}.`, value: text(service) },
+        "days") + ".", value: text(service) },
     { text: "A day's basic wage is the monthly basic divided by 30.",
       value: money(daily) },
     { text: `First 5 years at 21 days a year: ${daysText(t1?.result)} ` +

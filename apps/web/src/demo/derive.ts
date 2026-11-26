@@ -71,11 +71,13 @@ export function isBlocking(i: Issue): boolean {
   return i.code === "SIF_HELD_NO_IBAN" || i.code === "IBAN_CHECKSUM";
 }
 
-export type RunPhase = "bank-details" | "approve" | "file";
+/** "declined": the GM sent the run back to HR (undo restores it). */
+export type RunPhase = "bank-details" | "approve" | "file" | "declined";
 
 export function runPhase(d: DemoData, s: DemoState): RunPhase {
   const run = runApprovalId(d);
   if (run !== null && s.decided[run] === "approve") return "file";
+  if (run !== null && s.decided[run] === "decline") return "declined";
   return approvalBlockedBy(d, s).length > 0 ? "bank-details" : "approve";
 }
 
@@ -97,7 +99,7 @@ export function steps(d: DemoData, s: DemoState): Step[] {
   const c = d.payCalendar();
   const phase = runPhase(d, s);
   const now: StepId = phase === "file" ? "sif"
-    : phase === "approve" ? "approve" : "bank";
+    : phase === "approve" || phase === "declined" ? "approve" : "bank";
   const order: [StepId, string][] = [["inputs", c.cutOff],
     ["bank", c.asOf], ["approve", c.approveBy], ["sif", c.sifDue],
     ["pay", c.payday]];

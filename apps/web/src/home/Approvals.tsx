@@ -25,10 +25,13 @@ const KIND: Record<ApprovalKind, MessageKey> = {
 export function Approvals() {
   const { t } = useLocale();
   const { data, state } = useDemo();
+  const run = useRunApproval();
   const list = pendingApprovals(data, state);
+  const sent = list.filter((a) => a.kind !== "pay-run" ||
+    run.blockedBy.length === 0);
   const box = useRef<HTMLUListElement>(null);
   useFlip(box, [list.map((a) => a.id).join(), state.role]);
-  const count = useTweenedNumber(list.length);
+  const count = useTweenedNumber(sent.length);
   return (
     <section className={s.panel} aria-labelledby="approvals-title">
       <header className={s.head}>
@@ -84,7 +87,9 @@ function ApprovalRow(p: { a: Approval }) {
       </div>
       <div className={s.end}>
         {a.amountFils !== null && <Money value={a.amountFils} size="sm" />}
-        {mine ? (
+        {isRun && run.blockedBy.length > 0 ? (
+          <span className={s.waitingFor}>{t("home.notSent")}</span>
+        ) : mine ? (
           <div className={s.buttons}>
             <button type="button" className={`${b.btn} ${b.secondary}`}
               disabled={blocked} onClick={decide("decline")}>
@@ -101,7 +106,8 @@ function ApprovalRow(p: { a: Approval }) {
           </span>
         )}
       </div>
-      {mine && why !== undefined && <p className={s.why}>{why}</p>}
+      {mine && why !== undefined && run.blockedBy.length === 0 &&
+        <p className={s.why}>{why}</p>}
     </li>
   );
 }

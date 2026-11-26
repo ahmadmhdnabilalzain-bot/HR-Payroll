@@ -7,19 +7,10 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { useTheme } from "../theme/ThemeProvider";
 import { Icon, type IconName } from "../ui/Icon";
 import { VIEWS } from "../views";
+import { NAV_ITEMS } from "./nav";
 import { RoleMenu } from "./RoleMenu";
 import { Wordmark } from "./Wordmark";
 import s from "./TopBar.module.css";
-
-/** Every section in order; only those with a view are shown. Reports
- * is not in the phone bar (at most four there, plus search). */
-const NAV: [Section, MessageKey, IconName][] = [
-  ["home", "shell.navHome", "home"],
-  ["pay-run", "shell.navPayRun", "wallet"],
-  ["people", "shell.navPeople", "users"],
-  ["time-off", "shell.navTimeOff", "calendar"],
-  ["reports", "shell.navReports", "chart"],
-];
 
 export function Ribbon() {
   const { lang, t } = useLocale();
@@ -64,7 +55,7 @@ function Nav(p: { section: Section; onSearch(): void }) {
   const { t } = useLocale();
   return (
     <nav className={s.nav} aria-label={t("shell.sections")}>
-      {NAV.filter(([id]) => VIEWS[id] !== undefined).map(([id, key,
+      {NAV_ITEMS.filter(([id]) => VIEWS[id] !== undefined).map(([id, key,
         icon]) => (
         <a key={id} href={hrefOf(id)} className={s.navItem}
           data-phone={id === "reports" ? "no" : undefined}
