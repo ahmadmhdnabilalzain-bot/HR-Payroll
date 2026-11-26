@@ -42,6 +42,7 @@ describe("boundaries", () => {
       "src/demo/data/time.ts",
       "src/reports/source.ts",
       "src/reports/cost/source.ts",
+      "src/reports/more/source.ts",
       "src/setup/access/data.ts",
       "src/setup/structure/data.ts",
       "src/demo/data/talent-types.ts",
