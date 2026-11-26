@@ -6,10 +6,10 @@
 .page {
   display: grid;
   gap: var(--space-7);
-  max-inline-size: 1240px;
+  max-inline-size: var(--container);
   margin-inline: auto;
   padding: var(--space-6) var(--space-6) var(--space-8);
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
   animation: enter var(--dur-slow) var(--ease-out);
 }
 

@@ -1,7 +1,7 @@
 .page {
   display: grid;
   gap: var(--space-4);
-  max-inline-size: 1280px;
+  max-inline-size: var(--container);
   margin-inline: auto;
   padding: var(--space-4) var(--space-6) var(--space-8);
 }
@@ -20,13 +20,6 @@
   gap: var(--space-6);
   align-items: start;
   margin-block-start: var(--space-6);
-}
-
-@media (min-width: 1680px) {
-  .page {
-    max-inline-size: 1520px;
-    gap: var(--space-6);
-  }
 }
 
 @media (max-width: 1000px) {
