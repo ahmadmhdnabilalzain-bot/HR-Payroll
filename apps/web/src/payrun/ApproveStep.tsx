@@ -122,49 +122,23 @@ export function ApproveStep(p: { go: Go }) {
 
           <div className={s.approveActions}>
             {waiting ? (
-              <>
+              a.isChecker && (
                 <button type="button"
-                  className={`${b.btn} ${b.primary} ${b.large} ${s.act}`}
+                  className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
                   disabled={!a.canDecide}
-                  aria-describedby={reason === null || a.canDecide
-                    ? undefined : "approve-why"}
-                  onClick={() => decide("approve")}>
-                  {t("payrun.approveBtn")}
+                  onClick={() => decide("decline")}>
+                  {t("payrun.declineBtn")}
                 </button>
-                {a.isChecker && (
-                  <button type="button"
-                    className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
-                    disabled={!a.canDecide}
-                    onClick={() => decide("decline")}>
-                    {t("payrun.declineBtn")}
-                  </button>
-                )}
-                <button type="button"
-                  className={`${b.btn} ${b.secondary} ${b.large} ${s.act}`}
-                  disabled aria-describedby="approve-why">
-                  {t("payrun.continueTo", { step: t("payrun.pay") })}
-                </button>
-              </>
+              )
             ) : (
-              <>
-                {verdict === "approve" && (
-                  <a href="#/pay-run/pay"
-                    className={`${b.btn} ${b.primary} ${b.large} ${s.act}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      p.go("pay");
-                    }}>{t("payrun.continueTo", { step: t("payrun.pay") })}
-                    <Icon name="arrowEnd" /></a>
-                )}
-                {a.isChecker && id !== null && (
-                  <button type="button"
-                    className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
-                    onClick={() => {
-                      forgetDecision(id);
-                      dispatch({ type: "undecide", id });
-                    }}>{t("payrun.undo")}</button>
-                )}
-              </>
+              a.isChecker && id !== null && (
+                <button type="button"
+                  className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
+                  onClick={() => {
+                    forgetDecision(id);
+                    dispatch({ type: "undecide", id });
+                  }}>{t("payrun.undo")}</button>
+              )
             )}
           </div>
 

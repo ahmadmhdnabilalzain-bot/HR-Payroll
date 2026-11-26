@@ -6,148 +6,12 @@
 .page {
   max-inline-size: var(--container);
   margin-inline: auto;
-  /* The title sits at the templates' y: 40 under the bar. */
-  padding: 40px var(--page-pad) var(--space-7);
+  /* The title is in the sticky row above (RunBar); the step starts
+   * right under it. */
+  padding: var(--space-3) var(--page-pad) var(--space-7);
   font-size: var(--text-md);
   /* A step slides 24 px in; it must not widen a phone's page. */
   overflow-x: clip;
-}
-
-/* The stepper: one element; the ring slides, the line fills. */
-.stepper {
-  margin-block: var(--space-5) var(--space-6);
-}
-
-.stepCount {
-  display: none;
-}
-
-.stepList {
-  --node: 28px;
-  --ease-ring: cubic-bezier(0.32, 0.72, 0, 1);
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.track {
-  position: absolute;
-  inset-inline: 12.5%;
-  inset-block-start: calc(var(--node) / 2 + 5px);
-  block-size: 2px;
-  background: var(--color-divider-strong);
-  overflow: hidden;
-}
-
-.trackFill {
-  display: block;
-  block-size: 100%;
-  background: var(--color-text);
-  transform: scaleX(var(--fill));
-  transform-origin: 0 50%;
-  transition: transform 320ms var(--ease-ring);
-}
-
-[dir="rtl"] .trackFill {
-  transform-origin: 100% 50%;
-}
-
-/* A lane one column wide; it moves a whole column per step. */
-.ringLane {
-  position: absolute;
-  inset-block-start: 5px;
-  inset-inline-start: 0;
-  z-index: 1;
-  display: grid;
-  justify-items: center;
-  inline-size: 25%;
-  pointer-events: none;
-  transform: translateX(calc(var(--at) * 100%));
-  transition: transform 320ms var(--ease-ring);
-}
-
-[dir="rtl"] .ringLane {
-  transform: translateX(calc(var(--at) * -100%));
-}
-
-.ring {
-  inline-size: calc(var(--node) + 10px);
-  block-size: calc(var(--node) + 10px);
-  margin-block-start: -5px;
-  border: 2px solid var(--color-text);
-  border-radius: var(--radius-pill);
-}
-
-.stepItem {
-  position: relative;
-  display: grid;
-  justify-items: center;
-}
-
-.stepLink {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-2);
-  min-inline-size: 120px;
-  padding: 5px var(--space-3) var(--space-2);
-  border-radius: var(--radius-control);
-  color: inherit;
-  text-align: center;
-  text-decoration: none;
-}
-
-.node {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  inline-size: var(--node);
-  block-size: var(--node);
-  border: 1.5px solid var(--color-divider-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-bg);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  transition: background-color 320ms var(--ease-ring),
-    border-color 320ms var(--ease-ring), color 320ms var(--ease-ring);
-}
-
-.stepItem[data-state="done"] .node {
-  border-color: var(--color-text);
-  background: var(--color-text);
-  color: var(--color-bg);
-}
-
-.stepItem[data-state="tofix"] .node {
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-}
-
-.stepText {
-  display: grid;
-}
-
-.stepName {
-  font-size: var(--text-lg);
-  font-weight: 600;
-}
-
-.stepState {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.stepItem[data-state="tofix"] .stepState {
-  color: var(--color-danger);
-  font-weight: 500;
-}
-
-.stepItem[data-state="done"] .stepState {
-  color: var(--color-success);
 }
 
 /* Steps move 24 px in the direction of travel, with opacity. */
@@ -570,7 +434,8 @@
 /* Fix: the salary file total, pinned while fixing. */
 .fileNow {
   position: sticky;
-  inset-block-start: 90px;
+  /* Under the top bar and the 64 px run row, with 12 px to breathe. */
+  inset-block-start: calc(var(--run-top, 83px) + 64px + 12px);
   z-index: 5;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -1023,78 +888,6 @@ a.navNext:active,
       env(safe-area-inset-bottom));
   }
 
-  .stepper {
-    margin-block: var(--space-4);
-  }
-
-  .stepCount {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-2);
-    margin-block-end: var(--space-1);
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-  }
-
-  .stepCountName {
-    display: inline-flex;
-    gap: var(--space-2);
-    color: var(--color-text);
-    font-weight: 600;
-  }
-
-  .stepCountState {
-    color: var(--color-text-muted);
-    font-weight: 500;
-  }
-
-  .stepCountState[data-state="tofix"] {
-    color: var(--color-danger);
-  }
-
-  .stepList {
-    --node: 12px;
-  }
-
-  .track {
-    inset-block-start: 21px;
-  }
-
-  .ringLane {
-    inset-block-start: 22px;
-  }
-
-  .ring {
-    inline-size: 24px;
-    block-size: 24px;
-    margin-block-start: -12px;
-  }
-
-  .stepLink {
-    min-inline-size: 0;
-    inline-size: 100%;
-    min-block-size: 44px;
-    padding: 16px 0 0;
-  }
-
-  .node {
-    font-size: 0;
-  }
-
-  .node svg {
-    display: none;
-  }
-
-  .stepText {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-
   .totals {
     grid-template-columns: 1fr 1fr;
     gap: var(--space-4);
@@ -1199,7 +992,6 @@ a.navNext:active,
 
   .fileNow {
     grid-template-columns: 1fr;
-    inset-block-start: 82px;
   }
 
   .fileNowFigure {

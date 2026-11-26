@@ -30,15 +30,10 @@ export function stepStates(at: StepId, a: RunApproval)
     review: at === "review" ? "now" : "done",
     fix: fixed ? (at === "fix" ? "now" : "done") : "tofix",
     approve: cur("approve", approved, fixed ? "next" : "waiting"),
-    pay: approved ? "now" : at === "pay" ? "now" : "next",
+    // "Now" only for the step on screen: after sign-off on Approve,
+    // Pay reads "Next" until it is opened.
+    pay: at === "pay" ? "now" : "next",
   };
-}
-
-/** How far the track is filled, 0 to 1, from the finished steps. */
-export function progress(a: RunApproval): number {
-  const fixed = a.blockedBy.length === 0;
-  const approved = a.phase === "file";
-  return approved ? 1 : fixed ? 2 / 3 : 1 / 3;
 }
 
 /** When each decision was recorded in this visit (ms since epoch). */

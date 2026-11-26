@@ -17,6 +17,9 @@ export const payrun = {
   stateWaiting: "Waiting",
   back: "Back",
   continueTo: "Continue to {step}",
+  actContinue: "Continue",
+  actApprove: "Approve",
+  actDownload: "Download",
   loading: "Loading the pay run",
 
   reviewTitle: "What this month pays",
