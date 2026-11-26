@@ -186,6 +186,12 @@ function currentPack(packs: readonly RulePack[]): RulePack {
   return open[0]!;
 }
 
+/**
+ * TRN shape: 15 digits, no check digit. An ASSUMPTION (Plan 12 Ruling
+ * 9, Plan 6 Ruling 5), not a sourced rule; product convention.
+ */
+const TRN_SHAPE = /^\d{15}$/;
+
 /** TIN = the first tinDigits digits of the TRN (MoF glossary). */
 export function tinFromTrn(
   trn: string,
@@ -193,9 +199,9 @@ export function tinFromTrn(
 ): string {
   const digits = Number(intParam(currentPack(packs), "tinDigits",
     undefined, 1).v);
-  if (!/^\d+$/.test(trn) || trn.length < digits) {
+  if (!TRN_SHAPE.test(trn) || trn.length < digits) {
     throw new EngineError("INVALID_TRN",
-      `TRN must be digits only, at least ${digits} long`, { value: trn });
+      "TRN must be 15 digits (assumed shape)", { value: trn });
   }
   return trn.slice(0, digits);
 }

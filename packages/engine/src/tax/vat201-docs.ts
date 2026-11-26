@@ -130,6 +130,10 @@ function placePurchase(p: Placer, d: Vat201Doc): void {
   } else {
     p.excluded.push(d.id);
     noVatOn(p, d, null);
+    // A company figure left out of every box is shown, not dropped.
+    if ((d.claimedVat ?? 0n) > 0n) {
+      p.problem("CLAIMED_ON_UNTAXED", null, d.id);
+    }
   }
 }
 
@@ -144,15 +148,28 @@ export function placeDocs(docs: readonly Vat201Doc[]): Placed {
 }
 
 /**
- * Net VAT effect per corrected period, as the plan states it: sale
- * VAT minus claimed purchase VAT, credit notes negative.
+ * One document's effect on Box 14, as placeDocs puts it in boxes:
+ * standard sale VAT (Box 1), minus claimed standard purchase VAT
+ * (Box 9), plus reverse-charge VAT (Box 3) minus its claimed part
+ * (Box 10). A document in no VAT column has no effect. An undecided
+ * claim counts as 0; the return is incomplete then anyway.
  */
+function box14Effect(d: Vat201Doc): bigint {
+  const claimed = d.claimedVat ?? 0n;
+  if (d.direction === "sale") return d.treatment === "standard" ? d.vat
+    : 0n;
+  if (d.treatment === "standard") return -claimed;
+  if (d.treatment === "reverse-charge") return d.vat - claimed;
+  return 0n;
+}
+
+/** Box 14 effect per corrected period, credit notes negative. */
 export function corrections(docs: readonly Vat201Doc[],
   threshold: bigint): Vat201Correction[] {
   const effect = new Map<string, bigint>();
   for (const d of docs) {
     if (d.correctsPeriodStart === null) continue;
-    const vat = d.direction === "sale" ? d.vat : -(d.claimedVat ?? 0n);
+    const vat = box14Effect(d);
     const prev = effect.get(d.correctsPeriodStart) ?? 0n;
     effect.set(d.correctsPeriodStart, prev + signOf(d) * vat);
   }

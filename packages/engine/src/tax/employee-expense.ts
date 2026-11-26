@@ -18,6 +18,13 @@ export interface EmployeeExpenseInput {
   case: EmployeeExpenseCase;
   expenseDate: string;
   attestations: Partial<Record<ConditionId, boolean | null>>;
+  /**
+   * new-employee-accommodation only: the length of the stay in
+   * calendar days, counting both the first and the last day (arrival
+   * 1 Nov and departure 1 Dec is 31 days, not 30 nights). The article
+   * says only "no longer than 30 days"; counting inclusively is the
+   * cautious reading, a convention, not a quoted rule.
+   */
   stayDays?: number;
 }
 

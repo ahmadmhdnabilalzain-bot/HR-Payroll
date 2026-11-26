@@ -86,6 +86,12 @@ interface Bands {
   tax: Fils;
 }
 
+/**
+ * Each band is rounded on its own (taxRounding). With the sourced 0%
+ * zero rate the zero band tax is always 0, so this equals one
+ * rounding of the total; an override of the zero rate can differ by
+ * at most 1 fil.
+ */
 function bandTax(pack: RulePack, ov: Ov, taxable: bigint,
   t: TraceBuilder): Bands {
   const upper = intParam(pack, "zeroBandUpperFils", ov, 0);

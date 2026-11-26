@@ -133,6 +133,9 @@ describe("corporate tax worksheet", () => {
     expect(codeOf(() => computeCorporateTax(ct(1n, {
       periodStart: "2025-06-30", periodEnd: "2026-12-31" }))))
       .toBe("INVALID_PERIOD");
+    expect(codeOf(() => computeCorporateTax(ct(1n, {
+      periodStart: "2025-07-01", periodEnd: "2027-01-01" }))))
+      .toBe("INVALID_PERIOD");
   });
   it("rates_secondary_in_trace", () => {
     const r = computeCorporateTax(ct(47500000n));
