@@ -1,6 +1,7 @@
 import {
   buildDemoCompany,
   demoLabel,
+  departmentText,
   displayDate,
   finalSettlements,
   isDemoLabelKey,
@@ -18,8 +19,9 @@ import {
   trafficFines,
   type DemoCompany,
 } from "@payroll/demo-data";
-import type { Fils } from "@payroll/engine";
+import { fils, type Fils } from "@payroll/engine";
 import { money, text, type Explanation } from "../../components/explain";
+import { people, sumExplain } from "../../components/explain/sum";
 import type {
   CorrectionView,
   PastRunView,
@@ -92,11 +94,39 @@ function runExplain(c: DemoCompany, id: string, label: string,
     rules: [],
     steps: [
       { text: `Gross pay of ${plural(slips.length, "person", "people")}`,
-        value: money(gross) },
-      { text: "Less deductions", value: money(deductions) },
-      { text: "Net pay", value: money(net) },
+        value: money(gross), op: "add" },
+      { text: "Less deductions", value: money(deductions), op: "less" },
+      { text: "Net pay", value: money(net), op: "total" },
     ],
     notComputed: [], scope: c.rulesScope };
+}
+
+/** A month's gross, department by department. */
+function grossExplain(c: DemoCompany, id: string, label: string,
+  slips: RunSlip[]): Explanation {
+  const dept = new Map(c.employees.map((e) => [e.id, e.departmentId]));
+  return sumExplain({ id: `past-run-gross:${id}`,
+    title: `Gross pay, ${label}`, subject: "Whole pay run",
+    summary: "Every payslip's gross pay, added up by department.",
+    resultLabel: "Gross pay", parts: c.departments.map((d) => slips
+      .filter((x) => dept.get(x.employeeId) === d.id))
+      .filter((xs) => xs.length > 0).map((xs) => ({
+        text: `${departmentText(dept.get(xs[0]!.employeeId)!)} ` +
+          `(${people(xs.length)})`,
+        value: money(fils(xs.reduce((n, x) => n + x.gross, 0n))) })),
+    scope: c.rulesScope });
+}
+
+/** Net against the month before: this month less last month. */
+function changeExplain(c: DemoCompany, id: string, label: string,
+  prevLabel: string, net: Fils, prev: Fils): Explanation {
+  return sumExplain({ id: `past-run-change:${id}`,
+    title: "Net pay against the month before", subject: label,
+    summary: "This month's net pay less the month before's. Open Who " +
+      "changed to see each person's part.", resultLabel: "Change",
+    parts: [{ text: `Net pay, ${label}`, value: money(net) },
+      { text: `Less net pay, ${prevLabel}`, value: money(prev),
+        less: true }], totalText: "Change", scope: c.rulesScope });
 }
 
 function runsOf(c: DemoCompany): PastRunView[] {
@@ -123,7 +153,9 @@ function runsOf(c: DemoCompany): PastRunView[] {
         employeeId: x.employeeId, name: x.display.name, change: x.change,
         reasons: x.reasons })),
       explanation: runExplain(c, id, label, slips, t.gross, t.deductions,
-        t.net) };
+        t.net), grossExplanation: grossExplain(c, id, label, slips),
+      changeExplanation: before === undefined ? null : changeExplain(c, id,
+        label, `${before.label} 2026`, t.net, before.net) };
   });
 }
 

@@ -5,7 +5,8 @@ import { useCellMoney as useMoney } from "../../pay/gate/cell-money";
 
 /** X06: October by pay element, against September. */
 export function Elements() {
-  const r = useExtras().elements;
+  const src = useExtras();
+  const r = src.elements;
   const { m, signed } = useMoney();
   const rows = r.rows.map((x) => x.computed
     ? [x.label, x.type === "earning" ? "Earning" : "Deduction",
@@ -18,7 +19,8 @@ export function Elements() {
   return (
     <ReportPage title="Pay elements report" period={r.period}
       figure={{ label: "Earnings in October, which is gross pay",
-        value: <Money value={r.earningsOctober} size="lg" tween={false} /> }}
+        value: <Money value={r.earningsOctober} size="lg" tween={false} />,
+        explanation: src.elementsExplain }}
       columns={[{ label: "Element" }, { label: "Type" },
         { label: "October", end: true }, { label: "September", end: true },
         { label: "Change", end: true }, { label: "People in October" }]}

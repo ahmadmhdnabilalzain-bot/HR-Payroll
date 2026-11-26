@@ -16,6 +16,7 @@ import {
 import { fils, type Fils } from "@payroll/engine";
 import { withIbans } from "./adapter";
 import { explainAll } from "./run-explain";
+import { figureExplains } from "./run-figures";
 import type {
   ChangeLine,
   FileFinding,
@@ -208,7 +209,8 @@ export function detailOf(c: DemoCompany, prev: Map<string, Prev>)
     .padStart(2, "0")}`;
   return { month, prevMonth: "2026-09", totals: totalsOf(c.payRun.payslips),
     prev: totalsOf([...prev.values()]), changes: changesOf(people, prev, c),
-    people, file, explain: ex.byId, featured: ex.featured,
+    people, file, explain: { ...ex.byId, ...figureExplains(c) },
+    featured: ex.featured,
     settlements: ex.settlements, nationalities: nationalitiesOf(c),
     register: [{ fileName: file.fileName, month, people: file.people,
       total: file.total, dated: file.dated, heldOut: file.heldOut }],

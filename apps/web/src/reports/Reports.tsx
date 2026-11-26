@@ -1,4 +1,5 @@
-import { Suspense, type ComponentType } from "react";
+import { Suspense, type ComponentType, type ReactNode } from "react";
+import type { Explanation } from "../components/explain/types";
 import { useRunApproval } from "../demo/actions";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
@@ -91,6 +92,7 @@ function Report(p: { id: ReportId }) {
     <ReportPage title={t(TITLE[p.id])} period={t(BLURB[p.id])}
       crumbs={[{ label: t("shell.navReports"), href: hrefOf("reports") }]}
       columns={table.columns} rows={table.rows} bars={table.bars}
+      explain={table.explain}
       note={table.note}
       csvName={`${company}-${p.id}-${env.d.month}.csv`}
       foot={t("reports.foot", {

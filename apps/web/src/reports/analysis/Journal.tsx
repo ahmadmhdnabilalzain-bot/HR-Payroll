@@ -14,6 +14,8 @@ export function Journal() {
   const { state } = useDemo();
   const { m } = useMoney();
   const j = x.journal(state.ibans);
+  const why = x.journalExplain(j);
+  const last = j.lines.length;
   const rows = [...j.lines.map((l) => [l.account, l.department,
     l.side === "debit" ? m(l.amount) : "", l.side === "credit"
       ? m(l.amount) : ""]),
@@ -23,7 +25,10 @@ export function Journal() {
       period={`${j.period}, a view for the finance team`}
       figure={{ label: j.balanced ? "Debits and credits balance, " +
         "exactly" : "Debits and credits do not balance",
-      value: <Money value={j.debits} size="lg" tween={false} /> }}
+      value: <Money value={j.debits} size="lg" tween={false} />,
+      explanation: why.debits }}
+      explain={(r, c) => r !== last ? undefined : c === 2 ? why.debits
+        : c === 3 ? why.credits : undefined}
       columns={[{ label: "Line" }, { label: "Department" },
         { label: "Debit", end: true }, { label: "Credit", end: true }]}
       rows={rows} csvName="payroll-journal-view-2026-10.csv"

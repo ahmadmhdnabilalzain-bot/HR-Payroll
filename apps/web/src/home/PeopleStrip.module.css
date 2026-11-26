@@ -27,8 +27,38 @@
   transition: background-color var(--dur-fast) ease;
 }
 
+.card {
+  position: relative;
+}
+
 .card:hover {
   background: var(--color-surface-secondary);
+}
+
+/* The label's link covers the card; a figure's button sits above it. */
+.head a {
+  text-decoration: none;
+}
+
+.head a::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: "";
+}
+
+.head a:focus-visible {
+  outline: none;
+}
+
+.card:has(.head a:focus-visible) {
+  outline: 2px solid var(--color-focus, var(--color-accent));
+  outline-offset: 2px;
+}
+
+.why {
+  position: relative;
+  z-index: 1;
 }
 
 .head {

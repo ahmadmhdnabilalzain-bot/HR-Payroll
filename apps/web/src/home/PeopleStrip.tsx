@@ -1,10 +1,14 @@
-import type { MouseEvent, ReactNode } from "react";
+import { Suspense, type MouseEvent, type ReactNode } from "react";
+import { Explainable } from "../components/explain";
+import type { Explanation } from "../components/explain/types";
 import { pendingApprovals } from "../demo/derive";
 import { useRunApproval } from "../demo/actions";
+import { useLiveExplain } from "../demo/live-explain-load";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { offOn, requestRows } from "../demo/time-off";
 import { useTweenedNumber } from "../demo/motion";
+import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Avatar } from "../ui/Avatar";
@@ -31,31 +35,78 @@ function addDays(iso: string, n: number): string {
  * for an approval. Each card links to the view that holds the rest.
  * Every card reads the same way: the figure and its label, one picture
  * under them at one y, and a footnote line on one baseline at the
- * bottom.
+ * bottom. The expiring and waiting counts open how they are counted
+ * (the dotted rule); that working loads as its own chunk, and until
+ * then the numbers show plain.
  */
 export function PeopleStrip() {
+  return (
+    <Suspense fallback={<Strip />}>
+      <Explained />
+    </Suspense>
+  );
+}
+
+function Explained() {
+  const live = useLiveExplain();
+  const { scope } = useRunDetail();
+  const { data } = useDemo();
+  const docs = soonDocs(data.documents());
+  const open = useOpen();
+  return (
+    <Strip docsWhy={live.docsExplain(data, docs, "Documents expiring soon",
+      `ends within ${SOON} days or has already ended`, scope)}
+    waitingWhy={live.waitingExplain(data, open, scope)} />
+  );
+}
+
+function Strip(p: { docsWhy?: Explanation; waitingWhy?: Explanation }) {
   return (
     <ul className={s.strip}>
       <Nationals />
       <LeaveWeek />
-      <Expiring />
-      <Waiting />
+      <Expiring why={p.docsWhy} />
+      <Waiting why={p.waitingWhy} />
     </ul>
   );
 }
 
+/** Documents counted as expiring: within 30 days, or already ended. */
+const SOON = 30;
+function soonDocs<T extends { daysLeft: number }>(docs: readonly T[]): T[] {
+  return docs.filter((d) => d.daysLeft <= SOON);
+}
+
+/** What waits for a decision, as the inbox below lists it. */
+function useOpen() {
+  const { data, state } = useDemo();
+  const run = useRunApproval();
+  return pendingApprovals(data, state).filter((a) =>
+    a.kind !== "pay-run" || run.blockedBy.length === 0);
+}
+
+/**
+ * One card: the whole card is its link (the label's link stretches
+ * over it), and a figure with a working is its own button above it.
+ */
 function Card(p: { href: string; label: string; value: number;
-  children: ReactNode; onClick?(e: MouseEvent): void }) {
+  children: ReactNode; onClick?(e: MouseEvent): void;
+  why?: Explanation | undefined }) {
   const n = useTweenedNumber(p.value);
   return (
     <li>
-      <a className={s.card} href={p.href} onClick={p.onClick}>
+      <div className={s.card}>
         <span className={s.head}>
-          <span className={`${s.value} tabular`}>{n}</span>
-          <span className={s.label}>{p.label}</span>
+          <span className={`${s.value} tabular`}>
+            <Explainable explanation={p.why} className={s.why}>
+              {n}
+            </Explainable>
+          </span>
+          <a className={s.label} href={p.href} onClick={p.onClick}>
+            {p.label}</a>
         </span>
         {p.children}
-      </a>
+      </div>
     </li>
   );
 }
@@ -128,16 +179,16 @@ function LeaveWeek() {
   );
 }
 
-function Expiring() {
+function Expiring(p: { why?: Explanation | undefined }) {
   const { lang, t } = useLocale();
   const { data } = useDemo();
   const docs = [...data.documents()].sort((a, b) => a.daysLeft -
     b.daysLeft);
-  const soon = docs.filter((d) => d.daysLeft <= 30).length;
+  const soon = soonDocs(docs).length;
   const [first, then] = docs;
   return (
     <Card href={hrefOf("reports", "documents")} value={soon}
-      label={t("home.cardDocs")}>
+      label={t("home.cardDocs")} why={p.why}>
       {first !== undefined && (
         <span className={s.doc}>
           <span className={s.who}>{data.employee(first.employeeId)
@@ -157,17 +208,15 @@ function Expiring() {
   );
 }
 
-function Waiting() {
+function Waiting(p: { why?: Explanation | undefined }) {
   const { lang, t } = useLocale();
-  const { data, state } = useDemo();
-  const run = useRunApproval();
-  const open = pendingApprovals(data, state).filter((a) =>
-    a.kind !== "pay-run" || run.blockedBy.length === 0);
+  const { data } = useDemo();
+  const open = useOpen();
   const ids = [...new Set(open.map((a) => a.employeeId ?? a.makerId))];
   const names = ids.map((id) => data.employee(id).name[lang]);
   return (
     <Card href="#approvals-title" value={open.length}
-      label={t("home.cardWaiting")} onClick={(e) => {
+      label={t("home.cardWaiting")} why={p.why} onClick={(e) => {
         e.preventDefault();
         document.getElementById("approvals-title")
           ?.scrollIntoView({ block: "start", behavior: "smooth" });

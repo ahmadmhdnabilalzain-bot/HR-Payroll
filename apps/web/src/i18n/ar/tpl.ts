@@ -19,6 +19,7 @@ export const tpl: ArOf<typeof en> = {
   csv: "تنزيل CSV",
   print: "طباعة",
   changes: "التغييرات",
+  explainHint: "الأرقام التي تحتها خط منقّط تفتح طريقة حسابها.",
   noChanges: "لا تغييرات بعد.",
   more: "إجراءات أخرى",
   hiddenCsv: "أظهر المبالغ للتنزيل",

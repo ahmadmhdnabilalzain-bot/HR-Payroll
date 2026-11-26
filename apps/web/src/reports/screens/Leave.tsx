@@ -17,7 +17,8 @@ export function Leave() {
   return (
     <ReportPage crumbs={crumbs} title="Leave and absence" period="2026 so far"
       figure={{ label: "Annual leave left across everyone",
-        value: `${n(src.annualLeftTotal)} days` }}
+        value: `${n(src.annualLeftTotal)} days`,
+        explanation: src.explain["leave:annual-left"] }}
       columns={[{ label: "Person" }, { label: "Department" },
         { label: "Annual left", end: true },
         { label: "Annual taken", end: true },

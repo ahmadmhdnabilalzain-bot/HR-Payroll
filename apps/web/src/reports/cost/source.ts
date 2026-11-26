@@ -22,6 +22,7 @@ import {
   type ExplainStep,
   type Explanation,
 } from "../../components/explain/types";
+import { people, sumExplain, SUM_RULE } from "../../components/explain/sum";
 import { rulesOf } from "../../demo/data/run-explain";
 
 /**
@@ -36,6 +37,10 @@ export interface CostSource {
   /** One explanation per counted person, by employee id. */
   explain: Readonly<Record<string, Explanation>>;
   totalExplain: Explanation;
+  /** Each department's liability, by department id. */
+  deptExplain: Readonly<Record<string, Explanation>>;
+  /** Gross plus computed employer cost, partial: the page's figure. */
+  costExplain: Explanation;
   cost: EmployerCost;
   asOfText: string;
 }
@@ -112,26 +117,74 @@ function personExplain(c: DemoCompany, id: string, amount: Fils)
     scope: c.rulesScope };
 }
 
+const ELIGIBLE_RULE = { text: "UAE nationals are left out (their " +
+  "end-of-service benefit is outside this gratuity), and people under " +
+  "one year of service are not yet eligible, as we read it.",
+status: "unsourced" as const, statusLabel: null, citation: null };
+
 function totalExplain(c: DemoCompany, g: GratuityProvision): Explanation {
   const paid = g.rows.filter((r) => r.amount !== null);
-  return { id: "gratuity-provision:total",
+  return sumExplain({ id: "gratuity-provision:total",
     title: "Company gratuity provision", subject: "Whole company",
     summary: "The sum of each counted person's gratuity if they left on " +
-      `${shortDateText(g.asOf)}. It is an estimate, not a booked amount.`,
-    result: { label: "Accrued liability estimate",
-      value: money(g.total) },
+      `${shortDateText(g.asOf)}, by department. It is an estimate, not a ` +
+      "booked amount.", resultLabel: "Accrued liability estimate",
+    parts: g.byDepartment.map((d) => ({ d, n: paid.filter((r) =>
+      r.departmentId === d.departmentId).length })).filter((x) => x.n > 0)
+      .map((x) => ({ text: `${x.d.departmentText} (${people(x.n)})`,
+        value: money(x.d.amount) })),
+    totalText: `${plural(g.counts.paid, "person", "people")} counted`,
     inputs: paid.map((r) => ({ label: r.name, value: money(r.amount!),
       from: "Gratuity provision, per person" })),
-    rules: [{ text: "UAE nationals are left out (their end-of-service " +
-      "benefit is outside this gratuity), and people under one year of " +
-      "service are not yet eligible, as we read it.",
-    status: "unsourced", statusLabel: null, citation: null }],
-    steps: [{ text: `${plural(g.counts.paid, "person", "people")} ` +
-      "counted, added together", value: money(g.total) }],
+    rules: [ELIGIBLE_RULE, SUM_RULE],
     notComputed: [g.display.counts + ".",
       ...g.settlement.map((s) => `${s.name}'s gratuity is in the final ` +
         "settlement and is not in this total.")],
-    scope: c.rulesScope };
+    scope: c.rulesScope });
+}
+
+function deptExplains(c: DemoCompany, g: GratuityProvision)
+  : Record<string, Explanation> {
+  const out: Record<string, Explanation> = {};
+  for (const d of g.byDepartment) {
+    const mine = g.rows.filter((r) => r.departmentId === d.departmentId);
+    const paid = mine.filter((r) => r.amount !== null);
+    if (paid.length === 0) continue;
+    out[d.departmentId] = sumExplain({ id: `gratuity-liability:` +
+      d.departmentId, title: "Gratuity liability",
+    subject: d.departmentText,
+    summary: "Each counted person's gratuity if they left on " +
+      `${shortDateText(g.asOf)}, added up. It is an estimate, not a ` +
+      "booked amount.", resultLabel: "Provision",
+    parts: paid.map((r) => ({ text: r.name, value: money(r.amount!) })),
+    totalText: d.departmentText, rules: [ELIGIBLE_RULE, SUM_RULE],
+    notComputed: mine.length === paid.length ? [] : [`${plural(
+      mine.length - paid.length, "person is", "people are")} not ` +
+      "counted: under a year of service, or a UAE national."],
+    scope: c.rulesScope });
+  }
+  return out;
+}
+
+function costExplain(c: DemoCompany, k: EmployerCost): Explanation {
+  return sumExplain({ id: "employer-cost:total",
+    title: "Employer cost, partial", subject: k.period,
+    summary: "October gross pay plus the employer costs the engine works " +
+      "out, by department. It is partial: what is not worked out is " +
+      "listed below.", resultLabel: "Gross plus employer cost",
+    parts: k.byDepartment.filter((d) => d.headcount > 0).map((d) => ({
+      text: `${d.departmentText} (${people(d.headcount)})`,
+      value: money(fils(d.gross + d.employerComputed)) })),
+    totalText: "All departments",
+    after: [{ text: "Gross pay", value: money(k.gross), op: "add" },
+      { text: "Employer cost worked out", value: money(k.employerComputed),
+        op: "add" },
+      { text: "Gross plus employer cost, partial",
+        value: money(k.partialTotal), op: "total" }],
+    notComputed: [`${plural(k.notComputedCount, "UAE national has",
+      "UAE nationals have")} no employer pension figure.`,
+    "ILOE, insurance and other employer costs are not computed."],
+    scope: c.rulesScope });
 }
 
 export function buildCostSource(): CostSource {
@@ -142,6 +195,8 @@ export function buildCostSource(): CostSource {
     if (r.amount !== null) explain[r.employeeId] =
       personExplain(c, r.employeeId, r.amount);
   }
+  const cost = employerCostView(c);
   return { gratuity, explain, totalExplain: totalExplain(c, gratuity),
-    cost: employerCostView(c), asOfText: shortDateText(AS_OF) };
+    deptExplain: deptExplains(c, gratuity), costExplain: costExplain(c, cost),
+    cost, asOfText: shortDateText(AS_OF) };
 }

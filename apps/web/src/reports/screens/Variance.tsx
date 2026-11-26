@@ -1,6 +1,3 @@
-import { Explainable } from "../../components/explain";
-import { money, text, type Explanation }
-  from "../../components/explain/types";
 import { hrefOf } from "../../demo/route";
 import { Icon } from "../../ui/Icon";
 import { MINUS } from "../../i18n/format";
@@ -8,31 +5,7 @@ import { Money } from "../../ui/Money";
 import { ReportPage, Waterfall, type Cell } from "../../ui/templates";
 import { percent, plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
-import type { VarianceView } from "../types";
 import p from "../Pick.module.css";
-
-/** Why gross pay moved between two months; the causes add up exactly. */
-export function explainVariance(v: VarianceView): Explanation {
-  return { id: `variance:${v.month}`, title: "Change in gross pay",
-    subject: `${v.monthLabel} against ${v.againstLabel}`,
-    summary: "Each person's change is put under the one cause the " +
-      "records show for them, so the causes add up to the whole change.",
-    result: { label: "Change in gross", value: money(v.grossChange) },
-    inputs: [{ label: `${v.againstLabel} gross`, value: money(
-      v.grossBefore), from: "Pay run history, worked out again" },
-    { label: `${v.monthLabel} gross`, value: money(v.grossNow),
-      from: "Pay run history" }],
-    rules: [{ text: "A cause is read from the person's record: joined, " +
-      "left, unpaid leave, overtime, back pay or a salary raise.",
-    status: "convention", statusLabel: "our convention, not a rule " +
-      "of law", citation: null }],
-    steps: [{ text: `${v.againstLabel} gross`, value: money(
-      v.grossBefore) }, ...v.drivers.map((d) => ({ text: d.label,
-      value: money(d.amount) })), { text: `${v.monthLabel} gross`,
-    value: money(v.grossNow) }, { text: "Drivers add up to",
-      value: text("the change shown") }],
-    notComputed: [], scope: "Pay run history, January to October 2026" };
-}
 
 function Stepper(p2: { prev: string | null;
   next: string | null; label: string }) {
@@ -74,9 +47,11 @@ export function Variance(props: { rest: string[] }) {
         next={at < keys.length - 1 ? keys[at + 1]! : null} />}
       figure={{ label: `Change in gross, ${percent(v.grossChange,
         v.grossBefore)}`, value: (
-        <Explainable explanation={explainVariance(v)}>
-          <Money value={v.grossChange} signed tween={false} />
-        </Explainable>) }}
+        <Money value={v.grossChange} signed tween={false} />),
+      explanation: v.explanation }}
+      explain={(r, c) => c !== 2 ? undefined
+        : r < v.drivers.length ? v.driverExplain[v.drivers[r]!.key]
+          : v.explanation}
       chart={<Waterfall key={v.month} label={`Gross pay, ${
         v.againstLabel} to ${v.monthLabel}, by cause`} steps={[
         { label: `${short(v.againstLabel)} gross`, kind: "total",

@@ -119,6 +119,9 @@ export interface PastRunView {
   slips: RunSlip[];
   changes: RunChangeView[];
   explanation: Explanation;
+  grossExplanation: Explanation;
+  /** Null for the first month shown. */
+  changeExplanation: Explanation | null;
 }
 
 export interface PayGroupView {

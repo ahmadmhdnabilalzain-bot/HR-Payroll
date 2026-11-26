@@ -24,7 +24,11 @@ export function Overtime() {
       title="Overtime cost" period={`${src.months[0]!.label} ` +
       `to ${src.months.at(-1)!.label}`}
     figure={{ label: "Overtime paid this year",
-      value: <Money value={total} tween={false} /> }}
+      value: <Money value={total} tween={false} />,
+      explanation: src.explain["overtime:total"] }}
+    explain={(r, c) => c !== 3 ? undefined : r === src.months.length
+      ? src.explain["overtime:total"]
+      : src.explain[`overtime:${src.months[r]?.month ?? ""}`]}
     chart={<BarChart label="Overtime cost by month"
       data={src.months.map((x) => ({ label: x.label.slice(0, 3),
         value: x.overtimeAmount, focus: x.month === last }))} />}

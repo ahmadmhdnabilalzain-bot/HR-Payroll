@@ -1,4 +1,6 @@
 import { useRunApproval } from "../../demo/actions";
+import { isBlocking, pendingApprovals } from "../../demo/derive";
+import { useLiveExplain } from "../../demo/live-explain-load";
 import { useDemo } from "../../demo/state";
 import { useRunDetail } from "../../demo/useRunDetail";
 import { formatDate } from "../../i18n/format";
@@ -40,6 +42,7 @@ export function useRunWord(): string {
 export function DashboardHr() {
   const src = useReportsSource();
   const crumbs = useReportCrumbs();
+  const live = useLiveExplain();
   const { data, state } = useDemo();
   const { lang } = useLocale();
   const run = useRunDetail();
@@ -47,13 +50,20 @@ export function DashboardHr() {
   const phrase = useIssuePhrase();
   const last = src.months.at(-1)!;
   const sum = (k: "start" | "joined" | "departed" | "now"): number =>
-    src.departments.reduce((n, d) => n + d[k], 0);
+    src.heads[k];
   const docs = data.documents();
   const soon = docs.filter((d) => d.daysLeft >= 0 && d.daysLeft <= 30);
   const gone = docs.filter((d) => d.daysLeft < 0);
   const b = beforeApproval(data, state);
   const waiting = waitingCount(data, state);
   const nat = run.nationalities;
+  const list = pendingApprovals(data, state);
+  const stopsWhy = live.issuesExplain(data, data.issues().filter((i) =>
+    i.kind === "issue" && isBlocking(i)), run.scope);
+  const why = [stopsWhy, src.explain["headcount:now"], undefined, undefined,
+    src.explain["turnover:total"], live.docsExplain(data, soon,
+      "Papers expiring in 30 days", "ends in the next 30 days", run.scope),
+    live.waitingExplain(data, list, run.scope)];
   const rows = [
     ["Before sign-off", phrase(b), "-",
       "What stops pay holds the whole run; checks do not"],
@@ -99,6 +109,7 @@ export function DashboardHr() {
       title="HR dashboard" period={`As of the report date, ` +
       `${last.label} run`}
       chart={board}
+      explain={(r, c) => c === 1 ? why[r] : undefined}
       columns={COLUMNS} rows={rows} csvName="hr-dashboard-2026-10.csv"
       note={"Each figure comes from the same data as the pay run, the " +
         "headcount, leave and documents reports and the decisions inbox. " +
@@ -115,6 +126,8 @@ export function DashboardHr() {
 export function DashboardExec() {
   const src = useReportsSource();
   const crumbs = useReportCrumbs();
+  const live = useLiveExplain();
+  const run = useRunDetail();
   const { data, state } = useDemo();
   const { lang } = useLocale();
   const { signed } = useMoney();
@@ -127,7 +140,17 @@ export function DashboardExec() {
   const top = depts[0];
   const v = src.variance(now.month, before.month);
   const main = v.drivers[0];
-  const waiting = waitingCount(data, state);
+  const list = pendingApprovals(data, state);
+  const waiting = list.length;
+  const why = [[src.explain[`trend:${now.month}`],
+    src.explain[`trend:${before.month}`]],
+  [main === undefined ? undefined : v.driverExplain[main.key]],
+  [run.explain["run:people"]],
+  [src.explain[`overtime:${now.month}`],
+    src.explain[`overtime:${before.month}`]],
+  [run.explain["run:held"]],
+  [live.waitingExplain(data, list, run.scope)],
+  [top === undefined ? undefined : run.explain[`dept-cost:${top.id}`]]];
   const rows: Cell[][] = [
     ["Gross pay", { fils: now.gross }, { fils: before.gross },
       `${signed(v.grossChange)} (${percent(v.grossChange,
@@ -177,6 +200,7 @@ export function DashboardExec() {
       title="Executive dashboard"
       period={`${now.label} run against ${before.label}`}
       chart={board}
+      explain={(r, c) => c === 0 ? undefined : why[r]?.[c - 1]}
       columns={COLUMNS} rows={rows}
       csvName="executive-dashboard-2026-10.csv"
       note={"Figures are the run as it stands today, including the pay " +

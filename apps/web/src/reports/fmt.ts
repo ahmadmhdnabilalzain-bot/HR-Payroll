@@ -22,6 +22,12 @@ export function share(part: number, whole: number): string {
   return `${(Math.round(part * 1000 / whole) / 10).toFixed(1)}%`;
 }
 
+/** Turnover as the pages show it: the people who left over the average
+ * of the headcount on 1 January and now; "None" when nobody left. */
+export const turnoverText = (d: { start: number; now: number;
+  departed: number }): string => d.departed === 0 ? "None"
+  : share(d.departed, (d.start + d.now) / 2);
+
 export const hours = (minutes: number): string =>
   `${Number((minutes / 60).toFixed(2))}`;
 

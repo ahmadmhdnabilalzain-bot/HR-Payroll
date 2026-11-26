@@ -1,5 +1,8 @@
 import { fils } from "@payroll/engine";
+import { useLiveExplain } from "../../demo/live-explain-load";
+import { useRunDetail } from "../../demo/useRunDetail";
 import {
+  actionable,
   openIssues,
   pendingApprovals,
   runApprovalId,
@@ -75,7 +78,7 @@ function useColumns(items: Item[]): Column[] {
       { key: "run", text: "October pay run", state: run,
         meta: run.meta },
       { key: "waiting", figure: <Count n={waiting} />,
-        text: "Requests waiting in the approvals inbox" },
+        text: "Requests waiting in the decisions inbox" },
       { key: "probation", figure: <Count n={n("probation")} />,
         text: n("probation") === 1 ? "Probation to decide by its end date"
           : "Probations to decide by their end dates" },
@@ -101,13 +104,20 @@ function useColumns(items: Item[]): Column[] {
 
 /** X25: this week's pack for the owner, in the order owners ask. */
 export function OwnerBriefScreen() {
-  const { brief } = useMoreSource();
+  const { brief, briefExplain } = useMoreSource();
+  const live = useLiveExplain();
+  const { scope } = useRunDetail();
   const { data, state } = useDemo();
   const m = useTableMoney();
   const now = useNext();
   const phrase = useIssuePhrase();
   const columns = useColumns(brief.items);
   const crumbs = useReportCrumbs();
+  const list = pendingApprovals(data, state);
+  const waitingWhy = live.waitingExplain(data, list, scope);
+  const issuesWhy = live.issuesExplain(data, openIssues(data, state), scope);
+  const why = brief.items.map((i) => i.id === "issues" ? issuesWhy
+    : briefExplain[i.id]);
   const rows = brief.items.map((i) => {
     const n = now(i);
     // Held pay follows the IBANs entered, as the pay run does.
@@ -122,6 +132,7 @@ export function OwnerBriefScreen() {
   return (
     <ReportPage title="Owner brief" period={brief.title} crumbs={crumbs}
       chart={<Summary label="This week in brief" columns={columns} />}
+      explain={(r, c) => c === 2 ? why[r] : undefined}
       columns={[{ label: "Item" }, { label: "What it is, and what next" },
         { label: "Figure", end: true }]}
       rows={[...rows, ...brief.dates.map((d) =>

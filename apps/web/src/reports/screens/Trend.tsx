@@ -35,7 +35,16 @@ export function Trend() {
     <ReportPage crumbs={crumbs} title="Payroll trend"
       period={`${src.months[0]!.label} to ${last.label}`}
       figure={{ label: `Gross pay, ${last.label}`,
-        value: <Money value={last.gross} tween={false} /> }}
+        value: <Money value={last.gross} tween={false} />,
+        explanation: src.explain[`trend:${last.month}`] }}
+      explain={(r, c) => {
+        if (r === src.months.length) {
+          return c === 3 ? src.explain["trend:total"] : undefined;
+        }
+        const k = src.months[r]?.month ?? "";
+        return c === 3 ? src.explain[`trend:${k}`]
+          : c === 4 ? src.explain[`trend-net:${k}`] : undefined;
+      }}
       chart={(
         <div className={s.board}>
           <p className={s.lift}>

@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { Explainable } from "../../components/explain/Explain";
+import type { Explanation } from "../../components/explain/types";
 import { useDemo } from "../../demo/state";
 import { formatNumber } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
@@ -47,14 +49,21 @@ export function CellView(p: { c: Cell }) {
  * aligned and tabular, and an optional bold total row. Optional bars
  * under the first cell (per mille of the largest). The CSV is off
  * while amounts are hidden. One quiet sources line closes the page.
+ * A figure or a cell with an explanation becomes its own trigger (the
+ * dotted rule), and the page's one note then says so once.
  */
 export function ReportPage(p: {
   title: string;
   period: string;
-  figure?: { label: string; value: ReactNode };
+  figure?: { label: string; value: ReactNode;
+    explanation?: Explanation | undefined };
   chart?: ReactNode;
   columns: ReportColumn[];
   rows: Cell[][];
+  /** The working behind a cell, by row and column, if it has one; the
+   * total row is row `rows.length`. */
+  explain?: ((row: number, col: number) => Explanation | undefined)
+    | undefined;
   /** The sum or the change, set bold under a 2px rule. */
   total?: Cell[];
   bars?: number[] | undefined;
@@ -75,6 +84,10 @@ export function ReportPage(p: {
     toCsv(p.columns, p.total === undefined ? p.rows
       : [...p.rows, p.total]), "text/csv;charset=utf-8");
   const end = (j: number): boolean => p.columns[j]?.end === true;
+  const hinted = p.figure?.explanation !== undefined ||
+    p.explain !== undefined;
+  const note = [p.note, hinted ? t("tpl.explainHint") : undefined]
+    .filter((x) => x !== undefined).join(" ");
   return (
     <article className={`${s.page} ${s.report}`}
       aria-labelledby={p.id ?? "report-title"}>
@@ -87,7 +100,12 @@ export function ReportPage(p: {
       {p.figure !== undefined && (
         <div className={s.figure}>
           <span>{p.figure.label}</span>
-          <strong>{p.figure.value}</strong>
+          <strong>
+            {p.figure.explanation === undefined ? p.figure.value : (
+              <Explainable explanation={p.figure.explanation}>
+                {p.figure.value}
+              </Explainable>)}
+          </strong>
         </div>
       )}
       {p.chart}
@@ -104,7 +122,7 @@ export function ReportPage(p: {
               {r.map((v, j) => (
                 <td key={j} data-end={end(j)}
                   data-label={p.columns[j]?.label}>
-                  <CellView c={v} />
+                  <Why e={p.explain?.(i, j)}><CellView c={v} /></Why>
                   {j === 0 && p.bars?.[i] !== undefined && (
                     <span className={s.bar} aria-hidden="true">
                       <span className={s.fill} style={{ transform:
@@ -122,15 +140,22 @@ export function ReportPage(p: {
               {p.total.map((v, j) => (
                 <td key={j} data-end={end(j)}
                   data-label={p.columns[j]?.label}>
-                  <CellView c={v} />
+                  <Why e={p.explain?.(p.rows.length, j)}>
+                    <CellView c={v} /></Why>
                 </td>
               ))}
             </tr>
           </tfoot>
         )}
       </table>
-      {p.note !== undefined && <p className={s.note}>{p.note}</p>}
+      {note !== "" && <p className={s.note}>{note}</p>}
       <PageFoot extra={p.foot} />
     </article>
   );
+}
+
+/** A cell with a working behind it is its own trigger. */
+function Why(p: { e: Explanation | undefined; children: ReactNode }) {
+  return p.e === undefined ? <>{p.children}</>
+    : <Explainable explanation={p.e}>{p.children}</Explainable>;
 }

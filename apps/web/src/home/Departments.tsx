@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
+import { Explainable } from "../components/explain";
 import type { DepartmentRow } from "../demo/data/types";
 import { useFlip, useTweenedNumber } from "../demo/motion";
 import { useDemo } from "../demo/state";
+import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Money } from "../ui/Money";
 import s from "./Departments.module.css";
@@ -66,6 +68,7 @@ export function Departments() {
 function DeptRow(p: { d: DepartmentRow; top: DepartmentRow;
   metric: Metric }) {
   const { lang } = useLocale();
+  const { explain } = useRunDetail();
   const count = useTweenedNumber(p.d.headcount);
   const k = share(p.d, p.top, p.metric) / 1000;
   return (
@@ -75,8 +78,11 @@ function DeptRow(p: { d: DepartmentRow; top: DepartmentRow;
         <span className={s.fill} style={{ transform: `scaleX(${k})` }} />
       </span>
       <span className={s.value}>
-        {p.metric === "cost" ? <Money value={p.d.costFils} size="sm" />
-          : <span className="tabular">{count}</span>}
+        <Explainable explanation={explain[`dept-${p.metric === "cost"
+          ? "cost" : "people"}:${p.d.id}`]}>
+          {p.metric === "cost" ? <Money value={p.d.costFils} size="sm" />
+            : <span className="tabular">{count}</span>}
+        </Explainable>
       </span>
     </>
   );

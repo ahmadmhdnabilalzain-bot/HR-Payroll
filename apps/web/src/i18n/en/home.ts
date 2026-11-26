@@ -156,7 +156,7 @@ export const home = {
   cardNationalsSub: "Headcount by nationality",
   cardLeave: "Off in the next 7 days",
   cardDocs: "Documents expiring in 30 days",
-  cardWaiting: "Waiting for approval",
+  cardWaiting: "Waiting for a decision",
   cardLeaveNext: "Next: {name}, from {date}",
   cardDocsNext: "Then {name}, {date}",
 } satisfies EnNamespace;

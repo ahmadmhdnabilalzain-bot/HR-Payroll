@@ -1,4 +1,5 @@
 import { fils } from "@payroll/engine";
+import { Explainable } from "../../components/explain";
 import { useDemo } from "../../demo/state";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
@@ -12,7 +13,7 @@ import { useMoreSource } from "./load";
 
 /** X26: the period's figures for a board; each repeats its own report. */
 export function BoardPackScreen() {
-  const { board } = useMoreSource();
+  const { board, boardExplain, boardTotal } = useMoreSource();
   const src = useReportsSource();
   const { data, state } = useDemo();
   const m = useTableMoney();
@@ -34,7 +35,10 @@ export function BoardPackScreen() {
         tween={false} />, text: "October gross pay",
       meta: <><Money value={fils(h.grossTotalFils - sep.gross)} size="sm"
         signed tween={false} /> against September</> },
-      { key: "ytd", figure: <Money value={board.ytdGross} tween={false} />,
+      { key: "ytd", figure: (
+        <Explainable explanation={boardTotal}>
+          <Money value={board.ytdGross} tween={false} />
+        </Explainable>),
         text: "Gross pay, January to October" },
       { key: "people", figure: <Count n={Number(people?.text ?? 0)} />,
         text: "People on the October payroll" },
@@ -60,6 +64,7 @@ export function BoardPackScreen() {
     <ReportPage title="Board report" period={board.period}
       crumbs={useReportCrumbs()}
       chart={<Summary label="The period in brief" columns={columns} />}
+      explain={(r, c) => c === 2 ? boardExplain[r] : undefined}
       columns={[{ label: "Measure" }, { label: "Note" },
         { label: "Figure", end: true }]}
       rows={board.rows.map((r) => [`${r.topic}: ${r.measure}`, r.note,

@@ -14,6 +14,14 @@ import {
   type DemoCompany,
   type DemoEmployee,
 } from "@payroll/demo-data";
+import { fils } from "@payroll/engine";
+import { turnoverText } from "./fmt";
+import {
+  headsExplains,
+  historyExplains,
+  leaveExplain,
+  varianceExplains,
+} from "./source-explain";
 import type {
   AuditCheck,
   AuditView,
@@ -97,7 +105,7 @@ function varianceView(c: DemoCompany, month: string,
     netChange: v.netChange, headcountChange: v.headcountChange,
     drivers: v.drivers.map((d) => ({ key: d.key, label: d.label,
       amount: d.amount, people: d.people.map((id) =>
-        employeeById(c, id).fullName) })) };
+        employeeById(c, id).fullName) })), ...varianceExplains(c, v) };
 }
 
 function auditViews(c: DemoCompany): AuditView[] {
@@ -161,23 +169,47 @@ export function buildReportsSource(): ReportsSource {
   const people = leavePeople(c);
   const active = people.filter((p) => p.annualTaken + p.sickDays +
     p.unpaidDays + p.waitingDays > 0);
+  const months = monthRows(c);
+  const departments = departmentHeads(c);
+  const sum = (k: "start" | "joined" | "departed" | "now"): number =>
+    departments.reduce((n, d) => n + d[k], 0);
+  const heads: DeptHeads = { name: "Everyone", start: sum("start"),
+    joined: sum("joined"), departed: sum("departed"), now: sum("now") };
+  const joiners = c.employees.filter((e) => e.joiningDate > "2026-01-01" &&
+    e.joiningDate <= c.asOf).map((e) => e.fullName);
+  const leavers = c.employees.filter((e) => e.leavingDate !== null &&
+    e.leavingDate > "2026-01-01" && e.leavingDate <= c.asOf)
+    .map((e) => e.fullName);
+  const order = c.departments.map((d) => deptName(c, d.id));
+  const dept = (id: string): string =>
+    deptName(c, employeeById(c, id).departmentId);
+  const seen = new Map<string, VarianceView>();
   return {
     asOf: c.asOf,
-    months: monthRows(c),
-    variance: (month, against) => varianceView(c, month, against),
+    months,
+    variance: (month, against) => {
+      const k = `${month}|${against}`;
+      const hit = seen.get(k) ?? varianceView(c, month, against);
+      seen.set(k, hit);
+      return hit;
+    },
     audit: auditViews(c),
     verifyAudit: (tamperSeq): AuditCheck => verifyAuditChain(
       tamperSeq === null ? events : events.map((e) => e.seq === tamperSeq
         ? { ...e, summary: `${e.summary} (edited)` } : e)),
-    departments: departmentHeads(c),
-    joiners: c.employees.filter((e) => e.joiningDate > "2026-01-01" &&
-      e.joiningDate <= c.asOf).map((e) => e.fullName),
-    leavers: c.employees.filter((e) => e.leavingDate !== null &&
-      e.leavingDate > "2026-01-01" && e.leavingDate <= c.asOf)
-      .map((e) => e.fullName),
+    departments,
+    joiners,
+    leavers,
     overtime: overtimeLines(c),
     leave: active,
     leaveOthers: people.length - active.length,
     annualLeftTotal: people.reduce((n, p) => n + p.annualLeft, 0),
+    grossTotal: fils(months.reduce((n, x) => n + x.gross, 0n)),
+    overtimeTotal: fils(months.reduce((n, x) => n + x.overtimeAmount, 0n)),
+    heads,
+    turnover: turnoverText(heads),
+    explain: { ...historyExplains(c, dept, order),
+      ...headsExplains(c, departments, heads, joiners, leavers),
+      "leave:annual-left": leaveExplain(c, people, order) },
   };
 }

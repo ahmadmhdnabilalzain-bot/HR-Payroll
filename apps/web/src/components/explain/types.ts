@@ -12,9 +12,12 @@ import type { Fils } from "@payroll/engine";
 export type SourceStatus = "official" | "secondary" | "convention" |
   "unsourced";
 
+/** A count carries its number (so a working can be added up) and the
+ * words it is shown in ("31 people", "22½ days"). */
 export type ExplainValue =
   | { kind: "money"; fils: Fils }
-  | { kind: "text"; text: string };
+  | { kind: "text"; text: string }
+  | { kind: "count"; n: number; text: string };
 
 /** One figure that went in, and where it came from. */
 export interface ExplainInput {
@@ -36,6 +39,13 @@ export interface ExplainRule {
   citation: string | null;
 }
 
+/**
+ * How a step takes part in the sum, when the working is one: "add"
+ * and "less" steps are added up, and a "total" step must equal what
+ * came before it since the last total. The last total is the result.
+ */
+export type StepOp = "add" | "less" | "total";
+
 /** One line of the working, in order. */
 export interface ExplainStep {
   text: string;
@@ -44,6 +54,7 @@ export interface ExplainStep {
    * row with a bar showing how much of it is used, and no amount in
    * the sum column. */
   limit?: { used: Fils; cap: Fils };
+  op?: StepOp;
 }
 
 export interface Explanation {
@@ -71,6 +82,62 @@ export const STATUS_ORDER: readonly SourceStatus[] = ["official",
 
 export const money = (fils: Fils): ExplainValue => ({ kind: "money", fils });
 export const text = (t: string): ExplainValue => ({ kind: "text", text: t });
+export const count = (n: number, words: string): ExplainValue =>
+  ({ kind: "count", n, text: words });
+
+/** The number a value adds: fils, a count, or none for words. */
+function numberOf(v: ExplainValue | undefined): bigint | number | null {
+  if (v?.kind === "money") return v.fils;
+  if (v?.kind === "count") return v.n;
+  return null;
+}
+
+/** True when the working opts in to the sum check (has a total). */
+export function isSum(e: Explanation): boolean {
+  return e.steps.some((x) => x.op === "total");
+}
+
+/**
+ * The sum check: every run of "add" and "less" steps equals the
+ * "total" after it, exactly (fils as bigint, counts as numbers), and
+ * the last total is the result. Explanations without ops skip it.
+ */
+function sumProblems(e: Explanation): string[] {
+  if (!e.steps.some((x) => x.op !== undefined)) return [];
+  const out: string[] = [];
+  let acc: bigint | number | null = null;
+  let last: bigint | number | null = null;
+  for (const x of e.steps) {
+    if (x.op === undefined) continue;
+    const n = numberOf(x.value);
+    if (n === null) {
+      out.push(`step "${x.text}" has no figure to add`);
+      continue;
+    }
+    if (acc !== null && typeof acc !== typeof n) {
+      out.push(`step "${x.text}" mixes money and counts`);
+      continue;
+    }
+    if (x.op === "total") {
+      if (acc === null) out.push(`total "${x.text}" has nothing before it`);
+      else if (acc !== n) out.push(`steps do not add up to "${x.text}"`);
+      acc = null;
+      last = n;
+      continue;
+    }
+    const sign = x.op === "less" ? -1 : 1;
+    acc = typeof n === "bigint"
+      ? ((acc as bigint | null) ?? 0n) + BigInt(sign) * n
+      : ((acc as number | null) ?? 0) + sign * n;
+  }
+  if (acc !== null) out.push("steps after the last total");
+  const result = numberOf(e.result.value);
+  if (last === null) out.push("no total step");
+  else if (result !== null && result !== last) {
+    out.push("the last total is not the result");
+  }
+  return out;
+}
 
 /** A contract check usable in tests and in development. */
 export function contractProblems(e: Explanation): string[] {
@@ -86,5 +153,6 @@ export function contractProblems(e: Explanation): string[] {
     out.push("a sourced rule has no citation");
   }
   if (e.scope.trim() === "") out.push("scope is empty");
+  out.push(...sumProblems(e));
   return out;
 }

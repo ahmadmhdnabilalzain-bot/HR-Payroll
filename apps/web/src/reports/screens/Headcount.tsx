@@ -1,10 +1,7 @@
 import { ReportPage, type Cell } from "../../ui/templates";
-import { share, useReportCrumbs } from "../fmt";
+import { turnoverText as turnover, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import type { DeptHeads } from "../types";
-
-const turnover = (d: Pick<DeptHeads, "start" | "now" | "departed">): string =>
-  d.departed === 0 ? "None" : share(d.departed, (d.start + d.now) / 2);
 
 const list = (names: string[]): string => names.length === 0 ? "nobody"
   : names.join(", ");
@@ -13,17 +10,19 @@ const list = (names: string[]): string => names.length === 0 ? "nobody"
 export function Headcount() {
   const src = useReportsSource();
   const crumbs = useReportCrumbs();
-  const sum = (k: "start" | "joined" | "departed" | "now"): number =>
-    src.departments.reduce((n, d) => n + d[k], 0);
-  const total: DeptHeads = { name: "Everyone", start: sum("start"),
-    joined: sum("joined"), departed: sum("departed"), now: sum("now") };
+  const total = src.heads;
+  const last = src.departments.length;
   const line = (d: DeptHeads): Cell[] => [d.name, d.start, d.joined,
     d.departed, d.now, turnover(d)];
   const rows = src.departments.map(line);
   return (
     <ReportPage crumbs={crumbs} title="Headcount and turnover"
       period="1 January 2026 to the report date"
-      figure={{ label: "Turnover this year", value: turnover(total) }}
+      figure={{ label: "Turnover this year", value: src.turnover,
+        explanation: src.explain["turnover:total"] }}
+      explain={(r, c) => r !== last ? undefined : c === 4
+        ? src.explain["headcount:now"] : c === 5
+          ? src.explain["turnover:total"] : undefined}
       columns={[{ label: "Department" }, { label: "1 January", end: true },
         { label: "Joined", end: true }, { label: "Left", end: true },
         { label: "Now", end: true }, { label: "Turnover", end: true }]}
