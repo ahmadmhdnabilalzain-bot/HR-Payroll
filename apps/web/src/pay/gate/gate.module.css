@@ -19,6 +19,15 @@
   padding: var(--space-5) var(--page-pad) 0;
 }
 
+/* The same choices as a line under a report's lede (its meta). */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3) var(--space-4);
+  padding-block-start: var(--space-2);
+}
+
 .field {
   display: grid;
   gap: var(--space-1);

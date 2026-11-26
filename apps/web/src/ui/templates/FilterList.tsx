@@ -76,6 +76,8 @@ export function FilterList<T>(p: {
   /** One action under the empty sentence. */
   emptyAction?: ReactNode;
   actions?: ReactNode;
+  /** A line under the lede (a figure, a status, page controls). */
+  meta?: ReactNode;
 }) {
   const { t } = useLocale();
   const [q, setQ] = useState("");
@@ -91,7 +93,7 @@ export function FilterList<T>(p: {
   return (
     <div className={s.page}>
       <PageHead title={p.title} lede={p.lede} actions={p.actions}
-        back={p.back} crumbs={p.crumbs} />
+        back={p.back} crumbs={p.crumbs} meta={p.meta} />
       {band.length > 0 && (
         <dl className={s.band} aria-label={t("tpl.summary")}>
           {band.map((x) => (

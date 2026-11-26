@@ -1,10 +1,8 @@
-/* Cost reports: the one summary block above a template's own page. */
+/* Cost reports: the one figure, under the page's title and lede. */
 .summary {
   display: grid;
   gap: var(--space-2);
-  max-inline-size: var(--container);
-  margin-inline: auto;
-  padding: var(--space-5) var(--page-pad) 0;
+  padding-block-start: var(--space-3);
 }
 
 .label {

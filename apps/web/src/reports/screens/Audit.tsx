@@ -50,8 +50,8 @@ export function Audit() {
         { key: "hash", label: "Fingerprint", end: true, render: (r) => (
           <span className={s.hash}>{r.shortHash}</span>) }]}
       empty="No entries match. Clear the search or pick All."
-      actions={(
-        <>
+      meta={(
+        <div className={s.chain}>
           <span className={`${s.status} ${tone}`} role="status">
             <span className={s.dot} aria-hidden="true" />
             {statusText(check, tampered)}
@@ -63,7 +63,7 @@ export function Audit() {
           <button type="button" className={`${b.btn} ${b.primary}`}
             onClick={() => setCheck(src.verifyAudit(
               tampered ? TAMPER_AT : null))}>Check the chain</button>
-        </>
+        </div>
       )} />
   );
 }

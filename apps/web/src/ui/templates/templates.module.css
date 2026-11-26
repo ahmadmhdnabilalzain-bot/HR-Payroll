@@ -327,7 +327,7 @@
   border-block-end: 1px solid var(--color-hairline);
   background: var(--color-surface-secondary);
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 16px;
   letter-spacing: 0.2px;
@@ -836,7 +836,7 @@ li + li.actRow > .row {
   inline-size: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .cal th,
@@ -864,8 +864,8 @@ li + li.actRow > .row {
 .dow {
   display: block;
   color: var(--color-text-faint);
-  font-size: 11px;
-  line-height: 14px;
+  font-size: 13px;
+  line-height: 16px;
 }
 
 .cal tbody th {
@@ -935,7 +935,7 @@ li + li.actRow > .row {
     var(--days, 31) - 6px);
   overflow: hidden;
   color: var(--color-text);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 16px;
   text-align: start;
@@ -1089,7 +1089,7 @@ li + li.actRow > .row {
 .table th {
   background: var(--color-surface-secondary);
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.2px;
 }
@@ -1157,8 +1157,8 @@ li + li.actRow > .row {
   padding-block-start: var(--space-4);
   border-block-start: 1px solid var(--color-hairline);
   color: var(--color-text-muted);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 /* Print: the report alone, black on white, no controls; only while a
@@ -1558,7 +1558,7 @@ li + li.actRow > .row {
   .table td[data-label]:not(:first-child)::before {
     content: attr(data-label);
     color: var(--color-text-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
   }
 

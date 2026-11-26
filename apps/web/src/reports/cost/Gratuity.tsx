@@ -4,6 +4,7 @@ import { FilterList } from "../../ui/templates";
 import { useCostSource } from "./load";
 import type { CostSource } from "./source";
 import s from "./cost.module.css";
+import tpl from "../../ui/templates/templates.module.css";
 
 type Row = CostSource["gratuity"]["rows"][number];
 const COUNTED = (r: Row): boolean => r.amount !== null;
@@ -14,24 +15,28 @@ export function GratuityProvisionScreen() {
   const g = src.gratuity;
   return (
     <>
-      <section className={s.summary} aria-label="Company total">
-        <span className={s.label}>
-          Company's accrued liability estimate, {src.asOfText}</span>
-        <strong className={s.total}>
-          <Explainable explanation={src.totalExplain}>
-            <Money value={g.total} size="lg" />
-          </Explainable>
-        </strong>
-        <p className={s.basis}>{g.basis}</p>
-        {g.settlement.map((x) => (
-          <p key={x.employeeId} className={s.basis}>
-            {x.name} has left. The gratuity is in the final settlement and
-            not in this total.
-          </p>
-        ))}
-      </section>
       <FilterList title="Gratuity provision"
         lede={g.display.counts}
+        meta={(
+          <section className={s.summary} aria-label="Company total">
+            <div className={tpl.figure}>
+              <span>
+                Company's accrued liability estimate, {src.asOfText}</span>
+              <strong>
+                <Explainable explanation={src.totalExplain}>
+                  <Money value={g.total} size="lg" />
+                </Explainable>
+              </strong>
+            </div>
+            <p className={s.basis}>{g.basis}</p>
+            {g.settlement.map((x) => (
+              <p key={x.employeeId} className={s.basis}>
+                {x.name} has left. The gratuity is in the final settlement
+                and not in this total.
+              </p>
+            ))}
+          </section>
+        )}
         rows={g.rows} rowKey={(r) => r.employeeId}
         searchText={(r) => `${r.name} ${r.departmentText} ${r.jobText}`}
         segments={[
