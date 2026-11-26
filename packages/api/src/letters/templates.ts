@@ -103,7 +103,9 @@ export async function publishVersion(ctx: ReqCtx<unknown, unknown, TV>)
 export async function nativeReview(ctx: ReqCtx<NativeReviewRequest,
   unknown, TV>): Promise<LetterTemplate> {
   const { t, v } = await versionOf(ctx);
-  if (t.lang !== "ar") throw new ApiError("NOT_ARABIC_TEMPLATE");
+  if (t.lang !== "ar" && v.review_status === null) {
+    throw new ApiError("NOT_ARABIC_TEMPLATE");
+  }
   await ctx.tx.query(
     `UPDATE letter_template_versions SET review_status = 'reviewed',
        reviewer_name = $3, reviewed_at = $4

@@ -71,7 +71,9 @@ export async function previewLetter(ctx: ReqCtx<LetterRequest>)
 export async function issueLetter(ctx: ReqCtx<LetterRequest>)
   : Promise<Reply> {
   const p = await prepareLetter(ctx, ctx.body, null);
-  if (p.template.lang === "ar" && p.version.review_status !== "reviewed") {
+  // The gate follows the text: any version holding Arabic is marked.
+  if (p.version.review_status === "needs-native-review" ||
+    (p.template.lang === "ar" && p.version.review_status !== "reviewed")) {
     throw new ApiError("ARABIC_NOT_REVIEWED");
   }
   const bytes = await ctx.deps.pdf.render(p.page);
