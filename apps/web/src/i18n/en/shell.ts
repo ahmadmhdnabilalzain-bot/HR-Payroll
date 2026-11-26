@@ -37,6 +37,7 @@ export const shell = {
   paletteLabel: "Search people and actions",
   palettePlaceholder: "Type a name or an action",
   paletteEmpty: "No match. Try a name, \"leave\" or \"theme\".",
+  askHint: "From your words",
   groupActions: "Do",
   groupPeople: "People with open items",
   groupGo: "Go to",

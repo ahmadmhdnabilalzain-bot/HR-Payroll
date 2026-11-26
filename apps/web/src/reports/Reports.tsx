@@ -26,6 +26,7 @@ import { SAFETY_SCREENS } from "../people/safety/Report";
 import { INSPECTION_SCREENS } from "./inspection";
 import { MORE_SCREENS } from "./more";
 import { ANALYSIS_SCREENS } from "./analysis";
+import { ASK_SCREENS } from "./ask";
 import { Audit } from "./screens/Audit";
 import { DashboardExec, DashboardHr } from "./screens/Dashboards";
 import { Headcount } from "./screens/Headcount";
@@ -50,6 +51,7 @@ const SCREENS: Record<string, { view: ComponentType<ViewProps>;
   ...MORE_SCREENS,
   ...INSPECTION_SCREENS,
   ...ANALYSIS_SCREENS,
+  ...ASK_SCREENS,
 };
 
 /** Reports: a short list; each opens at once, downloads and prints. */

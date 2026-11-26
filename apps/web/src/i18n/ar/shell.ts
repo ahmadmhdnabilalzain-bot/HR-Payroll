@@ -39,6 +39,7 @@ export const shell: ArOf<typeof en> = {
   paletteLabel: "ابحث عن الموظفين والإجراءات",
   palettePlaceholder: "اكتب اسمًا أو إجراءً",
   paletteEmpty: "لا توجد نتائج. جرّب اسمًا أو \"إجازة\" أو \"المظهر\".",
+  askHint: "من كلماتك",
   groupActions: "الإجراءات",
   groupPeople: "موظفون لديهم بنود مفتوحة",
   groupGo: "انتقل إلى",
