@@ -109,11 +109,23 @@
   background: var(--color-text);
 }
 
-.dotLink:hover .dot {
+@media (hover: hover) {
+  .dotLink:hover .dot {
+    background: var(--color-text-muted);
+  }
+}
+
+.dotLink:active .dot {
   background: var(--color-text-muted);
 }
 
-.dotLink[data-current="true"]:hover .dot {
+@media (hover: hover) {
+  .dotLink[data-current="true"]:hover .dot {
+    background: var(--color-text);
+  }
+}
+
+.dotLink[data-current="true"]:active .dot {
   background: var(--color-text);
 }
 

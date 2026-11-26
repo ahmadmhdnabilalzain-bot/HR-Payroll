@@ -58,7 +58,13 @@
   border-radius: var(--radius-control);
 }
 
-.crumbs a:hover {
+@media (hover: hover) {
+  .crumbs a:hover {
+    color: var(--color-text);
+  }
+}
+
+.crumbs a:active {
   color: var(--color-text);
 }
 

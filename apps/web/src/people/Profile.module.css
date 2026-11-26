@@ -176,7 +176,14 @@ div.page {
   text-underline-offset: 3px;
 }
 
-.link:hover {
+@media (hover: hover) {
+  .link:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+.link:active {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -214,7 +221,13 @@ div.page {
   transition: background-color var(--dur-fast) ease;
 }
 
-.rowLink:hover {
+@media (hover: hover) {
+  .rowLink:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+.rowLink:active {
   background: var(--color-surface-2);
 }
 

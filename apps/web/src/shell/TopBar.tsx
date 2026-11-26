@@ -23,9 +23,29 @@ import s from "./TopBar.module.css";
 
 export function Ribbon() {
   const { lang, t } = useLocale();
+  const [open, setOpen] = useState(false);
+  // Touch has no title tooltip: a tap on the ribbon shows the hint.
   return (
-    <div className={s.ribbon} title={t("shell.ribbonHint")}>
-      {t("shell.ribbon", { product: PRODUCT_NAME[lang] })}
+    <div
+      className={s.ribbon}
+      title={t("shell.ribbonHint")}
+      role="button"
+      tabIndex={0}
+      aria-expanded={open}
+      onClick={() => setOpen((v) => !v)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setOpen((v) => !v);
+        }
+      }}
+    >
+      <span>{t("shell.ribbon", { product: PRODUCT_NAME[lang] })}</span>
+      {open ? (
+        <span className={s.ribbonHint} role="status">
+          {t("shell.ribbonHint")}
+        </span>
+      ) : null}
     </div>
   );
 }

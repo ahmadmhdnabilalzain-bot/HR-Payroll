@@ -153,7 +153,13 @@
   transition: background-color var(--dur-fast) ease;
 }
 
-.driver:hover {
+@media (hover: hover) {
+  .driver:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+.driver:active {
   background: var(--color-surface-2);
 }
 

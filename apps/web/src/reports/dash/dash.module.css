@@ -69,7 +69,13 @@ a.tileIn {
   transition: background var(--dur-fast) var(--ease-out);
 }
 
-a.tileIn:hover {
+@media (hover: hover) {
+  a.tileIn:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+a.tileIn:active {
   background: var(--color-surface-2);
 }
 

@@ -111,14 +111,15 @@
   text-align: start;
 }
 
-.nameLink:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .nameLink:hover {
+    text-decoration: underline;
+  }
 }
 
-
-
-
-
+.nameLink:active {
+  text-decoration: underline;
+}
 
 /* The leaver's settlement. */
 .settle {

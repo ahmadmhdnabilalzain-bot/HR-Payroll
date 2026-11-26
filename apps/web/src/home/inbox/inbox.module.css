@@ -43,7 +43,13 @@
   text-underline-offset: 3px;
 }
 
-.more:hover {
+@media (hover: hover) {
+  .more:hover {
+    text-decoration: underline;
+  }
+}
+
+.more:active {
   text-decoration: underline;
 }
 
@@ -79,7 +85,13 @@
   text-decoration: none;
 }
 
-a.what:hover {
+@media (hover: hover) {
+  a.what:hover {
+    text-decoration: underline;
+  }
+}
+
+a.what:active {
   text-decoration: underline;
 }
 
@@ -228,7 +240,13 @@ a.noteTitle {
   margin-block: -12px;
 }
 
-a.noteTitle:hover {
+@media (hover: hover) {
+  a.noteTitle:hover {
+    text-decoration: underline;
+  }
+}
+
+a.noteTitle:active {
   text-decoration: underline;
 }
 

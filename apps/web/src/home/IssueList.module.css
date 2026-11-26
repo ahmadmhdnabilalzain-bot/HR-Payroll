@@ -139,7 +139,14 @@
   text-underline-offset: 3px;
 }
 
-.more:hover {
+@media (hover: hover) {
+  .more:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.more:active {
   text-decoration: underline;
   text-underline-offset: 3px;
 }

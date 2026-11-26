@@ -94,6 +94,7 @@
 
 .preview {
   max-block-size: 40vh;
+  max-block-size: 40dvh;
   overflow: auto;
   margin: 0;
   padding: var(--space-4);

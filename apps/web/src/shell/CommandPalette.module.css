@@ -1,7 +1,10 @@
 .dialog {
   inline-size: min(640px, calc(100vw - 32px));
   max-block-size: min(520px, calc(100vh - 120px));
+  max-block-size: min(520px, calc(100dvh - 120px));
   margin-block-start: 12vh;
+  margin-block-start: 12dvh;
+  overscroll-behavior: contain;
   padding: 0;
   /* A solid sheet with a hairline: nothing shows through it. */
   border: 1px solid var(--color-hairline);
@@ -77,6 +80,7 @@
 
 .list {
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--space-2);
 }
 
@@ -181,5 +185,12 @@
 
   .foot {
     display: none;
+  }
+}
+
+/* Touch: rows are 44 px. */
+@media (pointer: coarse) {
+  .item {
+    min-block-size: 44px;
   }
 }

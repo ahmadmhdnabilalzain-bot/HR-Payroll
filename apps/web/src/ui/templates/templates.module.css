@@ -64,7 +64,13 @@
   text-decoration: none;
 }
 
-.crumbs a:hover {
+@media (hover: hover) {
+  .crumbs a:hover {
+    color: var(--color-text);
+  }
+}
+
+.crumbs a:active {
   color: var(--color-text);
 }
 
@@ -143,8 +149,17 @@
   color: var(--color-text);
 }
 
-.moreBtn:hover,
 .moreBtn[aria-expanded="true"] {
+  background: var(--color-button-secondary-hover);
+}
+
+@media (hover: hover) {
+  .moreBtn:hover {
+    background: var(--color-button-secondary-hover);
+  }
+}
+
+.moreBtn:active {
   background: var(--color-button-secondary-hover);
 }
 
@@ -184,8 +199,17 @@
   text-align: start;
 }
 
-.menu button:hover:not(:disabled),
 .menu button:focus-visible {
+  background: var(--color-surface-secondary);
+}
+
+@media (hover: hover) {
+  .menu button:hover:not(:disabled) {
+    background: var(--color-surface-secondary);
+  }
+}
+
+.menu button:active:not(:disabled) {
   background: var(--color-surface-secondary);
 }
 
@@ -371,7 +395,13 @@ li + li > .row {
   box-shadow: inset 0 1px 0 var(--color-divider);
 }
 
-a.row:hover {
+@media (hover: hover) {
+  a.row:hover {
+    background: var(--color-surface-secondary);
+  }
+}
+
+a.row:active {
   background: var(--color-surface-secondary);
 }
 
@@ -430,7 +460,13 @@ li + li.actRow > .row {
   box-shadow: none;
 }
 
-.actRow:has(> a.row:hover) {
+@media (hover: hover) {
+  .actRow:has(> a.row:hover) {
+    background: var(--color-surface-secondary);
+  }
+}
+
+.actRow:has(> a.row:active) {
   background: var(--color-surface-secondary);
 }
 
@@ -738,6 +774,7 @@ li + li.actRow > .row {
   max-inline-size: none;
   block-size: 100dvh;
   max-block-size: none;
+  overscroll-behavior: contain;
   margin: 0;
   margin-inline-start: auto;
   padding: 0;
@@ -780,6 +817,7 @@ li + li.actRow > .row {
   align-content: start;
   gap: var(--space-4);
   padding: var(--space-5);
+  padding-block-end: calc(var(--space-5) + env(safe-area-inset-bottom));
 }
 
 .sheetHead {
@@ -805,7 +843,13 @@ li + li.actRow > .row {
   color: var(--color-text-muted);
 }
 
-.iconBtn:hover {
+@media (hover: hover) {
+  .iconBtn:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+.iconBtn:active {
   background: var(--color-surface-2);
 }
 
@@ -1254,6 +1298,7 @@ li + li.actRow > .row {
   inline-size: 100%;
   max-inline-size: 794px;
   min-block-size: min(1000px, 120vh);
+  min-block-size: min(1000px, 120dvh);
   align-content: start;
   padding: 56px;
   border: 1px solid var(--color-hairline);

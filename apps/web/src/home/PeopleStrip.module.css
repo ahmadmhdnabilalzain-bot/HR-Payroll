@@ -31,7 +31,13 @@
   position: relative;
 }
 
-.card:hover {
+@media (hover: hover) {
+  .card:hover {
+    background: var(--color-surface-secondary);
+  }
+}
+
+.card:active {
   background: var(--color-surface-secondary);
 }
 

@@ -6,10 +6,12 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
 }
 
 body {
   margin: 0;
+  overscroll-behavior: none;
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -47,6 +49,29 @@ select {
 
 button {
   cursor: pointer;
+}
+
+/* Touch: no grey flash on tap, no double-tap zoom delay. */
+a,
+button,
+input,
+select,
+textarea,
+summary,
+[role="button"],
+[role="option"],
+[role="menuitemradio"],
+[role="tab"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* A focused field scrolls clear of the sticky header and fixed bar
+ * (about 145 px of chrome on a phone with the keyboard up). */
+input,
+select,
+textarea {
+  scroll-margin-block: 96px 80px;
 }
 
 ::selection {

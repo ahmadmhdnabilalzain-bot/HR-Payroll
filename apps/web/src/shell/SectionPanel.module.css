@@ -113,10 +113,20 @@
   transition: background-color var(--dur-fast) ease;
 }
 
-.action:hover,
 .action:focus-visible,
-.group:hover,
 .group:focus-visible {
+  background: var(--color-surface-secondary);
+}
+
+@media (hover: hover) {
+  .action:hover,
+  .group:hover {
+    background: var(--color-surface-secondary);
+  }
+}
+
+.action:active,
+.group:active {
   background: var(--color-surface-secondary);
 }
 

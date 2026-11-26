@@ -58,7 +58,16 @@
   text-decoration: none;
 }
 
-a.line:hover,
+a.line:active {
+  background: var(--color-surface-2);
+}
+
+@media (hover: hover) {
+  a.line:hover {
+    background: var(--color-surface-2);
+  }
+}
+
 a.line:active {
   background: var(--color-surface-2);
 }

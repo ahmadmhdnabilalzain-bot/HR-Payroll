@@ -139,7 +139,14 @@
   border-radius: var(--radius-control);
 }
 
-.reqName:hover {
+@media (hover: hover) {
+  .reqName:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+.reqName:active {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -190,6 +197,7 @@
   max-inline-size: 100vw;
   block-size: 100dvh;
   max-block-size: 100dvh;
+  overscroll-behavior: contain;
   margin: 0;
   padding: 0;
   border: 0;
@@ -277,7 +285,14 @@
   color: var(--color-text-muted);
 }
 
-.close:hover {
+@media (hover: hover) {
+  .close:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+}
+
+.close:active {
   background: var(--color-surface-2);
   color: var(--color-text);
 }
@@ -453,7 +468,14 @@
   color: var(--color-text-muted);
 }
 
-.navBtn:hover {
+@media (hover: hover) {
+  .navBtn:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+}
+
+.navBtn:active {
   background: var(--color-surface-2);
   color: var(--color-text);
 }

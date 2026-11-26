@@ -168,7 +168,13 @@
   text-underline-offset: 3px;
 }
 
-.inline:hover {
+@media (hover: hover) {
+  .inline:hover {
+    text-decoration: underline;
+  }
+}
+
+.inline:active {
   text-decoration: underline;
 }
 

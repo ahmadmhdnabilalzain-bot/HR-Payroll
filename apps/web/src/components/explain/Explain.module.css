@@ -14,7 +14,14 @@
   transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease;
 }
 
-.trigger:hover {
+@media (hover: hover) {
+  .trigger:hover {
+    border-block-end-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+}
+
+.trigger:active {
   border-block-end-color: var(--color-accent);
   color: var(--color-accent);
 }
@@ -39,7 +46,13 @@
   text-underline-offset: 3px;
 }
 
-.link:hover {
+@media (hover: hover) {
+  .link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.link:active {
   text-decoration-color: currentColor;
 }
 
@@ -179,7 +192,14 @@
   color: var(--color-text-muted);
 }
 
-.close:hover {
+@media (hover: hover) {
+  .close:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+}
+
+.close:active {
   background: var(--color-surface-2);
   color: var(--color-text);
 }

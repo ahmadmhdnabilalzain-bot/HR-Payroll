@@ -119,7 +119,13 @@
   text-decoration: none;
 }
 
-.name:hover {
+@media (hover: hover) {
+  .name:hover {
+    text-decoration: underline;
+  }
+}
+
+.name:active {
   text-decoration: underline;
 }
 
@@ -127,6 +133,7 @@
  * skill names (top) and the people (start) both stay in view. */
 .matrix {
   max-block-size: min(70vh, 720px);
+  max-block-size: min(70dvh, 720px);
   overflow: auto;
 }
 
@@ -263,7 +270,13 @@
   text-decoration: none;
 }
 
-a.line:hover {
+@media (hover: hover) {
+  a.line:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+a.line:active {
   background: var(--color-surface-2);
 }
 

@@ -54,7 +54,13 @@
   font-weight: 500;
 }
 
-.undo:hover {
+@media (hover: hover) {
+  .undo:hover {
+    background: color-mix(in srgb, var(--color-on-ribbon) 22%, transparent);
+  }
+}
+
+.undo:active {
   background: color-mix(in srgb, var(--color-on-ribbon) 22%, transparent);
 }
 

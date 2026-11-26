@@ -286,7 +286,14 @@
   white-space: nowrap;
 }
 
-.toggle:hover:not(:disabled) {
+@media (hover: hover) {
+  .toggle:hover:not(:disabled) {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+}
+
+.toggle:active:not(:disabled) {
   background: var(--color-surface-2);
   color: var(--color-text);
 }
@@ -315,7 +322,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.person:hover,
+.person:active {
+  background: var(--color-surface-2);
+}
+
+@media (hover: hover) {
+  .person:hover {
+    background: var(--color-surface-2);
+  }
+}
+
 .person:active {
   background: var(--color-surface-2);
 }

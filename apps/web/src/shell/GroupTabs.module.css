@@ -31,7 +31,13 @@
     color var(--dur-fast) ease;
 }
 
-.tab:hover {
+@media (hover: hover) {
+  .tab:hover {
+    color: var(--color-text);
+  }
+}
+
+.tab:active {
   color: var(--color-text);
 }
 

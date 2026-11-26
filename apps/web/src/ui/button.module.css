@@ -45,7 +45,13 @@
   color: var(--color-on-accent);
 }
 
-.primary:hover:not(:disabled) {
+@media (hover: hover) {
+  .primary:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+  }
+}
+
+.primary:active:not(:disabled) {
   background: var(--color-accent-hover);
 }
 
@@ -54,7 +60,13 @@
   color: var(--color-text);
 }
 
-.secondary:hover:not(:disabled) {
+@media (hover: hover) {
+  .secondary:hover:not(:disabled) {
+    background: var(--color-button-secondary-hover);
+  }
+}
+
+.secondary:active:not(:disabled) {
   background: var(--color-button-secondary-hover);
 }
 
@@ -68,7 +80,14 @@
   color: var(--color-disabled-text);
 }
 
-.quiet:hover:not(:disabled) {
+@media (hover: hover) {
+  .quiet:hover:not(:disabled) {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+}
+
+.quiet:active:not(:disabled) {
   background: var(--color-surface-2);
   color: var(--color-text);
 }

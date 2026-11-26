@@ -219,8 +219,17 @@
   border-block-end-color: transparent;
 }
 
-.slip .plain:hover,
 .slip .plain:focus-visible {
+  border-block-end-color: var(--color-accent);
+}
+
+@media (hover: hover) {
+  .slip .plain:hover {
+    border-block-end-color: var(--color-accent);
+  }
+}
+
+.slip .plain:active {
   border-block-end-color: var(--color-accent);
 }
 

@@ -2,19 +2,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  block-size: 26px;
+  min-block-size: 26px;
   padding-inline: var(--space-4);
   background: var(--color-ribbon);
   color: var(--color-on-ribbon);
   font-size: var(--text-xs);
   font-weight: 500;
   letter-spacing: 0.01em;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.ribbonHint {
+  flex-basis: 100%;
+  padding-block: var(--space-1);
+  font-weight: 400;
 }
 
 .bar {
   position: sticky;
   inset-block-start: 0;
   z-index: 20;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0
+    env(safe-area-inset-left);
   background: var(--color-bg);
   border-block-end: 1px solid var(--color-divider);
 }
@@ -82,7 +92,13 @@ button.navItem {
   position: static;
 }
 
-a.navItem:hover {
+@media (hover: hover) {
+  a.navItem:hover {
+    color: var(--color-text);
+  }
+}
+
+a.navItem:active {
   color: var(--color-text);
 }
 
@@ -125,7 +141,13 @@ a.navItem:hover {
   transition: border-color var(--dur-fast) ease;
 }
 
-.search:hover {
+@media (hover: hover) {
+  .search:hover {
+    border-color: var(--color-border);
+  }
+}
+
+.search:active {
   border-color: var(--color-border);
 }
 
@@ -166,8 +188,16 @@ a.navItem:hover {
   display: none;
 }
 
-.iconBtn:hover,
-.langBtn:hover {
+@media (hover: hover) {
+  .iconBtn:hover,
+  .langBtn:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+}
+
+.iconBtn:active,
+.langBtn:active {
   background: var(--color-surface-2);
   color: var(--color-text);
 }
@@ -252,7 +282,13 @@ a.navItem:hover {
   font-weight: 500;
 }
 
-.roleBtn:hover {
+@media (hover: hover) {
+  .roleBtn:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+.roleBtn:active {
   background: var(--color-surface-2);
 }
 
@@ -317,7 +353,13 @@ a.navItem:hover {
   text-align: start;
 }
 
-.menuItem:hover {
+@media (hover: hover) {
+  .menuItem:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+.menuItem:active {
   background: var(--color-surface-2);
 }
 
@@ -409,7 +451,8 @@ a.navItem:hover {
   }
 
   .search {
-    min-block-size: 40px;
+    min-block-size: 44px;
+    min-inline-size: 44px;
     padding-inline: var(--space-2);
     border: 0;
     background: transparent;
@@ -455,6 +498,7 @@ a.navItem:hover {
   .iconBtn,
   .langBtn,
   .roleBtn,
+  .search,
   .menuItem {
     min-block-size: 44px;
     min-inline-size: 44px;

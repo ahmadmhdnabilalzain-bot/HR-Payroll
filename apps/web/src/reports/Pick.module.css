@@ -17,7 +17,13 @@
   text-decoration: none;
 }
 
-.step:hover {
+@media (hover: hover) {
+  .step:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+.step:active {
   background: var(--color-surface-2);
 }
 

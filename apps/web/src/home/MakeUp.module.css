@@ -84,7 +84,13 @@
   text-underline-offset: 3px;
 }
 
-.sources:hover {
+@media (hover: hover) {
+  .sources:hover {
+    background: var(--color-accent-soft);
+  }
+}
+
+.sources:active {
   background: var(--color-accent-soft);
 }
 
