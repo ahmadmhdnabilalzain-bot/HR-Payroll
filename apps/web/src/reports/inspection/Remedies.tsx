@@ -16,7 +16,7 @@ export function RemediesList(p: { d: AuditData }) {
   return (
     <FilterList<Row> title="Error-remedy record"
       lede={`Each payroll error, who found it, how it is put right and ` +
-        `which run pays it. ${d.remedyNote}`}
+        `which run pays it. ${mask(d.remedyNote)}`}
       rows={rows} rowKey={(r) => r.id}
       searchText={(r) => `${r.personName} ${r.what} ${r.foundBy} ${r.source}`}
       segments={[{ id: "all", label: "All", match: () => true },
@@ -29,7 +29,7 @@ export function RemediesList(p: { d: AuditData }) {
           <span>{r.personName}, {r.monthText}. {mask(r.what)}</span>) },
         { key: "f", label: "Found by", render: (r) =>
           `${r.foundBy}, ${r.foundOn}` },
-        { key: "x", label: "The fix", render: (r) => r.fix },
+        { key: "x", label: "The fix", render: (r) => mask(r.fix) },
         { key: "a", label: "Amount", end: true, render: (r) =>
           r.amount === null ? "No amount" : <Money value={r.amount}
             size="sm" tween={false} /> },

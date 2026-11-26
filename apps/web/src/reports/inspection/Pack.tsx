@@ -96,7 +96,7 @@ export function PackBody(p: { pack: InspectionPack; month: string }) {
               {pack.files.map((f) => (
                 <li key={f.id} className={s.row}>
                   <span className={s.main}>
-                    <span>{f.what}</span>
+                    <span>{mask(f.what)}</span>
                     <small className={`${s.sub} ${s.mono}`} dir="ltr">
                       {f.name}</small>
                   </span>
@@ -112,7 +112,7 @@ export function PackBody(p: { pack: InspectionPack; month: string }) {
               {pack.exceptions.map((x) => (
                 <li key={x.id} className={s.row}>
                   <span className={s.main}>
-                    <span>{x.title}</span>
+                    <span>{mask(x.title)}</span>
                     <small className={s.sub}>{mask(x.reason)}</small>
                   </span>
                   <span className={s.end}>{x.severityText}. {mask(x.statusText)}

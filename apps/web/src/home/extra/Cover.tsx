@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { CoverRow } from "../../demo/data/more-types";
 import type { CoverReq } from "../../demo/more-state";
 import { useDemo } from "../../demo/state";
+import { useMaskText } from "../../ui/mask";
 import { personFor } from "../../demo/time-off";
 import { Outside } from "../../shell/Outside";
 import b from "../../ui/button.module.css";
@@ -26,6 +27,7 @@ const TONE: Record<Now, Tone> = { none: "plain", waiting: "warn",
  */
 export function Cover() {
   const { data, state, dispatch } = useDemo();
+  const mask = useMaskText();
   const toast = useToast();
   const [target, setTarget] = useState<CoverRow | null>(null);
   const role = state.role;
@@ -76,7 +78,7 @@ export function Cover() {
           { key: "a", label: W.approver, render: (r) => (
             <span className={s.name}>
               <span>{r.name}</span>
-              <span className={s.sub}>{r.decides}</span>
+              <span className={s.sub}>{mask(r.decides)}</span>
               {r.away !== null && (
                 <span className={s.sub}>{fill(W.away, { range: rangeText(
                   r.away.from.iso, r.away.to.iso, "en") })}</span>)}

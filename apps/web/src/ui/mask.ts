@@ -4,10 +4,12 @@ import { useOptionalDemo } from "../demo/state";
 export const MONEY_MASK = "AED ••••••";
 
 /** "AED 25,300.00", "+AED 5.00", "−AED 1,180.64", "AED 1,000" (any
- * space after AED), and a bare "4,950.00" in running text. */
+ * space after AED), and in running text or a table cell a bare
+ * "4,950.00", "1,000" or "52000.00" (not "108.71 days"). */
 const AMOUNT = new RegExp("[+\\u2212-]?AED[\\s\\u00a0\\u202f]*" +
-  "[+\\u2212-]?\\d[\\d,]*(?:\\.\\d+)?|(?<![\\d.,])\\d{1,3}(?:,\\d{3})+" +
-  "\\.\\d{2}(?![\\d])", "g");
+  "[+\\u2212-]?\\d[\\d,]*(?:\\.\\d+)?|(?<![\\d.,])(?:\\d{1,3}" +
+  "(?:,\\d{3})+(?:\\.\\d{2})?|\\d{3,}\\.\\d{2})" +
+  "(?![\\d]|\\s*(?:days?|hours?|h\\b|%))", "g");
 
 /** Every money amount in a sentence replaced by the mask. */
 export function maskMoney(text: string): string {

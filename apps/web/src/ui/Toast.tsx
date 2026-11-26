@@ -10,6 +10,7 @@ import {
 import { useOptionalDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "./Icon";
+import { useMaskText } from "./mask";
 import s from "./Toast.module.css";
 
 interface ToastItem {
@@ -76,10 +77,12 @@ export function ToastProvider(p: { children: ReactNode }) {
 function ToastView(p: { item: ToastItem; onClose(): void }) {
   const { t } = useLocale();
   const { undo } = p.item;
+  // A confirmation names amounts ("Saved AED 1,200"): masked while hidden.
+  const mask = useMaskText();
   return (
     <div className={s.toast}>
       <span className={s.ok}><Icon name="check" size={16} /></span>
-      <span className={s.text}>{p.item.text}</span>
+      <span className={s.text}>{mask(p.item.text)}</span>
       {undo !== undefined && (
         <button type="button" className={s.undo} onClick={() => {
           undo();
