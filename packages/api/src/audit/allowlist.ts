@@ -1,5 +1,6 @@
 import { CodedError } from "../coded-error";
 import { ISO_DATE, TIME_CHECKS } from "./allowlist-time";
+import { HR_CHECKS } from "./hr-allowlist";
 import { EXPENSE_AUDIT_CHECKS } from "./allowlist-expenses";
 
 /**
@@ -62,6 +63,7 @@ const CHECKS: Record<string, Check> = {
   newClockIn: matches(TIME),
   newClockOut: matches(TIME),
   ...TIME_CHECKS,
+  ...HR_CHECKS,
   ...EXPENSE_AUDIT_CHECKS,
 };
 

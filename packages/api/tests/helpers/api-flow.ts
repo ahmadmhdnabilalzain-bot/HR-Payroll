@@ -2,6 +2,7 @@ import { routeById } from "@payroll/contract";
 import { timeFlow } from "./conformance-time";
 import { base32Decode, totpCode } from "../../src/auth/totp";
 import { expenseReports, expensesFlow } from "./conformance-expenses";
+import { hrFlow } from "./conformance-hr";
 import { salaryOf } from "./seed";
 import { call, makeApp, PASSWORD, type Res } from "./test-app";
 
@@ -76,6 +77,8 @@ export async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
   const runId = await payroll(hit, owner, owner2, e.body.token, c);
   await expenseReports(hit, owner, c, runId);
   await timeFlow({ hit, owner, emp: e.body.token, c, empId: emp });
+  await hrFlow(hit, { owner, ownerId: su.body.user.id, owner2,
+    emp: e.body.token, empUserId: e.body.user.id, employeeId: emp, c });
   await hit("listAuditEvents", owner, c, {}, undefined,
     { query: "?limit=10" });
   await hit("verifyAuditChain", owner, c);

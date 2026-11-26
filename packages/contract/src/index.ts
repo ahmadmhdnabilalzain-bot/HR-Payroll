@@ -29,6 +29,12 @@ export * from "./time-wfh-data";
 export * from "./time-calendar";
 export { HolidayList, SpecialPeriodList, WorkSiteList }
   from "./routes-time-settings";
+export * from "./tasks";
+export * from "./hiring";
+export * from "./offers";
+export * from "./onboarding";
+export * from "./exits";
+export * from "./goals";
 export * from "./routes";
 export { ALL_ROLES, DECIDERS, OWNER, PAYROLL } from "./route-def";
 export * from "./registry";

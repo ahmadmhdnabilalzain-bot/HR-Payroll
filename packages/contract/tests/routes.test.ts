@@ -1,23 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { ROUTES as ALL, TIME_ROUTES } from "../src/index";
-
-/** Plan 3's routes; Plan 9's are checked in routes-time.test.ts. */
-const ROUTES = ALL.filter((r) => !TIME_ROUTES.includes(r));
+import { CORE_ROUTES, ROUTES } from "../src/index";
 
 function paramNames(path: string): string[] {
   return [...path.matchAll(/\{([a-zA-Z]+)\}/g)].map((m) => m[1] ?? "");
 }
 
 describe("ROUTES", () => {
-  it("has 75 routes (Plan 3's 50 plus Plan 6's 25)", () => {
-    expect(ROUTES.length).toBe(75);
+  it("core has 75 routes (Plan 3's 50 plus Plan 6's 25)", () => {
+    expect(CORE_ROUTES.length).toBe(75);
   });
   it("ids are unique", () => {
-    const ids = ALL.map((r) => r.id);
+    const ids = ROUTES.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
   it("(method, path) pairs are unique", () => {
-    const keys = ALL.map((r) => `${r.method} ${r.path}`);
+    const keys = ROUTES.map((r) => `${r.method} ${r.path}`);
     expect(new Set(keys).size).toBe(keys.length);
   });
   it("every path starts with /v1/", () => {
@@ -30,11 +27,12 @@ describe("ROUTES", () => {
       }
     }
   });
-  it("mfa routes are tenant routes", () => {
+  it("mfa routes are tenant routes (Plan 3 set fixed)", () => {
     for (const r of ROUTES.filter((x) => x.mfa)) {
       expect(r.auth, r.id).toBe("tenant");
     }
-    expect(ROUTES.filter((x) => x.mfa).map((x) => x.id).sort()).toEqual(
+    expect(CORE_ROUTES.filter((x) => x.mfa).map((x) => x.id).sort())
+      .toEqual(
       ["approvePayRun", "changeUserRole", "downloadSifFile",
         "getEmployeeBank", "putApprovalChain", "putEmployeeBank",
         "putEmployeeSalary"]);
@@ -68,7 +66,7 @@ describe("ROUTES", () => {
     }
   });
   it("owner-only routes are the four", () => {
-    const owner = ROUTES.filter((r) => r.roles.length === 1)
+    const owner = CORE_ROUTES.filter((r) => r.roles.length === 1)
       .map((r) => r.id).sort();
     expect(owner).toEqual(["approvePayRun", "changeUserRole", "inviteUser",
       "listUsers", "putApprovalChain",

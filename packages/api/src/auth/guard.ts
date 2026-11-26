@@ -37,10 +37,11 @@ export async function authenticate(
   return found;
 }
 
-/** The caller's membership in the company named by X-Company-Id. */
 /**
  * The caller's membership in `companyId`, read in the request's own
  * tenant transaction (so the check and the handler see one snapshot).
+ * A revoked membership (Plan 8 exit) counts as none: 403, at once,
+ * even for a session that is still valid.
  */
 export async function resolveTenant(
   tx: Db,
@@ -49,7 +50,8 @@ export async function resolveTenant(
 ): Promise<Tenant> {
   const [m] = await tx.query<{ role: Role; employee_id: string | null }>(
     `SELECT role, employee_id FROM memberships
-     WHERE company_id = $1 AND user_id = $2`, [companyId, auth.user.id]);
+     WHERE company_id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+    [companyId, auth.user.id]);
   if (m === undefined) throw new ApiError("TENANT_FORBIDDEN");
   return { companyId, role: m.role, employeeId: m.employee_id };
 }

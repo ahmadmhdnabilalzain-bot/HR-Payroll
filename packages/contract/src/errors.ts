@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TIME_ERROR_STATUS } from "./errors-time";
+import { HR_ERROR_STATUS } from "./errors-hr";
 
 /**
  * Plan 6 (approvals, receipts, expenses). Claim problem codes
@@ -91,6 +92,7 @@ export const ERROR_STATUS = {
   ACCOUNT_LOCKED: 423,
   ...TIME_ERROR_STATUS,
   INTERNAL: 500,
+  ...HR_ERROR_STATUS,
   ...EXPENSE_ERROR_STATUS,
 } as const;
 

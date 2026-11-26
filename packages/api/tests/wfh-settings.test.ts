@@ -97,12 +97,14 @@ describe("wfh settings and notice", () => {
     const g = await as(s.employee, "GET", S);
     expect(g.body.neverCollected).toEqual([...NEVER_COLLECTED]);
     // Every table, not only wfh_ ones (review M2b, M2c). Allowed by
-    // table and column: an employee's job title, an expense claim's
-    // title and deadline, a receipt's MIME type. None is a window
-    // title, page content or capture.
+    // table and column: job titles (employee, offer, requisition),
+    // the names of claims, tasks and goals, an expense claim deadline
+    // and a receipt's MIME type. None is a window title, page content
+    // or capture.
     const innocent = new Set(["employees.job_title",
       "expense_policies.claim_window_days", "receipts.content_type",
-      "expense_claims.title"]);
+      "expense_claims.title", "offers.job_title", "requisitions.title",
+      "requisitions.title_ar", "goals.title", "tasks.title"]);
     const cols = await ctx.deps.db.query<{ table_name: string;
       column_name: string }>(`SELECT table_name, column_name
       FROM information_schema.columns
@@ -110,10 +112,9 @@ describe("wfh settings and notice", () => {
     expect(cols.some((c) => c.table_name.startsWith("wfh_"))).toBe(true);
     const banned = new RegExp("screen|keystroke|key_log|url|title|content|" +
       "host|domain|window|image|capture|clip|typed|keys");
-    for (const c of cols) {
-      if (innocent.has(`${c.table_name}.${c.column_name}`)) continue;
-      expect(c.column_name, c.table_name).not.toMatch(banned);
-    }
+    const hits = cols.map((c) => `${c.table_name}.${c.column_name}`)
+      .filter((k) => !innocent.has(k) && banned.test(k.split(".")[1]!));
+    expect(hits).toEqual([]);
   });
 
   it("notice_text_exact", () => {

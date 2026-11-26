@@ -319,3 +319,28 @@ Tests after the merge, one package at a time: contract 111, engine
 584, time-client 13, web 103 (typecheck clean), api 80 files / 568
 tests, real PostgreSQL 22 of 22 (throwaway server, stopped). wps 173
 with the known `roundtrip` 5-second timeout under load.
+
+### Merge of `claude/quirky-wozniak-b7xkvr` at `508b135` (Plan 8)
+
+14 conflicts, all resolved keeping both sides: `HANDOVER.md` (Plan 8
+and Plan 9 states and layout rows); web `errors.ts` en and ar (Plan 8
+texts and Plan 9's `...timeErrors`); api `app.ts`, audit
+`allowlist.ts`, `api-flow.ts` (`hrFlow` then `timeFlow`),
+`seed-rows.ts`, `pg.integration.test.ts` (both concurrency sets);
+contract `errors.ts`, `examples.ts`, `index.ts`, `registry.ts`;
+`leak.test.ts` (Plan 8's string kinds and hr fixtures with Plan 9's
+self routes, timesheet, leave-type and employee-query kinds);
+`routes.test.ts` (Plan 8's version, which counts `CORE_ROUTES`).
+`routes.ts`: `CORE_ROUTES` is Plan 3 and Plan 6 (75), and `ROUTES` is
+core, then `HR_ROUTES`, then Plan 9's `TIME_ROUTES`. Plan 8's
+`routes-hr.test.ts` asserted totals of `ROUTES`; it now counts ROUTES
+without `TIME_ROUTES` (121) and checks membership of all three lists.
+The forbidden-column check also allows `offers.job_title`,
+`requisitions.title`, `requisitions.title_ar`, `goals.title` and
+`tasks.title`. Migrations: 001-013, 601-605, 801-807, 901-908 in name
+order; the RLS catalog test passes.
+
+Tests, one package at a time: contract 123, engine 584, time-client
+13, web 103, api 96 files / 726, real PostgreSQL 24 of 24; wps 172 of
+173 (the `roundtrip` 5 s timeout under load). Typecheck clean in every
+package, `apps/web` included.
