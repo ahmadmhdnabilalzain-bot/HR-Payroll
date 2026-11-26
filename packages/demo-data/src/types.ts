@@ -67,13 +67,18 @@ export interface DemoPayslip {
    */
   pension: { status: "not-computed"; traceId: string;
     reason: { en: string; ar: string } } | null;
+  /** Employer cost: computed, or "not computed" (never a silent 0). */
+  employer: { status: "computed"; amount: Fils } |
+    { status: "not-computed"; note: string };
   /** In the SIF, or held back with the reason. */
   sif: { included: true } | { included: false; reason: string };
 }
 
 export interface DemoSettlement {
   employeeId: string;
+  /** Unused leave at exit, two decimals for display (exact in trace). */
   unusedLeaveDays: number;
+  unusedLeaveBasis: string;
   result: SettlementResult;
   trace: TraceLine[];
 }
@@ -81,6 +86,9 @@ export interface DemoSettlement {
 /** Back pay owed for an earlier month, derived from two engine runs. */
 export interface BackPayDerivation {
   employeeId: string;
+  /** "Back pay on basic salary"; the note says housing is unchanged. */
+  label: string;
+  note: string;
   forMonth: string;
   paidGross: Fils;
   owedGross: Fils;
@@ -193,6 +201,8 @@ export interface ApprovalItem {
   requestedOn: string;
   status: "pending";
   amount: Fils | null;
+  /** Shown with the amount (the pay run's pension caveat). */
+  amountNote: string | null;
   titleKey: string;
   /** Who prepared it and who must decide (never the same person). */
   makerEmployeeId: string;
@@ -219,6 +229,8 @@ export interface NationalityHeadcount {
   asOf: string;
   label: "sample data, regime for banks to be confirmed";
   headcount: number;
+  /** The one headcount sentence (payroll, active, leavers). */
+  headcountText: string;
   uaeNationals: number;
   byNationality: { nationality: string; count: number }[];
 }
