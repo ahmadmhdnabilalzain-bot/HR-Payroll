@@ -1029,6 +1029,7 @@ li + li.actRow > .row {
 
 /* The page's one sources line. */
 .foot {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-4);
@@ -1067,6 +1068,121 @@ li + li.actRow > .row {
 
   .table tr {
     break-inside: avoid;
+  }
+}
+
+/* A letter as a page: paper, letterhead, readable measure. */
+.paper {
+  display: grid;
+  gap: var(--space-5);
+  inline-size: 100%;
+  max-inline-size: 794px;
+  min-block-size: min(1000px, 120vh);
+  align-content: start;
+  padding: 56px;
+  border: 1px solid var(--color-hairline);
+  border-radius: 4px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 6%,
+      transparent),
+    0 12px 32px color-mix(in srgb, var(--color-shadow) 8%, transparent);
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.letterhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  padding-block-end: var(--space-4);
+  border-block-end: 1.5px solid var(--color-text);
+}
+
+.lhName {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.lhMeta {
+  display: grid;
+  justify-items: end;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.paperTitle {
+  margin: var(--space-3) 0 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.paperBody {
+  display: grid;
+  gap: var(--space-3);
+  max-inline-size: 62ch;
+}
+
+.paperBody p {
+  margin: 0;
+}
+
+.paperLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.paperLine[data-total="true"] {
+  margin-block-start: var(--space-1);
+  font-weight: 600;
+}
+
+.leader {
+  flex: 1;
+  min-inline-size: var(--space-4);
+  border-block-end: 1px dotted var(--color-divider-strong);
+  transform: translateY(-4px);
+}
+
+.paperSign {
+  display: grid;
+  gap: 2px;
+  margin-block-start: var(--space-6);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-hairline);
+  max-inline-size: 320px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+@media print {
+  :global(body) * {
+    visibility: hidden;
+  }
+
+  .paper,
+  .paper * {
+    visibility: visible;
+  }
+
+  .paper {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    max-inline-size: none;
+    border: 0;
+    box-shadow: none;
+    background: none;
+    color: CanvasText;
   }
 }
 
@@ -1151,6 +1267,13 @@ li + li.actRow > .row {
   .aside {
     position: static;
     padding: var(--space-4);
+  }
+
+  .paper {
+    min-block-size: 0;
+    padding: var(--space-5);
+    font-size: 15px;
+    line-height: 24px;
   }
 
   .asideFigures {

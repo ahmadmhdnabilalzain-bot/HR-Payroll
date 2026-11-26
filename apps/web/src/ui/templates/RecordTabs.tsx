@@ -1,6 +1,7 @@
 import { isValidElement, useState, type ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { StatusPill, type StatusTone } from "./Avatar";
+import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -127,6 +128,7 @@ export function RecordTabs(p: {
           </div>
         )}
       </div>
+      <PageFoot />
     </div>
   );
 }

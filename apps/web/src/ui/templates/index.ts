@@ -21,6 +21,7 @@ export type { RecordStat, RecordTab } from "./RecordTabs";
 export { BarChart, compact, Waterfall } from "./Chart";
 export type { BarDatum, WaterfallStep } from "./Chart";
 export { PageFoot } from "./PageFoot";
+export { Paper, PaperLine } from "./Paper";
 export { CellView, ReportPage, toCsv } from "./ReportPage";
 export type { Cell, ReportColumn } from "./ReportPage";
 export { SettingsPage } from "./SettingsPage";

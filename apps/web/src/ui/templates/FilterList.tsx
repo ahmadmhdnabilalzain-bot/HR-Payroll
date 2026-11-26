@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../Icon";
 import { Avatar } from "./Avatar";
+import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -153,6 +154,7 @@ export function FilterList<T>(p: {
           {shown.map((r) => <Row key={p.rowKey(r)} p={p} r={r} />)}
         </ul>
       )}
+      <PageFoot />
     </div>
   );
 }

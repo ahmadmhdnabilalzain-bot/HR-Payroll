@@ -22,7 +22,7 @@ export const reports = {
     "to be confirmed.",
   docTitle: "Documents expiring",
   docBlurb: "Residence visas, Emirates IDs and passports, soonest first.",
-  docNote: "Days left are counted from the demo's today.",
+  docNote: "Days left are counted from today.",
   filesTitle: "Salary file register",
   filesBlurb: "Every salary file made, with its people, amount and date.",
   filesNote: "The bank checks each file again when it is uploaded.",
