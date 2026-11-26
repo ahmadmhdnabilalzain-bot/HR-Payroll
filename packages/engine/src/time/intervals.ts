@@ -1,9 +1,10 @@
 import { EngineError } from "../errors";
 
 /**
- * Minutes from 00:00 Dubai of the sheet's date; `end > start`. Values
- * run from -1440 to 2880, so a shift that crosses midnight keeps its
- * own date.
+ * Minutes from 00:00 Dubai of the sheet's date; whole minutes, `end >
+ * start`. Values run from -1440 to 2880, so a shift that crosses
+ * midnight keeps its own date. Every day is 1440 minutes: Dubai time
+ * is a fixed UTC+4 with no daylight saving (assumption, as Plan 3).
  */
 export interface Interval {
   start: number;
