@@ -37,9 +37,11 @@ export function PayRunHero() {
             {t("home.paysOn", { date: formatDayMonth(cal.payday, lang) })}
           </p>
           <p className={s.people}>
-            {t("home.preparedBy", { name: name(people.makerId) })}
+            <span>{t("home.preparedBy", { name: name(people.makerId) })}
+            </span>
             <span className={s.dot} aria-hidden="true" />
-            {t("home.checker", { name: name(people.checkerId) })}
+            <span>{t("home.checker", { name: name(people.checkerId) })}
+            </span>
             <button type="button" className={s.sourcesBtn}
               aria-expanded={state.sourcesOpen} aria-controls="sources"
               onClick={() => dispatch({ type: "sources",

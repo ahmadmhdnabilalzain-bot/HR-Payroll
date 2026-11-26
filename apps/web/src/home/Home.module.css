@@ -1,9 +1,9 @@
 .page {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
   max-inline-size: 1280px;
   margin-inline: auto;
-  padding: var(--space-5) var(--space-6) var(--space-8);
+  padding: var(--space-4) var(--space-6) var(--space-8);
 }
 
 .grid {
@@ -11,7 +11,7 @@
   grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
   gap: var(--space-6);
   align-items: start;
-  margin-block-start: var(--space-2);
+  margin-block-start: var(--space-3);
 }
 
 .below {
