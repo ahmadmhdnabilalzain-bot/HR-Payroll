@@ -1,3 +1,4 @@
+import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { FilterList } from "../../ui/templates";
@@ -12,6 +13,7 @@ export function TasksPage() {
   const rows = inboxTasks(data, state);
   return (
     <FilterList title={t("inbox.tasksTitle")} lede={t("inbox.tasksLede")}
+      crumbs={[{ label: t("inbox.backHome"), href: hrefOf("home") }]}
       rows={rows} rowKey={(x) => x.id}
       searchText={(x) => `${x.title} ${x.detail}`}
       segments={[
@@ -42,6 +44,7 @@ export function NoticesPage() {
   const rows = inboxNotices(data, state);
   return (
     <FilterList title={t("inbox.notices")} lede={t("inbox.noticesLede")}
+      crumbs={[{ label: t("inbox.backHome"), href: hrefOf("home") }]}
       rows={rows} rowKey={(x) => x.id}
       searchText={(x) => `${x.title} ${x.body}`}
       columns={[

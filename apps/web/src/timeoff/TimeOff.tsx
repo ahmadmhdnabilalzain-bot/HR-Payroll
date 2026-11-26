@@ -19,6 +19,7 @@ import { TeamCalendar } from "./TeamCalendar";
 import p from "../people/page.module.css";
 import s from "./timeoff.module.css";
 import { Footnote } from "../components/explain";
+import { PageHead } from "../ui/templates";
 
 /**
  * Time off: your balance, the requests you may see (yours, your
@@ -36,15 +37,11 @@ export function TimeOff(_p: ViewProps) {
     : state.role === "manager" ? t("timeoff.leadTeam")
       : t("timeoff.leadAll");
   return (
-    <div className={p.page}>
-      <header className={p.headRow}>
-        <div className={p.header}>
-          <h1 className={p.title}>{t("timeoff.title")}</h1>
-          <p className={p.lead}>{lead}</p>
-        </div>
+    <div className={`${p.page} ${p.headed}`}>
+      <PageHead title={t("timeoff.title")} lede={lead} actions={(
         <button type="button" className={`${b.btn} ${b.primary} ${p.tall}`}
           onClick={() => setOpen(true)}>{t("timeoff.request")}</button>
-      </header>
+      )} />
       <Balances id={me} />
       <Requests fresh={fresh} />
       {leaveIds(data, state).length > 1 && <TeamCalendar />}

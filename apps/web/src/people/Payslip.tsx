@@ -15,6 +15,7 @@ import { Money } from "../ui/Money";
 import { dayText, lineLabel } from "./words";
 import p from "./page.module.css";
 import s from "./Payslip.module.css";
+import { PageHead } from "../ui/templates";
 
 /** Lines whose figure is worked out, not copied from the contract. */
 const DERIVED = new Set(["overtime", "rest-day", "holiday",
@@ -66,21 +67,11 @@ export function Payslip(q: { id: string }) {
   const month = formatMonth(data.headline().runMonth, lang);
   const allowed = canSeePay(data, state, q.id);
   return (
-    <div className={p.page}>
-      <header className={p.header}>
-        <nav aria-label={t("shell.breadcrumb")} className={p.crumbs}>
-          {state.role !== "employee" && (
-            <>
-              <a href={hrefOf("people")}>{t("people.back")}</a>
-              <span aria-hidden="true" className={p.sep}>/</span>
-            </>
-          )}
-          <a href={hrefOf("people", q.id)}>{x.name[lang]}</a>
-          <span aria-hidden="true" className={p.sep}>/</span>
-          <span aria-current="page">{t("people.pay")}</span>
-        </nav>
-        <h1 className={p.title}>{t("people.payslipTitle", { month })}</h1>
-      </header>
+    <div className={`${p.page} ${p.headed}`}>
+      <PageHead title={t("people.payslipTitle", { month })} crumbs={[
+        ...(state.role !== "employee" ? [{ label: t("people.back"),
+          href: hrefOf("people") }] : []),
+        { label: x.name[lang], href: hrefOf("people", q.id) }]} />
       {!allowed ? (
         <p className={p.empty}>{t("people.payslipPrivate")}</p>
       ) : slip === null ? (
