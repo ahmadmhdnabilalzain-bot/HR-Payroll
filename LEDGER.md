@@ -632,7 +632,7 @@ The owner can overrule any of these. Full list with reasons:
 - Owner confirmed (2026-11-26): the first client's entity is **mainland**
   (not DIFC/ADGM). Mainland rule labels in the demo are now accurate for
   the jurisdiction; the Abu Dhabi pension fund question stays open.
-## 14. Demo data and demo environment (2026-11-26)
+## 18. Demo data and demo environment (2026-11-26)
 
 - Owner (via the coordinator): a clickable demo with fake data only,
   hosted later as a static site; then "a database of demo data so
