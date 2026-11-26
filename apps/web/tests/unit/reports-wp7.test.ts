@@ -71,7 +71,7 @@ describe("report catalogue and formats", () => {
 
   it("percent and share round to one decimal", () => {
     expect(percent(25n, 1000n)).toBe("+2.5%");
-    expect(percent(-1n, 3n)).toBe("-33.3%");
+    expect(percent(-1n, 3n)).toBe("\u221233.3%");
     expect(share(1, 30)).toBe("3.3%");
     expect(share(0, 0)).toBe("none");
   });
