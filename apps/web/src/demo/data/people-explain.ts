@@ -92,14 +92,12 @@ function ruleOf(r: LineSource["rules"][number]): ExplainRule {
   const name = r.key.replace(/Bps$/, "").replace(/([a-z])([A-Z])/g, "$1 $2")
     .toLowerCase();
   const shown = bps ? `${Number(r.value) / 100}%` : valueText(r.value);
-  const said = r.presentedLabel === null ? "" : ` (${r.presentedLabel})`;
   const known = STATUSES.find((x) => x === r.presentedStatus);
   const citation = r.source?.note ?? null;
   const status: SourceStatus = citation === null ? "unsourced"
     : known ?? "unsourced";
   return { text: `${name[0]?.toUpperCase() ?? ""}${name.slice(1)}: ` +
-    `${shown}${said}`, status, citation,
-    statusLabel: r.presentedLabel ?? null };
+    shown, status, statusLabel: r.presentedLabel, citation };
 }
 
 /** The engine's sentence without its closing status list. */

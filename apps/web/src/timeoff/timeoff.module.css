@@ -313,8 +313,18 @@
 
 .dates {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
+}
+
+.dates .input {
+  min-inline-size: 0;
+}
+
+@media (max-width: 480px) {
+  .dates {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .summary {
