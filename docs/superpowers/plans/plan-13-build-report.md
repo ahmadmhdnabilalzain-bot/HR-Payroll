@@ -378,3 +378,126 @@ No new dependency was added (versions unchanged).
   tested only against their own fakes.
 - WhatsApp prices, Meta verification lead time and any TDRA position
   remain unknown; Arabic copy is unreviewed and never sent.
+
+## Merge and finish
+
+Date: 2026-11-26. Merged `origin/claude/quirky-wozniak-b7xkvr` at
+`508b135` (Plan 3 review fixes, Plan 6 review fixes with migration
+605 and quotas, Plan 8 with migrations 801 to 807, engine fixes, ops
+kit, web groundwork). Not pushed.
+
+Commits: `53627bb` (merge), `434ee6c` (ops: serve.ts and
+RECEIPTS_DIR), `2803463` (tests and the `verdictFor` role check), and
+the commit that adds this section.
+
+### Conflicts (20 files) and resolutions
+
+Both sides were kept everywhere.
+
+- Contract `errors.ts`, `examples.ts`: both imports and spreads (HR
+  then channels). `payroll.ts`: main's `reimbursementNote` kept.
+- `routes.ts`: `CORE_ROUTES` (Plans 3 and 6) is kept for main's
+  tests; `ROUTE_GROUPS = [CORE_ROUTES, HR_ROUTES, CHANNEL_ROUTES]`
+  and `ROUTES = ROUTE_GROUPS.flat()`. `routes.test.ts` takes main's
+  core-scoped checks (subset checks: MFA set, owner-only, text/plain,
+  binary on `CORE_ROUTES`) plus Plan 13's public-ids check;
+  `routes-hr.test.ts` no longer asserts the total of 121 (it checks
+  46 HR, core 75 and that every core and HR id is in `ROUTES`).
+- API `app.ts`, `audit/allowlist.ts`: both registrations and checks.
+- `http/context.ts`: Plan 13's `rawBody`, `rawHeader`, `TextReply`
+  plus main's `onFailure` cleanups and `CsvReply`. The API-key path
+  goes through the same `base`, so it gets `onFailure` too.
+  `channels/actor.ts` gives actor contexts an `onFailure` that throws
+  (they write no outside files; a throw rolls the transaction back).
+- `payroll/snapshot.ts`, `people/employees.ts`: main's version (our
+  side held only the earlier merge of the same changes).
+  `pay-runs.ts`: main's version plus the `pay-run.approved` event.
+- `receipts/receipts.ts`: `uploadReceipt` keeps calling Plan 13's
+  `storeReceiptBytes`, which now also runs main's `checkQuota`,
+  inserts the row before writing the blob and registers the blob
+  delete with `onFailure` (email-in accepts count toward the quota).
+- `routes/users.ts` `listUsers`: human users only and unrevoked
+  memberships.
+- Tests: `conformance`, `leak` and `pg.integration` drop
+  `PLAN6_PENDING` (main deleted it; Plan 6 is complete). `api-flow`
+  runs expenses, payroll, expense reports, then `channelFlow`, then
+  `hrFlow` (the HR flow revokes the employee's access, so channels
+  run before it). `seed-rows`, `test-app` hold both sides. The leak
+  test holds both fixture sets and adds `inboundItem` to the
+  company-B kinds.
+- `HANDOVER.md`: both layout tables and both limits paragraphs.
+  `LEDGER.md` merged cleanly; no duplicate headings.
+- `apps/web`: main's version, then English and Arabic texts for the
+  28 Plan 13 error codes (Arabic NEEDS NATIVE REVIEW like the rest).
+  The merge itself brought no other new codes.
+- `reimburse.test.ts` and `reimbursed-once.test.ts` auto-merged with
+  both sides' copy of the same fix (duplicate keys); main's versions
+  taken.
+- `approvals/decide.ts` merged cleanly: main's hardened rules
+  (excluded list, role held at decision time) with Plan 13's
+  `verdictFor` and events. `migrate.ts` is Plan 13's numeric sort;
+  checked on a fresh PostgreSQL 16: order 001-013, 601-605, 801-807,
+  1301-1309; every table but the five global ones has forced RLS (RLS
+  catalog test green). `pnpm install` left `pnpm-lock.yaml` unchanged
+  (no dependency changed).
+
+### Fixes the merge needed
+
+- `verdictFor` now returns `NOT_AN_APPROVER` when the current step is
+  a role step and the caller no longer holds the role (the same rule
+  `decide` applies), so a demoted approver's WhatsApp reject tap is
+  refused at once instead of asking for a reason first.
+- Plan 8 revocation: channel actors (`actorCtx`), notification
+  recipients and calendar feeds ignore revoked memberships (a leaver
+  gets no notices, cannot act by WhatsApp, and the feed URL gives 404).
+  The SSO link path already read memberships under the no-tenant
+  policy, which hides revoked rows; JIT never matches an employee that
+  had a membership.
+- A named chain approver must be a human member (`chains.ts`): an API
+  key's service user is refused with `CHAIN_INVALID`.
+- `deploy/serve.ts` passes `fsBlobStore(RECEIPTS_DIR)` and the channel
+  ports to `systemDeps`, as `main.ts` does. `check-env.mjs` requires
+  an absolute `RECEIPTS_DIR` for api, migrate and serve (test added);
+  compose sets it and mounts a `receipts` volume on the api service;
+  the Dockerfile creates the directory for the `node` user; the env
+  example and runbook list it. Smoke test on a throwaway PostgreSQL
+  16 with `init-roles.sql`: `main.ts migrate`, `serve.ts` (health
+  200) and `main.ts jobs` all ran.
+
+### New tests
+
+- `approver-identity.test.ts`: a demoted hr approver taps approve and
+  reject in WhatsApp: both refused with `NOT_AN_APPROVER` (audit),
+  nothing decided, two "cannot be made from WhatsApp" replies (fails
+  on the pre-merge `verdictFor`); the service user is not in a role
+  step's eligible list, gets 403 `API_KEY_ROUTE_NOT_ALLOWED` on
+  approve and inbox, and cannot be a named approver.
+- `leak.test.ts`: an API key without `payroll:read` calls every GET
+  tenant route with every id: 403 outside its scopes, the route's
+  status inside them, and no salary, fils, gross, IBAN, labour id,
+  Emirates ID or HR sentinel in any body; a key with `payroll:read`
+  does see salaries (not vacuous).
+
+### Checks (run one package at a time)
+
+- `packages/api`: 96 files, 692 tests, green
+  (`vitest run --maxWorkers=1 --testTimeout=60000`, real PostgreSQL
+  suites included and confirmed running).
+- `packages/contract` 11 files, 131 tests; `packages/engine` 53
+  files, 584 tests; `packages/wps` 11 files, 173 tests; `apps/web` 17
+  files, 103 tests (`every-error-code-has-text` now passes).
+- `pnpm typecheck`, `pnpm ops:typecheck`, `pnpm lines`,
+  `pnpm lines:ops`, `pnpm lines:test`, `pnpm ops:test` (11 tests):
+  green.
+
+### Decisions and open points
+
+- Commit trailers name `Claude Opus 5.5`, the model that did the
+  work, as the session's attribution notice requires (the brief asked
+  for `Claude Sonnet 5.5`); nothing is pushed, so they can be
+  rewritten.
+- Revoked memberships are not filtered in Plan 6's own member query
+  (`approvals/requests.ts`) or in `subjects.ts`; that is main's code
+  and was left as is (a revoked user cannot open a tenant, so cannot
+  decide in the app; WhatsApp is now covered by `actorCtx`).
+- A fresh security review of Tasks 4, 5, 7, 8 and 9 is still owed.

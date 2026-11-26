@@ -386,7 +386,7 @@ needs checking against official sources before anything is built on it.
 | 10 | Performance, learning, surveys | planned; waits for 7 and 8 |
 | 11 | Owner view, pre-pay gate, evidence | deadline and preview engine merged; API waits for 5, 6, 7 |
 | 12 | VAT, corporate tax, e-invoicing | engine merged, reviewed, fixed; API waits for Plan 6 |
-| 13 | Channels and integrations | planned; waits for Plan 6 |
+| 13 | Channels and integrations | API built on `api-plan-13`, main merged in; security review owed, not merged |
 | 14 | Meetings | planned; blocked until a telecom position is confirmed |
 | 15 | Social and website insights | planned; waits for 8, 11, 13 |
 | 16 | Finance modules | planned; waits for 6, 7, 12 |
@@ -417,6 +417,12 @@ a Plan 4 follow-up.
 
 Plan 8: review Task 6 (exit and settlement) and Task 7 (revocation),
 then the whole branch, then merge `api-plan-8` after Plan 3.
+
+Plan 13 (branch `api-plan-13`, main merged in): a fresh security
+review of Tasks 4, 5, 7, 8 and 9 (self-reviewed only), then merge.
+Migrations 1301 to 1309 run after 807 (the runner sorts numerically).
+The API now needs `RECEIPTS_DIR` in every environment, also in the
+serve-only container (`deploy/serve.ts`, compose `receipts` volume).
 
 ## Tooling (25 Nov 2026)
 
