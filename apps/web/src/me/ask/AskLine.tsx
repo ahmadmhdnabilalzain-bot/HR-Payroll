@@ -12,6 +12,7 @@ import { personFor } from "../../demo/time-off";
 import { formatMoney, formatMonth } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../../ui/button.module.css";
+import { amountsHidden, MONEY_MASK } from "../../ui/mask";
 import { Money } from "../../ui/Money";
 import { Sheet } from "../../ui/templates/Sheet";
 import { useToast } from "../../ui/Toast";
@@ -83,14 +84,19 @@ function About(p: { slip: PayslipView; line: LineRef; onClose(): void }) {
     monthName), [data, p.slip, p.line, ex, lang]);
   const draft = askHrDraft(p.line, monthName(p.slip.month),
     formatMoney(p.line.amountFils, lang));
-  const [text, setText] = useState(draft.text);
+  // While amounts are hidden the box shows the mask; an untouched box
+  // still sends the amount to HR.
+  const shown = amountsHidden(state) ? askHrDraft(p.line,
+    monthName(p.slip.month), MONEY_MASK).text : draft.text;
+  const [text, setText] = useState(shown);
   const me = personFor(data, state.role);
   const send = (): void => {
     const id = `tk-new-${String(state.nextReq)}`;
     dispatch({ type: "req-new", draft: { kind: "ticket", employeeId: me,
       raisedOn: data.requests.asOf, by: me, role: state.role,
       values: { category: draft.category, subject: draft.subject,
-        text: text.trim() === "" ? draft.text : text.trim(),
+        text: text.trim() === "" || text === shown ? draft.text
+          : text.trim(),
         line: p.line.label, payslip: p.slip.id } } });
     setSent(id);
     toast.show("Question sent to HR.", () => {

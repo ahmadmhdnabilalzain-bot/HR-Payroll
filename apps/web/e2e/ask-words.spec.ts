@@ -40,3 +40,20 @@ test("hr-asks-for-a-report-in-words", async ({ page }) => {
   await expect(page.getByText(/No report matched those words/))
     .toBeVisible();
 });
+
+test("the-ask-hr-box-shows-no-amount-while-hidden", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Hide amounts/ }).first().click();
+  await asRole(page, "Employee");
+  await page.goto("/#/me/payslips");
+  await page.getByRole("link", { name: /thi?s month|October/i }).first()
+    .click();
+  await page.getByRole("button", { name: /About this line: Overtime/ })
+    .click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByRole("button", { name: "Ask HR about this line" })
+    .click();
+  const box = sheet.getByLabel("Your question to HR");
+  await expect(box).toHaveValue(/Overtime/);
+  await expect(box).not.toHaveValue(/250/);
+});
