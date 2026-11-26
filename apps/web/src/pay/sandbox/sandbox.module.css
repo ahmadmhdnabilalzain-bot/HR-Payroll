@@ -1,0 +1,143 @@
+/* R41 pay-structure sandbox: the picker, the draft plans. Tokens only,
+ * logical properties, ink and grey; hover only where a pointer hovers. */
+.page {
+  display: grid;
+  gap: var(--space-5);
+  max-inline-size: var(--container);
+  margin-inline: auto;
+  padding: 40px var(--page-pad) var(--space-8);
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-block-start: var(--space-4);
+  }
+}
+
+.below {
+  max-inline-size: var(--container);
+  margin-inline: auto;
+  padding: 0 var(--page-pad) var(--space-8);
+}
+
+.picker {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.preset {
+  min-block-size: 44px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.preset:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .preset:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+.fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3) var(--space-4);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.field select {
+  min-block-size: 44px;
+  max-inline-size: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: 400;
+}
+
+@media (max-width: 760px) {
+  .field {
+    inline-size: 100%;
+  }
+
+  .field select {
+    inline-size: 100%;
+  }
+}
+
+.error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.plans {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.plans h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.planList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.planList li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.planList li > div {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}

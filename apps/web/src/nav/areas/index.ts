@@ -19,6 +19,7 @@ import { AREAS as PLANNING } from "./planning";
 import { AREAS as REPORTS } from "./reports";
 import { AREAS as REQUESTS } from "./requests";
 import { AREAS as RULE_CHANGE } from "./rule-change";
+import { AREAS as SANDBOX } from "./sandbox";
 import { AREAS as SETUP_ACCESS } from "./setup-access";
 import { AREAS as SETUP_RULES } from "./setup-rules";
 import { AREAS as SETUP_STRUCTURE } from "./setup-structure";
@@ -60,6 +61,7 @@ export const ALL_AREAS: readonly Area[] = [
   ...VERIFY,
   ...ESIGN,
   ...RULE_CHANGE,
+  ...SANDBOX,
   ...AUDIT_ROOM,
   ...TIME_FINISH,
   ...CHECKS,
