@@ -344,3 +344,29 @@ Tests, one package at a time: contract 123, engine 584, time-client
 13, web 103, api 96 files / 726, real PostgreSQL 24 of 24; wps 172 of
 173 (the `roundtrip` 5 s timeout under load). Typecheck clean in every
 package, `apps/web` included.
+
+## Re-review fixes (`.superpowers/sdd/plan9/rereview.md`)
+
+The branch first fast-forwarded to `claude/quirky-wozniak-b7xkvr` at
+`70c763f` (Plans 7, 8 and 9 merged); no conflicts.
+
+| Item | Commit | Fix |
+|---|---|---|
+| N1 critical | `ee16ac4` | 905 lifts FORCE RLS on `leave_requests` for its backfill only and restores it. New `migrate-upgrade.integration.test.ts`: Plan 3 rows in `leave_requests` and `attendance`, every pre-900 migration then 901-908 applied as a non-superuser, NOBYPASSRLS owner; red before ("half_units contains null values"), green after. No other migration (070-075, 601-605, 801-807, 901-908) updates existing rows; 905 is the only one with data statements. 905 was edited in place, as accepted; 90x is frozen from here. |
+| N2 | `f5585c4` | `halvesOf` sums each share of a date with its own type (`full` 2, half 1), for sick and maternity; `sick-halves.test.ts` covers both id orders and the pay-input absences. |
+| N3 | `12505ff` | `allCompanyIds` reads company ids on the owner connection inside a transaction that lifts FORCE RLS on `companies` and always rolls back (the owner owns the table; nothing is committed). Real-PostgreSQL test with the deployed roles: red (0 companies) before, green after, FORCE still on. No other cross-tenant job exists (`main.ts` has only `migrate` and `purge-wfh`; Plan 13 is not built). |
+| N4 | `b821931` | The timing-based race test is replaced by the fixed-order one (an uncommitted row holds the upload's first key). Shown red with the `uploadContext` lock removed (240 rows left), green with it. |
+| N5 | `7c1a506` | `purged` locks the caller's employee row before the purge. Real-PostgreSQL test: with the row held by another session, the request has neither deleted nor locked the expired row (red without the fix, green with it). |
+| N6 | `80670e3` | Withdrawal with erase deletes the employee's open pauses too. |
+| N7 | `e96cf25` | Choice: validation, both ways. A policy's payroll kind is `unpaid` exactly when the type is unpaid (422 `LEAVE_POLICY_INVALID` on `putLeavePolicy`), and changing a type's `paid` must still agree with its stored policy (422 on `updateLeaveType`). |
+| N8 | `4be655c` | Export over two records ten days apart and at the cutoff; the approve backstop (a decision written past the API gives 422 `OVERTIME_DECISION_INVALID`); an end-to-end reopen, correction and rest day turned work day; `buildPayInputs` now also drops rest-day work when the frozen rest day shows none. |
+| N9 | (recorded) | Not fixed: a sample sent up to 2 minutes early, just after Dubai midnight, shows in the export from the next day on. It is stored and never lost. |
+
+Trailers: the Opus line again (as before), not the Sonnet line asked
+for; nothing is pushed.
+
+Tests after the re-review fixes, one package at a time: contract 141,
+engine 584, time-client 13, web 103, api 121 files / 860, real
+PostgreSQL 27 of 27 (the integration suite plus the upgrade test);
+wps 172 of 173 (the `roundtrip` 5 s timeout under load). Typecheck
+clean in every package; lines ok.
