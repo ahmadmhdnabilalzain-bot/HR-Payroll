@@ -7,6 +7,7 @@ import {
   march,
   postRun,
   SALARY_SENTINEL,
+  SENTINELS,
   salaryOf,
   seedCompany,
   type Seeded,
@@ -73,7 +74,7 @@ describe("pay runs and payslips", () => {
     const all = await as(s.hr, "GET", `/v1/pay-runs/${runId}/payslips`);
     const colleague = all.body.items.find((p: { employeeId: string }) =>
       p.employeeId === s.emp.outsider);
-    expect(colleague.gross).toBe("9277.77");
+    expect(colleague.gross).toBe(SENTINELS.outsider.gross);
     for (const who of [s.employee, s.manager]) {
       expect((await as(who, "GET", `/v1/payslips/${colleague.id}`)).status)
         .toBe(404);

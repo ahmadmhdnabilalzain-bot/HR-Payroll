@@ -6,7 +6,7 @@ import { loadSifBatch } from "../src/payroll/sif";
 import {
   addOwner,
   EMPLOYEE_PAY,
-  IBAN_SENTINEL,
+  SENTINELS,
   march,
   postRun,
   seedCompany,
@@ -75,8 +75,8 @@ describe("SIF files", () => {
       expect(r.text.toLowerCase()).not.toContain("compliant");
       expect(f.fileName.startsWith("0000000123456260401")).toBe(true);
       expect(f.errorCount).toBe(0);
-      // 4 employees: (1111.11, 2222.22, 7777.77, 7777.77) + 4 x 1500.00.
-      expect(f.total).toBe("24888.87");
+      // 4 employees: (1111.11, 2222.22, 7777.77, 6666.66) + 4 x 1500.00.
+      expect(f.total).toBe("23777.76");
       const again = await sif();
       expect(again.status).toBe(200);
       expect(again.body.id).toBe(f.id);
@@ -101,9 +101,9 @@ describe("SIF files", () => {
       userId: null }, async (tx) => generateSif(await loadSifBatch(tx,
       ctx.deps, s.companyId, runId, new Date(AT))).text);
     expect(r.text).toBe(expected);
-    expect(r.text).toContain(IBAN_SENTINEL);
+    expect(r.text).toContain(SENTINELS.outsider.iban);
     expect(r.text).not.toContain(NEW_IBAN);
-    expect(r.text).toContain("00000000000001");
+    expect(r.text).toContain(SENTINELS.manager.labour);
     expect(r.text).toContain(EMPLOYEE_PAY);
     expect(r.text).toContain("1500.00");
     const meta = await as(s.hr, "GET", `/v1/sif-files/${run.body.sifFileId}`);

@@ -3,6 +3,7 @@ import { withTenant } from "../src/db/tenant";
 import {
   member,
   IBAN_SENTINEL,
+  SENTINELS,
   SALARY_SENTINEL,
   salaryOf,
   seedCompany,
@@ -88,7 +89,7 @@ describe("employees and departments", () => {
       const text = JSON.stringify(raw);
       expect(text).not.toContain("7777.77");
       expect(text).not.toContain("AE0703");
-      expect(text).not.toContain("00000000000004");
+      expect(text).not.toContain(SENTINELS.outsider.labour);
     });
 
   it("bank reveal needs an MFA session and is audited", async () => {
@@ -100,7 +101,8 @@ describe("employees and departments", () => {
     expect(noMfa.body.error.code).toBe("MFA_REQUIRED");
     const r = await as("owner", "GET", path);
     expect(r.status, r.text).toBe(200);
-    expect(r.body).toEqual({ routingCode: "803320101", iban: IBAN_SENTINEL });
+    expect(r.body).toEqual({ routingCode: "803320101",
+      iban: SENTINELS.outsider.iban });
     const ev = await withTenant(ctx.deps.db, { companyId: s.companyId,
       userId: null }, (tx) => tx.query<{ entity_id: string }>(
       `SELECT entity_id FROM audit_events
