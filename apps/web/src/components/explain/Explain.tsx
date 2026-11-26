@@ -244,7 +244,6 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   const gone = (): void => wrap.remove();
   travel.onfinish = gone;
   travel.oncancel = gone;
-  setTimeout(gone, FLIGHT_MS + 400);
 }
 
 /** Brings the source figure back at once if the drawer closes while

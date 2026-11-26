@@ -49,6 +49,8 @@ export function CardIban(p: { issue: Issue; onDone(): void }) {
     if (el === null || reducedMotion()) return finish();
     el.animate([{ opacity: 1 }, { opacity: 0 }],
       { duration: FADE_MS, easing: "ease-out", fill: "forwards" });
+    // Saved: the fading form takes no more input while the chip flies.
+    el.inert = true;
     flight({ from: el.querySelector("input"), id, value, finish,
       wait: FADE_MS });
   };

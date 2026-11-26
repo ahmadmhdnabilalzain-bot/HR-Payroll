@@ -459,6 +459,8 @@
   gap: var(--space-3) var(--space-6);
 }
 
+/* No taller than the figure and its top gap, so signing never moves
+ * the figure or anything under it. */
 .heroStamp {
-  margin-block-end: var(--space-1);
+  margin-block: -12px 2px;
 }

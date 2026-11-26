@@ -195,7 +195,9 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
   const toast = useToast();
   const [open, setOpen] = useState(false);
   const flight = useFixFlight(p.target);
-  const flying = useRef(false);
+  // Saved and in flight: the form closes and no action shows, so the
+  // row cannot be saved twice while the chip travels.
+  const [flying, setFlying] = useState(false);
   const row = useRef<HTMLLIElement>(null);
   const i = p.issue;
   const name = i.employeeId === null ? ""
@@ -209,7 +211,7 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
         <span className={s.reasonMain}>{plainOnly(i.reason[lang])}</span>
         <span className={s.reason}>{i.suggestedFix[lang]}</span>
       </span>
-      {p.canFix && i.employeeId !== null && !open && (
+      {p.canFix && i.employeeId !== null && !open && !flying && (
         <span className={s.rowAction}>
           <button type="button"
             className={`${b.btn} ${b.secondary} ${s.act}`}
@@ -221,12 +223,12 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
           <IbanForm employeeId={i.employeeId} name={name}
             onCancel={() => setOpen(false)}
             onSave={(value) => {
-              if (flying.current) return;
-              flying.current = true;
               const id = i.employeeId!;
+              const from = row.current?.querySelector("input") ?? null;
+              setFlying(true);
+              setOpen(false);
               // The chip flies first; the row turns "Fixed" as it lands.
-              flight({ from: row.current?.querySelector("input") ?? null,
-                id, value, save: () => {
+              flight({ from, id, value, save: () => {
                   dispatch({ type: "iban", employeeId: id, value });
                   toast.show(t("payrun.fixedIban", { name }), () =>
                     dispatch({ type: "unset-iban", employeeId: id }));

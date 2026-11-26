@@ -198,7 +198,8 @@ function HeroStamp() {
       time: formatTime(demoClockIso(at, detail.preparedOn,
         detail.preparedAt), lang) });
   return (
-    <SignStamp className={s.heroStamp} label={t("payrun.chainRecorded")}
+    <SignStamp className={s.heroStamp} compact
+      label={t("payrun.chainRecorded")}
       name={checker.name[lang]} role={checker.role[lang]} when={when}
       fresh={at !== null && nowMs() - at < 2000} />
   );

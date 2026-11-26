@@ -46,11 +46,15 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
   };
   const save = useSaveIban();
   const flight = useIbanFlight();
+  // Saved and in flight: the form closes and no action shows.
+  const [flying, setFlying] = useState(false);
   // The pay it releases flies up into the salary-file total first.
   const saveIban = (value: string): void => {
     const id = i.employeeId ?? "";
-    flight({ from: row.current?.querySelector("input") ?? null, id, value,
-      finish: () => save(id, value) });
+    const from = row.current?.querySelector("input") ?? null;
+    flight({ from, id, value, finish: () => save(id, value) });
+    setFlying(true);
+    setEditing(false);
   };
   const step = ONE_TAP[i.fixKind];
   const mask = useMaskText();
@@ -73,7 +77,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
             onCancel={() => setEditing(false)} onSave={saveIban} />
         )}
       </div>
-      {canAct && !editing && (
+      {canAct && !editing && !flying && (
         <div className={s.actions}>
           {i.fixKind === "enter-iban" ? (
             <button type="button" className={`${b.btn} ${b.secondary}`}

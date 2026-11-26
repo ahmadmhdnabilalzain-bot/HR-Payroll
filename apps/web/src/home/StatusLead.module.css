@@ -27,6 +27,27 @@
   animation-fill-mode: both;
 }
 
+/* The new sentence and, while it waits, the one it replaces. */
+.slot {
+  display: grid;
+}
+
+.slot > * {
+  grid-area: 1 / 1;
+}
+
+.ghost.ghost {
+  margin: 0;
+  animation: ghost-out 160ms var(--ease-out) 160ms both;
+}
+
+@keyframes ghost-out {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
 @keyframes swap-in {
   from {
     opacity: 0;

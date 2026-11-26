@@ -10,6 +10,7 @@ import {
   formatMonthName,
 } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { useLayoutEffect, useRef, useState } from "react";
 import b from "../ui/button.module.css";
 import s from "./StatusLead.module.css";
 
@@ -37,12 +38,27 @@ export function StatusSentence() {
   const id = runApprovalId(data);
   const at = id === null ? null : decisionTime(id);
   const late = run.phase === "file" && at !== null && nowMs() - at < 2000;
+  // The sentence it replaces stays on screen, read by nobody, until the
+  // new one comes in, so the slot is never empty.
+  const before = useRef(sentence);
+  const [ghost, setGhost] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    if (before.current === sentence) return;
+    setGhost(late ? before.current : null);
+    before.current = sentence;
+  }, [sentence]);
   return (
     <header className={s.lead}>
-      <h1 key={sentence} id="run-title" className={s.sentence}
-        data-late={late}>
-        {sentence}
-      </h1>
+      <div className={s.slot}>
+        <h1 key={sentence} id="run-title" className={s.sentence}
+          data-late={late}>
+          {sentence}
+        </h1>
+        {ghost !== null && (
+          <p className={`${s.sentence} ${s.ghost}`} aria-hidden="true"
+            onAnimationEnd={() => setGhost(null)}>{ghost}</p>
+        )}
+      </div>
       <p className={s.date}>
         {t("home.dateLine", { date: formatLongDay(data.payCalendar().asOf,
           lang), company: data.companyName[lang] })}

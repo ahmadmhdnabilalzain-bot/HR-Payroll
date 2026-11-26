@@ -28,6 +28,14 @@
   border-color: var(--color-text-muted);
 }
 
+.stamp[data-compact="true"] {
+  padding-block: var(--space-2);
+}
+
+.stamp[data-compact="true"] .name {
+  font-size: var(--text-md);
+}
+
 .stamp[data-seal="false"] {
   grid-template-columns: minmax(0, 1fr);
   padding-inline-start: var(--space-4);

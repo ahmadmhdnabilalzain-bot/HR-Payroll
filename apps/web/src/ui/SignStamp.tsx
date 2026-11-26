@@ -79,6 +79,9 @@ function drawSignature(el: Element, dir: string): void {
  */
 export function SignStamp(p: { label: string; name: string; role: string;
   when: string; fresh?: boolean; seal?: boolean; declined?: boolean;
+  /** Label, name and when only, on tighter padding (beside a figure,
+   * no taller than it). */
+  compact?: boolean;
   className?: string | undefined; children?: ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -118,7 +121,8 @@ export function SignStamp(p: { label: string; name: string; role: string;
   return (
     <div ref={box} className={`${s.stamp} ${p.className ?? ""}`}
       data-fresh={p.fresh === true} data-seal={p.seal !== false}
-      data-declined={p.declined === true}>
+      data-declined={p.declined === true}
+      data-compact={p.compact === true}>
       <span className={s.frame} aria-hidden="true" />
       <span className={s.ring} aria-hidden="true" />
       {p.seal !== false && (
@@ -129,7 +133,7 @@ export function SignStamp(p: { label: string; name: string; role: string;
       <span className={s.text}>
         <span className={s.label}>{p.label}</span>
         <span className={s.name}>{p.name}</span>
-        <span className={s.meta}>{p.role}</span>
+        {p.compact !== true && <span className={s.meta}>{p.role}</span>}
         <span className={s.meta}>{p.when}</span>
         {p.children}
       </span>
