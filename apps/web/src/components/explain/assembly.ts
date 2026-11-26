@@ -18,8 +18,9 @@ export interface Assembly {
   after: number;
 }
 
-/** The first line starts as the figure settles into the header. */
-export const STEPS_FROM = 240;
+/** The first line starts as the figure settles into the header (it
+ * lands at 420 ms on the shared spring, most of the way by 360). */
+export const STEPS_FROM = 360;
 /** Desktop stagger between lines (80 to 120 ms by design). */
 export const STEP_GAP = 96;
 /** Phone: lighter, a shorter stagger. */
