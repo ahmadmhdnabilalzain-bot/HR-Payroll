@@ -17,6 +17,10 @@ export interface Config {
   channels: ChannelConfig;
   publicApiBaseUrl: string | null;
   publicAppBaseUrl: string | null;
+  /** Chrome or Chromium for letter PDFs; null: letters answer 503. */
+  chromePath: string | null;
+  /** CHROME_NO_SANDBOX=1: Chrome's sandbox off (needed as root). */
+  chromeNoSandbox: boolean;
 }
 
 const KEY_MESSAGE = "PAYROLL_MASTER_KEY must be 32 bytes base64";
@@ -47,5 +51,8 @@ export function loadConfig(env: Record<string, string | undefined>)
   return { databaseUrl, migrateUrl: env.MIGRATE_DATABASE_URL ?? databaseUrl,
     masterKey: key, port, receiptsDir, channels: loadChannelConfig(env),
     publicApiBaseUrl: httpsUrl(env, "PUBLIC_API_BASE_URL"),
-    publicAppBaseUrl: httpsUrl(env, "PUBLIC_APP_BASE_URL") };
+    publicAppBaseUrl: httpsUrl(env, "PUBLIC_APP_BASE_URL"),
+    chromePath: env.CHROME_PATH === undefined || env.CHROME_PATH === ""
+      ? null : env.CHROME_PATH,
+    chromeNoSandbox: env.CHROME_NO_SANDBOX === "1" };
 }

@@ -109,7 +109,9 @@ describe("wfh settings and notice", () => {
       "requisitions.title_ar", "goals.title", "tasks.title",
       "webhook_endpoints.url", "rate_counters.window_start",
       "notifications.title", "inbound_items.content_enc",
-      "inbound_attachments.content_type", "calendar_feeds.url_hint"]);
+      "inbound_attachments.content_type", "calendar_feeds.url_hint",
+      // Plan 7: a company library document's title.
+      "library_documents.title", "library_documents.title_ar"]);
     const cols = await ctx.deps.db.query<{ table_name: string;
       column_name: string }>(`SELECT table_name, column_name
       FROM information_schema.columns

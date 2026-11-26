@@ -165,4 +165,29 @@ export const errors = {
   API_KEY_ROUTE_NOT_ALLOWED: "An API key cannot be used here.",
   SCOPE_MISSING: "This API key lacks the needed permission.",
   API_KEY_REVOKED: "This API key was revoked.",
+  // Plan 7: files, documents, library, letters, Emiratisation.
+  FILE_EMPTY: "The file is empty.",
+  FILE_BASE64_INVALID: "The file could not be read. Upload it again.",
+  SALARY_LETTER_NEEDS_HR: "Only an owner or HR can issue letters that " +
+    "show a salary.",
+  FILE_NOT_AVAILABLE: "This file is already used or was uploaded by " +
+    "someone else. Upload it again.",
+  DOCUMENT_SLOT_EXISTS: "This employee already has a document of this " +
+    "type. Add a new version instead.",
+  VERSION_NOT_CURRENT: "A newer version exists. Open the latest one.",
+  VERSION_NOT_DRAFT: "Only a draft version can be published.",
+  TEMPLATE_NOT_PUBLISHED: "This template has no published version yet.",
+  FILE_TOO_LARGE: "The file is larger than 10 MB.",
+  FILE_TYPE_NOT_ALLOWED: "Only PDF, PNG and JPEG files can be uploaded.",
+  MALFORMED_PLACEHOLDER: "A placeholder in the template is not written " +
+    "correctly.",
+  UNKNOWN_MERGE_FIELD: "The template uses a field that does not exist.",
+  MERGE_VALUE_MISSING: "Some details the letter needs are missing.",
+  ARABIC_NOT_REVIEWED: "This Arabic version needs a native review before " +
+    "it can be issued.",
+  NOT_ARABIC_TEMPLATE: "Native review applies to Arabic templates only.",
+  EMPLOYEE_REQUIRED: "Choose an employee for this letter.",
+  OVERRIDE_NOT_ALLOWED: "This value cannot be changed here.",
+  PDF_RENDERER_UNAVAILABLE: "Letters cannot be created right now. Try " +
+    "again later.",
 } satisfies EnNamespace;

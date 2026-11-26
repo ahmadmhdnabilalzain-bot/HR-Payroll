@@ -23,6 +23,7 @@ import {
 } from "./expense-app";
 import { handlerMap } from "./approvals/subjects";
 import { registerChannelApp } from "./channel-app";
+import { registerDocumentApp } from "./document-app";
 
 function internalLine(err: unknown): Record<string, unknown> {
   const e = err as { name?: unknown; code?: unknown };
@@ -76,6 +77,7 @@ export function createApp(deps: AppDeps, opts: ExpenseAppOpts = {}): App {
   registerTimeRoutes(app, deps);
   registerHrRoutes(app, deps);
   registerExpenseApp(app, deps, opts);
+  registerDocumentApp(app, deps);
   registerChannelApp(app, deps,
     handlerMap(opts.subjects ?? DEFAULT_SUBJECTS));
   return app;

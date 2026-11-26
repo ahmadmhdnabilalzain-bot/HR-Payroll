@@ -1,6 +1,7 @@
 import type { RouteDef } from "./route-def";
 import { ACCOUNT_ROUTES } from "./routes-account";
 import { CHANNEL_ROUTES } from "./routes-channels";
+import { DOCUMENT_ROUTES } from "./routes-documents";
 import { EXPENSE_ROUTES } from "./routes-expenses";
 import { HR_ROUTES } from "./routes-hr";
 import { PAY_ROUTES } from "./routes-pay";
@@ -9,7 +10,7 @@ import { LEAVE_ATTENDANCE_ROUTES, TIME_ROUTES } from "./routes-time";
 
 export type { Auth, Method, RouteDef } from "./route-def";
 export { CHANNEL_ROUTES } from "./routes-channels";
-export { HR_ROUTES };
+export { DOCUMENT_ROUTES, HR_ROUTES };
 export { LEAVE_ATTENDANCE_ROUTES, TIME_ROUTES } from "./routes-time";
 
 /** Plan 3's and Plan 6's routes. */
@@ -28,6 +29,7 @@ export const CORE_ROUTES: readonly RouteDef[] = [
 export const ROUTE_GROUPS: readonly (readonly RouteDef[])[] = [
   CORE_ROUTES,
   HR_ROUTES,
+  DOCUMENT_ROUTES,
   TIME_ROUTES,
   CHANNEL_ROUTES,
 ];

@@ -1,5 +1,6 @@
 import type { Db } from "../../src/db/db";
 import { seedChannelRows } from "./seed-rows-channels";
+import { seedDocumentRows } from "./seed-rows-documents";
 import { seedTimeRows } from "./seed-rows-time";
 import { seedHrRows } from "./seed-rows-hr";
 import { seedExpenseRows } from "./seed-rows-expenses";
@@ -113,6 +114,7 @@ async function seedOne(admin: Db, s: SeedCompany): Promise<void> {
     [c, H0]);
   await seedExpenseRows(admin, c, rowId(c, "f1"), s.userId);
   await seedChannelRows(admin, c, rowId(c, "f1"), s.userId);
+  await seedDocumentRows(admin, c, rowId(c, "f1"), s.userId);
 }
 
 /**

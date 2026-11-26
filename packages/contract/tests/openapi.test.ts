@@ -91,6 +91,13 @@ describe("buildOpenApi", () => {
     expect(Object.keys(op.responses["200"]?.content ?? {}).sort())
       .toEqual(["application/json", "text/csv"]);
   });
+  it("the letter download has a 200 response listing application/pdf",
+    () => {
+      const op = (doc.paths["/v1/letters/{id}/download"] as
+        Record<string, Op>).get!;
+      expect(op.responses["200"]?.content).toHaveProperty(
+        "application/pdf");
+    });
   it("tenant operations list 413, 415 and 429 errors", () => {
     const op = (doc.paths["/v1/receipts"] as Record<string, Op>).post!;
     for (const code of ["413", "415", "429"]) {

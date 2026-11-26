@@ -2,6 +2,7 @@ import { routeById } from "@payroll/contract";
 import { timeFlow } from "./conformance-time";
 import { base32Decode, totpCode } from "../../src/auth/totp";
 import { channelFlow } from "./api-flow-channels";
+import { documentFlow } from "./api-flow-documents";
 import { expenseReports, expensesFlow } from "./conformance-expenses";
 import { hrFlow } from "./conformance-hr";
 import { salaryOf } from "./seed";
@@ -74,6 +75,7 @@ export async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
     { role: "manager" });
   await leave(hit, owner, e.body.token, c, emp);
   await attendance(hit, owner, e.body.token, c);
+  await documentFlow(hit, { owner, emp: e.body.token, c, id: emp });
   await expensesFlow(hit, owner, e.body.token, c);
   const runId = await payroll(hit, owner, owner2, e.body.token, c);
   await expenseReports(hit, owner, c, runId);

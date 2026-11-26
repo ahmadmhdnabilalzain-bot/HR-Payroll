@@ -13,6 +13,7 @@ import { UUID, withTenant, type TenantCtx } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
 import { authenticateApiKey, type KeyAuth } from "../apikeys/auth";
 import { checkSsoEnforced } from "../sso/settings";
+import { contentDisposition } from "../files/names";
 import { routeBodyLimit } from "./body-limit";
 import { ApiError, asError } from "./errors";
 import { validate, type Validated } from "./validate";
@@ -83,8 +84,9 @@ export class FileReply {
 }
 
 /**
- * Raw bytes (a receipt download): always an attachment under a
- * generated name, never sniffed by the browser, never cached.
+ * Raw bytes (a receipt or file download): always an attachment, never
+ * sniffed by the browser, never cached, sandboxed if opened. The name
+ * is only ever written through `contentDisposition`.
  */
 export class BinaryReply {
   constructor(readonly bytes: Uint8Array, readonly contentType: string,
@@ -155,7 +157,7 @@ function csv(c: Context<Env>, out: CsvReply) {
 function binary(c: Context<Env>, out: BinaryReply) {
   downloadHeaders(c);
   c.header("Content-Type", out.contentType);
-  c.header("Content-Disposition", `attachment; filename="${out.fileName}"`);
+  c.header("Content-Disposition", contentDisposition(out.fileName));
   c.header("Cache-Control", "no-store");
   return c.body(out.bytes as Uint8Array<ArrayBuffer>, 200);
 }

@@ -23,6 +23,7 @@ import { base32Encode } from "../auth/totp";
 import type { Db } from "../db/db";
 import type { AppDeps } from "../deps";
 import { Refuse, register, type App, type ReqCtx } from "../http/context";
+import { seedStarterTemplates } from "../letters/template-store";
 import { ApiError } from "../http/errors";
 
 const ISSUER = "HR Payroll";
@@ -49,6 +50,7 @@ async function createAll(tx: Db, ctx: ReqCtx<SignupRequest>,
   await appendAudit(tx, { companyId: ids.companyId, at,
     actorUserId: ids.userId, action: "company.created",
     entityType: "company", entityId: ids.companyId, data: {} });
+  await seedStarterTemplates(tx, ids.companyId, ids.userId, at, deps.newId);
   return signedIn(tx, deps, ids.userId, false);
 }
 

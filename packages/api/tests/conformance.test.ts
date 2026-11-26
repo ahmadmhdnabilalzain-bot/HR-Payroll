@@ -1,5 +1,6 @@
 import {
   ApiErrorBody,
+  DOCUMENT_ROUTES,
   ERROR_CODES,
   ROUTES,
 } from "@payroll/contract";
@@ -38,6 +39,17 @@ describe("whole-API conformance", () => {
           .toBe(true);
       }
     });
+
+  it("Plan 7 downloads send their stored type as an attachment", () => {
+    const types = ["application/pdf", "image/png", "image/jpeg"];
+    for (const r of DOCUMENT_ROUTES.filter((x) =>
+      x.contentType === "binary")) {
+      const ok = hits.find((h) => h.id === r.id && h.res.status === 200);
+      expect(types, r.id).toContain(ok!.res.headers.get("content-type"));
+      expect(ok!.res.headers.get("content-disposition"), r.id)
+        .toMatch(/^attachment;/);
+    }
+  });
 
   it("binary and csv-optional routes answer their media types", () => {
     const bin = hits.find((h) => h.id === "downloadReceipt")!;

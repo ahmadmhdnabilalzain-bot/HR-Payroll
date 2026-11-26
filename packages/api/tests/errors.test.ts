@@ -36,7 +36,8 @@ describe("error mapping", () => {
 });
 
 const SRC = join(import.meta.dirname, "..", "src");
-const SHELL = new Set(["main.ts", "deps.ts"]);
+// letters/sample.ts is a shell too (`pnpm letters:sample`).
+const SHELL = new Set(["main.ts", "deps.ts", "letters/sample.ts"]);
 const BANNED = [/new Date\(\)/, /Date\.now\(/, /randomUUID\(/,
   /process\.env/, /Math\.random\(/];
 

@@ -247,6 +247,12 @@ engine refuses to run without an explicit value.
 | Plan 13 webhooks | `src/webhooks/`, `migrations/1308` |
 | Plan 13 API keys | `src/apikeys/`, `migrations/1309` |
 | Background jobs (`tsx src/main.ts jobs`) | `src/jobs/jobs.ts` |
+| Plan 7 files (encrypted, sniffed) | `src/files/`, `src/routes/files.ts`, `migrations/070` |
+| Employee documents, alerts, retention | `src/documents/`, `migrations/071` |
+| Company library and receipts | `src/library/`, `migrations/072` |
+| Letter templates, merge, letters | `src/letters/`, `migrations/073`, `074` |
+| PDF rendering (Chrome port) | `src/pdf/` (`pnpm letters:sample` writes `out/letters/`) |
+| Emiratisation report | `src/emiratisation/`, `migrations/075` |
 
 ## Known limits and open questions
 
@@ -280,6 +286,16 @@ engine refuses to run without an explicit value.
   only; leave and pay runs keep Plan 3's own checks. A receipt blob is
   written before the transaction commits, so a failed request can
   leave an orphan encrypted file (never served).
+
+- Plan 7 limits: no virus scan on uploads (type allowlist, attachment
+  downloads, `nosniff` and a sandbox CSP only); letters need
+  `CHROME_PATH` (else 503; as root also `CHROME_NO_SANDBOX=1`); no
+  expiry or library notifications are sent; Arabic letters cannot be
+  issued until an owner records a native review of each version (the
+  starter Arabic copy is unreviewed); Emiratisation figures are
+  secondary and the 2026 fine is unresolved; retention has no default
+  and deletes nothing; unclaimed uploads and orphan blobs are not
+  cleaned up; no web screens yet.
 
 - Plan 9 limits: no web or phone screen shows the tracking indicator
   yet, so tracking cannot honestly run in production before a screen
@@ -412,7 +428,7 @@ needs checking against official sources before anything is built on it.
 | 4 | Web app | groundwork merged; screens wait for the design pick |
 | 5 | Monthly payroll engine | built, reviewed, fixed, merged |
 | 6 | Expenses and claims (approval spine, receipts) | API build running |
-| 7 | Documents, letters, Emiratisation | engine part merged; API waits for Plan 6 |
+| 7 | Documents, letters, Emiratisation | engine merged; API built on branch `api-plan-7` (report `plan-7-build-report.md`), not merged |
 | 8 | Hiring, tasks, exit flow | engine part merged; API build running |
 | 9 | Time, attendance, leave policies, WFH | engine part merged (review running); API build running |
 | 10 | Performance, learning, surveys | planned; waits for 7 and 8 |

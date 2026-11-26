@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { CORE_ROUTES, HR_ROUTES, ROUTES, TIME_ROUTES } from "../src/index";
+import {
+  CORE_ROUTES,
+  DOCUMENT_ROUTES,
+  HR_ROUTES,
+  ROUTES,
+  TIME_ROUTES,
+} from "../src/index";
 
 /** Plan 8's route ids, in order; each task appends its own. */
 const HR_ROUTE_IDS = [
@@ -43,9 +49,10 @@ describe("HR_ROUTES", () => {
   it("every HR route is a tenant route", () => {
     for (const r of HR_ROUTES) expect(r.auth, r.id).toBe("tenant");
   });
-  it("ROUTES holds the core, HR and time lists", () => {
+  it("ROUTES holds the core, HR, document and time lists", () => {
     const ids = ROUTES.map((r) => r.id);
-    for (const r of [...CORE_ROUTES, ...HR_ROUTES, ...TIME_ROUTES]) {
+    for (const r of [...CORE_ROUTES, ...HR_ROUTES, ...DOCUMENT_ROUTES,
+      ...TIME_ROUTES]) {
       expect(ids, r.id).toContain(r.id);
     }
   });

@@ -116,6 +116,7 @@ describe("which claims join a run", () => {
     const body = { ...MARCH, entries: [{ employeeId: w.s.emp.outsider,
       unusedLeaveDays: 5, serviceUnpaidLeaveDays: 0 }] };
     const withClaim = await run(w, "s-1", body);
+    expect(withClaim.status, withClaim.text).toBe(201);
     expect(withClaim.body.claimCount).toBe(1);
     const a = await slipOf(w, withClaim.body.id, w.s.emp.outsider);
     await as(w, w.s.hr, "POST", `/v1/pay-runs/${withClaim.body.id}/void`);

@@ -10,6 +10,7 @@ import {
   type DocumentPort,
 } from "./ports/documents";
 import { nullReceiptReader, type ReceiptReader } from "./receipts/reader";
+import { unavailableRenderer, type PdfRenderer } from "./pdf/renderer";
 import type { BlobStore } from "./storage/blob";
 
 /** One structured log line. Never a request or response body. */
@@ -34,6 +35,8 @@ export interface AppDeps {
   receiptReader: ReceiptReader;
   /** Plan 13: email, WhatsApp, inbound mail, OIDC, HTTP and DNS. */
   channels: ChannelPorts;
+  /** Letter PDFs (headless Chrome, or unavailable). */
+  pdf: PdfRenderer;
 }
 
 /** What handlers get: everything but the raw database. */
@@ -42,9 +45,15 @@ export type HandlerDeps = Omit<AppDeps, "db">;
 /** scrypt N = 2^16 for production (128 * N * r = 64 MiB per hash). */
 export const PRODUCTION_PASSWORD_COST = { N: 65536 };
 
+/** Optional production ports (default: not configured, unavailable). */
+export interface SystemExtras {
+  channels?: ChannelPorts;
+  pdf?: PdfRenderer;
+}
+
 /** The real clock, ids, randomness and stdout JSON log. */
 export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore,
-  channels?: ChannelPorts): AppDeps {
+  extra: SystemExtras = {}): AppDeps {
   const randomBytes = (n: number) => new Uint8Array(nodeRandomBytes(n));
   return {
     db,
@@ -59,7 +68,8 @@ export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore,
     access: notConfiguredAccess,
     blobs,
     receiptReader: nullReceiptReader,
-    channels: channels ?? notConfiguredPorts({ publicApiBaseUrl: null,
-      publicAppBaseUrl: null }),
+    channels: extra.channels ?? notConfiguredPorts({
+      publicApiBaseUrl: null, publicAppBaseUrl: null }),
+    pdf: extra.pdf ?? unavailableRenderer(),
   };
 }

@@ -159,4 +159,26 @@ export const errors: ArOf<typeof en> = {
   API_KEY_ROUTE_NOT_ALLOWED: "لا يمكن استخدام مفتاح API هنا.",
   SCOPE_MISSING: "ينقص مفتاح API هذا الإذن المطلوب.",
   API_KEY_REVOKED: "أُلغي مفتاح API هذا.",
+  // Plan 7. NEEDS NATIVE REVIEW: every string below.
+  FILE_EMPTY: "الملف فارغ.",
+  FILE_BASE64_INVALID: "تعذّرت قراءة الملف. ارفعه مرة أخرى.",
+  SALARY_LETTER_NEEDS_HR: "الرسائل التي تعرض الراتب يصدرها المالك أو " +
+    "الموارد البشرية فقط.",
+  FILE_NOT_AVAILABLE: "هذا الملف مستخدم أو رفعه شخص آخر. ارفعه مرة أخرى.",
+  DOCUMENT_SLOT_EXISTS: "لدى هذا الموظف مستند من هذا النوع. أضف نسخة " +
+    "جديدة بدلاً من ذلك.",
+  VERSION_NOT_CURRENT: "توجد نسخة أحدث. افتح آخر نسخة.",
+  VERSION_NOT_DRAFT: "لا يُنشر إلا الإصدار المسودة.",
+  TEMPLATE_NOT_PUBLISHED: "لا يوجد إصدار منشور لهذا القالب بعد.",
+  FILE_TOO_LARGE: "حجم الملف أكبر من 10 ميغابايت.",
+  FILE_TYPE_NOT_ALLOWED: "يمكن رفع ملفات PDF وPNG وJPEG فقط.",
+  MALFORMED_PLACEHOLDER: "أحد الحقول في القالب مكتوب بشكل غير صحيح.",
+  UNKNOWN_MERGE_FIELD: "يستخدم القالب حقلاً غير موجود.",
+  MERGE_VALUE_MISSING: "بعض البيانات التي تحتاجها الرسالة ناقصة.",
+  ARABIC_NOT_REVIEWED: "تحتاج هذه النسخة العربية إلى مراجعة متحدث أصلي " +
+    "قبل إصدارها.",
+  NOT_ARABIC_TEMPLATE: "المراجعة اللغوية للقوالب العربية فقط.",
+  EMPLOYEE_REQUIRED: "اختر موظفاً لهذه الرسالة.",
+  OVERRIDE_NOT_ALLOWED: "لا يمكن تغيير هذه القيمة هنا.",
+  PDF_RENDERER_UNAVAILABLE: "لا يمكن إنشاء الرسائل الآن. حاول لاحقاً.",
 };

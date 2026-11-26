@@ -20,6 +20,8 @@ import {
 } from "../../src/ports/documents";
 import type { ReceiptReader } from "../../src/receipts/reader";
 import { nullReceiptReader } from "../../src/receipts/reader";
+import type { PdfRenderer } from "../../src/pdf/renderer";
+import { textPdfRenderer } from "./text-pdf";
 import { memoryBlobStore, type BlobStore } from "../../src/storage/blob";
 import { createTestDb } from "./test-db";
 import { fakeChannels, type FakeChannels } from "./fake-channels";
@@ -48,6 +50,8 @@ export interface AppOpts {
   reader?: ReceiptReader;
   /** Channel fakes (default: every provider configured). */
   channels?: FakeChannels;
+  /** Letter renderer (default: the readable text renderer). */
+  pdf?: PdfRenderer;
   /** Blob store (default: a fresh memory store). */
   blobs?: BlobStore;
 }
@@ -80,6 +84,7 @@ export async function makeApp(opts: AppOpts = {}) {
     blobs: opts.blobs ?? memoryBlobStore(),
     receiptReader: opts.reader ?? nullReceiptReader,
     channels: fakes.ports,
+    pdf: opts.pdf ?? textPdfRenderer(),
   };
   const app = createApp(deps, opts.subjects === undefined ? {}
     : { subjects: opts.subjects });
@@ -176,6 +181,20 @@ export async function enrolOnly(app: Hono, clock: Clock, token: string,
     { code: code(), password });
   if (c.status !== 200) throw new Error(`confirm ${c.status} ${c.text}`);
   return code;
+}
+
+/** Bytes that sniff as a PDF and carry `marker` in clear. */
+export function fakePdf(marker: string): Uint8Array {
+  return new TextEncoder().encode(`%PDF-1.4\n% ${marker}\n%%EOF\n`);
+}
+
+/** POST /v1/files; throws unless 201. Returns the FileRef. */
+export async function upload(app: Hono, token: string, companyId: string,
+  name: string, bytes: Uint8Array): Promise<Record<string, any>> {
+  const r = await call(app, token, companyId, "POST", "/v1/files",
+    { name, contentBase64: Buffer.from(bytes).toString("base64") });
+  if (r.status !== 201) throw new Error(`upload ${r.status} ${r.text}`);
+  return r.body;
 }
 
 export function login(app: Hono, email: string, password: string,

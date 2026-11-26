@@ -19,6 +19,7 @@ import { withTenant } from "./db/tenant";
 import type { Enter } from "./http/context";
 import { JOBS } from "./jobs/jobs";
 import { systemDeps } from "./deps";
+import { letterRenderer } from "./pdf/setup";
 import type { Db } from "./db/db";
 import { purgeAllCompanies } from "./db/wfh-purge-all";
 import { fsBlobStore } from "./storage/fs-blob";
@@ -40,7 +41,7 @@ async function runJobs(cfg: Config): Promise<void> {
   try {
     await assertRuntimeRole(db);
     const { db: _db, ...deps } = systemDeps(db, cfg.masterKey,
-      fsBlobStore(cfg.receiptsDir), buildChannelPorts(cfg));
+      fsBlobStore(cfg.receiptsDir), { channels: buildChannelPorts(cfg) });
     const enter: Enter = (t, fn) => withTenant(db, t, fn);
     for (const job of JOBS) {
       const result = await job.run(enter, deps);
@@ -74,9 +75,18 @@ async function main(argv: string[]): Promise<void> {
   await assertRuntimeRole(db);
   if (argv[2] === "purge-wfh") return purgeWfh(cfg, db);
   const blobs = fsBlobStore(cfg.receiptsDir);
+  const log = (line: Record<string, unknown>) =>
+    process.stdout.write(`${JSON.stringify(line)}\n`);
+  const pdf = letterRenderer(cfg, log);
   const app = createApp(systemDeps(db, cfg.masterKey, blobs,
-    buildChannelPorts(cfg)));
-  serve({ fetch: app.fetch, port: cfg.port });
+    { channels: buildChannelPorts(cfg), pdf }));
+  const server = serve({ fetch: app.fetch, port: cfg.port });
+  const stop = () => {
+    server.close();
+    void pdf.close().finally(() => process.exit(0));
+  };
+  process.once("SIGTERM", stop);
+  process.once("SIGINT", stop);
   process.stdout.write(`${JSON.stringify({ event: "listening",
     port: cfg.port })}\n`);
 }

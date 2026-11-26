@@ -20,6 +20,9 @@ export interface CompanyKey {
   decrypt(aad: string, cipher: string): string;
   /** Keyed fingerprint (HMAC-SHA256 under a key derived from the DEK). */
   mac(label: string, data: string): string;
+  /** File bytes: `0x01 | iv(12) | tag(16) | ct`, same key and AAD rule. */
+  encryptBytes(aad: string, plain: Uint8Array): Uint8Array;
+  decryptBytes(aad: string, cipher: Uint8Array): Uint8Array;
 }
 
 export interface Keyring {
@@ -70,6 +73,31 @@ function open(key: Uint8Array, kid: string, aad: string,
     d.final()]);
 }
 
+const BYTES_V1 = 0x01;
+
+function sealBytes(key: Uint8Array, aad: string, plain: Uint8Array,
+  iv: Uint8Array): Uint8Array {
+  const c = createCipheriv("aes-256-gcm", key, iv);
+  c.setAAD(Buffer.from(aad, "utf8"));
+  const ct = Buffer.concat([c.update(plain), c.final()]);
+  return new Uint8Array(Buffer.concat([Buffer.from([BYTES_V1]), iv,
+    c.getAuthTag(), ct]));
+}
+
+function openBytes(key: Uint8Array, aad: string,
+  cipher: Uint8Array): Uint8Array {
+  if (cipher.length < 1 + IV_LEN + TAG_LEN || cipher[0] !== BYTES_V1) {
+    throw new Error("unknown byte cipher format");
+  }
+  const b = Buffer.from(cipher.buffer, cipher.byteOffset, cipher.length);
+  const d = createDecipheriv("aes-256-gcm", key,
+    b.subarray(1, 1 + IV_LEN), { authTagLength: TAG_LEN });
+  d.setAAD(Buffer.from(aad, "utf8"));
+  d.setAuthTag(b.subarray(1 + IV_LEN, 1 + IV_LEN + TAG_LEN));
+  return new Uint8Array(Buffer.concat([
+    d.update(b.subarray(1 + IV_LEN + TAG_LEN)), d.final()]));
+}
+
 function companyOf(aad: string): string {
   const id = aad.split(":")[0] ?? "";
   if (!UUID.test(id)) throw new Error("AAD must start with a company id");
@@ -82,6 +110,27 @@ function subkey(kek: Uint8Array, info: string): Uint8Array {
     `payroll:${info}`, 32));
 }
 
+/** One company's key: every AAD must start with that company's id. */
+function keyOf(dek: Uint8Array, kid: string, companyId: string,
+  random: Random): CompanyKey {
+  const macKey = subkey(dek, "company-mac");
+  const own = (aad: string) => {
+    if (companyOf(aad) !== companyId) throw new Error("AAD company");
+    return aad;
+  };
+  return {
+    encrypt: (aad, plain) => seal(dek, kid, own(aad),
+      Buffer.from(plain, "utf8"), random(IV_LEN)),
+    decrypt: (aad, cipher) =>
+      open(dek, kid, own(aad), cipher).toString("utf8"),
+    mac: (label, data) => createHmac("sha256", macKey)
+      .update(`${label}:${data}`, "utf8").digest("hex"),
+    encryptBytes: (aad, plain) => sealBytes(dek, own(aad), plain,
+      random(IV_LEN)),
+    decryptBytes: (aad, cipher) => openBytes(dek, own(aad), cipher),
+  };
+}
+
 export function keyringFromKey(kek: Uint8Array, random: Random): Keyring {
   if (kek.length !== 32) throw new Error("master key must be 32 bytes");
   const kid = createHash("sha256").update(kek).digest("hex").slice(0, 8);
@@ -90,22 +139,8 @@ export function keyringFromKey(kek: Uint8Array, random: Random): Keyring {
   const dekAad = (aad: string) => `${companyOf(aad)}:dek`;
   const unwrap = (wrapped: string, aad: string) =>
     open(wrapKey, kid, dekAad(aad), wrapped);
-  const companyKey = (wrapped: string, companyId: string): CompanyKey => {
-    const dek = unwrap(wrapped, companyId);
-    const macKey = subkey(dek, "company-mac");
-    const own = (aad: string) => {
-      if (companyOf(aad) !== companyId) throw new Error("AAD company");
-      return aad;
-    };
-    return {
-      encrypt: (aad, plain) => seal(dek, kid, own(aad),
-        Buffer.from(plain, "utf8"), random(IV_LEN)),
-      decrypt: (aad, cipher) =>
-        open(dek, kid, own(aad), cipher).toString("utf8"),
-      mac: (label, data) => createHmac("sha256", macKey)
-        .update(`${label}:${data}`, "utf8").digest("hex"),
-    };
-  };
+  const companyKey = (wrapped: string, companyId: string): CompanyKey =>
+    keyOf(unwrap(wrapped, companyId), kid, companyId, random);
   return {
     wrapNewDek: (companyId) => ({ dekWrapped: seal(wrapKey, kid,
       dekAad(companyId), random(32), random(IV_LEN)) }),

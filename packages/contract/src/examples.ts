@@ -1,4 +1,5 @@
 import { CHANNEL_EXAMPLES } from "./examples-channels";
+import { DOCUMENT_EXAMPLES } from "./examples-documents";
 import { HR_EXAMPLES } from "./examples-hr";
 import { EXPENSE_EXAMPLES } from "./examples-expenses";
 import { PAY_EXAMPLES } from "./examples-pay";
@@ -19,4 +20,5 @@ export const EXAMPLES: Readonly<Record<string, unknown>> = {
   ...HR_EXAMPLES,
   ...EXPENSE_EXAMPLES,
   ...CHANNEL_EXAMPLES,
+  ...DOCUMENT_EXAMPLES,
 };
