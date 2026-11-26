@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Money } from "../../ui/Money";
 import type { AuditData } from "./data";
 import { useLivePack } from "./live";
+import { useMaskText } from "../../ui/mask";
 import s from "./audit.module.css";
 
 /**
@@ -26,6 +27,8 @@ type InspectionPack = AuditData["packs"][string];
 
 export function PackBody(p: { pack: InspectionPack; month: string }) {
   const pack = useLivePack(p.pack, p.month);
+  // Amounts in the sentences follow "Hide amounts" like <Money/>.
+  const mask = useMaskText();
   const r = pack.register;
   return (
     <article className={s.pack} aria-label={pack.title}>
@@ -74,7 +77,7 @@ export function PackBody(p: { pack: InspectionPack; month: string }) {
               {pack.signOffs.map((x) => (
                 <li key={x.id} className={s.row}>
                   <span className={s.main}>
-                    <span>{x.kindText}: {x.subject}</span>
+                    <span>{x.kindText}: {mask(x.subject)}</span>
                     <small className={s.sub}>Asked by {x.askedBy}
                       {x.askedOn === "" ? "" : `, ${x.askedOn}`}</small>
                   </span>
@@ -110,9 +113,9 @@ export function PackBody(p: { pack: InspectionPack; month: string }) {
                 <li key={x.id} className={s.row}>
                   <span className={s.main}>
                     <span>{x.title}</span>
-                    <small className={s.sub}>{x.reason}</small>
+                    <small className={s.sub}>{mask(x.reason)}</small>
                   </span>
-                  <span className={s.end}>{x.severityText}. {x.statusText}
+                  <span className={s.end}>{x.severityText}. {mask(x.statusText)}
                   </span>
                 </li>
               ))}

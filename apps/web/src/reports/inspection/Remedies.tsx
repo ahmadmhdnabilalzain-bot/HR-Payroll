@@ -4,6 +4,7 @@ import { Status } from "../../setup/access/ui";
 import { useAuditData } from "./load";
 import type { AuditData } from "./data";
 import { useLiveRemedies } from "./live";
+import { useMaskText } from "../../ui/mask";
 
 type Row = AuditData["remedies"][number];
 
@@ -11,6 +12,7 @@ type Row = AuditData["remedies"][number];
 export function RemediesList(p: { d: AuditData }) {
   const { d } = p;
   const rows = useLiveRemedies(d.remedies);
+  const mask = useMaskText();
   return (
     <FilterList<Row> title="Error-remedy record"
       lede={`Each payroll error, who found it, how it is put right and ` +
@@ -24,7 +26,7 @@ export function RemediesList(p: { d: AuditData }) {
           r.source === "Salary file check" }]}
       columns={[
         { key: "p", label: "What went wrong", render: (r) => (
-          <span>{r.personName}, {r.monthText}. {r.what}</span>) },
+          <span>{r.personName}, {r.monthText}. {mask(r.what)}</span>) },
         { key: "f", label: "Found by", render: (r) =>
           `${r.foundBy}, ${r.foundOn}` },
         { key: "x", label: "The fix", render: (r) => r.fix },
