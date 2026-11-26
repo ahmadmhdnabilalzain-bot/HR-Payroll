@@ -10,8 +10,7 @@ const all = (s: string): ArPlural =>
 export const home: ArOf<typeof en> = {
   dateLine: "{date} · {company}",
   statusBank: {
-    ...all("رواتب {month} جاهزة باستثناء البيانات البنكية لـ {count} " +
-      "موظفين."),
+    ...all("رواتب {month} جاهزة باستثناء البيانات البنكية لـ {names}."),
     one: "رواتب {month} جاهزة باستثناء البيانات البنكية لـ {name}.",
   },
   statusApprove: "رواتب {month} جاهزة لاعتماد {name}.",
@@ -20,12 +19,8 @@ export const home: ArOf<typeof en> = {
   statusDeclined: "أُعيدت رواتب {month} إلى الموارد البشرية مع القرار.",
   primaryIban: "إدخال البيانات البنكية",
   primaryApprove: "اعتماد رواتب {month}",
-  approveWaits: {
-    ...all("الاعتماد بانتظار البيانات البنكية لـ {count} موظفين. لا " +
-      "تُصرف دورة الرواتب جزئيًا."),
-    one: "الاعتماد بانتظار البيانات البنكية لـ {name}. لا تُصرف دورة " +
-      "الرواتب جزئيًا.",
-  },
+  approveWaits: "الاعتماد بانتظار البيانات البنكية لـ {names}: رقم " +
+    "آيبان ناقص أو خاطئ. لا تُصرف دورة الرواتب جزئيًا.",
   netTo: {
     zero: "صافي الرواتب",
     one: "صافي الراتب لموظف واحد",

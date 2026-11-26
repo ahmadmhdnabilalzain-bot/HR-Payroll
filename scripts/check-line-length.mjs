@@ -8,7 +8,7 @@ const EXTENSIONS = new Set([
   ".ts", ".tsx", ".css", ".html", ".json", ".mjs", ".md", ".sql",
 ]);
 const SKIP_DIRS = new Set([
-  "node_modules", "dist", ".superpowers", "test-results",
+  "node_modules", "dist", "dist-offline", ".superpowers", "test-results",
   "playwright-report",
 ]);
 const SKIP_FILES = new Set([

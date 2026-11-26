@@ -36,6 +36,16 @@ function crossfade(update: () => void): void {
   else doc.startViewTransition(update);
 }
 
+/**
+ * Light on wide screens (the demo is shown on projectors, which wash
+ * out dark pages); the system's choice on phones.
+ */
+function defaultPref(): ThemePref {
+  const phone = typeof matchMedia === "function" &&
+    matchMedia("(max-width: 760px)").matches;
+  return phone ? "system" : "light";
+}
+
 function systemDark(): boolean {
   return typeof matchMedia === "function" && matchMedia(DARK_QUERY).matches;
 }
@@ -43,7 +53,7 @@ function systemDark(): boolean {
 /** Follows the system until the person picks; sets `<html data-theme>`. */
 export function ThemeProvider(p: { children: ReactNode }) {
   const [pref, setPrefState] = useState<ThemePref>(() =>
-    loadPrefs().theme ?? "system");
+    loadPrefs().theme ?? defaultPref());
   const [dark, setDark] = useState(systemDark);
   useEffect(() => {
     if (typeof matchMedia !== "function") return undefined;

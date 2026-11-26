@@ -31,15 +31,21 @@ export function PayRunHero() {
           <p className={s.figure}>
             <Money value={h.netTotalFils} size="hero" />
           </p>
+          <p className={s.caveat}>
+            <Icon name="info" size={16} />
+            <span>{h.netNote[lang]}</span>
+          </p>
           <p className={s.sub}>
             {t("home.netTo", { count: h.headcount })}
             {", "}
             {t("home.paysOn", { date: formatDayMonth(cal.payday, lang) })}
           </p>
           <p className={s.people}>
-            {t("home.preparedBy", { name: name(people.makerId) })}
+            <span>{t("home.preparedBy", { name: name(people.makerId) })}
+            </span>
             <span className={s.dot} aria-hidden="true" />
-            {t("home.checker", { name: name(people.checkerId) })}
+            <span>{t("home.checker", { name: name(people.checkerId) })}
+            </span>
             <button type="button" className={s.sourcesBtn}
               aria-expanded={state.sourcesOpen} aria-controls="sources"
               onClick={() => dispatch({ type: "sources",
