@@ -12,3 +12,9 @@
   min-block-size: calc(100vh - 82px);
   min-block-size: calc(100dvh - 82px);
 }
+
+/* A plain wrapper: it adds no box, so the bar and the page lay out as
+ * before; it only carries `inert` while the opening plays over it. */
+.shell {
+  display: contents;
+}

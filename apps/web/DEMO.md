@@ -585,21 +585,56 @@ are in `docs/demo/copy-audit.md`.
 `pnpm --filter @payroll/web test` and `pnpm --filter @payroll/web
 e2e`. Screenshot, axe and recording scripts live outside the repo.
 
-## The opening (#/welcome, preview for the owner)
+## The opening (first load for HR and GM; #/welcome to replay)
 
-- **Where:** `src/welcome`. Not in the bar, panels or registry; reached
-  by URL and "Replay opening" in the palette (HR and GM). The login-like
-  first screen links it only if the owner approves.
-- **Stack:** plain three.js (no React renderer) and GSAP ScrollTrigger,
-  both in one lazy chunk (`stage.ts`); the entry chunk carries neither
-  (`tests/unit/bundle.test.ts`). The offline file inlines it.
-- **Scroll:** one sticky 100 svh stage over a tall track; one scrubbed
-  ScrollTrigger drives a scene position from 0 to 4.55. Every scene is
-  a pure function of that position, so scrolling back is exact.
+- **When:** plays once by itself at the first load of the demo, for HR
+  and the GM, on a laptop only (fine pointer with hover, 1024 px wide
+  or more), with motion allowed and WebGL. It plays over Home, which
+  waits underneath (inert) and shows as the film fades. A deep link
+  (any hash but Home) never plays it. "Seen" is kept in localStorage
+  (`opening`); blocked storage counts as seen. "Replay opening" in the
+  palette (HR and GM) opens `#/welcome`, which plays it again and ends
+  on Home.
+- **Skip:** a visible Skip button, top corner, from the first frame;
+  "Open the demo" on the close does the same.
+- **Where:** `src/welcome`. The gate (`route.ts`) is in the entry chunk
+  and decides before anything of the opening loads. Not in the bar,
+  panels or registry.
+- **Stack:** plain three.js (no React renderer) and GSAP (pinned at
+  3.15.0, already in the entry); three.js and the scenes are one lazy
+  chunk (`stage.ts`), fetched only when the film plays
+  (`tests/unit/bundle.test.ts`, `e2e/opening.spec.ts`). The offline file
+  inlines it.
+- **Timing:** one GSAP timeline drives a scene position from 0 to 4.55
+  in 7.2 s at an even pace, holds 0.7 s on the close, then fades in
+  0.4 s: about 8.3 s. Every scene is a pure function of that position.
+  The film's own length is a `performance.measure("opening")`.
 - **Figures:** `story.ts` reads the same selectors as the product, from
   the company as it starts; the fixed file total comes from
   `source.at` with the bank letters' IBANs. Nothing is typed
   (`tests/unit/welcome-story.test.ts`). Amounts are masked when hidden
   or when the role may not see company pay.
-- **Fallback:** reduced motion, no WebGL or `?static=1` shows the same
-  five scenes as a composed page with one fade each.
+- **Fallback:** at first load, anything that cannot play the film
+  (phone, tablet, coarse pointer, iPhone, reduced motion, no WebGL)
+  simply shows the product. `#/welcome` there, or with `?static=1`,
+  shows the five scenes as one still, composed page with a Skip.
+- **Colours:** ink, paper and the cool greys only (`--color-cine-*`).
+  No pointer tilt or parallax; the camera drifts with the story only.
+- **e2e:** `playwright.config.ts` seeds "seen" for every spec;
+  `e2e/opening.spec.ts` clears it to play the film.
+
+### Known problems (2026-11-26, branch cine2)
+
+- Measured only in headless Chromium on SwiftShader (software GL): about
+  25 to 27 fps at 1440x900, p50 frame 33 ms, p95 70 to 85 ms, with
+  JavaScript at 1 to 4 ms a frame. The cost is software rasterising, so
+  a laptop GPU should hold 60; not yet checked on real hardware.
+- With slow frames GSAP's lag smoothing stretches the film a little
+  (8.1 to 8.4 s measured against 8.05 s planned).
+- Each scene has about 1.6 s; the first scene's line is on screen for
+  under a second. Readable, but brisk.
+- The offline single file grows from 2.56 MB to 3.14 MB (three.js is
+  inlined, as the offline build has one chunk).
+- A window resized across the wide or tall line restarts the film.
+- Headless Chromium logs "GPU stall due to ReadPixels" warnings from
+  its own compositor; the page logs no errors.

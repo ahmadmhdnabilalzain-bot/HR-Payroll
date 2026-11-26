@@ -6,7 +6,6 @@ import type { ArOf } from "../types";
 export const welcome: ArOf<typeof en> = {
   label: "الافتتاحية",
   skip: "تخطٍّ",
-  scroll: "مرّر للبدء",
   s1Title: "الرواتب بوضوح.",
   s1Body: "شهر كامل من الرواتب، من أول رقم إلى ملف البنك.",
   s2Title: "كل رقم مشروح.",

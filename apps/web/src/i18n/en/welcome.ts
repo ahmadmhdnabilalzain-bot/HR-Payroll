@@ -1,8 +1,7 @@
-/** The opening at #/welcome (preview; reached by URL or the palette). */
+/** The opening: first load (HR, GM), #/welcome and the palette. */
 export const welcome = {
   label: "The opening",
   skip: "Skip",
-  scroll: "Scroll to begin",
   s1Title: "Payroll, made clear.",
   s1Body: "One month of pay, from the first figure to the bank file.",
   s2Title: "Every number explained.",

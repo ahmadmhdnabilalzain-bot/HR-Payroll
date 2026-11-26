@@ -1,8 +1,6 @@
 import type { Fils } from "@payroll/engine";
-import { useCallback, useEffect, useMemo, useRef, useState,
-  type MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { documentTitle, PRODUCT_NAME } from "../brand";
-import { reducedMotion } from "../demo/motion";
 import { navigate } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { formatMonth, formatMoney } from "../i18n/format";
@@ -10,29 +8,24 @@ import { useLocale } from "../i18n/LocaleProvider";
 import type { Palette } from "./draw";
 import type { FaceWords } from "./faces";
 import { storyOf, type Story } from "./story";
+import { markOpeningSeen, mayPlay } from "./route";
 import { StaticStory } from "./StaticStory";
 import s from "./Welcome.module.css";
 
-/** Scroll per scene, in viewport heights, and where the story ends. */
-const PER_SCENE = 150;
+/** The story runs from scene 0 to END in PLAY_S seconds, holds on
+ * the close for HOLD_S, then fades out: about 8.5 s in all. */
 const END = 4.55;
+const PLAY_S = 7.2;
+const HOLD_S = 0.7;
+const FADE_MS = 400;
 const MASK = "•".repeat(6);
 
 type Mode = "webgl" | "static";
 
-function hasWebGL(): boolean {
-  try {
-    const c = document.createElement("canvas");
-    return c.getContext("webgl2") !== null;
-  } catch {
-    return false;
-  }
-}
-
-/** Static when motion is reduced, WebGL is missing, or `?static=1`. */
+/** Static (a still) on phones, coarse pointers, reduced motion, no
+ * WebGL or `?static=1`; only a laptop plays the film. */
 function firstMode(): Mode {
-  const forced = new URLSearchParams(location.search).get("static") === "1";
-  return forced || reducedMotion() || !hasWebGL() ? "static" : "webgl";
+  return mayPlay() ? "webgl" : "static";
 }
 
 function palette(): Palette {
@@ -68,7 +61,11 @@ function said(story: Story, m: (f: Fils) => string): string[] {
   ];
 }
 
-export default function Welcome() {
+/**
+ * The opening. `onDone` is the first load's: the film ends into the
+ * page underneath. Without it (#/welcome, the replay) it ends on Home.
+ */
+export default function Welcome(p: { onDone: (() => void) | undefined }) {
   const { source, state } = useDemo();
   const { t, lang } = useLocale();
   /* Company figures follow the product's pay visibility and masking. */
@@ -100,6 +97,26 @@ export default function Welcome() {
     document.title = documentTitle(lang, t("welcome.label"));
     scrollTo({ top: 0 });
   }, [lang, t]);
+  useEffect(() => markOpeningSeen(), []);
+  const onDone = p.onDone;
+  const [leaving, setLeaving] = useState(false);
+  const done = useCallback((): void => {
+    if (onDone !== undefined) onDone();
+    else navigate("home");
+  }, [onDone]);
+  /* The film's end: a short fade, then the product. Read through a
+   * ref, so a new `onDone` from the parent never restarts the film. */
+  const doneRef = useRef(done);
+  doneRef.current = done;
+  const ended = useCallback((): void => {
+    setLeaving(true);
+    setTimeout(() => doneRef.current(), FADE_MS);
+  }, []);
+  /* At first load there is no still: if the film cannot play, the
+   * product shows at once. */
+  useEffect(() => {
+    if (mode === "static" && onDone !== undefined) onDone();
+  }, [mode, onDone]);
   /* Turning motion off while the page is open drops to the static story. */
   useEffect(() => {
     const q = matchMedia("(prefers-reduced-motion: reduce)");
@@ -111,25 +128,21 @@ export default function Welcome() {
   }, []);
 
   const root = useRef<HTMLDivElement>(null);
-  const track = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const hint = useRef<HTMLParagraphElement>(null);
-  const open = useRef<HTMLButtonElement>(null);
   const sections = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     if (mode !== "webgl") return undefined;
     const r = root.current;
-    const tr = track.current;
     const host = stage.current;
-    if (r === null || tr === null || host === null) return undefined;
+    if (r === null || host === null) return undefined;
     let cancelled = false;
     let stop: (() => void) | null = null;
-    void import("./stage").then((m) => m.mountStage({ root: r, track: tr,
+    void import("./stage").then((m) => m.mountStage({ root: r,
       host, canvasClass: s.canvas ?? "", cancelled: () => cancelled,
       copy: sections.current.filter((x): x is HTMLElement => x !== null),
-      hint: hint.current, story, words, money,
-      palette: palette(), end: END,
+      story, words, money, palette: palette(), end: END,
+      seconds: PLAY_S, hold: HOLD_S, onEnd: ended,
       onFail: () => setMode("static"),
       onRelayout: () => setLayout((n) => n + 1) })).then((done) => {
       if (cancelled) done();
@@ -141,58 +154,45 @@ export default function Welcome() {
       cancelled = true;
       stop?.();
     };
-  }, [mode, story, words, money, layout]);
+  }, [mode, story, words, money, layout, ended]);
 
-  const skip = (e: MouseEvent): void => {
-    e.preventDefault();
-    scrollTo({ top: document.documentElement.scrollHeight,
-      behavior: "instant" });
-    open.current?.focus({ preventScroll: true });
-  };
-  const toEnd = (): void => {
-    if (mode !== "webgl") return;
-    const max = document.documentElement.scrollHeight - innerHeight;
-    if (scrollY < max - 4) scrollTo({ top: max, behavior: "instant" });
-  };
   const button = (
-    <button ref={open} type="button" className={s.open} onFocus={toEnd}
-      onClick={() => navigate("home")}>
+    <button type="button" className={s.open} onClick={done}>
       {t("welcome.open")}
     </button>
   );
-  const skipLink = (
-    <a className={s.skip} href="#/home" onClick={skip}>{t("welcome.skip")}</a>
+  const skipButton = (
+    <button type="button" className={s.skip} onClick={done}>
+      {t("welcome.skip")}
+    </button>
   );
 
   if (mode === "static") {
     return (
       <div ref={root} className={s.root} data-mode="static">
-        {skipLink}
+        {skipButton}
         <StaticStory story={story} copy={copy} words={words} money={money}
           name={PRODUCT_NAME[lang]} button={button} />
       </div>
     );
   }
   return (
-    <div ref={root} className={s.root} data-mode="webgl">
-      {skipLink}
-      <div ref={track} className={s.track}
-        style={{ blockSize: `${END * PER_SCENE + 100}svh` }}>
-        <div ref={stage} className={s.stage}>
-          <h1 className="visually-hidden">{PRODUCT_NAME[lang]}</h1>
-          {copy.map((c, i) => (
-            <section key={c.title} ref={(el) => { sections.current[i] = el; }}
-              className={`${s.copy} ${i === 0 || i === 4 ? s.centre
-                : s.side} ${i === 0 ? s.first : ""} ${i === 4 ? s.last
-                : ""}`} aria-label={c.title}>
-              <h2 className={s.title}>{c.title}</h2>
-              <p className={s.body}>{c.body}</p>
-              {c.said !== "" && <p className="visually-hidden">{c.said}</p>}
-              {i === 4 && button}
-            </section>
-          ))}
-          <p ref={hint} className={s.hint}>{t("welcome.scroll")}</p>
-        </div>
+    <div ref={root} className={`${s.root} ${onDone === undefined ? ""
+      : s.over}`} data-mode="webgl" data-leaving={leaving ? "" : undefined}>
+      {skipButton}
+      <div ref={stage} className={s.stage}>
+        <h1 className="visually-hidden">{PRODUCT_NAME[lang]}</h1>
+        {copy.map((c, i) => (
+          <section key={c.title} ref={(el) => { sections.current[i] = el; }}
+            className={`${s.copy} ${i === 0 || i === 4 ? s.centre
+              : s.side} ${i === 0 ? s.first : ""} ${i === 4 ? s.last
+              : ""}`} aria-label={c.title}>
+            <h2 className={s.title}>{c.title}</h2>
+            <p className={s.body}>{c.body}</p>
+            {c.said !== "" && <p className="visually-hidden">{c.said}</p>}
+            {i === 4 && button}
+          </section>
+        ))}
       </div>
     </div>
   );

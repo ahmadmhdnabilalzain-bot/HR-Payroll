@@ -7,23 +7,42 @@
   color: var(--color-cine-ink);
 }
 
+/* The film's own fade into the product (opacity only). */
+.root[data-mode="webgl"] {
+  transition: opacity 400ms ease-out;
+}
+
+/* At first load the film covers the product, which waits underneath. */
+.over {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.root[data-leaving] {
+  opacity: 0;
+}
+
 .skip {
   position: fixed;
   inset-block-start: 16px;
   inset-inline-end: 16px;
   z-index: 3;
+  min-block-size: 36px;
   padding-block: 8px;
-  padding-inline: 14px;
+  padding-inline: 18px;
+  border: 1px solid var(--color-cine-grey-300);
   border-radius: var(--radius-pill);
   background: var(--color-cine-paper);
-  color: var(--color-cine-grey-700);
+  color: var(--color-cine-ink);
+  font: inherit;
   font-size: var(--text-sm);
   font-weight: 500;
-  text-decoration: none;
+  cursor: pointer;
 }
 
 .skip:hover {
-  color: var(--color-cine-ink);
+  border-color: var(--color-cine-ink);
 }
 
 .skip:focus-visible,
@@ -32,13 +51,8 @@
   outline-offset: 3px;
 }
 
-.track {
-  position: relative;
-}
-
 .stage {
-  position: sticky;
-  inset-block-start: 0;
+  position: relative;
   block-size: 100svh;
   overflow: hidden;
 }
@@ -120,16 +134,6 @@
   color: var(--color-cine-paper);
   font-size: var(--text-lg);
   font-weight: 500;
-}
-
-.hint {
-  position: absolute;
-  inset-block-end: 32px;
-  inset-inline: 0;
-  text-align: center;
-  font-size: var(--text-sm);
-  color: var(--color-cine-grey-700);
-  letter-spacing: 0.02em;
 }
 
 /* Phones and tall windows: the words on top, the object under them. */

@@ -2,7 +2,8 @@ import type { Lang } from "../i18n/types";
 
 export type ThemePref = "light" | "dark" | "system";
 
-/** The only things kept in localStorage: language and theme. */
+/** The prefs in localStorage: language and theme (the only other key
+ * is the opening's "seen" mark, welcome/route.ts). */
 export interface Prefs {
   lang: Lang | null;
   theme: ThemePref | null;

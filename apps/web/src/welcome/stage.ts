@@ -1,5 +1,4 @@
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   CanvasTexture,
   CatmullRomCurve3,
@@ -38,7 +37,6 @@ import { wordmarkGeometry, WORDMARK_ASPECT } from "./wordmark3d";
 
 export interface StageInput {
   root: HTMLElement;
-  track: HTMLElement;
   /** Where the stage puts its own canvas (a fresh one per mount: a
    * context given up with forceContextLoss cannot be reused). */
   host: HTMLElement;
@@ -47,13 +45,17 @@ export interface StageInput {
   cancelled(): boolean;
   /** The five scenes' words, in order, faded by the director. */
   copy: HTMLElement[];
-  hint: HTMLElement | null;
   story: Story;
   words: FaceWords;
   money: MoneyText;
   palette: Palette;
-  /** The scroll position the story ends on (scene units, 0 to 5). */
+  /** Where the story ends (scene units, 0 to 5). */
   end: number;
+  /** How long the story takes to get there, and the hold after it. */
+  seconds: number;
+  hold: number;
+  /** The film has played to its end (not called when stopped early). */
+  onEnd(): void;
   /** WebGL went away: show the static story instead. */
   onFail(): void;
   /** The window turned between wide and tall: build the scenes again. */
@@ -359,7 +361,6 @@ function approvalsScene(k: Kit, s: Story, w: FaceWords, m: MoneyText) {
 export async function mountStage(i: StageInput): Promise<() => void> {
   await fontsReady();
   if (i.cancelled()) return () => undefined;
-  gsap.registerPlugin(ScrollTrigger);
   const canvas = document.createElement("canvas");
   canvas.className = i.canvasClass;
   canvas.setAttribute("aria-hidden", "true");
@@ -499,22 +500,24 @@ export async function mountStage(i: StageInput): Promise<() => void> {
       el.style.transform = `translateY(${(1 - a) * 12}px)`;
       if (n < 4) el.style.visibility = a < 0.01 ? "hidden" : "visible";
     });
-    if (i.hint !== null) {
-      i.hint.style.opacity = String(1 - seg(s, 0.02, 0.12));
-    }
     /* A slow drift of the camera with the story, never with the mouse. */
     camera.position.x = Math.sin(s * 0.9) * 0.18;
     camera.position.y = Math.cos(s * 0.7) * 0.1;
     camera.lookAt(0, 0, 0);
   };
 
-  /* Scroll drives the story; scrub smooths it to a confident pace. */
+  /* Time drives the story at an even pace (each scene eases its own
+   * moves); it plays once, holds on the close, and hands back. */
   const progress = { s: 0, intro: 0 };
-  const tween = gsap.to(progress, { s: i.end, ease: "none",
-    scrollTrigger: { trigger: i.track, start: "top top",
-      end: "bottom bottom", scrub: 1.1 } });
-  const intro = gsap.to(progress, { intro: 1, duration: 1.6,
-    ease: "power2.out" });
+  performance.mark("opening:start");
+  const tween = gsap.timeline({ onComplete: () => {
+    /* The film's own length, for the e2e spec and a quick check. */
+    performance.measure("opening", "opening:start");
+    i.onEnd();
+  } })
+    .to(progress, { s: i.end, duration: i.seconds, ease: "none" }, 0.15)
+    .to(progress, { intro: 1, duration: 1.2, ease: "power2.out" }, 0)
+    .to({}, { duration: i.hold });
 
   /* Render only while the stage is on screen and the tab is shown. */
   let onScreen = true;
@@ -556,7 +559,7 @@ export async function mountStage(i: StageInput): Promise<() => void> {
     onScreen = e.some((x) => x.isIntersecting);
     run();
   });
-  seen.observe(i.track);
+  seen.observe(i.host);
   document.addEventListener("visibilitychange", run);
   const ro = new ResizeObserver(resize);
   ro.observe(canvas);
@@ -575,9 +578,7 @@ export async function mountStage(i: StageInput): Promise<() => void> {
     ro.disconnect();
     document.removeEventListener("visibilitychange", run);
     canvas.removeEventListener("webglcontextlost", lost);
-    tween.scrollTrigger?.kill();
     tween.kill();
-    intro.kill();
     owner.dispose();
     renderer.dispose();
     renderer.forceContextLoss();
