@@ -417,3 +417,15 @@ The owner can overrule any of these. Full list with reasons:
 - Migrations were renumbered: 003 single-use TOTP, 004 security
   hardening, 005 people, 006 leave and attendance, 007 payroll, 008
   SIF.
+
+## 11. Arabic review (2026-11-26)
+
+- Ruling: until a native speaker has reviewed `docs/review/arabic-review-pack.md`
+  (215 strings, 89 rated HIGH), Arabic stays available only as a labelled
+  preview (banner "awaiting native review"; API sends `arReviewed: false`).
+  Nothing forces the gate today (a user can switch language); the owner
+  wants Arabic from the start for design review. Cost if wrong: an employee
+  could read unreviewed legal wording. Before real customers: enforce the
+  flag in web and API and fix the HIGH items (for example "(رسمي)" after
+  figures, "غير مستحقة", consent wording).
+
