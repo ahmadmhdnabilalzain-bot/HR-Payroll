@@ -129,7 +129,9 @@ function pipelineRows(c: DemoCompany): ReferralRow[] {
     const joining = offer?.joiningDate.iso ?? null;
     return row({ id: `ref-${x.id}`, kind, candidateName: x.name,
       roleText: req.title,
-      sourceName: kind === "agency" ? AGENCIES[Number(x.id.slice(-3)) % 2]! : referrer?.fullName ?? "Staff referral",
+      sourceName: kind === "agency"
+        ? AGENCIES[Number(x.id.slice(-3)) % 2]!
+        : referrer?.fullName ?? "Staff referral",
       referrerId: referrer?.id ?? null,
       stage: closed ? "closed" : "open", amount,
       basisText: kind === "agency" ? "8% of the first year's basic " +

@@ -1,6 +1,7 @@
 import type { AuditAddition } from "./audit-state";
 import type { Approval, DemoData } from "./data/types";
 import { approvalItems } from "./approvals";
+import type { SandboxDraftSpec } from "./sandbox-state";
 import type { Action, DemoState } from "./state";
 import { personFor } from "./time-off";
 
@@ -69,8 +70,38 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
     case "plan-signoff": return make("pay.plan-signed-off", "pay",
       { kind: "plan", id: "pay-plan", label: "Pay plan" },
       `${who} signed off the pay plan.`);
+    case "sandbox-save": return make("pay.sandbox-plan-saved", "pay",
+      SANDBOX, `${who} saved a draft pay plan from the sandbox: ` +
+      `${sandboxWhat(a.plan.draft)}.`);
+    case "sandbox-unsave": return make("pay.sandbox-plan-removed", "pay",
+      SANDBOX, `${who} removed a draft pay plan from the sandbox.`);
+    case "sandbox-discard": return make("pay.sandbox-discarded", "pay",
+      SANDBOX, `${who} discarded a sandbox draft: ` +
+      `${sandboxWhat(a.draft)}.`);
+    case "sandbox-restore": return make("pay.sandbox-discard-undone",
+      "pay", SANDBOX, `${who} took back the discard of a sandbox draft: ` +
+      `${sandboxWhat(a.draft)}.`);
+    case "ref-mark": return make("people.referral-marked-payable",
+      "people", { kind: "referral", id: a.mark.rowId,
+        label: a.mark.label },
+      `${who} marked ${a.mark.label} payable, as a draft for the next ` +
+      "run.");
+    case "ref-unmark": return make("people.referral-mark-undone",
+      "people", { kind: "referral", id: a.rowId, label: a.label },
+      `${who} took back the payable mark on ${a.label}.`);
     default: return null;
   }
+}
+
+const SANDBOX = { kind: "plan", id: "sandbox",
+  label: "Pay-structure sandbox" };
+
+/** What a draft is about, in words with no amount in them. */
+function sandboxWhat(d: SandboxDraftSpec): string {
+  const who = d.grade === null ? "everyone" : `grade G${d.grade}`;
+  return d.kind === "housing-raise" ? `housing allowance for ${who}`
+    : d.kind === "new-allowance" ? `a new allowance for ${who}`
+      : "overtime rates";
 }
 
 type Make = (action: string, area: AuditAddition["area"],

@@ -63,6 +63,18 @@ import {
   type EidSlice,
 } from "./eid-state";
 import {
+  REFERRAL_INITIAL,
+  reduceReferral,
+  type ReferralAction,
+  type ReferralSlice,
+} from "./referral-state";
+import {
+  reduceSandbox,
+  SANDBOX_INITIAL,
+  type SandboxAction,
+  type SandboxSlice,
+} from "./sandbox-state";
+import {
   PLANNING_INITIAL,
   reducePlanning,
   type PlanningAction,
@@ -173,7 +185,7 @@ export interface DemoState
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     EidSlice, FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
     AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
-    AuditorSlice, FinishSlice, EsignSlice {
+    SandboxSlice, ReferralSlice, AuditorSlice, FinishSlice, EsignSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -222,6 +234,8 @@ export type Action =
   | VerifyAction
   | RuleChangeAction
   | PlanningAction
+  | SandboxAction
+  | ReferralAction
   | AuditorAction
   | FinishAction
   | EsignAction
@@ -244,6 +258,8 @@ export const INITIAL: DemoState = {
   ...VERIFY_INITIAL,
   ...RULE_CHANGE_INITIAL,
   ...PLANNING_INITIAL,
+  ...SANDBOX_INITIAL,
+  ...REFERRAL_INITIAL,
   ...AUDITOR_INITIAL,
   ...FINISH_INITIAL,
   ...ESIGN_INITIAL,
@@ -333,6 +349,13 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "plan-set":
     case "plan-signoff":
     case "plan-unsign": return reducePlanning(s, a);
+    case "sandbox-pick":
+    case "sandbox-discard":
+    case "sandbox-restore":
+    case "sandbox-save":
+    case "sandbox-unsave": return reduceSandbox(s, a);
+    case "ref-mark":
+    case "ref-unmark": return reduceReferral(s, a);
     case "more-hire":
     case "more-hire-withdraw":
     case "more-hire-restore":

@@ -72,12 +72,17 @@ export function draftTitle(d: SandboxDraft): string {
     case "housing-raise":
       return `Raise housing allowance ${pct(d.percentBps)} for ${who}`;
     case "new-allowance":
-      return `Add ${NEW_ALLOWANCE_LABEL.toLowerCase()} of ` +
-        `${formatAed(d.monthly)} a month for ${who}`;
+      return `Add ${NEW_ALLOWANCE_LABEL.toLowerCase()} for ${who}`;
     case "overtime-rates":
       return `Overtime uplift: day ${pct(d.dayBps)}, ` +
         `night ${pct(d.nightBps)}`;
   }
+}
+
+/** The title and the amount, for the screen (never for the audit). */
+export function draftDetail(d: SandboxDraft): string {
+  return d.kind === "new-allowance" ? `${draftTitle(d)}, ` +
+    `${formatAed(d.monthly)} a month` : draftTitle(d);
 }
 
 export interface SandboxOptions {
