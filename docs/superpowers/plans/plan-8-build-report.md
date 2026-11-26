@@ -235,3 +235,96 @@ setting was changed.
   the two real-PostgreSQL races above, which were not seen red.
 - The `hr_flow_end_to_end` test body is long (one scenario); source
   functions stay under 30 lines.
+
+## Follow-up 1: merge of main and the Tasks 4 to 7 review fixes
+
+Date: 2026-11-26. The concerns above on "no login", huge amounts and
+the "my companies" policy are fixed below; the rest stand.
+
+| Commit | Message |
+|---|---|
+| `a2cd320` | Merge claude/quirky-wozniak-b7xkvr into api-plan-8 |
+| `051e3a8` | fix(api): exit access, leaver self-action and money pins (review) |
+| (last) | docs: Plan 8 follow-up report and handover |
+
+Trailers stay `Co-Authored-By: Claude Opus 5.5` (harness reminder;
+nothing pushed).
+
+### Merge resolutions
+
+- Appends kept on both sides in `app.ts`, `deps.ts`, the audit
+  allowlist, contract `errors.ts`, `examples.ts`, `registry.ts`,
+  `routes.ts`, `seed-rows.ts`, `pg.integration.test.ts`, `test-app.ts`
+  (one options type; Plan 6's name `MakeAppOpts` kept as an alias),
+  `HANDOVER.md`, `LEDGER.md`.
+- `approvals/decide.ts` (add/add): main's file is Plan 6's approval
+  spine; Plan 8's rule moved to `approvals/assert-decidable.ts` (test
+  `tests/assert-decidable.test.ts`). `APPROVAL_NOT_PENDING` is defined
+  once (main's).
+- Route counts: core 75 (Plan 3's 50 plus Plan 6's 25), HR 46, all 121.
+- `routes/employees.ts`: main's handlers taken (MFA on salary and bank
+  writes, no self-edit, viewer-scoped loading); Plan 8's internal
+  `employee-actions.ts` uses main's field-wise writes.
+- **Hire and main's salary rules:** the hire route is owner or hr
+  without MFA, but it copies only the salary of an offer an owner
+  approved in an MFA session, which its creator could not approve. An
+  approved offer has no update route, and the hire creates the
+  employee with no login, so nobody writes their own salary.
+- `routes/users.ts`: main's one-user-per-employee rule combined with
+  revocation. A revoked membership keeps its employee link (main's
+  index counts it), so only the same user can take that employee back;
+  the invite check lets that same email be re-invited.
+- Main moved the whole-API flow to `tests/helpers/api-flow.ts`; Plan
+  8's `hrFlow` runs from there (so the real-PostgreSQL whole-API test
+  covers Plan 8 too). Leak test: main's per-target `SENTINELS` kept,
+  Plan 8 fixtures re-applied; the offer sentinel moved to `6543.21`
+  (main's expense sentinels use `8888.0x`).
+- Web app: main's `apps/web` taken; only English and Arabic texts for
+  Plan 8's error codes added. Web typecheck clean, web tests pass.
+- Migrations 001 to 013, 601 to 604, 801 to 807 run in numeric order;
+  the RLS catalog test passes. `pnpm install` left the lockfile as is.
+
+### Review fixes (`review-t4-7.md`)
+
+- **C-1:** logins that may be the leaver's are those linked by
+  `employee_id` plus those whose user email equals the employee's
+  email (case-insensitive, this company only); `Exit.access.logins`
+  shows them to owner and hr. Revoke takes `{ notTheLeaver? }`: every
+  listed active login is revoked except those HR confirms belong to
+  someone else. New owner-only MFA route `PATCH /v1/users/{id}/employee`.
+- **I-1:** close needs a stored revocation run for every exit and
+  re-reads live logins (409 `ACCESS_NOT_REVOKED`, `detail.userIds`);
+  accept-invite refuses (410 `INVITE_USED`) an invite whose employee
+  has a closed exit created at or after the invite was issued.
+- **I-2:** the leaver gets 403 `SOD_VIOLATION` on decide, settlement,
+  revoke, close and withdraw, except withdrawing their own
+  still-requested exit.
+- **I-3:** revoking an owner or hr login needs an owner;
+  `LAST_OWNER` is checked first.
+- **I-4:** exit items for the employee go to the manager (else hr),
+  naming the leaver; the leaver cannot change exit tasks about them.
+- **I-5:** tests for every survivor; M11, M12, M15, M22, M24, M25,
+  M27, M28, M35 and M40 were re-applied one by one and each is killed.
+- **Minors done:** M-1 (refused settlement above the wire cap; leave
+  inputs bounded at 3650 days, product bound), M-2 (salary version
+  only: 409 `SETTLEMENT_STALE`), M-3, M-4, M-5 (806 recreates both
+  policies), M-6 (via I-1), M-7, M-8. **Not done:** M-2 for joining
+  date or worker class (needs a stored field), M-9 (Plan 3 insert
+  path), M-10 (needs a ruling), M-11 (cosmetic), M-12 (kept), M-13
+  (handover note).
+
+### Decisions
+
+1. Unlinked logins of the same person are matched by exact email
+   within the company and revoked by default; HR must name a login as
+   "not the leaver" to keep it; owners can link logins. A login with
+   another email and no link is still undetectable (residual risk).
+2. Back-dated exits are recorded by hr or owner, not self-service.
+3. The real-PostgreSQL owner race now has each owner revoke the
+   other's exit; the loser gets 409 or 403; one owner remains.
+
+### Tests
+
+contract 110; engine 584; wps 173; api 515 (one worker; with two, the
+OS killed one worker under load and that file passed alone); web 103,
+typecheck clean; real PostgreSQL 21 of 21 as the runtime role.

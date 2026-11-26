@@ -260,9 +260,11 @@ engine refuses to run without an explicit value.
   the last working date; exits without notice give zero days with a
   counsel flag (Articles 44 and 45 not modelled); agreed reductions
   only for resignation and termination. Joiners before 2022-02-02 can
-  only get zero-month terms. "No login" means no membership is linked
-  to the employee record; an unlinked login of the same person is not
-  revoked. Ruled out (Plan 8 Ruling 32): cost-of-hire, referral and
+  only get zero-month terms. Exit revocation finds logins linked to
+  the employee record or with the employee's email; a login with
+  another email and no link is not found (owners can link logins with
+  `PATCH /v1/users/{id}/employee`). Rehiring creates a new employee
+  record. Ruled out (Plan 8 Ruling 32): cost-of-hire, referral and
   agency ledgers, permit and visa deadlines, ticket, loan, bond and card
   balances, exit interview forms, candidate data retention, job posts,
   resume parsing, email resignations, notice during leave, job-search
