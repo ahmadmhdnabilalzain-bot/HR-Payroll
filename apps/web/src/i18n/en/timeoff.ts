@@ -63,6 +63,8 @@ export const timeoff = {
   errEnd: "The last day is before the first day.",
   errNone: "These dates are all weekend days.",
   errOver: "That is more than the {days} of annual leave left.",
+  errYear: "Choose days in 2026, the year of this balance.",
+  errOverlap: "You already have time off on some of these days.",
   sent: "Sent to {name}",
   calendar: "Who is off",
   prevMonth: "Previous month",
