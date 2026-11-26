@@ -1,4 +1,5 @@
 import { CodedError } from "../coded-error";
+import { HR_CHECKS } from "./hr-allowlist";
 import { EXPENSE_AUDIT_CHECKS } from "./allowlist-expenses";
 
 /**
@@ -58,6 +59,7 @@ const CHECKS: Record<string, Check> = {
   oldClockOut: matches(TIME),
   newClockIn: matches(TIME),
   newClockOut: matches(TIME),
+  ...HR_CHECKS,
   ...EXPENSE_AUDIT_CHECKS,
 };
 

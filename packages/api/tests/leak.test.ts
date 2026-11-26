@@ -11,6 +11,15 @@ import {
   type Seeded,
   type Target,
 } from "./helpers/seed";
+import {
+  HR_ID_KIND,
+  HR_KINDS,
+  hrIdFor,
+  hrOwnerPaths,
+  hrSentinels,
+  hrVisible,
+} from "./helpers/leak-hr";
+import { seedHr, type HrSeeded } from "./helpers/seed-hr";
 
 /**
  * Review Focus 1. Each employee carries distinct values per field
@@ -37,8 +46,7 @@ function forbidden(role: Role): string[] {
   });
 }
 
-type Kind = "employee" | "payslip" | "payRun" | "sifFile" | "claim" |
-  "receipt" | null;
+type Kind = string | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
 const ID_KIND: Record<string, Kind> = {
   getCompany: null, listUsers: null, listEmployees: null,
@@ -54,6 +62,7 @@ const ID_KIND: Record<string, Kind> = {
   getExpensePolicy: null, listExpenseClaims: null, getExpenseClaim: "claim",
   expenseSummary: null, expenseVatRegister: null, expenseAging: null,
   expenseUnpaid: null, expensePayouts: null,
+  ...HR_ID_KIND,
 };
 
 /** Query strings a route needs. */
@@ -71,7 +80,9 @@ function seesClaimsOf(role: Role, t: Target): boolean {
 }
 
 /** Which targets a role may open on an employee or payslip route. */
-function visible(role: Role, t: Target, kind: Kind): boolean {
+function visible(role: Role, t: Target | null, kind: Kind): boolean {
+  if (kind !== null && HR_KINDS.includes(kind)) return hrVisible(role, kind);
+  if (t === null) return true;
   if (kind === "claim" || kind === "receipt") return seesClaimsOf(role, t);
   if (role === "owner" || role === "hr") return true;
   const own = role === "manager" ? "manager" : "report";
@@ -81,7 +92,8 @@ function visible(role: Role, t: Target, kind: Kind): boolean {
 
 function expected(r: RouteDef, role: Role, t: Target | null): number {
   if (!r.roles.includes(role)) return 403;
-  if (t !== null && !visible(role, t, ID_KIND[r.id] ?? null)) return 404;
+  const kind = ID_KIND[r.id] ?? null;
+  if ((t !== null || kind !== null) && !visible(role, t, kind)) return 404;
   return r.status;
 }
 
@@ -93,6 +105,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   let s: Seeded;
   let runId: string;
   let sifId: string;
+  let hr: HrSeeded;
   const slips = {} as Record<Target, string>;
   let exp: Awaited<ReturnType<typeof seedExpenses>>;
   beforeAll(async () => {
@@ -114,6 +127,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       { wps: { employerId: "0000000123456", bankRoutingCode: "802420101" } });
     sifId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
       `/v1/pay-runs/${runId}/sif`)).body.id;
+    hr = await seedHr(ctx, s);
   });
   /** Every `{id}` to try for a route, with the record it belongs to. */
   const idsFor = (kind: Kind): [Target | null, string | null][] =>
@@ -123,7 +137,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     : kind === "sifFile" ? [[null, sifId]]
     : kind === "claim" ? TARGETS.map((t) => [t, exp.claims[t]])
     : kind === "receipt" ? TARGETS.map((t) => [t, exp.receipts[t]])
-    : [[null, null]];
+    : kind !== null ? [[null, hrIdFor(kind, hr)]] : [[null, null]];
   const path = (r: RouteDef, id: string | null) =>
     (id === null ? r.path : r.path.replace("{id}", id)) +
     (r.id === "expensePayouts" ? `?payRunId=${runId}` : QUERY[r.id] ?? "");
@@ -141,7 +155,9 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
           const label = `${r.id} as ${role} on ${t}`;
           expect(res.status, `${label}: ${res.text}`)
             .toBe(expected(r, role, t));
-          const leaked = forbidden(role).filter((x) => res.text.includes(x));
+          const leaked = [...forbidden(role), ...(role === "manager" ||
+            role === "employee" ? hrSentinels(hr) : [])]
+            .filter((x) => res.text.includes(x));
           expect(leaked, label).toEqual([]);
           for (const x of TARGETS.filter((x) => !seesClaimsOf(role, x))) {
             expect(res.text.includes(EXPENSE_SENTINELS[x]),
@@ -182,11 +198,19 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
         .toBe(EXPENSE_SENTINELS.report);
     });
 
+  it("owner bodies carry the HR sentinels too", async () => {
+    for (const [path, sentinel] of hrOwnerPaths(hr)) {
+      const r = await call(ctx.app, s.owner.token, s.companyId, "GET",
+        path);
+      expect(r.text, path).toContain(sentinel);
+    }
+  });
+
   it("company B's owner gets 404 for every A id", async () => {
     const b = await signup(ctx.app, "other");
     const mfa = await enableMfa(ctx.app, ctx.clock, b);
     const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile",
-      "claim", "receipt"];
+      "claim", "receipt", ...HR_KINDS];
     const allIds = kinds.flatMap((k) => idsFor(k).map(([, id]) => id!));
     for (const r of getRoutes.filter((x) => x.path.includes("{id}"))) {
       for (const id of allIds) {

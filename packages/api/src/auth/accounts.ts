@@ -47,7 +47,8 @@ export async function membershipsOf(
     role: Role; employee_id: string | null }>(
     `SELECT m.company_id, c.name, m.role, m.employee_id
      FROM memberships m JOIN companies c ON c.id = m.company_id
-     WHERE m.user_id = $1 ORDER BY c.name, m.company_id`, [userId]);
+     WHERE m.user_id = $1 AND m.revoked_at IS NULL
+     ORDER BY c.name, m.company_id`, [userId]);
   return rows.map((r) => ({ companyId: r.company_id, companyName: r.name,
     role: r.role, employeeId: r.employee_id }));
 }

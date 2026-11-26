@@ -64,6 +64,17 @@ source-cited, with an open API and Arabic from the start.
   PostgreSQL with row-level security, sealed salary and bank fields,
   hash-chained audit log, pay runs, payslips and SIF files).
   Build report: `docs/superpowers/plans/plan-3-build-report-1.md`.
+- **Plan 8 (hiring, onboarding, task manager, the one exit flow) is
+  built** on worktree branch `api-plan-8`, not merged (Task 1, the
+  engine `ae-employment` pack, was already merged). 45 HR routes in
+  `HR_ROUTES` (95 in all): task manager, requisitions, candidates,
+  applications, scorecards, interviews, offers with owner MFA
+  approval, offer to hire with onboarding tasks and engine probation
+  dates, the exit flow (engine notice, clearance tasks, final
+  settlement from `calculateSettlement` with its not-computed list and a
+  flag-only list that is never deducted, document and access hooks,
+  close) and goals. Build report:
+  `docs/superpowers/plans/plan-8-build-report.md`.
 - **Plan 6 (expenses and claims) is built** on worktree branch
   `api-plan-6` (not pushed, not merged), extending `packages/contract`
   (now 75 routes) and `packages/api`: a shared approval spine (chains
@@ -183,6 +194,8 @@ engine refuses to run without an explicit value.
 |---|---|
 | Primitives, roles, errors | `src/primitives.ts`, `src/roles.ts`, `src/errors.ts` |
 | Schemas by family | `src/company.ts`, `user.ts`, `department.ts`, `employee.ts`, `leave.ts`, `attendance.ts`, `trace.ts`, `payroll.ts`, `sif.ts`, `audit.ts`, `lists.ts` |
+| Routes (50 core + 45 HR) | `src/route-def.ts`, `src/routes*.ts` (`routes-hr.ts` joins Plan 8's) |
+| Plan 8 schemas | `src/tasks.ts`, `hiring.ts`, `offers.ts`, `onboarding.ts`, `exits.ts`, `goals.ts`, `errors-hr.ts`, `registry-hr.ts`, `examples-hr.ts` |
 | Routes (75; Plan 6's 25 in `routes-expenses.ts`) | `src/route-def.ts`, `src/routes*.ts` |
 | Plan 6 schemas | `src/approvals.ts`, `receipts.ts`, `expense-policy.ts`, `expenses.ts`, `expense-reports.ts`, `registry-expenses.ts`, `examples-expenses.ts` |
 | Registry, examples, OpenAPI | `src/registry.ts`, `src/examples*.ts`, `src/openapi.ts`, `src/write-openapi.ts` |
@@ -200,6 +213,10 @@ engine refuses to run without an explicit value.
 | Leave and attendance | `src/leave/`, `src/attendance/`, `src/time/dubai.ts` |
 | Pay runs (pure compute), payslips, SIF | `src/payroll/` |
 | Entry and config | `src/main.ts`, `src/config.ts`, `src/deps.ts` |
+| Plan 8: tasks, approvals, ports | `src/tasks/`, `src/approvals/decide.ts`, `src/ports/` (calendar, documents, access), `migrations/801` to `807` |
+| Plan 8: hiring, onboarding, exits, goals | `src/hiring/`, `src/onboarding/`, `src/exits/`, `src/goals/`, `src/routes/hr.ts` |
+| Plan 8 audit keys | `src/audit/hr-allowlist.ts`, `src/audit/hr-audit.ts` |
+| Engine employment pack (Plan 8 Task 1) | `packages/engine/src/employment/`, `src/rules/employment-pack.ts` |
 | Plan 6 wiring (one call from `app.ts`) | `src/expense-app.ts` |
 | Approval spine (pure resolution, chains, requests, decisions) | `src/approvals/`, `src/routes/approvals.ts` |
 | Receipt storage port (memory, local disk) | `src/storage/` |
@@ -233,6 +250,25 @@ engine refuses to run without an explicit value.
   data). No warning yet when a leaver gets both a leave-encashment
   one-off and a settlement.
 
+- Plan 8 limits: no web screens; the calendar, document and external
+  access ports are "not configured"; no scheduler (reminders and
+  deadlines are dated tasks, overdue computed on read). The exit
+  settlement never deducts loans, tickets, bonds, claims, cards or
+  other deductions (flag-only list). Conventions, not law: notice runs
+  from the day after notice; probation end = joining date + months,
+  clamped, minus one day; the settlement due date counts 14 days from
+  the last working date; exits without notice give zero days with a
+  counsel flag (Articles 44 and 45 not modelled); agreed reductions
+  only for resignation and termination. Joiners before 2022-02-02 can
+  only get zero-month terms. Exit revocation finds logins linked to
+  the employee record or with the employee's email; a login with
+  another email and no link is not found (owners can link logins with
+  `PATCH /v1/users/{id}/employee`). Rehiring creates a new employee
+  record. Ruled out (Plan 8 Ruling 32): cost-of-hire, referral and
+  agency ledgers, permit and visa deadlines, ticket, loan, bond and card
+  balances, exit interview forms, candidate data retention, job posts,
+  resume parsing, email resignations, notice during leave, job-search
+  day tracking, the probation-once check, part-time workers.
 - The gratuity pack applies to leavers on or after 2022-02-02 (Decree-Law 33
   of 2021). Earlier leavers throw `NO_PACK_FOR_DATE` (old law not modelled).
   Open question for counsel: service accrued before that date for people
@@ -350,6 +386,9 @@ Plan 6 (branch `api-plan-6`): run the security reviews of Tasks 2, 3
 and 6 and one whole-branch review, then merge (migrations 601 to 604,
 `RECEIPTS_DIR` in every environment). Expense and approval screens are
 a Plan 4 follow-up.
+
+Plan 8: review Task 6 (exit and settlement) and Task 7 (revocation),
+then the whole branch, then merge `api-plan-8` after Plan 3.
 
 ## Tooling (25 Nov 2026)
 

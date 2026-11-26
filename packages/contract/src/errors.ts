@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { HR_ERROR_STATUS } from "./errors-hr";
 
 /**
  * Plan 6 (approvals, receipts, expenses). Claim problem codes
@@ -89,6 +90,7 @@ export const ERROR_STATUS = {
   PAYLOAD_TOO_LARGE: 413,
   ACCOUNT_LOCKED: 423,
   INTERNAL: 500,
+  ...HR_ERROR_STATUS,
   ...EXPENSE_ERROR_STATUS,
 } as const;
 
