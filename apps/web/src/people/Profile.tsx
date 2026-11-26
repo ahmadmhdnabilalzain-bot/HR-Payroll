@@ -13,10 +13,13 @@ import {
 import { formatMonth } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
+import { Footnote } from "../components/explain";
 import { Icon } from "../ui/Icon";
+import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { openItemsOf, severityOf } from "./attention";
 import { shortBranch } from "./filter";
+import { lastFour } from "./Payslip";
 import { useRoll } from "./useRoll";
 import {
   countryName,
@@ -42,9 +45,10 @@ function years(from: string, to: string): number {
 
 /**
  * One person. Under the name, three facts in a row (net pay, annual
- * leave left, years of service); then open items, pay, time off and
- * the employment details as grouped lists. Pay only for HR, the GM
- * and the person.
+ * leave left, years of service); then open items, pay, time off,
+ * employment and documents as grouped lists on 8 columns, and on the
+ * right 4 the next action and the person's history. Pay only for HR,
+ * the GM and the person.
  */
 export function Profile(q: { id: string }) {
   const { lang, t } = useLocale();
@@ -91,12 +95,15 @@ export function Profile(q: { id: string }) {
           <Notes person={x} />
           {canSeePay(data, state, x.id) && <Pay person={x} />}
           <Leave person={x} />
-        </div>
-        <div className={s.side}>
           <Employment person={x} />
           <Documents person={x} />
         </div>
+        <div className={s.side}>
+          <Next person={x} />
+          <History person={x} />
+        </div>
       </div>
+      <Footnote />
     </div>
   );
 }
@@ -196,12 +203,14 @@ function Employment(q: { person: Person }) {
           <span className={s.email}>{x.email}</span>
         </Fact>
         <Fact label={t("people.emiratesId")}>
-          <span dir="ltr" className="tabular">{x.emiratesIdMasked}</span>
+          <span dir="ltr" className="tabular">
+            {x.emiratesIdMasked.replace(/\*/g, "•")}</span>
         </Fact>
         {canSeePay(data, state, x.id) && (
           <Fact label={t("people.iban")}>
             {x.ibanMasked === null ? t("people.ibanMissing")
-              : <span dir="ltr" className="tabular">{x.ibanMasked}</span>}
+              : <span dir="ltr" className="tabular">
+                {lastFour(x.ibanMasked) ?? x.ibanMasked}</span>}
           </Fact>
         )}
         {approver !== null && (
@@ -363,5 +372,106 @@ function Notes(q: { person: Person }) {
         })}
       </ul>
     </Section>
+  );
+}
+
+/**
+ * The one next action for this person, for the person looking: bank
+ * details that stop pay (HR), an open check (HR), a paper to renew (HR
+ * and the GM), else the payslip, else time off. Always a working link.
+ */
+function Next(q: { person: Person }) {
+  const { lang, t } = useLocale();
+  const { data, state } = useDemo();
+  const x = q.person;
+  const hrGm = state.role === "hr" || state.role === "gm";
+  const items = openItemsOf(data, state, x.id)
+    .filter((n) => n.fixKind !== "renew-document");
+  const stops = items.find((n) => severityOf(data, n) === "stops-pay");
+  const doc = data.people.documentsOf(x.id)
+    .find((d) => d.state !== "valid");
+  const month = formatMonth(data.headline().runMonth, lang);
+  const slip = canSeePay(data, state, x.id) ? data.people.payslip(x.id)
+    : null;
+  const pick: { title: string; text: string; href: string; go: string } =
+    stops !== undefined && state.role === "hr" ? {
+      title: stops.title[lang], text: stops.suggestedFix[lang],
+      href: hrefOf("pay-run", "fix"), go: t("people.nextFix") }
+      : items[0] !== undefined && state.role === "hr" ? {
+        title: items[0].title[lang], text: items[0].suggestedFix[lang],
+        href: hrefOf("pay-run", "fix"), go: t("people.nextFix") }
+        : doc !== undefined && hrGm ? {
+          title: t("people.nextRenew", { kind: doc.kind[lang] }),
+          text: t("people.expires", { date: dayText(doc.expiresOn,
+            lang) }),
+          href: hrefOf("people", "papers", "visas"),
+          go: t("people.nextPapers") }
+          : slip !== null ? {
+            title: t("people.nextSlip", { month }),
+            text: t("people.nextSlipText"),
+            href: hrefOf("people", x.id, "payslip"),
+            go: t("people.openPayslip", { month }) }
+            : { title: t("people.timeOff"), text: t("people.nextLeaveText"),
+              href: hrefOf("time-off"), go: t("people.seeTimeOff") };
+  return (
+    <section className={s.next} aria-labelledby="next-title">
+      <h2 id="next-title" className={s.nextLabel}>{t("people.next")}</h2>
+      <p className={s.nextTitle}>{pick.title}</p>
+      <p className={s.nextText}>{pick.text}</p>
+      <a href={pick.href} className={`${b.btn} ${b.secondary} ${s.nextGo}`}>
+        {pick.go}
+      </a>
+    </section>
+  );
+}
+
+interface Event { date: string; text: string }
+
+/** What happened, newest first, from the records the demo holds. */
+function History(q: { person: Person }) {
+  const { lang, t } = useLocale();
+  const { data, state } = useDemo();
+  const x = q.person;
+  const asOf = data.people.asOf;
+  const types = data.people.leaveTypes();
+  const word: Record<string, MessageKey> = { waiting: "people.hWaiting",
+    booked: "timeoff.booked", declined: "timeoff.declined",
+    withdrawn: "timeoff.withdrawn" };
+  const ev: Event[] = [];
+  if (canSeePay(data, state, x.id) && data.people.payslip(x.id) !== null) {
+    ev.push({ date: asOf, text: t("people.hSlip", {
+      month: formatMonth(data.headline().runMonth, lang) }) });
+  }
+  if (state.ibans[x.id] !== undefined && canSeePay(data, state, x.id)) {
+    ev.push({ date: asOf, text: t("people.hIban") });
+  }
+  for (const r of requestRows(data, state)) {
+    if (r.employeeId !== x.id) continue;
+    const type = types.find((y) => y.id === r.leaveTypeId)?.name[lang]
+      ?? "";
+    const w = word[r.state];
+    ev.push({ date: r.startDate, text: t("people.hLeave", { type,
+      state: w === undefined ? r.state : t(w) }) });
+  }
+  if (x.probationEndsOn !== null && x.probationEndsOn <= asOf) {
+    ev.push({ date: x.probationEndsOn, text: t("people.hProbation") });
+  }
+  if (x.leftOn !== null) ev.push({ date: x.leftOn, text: t("people.lastDay") });
+  ev.push({ date: x.joinedOn, text: t("people.hJoined", {
+    role: x.role[lang] }) });
+  ev.sort((a, c) => (a.date < c.date ? 1 : a.date > c.date ? -1 : 0));
+  return (
+    <section className={s.history} aria-labelledby="hist-title">
+      <h2 id="hist-title" className={s.nextLabel}>{t("people.history")}</h2>
+      <ol className={s.timeline}>
+        {ev.slice(0, 6).map((e, i) => (
+          <li key={i} className={s.event}>
+            <span className={s.eventDot} aria-hidden="true" />
+            <span className={s.eventText}>{e.text}</span>
+            <span className={s.eventDate}>{dayText(e.date, lang)}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
