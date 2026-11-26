@@ -66,6 +66,9 @@ test("inspection pack: one page per month, not a filing", async ({
   await expect(page.getByText("Pay run Sep 2026").first()).toBeVisible();
   await expect(page.getByRole("heading",
     { name: "Audit chain check" })).toBeVisible();
+  // The month switch crossfades each amount for 200 ms: let the old
+  // (fading) figures go before axe measures contrast.
+  await expect(page.locator("[class*=_ghost_]")).toHaveCount(0);
   const r = await new AxeBuilder({ page }).analyze();
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) =>
     n.html.slice(0, 90)).join(" | ")}`)).toEqual([]);
