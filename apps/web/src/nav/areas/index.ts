@@ -5,6 +5,7 @@ import { AREAS as HOME_ME } from "./home-me";
 import { AREAS as PAY } from "./pay";
 import { AREAS as PEOPLE_MOVES } from "./people-moves";
 import { AREAS as PEOPLE_PAPERS } from "./people-papers";
+import { AREAS as PEOPLE_SAFETY } from "./people-safety";
 import { AREAS as PEOPLE_TALENT } from "./people-talent";
 import { AREAS as PEOPLE_TEAM } from "./people-team";
 import { AREAS as REPORTS } from "./reports";
@@ -23,6 +24,7 @@ export const ALL_AREAS: readonly Area[] = [
   ...PEOPLE_MOVES,
   ...PEOPLE_PAPERS,
   ...PEOPLE_TALENT,
+  ...PEOPLE_SAFETY,
   ...TIME,
   ...PAY,
   ...REPORTS,

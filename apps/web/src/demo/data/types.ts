@@ -3,6 +3,7 @@ import type { PapersData } from "./papers-types";
 import type { MovesData } from "./moves-types";
 import type { HomeData } from "./home-types";
 import type { PeopleData } from "./people-types";
+import type { SafetyData } from "./safety-types";
 import type { TalentData } from "./talent-types";
 import type { TeamData } from "./team-types";
 
@@ -145,6 +146,8 @@ export interface DemoData {
   team: TeamData;
   /** Skills, training and surveys (talent-types.ts). */
   talent: TalentData;
+  /** Cover, incidents, ILOE and policies (safety-types.ts). */
+  safety: SafetyData;
   /** Hiring, joining and leaving (moves-types.ts). */
   moves: MovesData;
   /** Home and Me: tasks, notices, the IT view (home-types.ts). */
