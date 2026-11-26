@@ -12,6 +12,11 @@ export interface ListColumn<T> {
   render(row: T): ReactNode;
 }
 
+/** The first column wraps to two lines; its full text is the title. */
+function fullTitle(el: HTMLElement | null): void {
+  if (el !== null) el.title = el.textContent?.trim() ?? "";
+}
+
 export interface ListSegment<T> {
   id: string;
   label: string;
@@ -87,7 +92,11 @@ export function FilterList<T>(p: {
               <span key={c.key} className={i === 0 ? s.cellMain : s.cell}
                 data-end={c.end === true}>
                 <span className={s.cellLabel}>{c.label}</span>
-                {c.render(r)}
+                {i === 0 ? (
+                  <span className={s.cellText} ref={fullTitle}>
+                    {c.render(r)}
+                  </span>
+                ) : c.render(r)}
               </span>
             ));
             const href = p.rowHref?.(r);

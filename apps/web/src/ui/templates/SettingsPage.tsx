@@ -57,7 +57,8 @@ export function SettingsPage(p: {
                 </span>
                 <span className={s.rowValue}>{x.value}</span>
                 {x.editable === true && p.onSave !== undefined && (
-                  <button type="button" className={`${b.btn} ${b.quiet}`}
+                  <button type="button"
+                    className={`${b.btn} ${b.quiet} ${s.tap}`}
                     onClick={() => {
                       setEdit(x);
                       setValue(x.value);
