@@ -740,3 +740,12 @@ The owner can overrule any of these. Full list with reasons:
   and People builders apply the critique to their own views. GSAP is a
   dependency only once added; the offline file and the
   no-outside-requests check must still pass.
+- Owner target (2026-11-26): **HR and payroll must be 80% complete for
+  tomorrow's meeting.** Definition (my ruling): coverage is measured on
+  the navigation map's HR and payroll inventory (every Manar One HR and
+  payroll area plus the 140+ market features), as the share of rows that
+  open as a working screen in the demo on realistic data, with the key
+  flows fully working. The percentage is reported honestly with the list
+  of rows still missing. Manar One was built in 48 hours, so breadth is
+  built in parallel (up to 10 builders) on shared screen templates once
+  the shell and tokens have landed.
