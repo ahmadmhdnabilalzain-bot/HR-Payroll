@@ -604,7 +604,7 @@ are in `docs/demo/copy-audit.md`.
   leaves the source figure at its own size (the hero's 56 px, scale about 2 to
   1) and lands in the header in 420 ms on the bank flight's spring, in its own
   top layer, so it never leads the sliding drawer; the source dims to 0.35 until
-  the drawer closes; a short rule draws under the landed figure; then the
+  the copy lands; a short rule draws under the landed figure; then the
   working assembles (`assembly.ts`): from 360 ms, one line every 96 ms (tighter
   for long workings, 56 ms on phones), each rising in as its rule draws and its
   amount slides up whole (never counted, so no line shows a number it does not

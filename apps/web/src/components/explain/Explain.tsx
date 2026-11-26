@@ -183,9 +183,10 @@ function shiftOf(el: Element | null, zoom: number): { x: number;
  * already arrived, in 420 ms on the shared spring. It travels in its
  * own top layer, so it never rides (or leads) the sliding drawer; the
  * header figure appears under it as it lands. The source dims to 0.35
- * while its working is open. Reduced motion: a 120 ms fade only. Web
- * Animations, so a capture can seek it and the global reduced-motion
- * CSS rule cannot cut it.
+ * while the copy is away and comes back as it lands (the page under
+ * the scrim keeps its contrast). Reduced motion: a 120 ms fade only.
+ * Web Animations, so a capture can seek it and the global
+ * reduced-motion CSS rule cannot cut it.
  */
 function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   layer: HTMLElement | null, panel: HTMLElement | null): void {
@@ -234,21 +235,23 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
     { duration: FLIGHT_MS });
   // The source steps back at once, so the copy leaving it never sits
   // on a second full-ink figure.
-  src.animate([{ opacity: 1 }, { opacity: DIM }],
-    { duration: 60, easing: "ease-out", fill: "forwards" });
+  // It comes back as the copy lands, so the page under the scrim
+  // keeps its full contrast while the working is read.
+  src.animate([{ opacity: 1 }, { opacity: DIM, offset: 60 / FLIGHT_MS },
+    { opacity: DIM, offset: 1 }], { duration: FLIGHT_MS });
+  src.animate([{ opacity: DIM }, { opacity: 1 }],
+    { duration: CLOSE_MS, delay: FLIGHT_MS, easing: "ease-out" });
   const gone = (): void => wrap.remove();
   travel.onfinish = gone;
   travel.oncancel = gone;
   setTimeout(gone, FLIGHT_MS + 400);
 }
 
-/** Brings the source figure back to full ink as the drawer closes. */
+/** Brings the source figure back at once if the drawer closes while
+ * the copy is still in flight. */
 function undim(src: HTMLElement | null): void {
   if (src === null) return;
   for (const a of src.getAnimations()) a.cancel();
-  if (reducedMotion()) return;
-  src.animate([{ opacity: DIM }, { opacity: 1 }],
-    { duration: CLOSE_MS, easing: "ease-out" });
 }
 
 function dirOf(el: Element): string {

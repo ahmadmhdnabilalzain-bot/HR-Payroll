@@ -62,8 +62,8 @@
    *   280 ms (no fade, so no ghost frame); the scrim fades under it;
    * - the figure flies from the source at its own size into the
    *   header (JS: 420 ms, the shared spring of ui/flight, scale about
-   *   2 to 1), in its own top layer; the source dims to 0.35; a short
-   *   rule draws under the landed figure;
+   *   2 to 1), in its own top layer; the source dims to 0.35 until
+   *   it lands; a short rule draws under the landed figure;
    * - the working assembles line by line (assembly.ts: from 360 ms,
    *   96 ms apart, tighter for long workings): each line rises in,
    *   its rule draws across, and its amount slides up into place
