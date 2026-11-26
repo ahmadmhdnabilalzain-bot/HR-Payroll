@@ -12,6 +12,7 @@ import { AREAS as PEOPLE_TALENT } from "./people-talent";
 import { AREAS as PEOPLE_TEAM } from "./people-team";
 import { AREAS as REPORTS } from "./reports";
 import { AREAS as REQUESTS } from "./requests";
+import { AREAS as RULE_CHANGE } from "./rule-change";
 import { AREAS as SETUP_ACCESS } from "./setup-access";
 import { AREAS as SETUP_RULES } from "./setup-rules";
 import { AREAS as SETUP_STRUCTURE } from "./setup-structure";
@@ -43,4 +44,5 @@ export const ALL_AREAS: readonly Area[] = [
   ...REQUESTS,
   ...EXIT_FILES,
   ...SWEEP_PEOPLE,
+  ...RULE_CHANGE,
 ];

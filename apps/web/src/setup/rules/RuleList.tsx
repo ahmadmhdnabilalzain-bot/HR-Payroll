@@ -47,8 +47,10 @@ export function RuleList() {
             render: (r) => <StatusWord status={r.status} /> },
         ]}
         empty="No rule matches. Clear the search or choose All."
-        actions={<button type="button" className={`${b.btn} ${b.secondary}`}
-          onClick={() => setOpen(true)}>Change log</button>} />
+        actions={<><a className={`${b.btn} ${b.secondary}`}
+          href={hrefOf("setup", "rule-change")}>Pending change</a>
+        <button type="button" className={`${b.btn} ${b.secondary}`}
+          onClick={() => setOpen(true)}>Change log</button></>} />
       <Sheet open={open} title="Change log" onClose={() => setOpen(false)}>
         <div className={s.sheetBody}>
           <h3>Rule packs in force</h3>

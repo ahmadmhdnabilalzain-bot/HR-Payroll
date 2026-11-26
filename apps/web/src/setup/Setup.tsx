@@ -2,6 +2,7 @@ import type { ViewProps } from "../views";
 import { SetupAccess } from "./access/SetupAccess";
 import { SetupMore } from "./more";
 import { SetupRules } from "./rules/SetupRules";
+import { SetupRuleChange } from "./rule-change";
 import { SetupMigration } from "./migration/SetupMigration";
 import { SetupStructure } from "./structure/SetupStructure";
 
@@ -14,5 +15,6 @@ export function Setup(p: ViewProps) {
   if (p.rest[0] === "more") return <SetupMore {...p} />;
   if (p.rest[0] === "structure") return <SetupStructure {...p} />;
   if (p.rest[0] === "migration") return <SetupMigration {...p} />;
+  if (p.rest[0] === "rule-change") return <SetupRuleChange {...p} />;
   return p.rest[0] === "rules" ? <SetupRules {...p} /> : <SetupAccess {...p} />;
 }
