@@ -27,3 +27,5 @@ export { expiryState } from "./workplace";
 export * from "./pay";
 export * from "./time";
 export * from "./papers";
+export * from "./wp7";
+export * from "./wp9";
