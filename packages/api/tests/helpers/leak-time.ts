@@ -17,6 +17,8 @@ export const TIME_ID_KIND: Record<string, "employee" | "timesheet" |
   getWfhSettings: null, getCurrentWfhNotice: null, getWfhStatus: null,
   getMyWfhDays: null, exportMyWfhData: null, getWfhSummary: null,
   listWfhLocations: "employeeQuery",
+  getLeaveCalendar: null, getTeamAvailability: null,
+  listAttendanceFlags: null,
 };
 
 /** Routes about the caller's own employee: owner and hr have none. */
@@ -41,6 +43,9 @@ export const TIME_QUERY: Record<string, string> = {
   listLeaveBlackouts: "?year=2026",
   getMyWfhDays: "?from=2026-03-01&to=2026-03-01",
   getWfhSummary: "?from=2026-03-01&to=2026-03-01",
+  getLeaveCalendar: "?from=2026-03-01&to=2026-03-07",
+  getTeamAvailability: "?from=2026-03-01&to=2026-03-07",
+  listAttendanceFlags: "?from=2026-03-01&to=2026-03-07",
 };
 
 type Target = keyof Seeded["emp"];

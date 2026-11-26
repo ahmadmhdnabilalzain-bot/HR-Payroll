@@ -6,6 +6,7 @@ import { registerTimeSwapRoutes } from "./time-swaps";
 import { registerTimeCorrectionRoutes } from "./time-corrections";
 import { registerTimesheetRoutes } from "./time-timesheets";
 import { registerTimeLeaveRoutes } from "./time-leave";
+import { registerTimeCalendarRoutes } from "./time-calendar";
 import { registerWfhRoutes } from "./wfh";
 import { registerWfhDataRoutes } from "./wfh-data";
 
@@ -17,6 +18,7 @@ export function registerTimeRoutes(app: App, deps: AppDeps): void {
   registerTimeCorrectionRoutes(app, deps);
   registerTimesheetRoutes(app, deps);
   registerTimeLeaveRoutes(app, deps);
+  registerTimeCalendarRoutes(app, deps);
   registerWfhRoutes(app, deps);
   registerWfhDataRoutes(app, deps);
 }

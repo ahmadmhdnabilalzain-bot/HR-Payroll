@@ -8,6 +8,7 @@ import * as pay from "./time-pay-inputs";
 import * as lp from "./time-leave-policy";
 import * as wfh from "./time-wfh";
 import * as wd from "./time-wfh-data";
+import * as cal from "./time-calendar";
 
 function named(mod: Record<string, unknown>, names: readonly string[]) {
   const out: Record<string, z.ZodType> = {};
@@ -51,4 +52,7 @@ export const TIME_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
     "WfhLocationUpload", "WfhLocationPoint", "WfhLocationList",
     "WfhDayTotals", "WfhDay", "WfhDayList", "WfhDaySummary",
     "WfhDaySummaryList", "WfhExport"]),
+  ...named(cal, ["CalendarEntry", "CalendarDay", "CalendarDayList",
+    "AvailabilityDay", "AvailabilityDayList", "StaffingPut",
+    "DepartmentStaffing", "AttendanceFlag", "AttendanceFlagList"]),
 };

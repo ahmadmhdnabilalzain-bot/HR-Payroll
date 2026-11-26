@@ -88,6 +88,10 @@ async function seedLeaveRows(admin: Db, c: string, emp: string) {
     `INSERT INTO leave_carryover_runs (company_id, from_year, created_at)
      VALUES ($1, 2025, $2)`, [c, AT]);
   await seedWfhRows(admin, c, emp);
+  await admin.query(
+    `INSERT INTO department_staffing (company_id, department_id,
+       min_on_duty, updated_at) VALUES ($1, $2, 1, $3)`,
+    [c, rowId(c, "d1"), AT]);
 }
 
 async function seedWfhRows(admin: Db, c: string, emp: string) {

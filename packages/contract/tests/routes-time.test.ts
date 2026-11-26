@@ -21,6 +21,8 @@ const TIME_ROUTE_IDS = [
   "getLeavePolicy", "putLeavePolicy", "listLeaveBlackouts",
   "createLeaveBlackout", "updateLeaveBlackout", "previewLeaveRequest",
   "runLeaveCarryOver",
+  "getLeaveCalendar", "getTeamAvailability", "putStaffingMinimum",
+  "listAttendanceFlags",
   "getWfhSettings", "updateWfhSettings", "publishWfhNotice",
   "getCurrentWfhNotice", "recordWfhConsent", "withdrawWfhConsent",
   "getWfhStatus", "pauseWfh", "resumeWfh",

@@ -195,6 +195,17 @@ async function wfhOff(f: TimeFlowCtx) {
   await hit("withdrawWfhConsent", emp, c, {}, { erase: false });
 }
 
+async function calendarFlow(f: TimeFlowCtx) {
+  const { hit, owner, emp, c } = f;
+  const week = { query: "?from=2026-03-01&to=2026-03-07" };
+  await hit("getLeaveCalendar", emp, c, {}, undefined, week);
+  await hit("getTeamAvailability", emp, c, {}, undefined, week);
+  const d = await hit("listDepartments", owner, c);
+  await hit("putStaffingMinimum", owner, c, { id: d.body.items[0].id },
+    { minOnDuty: 1 });
+  await hit("listAttendanceFlags", emp, c, {}, undefined, week);
+}
+
 /** Every Plan 9 route, in task order. */
 export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await settingsFlow(f);
@@ -204,6 +215,7 @@ export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await correctionFlow(f);
   await timesheetFlow(f);
   await leaveFlow(f);
+  await calendarFlow(f);
   await wfhData(f, await wfhOn(f));
   await wfhOff(f);
 }
