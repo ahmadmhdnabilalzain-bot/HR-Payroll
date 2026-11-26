@@ -348,7 +348,8 @@ every table in `public` with a `company_id` column, plus `companies`, has
 
 `one-place.test.ts`: scanning `packages/api/src`, the strings
 `.transaction(` and `SET LOCAL ROLE` appear only in `src/db/`; no file
-outside `src/db/` imports `src/db/pglite` or `src/db/pg`.
+outside `src/db/` imports `src/db/pglite` or `src/db/pg`, except
+`src/main.ts` importing `src/db/pg` (allowlisted by name).
 
 `pg.integration.test.ts`: `describe.skipIf(!process.env.DATABASE_URL)`;
 runs the `tenancy.test.ts` cases against `openPg(DATABASE_URL)` in a
@@ -804,7 +805,9 @@ amounts equal `toMoney` of the computed lines; `pay-run.created` audit
 and no amounts.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/api test`. Expected: FAIL.
-- [ ] **Step 3: Implement** `compute.ts` first (pure), then the rest.
+- [ ] **Step 3: Implement** `compute.ts` first (pure), then the rest;
+  add `seedPayroll` to `tests/helpers/seed.ts` and extend the leak
+  test's `mayView` for payslip and pay-run routes.
 - [ ] **Step 4: Run** `pnpm --filter @payroll/api test` and `pnpm check`.
   Expected: PASS.
 - [ ] **Step 5: Commit** `feat(api): pay runs and traced payslips`.
@@ -848,7 +851,7 @@ and no amounts.
   - `GET /v1/sif-files/{id}/download`: `text/plain`, header
     `Content-Disposition: attachment; filename="<fileName>"`, audit
     `sif.downloaded`.
-  - `GET /v1/audit-events?from&limit` (newest first, limit 1..200,
+  - `GET /v1/audit-events?before&limit` (newest first, limit 1..200,
     default 50) and `GET /v1/audit-events/verify`.
   - `main.ts`: reads `DATABASE_URL`, `PAYROLL_MASTER_KEY` (base64, 32
     bytes; refuse to start with exit code 1 and message
@@ -886,11 +889,12 @@ contains `"7777.77"` or `"AE0703"`.
 
 `main.test.ts`: `loadConfig({})` throws with the master-key message;
 `loadConfig` with a 16-byte key throws; a valid env returns
-`{ port: 8787 }` by default.
+`port: 8787` by default and `migrateUrl` from `MIGRATE_DATABASE_URL`.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/api test`. Expected: FAIL.
-- [ ] **Step 3: Implement** the files above; extend `leak.test.ts`
-  `MAY_SEE_SENSITIVE` for owner and hr on SIF download only.
+- [ ] **Step 3: Implement** the files above; extend `seed.ts` with
+  `seedSif` and the leak test's `mayView` with owner and hr on SIF
+  routes (nobody else).
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS. Then
   `PAYROLL_MASTER_KEY=$(node -e "console.log(require('crypto')
   .randomBytes(32).toString('base64'))") DATABASE_URL=<local> pnpm
@@ -980,7 +984,8 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`.
     into `dist/`), not committed,** because the 80-character line check
     covers committed JSON. Cost: none; Plan 4 imports the schemas.
 21. **Leave and attendance are in M1 here** although design section 7
-    puts them in M2: the owner's brief for Plan 3 asks for them.
+    puts them in M2: the owner's brief for Plan 3 asks for them. Cost:
+    one extra task of build time (Task 6); nothing else depends on it.
 22. **Deferred, each with its cost:** external pen test (required before
     any real employee data, M1 exit); KMS, key rotation and UAE-region
     hosting; GPSSA contributions (unsourced; design says M1); salary
