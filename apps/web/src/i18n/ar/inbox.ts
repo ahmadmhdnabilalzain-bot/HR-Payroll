@@ -5,6 +5,11 @@ import type { ArOf } from "../types";
 
 export const inbox: ArOf<typeof en> = {
   todo: "المهام",
+  signDocs: { zero: "وقّع {count} مستندات", one: "وقّع مستندًا",
+    two: "وقّع مستندين",
+    few: "وقّع {count} مستندات", many: "وقّع {count} مستندًا",
+    other: "وقّع {count} مستند" },
+  signWait: "بانتظار توقيعك",
   allTasks: "كل المهام",
   tasksTitle: "المهام",
   tasksLede: "ما يجب إنهاؤه في التعيين والمغادرة والمستندات.",

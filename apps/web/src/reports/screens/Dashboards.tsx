@@ -14,11 +14,10 @@ import {
   execTiles,
   hrTiles,
   topSlices,
-  trendBars,
 } from "../dash/model";
 import { Panel, useIssuePhrase, useIssueWords } from "../dash/Panel";
 import { Tiles } from "../dash/Tiles";
-import { TrendChart } from "../dash/TrendChart";
+import { ChangeBars } from "../dash/ChangeBars";
 import s from "../dash/dash.module.css";
 import { plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
@@ -140,12 +139,12 @@ export function DashboardExec() {
           gross: run.explain["run:gross"],
           paid: run.explain["run:people"] }} />
       <div className={s.panels}>
-        <Panel id="dash-trend" wide title="Gross pay by month"
-          note={`${src.months[0]!.label.slice(0, 3)} to ` +
-            `${now.label}, from zero`}>
-          <TrendChart label={"Gross pay by month, January to October; " +
-            "September paid, October " + runWord.toLowerCase()}
-          bars={trendBars(src, runWord)} />
+        <Panel id="dash-trend" wide title="Gross pay, month on month"
+          note={`Change against the month before, ${src.months[1]!.label
+            .slice(0, 3)} to ${now.label}`}>
+          <ChangeBars months={src.months} label={"Change in gross pay " +
+            "against the month before, February to October; October " +
+            runWord.toLowerCase()} />
         </Panel>
         <Panel id="dash-cost" wide title="Cost by department"
           note={`Gross pay, ${now.label}`}>

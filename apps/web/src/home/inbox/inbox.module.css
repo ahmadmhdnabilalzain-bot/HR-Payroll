@@ -266,3 +266,30 @@ a.noteTitle:active {
 .act {
   min-block-size: 44px;
 }
+
+/* The To do list is one inset group: a surface, a hairline between
+ * rows, none after the last. */
+.todo .list {
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.todo .list > .row:last-child {
+  border-block-end: 0;
+}
+
+.signRow {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.todo .head {
+  border-block-end: 0;
+}

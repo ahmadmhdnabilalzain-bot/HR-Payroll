@@ -14,7 +14,7 @@ import s from "./NetTrend.module.css";
 const W = 400;
 const H = 80;
 const PAD_X = 10;
-const PAD_Y = 28;
+const PAD_Y = 22;
 /** People named beside the change: the biggest movers by net. */
 const DRIVERS = 3;
 
@@ -35,8 +35,8 @@ function pointsOf(runs: PastRunView[]): Pt[] {
   const lo = Math.min(...nets);
   const hi = Math.max(...nets);
   const span = Math.max(hi - lo, 1);
-  const top = hi + span * 0.25;
-  const bottom = lo - span * 1.25;
+  const top = hi + span * 0.1;
+  const bottom = lo - span * 0.1;
   const step = (W - PAD_X * 2) / Math.max(runs.length - 1, 1);
   return nets.map((n, i) => ({ x: PAD_X + step * i,
     y: PAD_Y + ((top - n) / (top - bottom)) * (H - PAD_Y * 2) }));
@@ -47,7 +47,7 @@ const line = (pts: Pt[]): string =>
     `${p.y.toFixed(1)}`).join(" ");
 
 /**
- * Net pay June to October as a small area chart, drawn from the pay
+ * Net pay June to October as a small line chart, drawn from the pay
  * package's trend (the same runs as Pay, past runs), with the change
  * against September and the people who moved it most, from the same
  * run's per-person changes (they add up to the change exactly).
@@ -70,8 +70,6 @@ export function NetTrend() {
     Number(abs(b.change) - abs(a.change))).slice(0, DRIVERS);
   const solid = pts.slice(0, Math.max(paid, 1));
   const tail = pts.slice(Math.max(paid - 1, 0));
-  const area = `${line(pts)} L${pts.at(-1)!.x.toFixed(1)} ${H} ` +
-    `L${pts[0]!.x.toFixed(1)} ${H} Z`;
   return (
     <section className={s.trend} aria-labelledby="trend-title">
       <div className={s.head}>
@@ -84,7 +82,6 @@ export function NetTrend() {
       <figure className={s.figure}>
         <svg ref={box} className={s.chart} viewBox={`0 0 ${W} ${H}`}
           aria-hidden="true" focusable="false">
-          <path className={s.area} d={area} data-draw="area" />
           <path className={s.line} d={line(solid)} pathLength={1}
             data-draw="line" />
           {tail.length > 1 && (

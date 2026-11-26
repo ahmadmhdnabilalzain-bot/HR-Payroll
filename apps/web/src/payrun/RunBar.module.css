@@ -295,3 +295,10 @@
     min-block-size: 44px;
   }
 }
+
+.waiting {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}

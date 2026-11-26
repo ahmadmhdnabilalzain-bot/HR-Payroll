@@ -83,13 +83,12 @@ test("new hire registered, pack appears, signed on a phone, HR sees it",
 test("the employee's Documents to sign and the To sign count on Home",
   async ({ page }) => {
     await page.goto("/#/home");
-    await expect(page.getByRole("heading", { name: /^To sign: \d+/ }))
+    await expect(page.getByRole("link", { name: /^Sign \d+ document/ }))
       .toBeVisible();
     await roleAs(page, "Employee");
-    await expect(page.getByRole("heading", { name: /^To sign: \d+/ }))
+    await expect(page.getByRole("link", { name: /^Sign \d+ document/ }))
       .toBeVisible();
-    await page.getByRole("link", { name: "Documents to sign" }).first()
-      .click();
+    await page.getByRole("link", { name: /^Sign \d+ document/ }).click();
     await expect(page.getByRole("heading", { level: 1,
       name: "Documents to sign" })).toBeVisible();
     await clean(page);

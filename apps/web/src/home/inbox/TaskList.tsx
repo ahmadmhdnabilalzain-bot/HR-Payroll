@@ -4,6 +4,8 @@ import type { MessageKey } from "../../i18n/t";
 import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../../ui/button.module.css";
 import { useToast } from "../../ui/Toast";
+import { Icon } from "../../ui/Icon";
+import { useToSign } from "../../people/esign/ToSignCard";
 import { inboxTasks, type InboxTask, type TaskTone } from "./model";
 import s from "./inbox.module.css";
 
@@ -55,8 +57,10 @@ export function TaskList(p: { limit: number }) {
   const all = inboxTasks(data, state);
   const open = all.filter((x) => !x.done || x.doneHere);
   const shown = open.slice(0, p.limit);
+  const sign = useToSign();
   return (
-    <section className={s.panel} aria-labelledby="todo-title">
+    <section className={`${s.panel} ${s.todo}`}
+      aria-labelledby="todo-title">
       <header className={s.head}>
         <h2 id="todo-title" className={s.title}>{t("inbox.todo")}</h2>
         {all.length > shown.length && (
@@ -65,9 +69,22 @@ export function TaskList(p: { limit: number }) {
           </a>
         )}
       </header>
-      {shown.length === 0 ? <p className={s.empty}>{t("inbox.tasksEmpty")}</p>
+      {shown.length === 0 && sign.n === 0
+        ? <p className={s.empty}>{t("inbox.tasksEmpty")}</p>
         : (
           <ul className={s.list}>
+            {sign.n > 0 && (
+              <li className={s.row}>
+                <a className={s.signRow} href={sign.href}>
+                  <span className={s.main}>
+                    <span className={s.what}>
+                      {t("inbox.signDocs", { count: sign.n })}</span>
+                    <span className={s.meta}>{t("inbox.signWait")}</span>
+                  </span>
+                  <Icon name="chevronEnd" size={18} />
+                </a>
+              </li>
+            )}
             {shown.map((x) => (
               <li key={x.id} className={s.row} data-done={x.done}>
                 <div className={s.main}>

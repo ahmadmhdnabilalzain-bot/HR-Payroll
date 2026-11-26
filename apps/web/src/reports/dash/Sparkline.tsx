@@ -16,8 +16,8 @@ export function sparkScale(series: number[], compare?: number) {
   const lo = Math.min(...all);
   const hi = Math.max(...all);
   const span = hi - lo || Math.max(Math.abs(hi), 1);
-  const top = hi + span * 0.15;
-  const bottom = lo - span * 0.15;
+  const top = hi + span * 0.1;
+  const bottom = lo - span * 0.1;
   const y = (v: number): number =>
     PAD + ((top - v) / (top - bottom)) * (H - PAD * 2);
   const step = (W - PAD * 2) / Math.max(series.length - 1, 1);

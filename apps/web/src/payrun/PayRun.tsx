@@ -76,8 +76,9 @@ function RunSteps(p: ViewProps) {
           {step === "pay" && <PayStep />}
         </Suspense>
       </div>
+      {prev !== undefined && (
       <nav className={s.stepNav} aria-label={t("payrun.stepNav")}>
-        {prev !== undefined ? (
+        {(
           <a href={hrefOf("pay-run", prev)} className={s.navBack}
             onClick={(e) => {
               e.preventDefault();
@@ -86,8 +87,9 @@ function RunSteps(p: ViewProps) {
             <span className={s.flip}><Icon name="arrowEnd" /></span>
             {t("payrun.back")}
           </a>
-        ) : <span />}
+        )}
       </nav>
+      )}
       <Footnote className={s.footLine} />
     </div>
     </>

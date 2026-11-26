@@ -33,7 +33,7 @@ test("executive-dashboard-tiles-chart-and-masking", async ({ page },
   await page.evaluate(() => { location.hash = "#/reports/dashboard-exec"; });
   const tiles = page.getByRole("list", { name: "Key figures" });
   await expect(tiles.getByText("AED 933,730.94")).toBeVisible();
-  await expect(page.getByRole("img", { name: /Gross pay by month/ }))
+  await expect(page.getByRole("img", { name: /Change in gross pay/ }))
     .toBeVisible();
   await noAxe(page);
   if (info.project.name === "phone") return;
@@ -42,7 +42,7 @@ test("executive-dashboard-tiles-chart-and-masking", async ({ page },
   await noAxe(page);
   await page.getByRole("button", { name: /Hide amounts/i }).first().click();
   await expect(tiles.getByText(/933,730/)).toHaveCount(0);
-  await expect(page.getByRole("img", { name: /Gross pay by month/ })
+  await expect(page.getByRole("img", { name: /Change in gross pay/ })
     .getByText(/\dk$/)).toHaveCount(0);
 });
 

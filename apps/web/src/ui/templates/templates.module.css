@@ -1750,3 +1750,11 @@ li + li.actRow > .row {
   block-size: 100%;
   animation-duration: 280ms;
 }
+
+/* The axis break: two slanted gaps cut through each total bar near its
+ * start, saying the bar does not begin at zero. */
+.axisBreak {
+  stroke: var(--color-surface);
+  stroke-width: 3;
+  fill: none;
+}

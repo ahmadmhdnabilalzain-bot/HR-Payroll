@@ -3,6 +3,7 @@ import { useRunApproval } from "../demo/actions";
 import { runApprovalId } from "../demo/derive";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
+import { beforeApproval } from "../reports/dash/model";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth, formatMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -174,6 +175,33 @@ function Primary(p: { step: StepId; go: Go }) {
     );
   }
   const next = STEPS[STEPS.indexOf(p.step) + 1] ?? "approve";
+  if (p.step === "fix") return <FixAction go={p.go} next={next} />;
+  return <Continue go={p.go} next={next} />;
+}
+
+/**
+ * Fix: while anything stops pay, Sign off cannot be opened, so the
+ * header says so (a disabled button with the reason) instead of a live
+ * black "Continue". The count is the shared beforeApproval().
+ */
+function FixAction(p: { go: Go; next: StepId }) {
+  const { t } = useLocale();
+  const { data, state } = useDemo();
+  const { stops } = beforeApproval(data, state);
+  if (stops === 0) return <Continue go={p.go} next={p.next} />;
+  const full = t("payrun.fixFirst", { count: stops });
+  return (
+    <button type="button" className={`${b.btn} ${b.secondary} ${s.act}`}
+      disabled aria-label={full}>
+      <Label full={full}
+        short={t("payrun.actFixFirst", { count: stops })} />
+    </button>
+  );
+}
+
+function Continue(p: { go: Go; next: StepId }) {
+  const { t } = useLocale();
+  const next = p.next;
   const full = t("payrun.continueTo", { step: t(STEP_LABEL[next]) });
   return (
     <a href={hrefOf("pay-run", next)} className={btn} aria-label={full}
@@ -192,7 +220,7 @@ function Primary(p: { step: StepId; go: Go }) {
  * reason it is not open yet is said on the page, under the decision.
  */
 function ApproveAction(p: { go: Go }) {
-  const { t } = useLocale();
+  const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const a = useRunApproval();
   const id = runApprovalId(data);
@@ -211,6 +239,14 @@ function ApproveAction(p: { go: Go }) {
     );
   }
   if (verdict === "decline") return null;
+  if (!a.isChecker) {
+    const who = data.employee(data.runPeople().checkerId).name[lang];
+    return (
+      <p className={s.waiting}>
+        {t("payrun.waitingFor", { name: who })}
+      </p>
+    );
+  }
   const full = t("payrun.approveBtn");
   return (
     <button type="button" className={btn} disabled={!a.canDecide}

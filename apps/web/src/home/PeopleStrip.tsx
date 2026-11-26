@@ -88,17 +88,23 @@ function useOpen() {
  */
 function Card(p: { href: string; label: string; value: number;
   children: ReactNode; onClick?(e: MouseEvent): void;
-  why?: Explanation | undefined }) {
+  why?: Explanation | undefined;
+  /** Said instead of a 0 when there is nothing to count. */
+  none?: string | undefined }) {
   const n = useTweenedNumber(p.value);
   return (
     <li>
       <div className={s.card}>
         <span className={s.head}>
-          <span className={`${s.value} tabular`}>
-            <Explainable explanation={p.why} className={s.why}>
-              {n}
-            </Explainable>
-          </span>
+          {p.none !== undefined && p.value === 0
+            ? <span className={s.none}>{p.none}</span>
+            : (
+              <span className={`${s.value} tabular`}>
+                <Explainable explanation={p.why} className={s.why}>
+                  {n}
+                </Explainable>
+              </span>
+            )}
           <a className={s.label} href={p.href} onClick={p.onClick}>
             {p.label}</a>
         </span>
@@ -144,8 +150,8 @@ function LeaveWeek() {
     { timeZone: "UTC", weekday: "narrow" });
   return (
     <Card href={hrefOf("time-off")} value={people.size}
-      label={t("home.cardLeave")}>
-      <span className={s.week} aria-hidden="true">
+      label={t("home.cardLeave")} none={t("home.nobodyOff")}>
+      <span className={s.week} aria-hidden="true" hidden={people.size === 0}>
         {days.map((d) => (
           <span key={d.date} className={s.day}
             data-weekend={[0, 6].includes(new Date(`${d.date}T00:00:00Z`)

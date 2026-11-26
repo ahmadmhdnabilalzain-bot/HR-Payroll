@@ -226,3 +226,14 @@
     scroll-snap-align: start;
   }
 }
+
+.none {
+  font-size: var(--text-xl);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.week[hidden] {
+  display: none;
+}

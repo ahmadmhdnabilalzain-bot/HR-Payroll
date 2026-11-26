@@ -1,6 +1,8 @@
 /** Home's inbox, notifications, notices and the IT Home (WP10). */
 export const inbox = {
   todo: "To do",
+  signDocs: { one: "Sign {count} document", other: "Sign {count} documents" },
+  signWait: "Waiting for your signature",
   allTasks: "All tasks",
   tasksTitle: "Tasks",
   tasksLede: "Things to finish, from onboarding, leaving and documents.",
