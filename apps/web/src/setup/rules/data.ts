@@ -91,6 +91,23 @@ export interface RuleRow {
   sourceUrl: string | null;
 }
 
+const STRINGS: Record<string, string> = {
+  "iso-monday": "Monday to Sunday",
+  "calendar-year": "January to December",
+  "calendar-days": "By calendar days",
+  "earned-wage": "Wage earned in the month",
+  "extra-day-wage-plus-premium": "A day's wage plus the extra",
+  "clamped-months-minus-1-day": "Months added, less one day",
+  "clamp-to-last-day-of-month": "Last day of the month",
+  "recurring-monthly-total": "Recurring monthly total",
+  "last-working-date": "Last working day",
+  "day-after-notice": "Day after notice",
+  "gpssa,court-debt,overpayment,violation,damage,scheme,loan":
+    "Pension, court debt, overpayment, violation, damage, scheme, loan",
+  basic: "Basic wage",
+  wage: "Wage (basic plus cash allowances)",
+  stricter: "The stricter limit",
+};
 const WINDOW = /^\d\d:\d\d-\d\d:\d\d$/;
 
 function clock12(hhmm: string): string {
@@ -123,6 +140,8 @@ export function valueWords(key: string, v: ParamValue | null): string {
       const [a = "", b = ""] = v.split("-");
       return `${clock12(a)} to ${clock12(b)}`;
     }
+    const said = STRINGS[v];
+    if (said !== undefined) return said;
     if (v === "HALF_UP") return "Half up";
     if (v === "DOWN") return "Down";
     return sentence(v.replace(/[-_,]/g, " ").trim());
