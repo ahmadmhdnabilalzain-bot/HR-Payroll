@@ -1,13 +1,20 @@
 import { PRODUCT_NAME } from "../brand";
-import { hrefOf } from "../demo/route";
-import { useDemo, type Section } from "../demo/state";
+import { useEffect, useRef, useState } from "react";
+import { hrefOf, navigate, type Route } from "../demo/route";
+import { useDemo } from "../demo/state";
 import { showArabic } from "../demo/flags";
-import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useTheme } from "../theme/ThemeProvider";
-import { Icon, type IconName } from "../ui/Icon";
-import { VIEWS } from "../views";
-import { NAV_ITEMS } from "./nav";
+import {
+  barFor,
+  firstRoute,
+  WORD,
+  WORD_ICON,
+  wordOfRoute,
+} from "../nav/registry";
+import type { SectionId } from "../nav/types";
+import { Icon } from "../ui/Icon";
+import { SectionPanel } from "./SectionPanel";
 import { RoleMenu } from "./RoleMenu";
 import { Wordmark } from "./Wordmark";
 import s from "./TopBar.module.css";
@@ -21,7 +28,7 @@ export function Ribbon() {
   );
 }
 
-export function TopBar(p: { section: Section; onSearch(): void }) {
+export function TopBar(p: { route: Route; onSearch(): void }) {
   const { lang, t } = useLocale();
   const { data } = useDemo();
   return (
@@ -31,7 +38,7 @@ export function TopBar(p: { section: Section; onSearch(): void }) {
         <a className={s.brand} href={hrefOf("home")}>
           <Wordmark label={PRODUCT_NAME[lang]} />
         </a>
-        <Nav section={p.section} onSearch={p.onSearch} />
+        <Words route={p.route} />
         <div className={s.tools}>
           <button type="button" className={s.search} onClick={p.onSearch}
             title={t("shell.searchHint")}
@@ -51,24 +58,78 @@ export function TopBar(p: { section: Section; onSearch(): void }) {
   );
 }
 
-function Nav(p: { section: Section; onSearch(): void }) {
+/**
+ * The bar's words (navigation map, section 1). Home is a link; every
+ * other word opens its panel, and a second click goes straight to the
+ * word's first area. The words come from the registry, per role.
+ */
+function Words(p: { route: Route }) {
   const { t } = useLocale();
+  const { data, state } = useDemo();
+  const [open, setOpen] = useState<SectionId | null>(null);
+  const btns = useRef(new Map<SectionId, HTMLButtonElement>());
+  const c = { data, state };
+  const here = wordOfRoute(state.role, p.route, c);
+  useEffect(() => setOpen(null), [p.route, state.role]);
   return (
     <nav className={s.nav} aria-label={t("shell.sections")}>
-      {NAV_ITEMS.filter(([id]) => VIEWS[id] !== undefined).map(([id, key,
-        icon]) => (
-        <a key={id} href={hrefOf(id)} className={s.navItem}
-          data-phone={id === "reports" ? "no" : undefined}
-          aria-current={p.section === id ? "page" : undefined}>
-          <Icon name={icon} size={20} />
-          <span>{t(key)}</span>
+      {barFor(state.role).map((w) => w === "home" ? (
+        <a key={w} href={hrefOf("home")} className={s.navItem}
+          aria-current={here === "home" ? "page" : undefined}>
+          {t(WORD[w])}
+        </a>
+      ) : (
+        <button key={w} type="button" className={s.navItem}
+          ref={(el) => {
+            if (el !== null) btns.current.set(w, el);
+          }}
+          aria-expanded={open === w} aria-controls={`panel-${w}`}
+          aria-current={here === w ? "page" : undefined}
+          onClick={() => {
+            if (open !== w) return setOpen(w);
+            const r = firstRoute(state.role, w, c);
+            setOpen(null);
+            navigate(r.section, ...(r.rest ?? []));
+          }}>
+          {t(WORD[w])}
+        </button>
+      ))}
+      {open !== null && (
+        <SectionPanel section={open} label={t(WORD[open])}
+          anchor={btns.current.get(open) ?? null}
+          onClose={() => setOpen(null)} />
+      )}
+    </nav>
+  );
+}
+
+/**
+ * The phone bar: four tabs (Home and the next three words), each
+ * opening its section page; "More" holds the rest. Search sits in the
+ * header. The count of tabs never changes during a session.
+ */
+export function PhoneTabs(p: { route: Route }) {
+  const { t } = useLocale();
+  const { data, state } = useDemo();
+  const words = barFor(state.role);
+  const here = p.route.section === "s" ? (p.route.rest[0] ?? "more")
+    : wordOfRoute(state.role, p.route, { data, state });
+  return (
+    <nav className={s.tabs} aria-label={t("shell.sections")}>
+      {words.slice(0, 4).map((w) => (
+        <a key={w} className={s.tab} href={w === "home" ? hrefOf("home")
+          : hrefOf("s", w)} aria-current={here === w ? "page" : undefined}>
+          <Icon name={WORD_ICON[w]} size={22} />
+          <span>{t(WORD[w])}</span>
         </a>
       ))}
-      <button type="button" className={`${s.navItem} ${s.navSearch}`}
-        onClick={p.onSearch}>
-        <Icon name="search" size={20} />
-        <span>{t("shell.search")}</span>
-      </button>
+      {words.length > 4 && (
+        <a className={s.tab} href={hrefOf("s")}
+          aria-current={here === "more" ? "page" : undefined}>
+          <Icon name="more" size={22} />
+          <span>{t("shell.navMore")}</span>
+        </a>
+      )}
     </nav>
   );
 }

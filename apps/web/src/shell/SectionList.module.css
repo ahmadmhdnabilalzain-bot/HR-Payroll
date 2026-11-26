@@ -1,0 +1,104 @@
+.groups {
+  display: grid;
+  gap: var(--space-5) var(--space-6);
+}
+
+.groups[data-variant="panel"] {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.groups[data-variant="page"] {
+  gap: var(--space-5);
+}
+
+.group {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.heading {
+  padding-inline: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+:lang(ar) .heading {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.areas {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.area {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 36px;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.area:hover,
+.area:focus-visible {
+  background: var(--color-surface-2);
+}
+
+.label {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.count[data-stop="true"] {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.area > svg {
+  color: var(--color-text-faint);
+}
+
+/* The phone page: grouped inset lists, 48 pt rows, inset rules. */
+.groups[data-variant="page"] .areas {
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.groups[data-variant="page"] .area {
+  min-block-size: 48px;
+  padding-inline: var(--space-4);
+  border-radius: 0;
+}
+
+.groups[data-variant="page"] li + li .area {
+  box-shadow: inset 16px 1px 0 -15px var(--color-divider);
+}
+
+.empty {
+  color: var(--color-text-muted);
+}
+
+@media (pointer: coarse) {
+  .area {
+    min-block-size: 48px;
+  }
+}

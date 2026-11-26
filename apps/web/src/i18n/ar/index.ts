@@ -11,6 +11,7 @@ import { people } from "./people";
 import { reports } from "./reports";
 import { shell } from "./shell";
 import { timeoff } from "./timeoff";
+import { tpl } from "./tpl";
 
 export const ar: ArOf<EnCatalog> = { common, errors, shell, home,
-  people, timeoff, explain, payrun, reports };
+  people, timeoff, explain, payrun, reports, tpl };

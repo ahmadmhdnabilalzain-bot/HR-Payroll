@@ -15,8 +15,9 @@ import {
 
 /** manager and employee: the team view and the self view. */
 export type Role = "hr" | "gm" | "manager" | "employee";
+/** "s": a section's own page of areas (`#/s/people`, the phone tab). */
 export type Section = "home" | "pay-run" | "people" | "time-off" |
-  "reports";
+  "reports" | "setup" | "s";
 
 export type Verdict = "approve" | "decline";
 

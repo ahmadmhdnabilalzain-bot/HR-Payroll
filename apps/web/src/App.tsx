@@ -4,7 +4,7 @@ import { useRoute } from "./demo/route";
 import { useDemo } from "./demo/state";
 import { useLocale } from "./i18n/LocaleProvider";
 import { CommandPalette, usePaletteHotkeys } from "./shell/CommandPalette";
-import { TopBar } from "./shell/TopBar";
+import { PhoneTabs, TopBar } from "./shell/TopBar";
 import { VIEWS } from "./views";
 import s from "./App.module.css";
 
@@ -23,7 +23,7 @@ export function App() {
   }, [arabicShown, lang, setLang]);
   return (
     <>
-      <TopBar section={route.section} onSearch={open} />
+      <TopBar route={route} onSearch={open} />
       <main className={s.main}>
         {lang === "ar" && (
           <p className={s.banner} role="note">
@@ -32,6 +32,7 @@ export function App() {
         )}
         <View key={route.section} rest={route.rest} />
       </main>
+      <PhoneTabs route={route} />
       <CommandPalette open={palette} arabicShown={arabicShown}
         onClose={() => setPalette(false)} />
     </>

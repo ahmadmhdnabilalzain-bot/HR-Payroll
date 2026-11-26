@@ -7,9 +7,10 @@ import { people } from "./people";
 import { reports } from "./reports";
 import { shell } from "./shell";
 import { timeoff } from "./timeoff";
+import { tpl } from "./tpl";
 
 /** The English catalog; the Arabic one is typed from it. */
 export const en = { common, errors, shell, home, people,
-  timeoff, explain, payrun, reports };
+  timeoff, explain, payrun, reports, tpl };
 
 export type EnCatalog = typeof en;

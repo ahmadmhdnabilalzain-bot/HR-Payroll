@@ -74,6 +74,147 @@ are hidden. Never type a figure in a component.
 package. Never write "compliant", "approved", "certified" or
 "guaranteed" (`tests/unit/demo-copy.test.ts`).
 
+## For builders of area packages (WP2 to WP10)
+
+The shell follows `docs/design/2026-11-26-navigation-map.md`. Each
+package owns one folder under `src/` and one registry file
+`src/nav/areas/<package>.ts` (already created, exporting an empty
+`AREAS`). Never edit shared files: `nav/registry.ts`, `nav/groups.ts`,
+`nav/areas/index.ts`, `views.tsx`, `shell/*`, `ui/templates/*`. Ask WP1
+for a new group, route or template change.
+
+**1. Register an area** (`nav/types.ts`, `Area`). Panels, the phone
+section pages and search list only areas whose `status` is `"live"`,
+whose role is allowed and whose route has a view: no dead ends.
+
+```ts
+// src/nav/areas/pay.ts (WP6)
+import type { Area } from "../types";
+export const AREAS: readonly Area[] = [
+  { id: "pay.loans", section: "pay", group: "owed",
+    label: { en: "Loans and advances", ar: "القروض والسلف" },
+    status: "live", archetype: "LF", roles: ["hr", "gm"],
+    route: { section: "pay-run", rest: ["loans"] },
+    count: (c) => loansWaiting(c.data, c.state),  // things waiting
+    keywords: "loan advance instalment" },
+];
+```
+
+- `section`: people, time, pay, reports, setup, requests, me.
+  `group`: an id from `nav/groups.ts` (map section 2).
+- `route`: a hash route. Hash ids stay `pay-run` and `time-off`.
+  Today the views are home, pay-run, people, time-off, reports and s
+  (section pages). A package that needs a new top-level route asks
+  WP1; otherwise it routes under an existing one and reads `rest`
+  (for example `#/people/team/org`, handled inside People).
+- `route` may be a function of `{ data, state }` (for example the
+  viewer's own payslip).
+- `count`: things waiting (map section 2), not totals; 0 or null
+  shows nothing. `stopsPay: true` makes it red (one per panel at most).
+- Bar words per role are fixed in the registry: HR and GM see Home,
+  People, Time, Pay, Reports, Setup; manager and employee see Home,
+  Pay, Time, Requests, Me. A word with no live area is not shown.
+
+**2. Build the screen from a template** (`src/ui/templates`). Strings
+the template shows itself come from the `tpl` catalogue; your own
+labels go in your package's catalogue file or as `Localized` values.
+Money is always `<Money/>` or `formatMoney`; dates via `formatDate`.
+
+**LF, `FilterList`**: lists, queues, ledgers, boards.
+Props: `title`, `lede?`, `columns: { key, label, end?, render(row) }[]`
+(column 0 is the row's name), `rows`, `rowKey(row)`, `searchText?(row)`
+(enables search), `segments?: { id, label, match(row) }[]` (the first
+is selected; each shows its count), `rowHref?(row)`, `empty`,
+`actions?`. Rows are 48 px; on phones two lines.
+
+```tsx
+<FilterList title="Loans and advances" rows={loans}
+  rowKey={(l) => l.id} searchText={(l) => l.name}
+  rowHref={(l) => hrefOf("pay-run", "loans", l.id)}
+  segments={[{ id: "all", label: "All", match: () => true },
+    { id: "due", label: "Due this month", match: (l) => l.due }]}
+  columns={[{ key: "n", label: "Person", render: (l) => l.name },
+    { key: "b", label: "Balance", end: true,
+      render: (l) => <Money value={l.balance} size="sm" /> }]}
+  empty="No loans." />
+```
+
+**RT, `RecordTabs`** (+ `KeyValues`): one record with a summary strip
+of at most three figures, then tabs. Props: `title`, `lede?`, `back?`,
+`stats: { label, value }[]`, `tabs: { id, label, render() }[]`,
+`tab?` and `onTab?` (drive the tab from the route), `actions?`.
+
+```tsx
+<RecordTabs title={p.name} back={{ label: "Loans", href: hrefOf(
+  "pay-run", "loans") }} stats={[{ label: "Balance",
+  value: <Money value={l.balance} /> }]}
+  tabs={[{ id: "terms", label: "Terms", render: () => (
+    <KeyValues items={[{ label: "Instalment",
+      value: <Money value={l.instalment} /> }]} />) }]} />
+```
+
+**FA, `ApprovalForm`**: a side sheet; submit sends a request to the
+approvals inbox with maker and checker named. Props: `open`, `title`,
+`fields: { key, label, kind: text|number|date|select|textarea,
+required?, options?, help?, initial? }[]`, `maker`, `checker`,
+`submitLabel`, `onSubmit(values)` returning an error sentence or null,
+`onClose`. Record the request in the store with your own appended
+action (state.tsx, append only) and add its approval to the inbox the
+way `time-off.ts` does (`sessionApprovals`).
+
+```tsx
+<ApprovalForm open={open} title="Give a loan" maker={hr} checker={gm}
+  submitLabel="Send for approval" onClose={() => setOpen(false)}
+  fields={[{ key: "amount", label: "Amount (AED)", kind: "number",
+    required: true }, { key: "months", label: "Months", kind: "number" }]}
+  onSubmit={(v) => { dispatch({ type: "loan-request", values: v });
+    return null; }} />
+```
+
+**CA, `MonthCalendar`**: people as rows, days as columns, weekends
+shaded. Props: `title`, `lede?`, `month` (`YYYY-MM`), `monthLabel`,
+`rows: { id, label }[]`, `events: { rowId, start, end, tone:
+booked|waiting|holiday|shift, label }[]`, `onMonth?(step)`.
+
+```tsx
+<MonthCalendar title="Rosters" month="2026-10" monthLabel="October 2026"
+  rows={staff.map((x) => ({ id: x.id, label: x.name }))}
+  events={shifts.map((s) => ({ rowId: s.who, start: s.from, end: s.to,
+    tone: "shift", label: s.name }))} />
+```
+
+**RP, `ReportPage`**: title, period, one figure, one table with
+optional bars (per mille of the largest), CSV (formula-safe, BOM) and
+print. Props: `title`, `period`, `figure?`, `columns: { label, end? }[]`,
+`rows: string[][]` (already formatted), `bars?`, `note?`, `csvName`.
+
+```tsx
+<ReportPage title="Loans report" period="October 2026"
+  figure={{ label: "Outstanding", value: <Money value={total} /> }}
+  columns={[{ label: "Person" }, { label: "Balance", end: true }]}
+  rows={loans.map((l) => [l.name, formatMoney(l.balance, lang)])}
+  csvName="loans-2026-10.csv" />
+```
+
+**ST, `SettingsPage`**: grouped settings with an edit sheet and a
+change log. Props: `title`, `lede?`, `groups: { title, items: { key,
+label, value, help?, editable? }[] }[]`, `log: { when, who, what }[]`,
+`onSave?(key, value)` returning an error sentence or null.
+
+```tsx
+<SettingsPage title="Overtime policy"
+  groups={[{ title: "Rates", items: [{ key: "day", label: "Weekday rate",
+    value: "125%", help: "Of the hourly basic wage", editable: true }] }]}
+  log={changes} onSave={(k, v) => { dispatch({ type: "set-rule",
+    key: k, value: v }); return null; }} />
+```
+
+**SF** (step flow) is the Pay run stepper; reuse it through WP6.
+
+**3. Words.** Never "compliant", "approved", "certified" or
+"guaranteed" on screen (tests enforce it). Source statuses stay inside
+the explain panel. Severity words: "Stops pay" and "Check".
+
 ## Decisions (Claude's calls)
 
 - **Shell:** no sidebar. Slim top bar: wordmark, sections with a

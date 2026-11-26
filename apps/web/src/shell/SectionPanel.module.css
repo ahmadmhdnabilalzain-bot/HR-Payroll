@@ -1,0 +1,37 @@
+.panel {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline: 0;
+  z-index: 25;
+  display: flex;
+  justify-content: center;
+  padding-inline: var(--page-pad);
+  pointer-events: none;
+}
+
+.panel > nav {
+  inline-size: min(880px, 100%);
+  max-block-size: calc(100dvh - 140px);
+  margin-block-start: var(--space-2);
+  padding: var(--space-5);
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-pop);
+  pointer-events: auto;
+  transform-origin: top center;
+  animation: sheet var(--dur-base) var(--ease-out);
+}
+
+@keyframes sheet {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+}
+
+@media (max-width: 760px) {
+  .panel {
+    display: none;
+  }
+}

@@ -1,0 +1,24 @@
+.page {
+  display: grid;
+  gap: var(--space-5);
+  max-inline-size: var(--container);
+  margin-inline: auto;
+  padding: var(--space-5) var(--page-pad)
+    calc(var(--space-8) + 40px + env(safe-area-inset-bottom));
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.block {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.word {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}

@@ -6,7 +6,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import type { MessageKey } from "../i18n/t";
 import { useTheme } from "../theme/ThemeProvider";
 import { VIEWS } from "../views";
-import { NAV_ITEMS } from "./nav";
+import { areasFor, routeOf, WORD, WORD_ICON } from "../nav/registry";
 import { Icon } from "../ui/Icon";
 import { commands, matches, type Command, type Group } from "./commands";
 import s from "./CommandPalette.module.css";
@@ -65,8 +65,10 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
     arabicShown: p.arabicShown,
     toggleTheme: () => setPref(resolved === "dark" ? "light" : "dark"),
     toggleLang: () => setLang(lang === "en" ? "ar" : "en"), switchRole,
-    sections: NAV_ITEMS.filter(([id]) => VIEWS[id] !== undefined)
-      .map(([id, key, icon]) => [id, t(key), icon]),
+    areas: areasFor(state.role).map((a) => ({ id: a.id,
+      label: a.label[lang], icon: WORD_ICON[a.section],
+      hint: t(WORD[a.section]), keywords: `${a.label.en} ${a.label.ar} ` +
+        `${a.keywords ?? ""}`, route: routeOf(a, { data, state }) })),
     peopleShown: VIEWS.people !== undefined,
     payRunShown: VIEWS["pay-run"] !== undefined,
     timeOffShown: VIEWS["time-off"] !== undefined, run,

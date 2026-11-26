@@ -73,8 +73,13 @@ button.navItem {
   background: transparent;
 }
 
-.navSearch {
+.navSearch,
+.tabs {
   display: none;
+}
+
+.nav {
+  position: static;
 }
 
 a.navItem:hover {
@@ -340,44 +345,48 @@ a.navItem:hover {
   }
 
   .nav {
-    position: fixed;
-    inset-inline: 0;
-    inset-block-end: 0;
-    z-index: 20;
-    justify-content: space-around;
-    gap: 0;
-    padding: var(--space-1) var(--space-2)
-      calc(var(--space-1) + env(safe-area-inset-bottom));
-    border-block-start: 1px solid var(--color-divider);
-    background: var(--color-bg);
-  }
-
-  .navItem {
-    flex-direction: column;
-    gap: 2px;
-    block-size: auto;
-    min-inline-size: 72px;
-    min-block-size: 52px;
-    padding: var(--space-1);
-    font-size: var(--text-xs);
-  }
-
-  .navItem svg {
-    display: block;
-  }
-
-  .navItem[aria-current="page"] {
-    background: transparent;
-    color: var(--color-accent);
-  }
-
-  .navItem[data-phone="no"],
-  .search {
     display: none;
   }
 
-  .navSearch {
-    display: inline-flex;
+  .search {
+    min-block-size: 40px;
+    padding-inline: var(--space-2);
+    border: 0;
+    background: transparent;
+  }
+
+  /* The floating phone bar: fixed tabs, the same count all session. */
+  .tabs {
+    position: fixed;
+    inset-inline: var(--space-3);
+    inset-block-end: calc(var(--space-3) + env(safe-area-inset-bottom));
+    z-index: 20;
+    display: flex;
+    justify-content: space-around;
+    padding: var(--space-1);
+    border-radius: 32px;
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    box-shadow: var(--shadow-pop);
+    backdrop-filter: blur(20px);
+  }
+
+  .tab {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-block-size: 52px;
+    border-radius: 26px;
+    color: var(--color-text-muted);
+    font-size: var(--text-2xs);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .tab[aria-current="page"] {
+    color: var(--color-accent);
   }
 }
 

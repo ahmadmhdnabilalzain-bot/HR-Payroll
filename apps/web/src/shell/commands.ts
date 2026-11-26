@@ -1,10 +1,10 @@
 import type { DemoData } from "../demo/data/types";
 import { openIssues, pendingApprovals, personOf } from "../demo/derive";
 import { navigate } from "../demo/route";
-import type { Action, DemoState, Role, Section } from "../demo/state";
+import type { Action, DemoState, Role } from "../demo/state";
+import type { AreaRoute } from "../nav/types";
 import { canSeePay, visibleIds } from "../demo/time-off";
 import type { RunApproval } from "../demo/actions";
-import { STEP_LABEL, STEPS } from "../payrun/model";
 import type { MessageKey } from "../i18n/t";
 import type { T } from "../i18n/t";
 import type { Lang } from "../i18n/types";
@@ -34,8 +34,9 @@ export interface Env {
   toggleTheme(): void;
   toggleLang(): void;
   switchRole(role: Role): void;
-  /** Sections that have a view: [id, label, icon]. */
-  sections: [Section, string, IconName][];
+  /** Every reachable area of the registry, for "go to". */
+  areas: { id: string; label: string; hint: string; icon: IconName;
+    keywords: string; route: AreaRoute }[];
   /** True when the People view exists (profiles are searchable). */
   peopleShown: boolean;
   payRunShown: boolean;
@@ -71,9 +72,10 @@ function onHome(e: Env, then: () => void): void {
 
 function actions(e: Env): Command[] {
   const company = e.state.role === "hr" || e.state.role === "gm";
-  const list: Command[] = e.sections.map(([id, label, icon]) => ({
-    id: `go:${id}`, group: "go", label, hint: "", icon,
-    keywords: `go open ${id}`, run: () => navigate(id) }));
+  const list: Command[] = e.areas.map((a) => ({ id: `go:${a.id}`,
+    group: "go", label: a.label, hint: a.hint, icon: a.icon,
+    keywords: `go open ${a.keywords}`,
+    run: () => navigate(a.route.section, ...(a.route.rest ?? [])) }));
   list.push(
     { id: "theme", group: "actions", label: e.t("shell.actTheme"),
       hint: "", icon: "moon", keywords: "dark light theme mode",
@@ -92,12 +94,6 @@ function actions(e: Env): Command[] {
       label: e.t("shell.actApprove", { month: e.month }), hint: "",
       icon: "check", keywords: "approve pay run sign off",
       run: () => e.run.decide("approve") });
-  }
-  if (e.payRunShown && company) {
-    list.push(...STEPS.map((step): Command => ({ id: `step:${step}`,
-      group: "go", label: e.t("shell.actStep", { step: e.t(STEP_LABEL[step]) }),
-      hint: "", icon: "wallet", keywords: `pay run step ${step}`,
-      run: () => navigate("pay-run", step) })));
   }
   if (e.timeOffShown && !company) {
     list.push({ id: "request-leave", group: "actions",
