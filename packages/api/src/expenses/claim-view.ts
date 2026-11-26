@@ -61,16 +61,20 @@ const money = (n: bigint) => toMoney(fils(BigInt(n)));
 /**
  * Who may see a claim, as SQL over `c` (expense_claims) and `e` (the
  * claimant employee): owner and hr ($3); the claimant's user ($2 =
- * the caller's employee id); the creator, the line manager, and any
- * eligible or deciding approver of the claim's requests ($1 = user).
+ * the caller's employee id); the creator; the line manager once the
+ * claim is no longer a draft; an approver ($1 = user) of a step that
+ * was reached (pending or decided) or that they decided themselves.
  */
 export const VISIBLE = `($3::boolean OR c.created_by = $1::uuid
-  OR c.employee_id = $2::uuid OR e.manager_id = $2::uuid
+  OR c.employee_id = $2::uuid
+  OR (e.manager_id = $2::uuid AND c.status <> 'draft')
   OR EXISTS (SELECT 1 FROM approval_requests r JOIN approval_steps s
     ON s.company_id = r.company_id AND s.request_id = r.id
     WHERE r.company_id = c.company_id AND r.subject_type = 'expense-claim'
       AND r.subject_id = c.id
-      AND ($1::uuid = ANY (s.eligible) OR s.decided_by = $1::uuid)))`;
+      AND ((s.status IN ('pending', 'approved', 'rejected', 'returned')
+          AND $1::uuid = ANY (s.eligible))
+        OR s.decided_by = $1::uuid)))`;
 
 export const isPayroll = (ctx: ReqCtx) =>
   ctx.tenant!.role === "owner" || ctx.tenant!.role === "hr";
