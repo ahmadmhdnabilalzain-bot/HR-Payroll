@@ -312,9 +312,17 @@ Law task: fresh per-task review.
     2. `scheduledMinutes`: shift net (`end - start - breakMinutes`);
        `am` or `pm` leave: `floor(net / 2)`; `full` leave, no shift,
        rest or holiday: 0.
-    3. `workedMinutes`: with a shift, no half-day leave and `clocked >
-       breakMinutes`: `clocked - breakMinutes` (rostered break assumed
-       taken, convention); otherwise `clocked`.
+    3. `workedMinutes`: with a shift and no half-day leave: `max(0,
+       clocked - assumed)` where `assumed = max(0, breakMinutes -
+       gaps)` and `gaps` are the unclocked minutes between consecutive
+       merged records inside the shift (the part of the rostered break
+       not already clocked out is assumed taken, convention; review
+       C1: a clocked-out break is not deducted twice and worked never
+       falls as clocked rises); otherwise `clocked`. A half day
+       assumes no break, so a half day worked across the usual break
+       can show up to the break as overtime; it stays a candidate the
+       approver reduces (review M6, kept: halving the break would
+       understate, and approval cannot raise minutes).
     4. `lateMinutes` = `max(0, firstStart - shift.start)` unless leave
        is `am` or `full`; `earlyLeaveMinutes` = `max(0, shift.end -
        lastEnd)` unless leave is `pm` or `full`; both 0 with no shift
@@ -322,18 +330,31 @@ Law task: fresh per-task review.
     5. Rest or holiday: `restDayWorkMinutes = workedMinutes`, overtime
        0. `full` leave with work: overtime 0, flag `WORK_ON_LEAVE_DAY`
        (detail `minutes`).
-    6. Work day with a shift: `overtimeMinutes = max(0, workedMinutes -
-       scheduledMinutes)`; `overtimeNightMinutes = min(overtime,
-       overlapMinutes(outside(worked, [shift.start, shift.end]),
-       nightWindows))`.
-    7. Work day without a shift: limit = `maxNormalMinutesPerDay` minus
-       `ramadanReductionMinutes` when `ramadan`; `overtime = max(0,
-       workedMinutes - limit)`; night = `overlapMinutes(tail(worked,
-       overtime), nightWindows)`.
+    6. Work day with a shift: limit = `maxNormalMinutesPerDay` minus
+       `ramadanReductionMinutes` when `ramadan`; `overtimeMinutes =
+       max(0, workedMinutes - min(scheduledMinutes, limit))` (review
+       I1: hours beyond the legal day count even inside a long shift);
+       `overtimeNightMinutes = min(overtime, overlapMinutes(candidate,
+       nightWindows))` where `candidate` is `outside(worked,
+       [shift.start, shift.end])`, or all of `worked` when `limit <
+       scheduledMinutes`.
+    7. Work day without a shift: same limit; `overtime = max(0,
+       workedMinutes - limit)`; night = `min(overtime,
+       overlapMinutes(worked, nightWindows))` (review M5: the night
+       minutes actually worked count, not only the tail of the day).
+       Overtime in Ramadan as minutes beyond the reduced day is a
+       reading (ER 15(2) states the reduction only); the trace says
+       so (review M2).
     8. Flags: `OVERTIME_DAILY_CAP_EXCEEDED` when overtime >
        `overtimeMaxMinutesPerDay` (detail `minutes`; rule
        `timeOvertimeMaxMinutesPerDay`; overtime is never cut);
-       `MISSED_CLOCK_OUT` when `openRecord` (no rule).
+       `MISSED_CLOCK_OUT` when `openRecord` (no rule). A closed
+       interval longer than 24 hours or outside -1440..2880 is left out
+       of `worked` and gives `LONG_RECORD` (detail `start`, `end`,
+       `minutes`) plus `MISSED_CLOCK_OUT`; it never throws, so a draft
+       timesheet stays readable (review I2). Fractional minutes throw
+       `INVALID_INTERVAL` or `INVALID_SHIFT` (review M7). Minutes
+       assume a fixed UTC+4 day of 1440 minutes (review M8).
     9. Trace: one line per minute field, ids `time.scheduled`,
        `time.worked`, `time.late`, `time.early`, `time.overtime`,
        `time.overtimeNight`, `time.restDayWork`; `rules` carry the
@@ -484,13 +505,22 @@ Law task: fresh per-task review.
     { date: string; halves: number }[]; pendingHalves: number; asOf:
     string }`; `balanceHalves(b): { takenHalves: number;
     carriedUsedHalves: number; expiredHalves: number; availableHalves:
-    number }`: `carriedUsed = min(carried, taken on or before
+    number; flags: TimeFlag[] }`: `carriedUsed = min(carried, taken on or before
     carriedExpiresOn, or all taken when null)`; `expired = carried -
     carriedUsed` when `asOf > carriedExpiresOn`, else 0; `available =
     accrued + carried - expired + adjustments - taken - pending`
-    (carried days are used first; convention).
-  - `carryOverHalves(remainingHalves: number, capHalves: number):
-    number` = `min(max(0, remaining), cap)`.
+    (carried days are used first; convention). Expiry of carried days
+    has no source in the note: when `expired > 0`, flag
+    `CARRIED_LEAVE_EXPIRED` (no rule, detail notes "company policy,
+    not law; unsourced; counsel to confirm"; review I4). Inputs are
+    whole halves (`INVALID_HALVES`; adjustments may be negative).
+  - `carryOverHalves(remainingHalves: number, capHalves: number, p:
+    TimeParams): { carriedHalves; excessHalves; flags }`:
+    `carried = min(max(0, remaining), cap)`, `excess = max(0,
+    remaining) - carried`; an excess gives `UNUSED_LEAVE_NOT_CARRIED`
+    (rule `timeCarryOverMaxShareBps`; detail notes that ER 19(1)
+    offers cash as the alternative and forfeiture is unsourced), so
+    nothing is dropped silently (review I4).
   - `LeavePolicyFacts { payrollKind: "annual" | "sick" | "maternity" |
     "unpaid" | "other-paid"; annualDays: number | null; accrual;
     dayCount: DayBasis; carryOverMaxDays: number | null }`;
@@ -498,7 +528,8 @@ Law task: fresh per-task review.
     codes: `ANNUAL_BELOW_STATUTORY` (annual, calendar, `annualDays <
     annualLeaveMinDays`), `ANNUAL_BASIS_NOT_COMPARED` (annual, working
     basis; the law's 30 days are not compared with working days),
-    `MONTHLY_BELOW_FIRST_YEAR_RATE` (annual, monthly, `annualDays / 12 <
+    `MONTHLY_BELOW_FIRST_YEAR_RATE` (annual, calendar basis only as
+    for the 30 days (review M3), monthly, `annualDays / 12 <
     firstYearDaysPerMonth`, compared as `annualDays < 12 * that`),
     `CARRY_OVER_ABOVE_HALF` (`carryOverMaxDays * 10000 > annualDays *
     carryOverMaxShareBps`; ER 19(1) speaks of the worker's carry
@@ -537,8 +568,9 @@ Law task: fresh per-task review.
   expiring `2026-03-31`, taken 4 on `2026-02-10` and 8 on
   `2026-05-01`, pending 2: at `2026-06-01` carriedUsed 4, expired 6,
   available 50; at `2026-03-01` expired 0, available 56.
-- `carry_over_cap`: `carryOverHalves(-4, 10)` 0, `(7, 10)` 7, `(30,
-  10)` 10.
+- `carry_over_cap`: `carryOverHalves(-4, 10, p).carriedHalves` 0,
+  `(7, 10)` 7, `(30, 10)` 10 with `excessHalves` 20 and the
+  `UNUSED_LEAVE_NOT_CARRIED` warning.
 - `policy_warnings`: annual calendar 22 days gives
   `ANNUAL_BELOW_STATUTORY` with rule key `timeAnnualLeaveMinDays`;
   annual working 22 gives `ANNUAL_BASIS_NOT_COMPARED` only; monthly
@@ -1413,7 +1445,9 @@ of `src/wfh/`; `pay-inputs.ts` has no `Date`, `deps`, `tx` or `./db`.
     CONFLICT DO NOTHING`; when the row already existed it returns the
     stored rows with `alreadyRun: true`; else for every employee and
     type with `carryOverMaxDays` it stores `carryOverHalves(available
-    at 31 December, cap)` with `expiresOn` = last day of month
+    at 31 December, cap, p).carriedHalves`, and stores the
+    `excessHalves` with its warning for HR (cash or agreement; review
+    I4), with `expiresOn` = last day of month
     `carryOverExpiresMonths` of the next year (or `null`). Carried
     halves feed `policyBalance` of the next year.
   - Audit: `leave.policy.updated` (`data: { leaveTypeId, changed }`),
@@ -2298,15 +2332,21 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`.
    with a per-birth grant. Cost: a
    convention that counsel reads differently changes flags and
    balances; one pack value or function changes.
-4. **Overtime candidate = worked beyond the shift's net minutes, or
-   beyond the daily normal limit (minus the Ramadan reduction) when no
-   shift is published;** night minutes come from the worked time
-   outside the shift, or the tail of the day without a shift. Work on a
-   rest day or holiday is a whole day of rest-day work, not overtime,
-   as Plan 5 models it. The daily cap is a flag and never cuts minutes
-   (Plan 5 Ruling 8). Cost: a company paying overtime only beyond 8
-   hours even on longer shifts sees more candidates; reviewers approve
-   fewer.
+4. **Overtime candidate = worked beyond the shift's net minutes or
+   beyond the daily normal limit (minus the Ramadan reduction),
+   whichever is lower; beyond the limit when no shift is published**
+   (amended after the engine review, I1: a 10-hour shift or an 8-hour
+   Ramadan shift worked exactly gives 120 candidate minutes, since Art
+   17(1) and ER 15(2) set the normal day); night minutes come from the
+   candidate time's minutes inside the night window: the worked time
+   outside the shift, or all worked time when the limit binds or there
+   is no shift (M5). Work on a rest day or holiday is a whole day of
+   rest-day work, not overtime, as Plan 5 models it. The daily cap is
+   a flag and never cuts minutes (Plan 5 Ruling 8). Cost: a company
+   paying overtime only beyond 8 hours even on longer shifts sees more
+   candidates; a company with long rostered shifts also sees the hours
+   beyond the legal day as candidates; reviewers approve fewer. A
+   candidate never pays by itself, so this cannot overpay.
 5. **Registry and numbering:** `TIME_ROUTES` in `routes-time.ts`, 66
    routes, tests assert membership in `ROUTES` and Plan 9's own count,
    never a total, so Plans 6, 7 and 8 can merge in any order (rename

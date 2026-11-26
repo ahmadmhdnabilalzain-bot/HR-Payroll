@@ -61,4 +61,73 @@ export const errors = {
   ACCOUNT_LOCKED: "This account is locked after too many attempts. Try " +
     "again later.",
   INTERNAL: "The server had a problem. Try again.",
+  INVITE_NOT_FOUND: "This invite was not found. Ask for a new one.",
+  LAST_OWNER: "The company needs at least one owner. Make someone else " +
+    "an owner first.",
+  RUN_INPUTS_CHANGED: "Salaries or unpaid leave changed since this " +
+    "draft was made. Void it and create the pay run again.",
+  SALARY_MISSING: "This person has no salary set.",
+  PAYLOAD_TOO_LARGE: "The request was too large.",
+  EMPLOYEE_ALREADY_LINKED: "This person is already linked to a user " +
+    "account.",
+  MANAGER_CYCLE: "A person cannot report to someone who reports to them.",
+  EMPLOYEE_DATA_UNREADABLE: "Some saved employee data could not be " +
+    "read. Ask support to check it.",
+  RUN_EMPTY: "This pay run has no employees. Add people first.",
+  // Plan 6: approvals, receipts and expense claims.
+  RECEIPT_BASE64_INVALID: "The receipt file could not be read. Try " +
+    "uploading it again.",
+  NOT_AN_APPROVER: "You are not an approver for this step.",
+  APPROVER_NEEDED_LATER: "You are needed for a later step, so someone " +
+    "else must approve this one.",
+  APPROVAL_NOT_PENDING: "This approval is already closed.",
+  APPROVAL_STEP_CHANGED: "This approval moved on meanwhile. Refresh and " +
+    "check it again.",
+  CHAIN_VERSION_CONFLICT: "Someone else changed the approval chain. " +
+    "Refresh and try again.",
+  CATEGORY_CODE_TAKEN: "An expense category already uses this code.",
+  POLICY_VERSION_CONFLICT: "Someone else changed the expense policy. " +
+    "Refresh and try again.",
+  CLAIM_NOT_EDITABLE: "This claim can no longer be changed.",
+  CLAIM_NOT_CANCELLABLE: "This claim can no longer be cancelled.",
+  RECEIPT_TOO_LARGE: "The receipt is larger than 5 MB.",
+  RECEIPT_TYPE_NOT_ALLOWED: "Receipts must be JPEG, PNG or PDF files.",
+  NO_ELIGIBLE_APPROVER: "Nobody else can approve this. Add another " +
+    "owner, HR user or approver first.",
+  CHAIN_INVALID: "The approval chain is not valid. Check the tiers and " +
+    "approvers.",
+  RECEIPT_TYPE_MISMATCH: "The file type does not match its contents.",
+  POLICY_INVALID: "The expense policy is not valid. Check the marked " +
+    "rows.",
+  CANCEL_NOTE_REQUIRED: "Add a note to cancel an approved claim.",
+  CLAIM_PROBLEMS: "The claim has problems. Fix the marked items.",
+  EXCLUDED_CLAIM_INVALID: "Only approved claims waiting for payment can " +
+    "be left out of a run.",
+  // Plan 8 (hiring, onboarding, tasks, exits, goals).
+  TASK_TRANSITION: "This task cannot move to that status.",
+  REQUISITION_NOT_OPEN: "This requisition is not open.",
+  CANDIDATE_EXISTS: "A candidate with this email already exists.",
+  APPLICATION_EXISTS: "This candidate already applied here.",
+  APPLICATION_CLOSED: "This application is closed.",
+  SCORECARD_EXISTS: "You already sent a scorecard for this.",
+  APPLICATION_NOT_AT_OFFER: "Move the application to the offer stage.",
+  OFFER_EXISTS: "This application already has a live offer.",
+  OFFER_NOT_APPROVED: "The offer is not approved yet.",
+  OFFER_EXPIRED: "The offer expired before this response date.",
+  OFFER_NOT_WITHDRAWABLE: "This offer can no longer be withdrawn.",
+  OFFER_NOT_ACCEPTED: "Only an accepted offer can become a hire.",
+  EXIT_EXISTS: "This person already has an open exit.",
+  EXIT_NOT_APPROVED: "Approve the exit first.",
+  EXIT_NOT_OPEN: "This exit is no longer open.",
+  EXIT_ACCESS_REVOKED: "Access was revoked; the exit stays.",
+  SETTLEMENT_REQUIRED: "Compute the final settlement first.",
+  EXIT_BEFORE_LAST_DAY: "Close the exit from the last working day.",
+  CLEARANCE_OPEN: "Some clearance tasks are still open.",
+  ACCESS_NOT_REVOKED: "Revoke the person's access first.",
+  GOAL_CLOSED: "This goal is closed.",
+  ASSIGNEE_NOT_MEMBER: "The assignee is not a member here.",
+  INTERVIEW_TIMES: "The interview must end after it starts.",
+  INTERVIEWER_ROLE: "Interviewers must be owners, HR or managers.",
+  EMPLOYMENT_TERMS_REQUIRED: "Set the employment terms first.",
+  SALARY_REQUIRED: "Set a basic salary first.",
 } satisfies EnNamespace;

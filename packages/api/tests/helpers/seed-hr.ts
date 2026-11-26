@@ -70,7 +70,7 @@ async function hiring(ctx: Ctx, s: Seeded) {
 }
 
 /** The seeded offer's basic salary: only owner and hr may see it. */
-export const OFFER_SENTINEL = "8888.01";
+export const OFFER_SENTINEL = "6543.21";
 
 /** An offer by hr, approved by the owner (MFA) and accepted. */
 async function offer(ctx: Ctx, s: Seeded, applicationId: string) {

@@ -42,18 +42,40 @@ async function listUsers(ctx: ReqCtx) {
     mfaEnrolled: r.mfa_enrolled })) };
 }
 
+/**
+ * One user account per employee record: the employee must exist, have
+ * no member linked and no open invite.
+ */
+async function checkLinkable(tx: Db, deps: HandlerDeps, companyId: string,
+  employeeId: string, email: string): Promise<void> {
+  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
+    "id = $2 FOR UPDATE", [companyId, employeeId]);
+  const e = await tx.query(
+    "SELECT 1 FROM employees WHERE company_id = $1 AND id = $2",
+    [companyId, employeeId]);
+  if (e.length === 0) {
+    throw new ApiError("NOT_FOUND", "No such employee",
+      { fields: ["body.employeeId"] });
+  }
+  const taken = await tx.query(
+    `SELECT 1 FROM memberships m WHERE m.company_id = $1
+       AND m.employee_id = $2 AND NOT (m.revoked_at IS NOT NULL AND
+         m.user_id IN (SELECT u.id FROM users u
+           WHERE lower(u.email) = lower($4)))
+     UNION ALL
+     SELECT 1 FROM invites WHERE company_id = $1 AND employee_id = $2
+       AND used_at IS NULL AND expires_at > $3`,
+    [companyId, employeeId, deps.now().toISOString(), email]);
+  if (taken.length > 0) throw new ApiError("EMPLOYEE_ALREADY_LINKED");
+}
+
 /** The setup token carries the company id so accept can set the tenant. */
 async function inviteUser(ctx: ReqCtx<InviteRequest>) {
   const { deps, body } = ctx;
   const companyId = ctx.tenant!.companyId;
   if (body.employeeId !== undefined) {
-    const e = await ctx.tx.query(
-      "SELECT 1 FROM employees WHERE company_id = $1 AND id = $2",
-      [companyId, body.employeeId]);
-    if (e.length === 0) {
-      throw new ApiError("NOT_FOUND", "No such employee",
-        { fields: ["body.employeeId"] });
-    }
+    await checkLinkable(ctx.tx, ctx.deps, companyId, body.employeeId,
+      body.email);
   }
   const setupToken = `${companyId}.${newSecret(deps)}`;
   const now = deps.now();
@@ -104,6 +126,20 @@ async function userFor(tx: Db, ctx: ReqCtx<AcceptInviteRequest>,
 }
 
 /**
+ * One user per employee record in a company (Plan 3 M-7). The unique
+ * index also counts revoked memberships, so a revoked link still holds
+ * the employee; only the same user can take it back.
+ */
+async function assertEmployeeFree(tx: Db, m: { companyId: string;
+  userId: string; employeeId: string | null }) {
+  if (m.employeeId === null) return;
+  const linked = await tx.query(
+    `SELECT 1 FROM memberships WHERE company_id = $1 AND employee_id = $2
+     AND user_id <> $3`, [m.companyId, m.employeeId, m.userId]);
+  if (linked.length > 0) throw new ApiError("EMPLOYEE_ALREADY_LINKED");
+}
+
+/**
  * A new membership, or a revoked one restored (Plan 8: a rehire's new
  * invite sets the role and employee link and clears the revocation).
  */
@@ -112,8 +148,11 @@ async function joinCompany(tx: Db, m: { companyId: string;
   const [old] = await tx.query<{ revoked_at: string | null }>(
     `SELECT revoked_at FROM memberships WHERE company_id = $1
      AND user_id = $2 FOR UPDATE`, [m.companyId, m.userId]);
+  if (old !== undefined && old.revoked_at === null) {
+    throw new ApiError("ALREADY_MEMBER");
+  }
+  await assertEmployeeFree(tx, m);
   if (old === undefined) return insertMembership(tx, m);
-  if (old.revoked_at === null) throw new ApiError("ALREADY_MEMBER");
   await tx.query(
     `UPDATE memberships SET role = $3, employee_id = $4, revoked_at = NULL,
        revoked_by = NULL WHERE company_id = $1 AND user_id = $2`,

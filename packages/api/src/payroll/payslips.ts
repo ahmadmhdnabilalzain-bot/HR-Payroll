@@ -26,6 +26,10 @@ export function toWirePayslip(id: string, payRunId: string,
     gross: toMoney(p.gross), net: toMoney(p.net),
     notComputed: p.notComputed, settlement: settlementOut(p.settlement),
     trace: p.trace,
+    reimbursements: p.reimbursements.map((r) => ({ claimId: r.claimId,
+      label: r.label, amount: toMoney(r.amount), traceId: r.traceId })),
+    reimbursementTotal: toMoney(p.reimbursementTotal),
+    salaryNet: toMoney(p.salaryNet), reimbursementNote: p.reimbursementNote,
   };
 }
 

@@ -70,10 +70,13 @@ describe("computeExitSettlement (pure)", () => {
       employees: [{ employeeId: E1, name: "Asha", joiningDate:
         base.joiningDate, lastWorkingDate: base.lastWorkingDate,
         workerClass: base.workerClass, salaryVersion: 1,
-        unpaidLeaveDays: 0, components: [{ code: "basic", label: "Basic",
+        unpaidLeaveDays: 0, labourPersonId: "00000000000001",
+        bank: { routingCode: "803320101", iban: "AE070331234567890123456" },
+        components: [{ code: "basic", label: "Basic",
           amount: BASIC, sifBucket: "fixed" }] }],
       entries: [{ employeeId: E1, unusedLeaveDays: base.unusedLeaveDays,
-        serviceUnpaidLeaveDays: base.serviceUnpaidLeaveDays }] });
+        serviceUnpaidLeaveDays: base.serviceUnpaidLeaveDays }],
+      reimbursements: [] });
     const slip = out.payslips[0]!.settlement;
     if (slip === null || slip.status !== "computed") {
       throw new Error("no payslip settlement");

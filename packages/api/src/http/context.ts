@@ -11,6 +11,7 @@ import {
 import type { Db } from "../db/db";
 import { UUID, withTenant, type TenantCtx } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
+import { routeBodyLimit } from "./body-limit";
 import { ApiError, asError } from "./errors";
 import { validate, type Validated } from "./validate";
 
@@ -61,6 +62,20 @@ export class FileReply {
 }
 
 /**
+ * Raw bytes (a receipt download): always an attachment under a
+ * generated name, never sniffed by the browser, never cached.
+ */
+export class BinaryReply {
+  constructor(readonly bytes: Uint8Array, readonly contentType: string,
+    readonly fileName: string) {}
+}
+
+/** A CSV report (csv-optional routes with `format=csv`). */
+export class CsvReply {
+  constructor(readonly text: string, readonly fileName: string) {}
+}
+
+/**
  * Commit the transaction, then answer with this error (e.g. a failed
  * password check whose failure counter must stick).
  */
@@ -82,6 +97,8 @@ const NO_ENTER: Enter = () => {
 
 function respond(c: Context<Env>, def: RouteDef, out: unknown) {
   if (out instanceof Refuse) throw out.error;
+  if (out instanceof BinaryReply) return binary(c, out);
+  if (out instanceof CsvReply) return csv(c, out);
   if (out instanceof FileReply) {
     c.header("Content-Disposition",
       `attachment; filename="${out.fileName}"`);
@@ -94,6 +111,22 @@ function respond(c: Context<Env>, def: RouteDef, out: unknown) {
   return c.json(body as object, status);
 }
 
+function csv(c: Context<Env>, out: CsvReply) {
+  c.header("Content-Type", "text/csv; charset=utf-8");
+  c.header("Content-Disposition", `attachment; filename="${out.fileName}"`);
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("Cache-Control", "no-store");
+  return c.body(out.text, 200);
+}
+
+function binary(c: Context<Env>, out: BinaryReply) {
+  c.header("Content-Type", out.contentType);
+  c.header("Content-Disposition", `attachment; filename="${out.fileName}"`);
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("Cache-Control", "no-store");
+  return c.body(out.bytes as Uint8Array<ArrayBuffer>, 200);
+}
+
 /**
  * Registers a handler for a contract route id. Authentication, then
  * (in the request's one transaction) membership, role, MFA,
@@ -103,6 +136,7 @@ export function register(app: App, deps: AppDeps, routeId: string,
   handler: Handler): void {
   const def = routeById(routeId);
   const path = def.path.replace(/\{([a-zA-Z]+)\}/g, ":$1");
+  if (def.bodyLimit !== undefined) app.use(path, routeBodyLimit(def));
   app.on(def.method, path, async (c) => {
     c.set("routeId", def.id);
     try {

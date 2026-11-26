@@ -5,7 +5,7 @@ import type {
   RequisitionCreate,
   RequisitionStatus,
 } from "@payroll/contract";
-import { assertDecidable } from "../approvals/decide";
+import { assertDecidable } from "../approvals/assert-decidable";
 import { auditFor } from "../audit/hr-audit";
 import type { Db } from "../db/db";
 import type { ReqCtx } from "../http/context";

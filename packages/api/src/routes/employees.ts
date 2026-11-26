@@ -9,13 +9,15 @@ import type { AppDeps } from "../deps";
 import { register, type App, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import {
-  createEmployee,
-  setSalary,
+  checkEmployeeRefs,
+  checkSalary,
+  insertEmployee,
+  saveBank,
+  saveSalary,
   updateEmployee,
-} from "../people/employee-actions";
-import { saveBank } from "../people/employee-writes";
+} from "../people/employee-writes";
 import { listEmployees, loadEmployee } from "../people/employees";
-import { inScope, toEmployeeView, viewerScope } from "../people/redact";
+import { toEmployeeView } from "../people/redact";
 import { dubaiDate } from "../time/dubai";
 
 type IdCtx<B = unknown> = ReqCtx<B, unknown, { id: string }>;
@@ -30,46 +32,62 @@ async function audit(ctx: ReqCtx, action: string, id: string,
     entityType: "employee", entityId: id, data });
 }
 
-/** Loads one employee the caller may see; out of scope is 404. */
-async function visible(ctx: IdCtx) {
-  const row = await loadEmployee(ctx.tx, ctx.deps, company(ctx),
-    ctx.params.id);
-  if (!inScope(viewerScope(ctx.tenant!), row)) {
-    throw new ApiError("NOT_FOUND");
-  }
-  return row;
-}
+/** One employee the caller may see (out of scope: 404), decrypted
+ * for the caller only. */
+const visible = (ctx: IdCtx) => loadEmployee(ctx.tx, ctx.deps,
+  company(ctx), ctx.params.id, ctx.tenant!);
 
 async function view(ctx: ReqCtx, id: string) {
-  const row = await loadEmployee(ctx.tx, ctx.deps, company(ctx), id);
+  const row = await loadEmployee(ctx.tx, ctx.deps, company(ctx), id,
+    ctx.tenant!);
   return toEmployeeView(row, ctx.tenant!, today(ctx));
 }
 
 async function list(ctx: ReqCtx) {
-  const scope = viewerScope(ctx.tenant!);
-  const rows = await listEmployees(ctx.tx, ctx.deps, company(ctx));
-  return { items: rows.filter((r) => inScope(scope, r))
-    .map((r) => toEmployeeView(r, ctx.tenant!, today(ctx))) };
+  const rows = await listEmployees(ctx.tx, ctx.deps, company(ctx),
+    ctx.tenant!);
+  return { items: rows.map((r) =>
+    toEmployeeView(r, ctx.tenant!, today(ctx))) };
 }
 
 async function create(ctx: ReqCtx<EmployeeCreate>) {
-  const row = await createEmployee(ctx, ctx.body);
-  return view(ctx, row.id);
+  const id = ctx.deps.newId();
+  await checkEmployeeRefs(ctx.tx, company(ctx), ctx.body, null);
+  await insertEmployee(ctx.tx, ctx.deps, company(ctx), id, ctx.body);
+  await audit(ctx, "employee.created", id);
+  return view(ctx, id);
 }
 
 async function update(ctx: IdCtx<EmployeeUpdate>) {
   const row = await visible(ctx);
-  await updateEmployee(ctx, row.id, ctx.body);
+  const changed = Object.keys(ctx.body).filter((k) =>
+    ctx.body[k as keyof EmployeeUpdate] !== undefined).sort();
+  await checkEmployeeRefs(ctx.tx, company(ctx), ctx.body, row.id);
+  await updateEmployee(ctx.tx, ctx.deps, company(ctx), row.id, ctx.body);
+  await audit(ctx, "employee.updated", row.id, { changed });
   return view(ctx, row.id);
 }
 
+/** Only an owner may change their own salary or bank details. */
+function notSelf(ctx: IdCtx): void {
+  const t = ctx.tenant!;
+  if (t.employeeId === ctx.params.id && t.role !== "owner") {
+    throw new ApiError("SOD_VIOLATION");
+  }
+}
+
 async function putSalary(ctx: IdCtx<SalaryUpdate>) {
+  notSelf(ctx);
   const row = await visible(ctx);
-  await setSalary(ctx, row.id, ctx.body);
+  checkSalary(ctx.body.components);
+  const version = await saveSalary(ctx.tx, ctx.deps, company(ctx), row.id,
+    ctx.body.components);
+  await audit(ctx, "employee.salary.updated", row.id, { version });
   return view(ctx, row.id);
 }
 
 async function putBank(ctx: IdCtx<BankDetails>) {
+  notSelf(ctx);
   const row = await visible(ctx);
   await saveBank(ctx.tx, ctx.deps, company(ctx), row.id, ctx.body);
   await audit(ctx, "employee.bank.updated", row.id,
@@ -80,6 +98,9 @@ async function putBank(ctx: IdCtx<BankDetails>) {
 /** Full IBAN (owner/hr, MFA session); every reveal is audited. */
 async function revealBank(ctx: IdCtx) {
   const row = await visible(ctx);
+  if (row.unreadable.includes("bank")) {
+    throw new ApiError("EMPLOYEE_DATA_UNREADABLE");
+  }
   if (row.bank === null) throw new ApiError("NOT_FOUND");
   await audit(ctx, "employee.bank.revealed", row.id);
   return { routingCode: row.bank.routingCode, iban: row.bank.iban };

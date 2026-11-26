@@ -1,14 +1,15 @@
 import { ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { enableMfa, call, makeApp, signup } from "./helpers/test-app";
+import { EXPENSE_SENTINELS, seedExpenses } from "./helpers/seed-expenses";
 import {
   addOwner,
   march,
   postRun,
-  IBAN_SENTINEL,
-  SALARY_SENTINEL,
+  SENTINELS,
   seedCompany,
   type Seeded,
+  type Target,
 } from "./helpers/seed";
 import {
   HR_ID_KIND,
@@ -21,15 +22,29 @@ import {
 import { seedHr, type HrSeeded } from "./helpers/seed-hr";
 
 /**
- * Review Focus 1. The sentinels sit only on records the manager and
- * employee users may not see (the manager's second report and an
- * outsider); their own records carry other values. So only owner and
- * hr may ever receive a sentinel.
+ * Review Focus 1. Each employee carries distinct values per field
+ * (SENTINELS). For every role, every GET tenant route and every id,
+ * no value the role may not see appears in the body: salary (also as
+ * fils and as payslip gross), the full IBAN, the labour person id and
+ * the Emirates ID.
  */
 type Role = "owner" | "hr" | "manager" | "employee";
 const ROLES: Role[] = ["owner", "hr", "manager", "employee"];
-type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
+const OWN: Record<Role, Target | null> = { owner: null, hr: null,
+  manager: "manager", employee: "report" };
+
+/** The strings a role must never receive. */
+function forbidden(role: Role): string[] {
+  if (role === "owner" || role === "hr") return [];
+  return TARGETS.flatMap((t) => {
+    const v = SENTINELS[t];
+    // The full IBAN and the ids are owner/hr only, even for oneself.
+    const always = [v.iban, v.labour, v.eid];
+    return t === OWN[role] ? always
+      : [...always, v.salary, v.fils, v.gross];
+  });
+}
 
 type Kind = string | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
@@ -42,6 +57,11 @@ const ID_KIND: Record<string, Kind> = {
   getPayRun: "payRun", listPayRunPayslips: "payRun",
   getSifFile: "sifFile", downloadSifFile: "sifFile",
   listAuditEvents: null, verifyAuditChain: null,
+  approvalInbox: null, listApprovalChains: null, getReceipt: "receipt",
+  downloadReceipt: "receipt", listExpenseCategories: null,
+  getExpensePolicy: null, listExpenseClaims: null, getExpenseClaim: "claim",
+  expenseSummary: null, expenseVatRegister: null, expenseAging: null,
+  expenseUnpaid: null, expensePayouts: null,
   ...HR_ID_KIND,
 };
 
@@ -49,11 +69,21 @@ const ID_KIND: Record<string, Kind> = {
 const QUERY: Record<string, string> = {
   listAttendance: "?from=2026-01-01&to=2026-12-31",
   getLeaveBalances: "?year=2026",
+  expenseSummary: "?from=2026-01-01&to=2026-12-31&groupBy=employee",
+  expenseVatRegister: "?from=2026-01-01&to=2026-12-31",
 };
+
+/** Whose expense claims (and their receipts) a role may open. */
+function seesClaimsOf(role: Role, t: Target): boolean {
+  if (role === "owner" || role === "hr") return true;
+  return role === "manager" ? t !== "outsider" : t === "report";
+}
 
 /** Which targets a role may open on an employee or payslip route. */
 function visible(role: Role, t: Target | null, kind: Kind): boolean {
   if (kind !== null && HR_KINDS.includes(kind)) return hrVisible(role, kind);
+  if (t === null) return true;
+  if (kind === "claim" || kind === "receipt") return seesClaimsOf(role, t);
   if (role === "owner" || role === "hr") return true;
   const own = role === "manager" ? "manager" : "report";
   if (kind === "payslip") return t === own;
@@ -77,10 +107,13 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   let sifId: string;
   let hr: HrSeeded;
   const slips = {} as Record<Target, string>;
+  let exp: Awaited<ReturnType<typeof seedExpenses>>;
   beforeAll(async () => {
     ctx = await makeApp();
     s = await seedCompany(ctx, "leak");
     const owner2 = await addOwner(ctx, s);
+    // Approved before the run, so payslips carry the reimbursements.
+    exp = await seedExpenses(ctx, s);
     runId = (await postRun(ctx, s.hr, s, "leak-1", march)).body.id;
     await call(ctx.app, owner2.token, s.companyId, "POST",
       `/v1/pay-runs/${runId}/approve`);
@@ -102,10 +135,12 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     : kind === "payslip" ? TARGETS.map((t) => [t, slips[t]])
     : kind === "payRun" ? [[null, runId]]
     : kind === "sifFile" ? [[null, sifId]]
+    : kind === "claim" ? TARGETS.map((t) => [t, exp.claims[t]])
+    : kind === "receipt" ? TARGETS.map((t) => [t, exp.receipts[t]])
     : kind !== null ? [[null, hrIdFor(kind, hr)]] : [[null, null]];
   const path = (r: RouteDef, id: string | null) =>
     (id === null ? r.path : r.path.replace("{id}", id)) +
-    (QUERY[r.id] ?? "");
+    (r.id === "expensePayouts" ? `?payRunId=${runId}` : QUERY[r.id] ?? "");
 
   it("every GET tenant route has a fixture", () => {
     for (const r of getRoutes) expect(r.id in ID_KIND, r.id).toBe(true);
@@ -120,10 +155,13 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
           const label = `${r.id} as ${role} on ${t}`;
           expect(res.status, `${label}: ${res.text}`)
             .toBe(expected(r, role, t));
-          const leaked = [SALARY_SENTINEL, IBAN_SENTINEL,
-            ...hrSentinels(hr)].some((x) => res.text.includes(x));
-          if (role === "manager" || role === "employee") {
-            expect(leaked, label).toBe(false);
+          const leaked = [...forbidden(role), ...(role === "manager" ||
+            role === "employee" ? hrSentinels(hr) : [])]
+            .filter((x) => res.text.includes(x));
+          expect(leaked, label).toEqual([]);
+          for (const x of TARGETS.filter((x) => !seesClaimsOf(role, x))) {
+            expect(res.text.includes(EXPENSE_SENTINELS[x]),
+              `${label}: expense of ${x}`).toBe(false);
           }
         }
       }
@@ -132,21 +170,32 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
 
   it("owner bodies do carry the sentinels (the test is not vacuous)",
     async () => {
-      const list = await call(ctx.app, s.owner.token, s.companyId, "GET",
-        "/v1/employees");
-      expect(list.text).toContain(SALARY_SENTINEL);
-      const bank = await call(ctx.app, s.owner.token, s.companyId, "GET",
-        `/v1/employees/${s.emp.outsider}/bank`);
-      expect(bank.text).toContain(IBAN_SENTINEL);
-      const slips = await call(ctx.app, s.owner.token, s.companyId, "GET",
-        `/v1/pay-runs/${runId}/payslips`);
-      expect(slips.text).toContain(SALARY_SENTINEL);
+      const get = (path: string) => call(ctx.app, s.owner.token,
+        s.companyId, "GET", path);
+      const list = await get("/v1/employees");
+      const slips = await get(`/v1/pay-runs/${runId}/payslips`);
+      for (const t of TARGETS) {
+        const v = SENTINELS[t];
+        for (const x of [v.salary, v.labour, v.eid]) {
+          expect(list.text, `${t} ${x}`).toContain(x);
+        }
+        for (const x of [v.fils, v.gross]) {
+          expect(slips.text, `${t} ${x}`).toContain(x);
+        }
+        const bank = await get(`/v1/employees/${s.emp[t]}/bank`);
+        expect(bank.text).toContain(v.iban);
+      }
       const mine = await call(ctx.app, s.employee.token, s.companyId,
         "GET", "/v1/me/payslips");
       expect(mine.body.items.length).toBe(1);
-      const file = await call(ctx.app, s.owner.token, s.companyId, "GET",
-        `/v1/sif-files/${sifId}/download`);
-      expect(file.text).toContain(IBAN_SENTINEL);
+      const file = await get(`/v1/sif-files/${sifId}/download`);
+      expect(file.text).toContain(SENTINELS.report2.iban);
+      const claims = await get("/v1/expense-claims");
+      for (const t of TARGETS) {
+        expect(claims.text).toContain(EXPENSE_SENTINELS[t]);
+      }
+      expect(mine.body.items[0].reimbursementTotal)
+        .toBe(EXPENSE_SENTINELS.report);
     });
 
   it("owner bodies carry the HR sentinels too", async () => {
@@ -161,7 +210,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     const b = await signup(ctx.app, "other");
     const mfa = await enableMfa(ctx.app, ctx.clock, b);
     const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile",
-      ...HR_KINDS];
+      "claim", "receipt", ...HR_KINDS];
     const allIds = kinds.flatMap((k) => idsFor(k).map(([, id]) => id!));
     for (const r of getRoutes.filter((x) => x.path.includes("{id}"))) {
       for (const id of allIds) {

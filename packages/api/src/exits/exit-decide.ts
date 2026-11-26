@@ -5,7 +5,7 @@ import {
   type ExitSettlement,
   type SettlementInputs,
 } from "@payroll/contract";
-import { assertDecidable } from "../approvals/decide";
+import { assertDecidable } from "../approvals/assert-decidable";
 import { auditFor } from "../audit/hr-audit";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";

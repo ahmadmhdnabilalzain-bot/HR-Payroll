@@ -7,6 +7,8 @@ import {
   notConfiguredDocuments,
   type DocumentPort,
 } from "./ports/documents";
+import { nullReceiptReader, type ReceiptReader } from "./receipts/reader";
+import type { BlobStore } from "./storage/blob";
 
 /** One structured log line. Never a request or response body. */
 export type Logger = (line: Record<string, unknown>) => void;
@@ -24,6 +26,10 @@ export interface AppDeps {
   calendar: CalendarPort;
   documents: DocumentPort;
   access: AccessPort;
+  /** Encrypted receipt files. */
+  blobs: BlobStore;
+  /** OCR port (suggestions only). */
+  receiptReader: ReceiptReader;
 }
 
 /** What handlers get: everything but the raw database. */
@@ -33,7 +39,8 @@ export type HandlerDeps = Omit<AppDeps, "db">;
 export const PRODUCTION_PASSWORD_COST = { N: 65536 };
 
 /** The real clock, ids, randomness and stdout JSON log. */
-export function systemDeps(db: Db, kek: Uint8Array): AppDeps {
+export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore)
+  : AppDeps {
   const randomBytes = (n: number) => new Uint8Array(nodeRandomBytes(n));
   return {
     db,
@@ -46,5 +53,7 @@ export function systemDeps(db: Db, kek: Uint8Array): AppDeps {
     calendar: notConnectedCalendar,
     documents: notConfiguredDocuments,
     access: notConfiguredAccess,
+    blobs,
+    receiptReader: nullReceiptReader,
   };
 }

@@ -12,6 +12,7 @@ import { MIGRATIONS_DIR, migrate } from "./db/migrate";
 import { openPg } from "./db/pg";
 import { assertRuntimeRole } from "./db/role-check";
 import { systemDeps } from "./deps";
+import { fsBlobStore } from "./storage/fs-blob";
 
 async function runMigrations(cfg: Config): Promise<void> {
   const owner = await openPg(cfg.migrateUrl, { max: 1 });
@@ -30,7 +31,8 @@ async function main(argv: string[]): Promise<void> {
   if (argv[2] === "migrate") return;
   const db = await openPg(cfg.databaseUrl);
   await assertRuntimeRole(db);
-  const app = createApp(systemDeps(db, cfg.masterKey));
+  const blobs = fsBlobStore(cfg.receiptsDir);
+  const app = createApp(systemDeps(db, cfg.masterKey, blobs));
   serve({ fetch: app.fetch, port: cfg.port });
   process.stdout.write(`${JSON.stringify({ event: "listening",
     port: cfg.port })}\n`);

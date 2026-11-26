@@ -265,7 +265,12 @@ Law task: fresh per-task review.
     - `FTA_EINV_FAQ` (3.1): "FTA e-invoicing page and FAQ, updated 17
       Nov 2026".
     - `MOF_EINV_GUIDELINES` (3.1): "MoF E-invoicing Guidelines V2.1,
-      glossary only".
+      glossary only (V1.1 path; link serves V2.1)".
+    - `RESEARCH_CT_ZERO_RATE` (25 Nov note, corporate tax): url `""`,
+      note naming `docs/research/2026-11-25-vat-corporate-tax-
+      einvoicing.md` and its words "0% on taxable income up to AED
+      375,000", snippet level (review fix I2: the bulletin snippet
+      cut off the 0% word, so it cannot be the 0% band's source).
     - `CD106_2025` (3.6): "Cabinet Decision 106 of 2025, table rows 1
       to 3 (search extract)".
     - `FTA_CT_SB_BULLETIN` (4): "FTA Basic Tax Information Bulletin:
@@ -311,7 +316,7 @@ Law task: fresh per-task review.
     | key | value | status | source |
     |---|---|---|---|
     | zeroBandUpperFils | 37500000 | secondary | FTA_CT_SB_BULLETIN |
-    | zeroBandRateBps | 0 | secondary | FTA_CT_SB_BULLETIN |
+    | zeroBandRateBps | 0 | secondary | RESEARCH_CT_ZERO_RATE |
     | mainRateBps | 900 | secondary | FTA_CT_SB_BULLETIN |
     | taxRounding | "HALF_UP" | convention | ENGINE_CONVENTION |
     | sbrRevenueThresholdFils | 300000000 | secondary | FTA_CT_SBR_TOPIC |
@@ -373,13 +378,25 @@ Law task: fresh per-task review.
   `sourceUrl null`.
 
 `no-tax-figures.test.ts`: the files under `packages/engine/src/tax/`
-and (from Task 6, skipped while absent) `packages/api/src/tax/`,
-`packages/api/src/einvoicing/` and `packages/contract/src/tax/`
-contain none of `37500000`,
+and the product files (from Task 6; an empty set while absent) under
+`packages/api/src/tax/`, `packages/api/src/einvoicing/`,
+`packages/contract/src/tax/` and `packages/contract/src/einvoicing/`,
+plus `packages/contract/src/routes-vat.ts` (any
+`routes-(vat|tax|einvoic)*.ts`) and `packages/api/src/routes/`
+`(vat|tax|einvoic)*.ts`, contain none of `37500000`,
 `300000000`, `5000000000`, `"2026-10-30"`, `"2027-03-31"`,
-`"2027-07-01"`, `"0235"`; the contract and api files also contain
-none of the banned words of the Global Constraints (case-insensitive;
-`"not tax advice"` is removed before the scan).
+`"2027-07-01"`, `"0235"`. The product files also contain none of the
+banned words of the Global Constraints, with variants
+(case-insensitive): "compliant", "FTA approved" or "FTA-approved",
+"certified", "submitted to (the) FTA", "filed with (the) FTA",
+"recoverable", "claimable", "recover input tax", "5%", "5 %", "five
+per cent", the same for 9, and "tax advice". `"not tax advice"` is
+removed before the scan, and so are URLs and percent-encoded bytes
+(so `2015%20` is not "5%"). The engine `src/tax/` files pass the same
+word scan, allowing only the quoted FTA label "Total value of
+recoverable tax". Once `routes-vat.ts` exists, the test fails unless
+it is scanned and `contract/src/tax` and `api/src/tax` exist (review
+fix I3).
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/engine test tax-packs
   no-tax-figures`. Expected: FAIL (modules not found).
@@ -436,7 +453,10 @@ Law task: fresh per-task review.
     policy` condition applies to all six.
   - `EmployeeExpenseInput { case: EmployeeExpenseCase; expenseDate:
     string; attestations: Partial<Record<ConditionId, boolean |
-    null>>; stayDays?: number }`.
+    null>>; stayDays?: number }`. `stayDays` (case 4 only, else
+    `INVALID_INPUT`) counts calendar days including the first and the
+    last day (1 Nov to 1 Dec is 31), a cautious convention; the
+    Task 8 form says so.
   - `EmployeeExpenseOutcome = "conditions-met" | "condition-not-met" |
     "not-assessed"`.
   - `EmployeeExpenseAssessment { case; outcome; met: ConditionId[];
@@ -636,8 +656,9 @@ Money and law task: fresh per-task review.
   - `BoxFigure { amount: Fils | null; vat: Fils | null; adjustment:
     Fils | null }`; `Vat201Problem { code: "EMIRATE_REQUIRED" |
     "INPUT_TAX_UNDECIDED" | "CLAIMED_EXCEEDS_VAT" |
-    "VAT_ON_NON_STANDARD" | "TREATMENT_DIRECTION_INVALID" |
-    "FTA_BOX_NOT_ENTERED"; docIds: string[]; box: string | null }`;
+    "CLAIMED_ON_UNTAXED" | "VAT_ON_NON_STANDARD" |
+    "TREATMENT_DIRECTION_INVALID" | "FTA_BOX_NOT_ENTERED"; docIds:
+    string[]; box: string | null }`;
     `Vat201Warning { code: "LAYOUT_FROM_2021_GUIDE" | "NEGATIVE_BOX" |
     "REFUND_NOT_APPLICABLE" | "VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED" |
     "NIL_RETURN"; box: string | null; periodStart: string | null }`.
@@ -666,6 +687,7 @@ Money and law task: fresh per-task review.
     claimedVat null (box 9 or 10 doc) -> INPUT_TAX_UNDECIDED
     claimedVat > vat         -> CLAIMED_EXCEEDS_VAT
     vat > 0 on zero-rated, exempt or out-of-scope -> VAT_ON_NON_STANDARD
+    claimedVat > 0 on an excluded purchase -> CLAIMED_ON_UNTAXED
     box2, box6, box7: "entered" -> its amount and vat; "none" -> 0;
                       "not-entered" -> figure null, FTA_BOX_NOT_ENTERED
     adjustments -> the adjustment column of their box (0 when absent)
@@ -681,8 +703,12 @@ Money and law task: fresh per-task review.
 
     Corrections: documents with `correctsPeriodStart` are counted in
     this return as normal and also grouped by that period; their net
-    VAT effect = sale VAT (credit notes negative) minus claimed VAT on
-    purchases (credit notes negative); `overThreshold` when the
+    VAT effect is each document's Box 14 effect, as the mapping places
+    it (credit notes negative): standard sale `+vat`; standard
+    purchase `-claimedVat`; reverse-charge purchase `vat -
+    claimedVat`; anything else `0` (review fix I1, 2026-11-26: the
+    earlier "sale VAT minus claimed VAT" left out Box 3 and counted
+    documents in no box); `overThreshold` when the
     absolute effect for one period is more than
     `errorCorrectionThresholdFils`, which adds the warning
     `VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED` for that period. Always the
@@ -728,6 +754,16 @@ Money and law task: fresh per-task review.
   credit notes correcting `2026-01-01` with claimed VAT totalling
   `1000001n` give `corrections[0]` `{ "2026-01-01", 1000001n, true
   }` and the warning; `1000000n` gives `overThreshold false`.
+- `correction_effect_formula_as_written`: a sale VAT `100n` and a
+  reverse-charge purchase VAT `500n` claimed `0n` correcting
+  `2026-01-01` give `600n`; a standard purchase claimed `50n`
+  correcting `2025-10-01` gives `-50n`.
+- `reverse_charge_correction_over_threshold_warns` (VAT `1500000n`,
+  claimed `0n`: effect `1500000n`, warning),
+  `reverse_charge_fully_claimed_correction_no_warning` (VAT and
+  claimed `2000000n`: effect `0n`, no warning),
+  `excluded_purchase_correction_has_no_effect` (zero-rated, claimed
+  `2000000n`: effect `0n`), `claimed_on_untaxed_purchase_problem`.
 - `sale_reverse_charge_invalid`, `claimed_exceeds_vat`,
   `vat_on_exempt_problem`, `emirate_required`: each gives its code.
 - `nil_return`: no documents, FTA boxes `none`: status `complete`,
@@ -736,10 +772,12 @@ Money and law task: fresh per-task review.
   `ftaPopulated`; every result carries `LAYOUT_FROM_2021_GUIDE`.
 
 `vat201-props.test.ts` (fast-check, 0 to 30 random complete
-documents, FTA boxes `none`): box8 VAT equals the sum of box1 VAT over
-emirates plus box3 VAT; box14 equals box12 minus box13; adding a
-document and its matching credit note leaves every box unchanged;
-computing twice gives deep-equal output.
+documents including credit notes and corrections, random entered or
+`none` FTA boxes, random signed adjustments): box8 VAT equals box1
+VAT over emirates plus boxes 2, 3, 6 and 7 VAT; box14 equals box12
+minus box13; adding a document and its reverse leaves every box
+unchanged; the corrections total equals the Box 14 change the
+correcting documents cause; computing twice gives deep-equal output.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/engine test vat201`.
   Expected: FAIL.
@@ -831,8 +869,8 @@ Money and law task: fresh per-task review.
     transactionDate, issueWindowBusinessDays, weekend, holidays)`;
     trace id `einv.issue-by`.
   - `tinFromTrn(trn: string, packs?): string` (first `tinDigits`
-    digits; a TRN that is not all digits or shorter than `tinDigits`
-    throws `INVALID_TRN`); `participantIdFor(trn, packs?): { scheme:
+    digits; a TRN that is not exactly 15 digits, the assumed shape of
+    Ruling 9, throws `INVALID_TRN`); `participantIdFor(trn, packs?): { scheme:
     string; id: string }` = `{ scheme: participantScheme, id:
     tinFromTrn(trn) }` (no separator is guessed).
 
@@ -857,6 +895,9 @@ Money and law task: fresh per-task review.
   `condition-not-met`, `taxAfterRelief` equals `taxBeforeRelief`.
 - `sbr_mne_member_not_met`, `sbr_null_attestation_not_assessed`.
 - `due_date_nine_months`: `dueDate "2027-09-30"`.
+- `period_limits`: `2025-07-01` to `2026-12-31` (18 months) is
+  accepted; `2025-07-01` to `2027-01-01` (one day more) and
+  `2025-06-30` to `2026-12-31` are `INVALID_PERIOD`.
 - `pack_before_2026_refused`: period ending `2025-12-31` throws
   `NO_PACK_FOR_DATE`.
 - `rates_secondary_in_trace`: rules `zeroBandUpperFils` and
@@ -877,7 +918,10 @@ Money and law task: fresh per-task review.
 - `issue_by_business_days`: transaction `2027-07-01` (Thursday), no
   holidays: 14 business days later is `"2027-07-21"`.
 - `participant_id`: TRN `"100123456700003"` gives `{ scheme: "0235",
-  id: "1001234567" }`; `"12345"` throws `INVALID_TRN`.
+  id: "1001234567" }`; `"12345"`, an 11-digit and a 16-digit TRN
+  throw `INVALID_TRN`.
+- `missing_documents_capped` also: `2027-08` with 30 invoices and 70
+  credit notes is `800000n` (the credit-note cap).
 - `fines_secondary`: trace rule `notImplementedFinePerMonthFils` has
   status `secondary`; `ftaReportingDeadline` is `null`.
 

@@ -1,5 +1,7 @@
 import {
+  MONEY_MAX_FILS,
   NOT_COMPUTED_PAY,
+  REIMBURSEMENT_WPS_NOTE,
   type PayRunEntry,
   type PayRunProblem,
   type Period,
@@ -8,6 +10,7 @@ import {
   type WorkerClass,
 } from "@payroll/contract";
 import { fils, parseAed, type Fils } from "@payroll/engine";
+import { applyReimbursements } from "../expenses/reimburse";
 import { periodBounds } from "../leave/days";
 import { settle, type ComputedSettlement } from "./compute-settlement";
 
@@ -32,12 +35,25 @@ export interface SnapshotEmployee {
   salaryVersion: number;
   components: SnapshotComponent[];
   unpaidLeaveDays: number;
+  /** As approved: the SIF is built from these, never from live rows. */
+  bank: { routingCode: string; iban: string } | null;
+  labourPersonId: string | null;
+}
+
+/** An approved expense claim paid with the run (outside gross). */
+export interface SnapshotReimbursement {
+  employeeId: string;
+  claimId: string;
+  title: string;
+  amount: Fils;
 }
 
 export interface RunSnapshot {
   period: Period;
   employees: SnapshotEmployee[];
   entries: PayRunEntry[];
+  /** Sorted by claimId, so the input hash covers them. */
+  reimbursements: SnapshotReimbursement[];
 }
 
 export interface ComputedLine extends SnapshotComponent {
@@ -55,6 +71,18 @@ export interface ComputedPayslip {
   notComputed: string[];
   settlement: ComputedSettlement | null;
   trace: TraceLine[];
+  /** Plan 6: never in lines or gross; net = salaryNet + total. */
+  reimbursements: ComputedReimbursement[];
+  reimbursementTotal: Fils;
+  salaryNet: Fils;
+  reimbursementNote: typeof REIMBURSEMENT_WPS_NOTE | null;
+}
+
+export interface ComputedReimbursement {
+  claimId: string;
+  label: string;
+  amount: Fils;
+  traceId: string;
 }
 
 type Problem = PayRunProblem;
@@ -79,25 +107,41 @@ function isLeaver(e: SnapshotEmployee, p: Period): boolean {
     e.lastWorkingDate <= last;
 }
 
+/** Codes that appear more than once (a second amount is never picked). */
+const repeated = (cs: string[]) =>
+  cs.filter((c, i) => cs.indexOf(c) !== i);
+
+/**
+ * Unknown override codes, one-off codes that clash with a component and
+ * codes given twice are VALIDATION_FAILED; partial months need every
+ * component entered; leavers need unusedLeaveDays and
+ * serviceUnpaidLeaveDays (both HR-entered; neither is ever assumed).
+ */
 function entryProblems(e: SnapshotEmployee, x: PayRunEntry, p: Period)
   : Problem[] {
   const codes = e.components.map((c) => c.code);
   const out: Problem[] = [];
-  const over = new Set((x.componentOverrides ?? []).map((o) => o.code));
-  const unknown = [...over].filter((c) => !codes.includes(c));
-  const clash = (x.oneOffs ?? []).map((o) => o.code)
-    .filter((c) => codes.includes(c));
-  if (unknown.length + clash.length > 0) {
-    out.push(problem(e.employeeId, "VALIDATION_FAILED",
-      [...unknown, ...clash]));
+  const overCodes = (x.componentOverrides ?? []).map((o) => o.code);
+  const oneOffCodes = (x.oneOffs ?? []).map((o) => o.code);
+  const over = new Set(overCodes);
+  const bad = new Set([
+    ...overCodes.filter((c) => !codes.includes(c)),
+    ...oneOffCodes.filter((c) => codes.includes(c)),
+    ...repeated(overCodes), ...repeated(oneOffCodes)]);
+  if (bad.size > 0) {
+    out.push(problem(e.employeeId, "VALIDATION_FAILED", [...bad]));
   }
   if (isPartial(e, p) && codes.some((c) => !over.has(c))) {
     out.push(problem(e.employeeId, "ENTERED_AMOUNTS_REQUIRED",
       codes.filter((c) => !over.has(c))));
   }
-  if (isLeaver(e, p) && x.unusedLeaveDays === undefined) {
+  const settlementMissing = [
+    ...(x.unusedLeaveDays === undefined ? ["unusedLeaveDays"] : []),
+    ...(x.serviceUnpaidLeaveDays === undefined
+      ? ["serviceUnpaidLeaveDays"] : [])];
+  if (isLeaver(e, p) && settlementMissing.length > 0) {
     out.push(problem(e.employeeId, "SETTLEMENT_INPUT_REQUIRED",
-      ["unusedLeaveDays"]));
+      settlementMissing));
   }
   return out;
 }
@@ -134,10 +178,13 @@ function payslipOf(e: SnapshotEmployee, x: PayRunEntry, p: Period)
   const basic = e.components.find((c) => c.code === "basic")!.amount;
   const settlement = isLeaver(e, p) ? settle({
     joiningDate: e.joiningDate, lastWorkingDate: e.lastWorkingDate!,
-    workerClass: e.workerClass }, basic, x, x.unusedLeaveDays!) : null;
+    workerClass: e.workerClass }, basic, x.serviceUnpaidLeaveDays!,
+    x.unusedLeaveDays!) : null;
   return { employeeId: e.employeeId, employeeName: e.name, period: p,
     lines, gross, net: gross, notComputed: [...NOT_COMPUTED_PAY],
-    settlement, trace: lines.map((l) => traceOf(l, e.salaryVersion)) };
+    settlement, trace: lines.map((l) => traceOf(l, e.salaryVersion)),
+    reimbursements: [], reimbursementTotal: fils(0n), salaryNet: gross,
+    reimbursementNote: null };
 }
 
 function entryMap(s: RunSnapshot, problems: Problem[]) {
@@ -166,10 +213,46 @@ export function computePayRun(s: RunSnapshot): { problems: Problem[];
     if (e.components.length === 0) {
       problems.push(problem(e.employeeId, "SALARY_MISSING", ["salary"]));
     } else problems.push(...entryProblems(e, x, s.period));
+    const wps = [...(e.bank === null ? ["bank"] : []),
+      ...(e.labourPersonId === null ? ["labourPersonId"] : [])];
+    if (wps.length > 0) {
+      problems.push(problem(e.employeeId, "EMPLOYEE_BANK_MISSING", wps));
+    }
   }
   if (problems.length > 0) return { problems, payslips: [], gross: fils(0n) };
-  const payslips = paid.map((e) => payslipOf(e,
-    entries.get(e.employeeId) ?? { employeeId: e.employeeId }, s.period));
-  return { problems, payslips,
-    gross: fils(payslips.reduce((n, p) => n + p.gross, 0n)) };
+  // Reimbursements are added last, after the salary net is known.
+  const payslips = paid.map((e) => applyReimbursements(payslipOf(e,
+    entries.get(e.employeeId) ?? { employeeId: e.employeeId }, s.period),
+  s.reimbursements));
+  const gross = fils(payslips.reduce((n, p) => n + p.gross, 0n));
+  problems.push(...capProblems(payslips, gross));
+  if (problems.length > 0) return { problems, payslips: [], gross: fils(0n) };
+  return { problems, payslips, gross };
+}
+
+/**
+ * Amounts the wire format cannot carry (above 999,999,999.99 AED): a
+ * payslip gross or net (with reimbursements), a settlement total,
+ * or the run gross (reported on the
+ * last employee).
+ */
+function capProblems(ps: ComputedPayslip[], gross: Fils): Problem[] {
+  const out: Problem[] = [];
+  for (const p of ps) {
+    const s = p.settlement;
+    const over = [
+      ...(p.gross > MONEY_MAX_FILS ? ["gross"] : []),
+      ...(p.net > MONEY_MAX_FILS && p.gross <= MONEY_MAX_FILS
+        ? ["net"] : []),
+      ...(s?.status === "computed" && s.total > MONEY_MAX_FILS
+        ? ["settlement"] : [])];
+    if (over.length > 0) {
+      out.push(problem(p.employeeId, "VALIDATION_FAILED", over));
+    }
+  }
+  const last = ps.at(-1);
+  if (out.length === 0 && gross > MONEY_MAX_FILS && last !== undefined) {
+    out.push(problem(last.employeeId, "VALIDATION_FAILED", ["runGross"]));
+  }
+  return out;
 }

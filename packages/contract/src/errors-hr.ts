@@ -1,7 +1,6 @@
 /** Plan 8 error codes (hiring, onboarding, tasks, exits, goals). */
 export const HR_ERROR_STATUS = {
   TASK_TRANSITION: 409,
-  APPROVAL_NOT_PENDING: 409,
   REQUISITION_NOT_OPEN: 409,
   CANDIDATE_EXISTS: 409,
   APPLICATION_EXISTS: 409,

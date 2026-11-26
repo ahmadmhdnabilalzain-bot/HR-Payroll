@@ -8,6 +8,8 @@ export const IsoDate = z.iso.date();
 export const Timestamp = z.iso.datetime();
 /** AED on the wire: two decimals, never negative, never a float. */
 export const Money = z.string().regex(/^\d{1,9}\.\d{2}$/);
+/** The largest amount `Money` carries, in fils (999,999,999.99 AED). */
+export const MONEY_MAX_FILS = 99_999_999_999n;
 /** Labour person id (WPS), 14 digits zero-padded. */
 export const PersonId = z.string().regex(/^\d{14}$/);
 /** Bank routing code (WPS), 9 digits. */

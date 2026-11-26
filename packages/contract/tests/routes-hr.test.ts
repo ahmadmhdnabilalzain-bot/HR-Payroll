@@ -34,9 +34,9 @@ describe("HR_ROUTES", () => {
   it("ids are exactly the planned list, in order", () => {
     expect(HR_ROUTES.map((r) => r.id)).toEqual(HR_ROUTE_IDS);
   });
-  it("final counts: 45 HR routes, 95 in all (Plan 3 has 50)", () => {
+  it("final counts: 45 HR routes, 120 in all (core 75)", () => {
     expect(HR_ROUTES.length).toBe(45);
-    expect(ROUTES.length).toBe(95);
+    expect(ROUTES.length).toBe(120);
   });
   it("every HR route is a tenant route", () => {
     for (const r of HR_ROUTES) expect(r.auth, r.id).toBe("tenant");

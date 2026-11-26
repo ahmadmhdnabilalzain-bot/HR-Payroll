@@ -178,8 +178,10 @@ describe("access revocation", () => {
     const linked = await call(ctx.app, s.owner.token, s.companyId, "POST",
       "/v1/users/invite", { email: "someone.else@example.com",
         role: "employee", employeeId });
+    // Plan 3's one-user-per-employee rule refuses this second link.
+    expect(linked.body.error.code).toBe("EMPLOYEE_ALREADY_LINKED");
     await revoke((await fx.approvedExit(employeeId)).id);
-    for (const inv of [spare, linked]) {
+    for (const inv of [spare]) {
       const acc = await call(ctx.app, null, null, "POST",
         "/v1/auth/accept-invite", { setupToken: inv.body.setupToken,
           password: PASSWORD, displayName: "late" });

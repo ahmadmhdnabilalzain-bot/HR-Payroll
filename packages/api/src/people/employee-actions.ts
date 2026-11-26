@@ -1,24 +1,23 @@
-import type {
-  EmployeeCreate,
-  EmployeeUpdate,
-  SalaryUpdate,
-} from "@payroll/contract";
+import type { EmployeeCreate, SalaryUpdate } from "@payroll/contract";
 import { appendAudit, type AuditData } from "../audit/audit";
 import type { ReqCtx } from "../http/context";
 import {
-  asCreate,
   checkEmployeeRefs,
   checkSalary,
   insertEmployee,
   saveSalary,
   updateEmployee as writeEmployee,
+  type EmployeeWrite,
 } from "./employee-writes";
 import { loadEmployee, type EmployeeRow } from "./employees";
 
 /**
- * The code behind POST /v1/employees, PUT .../salary and PATCH
- * /v1/employees/{id}, each writing its Plan 3 audit event. Plan 8's
- * hire and exit flows call these in the request's one transaction.
+ * Internal versions of POST /v1/employees, PUT .../salary and PATCH
+ * /v1/employees/{id}, each writing its Plan 3 audit event, for Plan
+ * 8's hire and exit flows (in the request's one transaction). The
+ * Plan 3 route handlers keep their own guards (MFA on salary writes,
+ * no self-edit); callers here must stand for those guards (see the
+ * hire: the salary is the owner's MFA-approved offer).
  */
 const company = (ctx: ReqCtx) => ctx.tenant!.companyId;
 
@@ -46,20 +45,15 @@ export async function setSalary(ctx: ReqCtx, employeeId: string,
   return loadEmployee(ctx.tx, ctx.deps, company(ctx), employeeId);
 }
 
-/** A PATCH; internal callers may pass `lastWorkingDate: null`. */
-export type EmployeePatch = Omit<EmployeeUpdate, "lastWorkingDate"> & {
-  lastWorkingDate?: string | null | undefined;
-};
+/** A PATCH; `null` clears an optional field (e.g. lastWorkingDate). */
+export type EmployeePatch = EmployeeWrite;
 
 export async function updateEmployee(ctx: ReqCtx, id: string,
   patch: EmployeePatch): Promise<EmployeeRow> {
-  const row = await loadEmployee(ctx.tx, ctx.deps, company(ctx), id);
   const changed = Object.keys(patch).filter((k) =>
     patch[k as keyof EmployeePatch] !== undefined).sort();
-  const next = { ...asCreate(row), ...patch } as EmployeeCreate;
-  if (patch.lastWorkingDate === null) delete next.lastWorkingDate;
-  await checkEmployeeRefs(ctx.tx, company(ctx), next, row.id);
-  await writeEmployee(ctx.tx, ctx.deps, company(ctx), row.id, next);
-  await audit(ctx, "employee.updated", row.id, { changed });
+  await checkEmployeeRefs(ctx.tx, company(ctx), patch, id);
+  await writeEmployee(ctx.tx, ctx.deps, company(ctx), id, patch);
+  await audit(ctx, "employee.updated", id, { changed });
   return loadEmployee(ctx.tx, ctx.deps, company(ctx), id);
 }

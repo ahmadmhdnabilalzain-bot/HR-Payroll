@@ -24,7 +24,10 @@ function flag(code: string, dates: string[], rule: TraceRule | null,
 function assertSlot(d: RosterDayInput): void {
   if (!hasShift(d)) return;
   const s = d.slot;
-  if (s.end <= s.start || s.end - s.start > 1440 || s.breakMinutes < 0 ||
+  const whole = [s.start, s.end, s.breakMinutes]
+    .every((x) => Number.isSafeInteger(x));
+  if (!whole || s.end <= s.start || s.end - s.start > 1440 ||
+    s.breakMinutes < 0 ||
     s.breakMinutes > s.end - s.start) {
     throw new EngineError("INVALID_SHIFT", "shift needs end > start, at" +
       " most 1440 minutes and a break within it",

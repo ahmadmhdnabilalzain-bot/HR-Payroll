@@ -1,5 +1,6 @@
 import { CodedError } from "../coded-error";
 import { HR_CHECKS } from "./hr-allowlist";
+import { EXPENSE_AUDIT_CHECKS } from "./allowlist-expenses";
 
 /**
  * Audit `data` is an allowlist: each key has a shape check, and any
@@ -8,7 +9,7 @@ import { HR_CHECKS } from "./hr-allowlist";
  * money-like, IBAN-like or long digit strings are refused even in
  * allowed string keys.
  */
-type Check = (v: unknown) => boolean;
+export type Check = (v: unknown) => boolean;
 
 const WORD = /^[a-z][a-z-]{0,39}$/;
 const FIELD = /^[a-zA-Z][a-zA-Z0-9.]{0,63}$/;
@@ -43,6 +44,7 @@ const CHECKS: Record<string, Check> = {
   count: isInt,
   days: isInt,
   year: isInt,
+  month: isInt,
   employeeCount: isInt,
   errorCount: isInt,
   warningCount: isInt,
@@ -58,6 +60,7 @@ const CHECKS: Record<string, Check> = {
   newClockIn: matches(TIME),
   newClockOut: matches(TIME),
   ...HR_CHECKS,
+  ...EXPENSE_AUDIT_CHECKS,
 };
 
 export const AUDIT_KEYS = Object.keys(CHECKS);

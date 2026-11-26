@@ -3,6 +3,7 @@ import type { App as Hono } from "../../src/http/context";
 import { createApp } from "../../src/app";
 import { base32Decode, totpCode } from "../../src/auth/totp";
 import { keyringFromKey } from "../../src/crypto/keyring";
+import type { SubjectHandler } from "../../src/approvals/subjects";
 import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
 import {
@@ -17,6 +18,9 @@ import {
   notConfiguredDocuments,
   type DocumentPort,
 } from "../../src/ports/documents";
+import type { ReceiptReader } from "../../src/receipts/reader";
+import { nullReceiptReader } from "../../src/receipts/reader";
+import { memoryBlobStore } from "../../src/storage/blob";
 import { createTestDb } from "./test-db";
 
 export const TEST_KEK = new Uint8Array(32).fill(7);
@@ -37,7 +41,14 @@ export interface AppOpts {
   calendar?: CalendarPort;
   documents?: DocumentPort;
   access?: AccessPort;
+  /** Approval subject handlers (default: the app's own). */
+  subjects?: SubjectHandler[];
+  /** Receipt reader (default: the null reader). */
+  reader?: ReceiptReader;
 }
+
+/** Plan 6's name for the same options. */
+export type MakeAppOpts = AppOpts;
 
 export async function makeApp(opts: AppOpts = {}) {
   const clock: Clock = {
@@ -60,8 +71,12 @@ export async function makeApp(opts: AppOpts = {}) {
     calendar: opts.calendar ?? notConnectedCalendar,
     documents: opts.documents ?? notConfiguredDocuments,
     access: opts.access ?? notConfiguredAccess,
+    blobs: memoryBlobStore(),
+    receiptReader: opts.reader ?? nullReceiptReader,
   };
-  return { app: createApp(deps), deps, clock, logs };
+  const app = createApp(deps, opts.subjects === undefined ? {}
+    : { subjects: opts.subjects });
+  return { app, deps, clock, logs };
 }
 
 export interface Res {
@@ -80,6 +95,15 @@ async function toRes(r: Response): Promise<Res> {
     body = text;
   }
   return { status: r.status, body, text, headers: r.headers };
+}
+
+/** A GET whose body is read as bytes (binary downloads). */
+export async function callBytes(app: Hono, token: string,
+  companyId: string, path: string) {
+  const r = await app.request(path, { headers: {
+    authorization: `Bearer ${token}`, "x-company-id": companyId } });
+  return { status: r.status, headers: r.headers,
+    bytes: new Uint8Array(await r.arrayBuffer()) };
 }
 
 export async function call(

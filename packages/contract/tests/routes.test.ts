@@ -6,8 +6,8 @@ function paramNames(path: string): string[] {
 }
 
 describe("ROUTES", () => {
-  it("Plan 3 has 50 routes", () => {
-    expect(CORE_ROUTES.length).toBe(50);
+  it("core has 75 routes (Plan 3's 50 plus Plan 6's 25)", () => {
+    expect(CORE_ROUTES.length).toBe(75);
   });
   it("ids are unique", () => {
     const ids = ROUTES.map((r) => r.id);
@@ -34,7 +34,8 @@ describe("ROUTES", () => {
     expect(CORE_ROUTES.filter((x) => x.mfa).map((x) => x.id).sort())
       .toEqual(
       ["approvePayRun", "changeUserRole", "downloadSifFile",
-        "getEmployeeBank"]);
+        "getEmployeeBank", "putApprovalChain", "putEmployeeBank",
+        "putEmployeeSalary"]);
   });
   it("public routes are exactly the four", () => {
     const pub = ROUTES.filter((r) => r.auth === "public")
@@ -68,11 +69,36 @@ describe("ROUTES", () => {
     const owner = CORE_ROUTES.filter((r) => r.roles.length === 1)
       .map((r) => r.id).sort();
     expect(owner).toEqual(["approvePayRun", "changeUserRole", "inviteUser",
-      "listUsers",
+      "listUsers", "putApprovalChain",
       "updateCompany"]);
   });
   it("only the SIF download is text/plain", () => {
     const text = ROUTES.filter((r) => r.contentType === "text/plain");
     expect(text.map((r) => r.id)).toEqual(["downloadSifFile"]);
+  });
+  it("binary routes are GETs; the upload has a 7.5 MB body limit", () => {
+    const binary = ROUTES.filter((r) => r.contentType === "binary");
+    expect(binary.map((r) => r.id)).toEqual(["downloadReceipt"]);
+    for (const r of binary) expect(r.method, r.id).toBe("GET");
+    const up = ROUTES.find((r) => r.id === "uploadReceipt");
+    expect(up?.bodyLimit).toBe(7_500_000);
+    expect(up?.status).toBe(201);
+  });
+  it("changing an approval chain is owner-only with MFA", () => {
+    const r = ROUTES.find((x) => x.id === "putApprovalChain");
+    expect(r?.mfa).toBe(true);
+    expect(r?.roles).toEqual(["owner"]);
+  });
+  it("the five expense reports are owner and hr only", () => {
+    const ids = ["expenseSummary", "expenseVatRegister", "expenseAging",
+      "expenseUnpaid", "expensePayouts"];
+    for (const id of ids) {
+      expect(ROUTES.find((r) => r.id === id)?.roles, id)
+        .toEqual(["owner", "hr"]);
+    }
+    const csv = ROUTES.filter((r) => r.contentType === "text/csv-optional")
+      .map((r) => r.id).sort();
+    expect(csv).toEqual(["expensePayouts", "expenseSummary",
+      "expenseVatRegister"]);
   });
 });

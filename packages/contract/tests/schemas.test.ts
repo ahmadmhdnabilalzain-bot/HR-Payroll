@@ -206,3 +206,19 @@ describe("EXAMPLES", () => {
     expect(text).toContain("AE070331234567890123456");
   });
 });
+
+describe("Plan 6 additions to pay runs and payslips", () => {
+  it("the Plan 3 payslip example carries no reimbursement", () => {
+    const slip = EXAMPLES.Payslip as Record<string, unknown>;
+    expect(slip.salaryNet).toBe(slip.net);
+    expect(slip.reimbursementTotal).toBe("0.00");
+    expect(slip.reimbursements).toEqual([]);
+    expect(slip.reimbursementNote).toBeNull();
+  });
+  it("the Plan 3 pay-run example counts no claim", () => {
+    const run = EXAMPLES.PayRun as Record<string, unknown>;
+    expect(run.reimbursementTotal).toBe("0.00");
+    expect(run.claimCount).toBe(0);
+    expect(run.pendingClaimCount).toBe(0);
+  });
+});
