@@ -1,6 +1,6 @@
-import type { Approval, DemoData, Issue, Severity } from "./data/types";
+import type { DemoData, Issue, Severity } from "./data/types";
 import type { DemoState, Role } from "./state";
-import { allApprovals, personFor } from "./time-off";
+import { personFor } from "./time-off";
 
 const RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2 };
 
@@ -40,15 +40,6 @@ export function notes(d: DemoData): Issue[] {
  */
 export function personOf(d: DemoData, role: Role): string {
   return personFor(d, role);
-}
-
-/** Everything still undecided, the current role's own first. */
-export function pendingApprovals(d: DemoData, s: DemoState): Approval[] {
-  const me = personOf(d, s.role);
-  const open = allApprovals(d, s).filter((a) =>
-    s.decided[a.id] === undefined);
-  return [...open.filter((a) => a.checkerId === me),
-    ...open.filter((a) => a.checkerId !== me)];
 }
 
 export function runApprovalId(d: DemoData): string | null {

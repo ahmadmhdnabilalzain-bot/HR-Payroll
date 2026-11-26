@@ -5,12 +5,12 @@ import {
   confirmations,
   notes,
   openIssues,
-  pendingApprovals,
   personOf,
   runApprovalId,
   runPhase,
   steps,
 } from "../../src/demo/derive";
+import { approvalsShown } from "../../src/demo/approvals";
 import { INITIAL, reduce, type DemoState } from "../../src/demo/state";
 import { groupIban } from "../../src/home/IbanForm";
 
@@ -101,17 +101,18 @@ describe("demo selectors", () => {
     expect(p.makerId).not.toBe(p.checkerId);
     expect(personOf(d, "gm")).toBe(p.checkerId);
     const gm = { ...INITIAL, role: "gm" as const };
-    expect(pendingApprovals(d, gm)[0]?.kind).toBe("pay-run");
+    expect(approvalsShown(d, gm)[0]?.kind).toBe("pay-run");
   });
 
   it("decisions-drop-and-undo-brings-them-back", () => {
-    const all = pendingApprovals(d, INITIAL);
-    expect(all.length).toBe(d.headline().approvalsPending);
+    const all = approvalsShown(d, INITIAL);
+    expect(all.length).toBe(d.headline().approvalsPending +
+      d.crewApprovals().length);
     const first = all[0]?.id ?? "";
     const s1 = reduce(INITIAL, { type: "decide", id: first,
       verdict: "approve" });
-    expect(pendingApprovals(d, s1).length).toBe(all.length - 1);
-    expect(pendingApprovals(d, reduce(s1, { type: "undecide",
+    expect(approvalsShown(d, s1).length).toBe(all.length - 1);
+    expect(approvalsShown(d, reduce(s1, { type: "undecide",
       id: first })).length).toBe(all.length);
   });
 

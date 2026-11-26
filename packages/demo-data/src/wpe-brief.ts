@@ -34,8 +34,12 @@ const sum = (xs: readonly bigint[]): Fils =>
  * X25 Owner brief
  * ---------------------------------------------------------------- */
 
-/** Rows the screen overlays with the live state of the demo. */
-export type BriefLive = "issues-open" | "approvals-waiting" | null;
+/** Rows the screen overlays with the live state of the demo: open
+ * problems, the run's sign-off, the pay still held out of the salary
+ * file (it falls when an IBAN is entered) and the settlement total
+ * (other dues added by HR). */
+export type BriefLive = "issues-open" | "approvals-waiting" | "held" |
+  "settlement" | null;
 
 export interface BriefItem {
   id: string;
@@ -94,7 +98,8 @@ export function ownerBrief(c: DemoCompany): OwnerBrief {
       live: "approvals-waiting" }),
     item({ id: "held", area: "Pay", item: "Held out of the salary file",
       text: "Pay with no valid bank account is held, never part-paid.",
-      amount: h.heldNet, next: "Enter the bank account to release it." }),
+      amount: h.heldNet, next: "Enter the bank account to release it.",
+      live: "held" }),
     item({ id: "issues", area: "Pay", item: "Problems to fix before sign-off",
       text: "Counted from the run's own checks.", count: h.issuesOpen,
       next: "Open the pay run to fix them.", live: "issues-open" }),
@@ -102,7 +107,8 @@ export function ownerBrief(c: DemoCompany): OwnerBrief {
       item: "Final settlement, outside the run",
       text: `${nameOf(c, settle.employeeId)}: gratuity and unused leave.`,
       amount: settle.result.total,
-      next: "Paid on its own, not in the salary file." })]),
+      next: "Paid on its own, not in the salary file.",
+      live: "settlement" })]),
     item({ id: "headcount", area: "People", item: "On the payroll",
       text: h.headcountText, count: h.payslips,
       next: "Nothing to do." }),
@@ -156,6 +162,8 @@ export interface BoardRow {
   /** A count or a short phrase, when the measure is not money. */
   text: string | null;
   note: string;
+  /** Overlaid with the demo's live state, as the brief's rows are. */
+  live: BriefLive;
 }
 
 export interface BoardPack {
@@ -177,21 +185,20 @@ export function boardPack(c: DemoCompany): BoardPack {
   const ec = employerCostView(c);
   const owing = sum(loans(c).filter((l) => l.status !== "closed")
     .map((l) => l.balance));
-  const active = c.employees.filter((e) => e.leavingDate === null);
   const left = c.employees.filter((e) => e.leavingDate !== null);
   const topDept = [...c.departments].map((d) => ({ d, gross: sum(
     c.payRun.payslips.filter((s) => c.employees.find((e) =>
       e.id === s.employeeId)?.departmentId === d.id)
       .map((s) => s.payslip.gross)) }))
     .sort((a, b) => a.gross > b.gross ? -1 : 1)[0];
-  const row = (r: Omit<BoardRow, "amount" | "text"> &
-    Partial<Pick<BoardRow, "amount" | "text">>): BoardRow =>
-    ({ amount: null, text: null, ...r });
+  const row = (r: Omit<BoardRow, "amount" | "text" | "live"> &
+    Partial<Pick<BoardRow, "amount" | "text" | "live">>): BoardRow =>
+    ({ amount: null, text: null, live: null, ...r });
   const rows: BoardRow[] = [
     row({ topic: "People", measure: "On the October payroll",
       text: String(h.payslips), note: h.headcountText }),
     row({ topic: "People", measure: "Active on 27 Oct 2026",
-      text: String(active.length), note: `${plural(left.length, "person has",
+      text: String(h.activeToday), note: `${plural(left.length, "person has",
         "people have")} left or is leaving in 2026.` }),
     row({ topic: "People", measure: "UAE nationals",
       text: String(h.uaeNationals), note: h.employerCostNote }),
@@ -215,7 +222,8 @@ export function boardPack(c: DemoCompany): BoardPack {
     row({ topic: "Liabilities", measure: "Loans and advances outstanding",
       amount: owing, note: "Active loans and advances agreed." }),
     row({ topic: "Open items", measure: "Problems before sign-off",
-      text: String(h.issuesOpen), note: "Counted from the run's checks." }),
+      text: String(h.issuesOpen), note: "Counted from the run's checks.",
+      live: "issues-open" }),
   ];
   return { period: "January to October 2026", ytdGross: ytd, rows,
     note: "Every row repeats a figure from its own report. The gratuity " +

@@ -1,6 +1,11 @@
 import { fils, type Fils } from "@payroll/engine";
 import { issuesOf, type DemoIssue } from "./issues";
-import { employerCostNoteOf, netNoteOf } from "./notes";
+import { AS_OF } from "./calendar";
+import {
+  activeCountOn,
+  employerCostNoteOf,
+  netNoteOf,
+} from "./notes";
 import { PENSION_NOT_COMPUTED } from "./pension";
 import type {
   ApprovalItem,
@@ -20,6 +25,8 @@ export interface HeadlineTotals {
   netNote: string;
   /** Employer pension for nationals: not computed (never 0.00). */
   employerCostNote: string;
+  /** Employed on the demo's today (30): see activeCountOn. */
+  activeToday: number;
   /** "31 on the October payroll, 30 active on 27 October (...)". */
   headcountText: string;
   /** In the SIF; the rest is held (no IBAN). */
@@ -57,6 +64,7 @@ export function headlineTotals(c: DemoCompany): HeadlineTotals {
     gross: t.gross, deductions: t.deductions, net: t.net,
     netNote: netNoteOf(c.payRun),
     employerCostNote: employerCostNoteOf(c.payRun),
+    activeToday: activeCountOn(c.employees, AS_OF),
     headcountText: c.nationalities.headcountText,
     sifTotal: c.sif.total, heldNet: t.heldNet,
     settlements: fils(c.payRun.settlements.reduce((s, x) =>

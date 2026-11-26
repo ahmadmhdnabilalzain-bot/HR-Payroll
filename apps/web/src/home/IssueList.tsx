@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { isBlocking, openIssues } from "../demo/derive";
+import { openIssues } from "../demo/derive";
+import { figures } from "../demo/figures";
 import {
   reducedMotion,
   useFlip,
@@ -32,9 +33,9 @@ export function IssueList() {
   const more = open.length - shown.length;
   const box = useRef<HTMLOListElement>(null);
   useFlip(box, [shown.map((i) => i.id).join()]);
-  const blocking = useTweenedNumber(open.filter(isBlocking).length);
-  const review = useTweenedNumber(open.filter((i) => !isBlocking(i))
-    .length);
+  const fig = figures(data, state);
+  const blocking = useTweenedNumber(fig.blocking);
+  const review = useTweenedNumber(fig.toReview);
   const counts = [blocking > 0 ? t("home.blockCount", { count: blocking })
     : "", review > 0 ? t("home.reviewCount", { count: review }) : ""]
     .filter(Boolean).join(" · ");

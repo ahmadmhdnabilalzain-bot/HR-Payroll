@@ -33,8 +33,10 @@ export interface Headline {
   /** What the salary file pays, and the net held out of it. */
   sifTotalFils: Fils;
   heldNetFils: Fils;
-  /** People on this run's payroll and in the salary file. */
+  /** People on this run's payroll (31) and in the salary file. */
   headcount: number;
+  /** Employed on the demo's today (30): the leaver is not counted. */
+  activeToday: number;
   sifPeople: number;
   issuesOpen: number;
   needsConfirmation: number;
@@ -79,7 +81,9 @@ export interface Employee {
   role: Localized;
 }
 
-export type ApprovalKind = "leave" | "pay-run" | "expense";
+/** "overtime": a crew's overtime asked for in advance; it is decided
+ * through the Time store (time-decide), the others through `decided`. */
+export type ApprovalKind = "leave" | "pay-run" | "expense" | "overtime";
 
 export interface Approval {
   id: string;
@@ -135,6 +139,8 @@ export interface DemoData {
    * reject the payment). */
   badIbanIds(): string[];
   approvalsInbox(): Approval[];
+  /** Crew overtime waiting for the asker's approver (kind "overtime"). */
+  crewApprovals(): Approval[];
   employee(employeeId: string): Employee;
   employees(): Employee[];
   documents(): DocumentExpiry[];

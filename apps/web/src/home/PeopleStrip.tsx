@@ -1,11 +1,12 @@
-import { pendingApprovals } from "../demo/derive";
-import { useRunApproval } from "../demo/actions";
+import { approvalsShown, isSent } from "../demo/approvals";
+import { figures } from "../demo/figures";
 import { hrefOf } from "../demo/route";
 import type { Section } from "../demo/state";
 import { useDemo } from "../demo/state";
 import { offOn, requestRows } from "../demo/time-off";
 import { useTweenedNumber } from "../demo/motion";
-import type { MessageKey } from "../i18n/t";
+import { formatMonthName } from "../i18n/format";
+import type { MessageKey, Vars } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import { VIEWS } from "../views";
 import s from "./PeopleStrip.module.css";
@@ -16,6 +17,7 @@ const SOON_DAYS = 30;
 interface Tile {
   key: MessageKey;
   value: number;
+  vars?: Vars;
   sub: string;
   href: string;
 }
@@ -27,16 +29,16 @@ interface Tile {
  * data and the demo state.
  */
 export function PeopleStrip() {
-  const { t } = useLocale();
+  const { lang, t } = useLocale();
   const { data, state } = useDemo();
-  const run = useRunApproval();
   const asOf = data.payCalendar().asOf;
   const link = (sec: Section, anchor: string): string =>
     VIEWS[sec] !== undefined ? hrefOf(sec) : anchor;
-  const sent = pendingApprovals(data, state).filter((a) =>
-    a.kind !== "pay-run" || run.blockedBy.length === 0).length;
+  const sent = approvalsShown(data, state).filter((a) =>
+    isSent(data, state, a)).length;
   const tiles: Tile[] = [
-    { key: "home.stripHeadcount", value: data.headline().headcount,
+    { key: "home.stripHeadcount", value: figures(data, state).onPayroll,
+      vars: { month: formatMonthName(data.headline().runMonth, lang) },
       sub: "", href: link("people", "#/home") },
     { key: "home.stripOnLeave",
       value: offOn(requestRows(data, state), asOf).length, sub: "",
@@ -66,7 +68,7 @@ function TileView(p: { tile: Tile }) {
           ?.scrollIntoView({ block: "start", behavior: "smooth" });
       } : undefined}>
         <span className={`${s.value} tabular`}>{n}</span>
-        <span className={s.label}>{t(p.tile.key)}</span>
+        <span className={s.label}>{t(p.tile.key, p.tile.vars)}</span>
         {p.tile.sub !== "" && <span className={s.sub}>{p.tile.sub}</span>}
       </a>
     </li>

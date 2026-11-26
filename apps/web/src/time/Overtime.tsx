@@ -1,3 +1,4 @@
+import { mayDecide } from "../demo/approvals";
 import { hrefOf } from "../demo/route";
 import type { ClaimRow, CrewRequest } from "../demo/data/time-types";
 import { useDemo } from "../demo/state";
@@ -193,7 +194,7 @@ export function Crew() {
 
 export function CrewRecord(q: { id: string }) {
   const t = useTimeData();
-  const { state } = useDemo();
+  const { data, state } = useDemo();
   const who = useWho();
   const c = crewFor(t, who).find((x) => x.id === q.id);
   if (c === undefined) return <Outside />;
@@ -208,7 +209,8 @@ export function CrewRecord(q: { id: string }) {
       back={{ label: "Crew overtime", href: hrefOf("time-off", "overtime",
         "crew") }}
       actions={<Buttons id={c.id} text="The request" phase={phase}
-        allowed={who.canDecide(c.requestedBy)} />}
+        allowed={data.crewApprovals().some((a) => a.id === c.id &&
+          mayDecide(data, state.role, a))} />}
       stats={[
         { label: "People", value: String(c.people.length) },
         { label: "Each", value: hm(c.minutesEach) },

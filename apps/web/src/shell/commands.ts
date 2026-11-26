@@ -1,5 +1,6 @@
 import type { DemoData } from "../demo/data/types";
-import { openIssues, pendingApprovals, personOf } from "../demo/derive";
+import { decisionsFor } from "../demo/approvals";
+import { openIssues, personOf } from "../demo/derive";
 import { navigate } from "../demo/route";
 import type { Action, DemoState, Role } from "../demo/state";
 import type { AreaRoute } from "../nav/types";
@@ -133,7 +134,7 @@ function people(e: Env): Command[] {
         run: () => onHome(e, () =>
           e.dispatch({ type: "focus-issue", id: i.id })) };
     });
-  const fromApprovals = !company ? [] : pendingApprovals(e.data, e.state)
+  const fromApprovals = !company ? [] : decisionsFor(e.data, e.state)
     .map((a): Command => {
       const who = e.data.employee(a.employeeId ?? a.makerId);
       return { id: `approval:${a.id}`, group: "people", icon: "check",
