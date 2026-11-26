@@ -88,3 +88,23 @@ test("revoking a key writes the trail; the IT dashboard waits for a check",
     await expect(page.getByText(/Checked in this session: all/))
       .toBeVisible();
   });
+
+test("a message and its Undo stay on their page and role",
+  async ({ page }) => {
+    await page.goto("/");
+    await asRole(page, "IT manager");
+    await go(page, "#/setup/connections/keys");
+    await page.getByRole("button", { name: "Revoke", exact: true }).first()
+      .click();
+    const toast = page.getByText(/revoked\. Written to the audit trail/);
+    await expect(toast).toBeVisible();
+    await page.waitForTimeout(500);
+    await go(page, "#/reports/audit");
+    await expect(toast).toHaveCount(0);
+    await go(page, "#/setup/connections/keys");
+    await page.getByRole("button", { name: "Revoke", exact: true }).first()
+      .click();
+    await expect(toast).toBeVisible();
+    await asRole(page, "HR manager");
+    await expect(toast).toHaveCount(0);
+  });
