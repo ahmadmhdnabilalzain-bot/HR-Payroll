@@ -34,8 +34,10 @@ source-cited, with an open API and Arabic from the start.
   deduction caps and loans, and GPSSA contributions for UAE nationals,
   every money field traced to a rule-pack param. `payslipToSifEmployee`
   in `packages/wps` turns a payslip into a SIF EDR and EVP. The plan's
-  per-task reviews (Tasks 3 to 7 and 9) were not run by the builder; the
-  whole-branch review is still to do.
+  per-task reviews (Tasks 3 to 7 and 9) were not run by the builder. The
+  whole-branch money and law review found nothing Critical (READY AFTER
+  FIXES); its Important findings and most Minor ones are fixed (LEDGER
+  section 10, Rulings B7 to B13). Open: review items M1, M5, M10, M11.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -187,8 +189,7 @@ needs checking against official sources before anything is built on it.
 
 ## Next step
 
-Plan 5: a whole-branch review of the payroll engine work (money and law),
-then merge the worktree branch. Plan 3: data model, API, tenancy and
+Plan 5: merge the review-fix commits of the worktree branch. Plan 3: data model, API, tenancy and
 security baseline (`LEDGER.md` section 4). The Plan 2 whole-branch review and its fix round are done.
 Write the plan, build it test-first, keep this handover current. Plan 3
 gets one whole-branch review at the end, plus separate reviews of the

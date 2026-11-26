@@ -116,3 +116,65 @@ payroll cases pass, and so do the 200-run properties (7 engine, 1 wps).
   tests cover dates before joining and after the month.
 - Merge risk: LEDGER section 10 and the HANDOVER edits may collide with
   other worktrees building in parallel.
+
+## Review fix round (after the whole-branch review)
+
+The review (`.superpowers/sdd/plan5/final-review.md` in the main checkout)
+was READY AFTER FIXES with nothing Critical. The branch was synced with
+`origin/claude/quirky-wozniak-b7xkvr` (fast-forward to `d5a9959`) before
+the fixes. New commits, none amended:
+
+- `28490ea` fix(engine): trace the GPSSA employee share and flag every
+  override (I1, I2, M8, M9). Red first: `payroll-overrides`, 8 of 8
+  failed.
+- `6cfa0cb` fix(engine): exit deferrals and payslip message text (I3,
+  M3, M7). Red first: `payroll-messages`, 7 of 8 failed (the stayer
+  case already passed).
+- `448f17e` fix(engine): round the employer GPSSA share once, cap night
+  minutes (M2, M12, I4). Red first: the M2 and M12 tests failed (3);
+  the five I4 tests pin existing behaviour, so they passed on the code
+  and I checked that each kills its mutant (court cap 3000, overtime
+  threshold 150, GPSSA HALF_EVEN, `d > w.monthEnd`, WPS order with
+  housing second: all five killed). The new property "taken plus
+  deferred equals requested" passed. The property arbitrary now keeps
+  night minutes within 360.
+- The last commit: case statuses and not-computed list (M4, M6), LEDGER
+  Rulings B7 to B13, HANDOVER and this report. Red first: 3 tests
+  failed (NOT_COMPUTED length, two case-status tests).
+
+Rulings (LEDGER section 10):
+
+- B7 replaces B5: overrides are recorded when params load;
+  `UNKNOWN_OVERRIDE` refuses a key no pack defines; `OVERRIDE_UNUSED`
+  shows a known key this payslip did not read.
+- B8: the `gpssa.employee-share` line; `ded.gpssa` inputs `share` and
+  `arrears`; the pension lines carry the salary-base rule; explanations
+  print "overridden" (Arabic "قيمة مستبدلة", NEEDS NATIVE REVIEW).
+- B9: `DEDUCTION_DUE_AT_EXIT` for a leaver's deferrals.
+- B10 (M2): the employer share is rounded once. Checked by hand: salary
+  300,100 x 15% = 45,015 exactly; x 12.5% = 37,512.5, which rounds
+  HALF_UP to 37,513; support = 45,015 - 37,513 = 7,502. The review's
+  37,513 is right. Earlier tests still hold (1,999,999: gross 300,000,
+  payable 249,999.875 -> 250,000, support 50,000).
+- B11 (M12): more than 360 night minutes on one date is refused
+  (`INVALID_MINUTES`), not clamped.
+- B12 (M13): "2.5% of its share" is read as 2.5 points of salary.
+- B13 (M4): case files declare the weakest status in their trace; the
+  runner fails a case that claims more; the national cases are
+  `unsourced`.
+- M3: the cap message prints the rate (`{in.capPercent}`, for example
+  "50%"); `GPSSA_SHARE_DEFERRED` cites DL57 Art 11(4) only under DL57
+  and says the Law 7 clause is not read; sick and maternity messages
+  show days beyond the limit, and sick shows probation days.
+- M6: five lines added to `NOT_COMPUTED` (private sector assumed,
+  mid-month salary change, Art 30(2) GPSSA exclusion, Art 19(5), a
+  Cabinet decision on the 2.5% support), 17 in all.
+- M7: Arabic `cap.base` is now "الأجر الذي تُحسب عليه حدود الخصم"
+  (still NEEDS NATIVE REVIEW).
+
+Open items (skipped as instructed): M1 Law 7 join-and-leave in one
+month; M5 no flag for probation-unpaid sick days; M10 two daily bases;
+M11 WPS fixed can be 0 and half-pay days are not in `unpaidLeaveDays`.
+
+Final `pnpm check` after the fix round: engine 300 tests, wps 173,
+contract 43, web 88, all pass.

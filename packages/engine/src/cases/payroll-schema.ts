@@ -50,7 +50,7 @@ export const PayrollCaseFileSchema = z.object({
     z.union([z.string(), z.number(), z.boolean()])).optional(),
   expected: Expected,
   sourceIds: z.array(z.string().min(1)).min(1),
-  status: z.enum(["official", "secondary", "convention"]),
+  status: z.enum(["official", "secondary", "convention", "unsourced"]),
 });
 
 export type PayrollCaseFile = z.infer<typeof PayrollCaseFileSchema>;

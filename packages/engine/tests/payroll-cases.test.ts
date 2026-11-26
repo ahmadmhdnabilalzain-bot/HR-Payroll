@@ -44,6 +44,22 @@ describe("payroll case library", () => {
       employerCost: "187500" });
     expect(r?.trace.length).toBeGreaterThan(0);
   });
+  it("declares unsourced for the national cases", async () => {
+    const reports = await runPayrollCases(LIBRARY);
+    for (const id of ["national-dl57-wage", "national-last-day-joiner"]) {
+      const r = reports.find((x) => x.id === id);
+      expect(r?.weakestStatus, id).toBe("unsourced");
+    }
+    const fx = reports.find((x) => x.id === "full-month-expat");
+    expect(fx?.weakestStatus).toBe("convention");
+  });
+  it("fails a case whose status claims more than its rules", async () => {
+    const text = await readFile(join(LIBRARY, "full-month-expat.json"),
+      "utf8");
+    const c = { ...(JSON.parse(text) as object), status: "official" };
+    expect(await runOne(c)).toMatchObject([{ passed: false,
+      weakestStatus: "convention" }]);
+  });
   it("rejects an unknown source id", async () => {
     const bad = { ...(await sample()), sourceIds: ["DL57_ART4", "NOPE"] };
     expect(await runOne(bad)).toMatchObject({ code: "INVALID_CASE_FILE",
