@@ -22,6 +22,7 @@ import {
   LeaveTypeList,
 } from "./lists";
 import { IdParams } from "./primitives";
+import { TIME_SETTINGS_ROUTES } from "./routes-time-settings";
 import {
   ALL_ROLES,
   DECIDERS,
@@ -78,4 +79,11 @@ const ATTENDANCE: readonly RouteDef[] = [
     response: AttendanceRecord }),
 ];
 
-export const TIME_ROUTES: readonly RouteDef[] = [...LEAVE, ...ATTENDANCE];
+/** Plan 3's leave and attendance routes. */
+export const LEAVE_ATTENDANCE_ROUTES: readonly RouteDef[] = [...LEAVE,
+  ...ATTENDANCE];
+
+/** Plan 9's routes (time, attendance, leave policies, WFH), in order. */
+export const TIME_ROUTES: readonly RouteDef[] = [
+  ...TIME_SETTINGS_ROUTES,
+];

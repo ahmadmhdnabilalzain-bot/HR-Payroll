@@ -1,0 +1,31 @@
+import type { Db } from "../../src/db/db";
+
+/** A uuid made from a 2-hex-digit slot and the company id. */
+const rowId = (companyId: string, slot: string) =>
+  `${slot}${companyId.slice(2)}`;
+
+const AT = "2026-03-01T08:00:00.000Z";
+
+/** One row per Plan 9 table (Task 3 onward) for one company. */
+export async function seedTimeRows(admin: Db, c: string, emp: string)
+  : Promise<void> {
+  await admin.query(
+    `INSERT INTO company_time_settings (company_id, rest_days, updated_at)
+     VALUES ($1, '{wed}', $2)`, [c, AT]);
+  await admin.query(
+    `INSERT INTO holidays (id, company_id, date, name, kind, status)
+     VALUES ($1, $2, '2026-03-20', 'Company Day A', 'company', 'active')`,
+    [rowId(c, "91"), c]);
+  await admin.query(
+    `INSERT INTO special_periods (id, company_id, kind, name, start_date,
+       end_date, status) VALUES ($1, $2, 'ramadan', 'Test period',
+       '2026-02-18', '2026-03-19', 'active')`, [rowId(c, "92"), c]);
+  await admin.query(
+    `INSERT INTO work_sites (id, company_id, name, lat_e6, lng_e6,
+       radius_m, status) VALUES ($1, $2, 'Site A', 1500000, 1500000, 200,
+       'active')`, [rowId(c, "93"), c]);
+  await admin.query(
+    `INSERT INTO employee_time_profiles (company_id, employee_id, work_mode,
+       geofence_mode, work_site_ids, wfh_tracked, shift_worker)
+     VALUES ($1, $2, 'site', 'off', '{}', false, false)`, [c, emp]);
+}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TIME_ERROR_STATUS } from "./errors-time";
 
 /**
  * Every code an HTTP error body can carry, with its status. Internal
@@ -56,6 +57,7 @@ export const ERROR_STATUS = {
   ENGINE_REFUSED: 422,
   PAYLOAD_TOO_LARGE: 413,
   ACCOUNT_LOCKED: 423,
+  ...TIME_ERROR_STATUS,
   INTERNAL: 500,
 } as const;
 

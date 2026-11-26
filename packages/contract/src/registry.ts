@@ -12,6 +12,7 @@ import { Health, NoContent } from "./primitives";
 import * as sif from "./sif";
 import * as trace from "./trace";
 import * as user from "./user";
+import { TIME_SCHEMAS } from "./registry-time";
 
 /** Named schemas: OpenAPI components and the keys of `EXAMPLES`. */
 export const SCHEMAS: Readonly<Record<string, z.ZodType>> = {
@@ -38,6 +39,7 @@ export const SCHEMAS: Readonly<Record<string, z.ZodType>> = {
   ...pick(sif, ["Finding", "SifFile", "SifText"]),
   ...pick(audit, ["AuditEvent", "AuditVerifyResult", "AuditEventPage"]),
   ...pick(lists, Object.keys(lists)),
+  ...TIME_SCHEMAS,
 };
 
 function pick(

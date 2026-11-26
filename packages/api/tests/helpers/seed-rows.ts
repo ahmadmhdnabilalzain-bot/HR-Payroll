@@ -1,4 +1,5 @@
 import type { Db } from "../../src/db/db";
+import { seedTimeRows } from "./seed-rows-time";
 
 const AT = "2026-03-01T08:00:00.000Z";
 const H0 = "0".repeat(64);
@@ -47,6 +48,7 @@ async function seedPeople(admin: Db, c: string): Promise<void> {
        'expat-full-time', '2020-01-01', $3)`, [rowId(c, "f1"), c, AT]);
   await seedTime(admin, c, rowId(c, "f1"));
   await seedPay(admin, c, rowId(c, "f1"));
+  await seedTimeRows(admin, c, rowId(c, "f1"));
 }
 
 async function seedPay(admin: Db, c: string, emp: string): Promise<void> {

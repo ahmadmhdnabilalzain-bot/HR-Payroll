@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { ROUTES } from "../src/index";
+import { ROUTES as ALL, TIME_ROUTES } from "../src/index";
+
+/** Plan 3's routes; Plan 9's are checked in routes-time.test.ts. */
+const ROUTES = ALL.filter((r) => !TIME_ROUTES.includes(r));
 
 function paramNames(path: string): string[] {
   return [...path.matchAll(/\{([a-zA-Z]+)\}/g)].map((m) => m[1] ?? "");
@@ -10,11 +13,11 @@ describe("ROUTES", () => {
     expect(ROUTES.length).toBe(50);
   });
   it("ids are unique", () => {
-    const ids = ROUTES.map((r) => r.id);
+    const ids = ALL.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
   it("(method, path) pairs are unique", () => {
-    const keys = ROUTES.map((r) => `${r.method} ${r.path}`);
+    const keys = ALL.map((r) => `${r.method} ${r.path}`);
     expect(new Set(keys).size).toBe(keys.length);
   });
   it("every path starts with /v1/", () => {

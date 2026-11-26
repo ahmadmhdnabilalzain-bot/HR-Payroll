@@ -7,6 +7,7 @@ import {
 import { beforeAll, describe, expect, it } from "vitest";
 import { base32Decode, totpCode } from "../src/auth/totp";
 import { salaryOf } from "./helpers/seed";
+import { timeFlow } from "./helpers/conformance-time";
 import { call, makeApp, PASSWORD, type Res } from "./helpers/test-app";
 
 type Ctx = Awaited<ReturnType<typeof makeApp>>;
@@ -116,6 +117,7 @@ async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
   await leave(hit, owner, e.body.token, c, emp);
   await attendance(hit, owner, e.body.token, c);
   await payroll(hit, owner, owner2, e.body.token, c);
+  await timeFlow({ hit, owner, emp: e.body.token, c, empId: emp });
   await hit("listAuditEvents", owner, c, {}, undefined,
     { query: "?limit=10" });
   await hit("verifyAuditChain", owner, c);

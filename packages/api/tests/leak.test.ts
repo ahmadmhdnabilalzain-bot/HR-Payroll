@@ -10,6 +10,7 @@ import {
   seedCompany,
   type Seeded,
 } from "./helpers/seed";
+import { TIME_ID_KIND, TIME_QUERY } from "./helpers/leak-time";
 
 /**
  * Review Focus 1. The sentinels sit only on records the manager and
@@ -33,12 +34,14 @@ const ID_KIND: Record<string, Kind> = {
   getPayRun: "payRun", listPayRunPayslips: "payRun",
   getSifFile: "sifFile", downloadSifFile: "sifFile",
   listAuditEvents: null, verifyAuditChain: null,
+  ...TIME_ID_KIND,
 };
 
 /** Query strings a route needs. */
 const QUERY: Record<string, string> = {
   listAttendance: "?from=2026-01-01&to=2026-12-31",
   getLeaveBalances: "?year=2026",
+  ...TIME_QUERY,
 };
 
 /** Which targets a role may open on an employee or payslip route. */

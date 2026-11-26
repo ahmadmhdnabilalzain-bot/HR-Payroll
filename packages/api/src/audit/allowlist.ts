@@ -1,4 +1,5 @@
 import { CodedError } from "../coded-error";
+import { ISO_DATE, TIME_CHECKS } from "./allowlist-time";
 
 /**
  * Audit `data` is an allowlist: each key has a shape check, and any
@@ -35,8 +36,9 @@ const period: Check = (v) => {
 const CHECKS: Record<string, Check> = {
   changed: (v) => Array.isArray(v) && v.every(matches(FIELD)),
   role: matches(WORD),
-  from: matches(WORD),
-  to: matches(WORD),
+  // A role word (role changes) or a date (roster ranges).
+  from: (v) => matches(WORD)(v) || matches(ISO_DATE)(v),
+  to: (v) => matches(WORD)(v) || matches(ISO_DATE)(v),
   status: matches(WORD),
   version: isInt,
   count: isInt,
@@ -56,6 +58,7 @@ const CHECKS: Record<string, Check> = {
   oldClockOut: matches(TIME),
   newClockIn: matches(TIME),
   newClockOut: matches(TIME),
+  ...TIME_CHECKS,
 };
 
 export const AUDIT_KEYS = Object.keys(CHECKS);
