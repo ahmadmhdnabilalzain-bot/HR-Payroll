@@ -451,7 +451,8 @@ function whoOf(c: DemoCompany, id: string | null): string {
   const e = employeeById(c, id);
   const key = `job.${e.jobKey}`;
   const job = isDemoLabelKey(key) ? DEMO_LABELS.en[key] : e.jobKey;
-  return `${e.fullName}, ${job.toLowerCase()}`;
+  // The job title as written ("IT manager"): lower case read "it manager".
+  return `${e.fullName}, ${job}`;
 }
 
 /** The audit screen's rows, newest last, with optional filters. */
