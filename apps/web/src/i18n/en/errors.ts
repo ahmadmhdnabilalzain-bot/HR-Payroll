@@ -160,4 +160,8 @@ export const errors = {
   OVERRIDE_NOT_ALLOWED: "This value cannot be changed here.",
   PDF_RENDERER_UNAVAILABLE: "Letters cannot be created right now. Try " +
     "again later.",
+  RATE_LIMITED: "Too many requests in a short time. Wait a minute and " +
+    "try again.",
+  PDF_RENDERER_BUSY: "Many letters are being prepared. Try again in a " +
+    "few seconds.",
 } satisfies EnNamespace;

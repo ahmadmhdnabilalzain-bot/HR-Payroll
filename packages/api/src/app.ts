@@ -52,6 +52,8 @@ export function createApp(deps: AppDeps, opts: ExpenseAppOpts = {}): App {
     const r = toErrorResponse(err, c.get("requestId"));
     if (r.status >= 500) deps.log({ requestId: c.get("requestId"),
       ...internalLine(err) });
+    const wait = (err as { retryAfterSeconds?: unknown }).retryAfterSeconds;
+    if (typeof wait === "number") c.header("Retry-After", String(wait));
     return c.json(r.body, r.status as 500);
   });
   app.notFound((c) => {

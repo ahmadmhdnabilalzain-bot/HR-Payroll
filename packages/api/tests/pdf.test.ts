@@ -75,6 +75,27 @@ describe.skipIf(chromePath === undefined)("real Chrome renderer", () => {
     expect(hits).toBe(0);
   }, 60000);
 
+  it("one failing render does not take the others down (review I-5)",
+    async () => {
+      const short = chromeRenderer({ executablePath: chromePath!,
+        noSandbox: process.getuid?.() === 0 ||
+          process.env.CHROME_NO_SANDBOX === "1",
+        fontBase64: font, timeoutMs: 1500, log: () => undefined });
+      try {
+        await short.render(page());
+        const huge = `<!doctype html><html><body>${
+          "<p>x</p>".repeat(400_000)}</body></html>`;
+        const out = await Promise.allSettled([short.renderHtml(huge),
+          short.render(page()), short.render(page()),
+          short.render(page())]);
+        expect(out[0]!.status).toBe("rejected");
+        expect(out.slice(1).map((x) => x.status))
+          .toEqual(["fulfilled", "fulfilled", "fulfilled"]);
+      } finally {
+        await short.close();
+      }
+    }, 90000);
+
   it("raw HTML with external resources and script makes no request",
     async () => {
       const u = `http://127.0.0.1:${port}`;

@@ -61,13 +61,21 @@ export function chromeRenderer(o: ChromeOptions): ChromeRenderer {
     browser = null;
     if (b !== null) await b.then((x) => x.close(), () => undefined);
   };
+  /** Forget `b` only if it is still the current, and it has died. */
+  const forgetIfDead = async (b: Promise<Browser>) => {
+    const x = await b.catch(() => null);
+    if (browser === b && (x === null || !x.connected)) browser = null;
+  };
+  // A failed render closes only its own context (print's finally); the
+  // shared browser stays for the renders running beside it.
   const renderHtml = async (html: string) => {
+    const b = launch();
     try {
-      return await print(await launch(), html, o.timeoutMs);
+      return await print(await b, html, o.timeoutMs);
     } catch (e) {
       o.log({ event: "pdf.render.failed",
         error: String((e as { name?: unknown })?.name ?? "unknown") });
-      await close().catch(() => undefined);
+      await forgetIfDead(b);
       throw new ApiError("INTERNAL");
     }
   };

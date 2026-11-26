@@ -14,6 +14,8 @@ export class ApiError extends Error {
   readonly status: number;
   readonly code: ErrorCode;
   readonly detail: Detail | undefined;
+  /** Sent as Retry-After (429 and 503 answers that can be retried). */
+  retryAfterSeconds: number | undefined;
 
   constructor(code: ErrorCode, message?: string, detail?: Detail) {
     super(message ?? MESSAGES[code] ?? code.toLowerCase().replace(/_/g,

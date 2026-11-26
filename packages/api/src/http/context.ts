@@ -12,6 +12,7 @@ import type { Db } from "../db/db";
 import { UUID, withTenant, type TenantCtx } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
 import { contentDisposition, nameForType } from "../files/names";
+import type { LetterPage } from "../pdf/renderer";
 import { routeBodyLimit } from "./body-limit";
 import { ApiError, asError } from "./errors";
 import { validate, type Validated } from "./validate";
@@ -84,6 +85,18 @@ export class BinaryReply {
 /** A CSV report (csv-optional routes with `format=csv`). */
 export class CsvReply {
   constructor(readonly text: string, readonly fileName: string) {}
+}
+
+/**
+ * Render a letter outside the database transaction: the handler's
+ * transaction commits, `deps.pdf` renders `page` with no connection
+ * held, then `afterRender` runs in a second transaction (membership and role
+ * checked again) with the bytes.
+ */
+export class RenderThen {
+  constructor(readonly page: LetterPage,
+    readonly afterRender: (ctx: ReqCtx, bytes: Uint8Array) =>
+      Promise<unknown>) {}
 }
 
 /**
@@ -208,16 +221,21 @@ async function run(c: Context<Env>, def: RouteDef, deps: AppDeps,
 async function inTenant(c: Context<Env>, def: RouteDef, deps: AppDeps,
   auth: Authed, handler: Handler): Promise<unknown> {
   const companyId = resolveCompanyHeader(c.req.header("x-company-id"));
-  return withTenant(deps.db, { companyId, userId: auth.user.id },
-    async (tx) => {
+  let v: Validated | null = null;
+  const step = (fn: (ctx: ReqCtx) => Promise<unknown>) =>
+    withTenant(deps.db, { companyId, userId: auth.user.id }, async (tx) => {
       const tenant = await resolveTenant(tx, auth, companyId);
       c.set("companyId", tenant.companyId);
       checkRole(def, tenant);
       checkMfa(def, auth);
-      const v = await validate(c, def);
-      return handler({ ...base(c, deps, v), ...auth, tenant, tx,
+      v ??= await validate(c, def);
+      return fn({ ...base(c, deps, v), ...auth, tenant, tx,
         enter: NO_ENTER });
     });
+  const out = await step(handler);
+  if (!(out instanceof RenderThen)) return out;
+  const bytes = await deps.pdf.render(out.page);
+  return step((ctx) => out.afterRender(ctx, bytes));
 }
 
 function resolveCompanyHeader(header: string | undefined): string {
