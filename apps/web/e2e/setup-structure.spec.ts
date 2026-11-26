@@ -21,13 +21,13 @@ test("setup-structure: jobs, letter preview, holidays, rules page",
     await expect(page.getByText("Pension").first()).toBeVisible();
 
     await page.goto("/#/setup/structure/holidays");
-    await expect(page.getByText(/Sample dates/).first()).toBeVisible();
+    await expect(page.getByText(/Expected dates/).first()).toBeVisible();
     // Phones list the month's days under the grid; the cells keep dots.
     await expect(page.getByText("UAE National Day")
       .filter({ visible: true }).first()).toBeVisible();
 
     await page.goto("/#/setup/rules/holidays");
-    await expect(page.getByText(/sample dates/).first()).toBeVisible();
+    await expect(page.getByText(/expected dates/).first()).toBeVisible();
     await expect(page.getByText("None loaded")).toHaveCount(1);
 
     for (const p of ["jobs", "documents", "letters", "checklists",

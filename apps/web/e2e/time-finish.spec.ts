@@ -18,7 +18,7 @@ test("leave days skip the sample public holidays", async ({ page }) => {
   await expect(page.getByText("2 public holidays not counted"))
     .toBeVisible();
   await expect(page.getByText(/3 working days/)).toBeVisible();
-  await expect(page.getByText(/sample public holidays in Setup/))
+  await expect(page.getByText(/public holidays in Setup are skipped/))
     .toBeVisible();
 });
 

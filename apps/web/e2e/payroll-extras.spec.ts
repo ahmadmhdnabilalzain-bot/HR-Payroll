@@ -65,7 +65,7 @@ test("gate-to-what-if-to-hold-to-advice-to-parallel-run",
 
 test("journal-balances-and-analysis-builds", async ({ page }) => {
   await page.goto("/#/reports/journal");
-  await expect(page.getByText("Debits and credits balance, to the fils"))
+  await expect(page.getByText("Debits and credits balance, exactly"))
     .toBeVisible();
   await page.goto("/#/reports/analysis");
   await page.getByRole("button", { name: "Overtime", exact: true }).click();

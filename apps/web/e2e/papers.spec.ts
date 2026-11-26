@@ -44,7 +44,7 @@ test("papers-are-for-hr-and-the-gm-only", async ({ page }, info) => {
 test("areas-are-reachable-from-the-people-section", async ({ page }) => {
   await page.goto("/#/s/people");
   for (const name of ["Staff requests", "Letters", "Visas", "Warnings",
-    "Compliance", "Due dates", "Emiratisation", "Pension"]) {
+    "Checks and dates", "Due dates", "Emiratisation", "Pension"]) {
     await expect(page.getByRole("link", { name }).first())
       .toBeVisible();
   }

@@ -27,7 +27,8 @@ test("gratuity-provision-to-explain-to-liability-to-employer-cost",
       name: "Gratuity liability" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "Total" })).toBeVisible();
     await page.goto("/#/reports/employer-cost");
-    await expect(page.getByText("Not computed (pension)").first())
+    await expect(page.getByRole("cell", { name: "Not computed" })
+      .first())
       .toBeVisible();
     await expect(page.getByText(/ILOE, insurance and other employer costs/))
       .toBeVisible();
