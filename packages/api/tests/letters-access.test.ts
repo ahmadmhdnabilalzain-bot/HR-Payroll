@@ -86,7 +86,7 @@ describe("letter access (Review Focus 4)", () => {
       ...CERT })).status).toBe(403);
   });
 
-  it("an issuer who loses hr loses their salary letters", async () => {
+  it("an issuer who loses hr loses the letters they issued", async () => {
     const { s } = w;
     const cert = await w.issue(s.hr, "salary-certificate", { ...CERT,
       employeeId: s.emp.outsider });
@@ -97,8 +97,9 @@ describe("letter access (Review Focus 4)", () => {
     expect(ch.status, ch.text).toBe(200);
     expect((await w.req(s.hr, "GET", `/v1/letters/${cert.body.id}`)).status)
       .toBe(404);
+    // Not the outsider's manager either (review I-4).
     expect((await w.req(s.hr, "GET", `/v1/letters/${noc.body.id}`)).status)
-      .toBe(200);
+      .toBe(404);
   });
 
   it("another company's owner gets 404", async () => {

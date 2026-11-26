@@ -100,13 +100,18 @@ export async function issueLetter(ctx: ReqCtx<LetterRequest>)
 
 /**
  * Who may read letters, as SQL: owner and hr all; the named employee;
- * the issuer, but a salary letter only while they are owner or hr.
+ * the issuer of a salary-free letter only while they could issue it
+ * again: still a manager, and still the manager of its employee.
  */
 function visible(ctx: ReqCtx, first: number): { sql: string;
   args: unknown[] } {
-  return { sql: `($${first} OR employee_id = $${first + 1} OR
-    (issued_by = $${first + 2} AND NOT uses_salary))`,
-  args: [isPayroll(ctx), ctx.tenant!.employeeId, ctx.user!.id] };
+  const [all, own, user, mgr] = [first, first + 1, first + 2, first + 3];
+  return { sql: `($${all} OR employee_id = $${own} OR
+    ($${mgr} AND issued_by = $${user} AND NOT uses_salary AND EXISTS (
+      SELECT 1 FROM employees m WHERE m.company_id = letters.company_id
+        AND m.id = letters.employee_id AND m.manager_id = $${own})))`,
+  args: [isPayroll(ctx), ctx.tenant!.employeeId, ctx.user!.id,
+    ctx.tenant!.role === "manager"] };
 }
 
 async function visibleLetter(ctx: ReqCtx, id: string): Promise<LetterRow> {
