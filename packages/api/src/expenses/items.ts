@@ -1,4 +1,4 @@
-import type { ExpenseItemInput } from "@payroll/contract";
+import { MONEY_MAX_FILS, type ExpenseItemInput } from "@payroll/contract";
 import { fils, parseAed, type Fils } from "@payroll/engine";
 import type { Db } from "../db/db";
 import type { ReqCtx } from "../http/context";
@@ -62,18 +62,26 @@ const INSERT_ITEM = `INSERT INTO expense_items (id, company_id, claim_id,
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
     $15, $16, $17, $18, $19, $20)`;
 
+/** A claim total the wire format cannot carry (999,999,999.99). */
+export function totalProblem(total: bigint): string[] {
+  return total > MONEY_MAX_FILS ? ["claim:CLAIM_TOTAL_TOO_LARGE"] : [];
+}
+
 /** Inserts one revision's items; returns the save-time totals. */
 export async function writeItems(ctx: ReqCtx, claimId: string,
   revision: number, items: ExpenseItemInput[], p: PolicyF)
   : Promise<{ total: Fils; vatTotal: Fils }> {
   const c = ctx.tenant!.companyId;
-  let total = 0n;
-  let vat = 0n;
+  const prices = items.map((it) => savePrice(it, p));
+  const total = prices.reduce((n, x) => n + x.amount, 0n);
+  const vat = prices.reduce((n, x) => n + x.vatAmount, 0n);
+  const problems = totalProblem(total);
+  if (problems.length > 0) {
+    throw new ApiError("CLAIM_PROBLEMS", undefined, { problems });
+  }
   for (const [n, it] of items.entries()) {
     const id = ctx.deps.newId();
-    const price = savePrice(it, p);
-    total += price.amount;
-    vat += price.vatAmount;
+    const price = prices[n]!;
     await ctx.tx.query(INSERT_ITEM, [id, c, claimId, revision, n,
       price.amount, price.vatAmount, price.rateApplied, ...columns(it)]);
     for (const receiptId of new Set(it.receiptIds)) {

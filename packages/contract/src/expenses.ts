@@ -160,5 +160,6 @@ export const CLAIM_PROBLEM_CODES = [
   "RECEIPT_NOT_FOUND",
   "EXPENSE_OVER_LIMIT",
   "JUSTIFICATION_REQUIRED",
+  "CLAIM_TOTAL_TOO_LARGE",
 ] as const;
 export type ClaimProblemCode = (typeof CLAIM_PROBLEM_CODES)[number];

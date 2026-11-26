@@ -211,7 +211,7 @@ export async function approvePayRun(ctx: ReqCtx<unknown, unknown,
   await appendAudit(tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "pay-run.approved", entityType: "pay-run", entityId: r.id,
     data: { year: r.year, month: r.month } });
-  await markReimbursed(ctx, r.id);
+  await markReimbursed(ctx, r.id, r.claim_count);
   return toPayRun(await loadRun(tx, c, r.id));
 }
 

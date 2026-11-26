@@ -8,6 +8,7 @@ import { dubaiDate } from "../time/dubai";
 import { checkClaim, type CheckResult } from "./check";
 import { claimView, itemsOf, visibleClaim, type ItemRow } from "./claim-view";
 import { claimAudit, editableClaim } from "./claims";
+import { totalProblem } from "./items";
 import { limitFor, toPolicyF, type PolicyF } from "./policy";
 import { getPolicy } from "./policy-store";
 import {
@@ -49,9 +50,10 @@ async function runChecks(ctx: ReqCtx, claim: { id: string;
     limits: (cat) => limitFor(p, cat, role),
     monthToDate: others.monthToDate, otherSignatures: others.signatures,
     otherHashes: others.hashes });
-  if (result.problems.length > 0) {
-    throw new ApiError("CLAIM_PROBLEMS", undefined,
-      { problems: result.problems });
+  const total = items.reduce((n, i) => n + BigInt(i.amount), 0n);
+  const problems = [...result.problems, ...totalProblem(total)];
+  if (problems.length > 0) {
+    throw new ApiError("CLAIM_PROBLEMS", undefined, { problems });
   }
   return result;
 }

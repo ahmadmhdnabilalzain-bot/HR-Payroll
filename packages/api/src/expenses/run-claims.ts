@@ -97,13 +97,17 @@ export async function linkClaims(ctx: ReqCtx, runId: string,
   await auditEach(ctx, "scheduled", ids, runId);
 }
 
-/** Run approved: its claims are paid. */
-export async function markReimbursed(ctx: ReqCtx, runId: string)
-  : Promise<void> {
+/**
+ * Run approved: its claims are paid. Exactly the run's `claim_count`
+ * must move, else the approval rolls back (409 RUN_INPUTS_CHANGED).
+ */
+export async function markReimbursed(ctx: ReqCtx, runId: string,
+  expected: number): Promise<void> {
   const done = await ctx.tx.query<{ id: string }>(
     `UPDATE expense_claims SET status = 'reimbursed' WHERE company_id = $1
        AND pay_run_id = $2 AND status = 'approved' RETURNING id`,
     [ctx.tenant!.companyId, runId]);
+  if (done.length !== expected) throw new ApiError("RUN_INPUTS_CHANGED");
   await auditEach(ctx, "reimbursed", done.map((r) => r.id).sort(), runId);
 }
 
