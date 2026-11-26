@@ -6,7 +6,7 @@ import { useDemo } from "../demo/state";
 import { formatMoney } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { IbanForm } from "./IbanForm";
-import { fly } from "../ui/flight";
+import { fly, LAND_FADE_MS } from "../ui/flight";
 import { useSaveIban } from "./useSaveIban";
 import s from "./PayRunHero.module.css";
 
@@ -60,12 +60,15 @@ export function CardIban(p: { issue: Issue; onDone(): void }) {
       return;
     }
     // The chip leaves the IBAN row and lands on the file total
-    // (ui/flight: 420 ms spring, then a 160 ms fade); the save runs as
-    // it lands, so the total rolls from where the chip arrives.
+    // (ui/flight: 420 ms spring), fades into it (160 ms), and only then
+    // is the IBAN saved and the total rolls: the save's re-check runs
+    // once the chip has gone, so a busy main thread can never hold the
+    // chip over the figure.
     const chip = document.createElement("span");
     chip.className = s.flyer ?? "";
     chip.textContent = `+${formatMoney(fils(delta), lang)}`;
-    fly({ from, to, content: chip, onLand: finish });
+    fly({ from, to, content: chip,
+      onLand: () => setTimeout(finish, LAND_FADE_MS) });
   };
   return (
     <div ref={box} className={s.cardIban}>
