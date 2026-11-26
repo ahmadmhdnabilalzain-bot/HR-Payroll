@@ -2,6 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 const clean = async (page: Page) => {
+  // A tab panel or sheet still fading reads as low contrast: let the
+  // finite animations end first (shimmers loop and are skipped).
+  await page.waitForFunction(() => document.getAnimations().every((a) =>
+    a.playState !== "running" ||
+    a.effect?.getTiming().iterations === Infinity));
   const r = await new AxeBuilder({ page }).analyze();
   expect(r.violations.map((v) => v.id)).toEqual([]);
 };
