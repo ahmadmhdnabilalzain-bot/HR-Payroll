@@ -1,5 +1,6 @@
 import { isBlocking, openIssues, pendingApprovals, personOf }
   from "../demo/derive";
+import { useRunApproval } from "../demo/actions";
 import { useDemo } from "../demo/state";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -33,8 +34,12 @@ export function WaitingList() {
   const { lang, t } = useLocale();
   const { data, state, dispatch } = useDemo();
   const me = personOf(data, state.role);
+  // The pay run waits for the viewer only once nothing holds it back
+  // (until then it is not sent: the same rule as the strip's card).
+  const held = useRunApproval().blockedBy.length > 0;
   const decide: Row[] = pendingApprovals(data, state)
-    .filter((a) => a.checkerId === me).map((a) => {
+    .filter((a) => a.checkerId === me && !(held && a.kind === "pay-run"))
+    .map((a) => {
       const id = a.employeeId ?? a.makerId;
       return { key: a.id, personId: id,
         name: data.employee(id).name[lang],

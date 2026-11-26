@@ -14,11 +14,23 @@ import s from "./PayRunHero.module.css";
 const FADE_MS = 160;
 
 /**
+ * Whether the target's centre is on screen and not under anything (the
+ * phone's tab bar): a chip landing out of sight would tell nothing.
+ */
+function inView(el: Element): boolean {
+  const r = el.getBoundingClientRect();
+  const hit = document.elementFromPoint(r.left + r.width / 2,
+    r.top + r.height / 2);
+  return hit !== null && el.contains(hit);
+}
+
+/**
  * Bank details entered in the top card itself, so nothing scrolls.
  * On save the form fades while the amount the IBAN adds to the salary
  * file leaves the IBAN row and travels to the file total (the shared
  * flight: 420 ms on a spring), lands on the figure and fades as the
- * figure rolls. The slot keeps its height
+ * figure rolls. Nothing travels to a total that is out of sight (on a
+ * phone it sits below the fold). The slot keeps its height
  * (PayRunHero), so nothing below moves. Nothing travels when the file
  * total does not change (a corrected IBAN whose pay was already
  * counted). Reduced motion saves at once.
@@ -55,7 +67,7 @@ export function CardIban(p: { issue: Issue; onDone(): void }) {
     el.animate([{ opacity: 1 }, { opacity: 0 }],
       { duration: FADE_MS, easing: "ease-out", fill: "forwards" });
     if (delta <= 0n || from === undefined || to === undefined ||
-      state.hideAmounts) {
+      state.hideAmounts || !inView(to)) {
       setTimeout(finish, FADE_MS);
       return;
     }

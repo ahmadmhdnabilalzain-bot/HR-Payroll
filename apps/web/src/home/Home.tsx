@@ -39,7 +39,9 @@ export function Home(p: Partial<ViewProps>) {
   if (state.role === "it") return <ItHome />;
   return (
     <div className={s.page}>
-      <PayRunHero />
+      {/* A role switch starts the card afresh (the slot keeps no height
+        from the form someone else opened). */}
+      <PayRunHero key={state.role} />
       <PeopleStrip />
       {phone && (
         <Suspense fallback={<div className={nt.placeholder} />}>
