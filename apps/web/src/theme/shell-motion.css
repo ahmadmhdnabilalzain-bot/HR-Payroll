@@ -1,0 +1,157 @@
+/*
+ * Shell motion: the sliding tab indicator (ui/glide.ts) and the route
+ * transition (ui/routeMotion.ts). Tokens: theme/motion.css.
+ * Only transform and opacity move.
+ */
+
+/* --- The sliding indicator ------------------------------------------
+ * The row draws the chosen tab's shape as its own ::before, placed by
+ * --glide-x/y/w/h; ui/glide.ts glides it with a transform. The tabs
+ * sit above it. `html` in front lifts these over each module's own
+ * chosen-tab rule, which they replace only while the row glides. */
+[data-glide] {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-glide]::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  /* Physical left in both directions: glide.ts measures offsetLeft. */
+  inset-inline-start: 0;
+  z-index: -1;
+  inline-size: var(--glide-w, 0px);
+  block-size: var(--glide-h, 0px);
+  transform: translate(var(--glide-x, 0px), var(--glide-y, 0px));
+  transform-origin: 0 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+[dir="rtl"] [data-glide]::before {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
+[data-glide][data-glide-on="true"]::before {
+  opacity: 1;
+}
+
+/* GroupTabs: a soft pill. */
+[data-glide="pill"]::before {
+  border-radius: var(--radius-pill);
+  background: var(--color-button-secondary);
+}
+
+html [data-glide="pill"][data-glide-on="true"] [aria-current="page"] {
+  background: transparent;
+}
+
+/* Segments: a raised tile on the grey track. */
+[data-glide="seg"]::before {
+  border-radius: 6px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 12%,
+    transparent);
+}
+
+html [data-glide="seg"][data-glide-on="true"] [aria-pressed="true"] {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Record tabs: the 2 px underline. */
+[data-glide="line"]::before {
+  background: var(--color-accent);
+}
+
+html [data-glide="line"][data-glide-on="true"] [aria-selected="true"] {
+  border-block-end-color: transparent;
+}
+
+/* --- Route transition -------------------------------------------------
+ * Between sections the page slides a little the reading way and
+ * cross-fades: out over --dur-base, in over --dur-slow. The top bar,
+ * the group tabs and the phone tabs stay put: they are their own
+ * transition groups, shown live (no old image), so the tab indicator
+ * glides inside them. Set only while html[data-route-motion] is on. */
+html[data-route-motion] [data-vt="bar"] {
+  view-transition-name: shell-bar;
+}
+
+html[data-route-motion] [data-vt="tabs"] {
+  view-transition-name: shell-tabs;
+}
+
+html[data-route-motion] [data-vt="phone"] {
+  view-transition-name: shell-phone;
+}
+
+/* Page pace by default; "quick" (the role switch): 120 ms out and
+ * 200 ms in, overlapped, in place. */
+html[data-route-motion] {
+  --route-out: var(--dur-base, 200ms);
+  --route-in: var(--dur-slow, 320ms);
+  --route-shift-out: -24px;
+  --route-shift-in: 32px;
+}
+
+html[data-route-motion][data-route-pace="quick"] {
+  --route-out: var(--dur-fast, 120ms);
+  --route-in: var(--dur-base, 200ms);
+  --route-shift-out: -8px;
+  --route-shift-in: 8px;
+}
+
+html[data-route-motion]::view-transition-group(shell-bar),
+html[data-route-motion]::view-transition-group(shell-tabs),
+html[data-route-motion]::view-transition-group(shell-phone) {
+  animation: none;
+}
+
+/* On both pages: the live new one only. On one page only (tabs that
+ * come or go): it slides and fades with the page. */
+html[data-route-motion]::view-transition-old(shell-bar):not(:only-child),
+html[data-route-motion]::view-transition-old(shell-tabs):not(:only-child),
+html[data-route-motion]::view-transition-old(shell-phone):not(:only-child) {
+  animation: none;
+  opacity: 0;
+}
+
+html[data-route-motion]::view-transition-new(shell-bar):not(:only-child),
+html[data-route-motion]::view-transition-new(shell-tabs):not(:only-child),
+html[data-route-motion]::view-transition-new(shell-phone):not(:only-child) {
+  animation: none;
+}
+
+html[data-route-motion]::view-transition-old(root),
+html[data-route-motion]::view-transition-old(shell-tabs):only-child {
+  animation: route-out var(--route-out, 200ms)
+    var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1)) both;
+}
+
+html[data-route-motion]::view-transition-new(root),
+html[data-route-motion]::view-transition-new(shell-tabs):only-child {
+  animation: route-in var(--route-in, 320ms)
+    var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+
+/* Forward: the old page leaves to the start, the new comes from the
+ * end. Back mirrors it; RTL mirrors both (--route-dir is set in JS). */
+@keyframes route-out {
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--route-dir, 0) *
+      var(--route-shift-out, -24px)));
+  }
+}
+
+@keyframes route-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--route-dir, 0) *
+      var(--route-shift-in, 32px)));
+  }
+}

@@ -1,6 +1,8 @@
-import { isValidElement, useState, type ReactNode } from "react";
+import { isValidElement, useRef, useState, type ReactNode }
+  from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Avatar } from "../Avatar";
+import { useGlide } from "../glide";
 import { StatusPill, type StatusTone } from "./StatusPill";
 import { PageFoot } from "./PageFoot";
 import { maskNode, useMaskText } from "../mask";
@@ -132,9 +134,11 @@ export function RecordTabs(p: {
 function Tabbed(p: { tabs: RecordTab[]; current: RecordTab | undefined;
   onTab(id: string): void }) {
   const current = p.current;
+  const row = useRef<HTMLDivElement>(null);
+  useGlide(row, "line");
   return (
     <>
-      <div className={s.tabs} role="tablist">
+      <div className={s.tabs} role="tablist" ref={row}>
         {p.tabs.map((x) => (
           <button key={x.id} type="button" role="tab" id={`tab-${x.id}`}
             aria-selected={x.id === current?.id}

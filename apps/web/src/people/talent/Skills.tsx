@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useGlide } from "../../ui/glide";
 import { useDemo } from "../../demo/state";
 import { PageFoot, PageHead } from "../../ui/templates";
 import tpl from "../../ui/templates/templates.module.css";
@@ -17,6 +18,8 @@ const W = T.skills;
 export function Skills() {
   const { data } = useDemo();
   const [tab, setTab] = useState<"person" | "skill">("person");
+  const row = useRef<HTMLDivElement>(null);
+  useGlide(row, "line");
   const rows = data.talent.skillMatrix();
   const summary = data.talent.skillSummary();
   const withGap = rows.filter((r) => r.gaps > 0).length;
@@ -36,7 +39,7 @@ export function Skills() {
               </div>))}
         </dl>
       )} />
-      <div className={tpl.tabs} role="tablist">
+      <div className={tpl.tabs} role="tablist" ref={row}>
         {tabs.map((x) => (
           <button key={x.id} type="button" role="tab" id={`tab-${x.id}`}
             aria-selected={x.id === tab} aria-controls={`tabpanel-${x.id}`}

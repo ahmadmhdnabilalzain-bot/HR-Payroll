@@ -11,6 +11,8 @@
  * Back button all take the same path.
  */
 
+import { slideRoute } from "../routeMotion";
+
 export const LIST_MS = 280;
 export const FADE_MS = 120;
 export const LIST_EASE = "cubic-bezier(.32,.72,0,1)";
@@ -116,7 +118,8 @@ function dissolve(): void {
  * (flushSync). Between a list and one of its records the change is
  * animated; anything else renders and goes to the top.
  */
-export function changeRoute(oldUrl: string, render: () => void): void {
+export function changeRoute(oldUrl: string, render: () => void,
+  trusted = false): void {
   const from = hashOf(oldUrl);
   const to = location.hash;
   scrolls.set(from, scrollY);
@@ -124,6 +127,8 @@ export function changeRoute(oldUrl: string, render: () => void): void {
   const back = !forward && trail !== null && trail.record === from &&
     trail.list === to && recordParts() !== null;
   if (!forward && !back) {
+    // Between sections: the slide in ui/routeMotion.ts, if it is one.
+    if (slideRoute(from, to, render, trusted)) return;
     render();
     scrollTo({ top: 0 });
     return;

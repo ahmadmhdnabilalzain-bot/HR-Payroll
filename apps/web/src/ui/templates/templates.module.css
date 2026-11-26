@@ -325,6 +325,13 @@
   font-size: var(--text-sm);
   font-weight: 500;
   white-space: nowrap;
+  transition: color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.segments button:active,
+.tabs button:active {
+  transform: scale(0.98);
 }
 
 .segments button[aria-pressed="true"] {
@@ -733,6 +740,8 @@ li + li.actRow > .row {
   font-size: var(--text-md);
   font-weight: 500;
   white-space: nowrap;
+  transition: color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
 }
 
 .tabs button[aria-selected="true"] {
@@ -787,31 +796,49 @@ li + li.actRow > .row {
   background: var(--color-surface);
   color: var(--color-text);
   box-shadow: var(--shadow-pop);
+  /* In from the edge over --dur-slow, out over --dur-base; transitions,
+   * so a reopen mid-exit turns back. display and overlay are held
+   * until the exit ends (ui/presence.ts keeps the content). */
+  --sheet-off: translateX(calc(100% + 32px));
+  transform: var(--sheet-off);
+  transition: transform var(--dur-base, 200ms)
+      var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1)),
+    overlay var(--dur-base, 200ms) allow-discrete,
+    display var(--dur-base, 200ms) allow-discrete;
+}
+
+[dir="rtl"] .sheet {
+  --sheet-off: translateX(calc(-100% - 32px));
 }
 
 .sheet[open] {
-  animation: slide var(--dur-slow) var(--ease-out);
+  transform: none;
+  transition-duration: var(--dur-slow, 320ms);
+  transition-timing-function: var(--ease-out, cubic-bezier(0.2, 0, 0, 1));
+}
+
+@starting-style {
+  .sheet[open] {
+    transform: var(--sheet-off);
+  }
 }
 
 .sheet::backdrop {
   background: color-mix(in srgb, var(--color-scrim) 28%, transparent);
+  opacity: 0;
+  transition: opacity var(--dur-base, 200ms) var(--ease-out),
+    overlay var(--dur-base, 200ms) allow-discrete,
+    display var(--dur-base, 200ms) allow-discrete;
 }
 
-@keyframes slide {
-  from {
+.sheet[open]::backdrop {
+  opacity: 1;
+  transition-duration: var(--dur-slow, 320ms);
+}
+
+@starting-style {
+  .sheet[open]::backdrop {
     opacity: 0;
-    transform: translateX(24px);
-  }
-}
-
-[dir="rtl"] .sheet[open] {
-  animation-name: slide-rtl;
-}
-
-@keyframes slide-rtl {
-  from {
-    opacity: 0;
-    transform: translateX(-24px);
   }
 }
 

@@ -321,18 +321,25 @@ a.navItem:active {
   background: var(--color-surface);
   box-shadow: var(--shadow-pop);
   transform-origin: top right;
-  animation: pop var(--dur-fast) var(--ease-out);
+  transition: opacity var(--dur-fast, 120ms) var(--ease-out),
+    transform var(--dur-fast, 120ms) var(--ease-out);
+}
+
+@starting-style {
+  .menu {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+/* Closing: back up and out, inert (ui/presence.ts keeps it). */
+.menu[data-leaving="true"] {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
 }
 
 [dir="rtl"] .menu {
   transform-origin: top left;
-}
-
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
 }
 
 .menuHead {

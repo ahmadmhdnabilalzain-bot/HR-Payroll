@@ -7,6 +7,7 @@ import b from "../../ui/button.module.css";
 import { SignStamp } from "../../ui/SignStamp";
 import { Sheet, type RecordTab } from "../../ui/templates";
 import t from "../../ui/templates/templates.module.css";
+import { usePresence } from "../../ui/presence";
 import { useToast } from "../../ui/Toast";
 import { stepBy } from "../papers/model";
 import {
@@ -122,6 +123,8 @@ export function SignBlock(p: { docId: string; as?: Signer;
   const who = p.as ?? me;
   const toast = useToast();
   const [open, setOpen] = useState(false);
+  // The sheet stays for its slide out (ui/presence.ts).
+  const sheet = usePresence(open, 240);
   const undo = useUndo();
   const row = rows.find((r) => r.doc.id === p.docId);
   if (row === undefined) return null;
@@ -152,8 +155,8 @@ export function SignBlock(p: { docId: string; as?: Signer;
           <button type="button" className={`${b.btn} ${b.secondary}`}
             aria-label={`${E.sign}: ${row.doc.title}`}
             onClick={() => setOpen(true)}>{E.signShort}</button>)}
-        {open && <SignSheet row={row} who={who} fingerprint={fp}
-          onClose={() => setOpen(false)} />}
+        {sheet.mounted && <SignSheet open={open} row={row} who={who}
+          fingerprint={fp} onClose={() => setOpen(false)} />}
       </section>
     );
   }
@@ -189,8 +192,8 @@ export function SignBlock(p: { docId: string; as?: Signer;
               toast.show(E.remindToast(row.progress.next?.name ?? ""));
             }}>{E.remind}</button>)}
       </div>
-      {open && <SignSheet row={row} who={who} fingerprint={fp}
-        onClose={() => setOpen(false)} />}
+      {sheet.mounted && <SignSheet open={open} row={row} who={who}
+        fingerprint={fp} onClose={() => setOpen(false)} />}
     </section>
   );
 }
@@ -255,7 +258,7 @@ const same = (a: string, b: string): boolean =>
  * quiet sentence says it is a demo and claims no legal validity.
  */
 export function SignSheet(p: { row: EsignRow; who: Signer;
-  fingerprint: string; onClose(): void }) {
+  fingerprint: string; onClose(): void; open?: boolean }) {
   const { data, state, dispatch } = useDemo();
   const { world } = useEsign();
   const toast = useToast();
@@ -311,7 +314,8 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
     finish("signed");
   };
   return (
-    <Sheet open title={row.doc.title} onClose={p.onClose}>
+    <Sheet open={p.open ?? true} title={row.doc.title}
+      onClose={p.onClose}>
       <div className={t.form}>
         <section className={s.section} aria-labelledby="es-order">
           <h3 id="es-order" className={s.sectionTitle}>{E.signers}</h3>

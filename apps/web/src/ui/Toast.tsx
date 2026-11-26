@@ -11,6 +11,7 @@ import { useOptionalDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "./Icon";
 import { useMaskText } from "./mask";
+import { usePresence } from "./presence";
 import s from "./Toast.module.css";
 
 interface ToastItem {
@@ -60,13 +61,20 @@ export function ToastProvider(p: { children: ReactNode }) {
     const h = setTimeout(() => setItem(null), LIFETIME_MS);
     return () => clearTimeout(h);
   }, [item]);
+  // The last message stays for its slide out, inert (ui/presence.ts).
+  const [last, setLast] = useState<ToastItem | null>(null);
+  useEffect(() => {
+    if (item !== null) setLast(item);
+  }, [item]);
+  const exit = usePresence(item !== null, 180);
+  const view = item ?? (exit.mounted ? last : null);
   const value = useMemo(() => ({ show }), [show]);
   return (
     <ToastContext.Provider value={value}>
       {p.children}
       <div className={s.region} role="status" aria-live="polite">
-        {item !== null && (
-          <ToastView key={item.id} item={item}
+        {view !== null && (
+          <ToastView key={view.id} item={view} leaving={item === null}
             onClose={() => setItem(null)} />
         )}
       </div>
@@ -74,14 +82,20 @@ export function ToastProvider(p: { children: ReactNode }) {
   );
 }
 
-function ToastView(p: { item: ToastItem; onClose(): void }) {
+function ToastView(p: { item: ToastItem; leaving: boolean;
+  onClose(): void }) {
   const { t } = useLocale();
   const { undo } = p.item;
   // A confirmation names amounts ("Saved AED 1,200"): masked while hidden.
   const mask = useMaskText();
   return (
-    <div className={s.toast}>
-      <span className={s.ok}><Icon name="check" size={16} /></span>
+    <div className={s.toast} data-leaving={p.leaving} inert={p.leaving}
+      aria-hidden={p.leaving || undefined}>
+      {/* The check draws in: a wipe (the mask slides one way, the
+        * mark the other, so only the reveal moves). */}
+      <span className={s.ok}>
+        <span className={s.okWipe}><Icon name="check" size={16} /></span>
+      </span>
       <span className={s.text}>{mask(p.item.text)}</span>
       {undo !== undefined && (
         <button type="button" className={s.undo} onClick={() => {

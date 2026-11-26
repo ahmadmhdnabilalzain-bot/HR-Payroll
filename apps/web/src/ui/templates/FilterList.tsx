@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../Icon";
 import { Avatar } from "../Avatar";
+import { useGlide } from "../glide";
 import b from "../button.module.css";
 import { PageFoot } from "./PageFoot";
 import { lastRecord, saveView, savedView } from "./listMotion";
@@ -127,6 +128,8 @@ export function FilterList<T>(p: {
   const band = p.rows.length > 0 && p.rows.length <= SHORT_LIST
     ? p.summary ?? bandOf(p.rows, p.segments, t("tpl.inList")) : [];
   const many = (p.segments?.length ?? 0) > 4;
+  const segRow = useRef<HTMLDivElement>(null);
+  useGlide(segRow, "seg");
   return (
     <div className={s.page}>
       <PageHead title={p.title} lede={p.lede} actions={p.actions}
@@ -154,7 +157,7 @@ export function FilterList<T>(p: {
         {p.filters}
         {p.segments !== undefined && (
           <div className={s.segScroll} data-many={many}>
-            <div className={s.segments} role="group"
+            <div className={s.segments} role="group" ref={segRow}
               aria-label={t("tpl.filter")}>
               {p.segments.map((x) => (
                 <button key={x.id} type="button"

@@ -29,17 +29,33 @@ export function parseHash(hash: string): Route {
     : { section: "home", rest: [], unknown: true };
 }
 
+/** Every mounted useRoute, fed by one hashchange listener. */
+const subs = new Set<(r: Route) => void>();
+
+/**
+ * One listener for the whole app, so one hash change is one route
+ * change: each useRoute re-renders inside the same transition. (One
+ * listener per hook started a transition per hook; the second skipped
+ * the first after it had already unnamed the list's shared parts.)
+ */
+function onHash(e: HashChangeEvent): void {
+  // Between a list and its record, and between sections, the change is
+  // animated (ui/templates/listMotion.ts, ui/routeMotion.ts).
+  changeRoute(e.oldURL, () => flushSync(() => {
+    const r = parseHash(location.hash);
+    subs.forEach((set) => set(r));
+  }), e.isTrusted);
+}
+
 export function useRoute(): Route {
   const [route, setRoute] = useState<Route>(() => parseHash(location.hash));
   useEffect(() => {
-    // Between a list and its record the change is animated; anything
-    // else renders and goes to the top (ui/templates/listMotion.ts).
-    const on = (e: HashChangeEvent): void => {
-      changeRoute(e.oldURL, () => flushSync(() =>
-        setRoute(parseHash(location.hash))));
+    if (subs.size === 0) addEventListener("hashchange", onHash);
+    subs.add(setRoute);
+    return () => {
+      subs.delete(setRoute);
+      if (subs.size === 0) removeEventListener("hashchange", onHash);
     };
-    addEventListener("hashchange", on);
-    return () => removeEventListener("hashchange", on);
   }, []);
   return route;
 }

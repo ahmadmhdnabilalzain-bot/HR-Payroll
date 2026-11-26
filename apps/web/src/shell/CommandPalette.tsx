@@ -15,6 +15,7 @@ import { useTheme } from "../theme/ThemeProvider";
 import { VIEWS } from "../views";
 import { areasFor, routeOf, WORD, WORD_ICON } from "../nav/registry";
 import { Icon } from "../ui/Icon";
+import { useModal } from "../ui/presence";
 import { commands, GROUP_ORDER, matches, type Command, type Group }
   from "./commands";
 import s from "./CommandPalette.module.css";
@@ -40,18 +41,13 @@ export function usePaletteHotkeys(open: () => void): void {
 export function CommandPalette(p: { open: boolean; arabicShown: boolean;
   onClose(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const d = ref.current;
-    if (d === null) return;
-    if (p.open && !d.open) d.showModal();
-    if (!p.open && d.open) d.close();
-  }, [p.open]);
+  const shown = useModal(ref, p.open);
   return (
     <dialog ref={ref} className={s.dialog} onClose={p.onClose}
       onClick={(e) => {
         if (e.target === ref.current) p.onClose();
       }}>
-      {p.open && <Palette arabicShown={p.arabicShown} onClose={p.onClose} />}
+      {shown && <Palette arabicShown={p.arabicShown} onClose={p.onClose} />}
     </dialog>
   );
 }

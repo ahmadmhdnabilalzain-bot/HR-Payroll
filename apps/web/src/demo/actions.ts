@@ -7,6 +7,7 @@ import {
   type RunPhase,
 } from "./derive";
 import { reducedMotion } from "./motion";
+import { canMove, moveWithin } from "../ui/routeMotion";
 import { mayOpen } from "../nav/registry";
 import { hrefOf, parseHash } from "./route";
 import { useDemo, type Role, type Verdict } from "./state";
@@ -41,15 +42,15 @@ export function useRunApproval(): RunApproval {
 }
 
 /**
- * Switches role with a quiet crossfade of the page (view transitions:
- * 200 ms out, 250 ms in), or at once when motion is reduced.
+ * Switches role as a quick fade-through of the page (ui/routeMotion:
+ * the page fades out over 120 ms and the new one in over 200 ms; the
+ * top bar holds still), or at once when motion is reduced. The page
+ * goes to its top before the old frame is taken, so no scrolled list
+ * ghosts over the new Home.
  */
 export function useSwitchRole(): (role: Role) => void {
   const { dispatch } = useDemo();
   return (role) => {
-    const doc = document as Document & {
-      startViewTransition?: (cb: () => void) => Transition;
-    };
     // The new role's Home opens at its top, status sentence in view.
     // A page the new role may not open gives way to its Home, so a
     // switch never lands on "outside your view". Decided at the click:
@@ -66,9 +67,12 @@ export function useSwitchRole(): (role: Role) => void {
       flushSync(() => dispatch({ type: "role", role }));
       scrollTo({ top: 0, left: 0, behavior: "instant" });
     };
-    if (reducedMotion() || typeof doc.startViewTransition !== "function") {
+    if (!canMove()) {
       run();
-    } else quiet(doc.startViewTransition(run));
+      return;
+    }
+    scrollTo({ top: 0, left: 0, behavior: "instant" });
+    moveWithin(0, run);
   };
 }
 

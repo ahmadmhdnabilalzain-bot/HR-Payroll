@@ -55,7 +55,7 @@ export function TopBar(p: { route: Route; onSearch(): void }) {
   const { lang, t } = useLocale();
   const { data } = useDemo();
   return (
-    <header className={s.bar}>
+    <header className={s.bar} data-vt="bar">
       <Ribbon />
       <div className={s.inner}>
         <a className={s.brand} href={hrefOf("home")}>
@@ -146,7 +146,8 @@ export function PhoneTabs(p: { route: Route }) {
   const here = p.route.section === "s" ? (p.route.rest[0] ?? "more")
     : wordOfRoute(state.role, p.route, { data, state });
   return (
-    <nav className={s.tabs} aria-label={t("shell.sections")}>
+    <nav className={s.tabs} aria-label={t("shell.sections")}
+      data-vt="phone">
       {words.slice(0, 4).map((w) => (
         <a key={w} className={s.tab} href={w === "home" ? hrefOf("home")
           : hrefOf("s", w)} aria-current={here === w ? "page" : undefined}>
