@@ -5,7 +5,6 @@ import {
   letterRows,
   requestIsOpen,
   requestRows,
-  visaRows,
   warningRows,
 } from "../../people/papers/model";
 import type { Area, AreaRoute, NavCtx } from "../types";
@@ -18,8 +17,6 @@ const waitingRequests = (c: NavCtx): number =>
   requestRows(c.data, c.state).filter(requestIsOpen).length;
 const waitingLetters = (c: NavCtx): number =>
   letterRows(c.data, c.state).filter(letterIsOpen).length;
-const openVisas = (c: NavCtx): number =>
-  visaRows(c.data, c.state).filter((v) => v.status !== "completed").length;
 const draftWarnings = (c: NavCtx): number =>
   warningRows(c.data, c.state).filter((w) => w.status === "draft").length;
 const attention = (c: NavCtx): number =>
@@ -33,28 +30,26 @@ export const AREAS: readonly Area[] = [
     count: waitingRequests,
     keywords: "queue requests raise bank details air ticket profile change" },
   { id: "people.letters", section: "people", group: "requests",
-    label: { en: "Letters and salary certificates",
-      ar: "الخطابات وشهادات الراتب" },
+    label: { en: "Letters", ar: "الخطابات" },
     status: "live", archetype: "FA", roles: HR_GM, route: papers("letters"),
     count: waitingLetters,
     keywords: "salary certificate noc no objection experience letter" },
   { id: "people.visas", section: "people", group: "papers",
-    label: { en: "Visas and government cases",
-      ar: "التأشيرات والمعاملات الحكومية" },
+    label: { en: "Visas", ar: "التأشيرات" },
     status: "live", archetype: "LF", roles: HR_GM, route: papers("visas"),
-    count: openVisas, keywords: "visa residence emirates id renewal" },
+    keywords: "visa residence emirates id renewal government cases" },
   { id: "people.warnings", section: "people", group: "compliance",
     label: { en: "Warnings", ar: "الإنذارات" },
     status: "live", archetype: "LF", roles: HR_GM,
     route: papers("warnings"), count: draftWarnings,
     keywords: "disciplinary warning conduct late" },
   { id: "people.compliance", section: "people", group: "compliance",
-    label: { en: "Compliance overview", ar: "نظرة عامة على الامتثال" },
+    label: { en: "Compliance", ar: "الامتثال" },
     status: "live", archetype: "LF", roles: HR_GM,
     route: papers("compliance"), count: attention,
     keywords: "compliance overview checks due" },
   { id: "people.calendar", section: "people", group: "compliance",
-    label: { en: "Compliance calendar", ar: "تقويم الامتثال" },
+    label: { en: "Due dates", ar: "تقويم الامتثال" },
     status: "live", archetype: "CA", roles: HR_GM,
     route: papers("calendar"), keywords: "due dates calendar expiry" },
   { id: "people.emiratisation", section: "people", group: "compliance",
@@ -63,7 +58,7 @@ export const AREAS: readonly Area[] = [
     route: papers("emiratisation"),
     keywords: "emiratisation nafis nationals headcount" },
   { id: "people.pension", section: "people", group: "compliance",
-    label: { en: "Pension (GPSSA)", ar: "المعاشات (GPSSA)" },
+    label: { en: "Pension", ar: "المعاشات" },
     status: "live", archetype: "LF", roles: HR_GM, route: papers("pension"),
     keywords: "pension gpssa retirement fund nationals" },
 ];

@@ -2,20 +2,6 @@ import type { Area, NavCtx } from "../types";
 
 const HR_GM = ["hr", "gm"] as const;
 
-/** Seats that are empty and being filled (an on-hold seat is not). */
-const openSeats = (c: NavCtx): number =>
-  c.data.team.positions().filter((x) => x.status === "vacant").length;
-
-/** People in the open appraisal cycle who have not started. */
-function notStarted(c: NavCtx): number {
-  const cycle = c.data.team.cycles().find((x) => x.status === "open");
-  return cycle === undefined ? 0 : c.data.team.appraisals(cycle.id)
-    .filter((a) => a.status === "not-started").length;
-}
-
-const atRisk = (c: NavCtx): number => c.data.team.goals().filter((g) =>
-  g.kind !== "probation" && g.status === "at-risk").length;
-
 /** Probation evaluations with no decision yet. */
 const toDecide = (c: NavCtx): number => c.data.team.probation().filter((x) =>
   x.status === "in-progress" &&
@@ -33,25 +19,24 @@ const area = (id: string, group: string, en: string, archetype:
  * Arabic labels repeat the English: Arabic stays hidden in the demo.
  */
 export const AREAS: readonly Area[] = [
-  area("people.overview", "team", "People overview", "RP",
+  area("people.overview", "team", "Overview", "RP",
     ["team", "overview"], "P01 dashboard headcount joiners leavers"),
-  area("people.org", "team", "Organisation chart", "custom",
+  area("people.org", "team", "Org chart", "custom",
     ["team", "org"], "P05 org chart reporting line manager hierarchy"),
-  area("people.positions", "team", "Positions and headcount", "LF",
-    ["team", "positions"], "P06 seats vacancies establishment budget",
-    openSeats),
-  area("people.sites", "team", "Staff across the group", "RP",
+  area("people.positions", "team", "Positions", "LF",
+    ["team", "positions"], "P06 seats vacancies establishment budget " +
+    "headcount"),
+  area("people.sites", "team", "Sites", "RP",
     ["team", "sites"], "P07 branches locations sites offices"),
   area("people.centres", "team", "Cost centres", "LF",
     ["team", "cost-centres"], "P08 multi-entity cost centre department"),
-  area("people.appraisals", "growth", "Appraisals and cycles", "LF",
-    ["growth", "appraisals"], "P60 review rating self assessment cycle",
-    notStarted),
-  area("people.goals", "growth", "Goals and KPIs", "LF",
-    ["growth", "goals"], "P61 objectives okr targets progress", atRisk),
-  area("people.performance", "growth", "Department performance", "RP",
+  area("people.appraisals", "growth", "Appraisals", "LF",
+    ["growth", "appraisals"], "P60 review rating self assessment cycle"),
+  area("people.goals", "growth", "Goals", "LF",
+    ["growth", "goals"], "P61 objectives okr targets progress kpi"),
+  area("people.performance", "growth", "Performance", "RP",
     ["growth", "performance"], "P62 ratings goals by department"),
-  area("people.probation", "moves", "Probation evaluations", "FA",
+  area("people.probation", "moves", "Probation", "FA",
     ["growth", "probation"], "P19 probation confirm evaluate new hire " +
     "decide by", toDecide),
 ];

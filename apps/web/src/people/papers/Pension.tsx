@@ -12,7 +12,7 @@ export function Pension() {
   const p = usePapers();
   const rows = p.data.people.people().filter((x) => x.status !== "left");
   return (
-    <FilterList title="Pension (GPSSA)"
+    <FilterList title="Pension"
       lede={`${p.data.basis().pension[p.lang].replace(
         " Not included in this figure.", "")} Nothing is worked out or
         sent to a fund from this page.`}

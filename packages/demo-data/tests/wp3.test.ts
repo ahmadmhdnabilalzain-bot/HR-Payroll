@@ -101,6 +101,8 @@ describe("WP3 offers", () => {
       expect(text).toContain(o.joiningDate.display);
       expect(text).not.toMatch(ISO);
       expect(text).toContain("Zarqan Demo Bank");
+      // A letter handed to a person carries no internal rule caveat.
+      expect(text).not.toContain("as we read");
     }
   }));
 });

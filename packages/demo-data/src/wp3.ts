@@ -8,7 +8,6 @@ import {
   type Fils,
 } from "@payroll/engine";
 import { AS_OF, SETTLEMENT_DUE_DAYS } from "./calendar";
-import { RULES_SCOPE } from "./company";
 import { plural, type DisplayDate } from "./display";
 import { DEMO_LABELS_EN, type DemoLabelKey } from "./labels-en";
 import {
@@ -766,7 +765,7 @@ export function offerLetterText(c: DemoCompany, offerId: string)
     `Start date: ${o.joiningDate.display}`,
     `Probation: ${plural(o.probationMonths, "month", "months")}`,
     ...(o.validUntil === null ? [] : [`This offer is open until ` +
-      o.validUntil.display]), `${RULES_SCOPE}.`,
+      o.validUntil.display]),
     o.approvedBy === null ? "Draft: not yet approved"
       : `Approved by ${o.approvedBy.name} on ${o.approvedBy.on.display}`];
 }

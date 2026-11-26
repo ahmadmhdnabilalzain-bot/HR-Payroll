@@ -188,7 +188,6 @@ function Slip(q: { slip: PayslipView }) {
         <p>{t("people.explainHint")}</p>
         {slip.pension !== null && <p>{slip.pension.text[lang]}</p>}
         {slip.held !== null && <p>{t("people.held")}. {slip.held}</p>}
-        <p>{slip.rulesScope[lang]}</p>
       </footer>
     </article>
   );
