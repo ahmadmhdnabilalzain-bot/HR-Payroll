@@ -29,6 +29,9 @@ export interface ExplainRule {
   /** What the rule says, in a plain sentence. */
   text: string;
   status: SourceStatus;
+  /** Our own words for the status where they differ from the plain
+   * word ("secondary-sourced, as we read it"); null otherwise. */
+  statusLabel: string | null;
   /** The law or source in plain words, or null when unsourced. */
   citation: string | null;
 }

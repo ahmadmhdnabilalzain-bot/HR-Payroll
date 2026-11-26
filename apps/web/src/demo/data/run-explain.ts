@@ -3,6 +3,7 @@ import {
   duration,
   PENSION_NOT_COMPUTED,
   plural,
+  PRESENTED_STATUS,
   sourceOf,
   type DemoCompany,
   type DemoEmployee,
@@ -65,12 +66,18 @@ export function rulesOf(lines: (TraceLine | undefined)[]): ExplainRule[] {
   const out: ExplainRule[] = [];
   for (const r of lines.flatMap((l) => l?.rules ?? [])) {
     if (SKIP.has(r.key)) continue;
-    const plain = rulePlain(r.key, sourceOf(r)?.note ?? null,
-      statusOf(r));
+    const shown = r.overridden ? undefined
+      : PRESENTED_STATUS[`${r.packId}:${r.key}`];
+    const status = shown === undefined ? statusOf(r)
+      : shown.status as ExplainRule["status"];
+    const note = sourceOf(r)?.note ?? null;
+    const plain = rulePlain(r.key, note, status);
     if (seen.has(plain.text)) continue;
     seen.add(plain.text);
-    out.push({ text: plain.text, status: statusOf(r),
-      citation: plain.citation });
+    out.push({ text: plain.text, status,
+      statusLabel: shown?.label.en ?? null,
+      citation: shown === undefined || note === null ? plain.citation
+        : `${note}.` });
   }
   return out;
 }

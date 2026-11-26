@@ -198,7 +198,7 @@ export function ExplainPanel(p: { explanation: Explanation;
                     <p className={s.ruleMeta}>
                       <span className={s.status} data-status={r.status}>
                         <span className={s.dot} aria-hidden="true" />
-                        {t(STATUS[r.status])}
+                        {r.statusLabel ?? t(STATUS[r.status])}
                       </span>
                       {r.citation !== null && (
                         <span className={s.cite}>{r.citation}</span>
