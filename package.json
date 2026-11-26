@@ -14,7 +14,7 @@
     "lines": "node scripts/check-line-length.mjs",
     "lines:test": "node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm -r --workspace-concurrency=2 --if-present test",
     "check": "pnpm lines && pnpm lines:test && pnpm typecheck && pnpm test"
   },
   "devDependencies": {
