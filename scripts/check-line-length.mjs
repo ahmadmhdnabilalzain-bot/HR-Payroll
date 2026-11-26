@@ -1,11 +1,16 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const MAX = 80;
-const ROOTS = ["packages", "scripts"];
-const EXTENSIONS = new Set([".ts", ".json", ".mjs", ".md"]);
-const SKIP_DIRS = new Set(["node_modules", "dist", ".superpowers"]);
+export const ROOTS = ["packages", "scripts", "apps"];
+const EXTENSIONS = new Set([
+  ".ts", ".tsx", ".css", ".html", ".json", ".mjs", ".md",
+]);
+const SKIP_DIRS = new Set([
+  "node_modules", "dist", ".superpowers", "test-results",
+  "playwright-report",
+]);
 const SKIP_FILES = new Set([
   "pnpm-lock.yaml",
   "package-lock.json",
@@ -22,6 +27,7 @@ export function findLongLines(text, max) {
 
 export function listFiles(dir) {
   const out = [];
+  if (!existsSync(dir)) return out;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) {
