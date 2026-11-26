@@ -130,7 +130,7 @@ export function exitCandidates(c: DemoCompany)
  * P35 Electronic signatures
  * ---------------------------------------------------------------- */
 
-export const SIGNATURE_NOTE = "This is a demo of the signing steps. " +
+export const SIGNATURE_NOTE = "This shows the signing steps. " +
   "A typed name is recorded with who and when; no legal validity is " +
   "claimed for it.";
 
@@ -221,7 +221,7 @@ export function onFile(c: DemoCompany): OnFile[] {
       docType: type, numberMasked: d.number.masked,
       expires: dateOf(d.expiresOn),
       first: { version: 1, fileName: `${type} ${e.fullName}.pdf`,
-        bytes: 0, note: "On file before the demo" } };
+        bytes: 0, note: "On file earlier" } };
   });
 }
 
@@ -333,7 +333,7 @@ export function leaveLiability(c: DemoCompany): LiabilityRow[] {
 
 export const LIABILITY_NOTE = "Unused annual days at one day of basic " +
   "salary each, the same sum as leave encashment. Air tickets are not " +
-  "set up in this demo, so none are counted.";
+  "set up, so none are counted.";
 
 /* ---------------------------------------------------------------- *
  * T11 Attendance corrections
@@ -383,8 +383,8 @@ export const CORRECTION_STATUS = ["Present", "On leave", "Absent, unpaid"];
 export interface ClockSite { id: string; name: string; radius: number;
   staff: number; display: string }
 
-export const GEOFENCE_NOTE = "Sample sites and radii. The demo never reads " +
-  "your location: you choose where you are.";
+export const GEOFENCE_NOTE = "Example sites and radii. Your location is " +
+  "never read: you choose where you are.";
 
 /** The three places staff may clock in from (radius in metres). */
 export function clockSites(c: DemoCompany): ClockSite[] {
@@ -419,9 +419,9 @@ export function phonePunches(c: DemoCompany): PhoneEntry[] {
 const WFH_LIMITS: Record<string, number> = { "dept-corp": 4, "dept-ops": 4,
   "dept-credit": 4, "dept-it": 4, "dept-hr": 2, "dept-fin": 2,
   "dept-compliance": 2 };
-export const WFH_NOTE = "Sample rule: head office teams may work from " +
-  "home on 2 or 4 Fridays a month, by team. The demo counts the Fridays " +
-  "a head office person was working as work-from-home days.";
+export const WFH_NOTE = "Example rule: head office teams may work from " +
+  "home on 2 or 4 Fridays a month, by team. The Fridays a head office " +
+  "person was working count as work-from-home days.";
 
 export interface WfhRow { employeeId: string; name: string; title: string;
   days: number; allowed: number; over: boolean; display: string }
@@ -444,9 +444,9 @@ export function wfhRows(c: DemoCompany): WfhRow[] {
  * T23 Leave-safe roster and overtime cost
  * ---------------------------------------------------------------- */
 
-export const COVER_NOTE = "Sample rule: a team keeps all but one person " +
+export const COVER_NOTE = "Example rule: a team keeps all but one person " +
   "on shift. Cover is priced as 8 hours of overtime for each missing " +
-  "seat, at the engine's overtime rate, as an estimate.";
+  "seat, at the overtime rate, as an estimate.";
 
 export interface CoverLeave { employeeId: string; name: string;
   from: string; to: string; waiting: boolean }

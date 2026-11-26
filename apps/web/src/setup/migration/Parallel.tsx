@@ -7,7 +7,7 @@ import { useCellMoney as useMoney } from "../../pay/gate/cell-money";
 import s from "../../pay/gate/gate.module.css";
 
 /**
- * S38: our October run against the old system's figures (Keka), from
+ * S38: our October run against your current system's figures, from
  * a built-in sample export. Each difference is matched to causes the
  * engine works out; nothing is imported.
  */
@@ -41,7 +41,7 @@ export function ParallelRun() {
         )}
       </div>
       <ReportPage title="Parallel run: October"
-        period={`Our run against the old system (Keka). ${r.summaryText}`}
+        period={`Our run against your current system. ${r.summaryText}`}
         figure={{ label: "Net pay for these people, ours", value: (
           <Money value={r.oursTotal} size="lg" tween={false} />) }}
         columns={[{ label: "Person" }, { label: "Ours", end: true },
@@ -50,10 +50,9 @@ export function ParallelRun() {
           { label: "Likely cause" }]}
         rows={rows} csvName={`parallel-run-${sample.id}-2026-10.csv`}
         note={`${sample.note} Old system total ${m(r.theirsTotal)}. Each ` +
-          "likely cause is the difference the engine gets when it runs " +
+          "likely cause is the difference we get when we run " +
           "the person's month on the old system's assumption, as set up in " +
-          "this sample. Sample files made for the demo: nothing is " +
-          "imported."} />
+          "this sample. Nothing is imported."} />
     </>
   );
 }

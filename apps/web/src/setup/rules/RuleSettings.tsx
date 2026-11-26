@@ -147,6 +147,6 @@ function baselines(items: ItemSpec[], when: (iso: string) => string)
   const ids = new Set(items.flatMap((i) =>
     i.rule === undefined ? [] : [i.rule[0]]));
   return packVersions().filter((v) => ids.has(v.packId)).map((v) => ({
-    when: when(v.effectiveFrom), who: "Rule pack",
+    when: when(v.effectiveFrom), who: "Rule set",
     what: `${v.name}: version ${v.version} in force` }));
 }

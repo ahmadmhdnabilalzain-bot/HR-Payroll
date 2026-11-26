@@ -21,6 +21,7 @@ import { Guard } from "./Guard";
 import { COST_SCREENS } from "./cost";
 import { PLANNING_SCREENS } from "./planning";
 import { SAFETY_SCREENS } from "../people/safety/Report";
+import { INSPECTION_SCREENS } from "./inspection";
 import { MORE_SCREENS } from "./more";
 import { ANALYSIS_SCREENS } from "./analysis";
 import { Audit } from "./screens/Audit";
@@ -44,6 +45,7 @@ const SCREENS: Record<string, { view: ComponentType<ViewProps>;
   ...PLANNING_SCREENS,
   ...SAFETY_SCREENS,
   ...MORE_SCREENS,
+  ...INSPECTION_SCREENS,
   ...ANALYSIS_SCREENS,
 };
 

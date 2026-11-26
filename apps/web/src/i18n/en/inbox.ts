@@ -59,8 +59,8 @@ export const inbox = {
   itCheckAgain: "Check again",
   itChainOk: "All {count} entries match. Checked just now.",
   itChainBroken: "Entry {at} does not match the one before it.",
-  itChainNote: "Each entry's fingerprint is worked out in this " +
-    "browser from the entry and the one before it.",
+  itChainNote: "Each entry's fingerprint is worked out in " +
+    "this browser from the entry and the one before it.",
   teamToday: "Team today",
   teamTodayEmpty: "No one reports to you.",
   teamAtWork: "At work",

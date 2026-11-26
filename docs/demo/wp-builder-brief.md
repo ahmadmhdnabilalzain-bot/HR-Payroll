@@ -1,6 +1,6 @@
 # Brief for area-package builders (WP2 to WP10)
 
-You build one package of screens for the Mubinflow demo (React 19 + Vite +
+You build one package of screens for the MubinFlow demo (React 19 + Vite +
 TypeScript, browser only, fictional data). Product: HR and payroll for UAE
 mainland SMEs. First client demo is Friday 15:00 Dubai time. The owner's
 bar is 10/10, "Apple is developing this app". Quality of every screen

@@ -149,7 +149,7 @@ function OfferRecord(p: { id: string }) {
             { label: "Sent", value: o.sentOn?.display ?? "Not yet" },
             { label: "Open until", value: o.validUntil?.display ?? "None" },
             { label: "Answered", value: o.respondedOn?.display ?? "Not yet" },
-            ...(step === undefined ? [] : [{ label: "In this demo",
+            ...(step === undefined ? [] : [{ label: "Next step",
               value: `${OFFER_WORD[now]}, by ${stepWho(data, step)}` }]),
             { label: "Note", value: o.note }]} />
         ) }]} />

@@ -13,7 +13,7 @@ export function Trend() {
   const rows: Cell[][] = src.months.map((x, i) => {
     const before = src.months[i - 1];
     const diff = before === undefined ? null : x.gross - before.gross;
-    return [x.label, x.paid ? "Paid" : "Waiting for approval",
+    return [x.label, x.paid ? "Paid" : "Waiting for sign-off",
       plural(x.headcount, "person", "people"), { fils: x.gross },
       { fils: x.net }, before === undefined || diff === null
         ? "First month shown" : changeText(diff, before.gross, signed)];
@@ -39,7 +39,7 @@ export function Trend() {
       csvName="payroll-trend-2026-01-to-10.csv"
       note={"January to September are worked out again from today's " +
         "pay and joining dates, so they show what the same rules give, " +
-        "not a bank record. October is the run waiting for approval. " +
+        "not a bank record. October is the run waiting for sign-off. " +
         "Open Variance to see why a month moved."} />
   );
 }

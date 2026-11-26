@@ -69,7 +69,7 @@ test("employee-asks-hr-and-hr-sees-the-ticket", async ({ page }, info) => {
 test("calendar-help-and-splits-open-and-stay-clean", async ({ page }) => {
   await page.goto("/#/people/requests/splits");
   await expect(page.getByRole("heading", { level: 1,
-    name: "Approval splits and resets" })).toBeVisible();
+    name: "Sign-off splits and resets" })).toBeVisible();
   await clean(page);
   await go(page, "#/people/requests/travel");
   await expect(page.getByRole("heading", { level: 1,

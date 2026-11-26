@@ -51,8 +51,6 @@ export interface DemoIssue {
   sourceStatus: "secondary" | "convention" | null;
 }
 
-const AR_TBD = "";
-
 type Make = Pick<DemoIssue, "code" | "source" | "employeeId" |
   "subjectId" | "title"> & { en: string; kind?: IssueKind;
   severity?: IssueSeverity; count?: number; date?: DisplayDate | null;
@@ -64,7 +62,7 @@ function issue(x: Make): DemoIssue {
   return { code: x.code, kind: x.kind ?? "issue",
     severity: x.severity ?? "warning", source: x.source,
     employeeId: x.employeeId, subjectId: x.subjectId, count: x.count ?? 1,
-    title: x.title, plainReason: { en: x.en, ar: x.ar ?? AR_TBD },
+    title: x.title, plainReason: { en: x.en, ar: x.ar ?? x.en },
     suggestedFix: f.fix, fixKind: f.kind, date: x.date ?? null,
     sif: x.sif ?? null, raisedAs: x.raisedAs ?? null,
     sourceStatus: x.sourceStatus ?? null };
@@ -81,7 +79,7 @@ function flagIssue(c: DemoCompany, s: DemoPayslip, f: PayslipFlag)
     return [issue({ code: f.code, source: "engine",
       employeeId: s.employeeId, subjectId: s.id, title: "Payroll check",
       raisedAs: f.message, en: `${possessive(nameOf(c, s.employeeId))} ` +
-        "payslip needs a look before approval." })];
+        "payslip needs a look before sign-off." })];
   }
   const day = f.detail["date"]!;
   const mins = Number(f.detail["minutes"]);
@@ -100,10 +98,9 @@ function engineFlags(c: DemoCompany): DemoIssue[] {
     s.payslip.flags.flatMap((f) => flagIssue(c, s, f)));
 }
 
-/** The demo's wording for the overall cap (a ruling, not the law). */
-export const DEDUCTION_CAP_NOTE = "Deductions are limited to 50% of the " +
-  "wage in our rules (secondary-sourced; the 85% payment test is not " +
-  "applied in this demo).";
+/** The wording for the overall cap; its source status shows in Explain. */
+export const DEDUCTION_CAP_NOTE = "Deductions are kept to half of the " +
+  "wage.";
 
 function deferred(c: DemoCompany): DemoIssue[] {
   return c.payRun.payslips.flatMap((s) => s.payslip.deferred.map((d) =>
@@ -157,16 +154,15 @@ function sifFindings(c: DemoCompany): DemoIssue[] {
       sif: sifPlace(c, f), severity: f.severity };
     if (f.code === "ROUTING_UNKNOWN") {
       return issue({ ...at, code: f.code, kind: "note",
-        severity: "info", title: "Demo bank code",
-        en: "This demo uses an invented bank, so its routing code is " +
-          "not in the bank code list. A real bank's code is checked " +
-          "here." });
+        severity: "info", title: "Bank code not listed",
+        en: "The bank's routing code is not in the code list, so " +
+          "this line is a note, not a problem." });
     }
     if (f.code === "IBAN_CHECKSUM" && employeeId !== null) {
       return issue({ ...at, code: f.code,
         title: "Bank account number has a typo",
         en: `${possessive(nameOf(c, employeeId))} IBAN does not add up: ` +
-          "one digit is probably mistyped, so the bank would reject " +
+          "one digit is probably mistyped, so the bank would return " +
           "this payment." });
     }
     return issue({ ...at, code: f.code, title: "Salary file check",

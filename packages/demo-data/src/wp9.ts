@@ -30,7 +30,7 @@ export const ACCESS_PERMISSIONS: readonly AccessPermission[] = [
   { id: "pay.view", label: "See pay runs", area: "Pay" },
   { id: "pay.prepare", label: "Prepare a pay run and settlements",
     area: "Pay" },
-  { id: "pay.approve", label: "Approve a pay run", area: "Pay" },
+  { id: "pay.approve", label: "Sign off a pay run", area: "Pay" },
   { id: "pay.export-sif", label: "Create and send the salary file",
     area: "Pay" },
   { id: "reports.view", label: "See reports", area: "Reports" },
@@ -61,12 +61,12 @@ export const ACCESS_ROLES: readonly AccessRole[] = [
     permissions: [...SELF, "team.view", "leave.approve",
       "expense.approve"] },
   { id: "hr-officer", label: "HR officer", admin: true,
-    description: "Keeps people's records; sees no salaries.",
+    description: "Keeps people's records.",
     permissions: [...SELF, "people.view", "people.edit",
       "reports.view"] },
   { id: "hr-manager", label: "HR manager", admin: true,
     description: "Prepares the pay run and the salary file; cannot " +
-      "approve it.", permissions: [...SELF, "people.view", "people.edit",
+      "sign it off.", permissions: [...SELF, "people.view", "people.edit",
       "people.salary-view", "leave.approve", "pay.view", "pay.prepare",
       "pay.export-sif", "reports.view", "data.import"] },
   { id: "finance-manager", label: "Finance manager", admin: true,
@@ -81,12 +81,12 @@ export const ACCESS_ROLES: readonly AccessRole[] = [
     description: "Sees pay runs and reports; changes nothing.",
     permissions: [...SELF, "pay.view", "reports.view"] },
   { id: "general-manager", label: "General manager", admin: true,
-    description: "Approves the pay run, large expenses and raises.",
+    description: "Signs off the pay run, large expenses and raises.",
     permissions: [...SELF, "people.view", "people.salary-view",
       "leave.approve", "expense.approve", "pay.view", "pay.approve",
       "reports.view", "audit.view", "access.manage", "access.review"] },
   { id: "it-administrator", label: "IT administrator", admin: true,
-    description: "Runs access and connections; sees no salaries.",
+    description: "Runs access and connections.",
     permissions: [...SELF, "audit.view", "access.manage",
       "connections.manage", "data.export", "data.import"] },
   { id: "it-support", label: "IT support", admin: false,
@@ -250,9 +250,9 @@ export const APPROVAL_RULES: readonly ApprovalRule[] = [
       "also for a manager's own claim." },
   { id: "pay-run", label: "Pay run", roleId: "general-manager",
     text: "The HR manager prepares it and the General manager " +
-      "approves it, never the same person." },
+      "signs it off, never the same person." },
   { id: "salary-change", label: "Salary raise",
-    roleId: "general-manager", text: "The General manager approves " +
+    roleId: "general-manager", text: "The General manager signs off " +
       "before HR enters it." },
 ];
 
@@ -274,11 +274,11 @@ const PAIRS: [string, string, string][] = [
 ];
 
 const SOD_LABEL: Record<string, string> = {
-  "pay-run": "No one both prepares and approves a pay run",
-  "salary-pay": "No one sees salaries and approves the run, apart from " +
+  "pay-run": "No one both prepares and signs off a pay run",
+  "salary-pay": "No one sees salaries and signs off the run, apart from " +
     "the General manager", "access-pay": "No one both manages access and " +
-    "approves the run, apart from the General manager",
-  "file-approve": "No one both sends the salary file and approves " +
+    "signs off the run, apart from the General manager",
+  "file-approve": "No one both sends the salary file and signs off " +
     "the run" };
 
 /** Checks the demo's own users; an empty `breaches` means it holds. */
@@ -311,7 +311,7 @@ export function accessSettings(c: DemoCompany): { mfaText: string;
   return { mfaText: `Second sign-in step: required for admin roles since ` +
     `${reportDate(ACCESS_FACTS.mfaRequired.on)}; on for ` +
     `${us.filter((u) => u.mfa).length} of ${us.length} users.`,
-  ssoText: "Single sign-on: not set up in the demo." };
+  ssoText: "Single sign-on: not set up." };
 }
 
 /* ---------------------------------------------------------------- *
@@ -571,8 +571,8 @@ export function importSample(c: DemoCompany): ImportSample {
     summaryText: `${summary.rows} rows read: ${summary.ready} ready, ` +
       `${summary.warnings} to review, ${summary.errors} to fix. ` +
       `Checked ${reportDate(AS_OF)}.`,
-    note: "Sample file made for the demo: nothing is imported, and every " +
-      "name, number and IBAN in it is invented." };
+    note: "Nothing is imported. Every name, number and IBAN in " +
+      "this file is invented." };
 }
 
 /* ---------------------------------------------------------------- *
@@ -585,14 +585,17 @@ export const DATA_LOCATION = {
   statements: [
     { id: "demo", text: "This is a demo. Every person, amount and " +
       "account in it is invented." },
-    { id: "where", text: "The demo runs in your browser. The page is " +
-      "served from a server in Frankfurt, Germany. No real company " +
-      "data is held there." },
+    { id: "where", text: "The demo runs in your browser. The demo is " +
+      "hosted in Frankfurt; the hosting region for a live service is " +
+      "not decided. No real company data is held there." },
     { id: "live", text: "For a live account, where data is stored " +
       "would be agreed with you in writing before you load anything." },
     { id: "claims", text: "Nothing here says the product holds a " +
       "certification, has passed an audit, or meets a data-residency " +
-      "rule. We have not assessed UAE rules for this demo." },
+      "rule. We have not yet assessed UAE data-protection rules." },
+    { id: "roles", text: "Role limits in the demo are a filter in " +
+      "your browser. Enforcement belongs to the backend of a live " +
+      "service and is not shown here." },
   ],
   /** What this page deliberately does not claim. */
   notClaimed: ["certification", "audit report", "data-residency " +

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("pay-run: fix both IBANs, the GM approves, the file opens",
   async ({ page }) => {
     await page.goto("/#/pay-run/approve");
-    const approve = page.getByRole("button", { name: "Approve pay run" });
+    const approve = page.getByRole("button", { name: "Sign off pay run" });
     const toPay = page.getByRole("button", { name: "Continue to Pay" });
     await expect(approve).toBeDisabled();
     await expect(toPay).toBeDisabled();
@@ -25,8 +25,8 @@ test("pay-run: fix both IBANs, the GM approves, the file opens",
     await page.goto("/#/pay-run/approve");
     await page.getByRole("button", { name: "View as General Manager" })
       .click();
-    await page.getByRole("button", { name: "Approve pay run" }).click();
-    await expect(page.getByText("Approval recorded")).toBeVisible();
+    await page.getByRole("button", { name: "Sign off pay run" }).click();
+    await expect(page.getByText("Sign-off recorded")).toBeVisible();
     await page.getByRole("link", { name: "Continue to Pay" }).click();
     await expect(page.getByRole("button", { name: "Download salary file" }))
       .toBeEnabled();

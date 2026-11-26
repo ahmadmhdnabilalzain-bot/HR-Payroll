@@ -29,7 +29,7 @@ const SHORT: Record<string, { en: string; ar: string }> = {
   "people.expiring": { en: "Expiring", ar: "تنتهي قريبًا" },
   "people.visas": { en: "Visas", ar: "التأشيرات" },
   "people.warnings": { en: "Warnings", ar: "الإنذارات" },
-  "people.compliance": { en: "Compliance", ar: "الامتثال" },
+  "people.compliance": { en: "Checks", ar: "الفحوص" },
   "people.calendar": { en: "Calendar", ar: "التقويم" },
   "people.emiratisation": { en: "Emiratisation", ar: "التوطين" },
   "people.pension": { en: "Pension", ar: "المعاش" },

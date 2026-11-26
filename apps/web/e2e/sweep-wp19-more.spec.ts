@@ -15,7 +15,7 @@ test("exit-flow-steps-flags-and-settlement", async ({ page }) => {
     name: "James Whitfield" })).toBeVisible();
   await expect(page.getByText("Pay by").first()).toBeVisible();
   await page.getByRole("tab", { name: "To check" }).click();
-  await expect(page.getByText(/As we read it, the final dues/)).toBeVisible();
+  await expect(page.getByText(/The final dues are paid within/)).toBeVisible();
   await expect(page.getByText("Steps still open")).toBeVisible();
   await page.getByRole("tab", { name: "Steps" }).click();
   await page.getByRole("button", { name: /Mark done.*Final settlement paid/ })
@@ -37,7 +37,7 @@ test("a-switch-is-recorded-and-undone", async ({ page }) => {
   await page.evaluate(() => { location.hash = "#/setup/more/whatsapp"; });
   await expect(page.getByRole("heading", { level: 1,
     name: "Decisions by WhatsApp" })).toBeVisible();
-  await expect(page.getByText(/Nothing is connected in this demo/))
+  await expect(page.getByText(/Nothing is connected yet/))
     .toBeVisible();
   await page.getByRole("button", { name: "Edit" }).first().click();
   await page.getByRole("textbox").fill("maybe");

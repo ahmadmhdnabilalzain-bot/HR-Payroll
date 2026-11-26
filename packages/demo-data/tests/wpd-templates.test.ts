@@ -50,7 +50,7 @@ describe("WPD letter templates", () => {
       expect(text).toContain(l.display.salary);
       expect(text).not.toMatch(/[{}]/);
       // Provenance is the page's sources line, never the letter's text.
-      expect(text).not.toMatch(/demo letter|not an official/i);
+      expect(text).not.toMatch(/demo letter|not an official|fictional/i);
     }));
 
   it("every field in a body has a value", () => each((c) => {
@@ -128,7 +128,7 @@ describe("WPD holidays", () => {
     each((c) => {
       const h = holidays(c);
       expect(h.every((x) => x.display.note === HOLIDAY_NOTE)).toBe(true);
-      expect(HOLIDAY_NOTE).toMatch(/Sample dates/);
+      expect(HOLIDAY_NOTE).toMatch(/Expected dates/);
       const nd = h.find((x) => x.id === "hol-national-day")!;
       expect(holidayDates(nd)).toEqual(["2026-12-02", "2026-12-03"]);
       const notice = homeNoticesFor(c, "gm").find((n) =>

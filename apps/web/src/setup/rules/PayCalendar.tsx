@@ -35,7 +35,7 @@ export function PayCalendar() {
     tone: CalEvent["tone"] }[] = [
     { id: "cut", label: "Cut-off for changes", on: cal.cutOff,
       tone: "booked" },
-    { id: "approve", label: "Approve by", on: cal.approveBy,
+    { id: "approve", label: "Sign off by", on: cal.approveBy,
       tone: "booked" },
     { id: "file", label: "Salary file sent", on: cal.sifDue,
       tone: "booked" },
@@ -45,8 +45,8 @@ export function PayCalendar() {
   ];
   return (
     <MonthCalendar title="Pay calendar"
-      lede={`The dates of the ${monthName(run)} pay run. The due date ` +
-        "is the rule's, from a secondary source."}
+      lede={`The dates of the ${monthName(run)} pay run. The dates ` +
+        "are planned. The due date is the rule's, from a secondary source."}
       month={month} monthLabel={monthName(month)}
       rows={steps.map((x) => ({ id: x.id,
         label: `${x.label}, ${formatDayMonth(x.on, lang)}` }))}

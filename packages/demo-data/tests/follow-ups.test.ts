@@ -22,7 +22,7 @@ describe("follow-ups after the merge", () => {
     expect(b.availableDays).toBe(18.71);
     // No second figure to disagree with on the leave screens.
     expect(b.availableHalves).toBeNull();
-    expect(b.basis).toMatch(/^our reading/);
+    expect(b.basis).toMatch(/^As we read it/);
   });
 
   it("(a) everyone else's balance in days is the halves / 2", () => {

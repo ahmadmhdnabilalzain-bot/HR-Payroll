@@ -46,8 +46,10 @@ export const T = {
   report: { title: "Safety incidents report",
     month: "Month", low: "Low", medium: "Medium", high: "High",
     total: "Total", open: "Still open", figure: "Incidents logged",
-    note: "Severity is the word HR gives each incident. Open means " +
-      "action is still to be taken or the incident is not yet closed. " +
+    note: "Reports sent by staff are counted from the day they are " +
+      "sent. Severity is the word given when the incident was logged. " +
+      "Open means action is still to be taken or the incident is not " +
+      "yet closed. " +
       "Nothing here is sent to any authority." },
 };
 

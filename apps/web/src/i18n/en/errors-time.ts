@@ -18,7 +18,7 @@ export const timeErrors = {
   CORRECTION_TIMES_INVALID: "Check the times: same day, not in the " +
     "future, at most 24 hours.",
   ATTENDANCE_OVERLAP: "These times overlap another record that day.",
-  TIMESHEET_LOCKED: "That day's timesheet is submitted or approved.",
+  TIMESHEET_LOCKED: "That day's timesheet is submitted or signed off.",
   CLOCK_OUT_TOO_LATE: "It is more than 24 hours since you clocked in. " +
     "Ask for a correction instead.",
   TIMESHEET_TRANSITION: "The timesheet cannot move to that state now.",

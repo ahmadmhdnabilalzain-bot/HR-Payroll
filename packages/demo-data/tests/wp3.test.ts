@@ -321,7 +321,7 @@ describe("WP3 transfers and re-joins", () => {
     expect(o.joiningDate.iso).toBe(r.effectiveOn.iso);
     expect(r.previousService!.to.iso < r.effectiveOn.iso).toBe(true);
     expect(r.previousService!.text).toMatch(/^\d{1,2} \w{3} \d{4} to /);
-    expect(r.note).toContain("our reading");
+    expect(r.note).toContain("re-joining date");
   }));
 
   it("no view carries a raw ISO date outside { iso, display }", () =>

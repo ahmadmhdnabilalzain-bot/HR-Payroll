@@ -54,15 +54,14 @@ describe("review rulings", () => {
     expect(s.result.leavePay).toBe(want);
     expect(s.result.total).toBe(s.result.gratuity + want);
     const acc = s.trace.find((l) => l.id === "leave.accrued")!;
-    expect(acc.inputs["basis"]).toBe("our reading: the law gives leave " +
-      "for parts of the last year but no method");
+    expect(acc.inputs["basis"]).toBe("As we read it, the law gives leave " +
+      "for part of the last year but sets no method.");
   });
 
   it("(3) the loan cap is our rule, not 'the legal cap'", () => {
     const i = issuesOf(c).find((x) => x.code === "DEDUCTION_DEFERRED")!;
-    expect(i.plainReason.en).toContain("Deductions are limited to 50% of " +
-      "the wage in our rules (secondary-sourced; the 85% payment test " +
-      "is not applied in this demo).");
+    expect(i.plainReason.en).toContain("Deductions are kept to half of the " +
+      "wage.");
     expect(i.plainReason.en).not.toMatch(/legal cap|official/i);
     expect(i.sourceStatus).toBe("secondary");
     expect(i.raisedAs ?? "").not.toMatch(/overall-cap/);
@@ -74,9 +73,9 @@ describe("review rulings", () => {
     expect(p.salaryFileSent).toBe("2026-10-29");
     expect(p.settlementDue).toMatchObject({ iso: "2026-10-29",
       display: "29 October" });
-    expect(p.settlementDue!.basis).toMatch(/^our reading/);
-    expect(p.legalDueNote).toBe("Wages are due by the 1st of the next " +
-      "month (WPS rule, secondary source; primary text not yet read)");
+    expect(p.settlementDue!.basis).toMatch(/Art 53/);
+    expect(p.legalDueNote).toBe("As we read the rules, wages are due by the " +
+      "1st of the next month.");
     expect(p.items.map((x) => x.label)).toContain("Salary file sent");
     expect(p.items.every((x) => x.date.display !== "")).toBe(true);
   });
@@ -99,7 +98,7 @@ describe("review rulings", () => {
   it("(8, 9, 10) wording", () => {
     expect(PENSION_NOT_COMPUTED.en).toContain("must be confirmed with " +
       "the fund");
-    expect(DEMO_LABELS.en["issues.title"]).toBe("Found before approval");
+    expect(DEMO_LABELS.en["issues.title"]).toBe("Found before sign-off");
     expect(RULES_SCOPE).toBe("Based on UAE mainland rules, as we read " +
       "them");
     const ot = issuesOf(c).find((x) =>

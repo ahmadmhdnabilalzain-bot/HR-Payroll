@@ -239,7 +239,7 @@ export interface TeamData {
 }
 
 const GM_JOB = "general-manager";
-const BOARD_TEXT = "Board chair (outside this demo)";
+const BOARD_TEXT = "Board chair (outside the company)";
 
 const nameOf = (es: readonly DemoEmployee[], id: string | null): string =>
   id === null ? BOARD_TEXT : es.find((e) => e.id === id)!.fullName;
@@ -424,7 +424,7 @@ const GOAL_TEMPLATES: Record<string, [string, number, string][]> = {
   "dept-fin": [["Month-end closes within 5 working days", 95, "%"],
     ["Supplier invoices paid on time", 97, "%"],
     ["Budget variances explained", 100, "%"]],
-  "dept-hr": [["Pay runs approved before the cut-off", 100, "%"],
+  "dept-hr": [["Pay runs signed off before the cut-off", 100, "%"],
     ["Joiner checklists done within 30 days", 95, "%"],
     ["Appraisal forms finished on time", 100, "%"]],
   "dept-it": [["Core system availability", 99, "%"],
@@ -542,7 +542,7 @@ function probationOf(c: DemoCompany): ProbationEvaluationView[] {
           "the pay run)"]),
         `Decide by ${shortDateText(engine.employerNoticeDeadline!)}: ` +
         "after that the employer's notice period applies (Decree-Law " +
-        "33/2021 Art 9, as read in our notes)"] };
+        "33/2021 Art 9, as we read it)"] };
   });
 }
 

@@ -50,11 +50,11 @@ export interface Area {
   /** Roles that see the area; all roles when left out. */
   roles?: readonly Role[];
   /**
-   * A Setup area for HR and the General manager alone (people's pay,
-   * who decides for whom): IT, who otherwise reaches every Setup area
-   * HR reaches, does not.
+   * True for a Setup area that lists "hr" but shows people's pay or
+   * records: the IT manager does not inherit it, so search never offers
+   * what the screen refuses (the screen's own guard says the same).
    */
-  notForIt?: boolean;
+  noIt?: true;
   /** Extra words search should match (both languages welcome). */
   keywords?: string;
 }

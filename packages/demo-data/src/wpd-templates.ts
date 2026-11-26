@@ -256,8 +256,8 @@ export function attendanceDevices(c: DemoCompany): AttendanceDevice[] {
  * T07 Holidays (SAMPLE dates)
  * ---------------------------------------------------------------- */
 
-export const HOLIDAY_NOTE = "Sample dates. The real dates follow the " +
-  "official announcement.";
+export const HOLIDAY_NOTE = "Expected dates. The Cabinet announces the " +
+  "final ones.";
 
 export interface HolidayView {
   id: string;

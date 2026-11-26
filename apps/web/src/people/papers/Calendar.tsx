@@ -25,7 +25,7 @@ export function Calendar() {
     label });
   const events: CalEvent[] = [
     ev("pay", pay.cutOff, "shift", "Cut-off"),
-    ev("pay", pay.approveBy, "shift", "Approve by"),
+    ev("pay", pay.approveBy, "shift", "Sign off by"),
     ev("pay", pay.sifDue, "shift", "Salary file due"),
     ev("pay", pay.payday, "shift", "Payday"),
     ...p.data.documents().map((x) => ev("docs", x.expiresOn, "waiting",
@@ -40,7 +40,7 @@ export function Calendar() {
     .sort((a, b) => a.start.localeCompare(b.start));
   return (
     <div className={c.calWrap}>
-      <MonthCalendar title="Compliance calendar"
+      <MonthCalendar title="Due dates calendar"
         lede="Pay dates, document expiries and the booked steps of visa
           cases."
         month={month}

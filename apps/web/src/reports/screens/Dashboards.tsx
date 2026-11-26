@@ -24,9 +24,9 @@ export function DashboardHr() {
   const waiting = pendingApprovals(data, state).length;
   const rows = [
     ["Open items that stop pay", String(stops), "-", "Fix these " +
-      "before the run can be approved"],
+      "before the run can be signed off"],
     ["People on the payroll", String(sum("now")),
-      `${sum("start")} on 1 January`, "Employed today"],
+      `${sum("start")} on 1 January`, "Employed on the report date"],
     ["Joined this year", String(sum("joined")), "-",
       src.joiners.join(", ") || "Nobody"],
     ["Left this year", String(sum("departed")), "-",
@@ -38,19 +38,19 @@ export function DashboardHr() {
       `${gone.length} already expired`, "Visas, Emirates IDs and " +
         "passports to renew"],
     ["Waiting for a decision", String(waiting), "-",
-      "Requests in the approvals inbox"],
+      "Requests in the decisions inbox"],
     [`Unpaid leave in ${last.label}`, plural(last.unpaidDays, "day",
       "days"), `${plural(last.sickDays, "sick day", "sick days")}`,
     "Working days taken in the run month"],
   ];
   return (
     <ReportPage crumbs={crumbs}
-      title="HR dashboard" period={`As of today, ` +
+      title="HR dashboard" period={`As of the report date, ` +
       `${last.label} run`}
     figure={{ label: "Open items that stop pay", value: String(stops) }}
     columns={COLUMNS} rows={rows} csvName="hr-dashboard-2026-10.csv"
     note={"Each row comes from the same data as the headcount, leave " +
-      "and documents reports and the approvals inbox."} />
+      "and documents reports and the decisions inbox."} />
   );
 }
 

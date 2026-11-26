@@ -43,6 +43,12 @@ import {
   type AccessSlice,
 } from "../setup/access/state";
 import {
+  AUDITOR_INITIAL,
+  reduceAuditor,
+  type AuditorAction,
+  type AuditorSlice,
+} from "../setup/auditor/state";
+import {
   PAPERS_INITIAL,
   reducePapers,
   type PapersAction,
@@ -90,6 +96,12 @@ import {
   type PriorAction,
   type PriorSlice,
 } from "../pay/more/state";
+import {
+  FINISH_INITIAL,
+  reduceFinish,
+  type FinishAction,
+  type FinishSlice,
+} from "./finish-state";
 import {
   MORE_INITIAL,
   reduceMore,
@@ -139,7 +151,8 @@ export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
-    PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice {
+    PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
+    AuditorSlice, FinishSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -186,6 +199,8 @@ export type Action =
   | VerifyAction
   | RuleChangeAction
   | PlanningAction
+  | AuditorAction
+  | FinishAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -204,6 +219,8 @@ export const INITIAL: DemoState = {
   ...VERIFY_INITIAL,
   ...RULE_CHANGE_INITIAL,
   ...PLANNING_INITIAL,
+  ...AUDITOR_INITIAL,
+  ...FINISH_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -300,6 +317,19 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "more-cover":
     case "more-cover-withdraw":
     case "more-cover-restore": return reduceMore(s, a);
+    case "auditor-grant":
+    case "auditor-ungrant":
+    case "auditor-end-date":
+    case "auditor-end-date-undo":
+    case "auditor-end":
+    case "auditor-reinstate":
+    case "auditor-view": return reduceAuditor(s, a);
+    case "finish-grant":
+    case "finish-grant-withdraw":
+    case "finish-grant-restore":
+    case "finish-incident":
+    case "finish-incident-withdraw":
+    case "finish-incident-restore": return reduceFinish(s, a);
     case "pay-request":
     case "pay-withdraw":
     case "pay-restore":

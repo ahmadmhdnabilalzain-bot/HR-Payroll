@@ -8,7 +8,7 @@ export function BoardPackScreen() {
   const { board } = useMoreSource();
   const m = useTableMoney();
   return (
-    <ReportPage title="Board pack" period={board.period}
+    <ReportPage title="Board report" period={board.period}
       figure={{ label: "Gross pay, January to October",
         value: <Money value={board.ytdGross} size="lg" tween={false} /> }}
       columns={[{ label: "Measure" }, { label: "Note" },

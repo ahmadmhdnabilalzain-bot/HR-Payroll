@@ -57,7 +57,7 @@ const DEPT_SKILLS: Record<string, string[]> = {
   it: ["sk-systems"],
 };
 
-export const SKILL_BASIS = "Sample levels worked out from years in the " +
+export const SKILL_BASIS = "Levels worked out from years in the " +
   "bank (under 1 year is level 1, 1 to 2 is 2, 3 to 6 is 3, 7 and more " +
   "is 4). Required level follows grade (up to 3 is 2, 4 to 6 is 3, 7 and " +
   "above is 4). They stand in until managers record assessed levels.";

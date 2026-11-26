@@ -5,6 +5,7 @@ import { MyExpenses } from "../home/extra/MyExpenses";
 import { MyKpis } from "../home/extra/MyKpis";
 import { TeamReviews } from "../home/extra/TeamReviews";
 import { MyTimeCard } from "../time/extra/MyTimeCard";
+import { ReportIncident } from "../time/finish/ReportIncident";
 import { MyDocuments } from "./MyDocuments";
 import { MyLeave, MyRequests } from "./MyLeave";
 import { MyPayslips } from "./MyPayslips";
@@ -26,6 +27,7 @@ export function Me(p: ViewProps) {
     case "expenses": return <MyExpenses />;
     case "timecard": return <MyTimeCard />;
     case "kpis": return <MyKpis />;
+    case "report-incident": return <ReportIncident />;
     case "team-reviews": return <TeamReviews />;
     default: return <MyPayslips />;
   }

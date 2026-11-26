@@ -29,11 +29,14 @@ function shift(ym: string, by: number): string {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`;
 }
 
-const weekend = (iso: string): boolean => {
+const isWeekend = (iso: string): boolean => {
   const [y, m, d] = iso.split("-").map(Number);
   const w = new Date(Date.UTC(y ?? 0, (m ?? 1) - 1, d ?? 1)).getUTCDay();
   return w === 0 || w === 6;
 };
+
+/** A rest day: the weekend or a sample public holiday (not counted). */
+type Rest = (iso: string) => boolean;
 
 /** Booked and waiting time off overlapping a month, one row a person. */
 export function offInMonth(rows: RequestRow[], ym: string): RequestRow[] {
@@ -53,6 +56,8 @@ export function TeamCalendar() {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const today = data.people.asOf;
+  const weekend: Rest = (iso) => isWeekend(iso) ||
+    data.people.holidayOn(iso) !== null;
   const ids = new Set(leaveIds(data, state));
   const all = requestRows(data, state).filter((r) => ids.has(r.employeeId));
   // Opens on this month, or the next one with someone off (two ahead).
@@ -98,7 +103,8 @@ export function TeamCalendar() {
               </span>
               {days.map((d) => (
                 <span key={d} role="columnheader" className={s.dayHead}
-                  data-weekend={weekend(d)} data-today={d === today}>
+                  data-weekend={weekend(d)} data-today={d === today}
+                  title={data.people.holidayOn(d) ?? undefined}>
                   {Number(d.slice(8))}
                 </span>
               ))}
@@ -159,6 +165,8 @@ export function TeamCalendar() {
             {t("timeoff.legendBooked")}
             <span className={s.key} data-on="waiting" aria-hidden="true" />
             {t("timeoff.legendWaiting")}
+            <span className={s.key} data-on="rest" aria-hidden="true" />
+            {t("timeoff.legendRest")}
           </p>
         </>
       )}

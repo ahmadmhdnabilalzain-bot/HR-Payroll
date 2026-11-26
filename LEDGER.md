@@ -618,7 +618,7 @@ The owner can overrule any of these. Full list with reasons:
 
 ## 17. Product name (2026-11-26)
 
-- Owner chose the working name **Mubinflow** (Arabic *mubin*, "clear,
+- Owner chose the working name **MubinFlow** (Arabic *mubin*, "clear,
   evident", plus "flow"; reads "moo-BEEN-flow"). Backups from the same
   root: Mubinly (reads "clearly"), Mubinpay, Mubinio. Why it won: easy to
   say, Arabic-origin, matches "every number explained, problems caught
@@ -683,7 +683,7 @@ The owner can overrule any of these. Full list with reasons:
 - Owner ruling (2026-11-26): domain purchase and trademark work are
   parked ("too early"); the product will not have a separate website.
   Do not raise either again until the owner does. Focus is the app
-  itself (the client demo first). The name Mubinflow and the logo kit
+  itself (the client demo first). The name MubinFlow and the logo kit
   stand as working choices.
 - Owner rule (2026-11-26): **no design goes onto the live site before the
   owner has seen previews in chat and approved them.** Previews are sent
@@ -713,7 +713,7 @@ The owner can overrule any of these. Full list with reasons:
 ## 19. Quality bar and navigation rulings (2026-11-26)
 
 - Owner (2026-11-26): the previous system (Manar One) is rated 3/10; the
-  Mubinflow demo must be 10/10 and "the jump is not small". The standard
+  MubinFlow demo must be 10/10 and "the jump is not small". The standard
   is "Apple is developing this app". An independent critique scored the
   first screens about 5.5/10 (docs/design/2026-11-26-apple-standard-
   critique.md); the fixes (type scale, one grid, motion, copy, colour,
