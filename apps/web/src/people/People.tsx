@@ -3,6 +3,8 @@ import { useDemo } from "../demo/state";
 import { canSee, personFor } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
 import type { ViewProps } from "../views";
+import { Exit } from "./exit/Exit";
+import { Files } from "./files/Files";
 import { Papers } from "./papers/Papers";
 import { Growth } from "./growth/Growth";
 import { Moves } from "./moves/Moves";
@@ -27,6 +29,8 @@ export function People(p: ViewProps) {
   if (id === "team") return <Team rest={p.rest.slice(1)} />;
   if (id === "growth") return <Growth rest={p.rest.slice(1)} />;
   if (id === "talent") return <Talent rest={p.rest.slice(1)} />;
+  if (id === "exit") return <Exit rest={p.rest.slice(1)} />;
+  if (id === "files") return <Files rest={p.rest.slice(1)} />;
   if (id === "moves") return <Moves rest={p.rest} />;
   const who = id ?? (state.role === "employee" ? me : undefined);
   if (who === undefined) return <PeopleList />;

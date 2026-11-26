@@ -5,6 +5,7 @@ import type { ViewProps } from "../views";
 import { Against } from "./Against";
 import { Balances } from "./Balances";
 import { Outside } from "./Outside";
+import { More } from "./more/More";
 import { Crew, CrewRecord, Overtime, OvertimeRecord } from "./Overtime";
 import { Punches } from "./Punches";
 import { Register, RegisterRecord } from "./Register";
@@ -44,6 +45,7 @@ export function TimeRouter(p: ViewProps) {
   const { state } = useDemo();
   const slug = p.rest[0];
   if (slug === undefined) return <TimeOff rest={p.rest} />;
+  if (slug === "more") return <More rest={p.rest} />;
   const roles = SLUG_ROLES[slug];
   if (roles === undefined || !roles.includes(state.role)) {
     return <Outside />;

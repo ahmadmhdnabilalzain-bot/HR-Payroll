@@ -49,6 +49,12 @@ import {
   type PapersSlice,
 } from "./papers-state";
 import {
+  FILES_INITIAL,
+  reduceFiles,
+  type FilesOp,
+  type FilesSlice,
+} from "./files-state";
+import {
   PAY_INITIAL,
   reducePay,
   type PayAction,
@@ -71,7 +77,7 @@ export type Resolution = "reviewed" | "renewal";
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
-    TeamSlice, MovesSlice, PaySlice {
+    TeamSlice, MovesSlice, PaySlice, FilesSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -107,6 +113,7 @@ export type Action =
   | TeamAction
   | MovesAction
   | PayAction
+  | { type: "files"; op: FilesOp }
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -116,7 +123,8 @@ export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL, ...TEAM_INITIAL,
-  ...MOVES_INITIAL, ...PAY_INITIAL, tasksDone: [], notesRead: [],
+  ...MOVES_INITIAL, ...PAY_INITIAL, ...FILES_INITIAL, tasksDone: [],
+  notesRead: [],
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -172,6 +180,7 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "ending-undo":
     case "staff-move-new":
     case "staff-move-undo": return reduceMoves(s, a);
+    case "files": return reduceFiles(s, a.op);
     case "task-done": return s.tasksDone.includes(a.id) ? s
       : { ...s, tasksDone: [...s.tasksDone, a.id] };
     case "task-undone":

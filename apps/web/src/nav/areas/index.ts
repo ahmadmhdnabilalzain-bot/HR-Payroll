@@ -1,6 +1,7 @@
 import type { Area } from "../types";
 import { CORE_AREAS } from "./core";
 import { AREAS as COST } from "./cost";
+import { AREAS as EXIT_FILES } from "./exit-files";
 import { AREAS as HOME_ME } from "./home-me";
 import { AREAS as PAY } from "./pay";
 import { AREAS as PEOPLE_MOVES } from "./people-moves";
@@ -31,4 +32,5 @@ export const ALL_AREAS: readonly Area[] = [
   ...SETUP_ACCESS,
   ...SETUP_STRUCTURE,
   ...HOME_ME,
+  ...EXIT_FILES,
 ];
