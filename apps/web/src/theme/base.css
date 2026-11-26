@@ -99,3 +99,14 @@ button {
     scroll-behavior: auto !important;
   }
 }
+
+/* Touch screens: every control is at least 44 by 44 px. */
+@media (pointer: coarse) {
+  button,
+  a,
+  [role="option"],
+  [role="menuitemradio"] {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+}

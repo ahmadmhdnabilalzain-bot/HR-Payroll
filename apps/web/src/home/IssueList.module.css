@@ -212,3 +212,11 @@
     padding-block-start: var(--space-1);
   }
 }
+
+/* Touch screens: at least 44 by 44 px. */
+@media (pointer: coarse) {
+  .more {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+}

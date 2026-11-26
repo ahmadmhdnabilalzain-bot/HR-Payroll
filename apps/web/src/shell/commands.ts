@@ -28,6 +28,7 @@ export interface Env {
   arabicShown: boolean;
   toggleTheme(): void;
   toggleLang(): void;
+  switchRole(role: Role): void;
 }
 
 function focusApproval(id: string): void {
@@ -51,7 +52,7 @@ function actions(e: Env): Command[] {
     { id: "role", group: "actions", label: e.t("shell.actRole",
       { role: roleName }), hint: e.data.employee(personOf(e.data, other))
       .name[e.lang], icon: "user", keywords: "role switch view",
-      run: () => e.dispatch({ type: "role", role: other }) },
+      run: () => e.switchRole(other) },
     { id: "sources", group: "actions", label: e.t("shell.actSources"),
       hint: "", icon: "info", keywords: "source rules basis why",
       run: () => {

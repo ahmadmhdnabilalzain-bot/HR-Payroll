@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useSwitchRole } from "../demo/actions";
 import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useTheme } from "../theme/ThemeProvider";
@@ -49,15 +50,16 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
   const { lang, t, setLang } = useLocale();
   const { data, state, dispatch } = useDemo();
   const { resolved, setPref } = useTheme();
+  const switchRole = useSwitchRole();
   const [query, setQuery] = useState("");
   const [at, setAt] = useState(0);
   const listId = useId();
   const all = useMemo(() => commands({ data, state, dispatch, t, lang,
     arabicShown: p.arabicShown,
     toggleTheme: () => setPref(resolved === "dark" ? "light" : "dark"),
-    toggleLang: () => setLang(lang === "en" ? "ar" : "en") }),
+    toggleLang: () => setLang(lang === "en" ? "ar" : "en"), switchRole }),
   [data, state, dispatch, t, lang, p.arabicShown, resolved, setPref,
-    setLang]);
+    setLang, switchRole]);
   const shown = all.filter((c) => matches(c, query));
   const pick = (c: Command | undefined): void => {
     if (c === undefined) return;

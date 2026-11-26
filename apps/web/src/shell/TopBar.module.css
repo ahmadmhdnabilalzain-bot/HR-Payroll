@@ -386,3 +386,14 @@ a.navItem:hover {
     display: inline-flex;
   }
 }
+
+/* Touch screens: at least 44 by 44 px. */
+@media (pointer: coarse) {
+  .iconBtn,
+  .langBtn,
+  .roleBtn,
+  .menuItem {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+}

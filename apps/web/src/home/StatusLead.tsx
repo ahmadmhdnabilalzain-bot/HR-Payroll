@@ -27,6 +27,7 @@ export function StatusLead() {
   const checker = nameOf(data.runPeople().checkerId);
   const held = run.blockedBy;
   const sentence = run.phase === "file" ? t("home.statusFile", { month })
+    : run.phase === "declined" ? t("home.statusDeclined", { month })
     : run.phase === "approve"
       ? (run.isChecker ? t("home.statusApproveYou", { month })
         : t("home.statusApprove", { month, name: checker }))
@@ -42,15 +43,17 @@ export function StatusLead() {
       <div className={s.row}>
         <h1 key={sentence} className={s.sentence}>{sentence}</h1>
         <div className={s.action}>
-          {run.isChecker && run.phase !== "file" && (
+          {run.isChecker && (run.phase === "approve" ||
+            run.phase === "bank-details") && (
             <>
               <button type="button" className={`${b.btn} ${b.primary}
                 ${b.large}`} disabled={!run.canDecide}
-                aria-describedby={run.canDecide ? undefined : "approve-why"}
+                aria-describedby={held.length === 0 ? undefined
+                  : "approve-why"}
                 onClick={() => run.decide("approve")}>
                 {t("home.primaryApprove", { month })}
               </button>
-              {!run.canDecide && (
+              {!run.canDecide && held.length > 0 && (
                 <p id="approve-why" className={s.why}>
                   {t("home.approveWaits", { names: names(held) })}
                 </p>

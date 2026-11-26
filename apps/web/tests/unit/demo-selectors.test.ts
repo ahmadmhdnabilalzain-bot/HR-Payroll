@@ -8,6 +8,7 @@ import {
   pendingApprovals,
   personOf,
   runApprovalId,
+  runPhase,
   steps,
 } from "../../src/demo/derive";
 import { INITIAL, reduce, type DemoState } from "../../src/demo/state";
@@ -87,8 +88,12 @@ describe("demo selectors", () => {
     const run = runApprovalId(d) ?? "";
     expect(now(reduce(s0, { type: "decide", id: run,
       verdict: "approve" }))).toBe("sif");
-    expect(now(reduce(s0, { type: "decide", id: run,
-      verdict: "decline" }))).toBe("approve");
+    const declined = reduce(s0, { type: "decide", id: run,
+      verdict: "decline" });
+    expect(now(declined)).toBe("approve");
+    expect(runPhase(src.at(declined.ibans), declined)).toBe("declined");
+    const undone = reduce(declined, { type: "undecide", id: run });
+    expect(runPhase(src.at(undone.ibans), undone)).toBe("approve");
   });
 
   it("maker-and-checker-differ", () => {

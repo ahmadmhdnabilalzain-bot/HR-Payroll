@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { openIssues } from "../demo/derive";
 import { useFlip, useTweenedNumber } from "../demo/motion";
 import { useDemo } from "../demo/state";
@@ -20,7 +20,11 @@ export function IssueList() {
   const { data, state } = useDemo();
   const [all, setAll] = useState(false);
   const open = openIssues(data, state);
-  const shown = all ? open : open.slice(0, FIRST);
+  const at = open.findIndex((i) => i.id === state.focusIssue);
+  useEffect(() => {
+    if (at >= FIRST) setAll(true);
+  }, [at]);
+  const shown = all || at >= FIRST ? open : open.slice(0, FIRST);
   const more = open.length - shown.length;
   const box = useRef<HTMLOListElement>(null);
   useFlip(box, [shown.map((i) => i.id).join()]);
