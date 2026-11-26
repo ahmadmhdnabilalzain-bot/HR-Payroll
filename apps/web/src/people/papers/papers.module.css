@@ -1,0 +1,204 @@
+/* Papers screens: only what the shared templates do not give. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.dot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-faint);
+  flex: none;
+}
+
+.dot[data-tone="danger"] { background: var(--color-danger); }
+.dot[data-tone="warn"] { background: var(--color-warning); }
+.dot[data-tone="ok"] { background: var(--color-success); }
+.dot[data-tone="info"] { background: var(--color-info); }
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.sub {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--color-accent);
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+.block {
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: 720px;
+}
+
+.who {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* The history of a record: inset grouped list. */
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-panel);
+  max-inline-size: 720px;
+}
+
+.history li {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: 14px var(--space-4);
+}
+
+.history li + li {
+  border-block-start: 1px solid var(--color-divider);
+  margin-inline-start: var(--space-4);
+  padding-inline-start: 0;
+}
+
+.historyWhen {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* A letter as it would be handed over. */
+.paper {
+  background: var(--color-surface);
+  border-radius: var(--radius-panel);
+  padding: var(--space-6);
+  max-inline-size: 640px;
+  display: grid;
+  gap: var(--space-4);
+  line-height: 1.6;
+  font-size: var(--text-md);
+}
+
+.paperHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.paperTitle {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  margin: 0;
+}
+
+.paper p {
+  margin: 0;
+}
+
+.paperSign {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Visa steps: a vertical timeline, one line per step. */
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  max-inline-size: 720px;
+  background: var(--color-surface);
+  border-radius: var(--radius-panel);
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: 14px var(--space-4);
+}
+
+.steps li + li {
+  border-block-start: 1px solid var(--color-divider);
+  margin-inline-start: var(--space-4);
+  padding-inline-start: 0;
+}
+
+.stepWhen {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.note {
+  max-inline-size: 720px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.empty {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.actions > * {
+  min-block-size: 44px;
+}
+
+.lede {
+  max-inline-size: 720px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+@media print {
+  .noPrint {
+    display: none;
+  }
+
+  .paper {
+    background: none;
+    padding: 0;
+  }
+}
+
+.page {
+  max-inline-size: var(--container);
+  margin-inline: auto;
+  padding: var(--space-5) var(--page-pad) var(--space-8);
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-inline: var(--space-4);
+  }
+}
+
+.big {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
