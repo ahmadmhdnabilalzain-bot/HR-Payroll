@@ -131,6 +131,7 @@ export const home: ArOf<typeof en> = {
   decided: "سُجّل القرار: {title}",
   requested: "طُلب في {date}",
   waitingFor: "بانتظار {name}",
+  waitingYou: "بانتظارك",
   approvalsEmpty: "لا شيء بانتظارك. تظهر الطلبات الجديدة هنا.",
   kindLeave: "إجازة",
   kindExpense: "مصروف",
@@ -188,4 +189,5 @@ export const home: ArOf<typeof en> = {
   cardDocs: "مستندات تنتهي خلال 30 يومًا",
   cardWaiting: "بانتظار الاعتماد",
   cardLeaveNext: "التالي: {name}، من {date}",
+  cardDocsNext: "ثم {name}، {date}",
 };

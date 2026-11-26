@@ -109,7 +109,7 @@
   justify-content: space-between;
   padding-inline: 0;
   color: var(--color-text-muted);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
 }
 
 .change {
@@ -174,7 +174,7 @@
 
 .why {
   color: var(--color-text-muted);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
 }
 
 .amount {
@@ -186,7 +186,7 @@
 
 .note {
   color: var(--color-text-muted);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
 }
 
 /* Fixed size while the pay chunk loads, so nothing jumps. */

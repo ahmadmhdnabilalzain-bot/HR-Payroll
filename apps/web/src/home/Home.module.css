@@ -42,3 +42,10 @@
   gap: var(--space-6);
   min-inline-size: 0;
 }
+
+/* Phones: the chart, below the strip, as a card. */
+.trend {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}

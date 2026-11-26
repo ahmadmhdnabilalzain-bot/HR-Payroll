@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { useDemo } from "../demo/state";
 import type { ViewProps } from "../views";
 import { Approvals } from "./Approvals";
@@ -11,8 +12,11 @@ import { ItHome } from "./ItHome";
 import { MakeUp } from "./MakeUp";
 import { ManagerHome } from "./ManagerHome";
 import { PayRunHero } from "./PayRunHero";
+import { NetTrend } from "./NetTrend";
 import { PeopleStrip } from "./PeopleStrip";
 import { Setup } from "./Setup";
+import { usePhone } from "./usePhone";
+import nt from "./NetTrend.module.css";
 import s from "./Home.module.css";
 
 /**
@@ -26,6 +30,7 @@ import s from "./Home.module.css";
  */
 export function Home(p: Partial<ViewProps>) {
   const { state } = useDemo();
+  const phone = usePhone();
   const page = p.rest?.[0];
   if (page === "tasks") return <TasksPage />;
   if (page === "notices") return <NoticesPage />;
@@ -34,8 +39,15 @@ export function Home(p: Partial<ViewProps>) {
   if (state.role === "it") return <ItHome />;
   return (
     <div className={s.page}>
-      <PayRunHero />
+      {/* A role switch starts the card afresh (the slot keeps no height
+        from the form someone else opened). */}
+      <PayRunHero key={state.role} />
       <PeopleStrip />
+      {phone && (
+        <Suspense fallback={<div className={nt.placeholder} />}>
+          <div className={s.trend}><NetTrend /></div>
+        </Suspense>
+      )}
       <div className={s.grid}>
         <IssueList />
         <Approvals />

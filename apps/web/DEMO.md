@@ -180,8 +180,11 @@ use them directly on a page of your own. `PageHead` props: `title`,
 `lede?` (17/24, 72ch), `crumbs?: { label, href }[]` or `back?`,
 `badge?` (a status pill beside the title), `actions?` (at most one
 filled button a page), `meta?` (a line under the lede, such as a
-period stepper). The breadcrumb row is always reserved, so the title
-sits at the same y on every page, 40 px under the bar (16 on phones).
+period stepper). The title sits at one y on every page, 96 px under
+the bar: without group tabs the breadcrumb row is reserved above it;
+under group tabs there is no breadcrumb (the tabs say where you are)
+and the title sits 56 px under the tabs (`useGroupTabs` in
+`shell/GroupTabs.tsx`). Content placed above `PageHead` breaks this.
 `StatusPill { tone: ok|warn|stop|neutral|done, pill? }` is a dot and
 a word; the word stays ink. `MoreMenu { items: { label, onSelect,
 disabled?, hint? }[] }` holds secondary actions.

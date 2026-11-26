@@ -1,13 +1,11 @@
 import { fils, type Fils } from "@payroll/engine";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { ExplainLink, Explainable } from "../components/explain";
-import { reducedMotion, ROLL_MS } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
-import { Money } from "../ui/Money";
 import { NetTrend } from "./NetTrend";
 import { useRunApproval } from "../demo/actions";
 import type { Issue } from "../demo/data/types";
@@ -15,6 +13,8 @@ import { RollDigits } from "../ui/RollDigits";
 import { CardIban } from "./CardIban";
 import { StatusAction, StatusSentence } from "./StatusLead";
 import { StepTracker } from "./StepTracker";
+import { usePhone } from "./usePhone";
+import { WaitingList } from "./WaitingList";
 import nt from "./NetTrend.module.css";
 import s from "./PayRunHero.module.css";
 
@@ -34,15 +34,28 @@ export function PayRunHero() {
   const cal = data.payCalendar();
   const net = run.explain["run:net"];
   const [editing, setEditing] = useState<Issue | null>(null);
+  // While bank details hold the run, and for the rest of the visit
+  // once the form has opened, the action slot keeps the bank form's
+  // height, so opening, saving and closing it (the last save included)
+  // never moves what sits below.
+  const [opened, setOpened] = useState(false);
+  const reserve = useRunApproval().blockedBy.length > 0 || opened;
+  const edit = (i: Issue): void => {
+    setOpened(true);
+    setEditing(i);
+  };
+  // Phones: the chart moves below the strip (Home) and a short
+  // "Waiting for you" list joins the first screen.
+  const phone = usePhone();
   return (
     <section className={s.hero} aria-labelledby="run-title" data-card="">
       <div className={s.top}>
         <div className={s.lead}>
           <StatusSentence />
           <div className={s.netCard}>
-            <p className={s.figure}>
+            <p className={s.figure} data-hero-figure="">
               <Explainable explanation={net}>
-                <Money value={h.netTotalFils} size="hero" countUp />
+                <RollDigits value={h.netTotalFils} size="hero" />
               </Explainable>
             </p>
             <p className={s.line}>
@@ -55,22 +68,29 @@ export function PayRunHero() {
                 {t("home.whyNumber")}
               </ExplainLink>
             </p>
-            <ReadyBar total={h.headcount} file={h.sifTotalFils}
-              held={h.heldNetFils} />
           </div>
-          {editing !== null ? (
-            <CardIban issue={editing} onDone={() => setEditing(null)} />
-          ) : (
-            <div className={s.act}>
-              <StatusAction onIban={setEditing} />
-              <StepTracker />
-            </div>
-          )}
-          <p className={s.caveat}>{h.netNote[lang]}</p>
+          <ReadyBar total={h.headcount} file={h.sifTotalFils}
+            held={h.heldNetFils} />
+          <div className={s.slot} data-reserve={reserve}>
+            {editing !== null ? (
+              <CardIban issue={editing} onDone={() => setEditing(null)} />
+            ) : (
+              <>
+                <div className={s.act}>
+                  <StatusAction onIban={edit} />
+                  <StepTracker />
+                </div>
+                <p className={s.caveat}>{h.netNote[lang]}</p>
+              </>
+            )}
+          </div>
+          {phone && <WaitingList />}
         </div>
-        <Suspense fallback={<div className={nt.placeholder} />}>
-          <NetTrend />
-        </Suspense>
+        {!phone && (
+          <Suspense fallback={<div className={nt.placeholder} />}>
+            <NetTrend />
+          </Suspense>
+        )}
       </div>
     </section>
   );
@@ -120,28 +140,16 @@ function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
 }
 
 /**
- * What is held out of the salary file. When the last IBAN passes, the
- * amount rolls down to zero first (the money visibly moves into the
- * file), and only then does the line say everyone is in the file.
+ * What is held out of the salary file. When the last IBAN passes it
+ * goes straight to "None" with a short cross-fade (no roll through
+ * 0.00), in a line of the same height, so nothing below moves.
  */
 function HeldOut(p: { value: Fils }) {
   const { t } = useLocale();
-  // Derived during render (React's "previous value" pattern), so the
-  // amount stays mounted and rolls from its last value to zero.
-  const [prev, setPrev] = useState(p.value);
-  const [rolling, setRolling] = useState(false);
-  if (prev !== p.value) {
-    setPrev(p.value);
-    if (prev > 0n && p.value === 0n && !reducedMotion()) setRolling(true);
-  }
-  useEffect(() => {
-    if (!rolling) return undefined;
-    const h = setTimeout(() => setRolling(false), ROLL_MS + 150);
-    return () => clearTimeout(h);
-  }, [rolling]);
-  const zero = p.value === 0n && !rolling;
+  const zero = p.value === 0n;
   return (
-    <span className={s.held} data-zero={zero}>
+    <span key={zero ? "none" : "amount"} className={s.held}
+      data-zero={zero}>
       {zero ? t("home.heldNone")
         : <RollDigits value={fils(p.value)} size="lg" />}
     </span>

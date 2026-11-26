@@ -1,7 +1,9 @@
+/* 8 px under the bar; the page title sits 56 px under the tabs
+ * (PageHead), so it lands at the same y as on a page without tabs. */
 .wrap {
   max-inline-size: var(--container);
   margin-inline: auto;
-  padding: var(--space-4) var(--page-pad) 0;
+  padding: var(--space-2) var(--page-pad) 0;
 }
 
 .tabs {

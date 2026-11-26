@@ -132,7 +132,7 @@ export function NetTrend() {
         {drivers.map((d) => (
           <li key={d.employeeId}>
             <a className={s.driver} href={hrefOf("people", d.employeeId)}>
-              <Avatar id={d.employeeId} name={d.name} size="sm" />
+              <Avatar id={d.employeeId} name={d.name} />
               <span className={s.who}>
                 <span className={s.name}>{d.name}</span>
                 <span className={s.why}>{reasonText(d.reasons)}</span>

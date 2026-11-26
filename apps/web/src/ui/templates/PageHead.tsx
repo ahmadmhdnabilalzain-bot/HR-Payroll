@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { useRoute } from "../../demo/route";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { useGroupTabs } from "../../shell/GroupTabs";
 import s from "./templates.module.css";
 
 export interface Crumb {
@@ -8,11 +10,13 @@ export interface Crumb {
 }
 
 /**
- * Every page's head, on every template: 40 px under the bar, a
- * breadcrumb row (always reserved, so the title sits at the same y on
- * every page), the h1 (34/40), a subtitle (17/24, 72ch) and the actions
- * on the title's line. At most one filled button goes in `actions`.
- * `meta` is a line under the subtitle (a period stepper, a status).
+ * Every page's head, on every template, with the h1 (34/40) at one y
+ * on every page, 96 px under the bar: without group tabs, a breadcrumb
+ * row (always reserved) above it; under group tabs, no breadcrumb (the
+ * tabs already say where you are) and the title 56 px under the tabs.
+ * Then a subtitle (17/24, 72ch) and the actions on the title's line.
+ * At most one filled button goes in `actions`. `meta` is a line under
+ * the subtitle (a period stepper, a status).
  */
 export function PageHead(p: { title: string; lede?: string | undefined;
   actions?: ReactNode;
@@ -23,11 +27,12 @@ export function PageHead(p: { title: string; lede?: string | undefined;
   meta?: ReactNode;
   id?: string }) {
   const { t } = useLocale();
+  const underTabs = useGroupTabs(useRoute()) !== null;
   const trail = p.crumbs ?? (p.back === undefined ? [] : [p.back]);
   return (
-    <header className={s.head}>
-      {trail.length === 0 ? <div className={s.crumbs} aria-hidden="true" />
-        : (
+    <header className={s.head} data-tabs={underTabs}>
+      {underTabs ? null : trail.length === 0
+        ? <div className={s.crumbs} aria-hidden="true" /> : (
           <nav className={s.crumbs} aria-label={t("shell.breadcrumb")}>
             <ol>
               {trail.map((c) => (
