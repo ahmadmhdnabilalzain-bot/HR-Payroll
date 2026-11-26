@@ -130,7 +130,9 @@ export function calculatePayslip(input: PayslipInput,
   const gp = gpssaPart(input, w, packs, overrides, t);
   const ded = applyDeductions({ earnedWage: e.earned,
     contractualWage: contractualWage(input), requests: input.deductions,
-    loans: input.loans, ...gpssaArgs(input, gp) }, p, t);
+    loans: input.loans, ...gpssaArgs(input, gp),
+    atExit: input.employee.leavingDate !== null &&
+      input.employee.leavingDate <= w.monthEnd }, p, t);
   const used = [...overriddenKeys(p), ...(gp?.used ?? [])];
   e.flags.push(...ded.flags, ...overrideFlags(used, overrides));
   return finish(input, e, ded, gp?.result ?? null, t);

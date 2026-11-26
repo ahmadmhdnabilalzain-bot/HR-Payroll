@@ -19,7 +19,9 @@ export interface GpssaTrace { share: Fils; arrears: Fils;
 export interface DeductionArgs { earnedWage: Fils;
   contractualWage: Fils; gpssaShare: Fils | null;
   requests: DeductionRequest[]; loans: LoanInstalment[];
-  gpssaTrace?: GpssaTrace }
+  gpssaTrace?: GpssaTrace;
+  /** The worker leaves this month: no later payslip will recover. */
+  atExit?: boolean }
 export interface DeductionResult {
   lines: PayslipLine<DeductionLineKind>[]; total: Fils;
   caps: { wageBase: Fils; overall: Fils };
@@ -107,22 +109,36 @@ const min = (...xs: bigint[]): bigint =>
   xs.reduce((x, y) => (y < x ? y : x));
 
 interface State { overallLeft: bigint; kindLeft: Map<string, bigint>;
-  out: DeductionResult }
+  out: DeductionResult; args: DeductionArgs }
 
 function traceId(i: Item): string {
   return i.kind === "gpssa" ? "ded.gpssa" : `ded.${i.kind}#${i.ref}`;
 }
 
-function deferFlags(i: Item, d: DeferredDeduction): PayslipFlag[] {
+const LATER = { code: "DEDUCTION_DEFERRED", message: "part of this " +
+  "deduction is deferred to a later month by the Article 25 caps" };
+const AT_EXIT = { code: "DEDUCTION_DUE_AT_EXIT", message: "the Article " +
+  "25 caps left part of this deduction unpaid and the worker leaves " +
+  "this month: it must be settled at exit in the final settlement, " +
+  "which this engine does not compute" };
+
+/** The remit rule read for each regime; Law 7's clause is not read. */
+const REMIT: Record<GpssaRegime, string> = {
+  "dl57-2023": "the employer still remits the full employee share, " +
+    "DL57 Art 11(4)",
+  "law7-1999": "the employer still remits the full employee share " +
+    "(Law 7 clause on remitting not read)",
+};
+
+function deferFlags(a: DeductionArgs, i: Item, d: DeferredDeduction):
+  PayslipFlag[] {
   const detail = { ref: i.ref, kind: i.kind, deferred: String(d.deferred),
     reason: d.reason };
-  const flags = [{ code: "DEDUCTION_DEFERRED", message: "part of this " +
-    "deduction is deferred to a later month by the Article 25 caps",
-    detail }];
+  const flags = [{ ...(a.atExit === true ? AT_EXIT : LATER), detail }];
   if (i.kind !== "gpssa") return flags;
-  return [...flags, { code: "GPSSA_SHARE_DEFERRED", message: "the " +
-    "employer still remits the full employee share, DL57 Art 11(4)",
-    detail }];
+  const regime = a.gpssaTrace?.regime ?? "dl57-2023";
+  return [...flags, { code: "GPSSA_SHARE_DEFERRED",
+    message: REMIT[regime], detail }];
 }
 
 function takeItem(s: State, i: Item, cap: Cap, p: PayrollParams,
@@ -145,7 +161,7 @@ function takeItem(s: State, i: Item, cap: Cap, p: PayrollParams,
       requested: i.requested, taken, deferred: rest,
       reason: kindBound ? "kind-cap" : "overall-cap" };
     s.out.deferred.push(d);
-    s.out.flags.push(...deferFlags(i, d));
+    s.out.flags.push(...deferFlags(s.args, i, d));
   }
   traceItem(s, t, i, { id, label, taken, rest, cap, p });
 }
@@ -172,6 +188,12 @@ function traceItem(s: State, t: TraceBuilder, i: Item, k: Taken): void {
       k.p.deductionOrder.rule, ...(i.rules ?? [])] });
 }
 
+/** Basis points as a percent: 5000 -> "50%", 4050 -> "40.5%". */
+function percent(bps: bigint): string {
+  const frac = String(bps % 100n).padStart(2, "0").replace(/0+$/, "");
+  return `${bps / 100n}${frac === "" ? "" : "." + frac}%`;
+}
+
 function traceCaps(a: DeductionArgs, overall: Fils, p: PayrollParams,
   t: TraceBuilder): void {
   t.add({ id: "cap.base", label: "Wage used for deduction limits",
@@ -182,7 +204,8 @@ function traceCaps(a: DeductionArgs, overall: Fils, p: PayrollParams,
   t.add({ id: "cap.overall", label: "Most that may be deducted",
     formula: "earnedWage * deductionOverallCapBps / 10000, rounded down",
     inputs: { earnedWage: String(a.earnedWage),
-      capBps: String(p.deductionOverallCapBps.v) },
+      capBps: String(p.deductionOverallCapBps.v),
+      capPercent: percent(p.deductionOverallCapBps.v) },
     result: String(overall),
     rules: [p.deductionOverallCapBps.rule, p.capRoundingMode.rule] });
 }
@@ -215,7 +238,7 @@ export function applyDeductions(a: DeductionArgs, p: PayrollParams,
   }
   const s: State = { overallLeft: overall, kindLeft, out: { lines: [],
     total: fils(0n), caps: { wageBase: a.earnedWage, overall },
-    deferred: [], loanBalances: [], flags: [] } };
+    deferred: [], loanBalances: [], flags: [] }, args: a };
   for (const kind of order) {
     for (const i of itemsOf(kind, a)) takeItem(s, i, caps[kind], p, t);
   }
