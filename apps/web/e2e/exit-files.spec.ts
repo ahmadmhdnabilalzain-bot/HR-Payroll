@@ -45,7 +45,7 @@ test("exit-interviews-signatures-files-and-time-extras", async (
     ["liability", "Leave liability and tickets"],
     ["corrections", "Attendance corrections"], ["phone", "Phone clock-in"],
     ["wfh", "Work from home"], ["kiosk", "Kiosk check-in"],
-    ["cover", "Leave-safe roster"], ["leave-for", "Record leave for someone"],
+    ["cover", "Minimum on shift"], ["leave-for", "Record leave for someone"],
   ] as const) {
     await page.goto(`/#/time-off/more/${path}`);
     await h1(page, title);

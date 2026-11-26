@@ -237,6 +237,8 @@ export function adaptPeople(c: DemoCompany): PeopleData {
     payslip: (id) => payslipOf(c, id),
     explain: (payslipId, traceId, title, lang) =>
       explainOf(c, payslipId, traceId, title, lang),
+    emiratesIdFull: (id) => c.employees.find((e) => e.id === id)
+      ?.emiratesId.value ?? null,
     documentsOf: (id) => c.documents.filter((d) => d.employeeId === id)
       .map((d) => ({ id: d.id, employeeId: d.employeeId,
         kind: label(`doc.${d.kind}`), numberMasked: d.number.masked,

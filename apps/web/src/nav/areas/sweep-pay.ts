@@ -19,7 +19,7 @@ const set = (page: string): AreaRoute =>
 
 export const AREAS: readonly Area[] = [
   { id: "pay.prior", section: "pay", group: "changes",
-    label: { en: "Joiners earlier pay", ar: "رواتب جهات العمل السابقة" },
+    label: { en: "Pay before joining", ar: "رواتب جهات العمل السابقة" },
     status: "live", archetype: "LF", roles: HR_GM, route: more("prior"),
     keywords: "R25 prior employment previous employer last pay joiner " +
       "salary certificate" },

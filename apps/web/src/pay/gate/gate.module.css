@@ -172,8 +172,15 @@
   gap: var(--space-1);
   flex: 1 1 200px;
   max-inline-size: 320px;
+  min-inline-size: 0;
   font-size: var(--text-sm);
   font-weight: 500;
+}
+
+.field select,
+.field input {
+  inline-size: 100%;
+  min-inline-size: 0;
 }
 
 .field input,
@@ -230,6 +237,7 @@
 
 .block {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
 }
 

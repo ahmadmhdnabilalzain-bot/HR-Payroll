@@ -5,7 +5,7 @@ import type { StructureData } from "./data";
 /** S05: who signs off each kind of request, and above what amount. */
 export function SignOff(p: { d: StructureData }) {
   return (
-    <FilterList title="Request sign-off levels"
+    <FilterList title="Sign-off levels"
       lede="Who signs off each kind of request. The person who prepares
         something never signs it off too."
       rows={p.d.levels} rowKey={(l) => l.ruleId}

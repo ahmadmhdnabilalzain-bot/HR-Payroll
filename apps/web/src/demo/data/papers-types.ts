@@ -18,7 +18,7 @@ export interface PaperLetter {
   base: LetterBase;
   purpose: string;
   addressee: string;
-  /** The fictional bank's reference, already masked. */
+  /** The fictional reference, e.g. ZB-LTR-2026-0140 (not a secret). */
   reference: string;
   /** Basic plus allowances as in the contract; salary certificates. */
   monthlySalary: Fils | null;

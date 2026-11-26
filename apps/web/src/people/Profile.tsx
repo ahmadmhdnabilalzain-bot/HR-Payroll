@@ -19,6 +19,7 @@ import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { openItemsOf, severityOf } from "./attention";
 import { shortBranch } from "./filter";
+import { EmiratesId } from "./EmiratesId";
 import { plainOnly } from "../payrun/FixStep";
 import { lastFour } from "./Payslip";
 import { useRoll } from "./useRoll";
@@ -245,8 +246,7 @@ function Employment(q: { person: Person }) {
           <span className={s.email}>{x.email}</span>
         </Fact>
         <Fact label={t("people.emiratesId")}>
-          <span dir="ltr" className="tabular">
-            {x.emiratesIdMasked.replace(/\*/g, "•")}</span>
+          <EmiratesId person={x} />
         </Fact>
         {canSeePay(data, state, x.id) && (
           <Fact label={t("people.iban")}>

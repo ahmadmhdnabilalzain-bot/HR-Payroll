@@ -34,7 +34,7 @@ export const AREAS: readonly Area[] = [
     keywords: "attendance register timesheet hours worked late " +
       "absence month" },
   { id: "time.punches", section: "time", group: "attendance",
-    label: { en: "Punches to match", ar: "بصمات بلا صاحب" }, status: "live",
+    label: { en: "Clock-ins to match", ar: "بصمات بلا صاحب" }, status: "live",
     archetype: "LF", roles: HR_GM, route: at(["punches"]),
     count: punchesToMatch, keywords: "device reader badge unmatched" },
   { id: "time.roster", section: "time", group: "rosters",
@@ -46,7 +46,7 @@ export const AREAS: readonly Area[] = [
     archetype: "LF", roles: HR_GM, route: at(["plan"]),
     count: draftWeeks, keywords: "roster planning publish draft week checks" },
   { id: "time.against", section: "time", group: "rosters",
-    label: { en: "Against shifts", ar: "الحضور مقابل المناوبات" },
+    label: { en: "Attendance vs shifts", ar: "الحضور مقابل المناوبات" },
     status: "live", archetype: "RP", roles: TEAM, route: at(["against"]),
     keywords: "attendance against shifts late absence overtime " +
       "compare" },

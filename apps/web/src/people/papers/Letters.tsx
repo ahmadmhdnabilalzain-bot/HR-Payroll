@@ -120,7 +120,7 @@ function LetterPage(props: { p: Papers; l: LetterRow }) {
   const company = p.data.companyName[p.lang];
   return (
     <Paper label="Letter" company={company} title={LETTER_KIND[l.kind]}
-      reference={l.reference} date={p.when(l.requestedOn)}
+      reference={l.reference} date={p.when(l.step?.on ?? l.requestedOn)}
       sign={l.status === "issued" && l.step !== null
         ? p.byLine("Signed", l.step)
         : l.status === "issued" ? "Signed and issued"
@@ -180,8 +180,13 @@ export function LetterRecord(props: { id: string }) {
         Withdraw</button>
     </>
   )) : l.status === "issued" ? (
-    <button type="button" className={`${b.btn} ${b.secondary}`}
-      onClick={() => print()}>Print</button>
+    <>
+      <button type="button" className={`${b.btn} ${b.secondary}`}
+        onClick={() => print()}>Print</button>
+      <button type="button" className={`${b.btn} ${b.secondary}`}
+        title="Opens the print window: choose Save as PDF"
+        onClick={() => print()}>Save as PDF</button>
+    </>
   ) : l.step !== null ? (
     <button type="button" className={`${b.btn} ${b.secondary}`}
       onClick={() => p.dispatch({ type: "paper-undo", id: l.id })}>

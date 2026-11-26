@@ -11,7 +11,7 @@ const mig = (id: string): AreaRoute =>
 
 export const AREAS: readonly Area[] = [
   { id: "pay.gate", section: "pay", group: "month",
-    label: { en: "Pre-pay checks", ar: "فحوصات قبل الصرف" },
+    label: { en: "Checks before pay", ar: "فحوصات قبل الصرف" },
     status: "live", archetype: "RP", roles: HR_GM, route: gate(),
     keywords: "R15 pre-pay gate checks stop pass iban variance " +
       "corrections contract" },
@@ -45,7 +45,7 @@ export const AREAS: readonly Area[] = [
     status: "live", archetype: "RP", roles: HR_GM, route: rep("sign-offs"),
     keywords: "X32 approval report who signed off declined waiting" },
   { id: "setup.parallel", section: "setup", group: "data",
-    label: { en: "Parallel run compare", ar: "مقارنة التشغيل الموازي" },
+    label: { en: "Compare old payroll", ar: "مقارنة التشغيل الموازي" },
     status: "live", archetype: "RP", roles: HR_GM, noIt: true,
     route: mig("parallel"),
     keywords: "S38 parallel run compare keka old system migration" },

@@ -37,7 +37,7 @@ export const AREAS: readonly Area[] = [
     keywords: "P52 iloe unemployment insurance subscription involuntary " +
       "loss of employment" },
   { id: "people.policies", section: "people", group: "compliance",
-    label: { en: "Policy versions", ar: "إصدارات السياسات" },
+    label: { en: "Policies", ar: "إصدارات السياسات" },
     status: "live", archetype: "LF", roles: HR_GM, route: safety("policies"),
     keywords: "P53 policy handbook version read acknowledged code of " +
       "conduct" },

@@ -14,7 +14,7 @@ const WORD: Record<string, [string, Tone]> = {
 export function Exclusions(p: { d: StructureData }) {
   const { d } = p;
   return (
-    <FilterList title="Payroll exemptions"
+    <FilterList title="Pay exclusions"
       lede="What this month's pay run leaves out or holds back, and the
         reason. Each line is read from the person's record."
       rows={d.exclusions} rowKey={(r) => r.id}

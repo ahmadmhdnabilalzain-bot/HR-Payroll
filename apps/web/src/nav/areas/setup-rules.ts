@@ -25,7 +25,7 @@ export const AREAS: readonly Area[] = [
   area("setup.hours", "time", "Working hours",
     "ساعات العمل والعمل الإضافي", "ST", ["hours"],
     "working hours overtime rate night shift rest day week"),
-  area("setup.holidays", "time", "Holidays",
+  area("setup.holidays", "time", "Holidays and Ramadan",
     "الإجازات الرسمية وساعات رمضان", "ST", ["holidays"],
     "holidays ramadan hours public holiday shorter day"),
   area("setup.eos", "pay", "End-of-service rules",

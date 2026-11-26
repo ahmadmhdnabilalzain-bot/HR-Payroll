@@ -18,7 +18,7 @@ test("gate-to-what-if-to-hold-to-advice-to-parallel-run",
     const phone = info.project.name === "phone";
     await page.goto("/#/pay-run/gate");
     await expect(page.getByRole("heading", { level: 1,
-      name: "Pre-pay checks" })).toBeVisible();
+      name: "Checks before pay" })).toBeVisible();
     await expect(page.getByText("1 of 5 checks stop pay")).toBeVisible();
 
     await page.goto("/#/pay-run/gate/what-if");

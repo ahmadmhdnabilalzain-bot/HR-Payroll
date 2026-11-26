@@ -21,8 +21,11 @@ export const reports = {
   natNote: "Headcount by nationality only, as of {date}. The rules for " +
     "banks are not confirmed yet.",
   docTitle: "Documents expiring",
-  docBlurb: "Residence visas, Emirates IDs and passports, soonest first.",
-  docNote: "Days left are counted from the report date.",
+  docBlurb: "Residence visas and Emirates IDs, soonest first.",
+  docNote: "Tracked here: residence visas and Emirates IDs that have an " +
+    "expiry date on file. Passports and contracts are not tracked in " +
+    "this demo. Days left are counted from the demo's today. Emirates " +
+    "ID numbers stay masked in this list and in the CSV.",
   filesTitle: "Salary file register",
   filesBlurb: "Every salary file made, with its people, amount and date.",
   filesNote: "The bank checks each file again when it is uploaded.",

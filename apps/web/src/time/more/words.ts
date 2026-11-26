@@ -89,7 +89,7 @@ export const M = {
     face: "Face check-in is not built yet.",
     done: (n: string): string => `${n} checked in.`, time: "Time (hh:mm)",
     badTime: "Type the time as hh:mm, like 08:30." },
-  cover: { title: "Leave-safe roster", lede: "November: leave on the " +
+  cover: { title: "Minimum on shift", lede: "November: leave on the " +
     "calendar, and what it costs to cover a team that falls short.",
     check: "Try a leave", person: "Person", from: "First day",
     to: "Last day", go: "Check", result: "Result", day: "Day",

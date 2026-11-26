@@ -36,7 +36,7 @@ export function Punches() {
     undefined;
   return (
     <>
-      <FilterList title="Punches to match"
+      <FilterList title="Clock-ins to match"
         lede="Reader punches that no person or in and out pair explains."
         rows={t.unmatched} rowKey={(x) => x.id}
         searchText={(x) => `${x.badge} ${x.reader} ${x.reason}`}

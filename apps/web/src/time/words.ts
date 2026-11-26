@@ -22,7 +22,7 @@ export const W = {
     today: "Attendance today",
     register: "Attendance register",
     against: "Attendance against shifts",
-    punches: "Punches to match",
+    punches: "Clock-ins to match",
     overtime: "Overtime to decide",
     crew: "Crew overtime",
     roster: "Shifts and rosters",

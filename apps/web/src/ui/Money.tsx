@@ -15,6 +15,8 @@ const MASK = "•".repeat(6);
  * (formatMoney / moneyParts), tabular figures, left-to-right inside
  * Arabic, the fils set smaller, eased when the value changes, and
  * masked when amounts are hidden. Screen readers get the plain text.
+ * While a figure is rolling its digits are muted, so a figure on the
+ * way to the total never reads as the total (reduced motion: no roll).
  */
 export function Money(p: { value: Fils; size?: Size; tween?: boolean;
   /** A change: "+" on a rise (a fall always reads "−AED"). */
@@ -23,6 +25,7 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
   const { state } = useDemo();
   const shown = useTweenedBigint(p.value);
   const v = p.tween === false ? p.value : fils(shown);
+  const rolling = p.tween !== false && shown !== p.value;
   const size = p.size ?? "md";
   if (amountsHidden(state)) {
     return (
@@ -42,7 +45,7 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
       <span aria-hidden="true" className={s.lead}>
         {m.sign}<span className={s.cur}>{m.currency}</span>
       </span>
-      <span aria-hidden="true">
+      <span aria-hidden="true" className={rolling ? s.rolling : s.settled}>
         {m.whole}<span className={s.frac}>.{m.frac}</span>
       </span>
     </span>

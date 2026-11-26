@@ -32,7 +32,7 @@ export const AREAS: readonly Area[] = [
     count: (c) => waitingSigns(c.data, c.state),
     keywords: "P35 signature sign letter offer typed name signing" },
   { id: "people.documents", section: "people", group: "papers",
-    label: { en: "Documents and versions", ar: "المستندات والإصدارات" },
+    label: { en: "Document library", ar: "المستندات والإصدارات" },
     status: "live", archetype: "RT", roles: ["hr", "gm", "it"],
     route: people("files", "documents"),
     keywords: "P41 documents upload file versions contract passport " +
@@ -71,7 +71,7 @@ export const AREAS: readonly Area[] = [
     route: more("kiosk"),
     keywords: "T16 kiosk qr code check in scan wall" },
   { id: "time.cover", section: "time", group: "rosters",
-    label: { en: "Leave-safe roster", ar: "جدول آمن للإجازات" },
+    label: { en: "Minimum on shift", ar: "جدول آمن للإجازات" },
     status: "live", archetype: "CA", roles: HR_GM, route: more("cover"),
     keywords: "T23 leave safe roster cover overtime cost team minimum" },
 ];

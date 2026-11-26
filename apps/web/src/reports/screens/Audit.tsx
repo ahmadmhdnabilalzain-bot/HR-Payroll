@@ -1,6 +1,8 @@
 import { TAMPER_AT } from "../../demo/audit-state";
 import { useDemo } from "../../demo/state";
 import { useMaskText } from "../../ui/mask";
+import { formatDate } from "../../i18n/format";
+import { useLocale } from "../../i18n/LocaleProvider";
 import { FilterList } from "../../ui/templates";
 import b from "../../ui/button.module.css";
 import { useReportsSource } from "../load";
@@ -29,16 +31,25 @@ function statusText(c: AuditCheck | null, tampered: boolean): string {
 /** Audit trail (LF): every entry, the chain check, and a tamper demo. */
 export function Audit() {
   const src = useReportsSource();
-  const { state, dispatch } = useDemo();
+  const { data, state, dispatch } = useDemo();
+  const { lang } = useLocale();
   const mask = useMaskText();
   const trail = src.auditWith(state.auditAdded);
   const check = state.auditCheck;
   const tampered = state.auditTampered;
+  /* Emirates ID shown in full: written down at once, newest first.
+     These are not part of the checked chain (they hold no fingerprint). */
+  const shown: AuditView[] = state.eidLog.map((e, i) => ({
+    id: `eid-${i}`, seq: 10000 + i, when: formatDate(e.on, lang),
+    who: data.people.person(e.by)?.name[lang] ?? e.by, area: "People",
+    action: "Emirates ID shown", summary: "Shown in full on the profile",
+    subject: data.people.person(e.employeeId)?.name[lang] ?? e.employeeId,
+    shortHash: "not chained", shortPrev: "" })).reverse();
   // Amounts in entry text are masked for display only; the chain is
   // checked on the entries as written.
-  const rows: AuditView[] = trail.rows.map((r) => ({ ...r,
+  const rows: AuditView[] = [...shown, ...trail.rows.map((r) => ({ ...r,
     summary: mask(tampered && r.seq === TAMPER_AT
-      ? `${r.summary} (edited)` : r.summary), subject: mask(r.subject) }));
+      ? `${r.summary} (edited)` : r.summary), subject: mask(r.subject) }))];
   const tone = check === null ? "" : check.ok ? s.ok : s.broken;
   return (
     <FilterList<AuditView> title="Audit trail" lede={LEDE} rows={rows}

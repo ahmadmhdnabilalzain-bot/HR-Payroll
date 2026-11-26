@@ -276,6 +276,8 @@
 
 .segments {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-inline-size: 100%;
   align-items: center;
   padding: 2px;
   border-radius: var(--radius-control);
@@ -673,6 +675,8 @@ li + li.actRow > .row {
 
 .tabs {
   display: flex;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   gap: var(--space-1);
   border-block-end: 1px solid var(--color-divider);
   overflow-x: auto;
@@ -699,6 +703,7 @@ li + li.actRow > .row {
 
 .tabPanel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 
@@ -1335,26 +1340,47 @@ li + li.actRow > .row {
   line-height: 18px;
 }
 
-/* Print the letter alone, only while a letter is on the page. */
+/* Print the letter alone on A4, light theme, only while a letter is on
+   the page (body:has): other pages print as they are. */
+.paper {
+  page: letter;
+}
+
+@page letter {
+  size: A4;
+  margin: 20mm;
+}
+
 @media print {
-  :global(body):has(.paper) * {
-    visibility: hidden;
+  /* Drop everything that is not the letter or a parent of it. */
+  :global(body):has(.paper)
+    *:not(:has(.paper)):not(.paper):not(.paper *) {
+    display: none;
   }
 
-  :global(body):has(.paper) .paper,
-  :global(body):has(.paper) .paper * {
-    visibility: visible;
-  }
-
-  .paper {
-    position: absolute;
-    inset-block-start: 0;
-    inset-inline: 0;
+  :global(body):has(.paper) *:has(.paper) {
+    margin: 0;
+    padding: 0;
     max-inline-size: none;
     border: 0;
-    box-shadow: none;
     background: none;
+    box-shadow: none;
+  }
+
+  :global(body):has(.paper) .paper {
+    color-scheme: light;
+    --color-text: CanvasText;
+    --color-text-muted: GrayText;
+    --color-surface: Canvas;
+    min-block-size: 0;
+    max-inline-size: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: Canvas;
     color: CanvasText;
+    font-size: 12pt;
   }
 }
 

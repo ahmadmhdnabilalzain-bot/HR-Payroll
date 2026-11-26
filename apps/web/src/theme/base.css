@@ -71,6 +71,8 @@ button {
 
 .visually-hidden {
   position: absolute;
+  /* Anchored: left at its static spot it could stretch the page. */
+  inset-inline-start: 0;
   inline-size: 1px;
   block-size: 1px;
   overflow: hidden;
