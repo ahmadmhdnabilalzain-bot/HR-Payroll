@@ -97,6 +97,22 @@ end in `.test`. Arabic labels are NEEDS NATIVE REVIEW
   difference, to pay in November), `trafficFines` (to decide; recovery
   not computed), `finalSettlements`, and read-only `payGroups` and
   `payElements`. Every record has display strings (no raw dates).
+- **WP5 Time (`time.ts`).** `shifts` (templates with display hours),
+  `rosterPlan` (9 to 22 November, first week published, leave shown,
+  the engine's roster checks), `attendanceAgainstShifts` (October,
+  engine day sheets: overtime, night overtime, late arrivals past a
+  sample 15-minute grace; three planted late days), `attendanceToday`,
+  `punches` and `unmatchedPunches` (an unassigned badge, an out with no
+  in), `overtimeClaims` (October's, paid, valued as the engine's
+  difference; two pending for November as estimates) and
+  `overtimePreApprovals` (operations at month-end, engine estimate).
+- **WP4 Papers (`papers.ts`).** `letters` (salary certificates quote
+  the contract salary, summed; an NOC; the leaver's experience letter
+  in draft), `staffRequests` (the HR queue; the missing-IBAN person's
+  bank-details request links to `enter-iban`), `visaCases` (the visa
+  and Emirates ID near expiry, the new hire's completed visa; fees not
+  shown), `warnings` (a draft written warning built from the three
+  late days in the attendance records; no deduction computed).
 
 ## Tests
 

@@ -25,3 +25,5 @@ export * from "./labels";
 export type { DemoLabelKey } from "./labels-en";
 export { expiryState } from "./workplace";
 export * from "./pay";
+export * from "./time";
+export * from "./papers";
