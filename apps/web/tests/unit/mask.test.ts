@@ -17,6 +17,13 @@ describe("amounts in text are masked like <Money/>", () => {
       `Pay ${MONEY_MASK} to Omar.`);
   });
 
+  it("masks a bare figure in a table cell or a ledger", () => {
+    for (const t of ["52000.00", "1,000", "Total 938,680.94", "+908430.94"]) {
+      expect([t, maskMoney(t).includes("•")]).toEqual([t, true]);
+    }
+    expect(maskMoney("657.21 days")).toBe("657.21 days");
+  });
+
   it("leaves days, dates and counts alone", () => {
     const t = "22.5 days, 27 Oct 2026, 31 people, 2.4%";
     expect(maskMoney(t)).toBe(t);
