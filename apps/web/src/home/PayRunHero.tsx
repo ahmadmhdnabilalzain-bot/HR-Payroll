@@ -75,14 +75,16 @@ export function PayRunHero() {
             {editing !== null ? (
               <CardIban issue={editing} onDone={() => setEditing(null)} />
             ) : (
-              <div className={s.act}>
-                <StatusAction onIban={edit} />
-                <StepTracker />
-              </div>
+              <>
+                <div className={s.act}>
+                  <StatusAction onIban={edit} />
+                  <StepTracker />
+                </div>
+                <p className={s.caveat}>{h.netNote[lang]}</p>
+              </>
             )}
           </div>
           {phone && <WaitingList />}
-          <p className={s.caveat}>{h.netNote[lang]}</p>
         </div>
         {!phone && (
           <Suspense fallback={<div className={nt.placeholder} />}>

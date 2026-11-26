@@ -92,15 +92,16 @@
 
 /* The action, or the bank form in its place. While bank details hold
  * the run the slot keeps the form's height (measured by CardIban,
- * 168 px until then), so the tiles below never move. */
+ * 140 px until then), so the tiles below never move. */
 .slot {
   display: grid;
-  align-content: start;
-  margin-block: var(--space-5) var(--space-3);
+  align-content: space-between;
+  gap: var(--space-4);
+  margin-block: var(--space-5) 0;
 }
 
 .slot[data-reserve="true"] {
-  min-block-size: var(--slot-h, 168px);
+  min-block-size: var(--slot-h, 140px);
 }
 
 .act {
@@ -164,7 +165,7 @@
 .caveat {
   max-inline-size: 70ch;
   color: var(--color-text-muted);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
 }
 
 /* Sources (opened from the make-up below the fold). */
@@ -338,8 +339,6 @@
   }
 
   .caveat {
-    order: 5;
-    margin-block-start: var(--space-3);
     padding-inline: var(--space-4);
   }
 }

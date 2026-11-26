@@ -158,4 +158,5 @@ export const home = {
   cardDocs: "Documents expiring in 30 days",
   cardWaiting: "Waiting for approval",
   cardLeaveNext: "Next: {name}, from {date}",
+  cardDocsNext: "Then {name}, {date}",
 } satisfies EnNamespace;

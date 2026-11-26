@@ -62,7 +62,7 @@ export function WaitingList() {
           <li key={r.key}>
             <button type="button" className={s.row} onClick={r.open}>
               <Avatar id={r.personId} name={data.employee(r.personId)
-                .name.en} size="sm" />
+                .name.en} />
               <span className={s.text}>
                 <span className={s.name}>{r.name}</span>
                 <span className={s.what}>{r.what}</span>

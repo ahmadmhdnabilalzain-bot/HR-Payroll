@@ -14,8 +14,6 @@ import s from "./PeopleStrip.module.css";
 const DAYS = 7;
 /** Dots drawn per day before "+n". */
 const DOTS = 4;
-/** Documents named on the card. */
-const DOCS = 2;
 /** Faces shown before "+n". */
 const FACES = 4;
 
@@ -31,6 +29,9 @@ function addDays(iso: string, n: number): string {
  * off over the next seven days (a dot per person per day), the nearest
  * expiring documents by name and date, and the faces of whoever waits
  * for an approval. Each card links to the view that holds the rest.
+ * Every card reads the same way: the figure and its label, one picture
+ * under them at one y, and a footnote line on one baseline at the
+ * bottom.
  */
 export function PeopleStrip() {
   return (
@@ -133,20 +134,25 @@ function Expiring() {
   const docs = [...data.documents()].sort((a, b) => a.daysLeft -
     b.daysLeft);
   const soon = docs.filter((d) => d.daysLeft <= 30).length;
+  const [first, then] = docs;
   return (
     <Card href={hrefOf("reports", "documents")} value={soon}
       label={t("home.cardDocs")}>
-      <span className={s.names}>
-        {docs.slice(0, DOCS).map((d) => (
-          <span key={d.id} className={s.doc}>
-            <span className={s.who}>{data.employee(d.employeeId)
-              .name[lang]}</span>
-            <span className={s.when}>
-              {d.kind[lang]}, {formatDayMonth(d.expiresOn, lang)}
-            </span>
+      {first !== undefined && (
+        <span className={s.doc}>
+          <span className={s.who}>{data.employee(first.employeeId)
+            .name[lang]}</span>
+          <span className={s.when}>
+            {first.kind[lang]}, {formatDayMonth(first.expiresOn, lang)}
           </span>
-        ))}
-      </span>
+        </span>
+      )}
+      {then !== undefined && (
+        <span className={s.sub}>
+          {t("home.cardDocsNext", { name: data.employee(then.employeeId)
+            .name[lang], date: formatDayMonth(then.expiresOn, lang) })}
+        </span>
+      )}
     </Card>
   );
 }
@@ -168,7 +174,7 @@ function Waiting() {
       }}>
       <span className={s.faces}>
         {ids.slice(0, FACES).map((id, i) => (
-          <Avatar key={id} id={id} name={names[i] ?? ""} size="sm"
+          <Avatar key={id} id={id} name={names[i] ?? ""}
             className={s.face} />
         ))}
         {ids.length > FACES && (

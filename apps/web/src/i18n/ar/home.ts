@@ -189,4 +189,5 @@ export const home: ArOf<typeof en> = {
   cardDocs: "مستندات تنتهي خلال 30 يومًا",
   cardWaiting: "بانتظار الاعتماد",
   cardLeaveNext: "التالي: {name}، من {date}",
+  cardDocsNext: "ثم {name}، {date}",
 };
