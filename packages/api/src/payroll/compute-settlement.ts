@@ -1,6 +1,4 @@
 import {
-  SERVICE_UNPAID_LEAVE_NOT_ENTERED,
-  type PayRunEntry,
   type TraceLine,
   type WorkerClass,
 } from "@payroll/contract";
@@ -37,25 +35,23 @@ export interface Leaver {
 
 /**
  * Gratuity and unused leave pay through the engine. `basic` is the
- * stored recurring basic (never a run override). An engine refusal
+ * stored recurring basic (never a run override); both day counts are
+ * HR-entered (the caller refuses a leaver without them). An engine refusal
  * (old law, GCC national, ...) becomes a "refused" settlement, not an
  * error. Not added to gross and not put in the SIF.
  */
-export function settle(l: Leaver, basic: Fils, entry: PayRunEntry,
+export function settle(l: Leaver, basic: Fils, serviceUnpaidDays: number,
   unusedLeaveDays: number): ComputedSettlement {
-  const service = entry.serviceUnpaidLeaveDays;
   try {
     const r = calculateSettlement({ gratuity: {
       joiningDate: l.joiningDate, lastWorkingDate: l.lastWorkingDate,
-      unpaidLeaveDays: service ?? 0, lastBasicMonthly: basic,
+      unpaidLeaveDays: serviceUnpaidDays, lastBasicMonthly: basic,
       workerClass: l.workerClass }, unusedLeaveDays }, GRATUITY_PACKS);
     const v = r.value;
     return {
       status: "computed", gratuity: v.gratuity, leavePay: v.leavePay,
       total: v.total, outcome: v.outcome, reason: v.reason,
-      notComputed: service === undefined
-        ? [...v.notComputed, SERVICE_UNPAID_LEAVE_NOT_ENTERED]
-        : [...v.notComputed],
+      notComputed: [...v.notComputed],
       trace: r.trace,
       explanation: { en: explainTrace(r.trace, "en"),
         ar: explainTrace(r.trace, "ar"), arReviewed: false },

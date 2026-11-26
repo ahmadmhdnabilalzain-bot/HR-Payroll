@@ -16,8 +16,9 @@ export const NOT_COMPUTED_PAY = [
 ] as const;
 
 /**
- * Listed in a computed settlement's notComputed when the entry gave no
- * serviceUnpaidLeaveDays (the gratuity then assumes none).
+ * No longer emitted: a leaver without serviceUnpaidLeaveDays is now
+ * refused (SETTLEMENT_INPUT_REQUIRED). Kept so imports keep compiling.
+ * @deprecated
  */
 export const SERVICE_UNPAID_LEAVE_NOT_ENTERED =
   "unpaid leave over service (not entered)";
@@ -40,8 +41,9 @@ export const PayRunEntry = z.object({
   unusedLeaveDays: z.number().int().min(0).optional(),
   /**
    * Leavers only: unpaid leave days over the whole service, passed to
-   * the gratuity calculation. Omitted means 0 and the settlement lists
-   * SERVICE_UNPAID_LEAVE_NOT_ENTERED under notComputed.
+   * the gratuity calculation. Required for a leaver in the period (as
+   * is unusedLeaveDays): omitted gives SETTLEMENT_INPUT_REQUIRED with
+   * missing ["serviceUnpaidLeaveDays"]. Enter 0 when there was none.
    */
   serviceUnpaidLeaveDays: z.number().int().min(0).optional(),
 });

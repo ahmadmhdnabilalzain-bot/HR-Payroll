@@ -86,7 +86,8 @@ const repeated = (cs: string[]) =>
 /**
  * Unknown override codes, one-off codes that clash with a component and
  * codes given twice are VALIDATION_FAILED; partial months need every
- * component entered; leavers need unusedLeaveDays.
+ * component entered; leavers need unusedLeaveDays and
+ * serviceUnpaidLeaveDays (both HR-entered; neither is ever assumed).
  */
 function entryProblems(e: SnapshotEmployee, x: PayRunEntry, p: Period)
   : Problem[] {
@@ -106,9 +107,13 @@ function entryProblems(e: SnapshotEmployee, x: PayRunEntry, p: Period)
     out.push(problem(e.employeeId, "ENTERED_AMOUNTS_REQUIRED",
       codes.filter((c) => !over.has(c))));
   }
-  if (isLeaver(e, p) && x.unusedLeaveDays === undefined) {
+  const settlementMissing = [
+    ...(x.unusedLeaveDays === undefined ? ["unusedLeaveDays"] : []),
+    ...(x.serviceUnpaidLeaveDays === undefined
+      ? ["serviceUnpaidLeaveDays"] : [])];
+  if (isLeaver(e, p) && settlementMissing.length > 0) {
     out.push(problem(e.employeeId, "SETTLEMENT_INPUT_REQUIRED",
-      ["unusedLeaveDays"]));
+      settlementMissing));
   }
   return out;
 }
@@ -145,7 +150,8 @@ function payslipOf(e: SnapshotEmployee, x: PayRunEntry, p: Period)
   const basic = e.components.find((c) => c.code === "basic")!.amount;
   const settlement = isLeaver(e, p) ? settle({
     joiningDate: e.joiningDate, lastWorkingDate: e.lastWorkingDate!,
-    workerClass: e.workerClass }, basic, x, x.unusedLeaveDays!) : null;
+    workerClass: e.workerClass }, basic, x.serviceUnpaidLeaveDays!,
+    x.unusedLeaveDays!) : null;
   return { employeeId: e.employeeId, employeeName: e.name, period: p,
     lines, gross, net: gross, notComputed: [...NOT_COMPUTED_PAY],
     settlement, trace: lines.map((l) => traceOf(l, e.salaryVersion)) };

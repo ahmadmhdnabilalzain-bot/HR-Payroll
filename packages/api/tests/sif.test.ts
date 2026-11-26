@@ -34,7 +34,8 @@ describe("SIF files", () => {
     await as(s.hr, "PATCH", `/v1/employees/${s.emp.outsider}`,
       { lastWorkingDate: "2026-03-31" });
     runId = (await postRun(ctx, s.hr, s, "sif-1", { ...march,
-      entries: [{ employeeId: s.emp.outsider, unusedLeaveDays: 10 }] }))
+      entries: [{ employeeId: s.emp.outsider, unusedLeaveDays: 10,
+        serviceUnpaidLeaveDays: 0 }] }))
       .body.id;
   });
 

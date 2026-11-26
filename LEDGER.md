@@ -77,6 +77,7 @@ them apart is deliberate.
 | 2026-11-26 | Supersedes Plan 3 ruling 9 in part: the keyring derives separate HKDF subkeys for wrapping company keys and for global values, and cipher text names the master key (`v1.<keyId>.<data>`). KMS and rotation are still deferred. | Security review (M-5). |
 | 2026-11-26 | Adds to Plan 3 rulings 2 and 4: production uses two database roles, a migration role that owns the tables and a runtime role (no superuser, no BYPASSRLS, owns nothing) granted `payroll_app WITH SET TRUE`; the server refuses to start otherwise. | Security review (I-2): PostgreSQL 16 role semantics and superuser bypass. |
 | 2026-11-26 | Supersedes Plan 3 ruling 8 in part: MFA enrolment and confirmation need the password, confirmation no longer upgrades the session, and other sessions are revoked; TOTP codes are single-use. | Security review (I-4) and coordinator instruction. |
+| 2026-11-26 | Supersedes the 2026-11-26 row on Plan 3 ruling 13 above: a leaver's `serviceUnpaidLeaveDays` is required like `unusedLeaveDays`; a missing value is refused with `SETTLEMENT_INPUT_REQUIRED`, never treated as 0 (current plan text, rule 5 and Ruling 13; money review I-1). | Assuming 0 overstated the gratuity (200 unpaid days: 22,986.30 shown instead of 20,794.52). |
 
 ## 4. Future plan (current)
 
