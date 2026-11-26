@@ -6,7 +6,7 @@ import type { HandlerDeps } from "../deps";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import { senderAuthDecision } from "./auth-decision";
-import { keepItem, rejectItem } from "./items";
+import { keepItem, rejectItem, type OnFailure } from "./items";
 import { inboundBody, mailboxMatches, parseMailboxHash } from "./mailbox";
 import { domainOf, matchSender } from "./sender";
 
@@ -32,7 +32,7 @@ async function activeEmployees(tx: Db, companyId: string, today: string) {
 
 /** Steps 1 to 6 of the intake, inside the company's transaction. */
 async function intakeTx(tx: Db, deps: HandlerDeps, companyId: string,
-  e: InboundEmail): Promise<void> {
+  e: InboundEmail, onFailure: OnFailure): Promise<void> {
   const now = deps.now();
   const c = { tx, deps, companyId };
   // Dubai midnight: the window is shifted by +04:00.
@@ -59,7 +59,7 @@ async function intakeTx(tx: Db, deps: HandlerDeps, companyId: string,
   const who = matchSender(e.from, await activeEmployees(tx, companyId,
     now.toISOString().slice(0, 10)), settings.allowlist);
   if (!who.allowed) return rejectItem(c, e, "SENDER_NOT_ALLOWED");
-  await keepItem(c, e, who.employeeId, verdict === "flag");
+  await keepItem(c, e, who.employeeId, verdict === "flag", onFailure);
 }
 
 /**
@@ -82,7 +82,7 @@ export async function intakeEmail(ctx: ReqCtx): Promise<{ ok: true }> {
     if (!(await mailboxMatches(tx, box.companyId, box.secret))) {
       throw new ApiError("INBOUND_REFUSED");
     }
-    await intakeTx(tx, ctx.deps, box.companyId, e);
+    await intakeTx(tx, ctx.deps, box.companyId, e, ctx.onFailure);
   });
   return { ok: true };
 }

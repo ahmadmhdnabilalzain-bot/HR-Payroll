@@ -34,8 +34,12 @@ function skipOf(a: InboundAttachment, idx: number): AttachmentSkip | null {
   return sniffed === declared ? null : "TYPE_MISMATCH";
 }
 
+/** Registers an undo that runs only if the request fails (M7). */
+export type OnFailure = (undo: () => Promise<void>) => void;
+
 async function storeAttachment(c: EventCtx, s: ChannelSealer,
-  itemId: string, a: InboundAttachment, idx: number): Promise<boolean> {
+  itemId: string, a: InboundAttachment, idx: number,
+  onFailure: OnFailure): Promise<boolean> {
   const id = c.deps.newId();
   const skip = skipOf(a, idx);
   const name = a.name.replace(/[\u0000-\u001f\u007f/\\]/g, "")
@@ -45,6 +49,8 @@ async function storeAttachment(c: EventCtx, s: ChannelSealer,
     key = `${c.companyId}/inbound/${id}`;
     const cipher = s.seal("inbound", "content", id,
       Buffer.from(a.bytes).toString("base64"));
+    const k = key;
+    onFailure(() => c.deps.blobs.delete(k));
     await c.deps.blobs.put(key, new TextEncoder().encode(cipher));
   }
   await c.tx.query(
@@ -60,7 +66,8 @@ async function storeAttachment(c: EventCtx, s: ChannelSealer,
 
 /** A received item for review, with its attachments checked one by one. */
 export async function keepItem(c: EventCtx, e: InboundEmail,
-  employeeId: string | null, unverified: boolean): Promise<void> {
+  employeeId: string | null, unverified: boolean, onFailure: OnFailure)
+  : Promise<void> {
   const id = c.deps.newId();
   const s = await channelSealer(c.tx, c.deps, c.companyId);
   const seal = (col: string, v: string) => s.seal("inbound_items", col, id, v);
@@ -75,7 +82,7 @@ export async function keepItem(c: EventCtx, e: InboundEmail,
         text: e.text.slice(0, 1000) })), JSON.stringify(authOf(e))]);
   let kept = 0;
   for (const [i, a] of e.attachments.entries()) {
-    if (await storeAttachment(c, s, id, a, i)) kept += 1;
+    if (await storeAttachment(c, s, id, a, i, onFailure)) kept += 1;
   }
   const flags = [...(unverified ? ["SENDER_UNVERIFIED"] : []),
     ...(kept < e.attachments.length ? ["ATTACHMENT_SKIPPED"] : [])];

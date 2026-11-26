@@ -678,3 +678,4 @@ Important, 9 Minor). One commit per item, test first.
   DELETE and SELECT policies on `rate_counters`; `payroll_app` still
   has no DELETE grant): SSO states a day past expiry and rate counters
   older than two days go. Tested on pglite and real PostgreSQL.
+- M7: email-in attachment files register a delete with the request's `onFailure`, so a failed intake leaves no orphan file; tested with a blob store that fails on the second file. Not done: a per-day byte cap at intake (the daily item limit and 10 attachments of at most 5 MiB bound it).

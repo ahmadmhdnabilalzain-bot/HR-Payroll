@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { MemoryBlobStore } from "../src/storage/blob";
+import {
+  memoryBlobStore,
+  type MemoryBlobStore,
+} from "../src/storage/blob";
 import { rowsOf } from "./helpers/channel-jobs";
 import {
   HTML,
@@ -189,5 +192,23 @@ describe("email-in intake", () => {
     // The forged pass only reaches review as unverified.
     expect(rows.find((r) => r.status === "received")?.flags)
       .toContain("SENDER_UNVERIFIED");
+  });
+  it("M7: attachment files are removed when the intake fails", async () => {
+    const mem = memoryBlobStore();
+    let puts = 0;
+    const blobs = { ...mem, async put(k: string, b: Uint8Array) {
+      puts += 1;
+      if (puts === 2) throw new Error("disk full");
+      return mem.put(k, b);
+    } };
+    const w = await inWorld("eim7", await makeApp({ blobs }));
+    const before = mem.dump().size;
+    const r = await postInbound(w.ctx, postmarkPayload({ from: SARA,
+      hash: w.hash, id: "m7", atts: [
+        { name: "a.png", type: "image/png", bytes: PNG },
+        { name: "b.png", type: "image/png", bytes: PNG }] }));
+    expect(r.status).toBe(500);
+    expect(mem.dump().size).toBe(before);
+    expect(await w.items()).toEqual([]);
   });
 });
