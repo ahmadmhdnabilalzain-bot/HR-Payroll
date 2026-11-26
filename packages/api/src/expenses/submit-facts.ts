@@ -1,5 +1,6 @@
 import type { ClaimFlagCode, ExpenseItemInput, Role } from "@payroll/contract";
 import { fils, type Fils } from "@payroll/engine";
+import { CodedError } from "../coded-error";
 import type { ReqCtx } from "../http/context";
 import type { CheckItem } from "./check";
 import type { ClaimRow, ItemRow } from "./claim-view";
@@ -80,6 +81,23 @@ export interface Others {
   monthToDate: Map<string, Fils>;
   signatures: Set<string>;
   hashes: Set<string>;
+  companyHashes: Set<string>;
+}
+
+/** Receipt hashes on other employees' live claims (company-wide). */
+async function companyHashes(ctx: ReqCtx, employeeId: string)
+  : Promise<Set<string>> {
+  const rows = await ctx.tx.query<{ sha256: string }>(
+    `SELECT DISTINCT rc.sha256 FROM expense_item_receipts x
+     JOIN receipts rc ON rc.company_id = x.company_id
+       AND rc.id = x.receipt_id
+     JOIN expense_items i ON i.company_id = x.company_id AND i.id = x.item_id
+     JOIN expense_claims c ON c.company_id = i.company_id
+       AND c.id = i.claim_id AND c.revision = i.revision
+     WHERE x.company_id = $1 AND c.employee_id <> $2
+       AND c.status IN ('submitted', 'approved', 'reimbursed')`,
+    [ctx.tenant!.companyId, employeeId]);
+  return new Set(rows.map((r) => r.sha256));
 }
 
 /** The employee's other submitted, approved and reimbursed items. */
@@ -99,7 +117,8 @@ export async function otherClaims(ctx: ReqCtx,
        AND c.status IN ('submitted', 'approved', 'reimbursed')`,
     [ctx.tenant!.companyId, r.employee_id, r.id]);
   const out: Others = { monthToDate: new Map(), signatures: new Set(),
-    hashes: new Set() };
+    hashes: new Set(), companyHashes: await companyHashes(ctx,
+      r.employee_id) };
   for (const x of rows) {
     const key = `${x.category_id}|${x.date.slice(0, 7)}`;
     out.monthToDate.set(key,
@@ -110,12 +129,19 @@ export async function otherClaims(ctx: ReqCtx,
   return out;
 }
 
-/** The claimant's membership role; `employee` with no membership. */
+/**
+ * The claimant's membership role; `employee` with no membership. One
+ * employee links to at most one user (unique index, migration 013), so
+ * there is nothing to guess.
+ */
 export async function claimantRole(ctx: ReqCtx, employeeId: string)
   : Promise<Role> {
-  const [m] = await ctx.tx.query<{ role: Role }>(
+  const rows = await ctx.tx.query<{ role: Role }>(
     `SELECT role FROM memberships WHERE company_id = $1
-       AND employee_id = $2 ORDER BY user_id LIMIT 1`,
-    [ctx.tenant!.companyId, employeeId]);
-  return m?.role ?? "employee";
+       AND employee_id = $2`, [ctx.tenant!.companyId, employeeId]);
+  if (rows.length > 1) {
+    throw new CodedError("EMPLOYEE_LINKED_TWICE",
+      "an employee is linked to two users");
+  }
+  return rows[0]?.role ?? "employee";
 }

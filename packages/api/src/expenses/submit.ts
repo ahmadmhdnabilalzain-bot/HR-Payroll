@@ -49,7 +49,7 @@ async function runChecks(ctx: ReqCtx, claim: { id: string;
     claimWindowDays: p.claimWindowDays, categories: await categoryMap(ctx),
     limits: (cat) => limitFor(p, cat, role),
     monthToDate: others.monthToDate, otherSignatures: others.signatures,
-    otherHashes: others.hashes });
+    otherHashes: others.hashes, companyHashes: others.companyHashes });
   const total = items.reduce((n, i) => n + BigInt(i.amount), 0n);
   const problems = [...result.problems, ...totalProblem(total)];
   if (problems.length > 0) {

@@ -35,9 +35,9 @@ export function handlerMap(list: readonly SubjectHandler[])
 }
 
 /**
- * The users linked to an employee and to their line manager. When two
- * users link one employee the first by id is the claimant; decisions
- * exclude all of them (see `linkedUsers`).
+ * The users linked to an employee and to their line manager (at most
+ * one each: unique link, migration 013; a second row would make the
+ * subquery fail loudly rather than guess).
  */
 export async function employeeUsers(tx: Db, companyId: string,
   employeeId: string): Promise<{ claimantUserId: string | null;
@@ -46,10 +46,9 @@ export async function employeeUsers(tx: Db, companyId: string,
     manager: string | null }>(
     `SELECT
        (SELECT m.user_id FROM memberships m WHERE m.company_id = e.company_id
-          AND m.employee_id = e.id ORDER BY m.user_id LIMIT 1) AS claimant,
+          AND m.employee_id = e.id) AS claimant,
        (SELECT m.user_id FROM memberships m WHERE m.company_id = e.company_id
-          AND m.employee_id = e.manager_id ORDER BY m.user_id LIMIT 1)
-         AS manager
+          AND m.employee_id = e.manager_id) AS manager
      FROM employees e WHERE e.company_id = $1 AND e.id = $2`,
     [companyId, employeeId]);
   return { claimantUserId: r?.claimant ?? null,
