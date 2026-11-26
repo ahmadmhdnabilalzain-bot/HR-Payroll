@@ -5,4 +5,5 @@ export {
   ExplainPanel,
   Explainable,
 } from "./Explain";
+export { Footnote } from "./Footnote";
 export * from "./types";

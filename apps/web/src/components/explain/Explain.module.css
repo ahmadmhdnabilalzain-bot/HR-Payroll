@@ -454,3 +454,17 @@
     transform: translateY(8px);
   }
 }
+
+/* The page's one provenance line (Footnote). */
+.footnote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-2xs);
+  line-height: 16px;
+}
+
+@media print {
+  .footnote {
+    display: none;
+  }
+}
