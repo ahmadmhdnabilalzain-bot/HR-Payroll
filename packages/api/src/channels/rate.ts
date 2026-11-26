@@ -5,6 +5,17 @@ export function windowStart(nowMs: number, windowSec: number): number {
   return Math.floor(nowMs / 1000 / windowSec) * windowSec;
 }
 
+/** True when the window's count already reached `limit` (no count). */
+export async function rateExceeded(tx: Db, companyId: string,
+  scope: string, key: string, limit: number, windowSec: number, now: Date)
+  : Promise<boolean> {
+  const [r] = await tx.query<{ count: number }>(
+    `SELECT count FROM rate_counters WHERE company_id = $1 AND scope = $2
+       AND key = $3 AND window_start = $4`,
+    [companyId, scope, key, windowStart(now.getTime(), windowSec)]);
+  return (r?.count ?? 0) >= limit;
+}
+
 export interface RateResult {
   allowed: boolean;
   remaining: number;

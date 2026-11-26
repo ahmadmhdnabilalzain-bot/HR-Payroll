@@ -41,4 +41,9 @@ export async function seedChannelRows(admin: Db, c: string, _emp: string,
   await admin.query(
     `INSERT INTO channel_verify_codes (company_id, opt_in_id, code_hash,
        expires_at) VALUES ($1, $2, 'x', $3)`, [c, rowId(c, "d3"), AT]);
+  await admin.query(
+    `INSERT INTO channel_actions (id, company_id, approval_id, step_order,
+       recipient_user_id, phone_hash, delivery_id, status, expires_at,
+       created_at) VALUES ($1, $2, $3, 1, $4, 'h', $5, 'open', $6, $6)`,
+    [rowId(c, "d4"), c, rowId(c, "c2"), user, rowId(c, "d2"), AT]);
 }

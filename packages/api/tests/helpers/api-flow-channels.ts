@@ -1,6 +1,7 @@
 import { dispatchDue } from "../../src/channels/dispatch";
 import { withTenant } from "../../src/db/tenant";
 import type { Hitter } from "./api-flow";
+import { waBody } from "./wa-world";
 import type { makeApp } from "./test-app";
 
 type Ctx = Awaited<ReturnType<typeof makeApp>>;
@@ -25,6 +26,18 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
     emailEnabled: true, expectedVersion: s.body.version });
   await notifications(hit, u);
   await optInFlow(_ctx, hit, u);
+  await waHookFlow(hit);
+}
+
+async function waHookFlow(hit: Hitter) {
+  await hit("whatsAppHookVerify", null, null, {}, undefined, { query:
+    "?hub.mode=subscribe&hub.verify_token=test-verify-token" +
+    "&hub.challenge=ch-42" });
+  // The body is re-serialised by `call` to the same text it was signed as.
+  const { body, sig } = waBody([{ id: "flow-1", from: "+971500000099",
+    text: "hello" }]);
+  await hit("whatsAppHook", null, null, {}, JSON.parse(body), {
+    headers: { "x-hub-signature-256": sig } });
 }
 
 async function optInFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {

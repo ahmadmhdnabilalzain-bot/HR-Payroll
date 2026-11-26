@@ -8,7 +8,7 @@ import { recordOutcome, type Payload } from "./dispatch-record";
 import { consumeRate } from "./rate";
 import { settingsBody } from "./settings";
 import type { SendOutcome } from "./ports";
-import { prepareWhatsApp } from "./dispatch-hooks";
+import { prepareWhatsApp } from "../whatsapp/actions";
 
 export interface DispatchResult {
   sent: number; failed: number; skipped: number; retried: number;

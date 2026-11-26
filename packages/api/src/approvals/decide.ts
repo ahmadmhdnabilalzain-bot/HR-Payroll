@@ -16,7 +16,7 @@ import {
   type RequestRow,
   type StepRow,
 } from "./requests";
-import { mayDecide } from "./resolve";
+import { mayDecide, type Verdict } from "./resolve";
 import {
   linkedUsers,
   type Outcome,
@@ -41,8 +41,8 @@ async function checkVisible(ctx: ReqCtx, handlers: SubjectHandlers,
  * every user linked to the claimant employee now), the submitter and
  * the approvers of earlier steps may not decide.
  */
-async function checkActor(ctx: ReqCtx, r: RequestRow, steps: StepRow[])
-  : Promise<void> {
+async function actorVerdict(ctx: ReqCtx, r: RequestRow,
+  steps: StepRow[]): Promise<Verdict> {
   const linked = await linkedUsers(ctx.tx, ctx.tenant!.companyId,
     r.claimant_employee_id);
   const excluded = [r.submitted_by, ...linked];
@@ -52,7 +52,24 @@ async function checkActor(ctx: ReqCtx, r: RequestRow, steps: StepRow[])
   const verdict = mayDecide(steps.map((s) => ({ order: s.step_order,
     approver: s.approver, eligible: s.eligible })), r.current_step!,
   ctx.user!.id, prior, excluded);
+  return verdict;
+}
+
+async function checkActor(ctx: ReqCtx, r: RequestRow, steps: StepRow[])
+  : Promise<void> {
+  const verdict = await actorVerdict(ctx, r, steps);
   if (verdict !== "ok") throw new ApiError(verdict as ErrorCode);
+}
+
+/**
+ * The separation-of-duties verdict `decide` would reach for the
+ * caller on the current step (WhatsApp checks it before deciding).
+ */
+export async function verdictFor(ctx: ReqCtx, approvalId: string)
+  : Promise<Verdict> {
+  const c = ctx.tenant!.companyId;
+  const r = await loadRequest(ctx.tx, c, approvalId);
+  return actorVerdict(ctx, r, await loadSteps(ctx.tx, c, r.id));
 }
 
 async function markStep(ctx: ReqCtx, r: RequestRow, status: string,

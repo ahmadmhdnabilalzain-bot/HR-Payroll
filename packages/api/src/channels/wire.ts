@@ -5,6 +5,7 @@ import { metaWhatsAppSender } from "./meta-whatsapp";
 import { notConfiguredPorts } from "./not-configured";
 import type { ChannelPorts } from "./ports";
 import { postmarkEmailSender } from "./postmark-email";
+import { metaWhatsAppInbound } from "../whatsapp/meta-inbound";
 
 /**
  * The production ports: everything off, then each adapter whose
@@ -20,6 +21,7 @@ export function buildChannelPorts(cfg: Config): ChannelPorts {
   if (ch.email !== null) p.email = postmarkEmailSender(http, ch.email);
   if (ch.whatsapp !== null) {
     p.whatsapp = metaWhatsAppSender(http, ch.whatsapp);
+    p.whatsappInbound = metaWhatsAppInbound(ch.whatsapp);
   }
   return p;
 }

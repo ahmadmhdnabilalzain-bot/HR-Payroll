@@ -116,3 +116,39 @@ In progress (updated after each task).
   again).
 - `channel_opt_ins.phone_last4` is stored so `getMyChannels` needs no
   decryption.
+
+### Task 4: WhatsApp approvals (signed one-time actions)
+
+- `decide` reads `ctx.body` (no fifth argument), so `actorCtx` carries
+  `{ stepOrder, note }` as the body. The tenant transaction is opened
+  with `app.user_id` set to the action's recipient (a short read
+  finds the recipient first).
+- `decide.ts` exports `verdictFor(ctx, approvalId)`: the same
+  separation-of-duties verdict `decide` reaches (the WhatsApp
+  pre-check reuses it rather than rebuilding the excluded list).
+- `SubjectType` has one value (`expense-claim`), so "a subject type
+  not in `CHANNEL_APPROVABLE_SUBJECTS`" is tested through the pure
+  `channelApprovable(type, list)` with an injected list.
+- Token signature comparison uses the canonical base64url text: the
+  last character of a 43-character base64url string carries two spare
+  bits, so comparing decoded bytes would accept a second spelling of
+  the same token.
+- Stricter than the plan: no reply at all when the phone's opt-in is
+  no longer active (the plan replied "stale" whenever the phone
+  matched); STOP replies only when something was withdrawn; at tap
+  time the company's `whatsappApprovals` switch and
+  `CHANNEL_APPROVABLE_SUBJECTS` are checked again (a tap after the
+  switch was turned off is refused).
+- STOP also expires that phone's actions waiting for a reason in every
+  company (`expire_awaiting_by_phone`, SECURITY DEFINER, job-scan
+  policy on `channel_actions`).
+- The approval request id and step travel to the send step in the
+  sealed payload (`meta`), not in the notification link.
+- Security self-review (no subagent could be dispatched): replay by
+  message id (`inbound_seen`), one use per action under `FOR UPDATE`,
+  phone hash and active opt-in binding, step and status re-check,
+  `verdictFor` before `decide` and `decide`'s own checks after, a
+  per-phone bad-tap limit (10 per hour, product default) that is
+  consulted before any work, forged and expired tokens dropped before
+  any database access, and no phone number, token or text in audit
+  data (tested).

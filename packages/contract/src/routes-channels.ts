@@ -13,9 +13,12 @@ import {
   ALL_ROLES,
   OWNER,
   PAYROLL,
+  pub,
   ten,
   type RouteDef,
 } from "./route-def";
+import { HookAck, HookChallenge, WhatsAppHookQuery } from
+  "./whatsapp-actions";
 import { TemplateInfoList } from "./templates";
 import {
   MyChannels,
@@ -66,9 +69,19 @@ const OPT_IN: readonly RouteDef[] = [
     path: "/v1/me/channels/whatsapp/withdraw", response: MyChannels }),
 ];
 
+/** Task 4: the WhatsApp webhook (public; signed by the provider). */
+const WA_HOOK: readonly RouteDef[] = [
+  pub({ id: "whatsAppHookVerify", method: "GET",
+    path: "/v1/hooks/whatsapp", query: WhatsAppHookQuery,
+    response: HookChallenge, contentType: "text/plain" }),
+  pub({ id: "whatsAppHook", method: "POST", path: "/v1/hooks/whatsapp",
+    response: HookAck, rawBody: true }),
+];
+
 /** Plan 13: channels and integrations (the last route group). */
 export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SETTINGS,
   ...NOTIFY,
   ...OPT_IN,
+  ...WA_HOOK,
 ];

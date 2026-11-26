@@ -67,4 +67,6 @@ export const CHANNEL_EXAMPLES: Readonly<Record<string, unknown>> = {
     agreed: true },
   WhatsAppVerify: { code: "123456" },
   MyChannels: mine,
+  HookChallenge: "1158201444",
+  HookAck: { ok: true },
 };

@@ -5,11 +5,14 @@ import { registerNotificationRoutes } from
   "./routes/channels-notifications";
 import { registerChannelSettingsRoutes } from "./routes/channels-settings";
 import { registerWhatsAppOptInRoutes } from "./routes/channels-whatsapp";
+import { registerWhatsAppHookRoutes } from
+  "./routes/channels-whatsapp-hook";
 
 /** Plan 13 routes: channels and integrations. */
 export function registerChannelApp(app: App, deps: AppDeps,
-  _handlers: SubjectHandlers): void {
+  handlers: SubjectHandlers): void {
   registerChannelSettingsRoutes(app, deps);
   registerNotificationRoutes(app, deps);
   registerWhatsAppOptInRoutes(app, deps);
+  registerWhatsAppHookRoutes(app, deps, handlers);
 }

@@ -15,7 +15,7 @@ const CHANNEL_ROUTE_IDS = [
   "putNotificationPrefs", "listNotificationDeliveries",
   "listNotificationTemplates",
   "getMyChannels", "startWhatsAppOptIn", "verifyWhatsAppOptIn",
-  "withdrawWhatsAppOptIn",
+  "withdrawWhatsAppOptIn", "whatsAppHookVerify", "whatsAppHook",
 ];
 
 describe("CHANNEL_ROUTES", () => {

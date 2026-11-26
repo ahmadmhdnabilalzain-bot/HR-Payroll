@@ -1,4 +1,5 @@
 import { notConfiguredPorts } from "../../src/channels/not-configured";
+import { metaWhatsAppInbound } from "../../src/whatsapp/meta-inbound";
 import type {
   ChannelPorts,
   EmailMessage,
@@ -12,7 +13,12 @@ import type {
 export interface FakeOpts {
   email: boolean;
   whatsapp: boolean;
+  whatsappInbound: boolean;
 }
+
+/** The fake provider's webhook secret and verify token (tests only). */
+export const WA_APP_SECRET = "test-app-secret";
+export const WA_VERIFY_TOKEN = "test-verify-token";
 
 export const FAKE_API_BASE = "https://api.test.example";
 export const FAKE_APP_BASE = "https://app.test.example";
@@ -57,7 +63,8 @@ function fakeHttp(): FakeHttp & { send: (r: HttpRequest) =>
 
 /** Every port as an in-memory fake; configured unless `opts` says. */
 export function fakeChannels(opts: Partial<FakeOpts> = {}): FakeChannels {
-  const o: FakeOpts = { email: true, whatsapp: true, ...opts };
+  const o: FakeOpts = { email: true, whatsapp: true,
+    whatsappInbound: true, ...opts };
   const outbox: FakeChannels["outbox"] = { email: [], whatsapp: [] };
   const queue: Queue = { email: [], whatsapp: [] };
   const dns = new Map<string, string[]>();
@@ -79,6 +86,9 @@ export function fakeChannels(opts: Partial<FakeOpts> = {}): FakeChannels {
       return r;
     } },
     whatsapp: { configured: o.whatsapp, sendTemplate: wa, sendText: wa },
+    whatsappInbound: o.whatsappInbound ? metaWhatsAppInbound({
+      appSecret: WA_APP_SECRET, verifyToken: WA_VERIFY_TOKEN })
+      : base.whatsappInbound,
     resolveHost: async (host) => dns.get(host) ?? [] };
   return { ports, outbox, http, dns,
     failNext: (ch, out) => queue[ch].push(out) };

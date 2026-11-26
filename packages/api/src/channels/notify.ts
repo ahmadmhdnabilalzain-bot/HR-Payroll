@@ -29,6 +29,8 @@ export interface Recipient {
   kind: NotificationKind;
   vars: Record<string, string>;
   link: { routeId: string; id: string | null } | null;
+  /** Facts for the send step only (sealed with the payload). */
+  meta?: Record<string, string>;
 }
 
 /** Security notices and codes are never held for quiet hours. */
@@ -100,7 +102,8 @@ function payloadOf(r: Recipient, m: Rendered, lang: "en" | "ar"): string {
   return JSON.stringify({ subject: m.subject, text: m.body,
     language: m.language, templateName: t.whatsappTemplate,
     params: t.whatsappTemplate === null ? []
-      : whatsappParams(r.kind, lang, r.vars), vars: r.vars });
+      : whatsappParams(r.kind, lang, r.vars), vars: r.vars,
+    meta: r.meta ?? {} });
 }
 
 /**

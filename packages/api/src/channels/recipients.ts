@@ -84,7 +84,8 @@ async function approvalRecipients(tx: Db, c: string, e: Extract<
     .full_name;
   return to(await stepEligible(tx, c, e.approvalId, e.stepOrder),
     { kind: "approval-pending", link: { routeId: "approvalInbox",
-      id: null }, vars: { requester, subject: SUBJECT } });
+      id: null }, vars: { requester, subject: SUBJECT },
+    meta: { approvalId: e.approvalId, stepOrder: String(e.stepOrder) } });
 }
 
 const period = (p: { year: number; month: number }) =>
