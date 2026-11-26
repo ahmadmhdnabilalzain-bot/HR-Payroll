@@ -12,6 +12,7 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 | 2 | `feat(api): shared approval spine` | done |
 | 3 | `feat(api): receipts with storage and OCR port` | done |
 | 4 | `feat(api): expense policy, pricing, checks` | done |
+| 5 | `feat(api): expense claims with approvals` | done |
 
 ## Adaptations to the plan (Task 1)
 
@@ -151,6 +152,41 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
    row (`limits.1`, `mileageRates.1`); a zero rate names its amount
    (`mileageRates.2.perKm`).
 
+## Adaptations to the plan (Task 5)
+
+1. **Extra files** to stay under 300 lines and 30-line functions:
+   `expenses/items.ts` (save-time pricing, save checks, item inserts),
+   `expenses/submit-facts.ts` (repricing, hashes, other claims, role,
+   flag messages) and `expenses/receipt-access.ts` (the receipt viewer
+   check for claim viewers).
+2. **Items are repriced in place at submit**, so `expense_items` has an
+   UPDATE grant (amount, rate, over-limit); still no DELETE anywhere.
+   An edit inserts the next revision.
+3. **Migration 604 also adds the pay-run columns** Task 6 needs
+   (`reimbursement_total`, `claim_count`, `pending_claim_count`, all
+   default 0), so the plan keeps four migration files.
+4. **Database guards:** a claim in `rejected`, `cancelled` or
+   `reimbursed` can never be updated (trigger); `pay_run_id` is only
+   set on `approved` or `reimbursed` claims and `reimbursed` needs it
+   (CHECKs); mileage and per diem items carry no VAT and no TRN
+   (CHECK); every reference carries `company_id`.
+5. **Cancel:** a visible caller who may not cancel gets 403 `FORBIDDEN`
+   (for example the claimant on an approved claim, or a manager on a
+   report's draft); a status that can never be cancelled gives 409
+   `CLAIM_NOT_CANCELLABLE` (the plan said 409 for both). Audit data is
+   `{ from: <previous status> }`.
+6. **Visibility in SQL** (`VISIBLE` in `claim-view.ts`) is shared by
+   the single read, the list and the receipt check; a visible caller
+   who is not an editor gets 403 on edits, an invisible one 404.
+7. **List date filters** use the claim's creation date in Dubai.
+8. **Flags carry fixed messages per code** (no amounts or names).
+9. **Approval outcome audit** (`expense-claim.approved`, `.rejected`,
+   `.returned`) has `data: {}`; `onClosed` only moves a `submitted`
+   claim.
+10. **Real PostgreSQL:** two claims of one employee submitted at once
+    against one monthly limit give one 200 and one 422 (the employee
+    row lock serialises them).
+
 ## Decisions
 
 1. **Commit trailer.** The brief asks for `Co-Authored-By: Claude
@@ -182,6 +218,8 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 ## Test order (honest)
 
 - Task 1: contract tests written and seen red (18 failures), then green.
+- Task 5: claim, submit and approval-flow tests seen red (18 failures,
+  routes 404), then green.
 - Task 4: pricing, check, purity and policy tests seen red (modules
   missing, routes 404), then green.
 - Task 3: sniff, fs-blob, receipts and config tests seen red (modules

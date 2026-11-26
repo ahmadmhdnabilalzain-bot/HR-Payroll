@@ -41,4 +41,24 @@ export async function seedExpenseRows(admin: Db, c: string, emp: string,
   await admin.query(
     `INSERT INTO expense_policies (company_id, version, body, updated_by,
        updated_at) VALUES ($1, 1, '{}', $2, $3)`, [c, user, AT]);
+  await seedClaimRows(admin, c, emp, user);
+}
+
+async function seedClaimRows(admin: Db, c: string, emp: string,
+  user: string): Promise<void> {
+  const claim = rowId(c, "c1");
+  const item = rowId(c, "c5");
+  await admin.query(
+    `INSERT INTO expense_claims (id, company_id, employee_id, title, status,
+       revision, created_by, created_at, total, vat_total, flags)
+     VALUES ($1, $2, $3, 'Seed', 'draft', 1, $4, $5, 0, 0, '[]')`,
+    [claim, c, emp, user, AT]);
+  await admin.query(
+    `INSERT INTO expense_items (id, company_id, claim_id, revision, idx,
+       kind, category_id, date, description, amount, vat_amount)
+     VALUES ($1, $2, $3, 1, 0, 'receipt', $4, '2026-03-01', 'Seed', 0, 0)`,
+    [item, c, claim, rowId(c, "c4")]);
+  await admin.query(
+    `INSERT INTO expense_item_receipts (company_id, item_id, receipt_id)
+     VALUES ($1, $2, $3)`, [c, item, rowId(c, "c3")]);
 }

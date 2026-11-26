@@ -1,7 +1,10 @@
 import { handlerMap, type SubjectHandler } from "./approvals/subjects";
 import type { AppDeps } from "./deps";
+import { claimReceiptViewer } from "./expenses/receipt-access";
+import { expenseClaimSubject } from "./expenses/subject";
 import type { App } from "./http/context";
 import { registerApprovalRoutes } from "./routes/approvals";
+import { registerExpenseClaimRoutes } from "./routes/expense-claims";
 import { registerExpensePolicyRoutes } from "./routes/expense-policy";
 import { registerReceiptRoutes } from "./routes/receipts";
 
@@ -11,13 +14,16 @@ export interface ExpenseAppOpts {
 }
 
 /** The subjects served by the approval spine in production. */
-export const DEFAULT_SUBJECTS: readonly SubjectHandler[] = [];
+export const DEFAULT_SUBJECTS: readonly SubjectHandler[] = [
+  expenseClaimSubject,
+];
 
-/** Plan 6 routes: approvals (receipts, expenses and reports follow). */
+/** Plan 6 routes: approvals, receipts, expense policy and claims. */
 export function registerExpenseApp(app: App, deps: AppDeps,
   opts: ExpenseAppOpts): void {
   const handlers = handlerMap(opts.subjects ?? DEFAULT_SUBJECTS);
   registerApprovalRoutes(app, deps, handlers);
-  registerReceiptRoutes(app, deps);
+  registerReceiptRoutes(app, deps, claimReceiptViewer);
   registerExpensePolicyRoutes(app, deps);
+  registerExpenseClaimRoutes(app, deps, handlers);
 }

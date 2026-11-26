@@ -1,4 +1,12 @@
 import { afterAll, describe, expect, it } from "vitest";
+import {
+  claimAction,
+  createClaim,
+  EXPENSE_START,
+  meal,
+  setLimits,
+  setupExpenses,
+} from "./helpers/expense-fixtures";
 import { ADMIN_URL, closeAll, freshPgPair } from "./helpers/pg-env";
 import { addOwner, seedCompany } from "./helpers/seed";
 import { call, makeApp } from "./helpers/test-app";
@@ -44,5 +52,23 @@ describe.skipIf(!ADMIN_URL)("Plan 6 on real PostgreSQL", () => {
     }
     const done = subj.outcomes.filter((o) => o.outcome === "approved");
     expect(done.length).toBe(5);
+  });
+
+  it("two claims submitted at once share one monthly limit", async () => {
+    const { db } = await freshPgPair();
+    const ctx = await makeApp({ db, start: EXPENSE_START });
+    const s = await seedCompany(ctx, "pgmonth");
+    const cats = await setupExpenses(ctx, s);
+    await setLimits(ctx, s, [{ categoryId: cats.meals, role: null,
+      perItemMax: null, monthlyMax: "500.00", receiptRequiredAbove: null,
+      overLimit: "block" }]);
+    const ids: string[] = [];
+    for (const amount of ["300.00", "300.00"]) {
+      const c = await createClaim(ctx, s.employee, s, [meal(cats, amount)]);
+      ids.push(c.body.id);
+    }
+    const rs = await Promise.all(ids.map((id) =>
+      claimAction(ctx, s.employee, s, id, "submit")));
+    expect(rs.map((r) => r.status).sort()).toEqual([200, 422]);
   });
 });
