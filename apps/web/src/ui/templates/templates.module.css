@@ -282,6 +282,7 @@
 
 .searchBox input {
   flex: 1;
+  align-self: stretch;
   min-inline-size: 0;
   border: 0;
   background: transparent;
