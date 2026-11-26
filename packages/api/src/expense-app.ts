@@ -2,6 +2,7 @@ import { handlerMap, type SubjectHandler } from "./approvals/subjects";
 import type { AppDeps } from "./deps";
 import type { App } from "./http/context";
 import { registerApprovalRoutes } from "./routes/approvals";
+import { registerExpensePolicyRoutes } from "./routes/expense-policy";
 import { registerReceiptRoutes } from "./routes/receipts";
 
 export interface ExpenseAppOpts {
@@ -18,4 +19,5 @@ export function registerExpenseApp(app: App, deps: AppDeps,
   const handlers = handlerMap(opts.subjects ?? DEFAULT_SUBJECTS);
   registerApprovalRoutes(app, deps, handlers);
   registerReceiptRoutes(app, deps);
+  registerExpensePolicyRoutes(app, deps);
 }

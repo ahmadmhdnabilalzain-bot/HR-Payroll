@@ -34,4 +34,11 @@ export async function seedExpenseRows(admin: Db, c: string, emp: string,
        $6, '{"source":"none"}', $7)`,
     [rowId(c, "c3"), c, emp, user, "0".repeat(64),
       `${c}/receipts/${rowId(c, "c3")}`, AT]);
+  await admin.query(
+    `INSERT INTO expense_categories (id, company_id, code, name, kind,
+       created_at) VALUES ($1, $2, 'meals', 'Meals', 'receipt', $3)`,
+    [rowId(c, "c4"), c, AT]);
+  await admin.query(
+    `INSERT INTO expense_policies (company_id, version, body, updated_by,
+       updated_at) VALUES ($1, 1, '{}', $2, $3)`, [c, user, AT]);
 }

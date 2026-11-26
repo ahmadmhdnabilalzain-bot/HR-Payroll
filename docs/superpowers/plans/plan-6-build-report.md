@@ -11,6 +11,7 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 | 1 | `feat(contract): expenses, approvals, receipts` | done |
 | 2 | `feat(api): shared approval spine` | done |
 | 3 | `feat(api): receipts with storage and OCR port` | done |
+| 4 | `feat(api): expense policy, pricing, checks` | done |
 
 ## Adaptations to the plan (Task 1)
 
@@ -131,6 +132,25 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 - Missing visibility is always 404, never 403. `duplicateOf` lists only
   same-employee receipts for callers other than owner and hr.
 
+## Adaptations to the plan (Task 4)
+
+1. **Rule details the plan left open:** a missing category skips the
+   kind and limit checks for that item but other problems are still
+   reported; `EXPENSE_TOO_OLD` is not raised for a future date (that
+   is `EXPENSE_DATE_IN_FUTURE`); `POSSIBLE_DUPLICATE` and
+   `DUPLICATE_RECEIPT` flag the repeat, not the first item, inside one
+   claim; a flag-mode over-limit item is listed in `overLimitIndexes`
+   with or without a justification (the missing justification is the
+   problem).
+2. **Categories:** a taken code is detected with `ON CONFLICT DO
+   NOTHING` (no 500 on a race). `expense-category.created` audit data
+   is `{}`; `.updated` carries `changed` (field names).
+3. **Policy versions** follow the chain pattern: version 0 can only
+   insert, later versions update `WHERE version = expected`.
+4. **POLICY_INVALID paths:** a duplicate limit or rate names the later
+   row (`limits.1`, `mileageRates.1`); a zero rate names its amount
+   (`mileageRates.2.perKm`).
+
 ## Decisions
 
 1. **Commit trailer.** The brief asks for `Co-Authored-By: Claude
@@ -162,6 +182,8 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 ## Test order (honest)
 
 - Task 1: contract tests written and seen red (18 failures), then green.
+- Task 4: pricing, check, purity and policy tests seen red (modules
+  missing, routes 404), then green.
 - Task 3: sniff, fs-blob, receipts and config tests seen red (modules
   missing), then green.
 - Task 2: `approvals-resolve.test.ts` was written before `resolve.ts`
