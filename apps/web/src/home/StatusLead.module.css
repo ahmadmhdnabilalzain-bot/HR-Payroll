@@ -1,6 +1,9 @@
+/* The shared title slot: the h1 top is 147 px from the page top, as on
+ * every page (the page's own top gap is 16, the bar 83). */
 .lead {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
+  margin-block: var(--space-7) var(--space-1);
 }
 
 .date {
@@ -9,11 +12,11 @@
 }
 
 .sentence {
-  max-inline-size: 30ch;
-  font-size: var(--text-3xl);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  max-inline-size: 40ch;
+  font-size: var(--text-title);
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  line-height: var(--text-title-lh);
   animation: swap-in var(--dur-slow) var(--ease-out);
 }
 
@@ -37,9 +40,12 @@
 }
 
 @media (max-width: 760px) {
+  .lead {
+    margin-block: calc(var(--space-7) - var(--space-2)) 0;
+  }
+
   .sentence {
     flex-basis: 100%;
-    font-size: var(--text-2xl);
   }
 
   .action {
