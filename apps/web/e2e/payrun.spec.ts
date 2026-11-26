@@ -3,10 +3,11 @@ import { expect, test } from "@playwright/test";
 test("pay-run: fix both IBANs, the GM approves, the file opens",
   async ({ page }) => {
     await page.goto("/#/pay-run/approve");
-    const approve = page.getByRole("button", { name: "Sign off pay run" });
-    await expect(approve).toBeDisabled();
-    // One primary action: the sticky row holds it; no disabled twin.
-    await expect(page.getByRole("button", { name: "Continue to Pay" }))
+    // HR prepared the run: the header says who signs, not a dead
+    // button, and the page says why it cannot be signed yet.
+    await expect(page.getByText("Waiting for Khalid Al Nuaimi",
+      { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign off pay run" }))
       .toHaveCount(0);
     await expect(page.locator("#approve-why"))
       .toContainText("Bank details still need fixing");
