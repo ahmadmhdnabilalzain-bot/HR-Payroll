@@ -1,103 +1,167 @@
+import { formatAed } from "@payroll/engine";
+import { PENSION_NOT_COMPUTED } from "./pension";
 import type { DemoCompany } from "./types";
 
-export type IssueSeverity = "error" | "warning" | "info";
+export type IssueSeverity = "error" | "warning" | "info" |
+  "needs-confirmation";
 
-/** One thing a person should look at, and why it is an issue. */
+/** Who raised it: never text we made up about the data. */
+export type IssueSource = "engine" | "sif-validator" | "sif-batch" |
+  "documents" | "demo-scope";
+
+/** What the UI may offer: a real next step, never a one-click vanish. */
+export type FixKind = "enter-iban" | "review" | "renew-document" |
+  "confirm-pension";
+
+/** English is ours; the Arabic is NEEDS NATIVE REVIEW. */
+export interface Bilingual { en: string; ar: string }
+
+/** One thing to look at before approving, why, and what to do. */
 export interface DemoIssue {
   code: string;
   severity: IssueSeverity;
+  source: IssueSource;
   employeeId: string | null;
   subjectId: string | null;
   count: number;
-  /** English is ours; the Arabic is NEEDS NATIVE REVIEW. */
-  reason: { en: string; ar: string };
+  plainReason: Bilingual;
+  suggestedFix: Bilingual;
+  fixKind: FixKind;
+  /** The engine's or validator's own words, when it raised it. */
+  raisedAs: string | null;
 }
 
-type Make = Omit<DemoIssue, "count"> & { count?: number };
-const issue = (x: Make): DemoIssue => ({ count: 1, ...x });
+interface Fix { fix: Bilingual; kind: FixKind }
 
-function missingIban(c: DemoCompany): DemoIssue[] {
-  return c.employees.filter((e) => e.iban === null).map((e) => issue({
-    code: "MISSING_IBAN", severity: "error", employeeId: e.id,
-    subjectId: null, reason: { en: `No IBAN on file. ${e.fullName} ` +
-      `joins on ${e.joiningDate}; that month's SIF cannot pay them ` +
-      "until bank details are entered.", ar: "لا يوجد رقم آيبان. لا " +
-      "يمكن صرف راتب هذا الموظف في ملف حماية الأجور حتى تُدخل " +
-      "بياناته البنكية." } }));
+/** Suggested fixes, by issue code (Arabic NEEDS NATIVE REVIEW). */
+const FIX: Record<string, Fix> = {
+  SIF_HELD_NO_IBAN: { kind: "enter-iban", fix: { en: "Enter the IBAN " +
+    "from a bank letter, then regenerate the SIF.", ar: "أدخل رقم " +
+    "الآيبان من خطاب البنك ثم أعد إنشاء ملف حماية الأجور." } },
+  IBAN_CHECKSUM: { kind: "enter-iban", fix: { en: "Ask the employee " +
+    "for a bank letter and correct the IBAN before sending the file.",
+  ar: "اطلب خطاب البنك من الموظف وصحح رقم الآيبان قبل إرسال الملف." } },
+  ROUTING_UNKNOWN: { kind: "review", fix: { en: "Confirm the routing " +
+    "code with the paying bank; the bundled table is partial.",
+  ar: "أكد رمز التوجيه مع البنك الدافع؛ الجدول المرفق غير مكتمل." } },
+  OVERTIME_DAILY_CAP_EXCEEDED: { kind: "review", fix: { en: "Check the " +
+    "overtime was agreed, and plan cover so no one works more than 2 " +
+    "extra hours a day.", ar: "تحقق من الموافقة على العمل الإضافي " +
+    "ونظّم البدلاء حتى لا يتجاوز أحد ساعتين إضافيتين يوميًا." } },
+  DEDUCTION_DEFERRED: { kind: "review", fix: { en: "Agree a smaller " +
+    "instalment with the employee; the engine carried the rest to next " +
+    "month.", ar: "اتفق مع الموظف على قسط أصغر؛ نقل المحرك الباقي إلى " +
+    "الشهر التالي." } },
+  SICK_UNPAID_PROBATION: { kind: "review", fix: { en: "Tell the " +
+    "employee before payday that the sick day is unpaid.", ar: "أبلغ " +
+    "الموظف قبل يوم الصرف بأن اليوم المرضي بدون أجر." } },
+  DOCUMENT_EXPIRING: { kind: "renew-document", fix: { en: "Start the " +
+    "renewal now with the PRO, before the expiry date.", ar: "ابدأ " +
+    "التجديد الآن مع مندوب العلاقات الحكومية قبل تاريخ الانتهاء." } },
+  PENSION_NOT_COMPUTED: { kind: "confirm-pension", fix: { en: "Confirm " +
+    "the fund and rate with the pension fund, then add the pension " +
+    "lines before approving.", ar: "أكد الصندوق والمعدل مع صندوق " +
+    "المعاشات ثم أضف بنود المعاش قبل الاعتماد." } },
+  SETTLEMENT_PARTIAL: { kind: "review", fix: { en: "Enter notice pay " +
+    "and any deductions by hand before paying the settlement.",
+  ar: "أدخل بدل الإنذار وأي خصومات يدويًا قبل صرف التسوية." } },
+};
+const GENERIC: Fix = { kind: "review", fix: { en: "Review before " +
+  "approving.", ar: "راجع قبل الاعتماد." } };
+const AR_GENERIC = "مشكلة تحتاج إلى مراجعة قبل الاعتماد.";
+
+type Make = Pick<DemoIssue, "code" | "severity" | "source" |
+  "employeeId" | "subjectId" | "plainReason"> &
+  { count?: number; raisedAs?: string | null };
+
+function issue(x: Make): DemoIssue {
+  const f = FIX[x.code] ?? GENERIC;
+  return { count: 1, raisedAs: null, ...x, suggestedFix: f.fix,
+    fixKind: f.kind };
 }
 
-/** SIF findings grouped by code; the report never says compliant. */
-function sifFindings(c: DemoCompany): DemoIssue[] {
-  const codes = [...new Set(c.sif.findings.map((f) => f.code))].sort();
-  return codes.map((code) => {
-    const fs = c.sif.findings.filter((f) => f.code === code);
-    const fake = code === "IBAN_CHECKSUM" ? " Demo IBANs use check " +
-      "digits 00 or 01 on purpose, so they can never be real " +
-      "accounts." : "";
-    return issue({ code: `SIF_${code}`, severity: fs[0]!.severity,
-      employeeId: null, subjectId: c.sif.fileName, count: fs.length,
-      reason: { en: `SIF check: ${fs[0]!.message} (${fs.length} ` +
-        `lines).${fake}`, ar: `فحص ملف حماية الأجور: ${fs.length} سطر ` +
-        "بحاجة إلى مراجعة." } });
-  });
+function engineFlags(c: DemoCompany): DemoIssue[] {
+  // A deferral is listed by deferred() with its amounts.
+  return c.payRun.payslips.flatMap((s) => s.payslip.flags.filter((f) =>
+    f.code !== "DEDUCTION_DEFERRED").map((f) => issue({ code: f.code,
+    severity: "warning", source: "engine", employeeId: s.employeeId,
+    subjectId: s.id, raisedAs: f.message,
+    plainReason: { en: `${f.message}.`, ar: AR_GENERIC } })));
 }
 
-function payslipFlags(c: DemoCompany): DemoIssue[] {
-  return c.payRun.payslips.flatMap((s) => s.payslip.flags.map((f) =>
-    issue({ code: f.code === "OVERRIDE_USED" ? "GPSSA_BASE_ASSUMED"
-      : `PAYSLIP_${f.code}`, severity: f.code === "OVERRIDE_USED"
-      ? "info" : "warning", employeeId: s.employeeId, subjectId: s.id,
-    reason: { en: f.code === "OVERRIDE_USED" ? "GPSSA contribution base " +
-      "is unsourced; this payslip uses the demo's assumption (basic " +
-      "salary)." : `Engine flag: ${f.message}.`, ar: "تنبيه من محرك " +
-      "الرواتب على هذه القسيمة." } })));
+function deferred(c: DemoCompany): DemoIssue[] {
+  return c.payRun.payslips.flatMap((s) => s.payslip.deferred.map((d) =>
+    issue({ code: "DEDUCTION_DEFERRED", severity: "warning",
+      source: "engine", employeeId: s.employeeId, subjectId: d.ref,
+      raisedAs: `${d.reason}: deferred ${d.deferred}`,
+      plainReason: { en: `Deduction ${d.ref} asked ` +
+        `${formatAed(d.requested)} but the legal cap (${d.reason}) ` +
+        `allows ${formatAed(d.taken)}; ${formatAed(d.deferred)} is ` +
+        "carried to next month.", ar: "الخصم أكبر من الحد القانوني؛ " +
+        "نُقل الباقي إلى الشهر التالي." } })));
+}
+
+/** Sick days the engine left unpaid because of probation. */
+function probationSick(c: DemoCompany): DemoIssue[] {
+  return c.payRun.payslips.flatMap((s) => s.trace.filter((l) =>
+    l.id === "leave.sick" && (l.inputs["probation"] ?? "0") !== "0")
+    .map((l) => issue({ code: "SICK_UNPAID_PROBATION", severity: "info",
+      source: "engine", employeeId: s.employeeId, subjectId: s.id,
+      raisedAs: `${l.label}: ${l.inputs["probation"]} unpaid in ` +
+        "probation", plainReason: { en: `${l.inputs["probation"]} sick ` +
+        "day(s) in probation: unpaid (Decree-Law 33/2021 Art 31(2)).",
+      ar: "أيام مرضية خلال فترة التجربة: بدون أجر." } })));
+}
+
+function sif(c: DemoCompany): DemoIssue[] {
+  const held = c.payRun.payslips.flatMap((s) => s.sif.included ? []
+    : [issue({ code: "SIF_HELD_NO_IBAN", severity: "error",
+      source: "sif-batch", employeeId: s.employeeId, subjectId: s.id,
+      plainReason: { en: `${s.sif.reason} Net pay ` +
+        `${formatAed(s.payslip.net)} is held.`, ar: "لا يوجد رقم " +
+        "آيبان: الراتب محجوز خارج ملف حماية الأجور." } })]);
+  const byAccount = new Map(c.employees.flatMap((e) => e.iban === null
+    ? [] : [[e.iban.value, e.id] as const]));
+  const findings = c.sif.findings.map((f) => issue({ code: f.code,
+    severity: f.severity, source: "sif-validator",
+    employeeId: byAccount.get(f.value) ?? null,
+    subjectId: `${c.sif.fileName}:${f.line}`, raisedAs: f.message,
+    plainReason: { en: `SIF line ${f.line}: ${f.message}.`,
+      ar: AR_GENERIC } }));
+  return [...held, ...findings];
+}
+
+function scope(c: DemoCompany): DemoIssue[] {
+  const nationals = c.payRun.payslips.filter((s) =>
+    s.basis === "engine-steps-without-pension");
+  return [issue({ code: PENSION_NOT_COMPUTED.code,
+    severity: "needs-confirmation", source: "demo-scope", employeeId: null,
+    subjectId: c.payRun.id, count: nationals.length,
+    plainReason: { en: PENSION_NOT_COMPUTED.en,
+      ar: PENSION_NOT_COMPUTED.ar } }),
+  ...c.payRun.settlements.map((s) => issue({ code: "SETTLEMENT_PARTIAL",
+    severity: "needs-confirmation", source: "engine",
+    employeeId: s.employeeId, subjectId: null,
+    raisedAs: s.result.notComputed.join(", "),
+    plainReason: { en: "Final settlement: gratuity and leave pay are " +
+      `computed; not computed: ${s.result.notComputed.join(", ")}.`,
+    ar: "التسوية النهائية: بعض البنود غير محسوبة." } }))];
 }
 
 function documents(c: DemoCompany): DemoIssue[] {
-  return c.documents.filter((d) => d.state === "expired" ||
-    d.state === "expiring-30").map((d) => issue({
-    code: d.state === "expired" ? "DOCUMENT_EXPIRED"
-      : "DOCUMENT_EXPIRING", severity: d.state === "expired" ? "error"
-      : "warning", employeeId: d.employeeId, subjectId: d.id,
-    reason: d.state === "expired"
-      ? { en: `${d.kind} expired on ${d.expiresOn}.`,
-        ar: "انتهت صلاحية المستند." }
-      : { en: `${d.kind} expires on ${d.expiresOn} (${d.daysLeft} days).`,
-        ar: "تنتهي صلاحية المستند قريبًا." } }));
+  return c.documents.filter((d) => d.daysLeft <= 30).map((d) => issue({
+    code: "DOCUMENT_EXPIRING", severity: "warning", source: "documents",
+    employeeId: d.employeeId, subjectId: d.id, plainReason: {
+      en: `${d.kind} expires on ${d.expiresOn} (${d.daysLeft} days).`,
+      ar: "تنتهي صلاحية المستند قريبًا." } }));
 }
 
-function people(c: DemoCompany): DemoIssue[] {
-  const out = c.leaveRequests.filter((r) => r.status === "pending")
-    .map((r) => issue({ code: "LEAVE_PENDING", severity: "info",
-      employeeId: r.employeeId, subjectId: r.id, reason: { en: "Leave " +
-        `from ${r.startDate} to ${r.endDate} waits for a decision.`,
-      ar: "طلب إجازة بانتظار القرار." } }));
-  for (const s of c.payRun.settlements) {
-    out.push(issue({ code: "SETTLEMENT_PART_COMPUTED", severity:
-      "warning", employeeId: s.employeeId, subjectId: null, reason: {
-      en: "Final settlement: gratuity and leave pay are computed; not " +
-        `computed: ${s.result.notComputed.join(", ")}.`,
-      ar: "التسوية النهائية: بعض البنود غير محسوبة." } }));
-  }
-  return out;
-}
-
-function emiratisation(c: DemoCompany): DemoIssue[] {
-  const r = c.emiratisation;
-  const missing = [...r.missingParams, ...r.missingInputs];
-  if (missing.length === 0) return [];
-  return [issue({ code: "EMIRATISATION_NEEDS_INPUT", severity: "info",
-    employeeId: null, subjectId: null, count: missing.length, reason: {
-      en: `Emiratisation target cannot be stated: ${missing.join(", ")} ` +
-        "has no sourced value.", ar: "لا يمكن تحديد نسبة التوطين " +
-        "المطلوبة: قيم غير موثقة." } })];
-}
-
-/** Every issue in the demo, most serious first, stable order. */
+/** Every issue, most serious first, in a stable order. */
 export function issuesOf(c: DemoCompany): DemoIssue[] {
-  const rank = { error: 0, warning: 1, info: 2 } as const;
-  return [...missingIban(c), ...sifFindings(c), ...documents(c),
-    ...payslipFlags(c), ...people(c), ...emiratisation(c)]
+  const rank = { error: 0, warning: 1, "needs-confirmation": 2,
+    info: 3 } as const;
+  return [...sif(c), ...engineFlags(c), ...deferred(c),
+    ...probationSick(c), ...documents(c), ...scope(c)]
     .map((x, i) => ({ x, i }))
     .sort((a, b) => rank[a.x.severity] - rank[b.x.severity] || a.i - b.i)
     .map(({ x }) => x);

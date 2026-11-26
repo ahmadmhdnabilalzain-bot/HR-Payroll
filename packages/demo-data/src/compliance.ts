@@ -1,44 +1,27 @@
-import {
-  computeEmiratisation,
-  fils,
-  type EmiratisationResult,
-} from "@payroll/engine";
 import { AS_OF } from "./calendar";
-import type { DemoEmployee, DemoPayRun, GpssaSummary } from "./types";
+import type { DemoEmployee, NationalityHeadcount } from "./types";
+
+const activeOn = (e: DemoEmployee, d: string) => e.joiningDate <= d &&
+  (e.leavingDate === null || e.leavingDate >= d);
 
 /**
- * Emiratisation report from the engine as of the demo date. The flags
- * the engine needs (skilled, permit, WPS, GPSSA) are demo inputs; the
- * pack's targets are unsourced, so the report lists them as missing
- * and never invents a target or a fine.
+ * Headcount by nationality on the demo date: plain counts, nothing
+ * more. The engine's Emiratisation pack rests on secondary research
+ * into the general private-sector rule, and whether banks fall under
+ * it is unconfirmed, so the bank demo shows no target, status or fine.
  */
-export function buildEmiratisation(employees: DemoEmployee[],
-  run: DemoPayRun): EmiratisationResult {
-  const gross = new Map(run.payslips.map((s) => [s.employeeId,
-    s.payslip.gross]));
-  return computeEmiratisation({ asOf: AS_OF, sectorInScope: true,
-    employees: employees.map((e) => ({ employeeId: e.id,
-      isUaeNational: e.workerClass === "uae-national",
-      joiningDate: e.joiningDate, lastWorkingDate: e.leavingDate,
-      skilled: e.grade >= 2, workPermitValid: true,
-      paidViaWps: e.iban !== null,
-      gpssaRegistered: e.workerClass === "uae-national",
-      monthlyWage: gross.get(e.id) ?? null })) });
-}
-
-/** GPSSA shares as the engine put them on the payslips. */
-export function buildGpssa(employees: DemoEmployee[], run: DemoPayRun)
-  : GpssaSummary {
-  const byEmployee = run.payslips.filter((s) =>
-    s.payslip.workerClass === "uae-national").map((s) => ({
-    employeeId: s.employeeId,
-    employeeShare: fils(s.payslip.deductions.filter((d) =>
-      d.kind === "gpssa").reduce((n, d) => n + d.amount, 0n)),
-    employerShare: s.payslip.employerCost }));
-  return { nationals: employees.filter((e) =>
-    e.workerClass === "uae-national").length,
-  employeeShare: fils(byEmployee.reduce((n, x) => n + x.employeeShare,
-    0n)),
-  employerShare: fils(byEmployee.reduce((n, x) => n + x.employerShare,
-    0n)), byEmployee };
+export function buildNationalities(employees: DemoEmployee[])
+  : NationalityHeadcount {
+  const active = employees.filter((e) => activeOn(e, AS_OF));
+  const counts = new Map<string, number>();
+  for (const e of active) {
+    counts.set(e.nationality, (counts.get(e.nationality) ?? 0) + 1);
+  }
+  return { asOf: AS_OF,
+    label: "sample data, regime for banks to be confirmed",
+    headcount: active.length,
+    uaeNationals: active.filter((e) => e.nationality === "AE").length,
+    byNationality: [...counts.entries()].map(([nationality, count]) =>
+      ({ nationality, count })).sort((a, b) => b.count - a.count ||
+      (a.nationality < b.nationality ? -1 : 1)) };
 }

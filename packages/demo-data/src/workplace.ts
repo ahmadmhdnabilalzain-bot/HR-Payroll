@@ -1,22 +1,16 @@
 import { addDays, daysBetween, fils } from "@payroll/engine";
-import { AS_OF, monthKey, NEXT_PERIOD } from "./calendar";
+import { AS_OF } from "./calendar";
 import type { FakeIdentifier } from "./fake-ids";
-import type { Rng } from "./rng";
 import type {
   ApprovalItem,
-  DemoDepartment,
   DemoDocument,
   DemoEmployee,
-  DemoGoal,
+  DemoExpenseClaim,
   DemoLeaveRequest,
+  DemoPayRun,
   DocumentKind,
   ExpiryState,
 } from "./types";
-
-const KINDS: readonly DocumentKind[] = ["passport", "residence-visa",
-  "emirates-id", "labour-card"];
-/** Days from the demo date: one expired, three inside 30 days. */
-const OFFSETS = [-6, 9, 18, 27, 45, 70, 85, 120, 200, 365, 540, 700];
 
 export function expiryState(daysLeft: number): ExpiryState {
   if (daysLeft < 0) return "expired";
@@ -24,79 +18,78 @@ export function expiryState(daysLeft: number): ExpiryState {
   return daysLeft <= 90 ? "expiring-90" : "valid";
 }
 
-const fakeNumber = (prefix: string, n: number): FakeIdentifier => {
-  const value = `DEMO-${prefix}-${String(n).padStart(6, "0")}`;
-  return { value, masked: `DEMO-${prefix}-****${value.slice(-2)}`,
-    fake: true, note: "Fake: DEMO prefix, not an issued number" };
+const fakeNumber = (n: number): FakeIdentifier => {
+  const value = `DEMO-V-${String(n).padStart(6, "0")}`;
+  return { value, masked: `DEMO-V-****${value.slice(-2)}`, fake: true,
+    note: "Fake: DEMO prefix, not an issued number" };
 };
 
-function docOf(n: number, kind: DocumentKind, e: DemoEmployee | null,
-  offset: number): DemoDocument {
-  const expiresOn = addDays(AS_OF, offset);
-  const daysLeft = daysBetween(AS_OF, expiresOn);
-  const number = kind === "emirates-id" && e !== null ? e.emiratesId
-    : fakeNumber(kind.slice(0, 2).toUpperCase(), n);
-  return { id: `doc-${String(n).padStart(3, "0")}`, kind,
-    employeeId: e?.id ?? null, number, expiresOn, state:
-      expiryState(daysLeft), daysLeft };
-}
+/** [employee, kind, days from the demo date]: two near expiry. */
+const DOCS: readonly [string, DocumentKind, number][] = [
+  ["emp-017", "residence-visa", 12],
+  ["emp-022", "emirates-id", 25],
+  ["emp-025", "residence-visa", 140],
+  ["emp-024", "emirates-id", 400],
+];
 
-export function buildDocuments(employees: DemoEmployee[], rng: Rng)
+export function buildDocuments(employees: DemoEmployee[])
   : DemoDocument[] {
-  const joined = rng.shuffle(employees.filter((e) =>
-    e.joiningDate <= AS_OF && e.leavingDate === null));
-  const docs = OFFSETS.map((off, i) => docOf(i + 1,
-    KINDS[i % KINDS.length]!, joined[i]!, off));
-  docs.push(docOf(OFFSETS.length + 1, "trade-licence", null, 52));
-  return docs;
+  return DOCS.map(([id, kind, offset], i) => {
+    const e = employees.find((x) => x.id === id)!;
+    const expiresOn = addDays(AS_OF, offset);
+    const daysLeft = daysBetween(AS_OF, expiresOn);
+    return { id: `doc-${String(i + 1).padStart(3, "0")}`, kind,
+      employeeId: e.id, number: kind === "emirates-id" ? e.emiratesId
+        : fakeNumber(i + 1), expiresOn, state: expiryState(daysLeft),
+      daysLeft };
+  });
 }
 
-export function buildGoals(depts: readonly DemoDepartment[],
-  employees: DemoEmployee[]): DemoGoal[] {
-  const dept: DemoGoal[] = depts.map((d, i) => ({ id: `goal-${d.code}`,
-    employeeId: null, departmentId: d.id, titleKey: `goal.${d.code}`,
-    target: [100, 95, 120, 12, 30, 90][i]!,
-    actual: [96, 91, 104, 9, 24, 93][i]!,
-    unit: (["percent", "percent", "percent", "count", "days",
-      "percent"] as const)[i]!, dueOn: "2026-12-31" }));
-  const people = employees.filter((e) => e.grade >= 4).slice(0, 4)
-    .map((e, i): DemoGoal => ({ id: `goal-p${i + 1}`, employeeId: e.id,
-      departmentId: e.departmentId, titleKey: `goal.personal.${i + 1}`,
-      target: 100, actual: [40, 75, 60, 100][i]!, unit: "percent",
-      dueOn: "2027-03-31" }));
-  return [...dept, ...people];
+/** Two claims with demo receipts (fictional suppliers). */
+export function buildExpenses(): DemoExpenseClaim[] {
+  return [
+    { id: "exp-001", employeeId: "emp-013",
+      titleKey: "expense.entertainment", date: "2026-10-15",
+      amount: fils(42500n), vat: fils(2024n), status: "approved",
+      receipt: "receipt-001.png (DEMO)" },
+    { id: "exp-002", employeeId: "emp-011", titleKey: "expense.travel",
+      date: "2026-10-27", amount: fils(118000n), vat: fils(5619n),
+      status: "pending", receipt: "receipt-002.png (DEMO)" },
+  ];
+}
+
+/** The head of each employee's department decides (no one self-checks). */
+function checkerOf(es: DemoEmployee[], e: DemoEmployee): string {
+  const heads = es.filter((x) => x.departmentId === e.departmentId)
+    .sort((a, b) => b.grade - a.grade);
+  const head = heads[0]!;
+  return head.id === e.id ? "emp-001" : head.id;
 }
 
 const item = (n: number, x: Omit<ApprovalItem, "id" | "status">)
   : ApprovalItem => ({ id: `ap-${String(n).padStart(3, "0")}`,
   status: "pending", ...x });
 
-/** Everything waiting on someone, as the inbox lists it. */
-export function buildApprovals(employees: DemoEmployee[],
-  leave: DemoLeaveRequest[], docs: DemoDocument[]): ApprovalItem[] {
-  const pending = leave.filter((r) => r.status === "pending");
-  const ot = employees.find((e) => e.cases.includes("overtime"))!;
-  const expired = docs.find((d) => d.state === "expired")!;
-  const claimants = employees.filter((e) => e.cases.length === 0)
-    .slice(0, 2);
+/** Maker-checker: the pay run goes from the HR manager to the GM. */
+export function buildApprovals(es: DemoEmployee[],
+  leave: DemoLeaveRequest[], expenses: DemoExpenseClaim[],
+  run: DemoPayRun): ApprovalItem[] {
+  const byId = (id: string) => es.find((e) => e.id === id)!;
   const out: Omit<ApprovalItem, "id" | "status">[] = [
-    ...pending.map((r) => ({ kind: "leave" as const, subjectId: r.id,
-      employeeId: r.employeeId, requestedOn: "2026-10-27", amount: null,
-      titleKey: "approval.leave" })),
-    { kind: "pay-run", subjectId: `run-${monthKey(NEXT_PERIOD.year,
-      NEXT_PERIOD.month)}`, employeeId: null, requestedOn: AS_OF,
-    amount: null, titleKey: "approval.pay-run" },
-    { kind: "overtime", subjectId: "ot-2026-10-20", employeeId: ot.id,
-      requestedOn: "2026-10-21", amount: null,
-      titleKey: "approval.overtime" },
-    { kind: "document-renewal", subjectId: expired.id,
-      employeeId: expired.employeeId, requestedOn: "2026-10-25",
-      amount: null, titleKey: "approval.document" },
-    ...claimants.map((e, i) => ({ kind: "expense" as const,
-      subjectId: `exp-${String(i + 1).padStart(3, "0")}`,
-      employeeId: e.id, requestedOn: "2026-10-29",
-      amount: fils([42500n, 118000n][i]!), titleKey:
-        `approval.expense.${i + 1}` })),
+    { kind: "pay-run", subjectId: run.id, employeeId: null,
+      requestedOn: AS_OF, amount: run.totals.net,
+      titleKey: "approval.pay-run", makerEmployeeId: "emp-028",
+      checkerEmployeeId: "emp-001" },
+    ...leave.filter((r) => r.status === "pending").map((r) => ({
+      kind: "leave" as const, subjectId: r.id, employeeId: r.employeeId,
+      requestedOn: "2026-10-27", amount: null, titleKey: "approval.leave",
+      makerEmployeeId: r.employeeId,
+      checkerEmployeeId: checkerOf(es, byId(r.employeeId)) })),
+    ...expenses.filter((x) => x.status === "pending").map((x) => ({
+      kind: "expense" as const, subjectId: x.id, employeeId: x.employeeId,
+      requestedOn: x.date, amount: x.amount, titleKey: x.titleKey,
+      makerEmployeeId: x.employeeId,
+      checkerEmployeeId: checkerOf(es, byId(x.employeeId)) })),
   ];
   return out.map((x, i) => item(i + 1, x));
 }

@@ -1,6 +1,5 @@
 import type {
   Allowance,
-  EmiratisationResult,
   Fils,
   PayslipInput,
   Payslip,
@@ -11,11 +10,13 @@ import type {
 import type { Finding } from "@payroll/wps";
 import type { FakeIdentifier } from "./fake-ids";
 
-export type DeptCode = "fin" | "ops" | "sal" | "eng" | "ppl" | "cs";
+export type DeptCode = "exec" | "retail" | "corp" | "ops" | "credit" |
+  "compliance" | "fin" | "hr" | "it";
 
-/** The demo's special cases; each appears on exactly one employee. */
+/** The demo's special cases; each is on one employee. */
 export type CaseTag = "probation" | "leaver" | "unpaid-leave" |
-  "overtime" | "back-pay" | "missing-iban" | "loan";
+  "overtime" | "night-overtime" | "back-pay" | "missing-iban" |
+  "iban-typo" | "loan-over-cap";
 
 export interface DemoDepartment { id: string; code: DeptCode;
   labelKey: string }
@@ -30,6 +31,8 @@ export interface DemoEmployee {
   departmentId: string;
   jobKey: string;
   grade: number;
+  /** Head office or branch (all FICTIONAL, all in Abu Dhabi). */
+  location: string;
   nationality: string;
   workerClass: WorkerClass;
   joiningDate: string;
@@ -47,12 +50,19 @@ export interface DemoEmployee {
   cases: CaseTag[];
 }
 
+/** How a payslip was computed; nationals' pension is not computed. */
+export type PayslipBasis = "calculatePayslip" |
+  "engine-steps-without-pension";
+
 export interface DemoPayslip {
   id: string;
   employeeId: string;
+  basis: PayslipBasis;
   input: PayslipInput;
   payslip: Payslip;
   trace: TraceLine[];
+  /** In the SIF, or held back with the reason. */
+  sif: { included: true } | { included: false; reason: string };
 }
 
 export interface DemoSettlement {
@@ -79,19 +89,22 @@ export interface RunTotals {
   deductions: Fils;
   net: Fils;
   employerCost: Fils;
+  /** Net of the payslips held out of the SIF. */
+  heldNet: Fils;
 }
 
 export interface DemoPayRun {
   id: string;
   year: number;
   month: number;
-  status: "approved";
+  /** Prepared by HR, waiting for the General Manager (maker-checker). */
+  status: "awaiting-approval";
   payslips: DemoPayslip[];
   totals: RunTotals;
   settlements: DemoSettlement[];
   backPay: BackPayDerivation[];
-  /** Override keys the demo supplies, with the reason (assumptions). */
-  assumptions: { key: string; value: string; reason: string }[];
+  /** Run-level items the demo does not compute, with the reason. */
+  notComputed: string[];
 }
 
 export interface DemoSif {
@@ -99,6 +112,7 @@ export interface DemoSif {
   text: string;
   total: Fils;
   recordCount: number;
+  employees: number;
   findings: Finding[];
   report: string;
 }
@@ -152,8 +166,18 @@ export interface TimesheetSummary {
   overtimeMinutes: number;
 }
 
-export type ApprovalKind = "leave" | "pay-run" | "expense" |
-  "document-renewal" | "overtime";
+export interface DemoExpenseClaim {
+  id: string;
+  employeeId: string;
+  titleKey: string;
+  date: string;
+  amount: Fils;
+  vat: Fils;
+  status: "pending" | "approved";
+  receipt: string;
+}
+
+export type ApprovalKind = "leave" | "pay-run" | "expense";
 
 export interface ApprovalItem {
   id: string;
@@ -164,10 +188,12 @@ export interface ApprovalItem {
   status: "pending";
   amount: Fils | null;
   titleKey: string;
+  /** Who prepared it and who must decide (never the same person). */
+  makerEmployeeId: string;
+  checkerEmployeeId: string;
 }
 
-export type DocumentKind = "passport" | "residence-visa" |
-  "emirates-id" | "labour-card" | "trade-licence";
+export type DocumentKind = "residence-visa" | "emirates-id" | "passport";
 
 export type ExpiryState = "expired" | "expiring-30" | "expiring-90" |
   "valid";
@@ -175,38 +201,31 @@ export type ExpiryState = "expired" | "expiring-30" | "expiring-90" |
 export interface DemoDocument {
   id: string;
   kind: DocumentKind;
-  employeeId: string | null;
+  employeeId: string;
   number: FakeIdentifier;
   expiresOn: string;
   state: ExpiryState;
   daysLeft: number;
 }
 
-export interface DemoGoal {
-  id: string;
-  employeeId: string | null;
-  departmentId: string | null;
-  titleKey: string;
-  target: number;
-  actual: number;
-  unit: "percent" | "count" | "days";
-  dueOn: string;
-}
-
-export interface GpssaSummary {
-  nationals: number;
-  employeeShare: Fils;
-  employerShare: Fils;
-  byEmployee: { employeeId: string; employeeShare: Fils;
-    employerShare: Fils }[];
+/** Headcount by nationality only: no target, status or fine. */
+export interface NationalityHeadcount {
+  asOf: string;
+  label: "sample data, regime for banks to be confirmed";
+  headcount: number;
+  uaeNationals: number;
+  byNationality: { nationality: string; count: number }[];
 }
 
 export interface DemoCompany {
   seed: number;
   fake: true;
-  company: { id: string; name: string; nameAr: string;
-    employerId: string; bankRoutingCode: string };
+  /** A FICTIONAL Abu Dhabi bank: invented name, branches and codes. */
+  company: { id: string; name: string; nameAr: string; fictional: true;
+    emirate: "Abu Dhabi"; employerId: string; bankRoutingCode: string };
   asOf: string;
+  /** Every figure's rule scope (shown with each source). */
+  rulesScope: string;
   departments: DemoDepartment[];
   employees: DemoEmployee[];
   payRun: DemoPayRun;
@@ -216,9 +235,8 @@ export interface DemoCompany {
   leaveBalances: DemoLeaveBalance[];
   attendance: AttendanceDay[];
   timesheets: TimesheetSummary[];
+  expenses: DemoExpenseClaim[];
   approvals: ApprovalItem[];
-  emiratisation: EmiratisationResult;
-  gpssa: GpssaSummary;
   documents: DemoDocument[];
-  goals: DemoGoal[];
+  nationalities: NationalityHeadcount;
 }

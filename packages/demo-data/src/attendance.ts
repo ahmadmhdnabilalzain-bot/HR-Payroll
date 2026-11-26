@@ -1,5 +1,11 @@
-import { DEMO_PERIOD, monthDates, isWorkingDay, monthKey } from "./calendar";
-import { OVERTIME, UNPAID_DATES } from "./pay-inputs";
+import {
+  AS_OF,
+  DEMO_PERIOD,
+  isWorkingDay,
+  monthDates,
+  monthKey,
+} from "./calendar";
+import { NIGHT_OVERTIME, OVERTIME, UNPAID_DATES } from "./pay-inputs";
 import { employedIn } from "./payroll";
 import type { Rng } from "./rng";
 import type {
@@ -42,13 +48,17 @@ function dayOf(e: DemoEmployee, date: string, rng: Rng,
     return { employeeId: e.id, date, status, clockIn: null,
       clockOut: null, workedMinutes: 0, overtimeMinutes: 0 };
   }
-  const ot = e.cases.includes("overtime")
-    ? OVERTIME.find((o) => o.date === date)?.minutes ?? 0 : 0;
+  const list = e.cases.includes("overtime") ? OVERTIME
+    : e.cases.includes("night-overtime") ? NIGHT_OVERTIME : [];
+  const ot = list.find((o) => o.date === date)?.minutes ?? 0;
   const start = 8 * 60 + rng.int(0, 20);
-  const end = start + 9 * 60 + ot;
+  // Night work (IT upgrade): back on site from 22:00, out after.
+  const night = list === NIGHT_OVERTIME && ot > 0;
+  const end = night ? 22 * 60 + ot : start + 9 * 60 + ot;
+  const worked = night ? 8 * 60 + ot : end - start - LUNCH_MINUTES;
   return { employeeId: e.id, date, status,
     clockIn: stamp(date, start), clockOut: stamp(date, end),
-    workedMinutes: end - start - LUNCH_MINUTES, overtimeMinutes: ot };
+    workedMinutes: worked, overtimeMinutes: ot };
 }
 
 const inWindow = (e: DemoEmployee, d: string) => e.joiningDate <= d &&
@@ -58,7 +68,9 @@ const inWindow = (e: DemoEmployee, d: string) => e.joiningDate <= d &&
 export function buildAttendance(employees: DemoEmployee[], rng: Rng,
   reqs: DemoLeaveRequest[]): AttendanceDay[] {
   const { year, month } = DEMO_PERIOD;
-  const dates = monthDates(year, month).filter(isWorkingDay);
+  // Recorded up to "today" in the demo.
+  const dates = monthDates(year, month).filter((d) => isWorkingDay(d) &&
+    d <= AS_OF);
   return employees.filter((e) => employedIn(e, year, month))
     .flatMap((e) => dates.filter((d) => inWindow(e, d))
       .map((d) => dayOf(e, d, rng, reqs)));

@@ -101,8 +101,8 @@ source-cited, with an open API and Arabic from the start.
   Tasks 2, 3 and 6 (approvals, untrusted files, money) await their
   security review.
 - **Demo data is built** on branch `demo-data` (not pushed):
-  `packages/demo-data`, one fictional "Demo company" whose payslips,
-  SIF and reports all come from the engine and `packages/wps`. See
+  `packages/demo-data`, one fictional Abu Dhabi bank whose payslips,
+  SIF and problems all come from the engine and `packages/wps`. See
   "Demo data" below.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
@@ -260,22 +260,37 @@ engine refuses to run without an explicit value.
 
 ## Demo data (`packages/demo-data`)
 
-`buildDemoCompany(seed = 2026)` returns the whole demo company: 48
-employees, the October 2026 pay run (every payslip from
-`calculatePayslip`, with trace and rule ids), the SIF and its
-validation report (47 `IBAN_CHECKSUM` warnings: the fake IBANs fail
-mod 97 on purpose), leave, attendance, approvals, documents, goals,
-Emiratisation and GPSSA. Selectors: `headlineTotals`,
-`costByDepartment`, `issuesOf` (each with its reason),
-`explainPayslipLine` (EN/AR text plus each rule's source).
-`serializeDemo` is the canonical JSON (bigint as strings). The web
-mock builds its seed in-process, so the demo stays an import: no JSON
-under `apps/web/public/demo/`. Decisions are in `LEDGER.md` section 14
-and `packages/demo-data/README.md`.
+For the first client meeting (a small Abu Dhabi bank): one FICTIONAL
+bank, "Zarqan Demo Bank", 31 staff in 9 departments (head office,
+Khalidiya and Al Ain branches, all invented), 14 UAE nationals.
+`buildDemoCompany(seed = 2026)` returns it; pure TypeScript that
+bundles for the browser (`sideEffects: false`). The October 2026 run
+waits for the GM (HR manager prepared it). Expats' payslips come from
+`calculatePayslip`; nationals' from the same engine steps without
+pension (`PENSION_NOT_COMPUTED`, a visible "not computed" line: the
+Abu Dhabi fund may apply, unconfirmed). Emiratisation is headcount by
+nationality only. Every figure says "mainland rules; free-zone status
+unconfirmed". `issuesOf` lists only problems the engine or the SIF
+check raise (held pay without IBAN, an IBAN typo, an unknown routing
+code, overtime over the daily limit, a loan cut by the Article 25
+cap, a sick day unpaid in probation, two documents near expiry, the
+partial settlement), each with a plain reason, a suggested fix (EN,
+AR) and a `fixKind`. Selectors: `headline`, `costByDepartment`,
+`issuesOf`, `needsConfirmation`, `payslipByEmployee`,
+`explainPayslipLine` (inputs, rule ids, source status, steps),
+`leaveRequests`, `approvalsInbox`, `sifSummary`, `documents`,
+`payCalendar` (sample dates). The web mock builds its seed
+in-process, so no JSON under `apps/web/public/demo/`.
 
-Headline totals (seed 2026): 47 payslips, gross AED 746,214.39,
-deductions AED 7,005.00, net AED 739,209.39 (= SIF total), employer
-GPSSA AED 11,731.25, leaver settlement AED 70,028.77 (outside the SIF).
+Headline totals (seed 2026): 31 payslips, gross AED 938,680.94,
+deductions AED 4,950.00, net AED 933,730.94; SIF AED 908,430.94 plus
+AED 25,300.00 held (no IBAN); leaver settlement AED 190,078.08
+(outside the run and the SIF).
+
+The database seeder (Part 2: `pnpm demo:seed` and `demo:reset`
+through the real API, DEMO_MODE) is deferred until after the meeting;
+its work in progress is on branch `demo-seed-wip` (not merged, does
+not typecheck against the bank dataset yet).
 
 ## Known limits and open questions
 

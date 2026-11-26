@@ -562,3 +562,23 @@ The owner can overrule any of these. Full list with reasons:
     `calculateSettlement` and stay outside the run total and the SIF.
   - No JSON snapshots in `apps/web/public/demo/`: the web mock builds
     its seed in-process, so the demo data stays a TypeScript import.
+- 2026-11-26, owner via the coordinator (replaces the earlier demo
+  size and the 120-staff bank brief): the demo company is a small
+  FICTIONAL Abu Dhabi bank of about 30 staff for the first client
+  meeting; the database seeder waits until after the meeting. No
+  regulatory, certification or acceptance claim anywhere.
+- Owner (verified tonight): a separate Abu Dhabi pension fund covers
+  UAE nationals employed in Abu Dhabi; whether private-bank staff fall
+  under it or GPSSA is unconfirmed. Nationals' pension is "not
+  computed" with the agreed wording (one constant).
+- Emiratisation in the bank demo: headcount by nationality only, no
+  target, status or fine ("sample data, regime for banks to be
+  confirmed").
+- Rulings (Claude's calls): nationals' payslips use the engine's own
+  steps (days, earnings, deductions) without the GPSSA step, because
+  calculatePayslip requires GPSSA input for a national; IBANs are
+  mod-97 valid in the fictional bank's 999 range so the SIF check
+  reports only planted problems (one IBAN typo); the missing-IBAN
+  payslip is computed and held out of the SIF; the demo's "today" is
+  2026-10-27 with the run waiting for the GM; commit trailers follow
+  the harness (Opus) line, as Plans 3 and 6 recorded.

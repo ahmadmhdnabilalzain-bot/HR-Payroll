@@ -15,6 +15,7 @@ const BANNED: [string, RegExp][] = [
   ["Math.random", /\bMath\.random\b/],
   ["fetch(", /\bfetch\s*\(/],
   ["crypto", /\bcrypto\b/],
+  ["Buffer", /\bBuffer\b/],
 ];
 
 describe("purity", () => {

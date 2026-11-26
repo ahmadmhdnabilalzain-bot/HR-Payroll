@@ -9,12 +9,8 @@ import {
   type Fils,
 } from "@payroll/engine";
 import { DEMO_PERIOD, monthKey } from "./calendar";
-import {
-  GPSSA_ASSUMPTION,
-  overridesFor,
-  payslipInput,
-  type InputOpts,
-} from "./pay-inputs";
+import { payslipInput, type InputOpts } from "./pay-inputs";
+import { PENSION_NOT_COMPUTED, payslipWithoutPension } from "./pension";
 import { BACK_PAY_RAISE } from "./roster";
 import type {
   BackPayDerivation,
@@ -25,6 +21,10 @@ import type {
   RunTotals,
 } from "./types";
 
+/** No IBAN: the payslip is computed but held out of the SIF. */
+export const HELD_NO_IBAN = "No IBAN on file: this salary cannot go " +
+  "in the WPS file until the bank details are entered.";
+
 export function employedIn(e: DemoEmployee, year: number, month: number)
   : boolean {
   const first = formatIsoDate({ y: year, m: month, d: 1 });
@@ -34,12 +34,17 @@ export function employedIn(e: DemoEmployee, year: number, month: number)
     (e.leavingDate === null || e.leavingDate >= first);
 }
 
-function slipOf(e: DemoEmployee, o: InputOpts, id: string): DemoPayslip {
+/** Expats: calculatePayslip. Nationals: the same steps, no pension. */
+export function slipOf(e: DemoEmployee, o: InputOpts, id: string)
+  : DemoPayslip {
   const input = payslipInput(e, o);
-  const r = calculatePayslip(input, DEFAULT_PAYROLL_PACKS,
-    overridesFor(e));
-  return { id, employeeId: e.id, input, payslip: r.value,
-    trace: r.trace };
+  const national = e.workerClass === "uae-national";
+  const r = national ? payslipWithoutPension(input)
+    : calculatePayslip(input, DEFAULT_PAYROLL_PACKS);
+  return { id, employeeId: e.id, basis: national
+    ? "engine-steps-without-pension" : "calculatePayslip", input,
+  payslip: r.value, trace: r.trace, sif: e.iban === null
+    ? { included: false, reason: HELD_NO_IBAN } : { included: true } };
 }
 
 /**
@@ -75,30 +80,37 @@ export function totalsOf(slips: DemoPayslip[]): RunTotals {
     gross: sum(slips, (s) => s.payslip.gross),
     deductions: sum(slips, (s) => s.payslip.totalDeductions),
     net: sum(slips, (s) => s.payslip.net),
-    employerCost: sum(slips, (s) => s.payslip.employerCost) };
+    employerCost: sum(slips, (s) => s.payslip.employerCost),
+    heldNet: sum(slips.filter((s) => !s.sif.included),
+      (s) => s.payslip.net) };
 }
 
+/** What the run does not compute, said once for the whole run. */
+export const RUN_NOT_COMPUTED: readonly string[] = [
+  PENSION_NOT_COMPUTED.en,
+  "Final settlement: notice pay, deductions and other dues (listed on " +
+    "the settlement).",
+];
+
 /**
- * The finished month, every payslip from calculatePayslip. The
- * leaver's gratuity and leave pay come from calculateSettlement and
- * stay outside the run total and the SIF.
+ * October 2026, prepared by HR and waiting for the General Manager.
+ * The leaver's gratuity and leave pay come from calculateSettlement
+ * and stay outside the run total and the SIF.
  */
 export function buildPayRun(employees: DemoEmployee[],
   unusedLeave: (employeeId: string) => number): DemoPayRun {
   const { year, month } = DEMO_PERIOD;
   const backPay = employees.filter((e) => e.cases.includes("back-pay"))
     .map(backPayOf);
-  const extra = (e: DemoEmployee) => {
-    const b = backPay.find((x) => x.employeeId === e.id);
-    return b === undefined ? [] : [{ code: "back-pay", kind: "other" as
-      const, monthly: b.amount }];
-  };
+  const extra = (e: DemoEmployee) => backPay.filter((b) =>
+    b.employeeId === e.id).map((b) => ({ code: "back-pay",
+    kind: "other" as const, monthly: b.amount }));
   const payslips = employees.filter((e) => employedIn(e, year, month))
     .map((e) => slipOf(e, { year, month, extra: extra(e) },
       `ps-${monthKey(year, month)}-${e.id}`));
   const settlements = employees.filter((e) => e.cases.includes("leaver"))
     .map((e) => settlementOf(e, unusedLeave(e.id)));
   return { id: `run-${monthKey(year, month)}`, year, month,
-    status: "approved", payslips, totals: totalsOf(payslips),
-    settlements, backPay, assumptions: [GPSSA_ASSUMPTION] };
+    status: "awaiting-approval", payslips, totals: totalsOf(payslips),
+    settlements, backPay, notComputed: [...RUN_NOT_COMPUTED] };
 }

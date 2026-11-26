@@ -1,8 +1,8 @@
 import { accruedHalves, balanceHalves } from "@payroll/engine";
 import { AS_OF, workingDaysBetween } from "./calendar";
-import { UNPAID_DATES } from "./pay-inputs";
-import type { Rng } from "./rng";
+import { PROBATION_SICK_DATE, UNPAID_DATES } from "./pay-inputs";
 import type {
+  CaseTag,
   DemoEmployee,
   DemoLeaveBalance,
   DemoLeaveRequest,
@@ -22,44 +22,40 @@ export const LEAVE_TYPES: readonly DemoLeaveType[] = [
 export const ANNUAL_POLICY = { accrual: "monthly" as const,
   annualDays: 30, joiningYearProRata: true };
 
-type Plan = [string, string, string, LeaveStatus, string];
+type Who = { tag: CaseTag } | { id: string };
+type Plan = [Who, string, string, string, LeaveStatus, string];
 
-/** Requests for people with no special case, picked by the seed. */
 const PLANS: readonly Plan[] = [
-  ["lt-annual", "2026-10-19", "2026-10-23", "approved", "reason.family"],
-  ["lt-annual", "2026-10-26", "2026-10-27", "approved", "reason.rest"],
-  ["lt-annual", "2026-07-06", "2026-07-17", "approved", "reason.travel"],
-  ["lt-annual", "2026-11-16", "2026-11-20", "pending", "reason.travel"],
-  ["lt-annual", "2026-12-21", "2026-12-31", "pending", "reason.family"],
-  ["lt-sick", "2026-11-03", "2026-11-03", "pending", "reason.medical"],
-  ["lt-annual", "2026-11-02", "2026-11-06", "rejected", "reason.rest"],
+  [{ tag: "unpaid-leave" }, "lt-unpaid", UNPAID_DATES[0]!,
+    UNPAID_DATES.at(-1)!, "approved", "reason.personal"],
+  [{ tag: "probation" }, "lt-sick", PROBATION_SICK_DATE,
+    PROBATION_SICK_DATE, "approved", "reason.medical"],
+  [{ tag: "leaver" }, "lt-annual", "2026-04-06", "2026-04-10",
+    "approved", "reason.travel"],
+  [{ id: "emp-018" }, "lt-annual", "2026-11-16", "2026-11-20",
+    "pending", "reason.family"],
+  [{ id: "emp-006" }, "lt-annual", "2026-12-21", "2026-12-31",
+    "pending", "reason.travel"],
+  [{ id: "emp-031" }, "lt-annual", "2026-11-02", "2026-11-04",
+    "rejected", "reason.rest"],
 ];
 
 const halves = (from: string, to: string) =>
   workingDaysBetween(from, to).length * 2;
 
-function request(n: number, employeeId: string, p: Plan)
-  : DemoLeaveRequest {
-  const [leaveTypeId, startDate, endDate, status, reasonKey] = p;
-  return { id: `lr-${String(n).padStart(3, "0")}`, employeeId,
-    leaveTypeId, startDate, endDate, halves: halves(startDate, endDate),
-    status, reasonKey };
+function whoOf(es: DemoEmployee[], w: Who): string {
+  const e = "tag" in w ? es.find((x) => x.cases.includes(w.tag))
+    : es.find((x) => x.id === w.id);
+  if (e === undefined) throw new Error("leave plan names no employee");
+  return e.id;
 }
 
-export function buildLeaveRequests(employees: DemoEmployee[], rng: Rng)
+export function buildLeaveRequests(employees: DemoEmployee[])
   : DemoLeaveRequest[] {
-  const unpaid = employees.find((e) => e.cases.includes("unpaid-leave"))!;
-  const leaver = employees.find((e) => e.cases.includes("leaver"))!;
-  const plain = rng.shuffle(employees.filter((e) => e.cases.length === 0
-    && e.joiningDate < "2026-01-01"));
-  const out = [
-    request(1, unpaid.id, ["lt-unpaid", UNPAID_DATES[0]!,
-      UNPAID_DATES.at(-1)!, "approved", "reason.personal"]),
-    request(2, leaver.id, ["lt-annual", "2026-04-06", "2026-04-10",
-      "approved", "reason.travel"]),
-  ];
-  PLANS.forEach((p, i) => out.push(request(i + 3, plain[i]!.id, p)));
-  return out;
+  return PLANS.map(([who, leaveTypeId, startDate, endDate, status,
+    reasonKey], i) => ({ id: `lr-${String(i + 1).padStart(3, "0")}`,
+    employeeId: whoOf(employees, who), leaveTypeId, startDate, endDate,
+    halves: halves(startDate, endDate), status, reasonKey }));
 }
 
 function balanceOf(e: DemoEmployee, reqs: DemoLeaveRequest[])

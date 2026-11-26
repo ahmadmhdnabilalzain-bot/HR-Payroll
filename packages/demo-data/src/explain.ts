@@ -11,13 +11,21 @@ import type { DemoCompany, DemoPayslip } from "./types";
 
 const PACKS = [...PAYROLL_PACKS, ...GPSSA_PACKS, ...GRATUITY_PACKS];
 
-export interface SourcedRule extends TraceRule { source: RuleSource | null }
+export interface SourcedRule extends TraceRule {
+  /** "<packId>@<version>:<key>", the rule's stable id. */
+  ruleId: string;
+  source: RuleSource | null;
+}
 
 export interface ExplainedLine {
   payslipId: string;
   line: TraceLine;
-  text: { en: string; ar: string; arReviewed: false };
+  inputs: Record<string, string>;
   rules: SourcedRule[];
+  /** How the figure was reached, in order, plain text. */
+  steps: string[];
+  text: { en: string; ar: string; arReviewed: false };
+  rulesScope: string;
 }
 
 /** The pack's source for a rule (TraceRule carries only ids). */
@@ -34,12 +42,23 @@ export function findPayslip(c: DemoCompany, payslipId: string)
   return s;
 }
 
-export function explainLine(payslipId: string, line: TraceLine)
-  : ExplainedLine {
-  return { payslipId, line,
+function stepsOf(line: TraceLine, rules: SourcedRule[]): string[] {
+  return [`Formula: ${line.formula}`,
+    ...Object.entries(line.inputs).map(([k, v]) => `Input ${k} = ${v}`),
+    ...rules.map((r) => `Rule ${r.ruleId} = ${r.value} (${r.overridden
+      ? "overridden" : r.status}${r.source === null ? ""
+      : `, ${r.source.note}`})`),
+    `Result: ${line.result}`];
+}
+
+export function explainLine(c: DemoCompany, payslipId: string,
+  line: TraceLine): ExplainedLine {
+  const rules = line.rules.map((r) => ({ ...r,
+    ruleId: `${r.packId}@${r.packVersion}:${r.key}`, source: sourceOf(r) }));
+  return { payslipId, line, inputs: { ...line.inputs }, rules,
+    steps: stepsOf(line, rules),
     text: { en: explainTrace([line], "en"), ar: explainTrace([line], "ar"),
-      arReviewed: false },
-    rules: line.rules.map((r) => ({ ...r, source: sourceOf(r) })) };
+      arReviewed: false }, rulesScope: c.rulesScope };
 }
 
 /** The trace line behind one payslip line (its traceId), explained. */
@@ -50,12 +69,12 @@ export function explainPayslipLine(c: DemoCompany, payslipId: string,
   if (line === undefined) {
     throw new Error(`payslip ${payslipId} has no trace line ${traceId}`);
   }
-  return explainLine(payslipId, line);
+  return explainLine(c, payslipId, line);
 }
 
 /** Every trace line of a payslip, explained in order. */
 export function explainPayslip(c: DemoCompany, payslipId: string)
   : ExplainedLine[] {
   return findPayslip(c, payslipId).trace.map((l) =>
-    explainLine(payslipId, l));
+    explainLine(c, payslipId, l));
 }
