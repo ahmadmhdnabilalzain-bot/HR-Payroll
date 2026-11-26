@@ -69,7 +69,7 @@ async function employee(ctx: Ctx, own: SeedUser, companyId: string,
   return e.id as string;
 }
 
-async function member(ctx: Ctx, own: SeedUser, companyId: string,
+export async function member(ctx: Ctx, own: SeedUser, companyId: string,
   email: string, role: string, employeeId?: string): Promise<SeedUser> {
   const body: Record<string, string> = { email, role };
   if (employeeId !== undefined) body.employeeId = employeeId;

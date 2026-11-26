@@ -33,7 +33,7 @@ describe("ROUTES", () => {
     }
     expect(ROUTES.filter((x) => x.mfa).map((x) => x.id).sort()).toEqual(
       ["approvePayRun", "changeUserRole", "downloadSifFile",
-        "getEmployeeBank"]);
+        "getEmployeeBank", "putEmployeeBank", "putEmployeeSalary"]);
   });
   it("public routes are exactly the four", () => {
     const pub = ROUTES.filter((r) => r.auth === "public")

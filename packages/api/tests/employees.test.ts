@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { withTenant } from "../src/db/tenant";
 import {
+  member,
   IBAN_SENTINEL,
   SALARY_SENTINEL,
   salaryOf,
@@ -106,6 +107,34 @@ describe("employees and departments", () => {
        WHERE action = 'employee.bank.revealed'`));
     expect(ev.map((e) => e.entity_id)).toContain(s.emp.outsider);
   });
+
+  it("salary and bank writes need MFA; nobody but an owner edits self",
+    async () => {
+      const plain = await login(ctx.app, s.hr.email, PASSWORD);
+      const noMfa = await call(ctx.app, plain.body.token, s.companyId, "PUT",
+        `/v1/employees/${s.emp.outsider}/salary`, salaryOf("1.00"));
+      expect(noMfa.body.error.code).toBe("MFA_REQUIRED");
+      const own = await as("hr", "POST", "/v1/employees", { number: "S-1",
+        fullName: "Hr Self", jobTitle: "HR", nationality: "IN",
+        workerClass: "expat-full-time", joiningDate: "2020-01-01" });
+      const hr2 = await member(ctx, s.owner, s.companyId,
+        "hr2.self@example.com", "hr", own.body.id);
+      const mine = (path: string, body: unknown) => call(ctx.app, hr2.token,
+        s.companyId, "PUT", `/v1/employees/${own.body.id}/${path}`, body);
+      expect((await mine("salary", salaryOf("99999.00"))).body.error.code)
+        .toBe("SOD_VIOLATION");
+      expect((await mine("bank", { routingCode: "803320101",
+        iban: "AE990000000000000000099" })).body.error.code)
+        .toBe("SOD_VIOLATION");
+      const o = await as("owner", "POST", "/v1/employees", { number: "S-2",
+        fullName: "Owner Self", jobTitle: "Owner", nationality: "IN",
+        workerClass: "expat-full-time", joiningDate: "2020-01-01" });
+      const owner3 = await member(ctx, s.owner, s.companyId,
+        "owner3.self@example.com", "owner", o.body.id);
+      const ok = await call(ctx.app, owner3.token, s.companyId, "PUT",
+        `/v1/employees/${o.body.id}/salary`, salaryOf("5000.00"));
+      expect(ok.status, ok.text).toBe(200);
+    });
 
   it("departments: create, update, list for all roles", async () => {
     const d = await as("hr", "POST", "/v1/departments", { name: "Ops",

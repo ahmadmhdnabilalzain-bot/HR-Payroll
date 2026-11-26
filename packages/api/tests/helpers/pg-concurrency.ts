@@ -96,7 +96,9 @@ export function pgConcurrencyCases(open: () => Promise<DbPair>): void {
     async () => {
       const { db, admin } = await open();
       const ctx = await makeApp({ db });
-      const a = await signup(ctx.app, "idem");
+      const a0 = await signup(ctx.app, "idem");
+      const a = { ...a0, token: (await enableMfa(ctx.app, ctx.clock, a0))
+        .token };
       const e = await call(ctx.app, a.token, a.companyId, "POST",
         "/v1/employees", { number: "E-1", fullName: "P", jobTitle: "C",
           nationality: "IN", workerClass: "expat-full-time",

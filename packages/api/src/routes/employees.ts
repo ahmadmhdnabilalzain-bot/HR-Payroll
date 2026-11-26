@@ -68,7 +68,16 @@ async function update(ctx: IdCtx<EmployeeUpdate>) {
   return view(ctx, row.id);
 }
 
+/** Only an owner may change their own salary or bank details. */
+function notSelf(ctx: IdCtx): void {
+  const t = ctx.tenant!;
+  if (t.employeeId === ctx.params.id && t.role !== "owner") {
+    throw new ApiError("SOD_VIOLATION");
+  }
+}
+
 async function putSalary(ctx: IdCtx<SalaryUpdate>) {
+  notSelf(ctx);
   const row = await visible(ctx);
   checkSalary(ctx.body.components);
   const version = await saveSalary(ctx.tx, ctx.deps, company(ctx), row.id,
@@ -78,6 +87,7 @@ async function putSalary(ctx: IdCtx<SalaryUpdate>) {
 }
 
 async function putBank(ctx: IdCtx<BankDetails>) {
+  notSelf(ctx);
   const row = await visible(ctx);
   await saveBank(ctx.tx, ctx.deps, company(ctx), row.id, ctx.body);
   await audit(ctx, "employee.bank.updated", row.id,
