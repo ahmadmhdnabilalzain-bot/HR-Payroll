@@ -135,6 +135,17 @@ describe("email-in intake", () => {
     await postInbound(w.ctx, postmarkPayload({ from: SARA, hash: w.hash,
       id: "d2" }));
     expect((await w.items())[0].rejectReason).toBe("RATE_LIMITED");
+    // Review M6: further messages that day store nothing.
+    const count = async (t: string) => (await rowsOf<{ n: number }>(w.ctx,
+      w.s.companyId, `SELECT count(*)::int AS n FROM ${t}`))[0]!.n;
+    const [items, seen] = [await count("inbound_items"),
+      await count("inbound_seen")];
+    for (const id of ["d3", "d4", "d5"]) {
+      expect((await postInbound(w.ctx, postmarkPayload({ from: SARA,
+        hash: w.hash, id }))).status).toBe(200);
+    }
+    expect(await count("inbound_items")).toBe(items);
+    expect(await count("inbound_seen")).toBe(seen);
   });
 
   it("email_in_eleven_attachments and email_in_cross_tenant", async () => {

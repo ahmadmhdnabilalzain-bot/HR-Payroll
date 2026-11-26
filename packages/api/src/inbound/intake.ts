@@ -1,5 +1,5 @@
 import type { InboundEmail } from "../channels/ports";
-import { consumeRate } from "../channels/rate";
+import { consumeRate, rateExceeded } from "../channels/rate";
 import { markSeen } from "../channels/seen";
 import type { Db } from "../db/db";
 import type { HandlerDeps } from "../deps";
@@ -34,14 +34,25 @@ async function activeEmployees(tx: Db, companyId: string, today: string) {
 async function intakeTx(tx: Db, deps: HandlerDeps, companyId: string,
   e: InboundEmail): Promise<void> {
   const now = deps.now();
-  if (!(await markSeen(tx, companyId, "email", e.messageId, now))) return;
   const c = { tx, deps, companyId };
+  // Dubai midnight: the window is shifted by +04:00.
+  const day = new Date(now.getTime() + 4 * 3600_000);
+  if (await rateExceeded(tx, companyId, "inbound", "all", DAILY_LIMIT,
+    86400, day)) {
+    // Review M6: past the limit, one RATE_LIMITED item per day shows
+    // it was hit; later messages write nothing at all.
+    const first = await consumeRate(tx, companyId, "inbound-over", "all",
+      1, 86400, day);
+    if (first.allowed && await markSeen(tx, companyId, "email",
+      e.messageId, now)) await rejectItem(c, e, "RATE_LIMITED");
+    return;
+  }
+  if (!(await markSeen(tx, companyId, "email", e.messageId, now))) return;
   if (!(await inboundBody(tx, companyId)).body.enabled) {
     return rejectItem(c, e, "DISABLED");
   }
-  const rate = await consumeRate(tx, companyId, "inbound", "all",
-    DAILY_LIMIT, 86400, new Date(now.getTime() + 4 * 3600_000));
-  if (!rate.allowed) return rejectItem(c, e, "RATE_LIMITED");
+  await consumeRate(tx, companyId, "inbound", "all", DAILY_LIMIT, 86400,
+    day);
   const verdict = senderAuthDecision(e.auth, domainOf(e.from));
   if (verdict === "reject") return rejectItem(c, e, "SENDER_AUTH_FAILED");
   const settings = (await inboundBody(tx, companyId)).body;
