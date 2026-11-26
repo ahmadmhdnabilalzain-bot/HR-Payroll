@@ -97,6 +97,14 @@ describe("buildPayInputs (pure)", () => {
     expect(codes(s)).toEqual(["HALF_DAY_ABSENCE"]);
   });
 
+  it("rest_day_decision_without_rest_day_work_is_dropped", () => {
+    const s = src([d("2026-03-04", { kind: "rest", restDayWorkMinutes: 0,
+      decision: { ...ot(0), restDayWork: { approved: true,
+        compensation: "pay" } } })]);
+    expect(one(s).restDayWork).toEqual([]);
+    expect(codes(s)).toEqual(["DECISION_CLIPPED"]);
+  });
+
   it("half_day_absence_manual", () => {
     const s = src([], { leaveDates: [{ employeeId: E, date: "2026-03-03",
       halves: 1, payrollKind: "unpaid" }] });
