@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Explainable } from "../components/explain";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
-import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
@@ -14,7 +13,7 @@ import {
   RecordTabs,
   type FormValues,
 } from "../ui/templates";
-import { filsOfInput, requestsOf, requestState } from "./derive";
+import { dayMonth, filsOfInput, requestsOf, requestState } from "./derive";
 import { usePay } from "./load";
 import {
   NotFound,
@@ -72,13 +71,13 @@ export function Corrections() {
       <FilterList title="Pay corrections"
         lede={"Mistakes in months already paid. Each month is worked out " +
           "again with the record put right; the difference is paid in " +
-          "November."}
+          `the ${pay.nextRun} run.`}
         rows={rows} rowKey={(r) => r.key}
         searchText={(r) => `${r.name} ${r.month}`}
         rowHref={(r) => hrefOf("pay-run", "corrections", r.key)}
         segments={[
           { id: "all", label: "All", match: () => true },
-          { id: "due", label: "To pay in November", match: (r) =>
+          { id: "due", label: `To pay in ${pay.nextRun}`, match: (r) =>
             r.cor !== null },
           { id: "wait", label: "Waiting", match: (r) => r.req !== null &&
             requestState(state, r.req) === "waiting" },
@@ -90,7 +89,7 @@ export function Corrections() {
             <Money value={r.cor?.amount ?? r.req!.amount} size="sm" /> },
           { key: "st", label: "Status", render: (r) => r.req !== null
             ? <RequestStatus r={r.req} />
-            : <Status tone="neutral">Pays in November</Status> },
+            : <Status tone="neutral">{`Pays in ${r.cor!.payIn}`}</Status> },
         ]}
         empty="No corrections match. Clear the search to see all."
         actions={(
@@ -165,15 +164,16 @@ function CorrectionPage(p: { c: CorrectionView }) {
 function RequestPage(p: { r: PayRequest }) {
   const { lang } = useLocale();
   const { data } = useDemo();
+  const pay = usePay();
   const r = p.r;
   return (
     <RecordTabs title={data.employee(r.employeeId).name.en}
       lede={`Correction to ${r.month ?? ""}, sent ` +
-        formatDayMonth(r.requestedOn, lang)}
+        dayMonth(r.requestedOn, lang)}
       back={{ label: "Pay corrections", href: LIST }}
       stats={[
         { label: "Owed", value: <Money value={r.amount} size="lg" /> },
-        { label: "To pay in", value: "November 2026" },
+        { label: "To pay in", value: pay.nextRun },
       ]}
       tabs={[
         { id: "decision", label: "Decision", render: () => (

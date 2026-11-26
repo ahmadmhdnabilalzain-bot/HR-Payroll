@@ -83,6 +83,8 @@ export interface SettlementView {
   total: Fils;
   notComputed: string[];
   explainId: string;
+  /** Why the settlement is due by that date (our reading). */
+  dueExplanation: Explanation;
 }
 
 export interface RunSlip {
@@ -166,4 +168,10 @@ export interface PayView {
   /** Everyone on this month's payroll, by name (for the forms). */
   people: PayPerson[];
   scope: string;
+  /** "October 2026": the run being prepared, not yet paid. */
+  thisRun: string;
+  /** "November 2026": the next run, where corrections are paid. */
+  nextRun: string;
+  /** Months a new loan's first deduction can fall in. */
+  firstMonths: string[];
 }

@@ -1,6 +1,7 @@
 import { fils } from "@payroll/engine";
 import { describe, expect, it } from "vitest";
 import { contractProblems } from "../../src/components/explain";
+import { filesUnder, readWeb } from "../helpers/files";
 import { buildDemoData } from "../../src/demo/data/adapter";
 import { buildPayView, reword } from "../../src/demo/data/pay";
 import { buildRunSource } from "../../src/demo/data/run-detail";
@@ -36,9 +37,22 @@ describe("WP6 pay view", () => {
     expect(reword("were approved but not paid")).not.toMatch(BANNED);
   });
 
+  it("screen-files-have-no-banned-word", () => {
+    // The data chunk rewords the package's text (checked on the view
+    // above); here every literal a WP6 screen shows, comments aside.
+    const files = [...filesUnder("src/pay", [".ts", ".tsx"]),
+      "src/nav/areas/pay.ts"];
+    expect(files.length).toBeGreaterThan(5);
+    const code = (f: string): string[] => readWeb(f).split("\n")
+      .filter((l) => !/^\s*(\/\*\*|\*|\/\/)/.test(l));
+    expect(files.filter((f) => code(f).some((l) => BANNED.test(l))))
+      .toEqual([]);
+  });
+
   it("explanations-meet-the-contract", () => {
     const all = [...view.corrections.map((c) => c.explanation),
-      ...view.runs.map((r) => r.explanation)];
+      ...view.runs.map((r) => r.explanation),
+      ...view.settlements.map((x) => x.dueExplanation)];
     expect(all.flatMap(contractProblems)).toEqual([]);
   });
 

@@ -144,14 +144,18 @@ function Statement(p: { x: SettlementView }) {
                     <Money value={x.total} size="md" /></span>
                 </li>
               </ul>
-              <p className={s.note}>{`Pay by ${x.due}. Paid on its own, ` +
-                "outside the salary file."}</p>
+              <p className={s.note}>Pay by{" "}
+                <Explainable explanation={x.dueExplanation}>{x.due}
+                </Explainable>. Paid on its own, outside the salary
+                file.</p>
             </div>
           ) },
           { id: "dates", label: "Dates", render: () => (
             <KeyValues items={[
               { label: "Last working day", value: x.lastDay },
-              { label: "Pay by", value: x.due },
+              { label: "Pay by", value: (
+                <Explainable explanation={x.dueExplanation}>{x.due}
+                </Explainable>) },
               { label: "Unused leave", value: x.unusedLeave },
               { label: "Status", value: <SentStatus x={x} /> },
             ]} />) },

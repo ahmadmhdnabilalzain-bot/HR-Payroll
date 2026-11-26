@@ -12,9 +12,9 @@ export function Deductions() {
   const latest = pay.deductions[0]?.month ?? "";
   return (
     <FilterList title="Deductions ledger"
-      lede={"Every amount taken from pay in the runs, June to October. " +
-        "Today these are loan repayments; fines are not recovered from " +
-        "pay in the demo."}
+      lede={"Every amount taken from pay in the runs paid since June, " +
+        `and in the ${pay.thisRun} run being prepared. Today these are ` +
+        "loan repayments; fines are not recovered from pay in the demo."}
       rows={pay.deductions} rowKey={(d) => d.id}
       searchText={(d) => `${d.name} ${d.label} ${d.month}`}
       rowHref={(d: DeductionLine) => d.ref === null
@@ -54,7 +54,7 @@ export function OffCycle() {
       when: `Recovered from ${l.firstDeduction}`, amount: l.principal,
       outside: true, href: hrefOf("pay-run", "loans", l.ref) })),
     ...pay.corrections.map((c) => ({ key: c.id, name: c.name,
-      what: `Correction to ${c.month}`, when: `${c.payIn} run`,
+      what: `Correction to ${c.month}`, when: `${pay.nextRun} run`,
       amount: c.amount, outside: false,
       href: hrefOf("pay-run", "corrections", c.id) })),
   ];
@@ -67,7 +67,7 @@ export function OffCycle() {
       segments={[
         { id: "all", label: "All", match: () => true },
         { id: "out", label: "Outside the run", match: (x) => x.outside },
-        { id: "next", label: "In the November run", match: (x) =>
+        { id: "next", label: `In the ${pay.nextRun} run`, match: (x) =>
           !x.outside },
       ]}
       columns={[

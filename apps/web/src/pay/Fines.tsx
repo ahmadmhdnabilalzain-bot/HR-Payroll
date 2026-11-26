@@ -1,13 +1,12 @@
 import { personOf } from "../demo/derive";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
-import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { useToast } from "../ui/Toast";
 import { FilterList, KeyValues, RecordTabs } from "../ui/templates";
-import { whoIs } from "./derive";
+import { dayMonth, whoIs } from "./derive";
 import { usePay } from "./load";
 import { NotFound, Status } from "./parts";
 import type { FineChoice, FineDecision } from "./pay-state";
@@ -104,7 +103,7 @@ function FinePage(p: { f: FineView }) {
             { label: "Driver", value: f.name },
             ...(d === undefined ? [] : [{ label: "Decided",
               value: `${CHOICE[d.choice]}: ${whoIs(data, d.by)}, ` +
-                formatDayMonth(d.on, lang) }]),
+                dayMonth(d.on, lang) }]),
           ]} />
           <p className={s.note}>{f.recoveryNote}</p>
           <p className={s.note}>{f.numberNote}.</p>

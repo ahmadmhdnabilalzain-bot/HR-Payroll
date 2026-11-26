@@ -2,6 +2,8 @@ import type { Fils } from "@payroll/engine";
 import type { DemoData } from "../demo/data/types";
 import type { DemoState, Role } from "../demo/state";
 import { parseAmountInput } from "../i18n/amount-input";
+import { formatDate } from "../i18n/format";
+import type { Lang } from "../i18n/types";
 import type { PayRequest, PayRequestKind } from "./pay-state";
 import type { PayView } from "./types";
 
@@ -56,4 +58,10 @@ export function filsOfInput(text: string): Fils | null {
   } catch {
     return null;
   }
+}
+
+/** "27 October", with the year only outside 2026 (as the data does). */
+export function dayMonth(iso: string, lang: Lang): string {
+  const full = formatDate(iso, lang);
+  return iso.startsWith("2026-") ? full.replace(/\s*2026$/, "") : full;
 }

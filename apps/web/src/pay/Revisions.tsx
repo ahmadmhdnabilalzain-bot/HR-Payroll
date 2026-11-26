@@ -3,7 +3,6 @@ import { ExplainLink } from "../components/explain";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
-import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
@@ -15,7 +14,7 @@ import {
   RecordTabs,
   type FormValues,
 } from "../ui/templates";
-import { filsOfInput, requestsOf, requestState } from "./derive";
+import { dayMonth, filsOfInput, requestsOf, requestState } from "./derive";
 import { usePay } from "./load";
 import {
   NotFound,
@@ -92,7 +91,7 @@ export function Revisions() {
           { key: "who", label: "Person", render: (r) => r.name },
           { key: "eff", label: "From", render: (r) => r.rev !== null
             ? r.rev.effective
-            : formatDayMonth(r.req!.effective ?? "", lang) },
+            : dayMonth(r.req!.effective ?? "", lang) },
           { key: "to", label: "New basic", end: true, render: (r) =>
             <Money value={r.rev?.to ?? r.req!.amount} size="sm" /> },
           { key: "back", label: "Back pay", end: true, render: (r) =>
@@ -101,8 +100,8 @@ export function Revisions() {
               : <Money value={r.rev.arrears} size="sm" /> },
           { key: "st", label: "Status", render: (r) => r.req !== null
             ? <RequestStatus r={r.req} /> : (
-              <Status tone="done">{r.rev!.arrears > 0n ? "Paid in October"
-                : "In pay"}</Status>) },
+              <Status tone="done">{r.rev!.arrears > 0n
+                ? `In the ${pay.thisRun} run` : "In pay"}</Status>) },
         ]}
         empty="No revisions match. Clear the search to see all."
         actions={(
@@ -146,6 +145,7 @@ export function RevisionRecord(p: { id: string }) {
 function RevisionPage(p: { r: RevisionView }) {
   const r = p.r;
   const detail = useRunDetail();
+  const pay = usePay();
   return (
     <RecordTabs title={r.name} lede={r.reason}
       back={{ label: "Salary revisions", href: LIST }}
@@ -164,12 +164,13 @@ function RevisionPage(p: { r: RevisionView }) {
             { label: "Takes effect", value: r.effective },
             { label: "Entered", value: r.entered },
             { label: "Back pay", value: r.arrears > 0n
-              ? "Paid with October pay" : "None: entered before its date" },
+              ? `Added to the ${pay.thisRun} run`
+              : "None: entered before its date" },
           ]} />
           <p className={s.note}>{r.note}</p>
           {r.arrears > 0n && (
             <ExplainLink explanation={detail.explain[r.explainId]}
-              className={s.inline}>How October pay is worked out
+              className={s.inline}>{`How ${pay.thisRun} pay is worked out`}
             </ExplainLink>
           )}
         </div>
@@ -186,14 +187,14 @@ function RequestPage(p: { r: PayRequest }) {
   return (
     <RecordTabs title={data.employee(r.employeeId).name.en}
       lede={"Salary revision, sent " +
-        formatDayMonth(r.requestedOn, lang)}
+        dayMonth(r.requestedOn, lang)}
       back={{ label: "Salary revisions", href: LIST }}
       stats={[
         { label: "New basic", value: <Money value={r.amount} size="lg" /> },
         ...(before === undefined ? [] : [{ label: "Now",
           value: <Money value={before} size="lg" /> }]),
         { label: "Takes effect",
-          value: formatDayMonth(r.effective ?? "", lang) },
+          value: dayMonth(r.effective ?? "", lang) },
       ]}
       tabs={[
         { id: "decision", label: "Decision", render: () => (

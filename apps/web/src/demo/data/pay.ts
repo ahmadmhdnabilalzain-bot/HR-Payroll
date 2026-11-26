@@ -12,6 +12,7 @@ import {
   plural,
   runChanges,
   salaryRevisions,
+  SETTLEMENT_DUE_DAYS,
   trafficFines,
   type DemoCompany,
 } from "@payroll/demo-data";
@@ -136,6 +137,27 @@ function deductionsOf(c: DemoCompany): PayView["deductions"] {
       ref: d.kind === "loan" ? d.traceId.split("#")[1] ?? null : null }))));
 }
 
+function dueExplain(c: DemoCompany, s: ReturnType<
+  typeof finalSettlements>[number]): Explanation {
+  return { id: `settlement-due:${s.employeeId}`,
+    title: "Settlement due date", subject: s.display.name,
+    summary: `The settlement is due ${SETTLEMENT_DUE_DAYS} days after ` +
+      "the last working day, as we read the law.",
+    result: { label: "Pay by", value: text(s.display.due) },
+    inputs: [{ label: "Last working day", value: text(s.display.lastDay),
+      from: "Employee record" }],
+    rules: [{ text: `A final settlement is paid within ` +
+      `${SETTLEMENT_DUE_DAYS} days after the last working day.`,
+    status: "convention", statusLabel: "as we read it",
+    citation: "Our reading of the UAE Labour Law, Decree-Law 33/2021" }],
+    steps: [
+      { text: "Last working day", value: text(s.display.lastDay) },
+      { text: `Add ${SETTLEMENT_DUE_DAYS} days`,
+        value: text(s.display.due) },
+    ],
+    notComputed: [], scope: c.rulesScope };
+}
+
 /** Every WP6 record, as the screens show it. */
 export function payViewOf(c: DemoCompany): PayView {
   const loanCut = c.employees.find((e) => e.cases.includes("loan-over-cap"));
@@ -172,7 +194,8 @@ export function payViewOf(c: DemoCompany): PayView {
       lastDay: s.display.lastDay, due: s.display.due,
       unusedLeave: s.display.unusedLeave, gratuity: s.gratuity,
       leavePay: s.leavePay, total: s.total, notComputed: s.notComputed,
-      explainId: `gratuity:${s.employeeId}` })),
+      explainId: `gratuity:${s.employeeId}`,
+      dueExplanation: dueExplain(c, s) })),
     runs: runsOf(c),
     groups: payGroups(c).map((g) => ({ id: g.id, label: g.label,
       names: g.employeeIds.map((id) => nameOf(c, id)).sort(),
@@ -183,6 +206,10 @@ export function payViewOf(c: DemoCompany): PayView {
       return { id: e.id, name: e.fullName, basic: e.basicMonthly };
     }).sort((a, b) => a.name.localeCompare(b.name)),
     scope: c.rulesScope,
+    thisRun: `${monthName(c.payRun.month)} ${c.payRun.year}`,
+    nextRun: `${monthName(c.payRun.month + 1)} ${c.payRun.year}`,
+    firstMonths: [1, 2].map((n) =>
+      `${monthName(c.payRun.month + n)} ${c.payRun.year}`),
   };
 }
 

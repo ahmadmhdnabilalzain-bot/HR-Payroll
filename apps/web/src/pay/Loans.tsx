@@ -4,7 +4,6 @@ import { Explainable } from "../components/explain";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
-import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
@@ -16,7 +15,7 @@ import {
   RecordTabs,
   type FormValues,
 } from "../ui/templates";
-import { filsOfInput, requestsOf, requestState } from "./derive";
+import { dayMonth, filsOfInput, requestsOf, requestState } from "./derive";
 import { usePay } from "./load";
 import {
   NotFound,
@@ -32,12 +31,11 @@ import type { LoanStatus, LoanView } from "./types";
 
 const LIST = hrefOf("pay-run", "loans");
 const KIND = { loan: "Loan", advance: "Salary advance" } as const;
-const STATUS: Record<LoanStatus, [string, Tone]> = {
-  active: ["Repaying", "neutral"], closed: ["Repaid", "done"],
-  starts: ["Starts in November", "neutral"],
-};
-const FIRST_MONTHS = ["November 2026", "December 2026"] as const;
-const MAX_MONTHS = { loan: 24, advance: 3 } as const;
+const TONE: Record<LoanStatus, Tone> = { active: "neutral",
+  closed: "done", starts: "neutral" };
+const statusWord = (l: LoanView): string => l.status === "active"
+  ? "Repaying" : l.status === "closed" ? "Repaid"
+    : `Starts in ${l.firstDeduction}`;
 
 type Row = { key: string; loan: LoanView | null; req: PayRequest | null;
   name: string; kind: "loan" | "advance"; ref: string; balance: Fils;
@@ -72,10 +70,8 @@ export function Loans() {
     if (amount === null || amount <= 0n) {
       return "Enter the amount in dirhams, for example 5000 or 5000.50.";
     }
-    if (!Number.isInteger(months) || months < 1 ||
-      months > MAX_MONTHS[kind]) {
-      return `A ${kind === "loan" ? "loan" : "salary advance"} is ` +
-        `repaid in 1 to ${MAX_MONTHS[kind]} months.`;
+    if (!Number.isInteger(months) || months < 1) {
+      return "Enter the months to repay as a whole number, 1 or more.";
     }
     const busy = pay.loans.find((l) => l.employeeId === who.id &&
       l.status !== "closed");
@@ -84,7 +80,7 @@ export function Loans() {
         "can be given once it is repaid.";
     }
     dispatch({ type: "pay-request", draft: { kind, employeeId: who.id,
-      amount, months, month: v["first"] ?? FIRST_MONTHS[0],
+      amount, months, month: v["first"] ?? pay.firstMonths[0] ?? "",
       effective: null, reason: (v["reason"] ?? "").trim(),
       requestedOn: mc.today, makerId: mc.makerId,
       checkerId: mc.checkerId } });
@@ -123,8 +119,8 @@ export function Loans() {
             <Money value={r.balance} size="sm" /> },
           { key: "st", label: "Status", render: (r) => r.req !== null
             ? <RequestStatus r={r.req} />
-            : <Status tone={STATUS[r.loan!.status][1]}>
-              {STATUS[r.loan!.status][0]}</Status> },
+            : <Status tone={TONE[r.loan!.status]}>
+              {statusWord(r.loan!)}</Status> },
         ]}
         empty="No loans or advances match. Clear the search to see all."
         actions={(
@@ -148,10 +144,10 @@ export function Loans() {
               required: true, help: "For example 5000 or 5000.50" },
             { key: "months", label: "Months to repay", kind: "number",
               required: true, initial: "3",
-              help: "Up to 24 for a loan, 3 for an advance" },
+              help: "Whole months; the bank's own limits apply" },
             { key: "first", label: "First deduction", kind: "select",
-              initial: FIRST_MONTHS[0], options: FIRST_MONTHS.map((m) =>
-                ({ value: m, label: m })) },
+              initial: pay.firstMonths[0] ?? "",
+              options: pay.firstMonths.map((m) => ({ value: m, label: m })) },
             { key: "reason", label: "Reason", kind: "textarea",
               help: "Optional. The person sees it on the request." },
           ]} />
@@ -176,8 +172,10 @@ export function LoanRecord(p: { id: string }) {
 function LoanPage(p: { loan: LoanView }) {
   const l = p.loan;
   const detail = useRunDetail();
+  const pay = usePay();
   const ex = l.explainId === null ? undefined : detail.explain[l.explainId];
-  const [label, tone] = STATUS[l.status];
+  const label = statusWord(l);
+  const tone = TONE[l.status];
   return (
     <RecordTabs title={l.name} lede={`${KIND[l.kind]} ${l.ref}`}
       back={{ label: "Loans and advances", href: LIST }}
@@ -207,7 +205,7 @@ function LoanPage(p: { loan: LoanView }) {
                       <Money value={r.balance} size="sm" /></small>
                   </span>
                   <span className={s.rowEnd}>
-                    {ex !== undefined && r.month.startsWith("October") ? (
+                    {ex !== undefined && r.month === pay.thisRun ? (
                       <Explainable explanation={ex}>
                         <Money value={r.taken} size="sm" />
                       </Explainable>
@@ -240,7 +238,7 @@ function RequestPage(p: { r: PayRequest }) {
   return (
     <RecordTabs title={data.employee(r.employeeId).name.en}
       lede={`${what} request, sent ` +
-        formatDayMonth(r.requestedOn, lang)}
+        dayMonth(r.requestedOn, lang)}
       back={{ label: "Loans and advances", href: LIST }}
       stats={[
         { label: "Amount", value: <Money value={r.amount} size="lg" /> },

@@ -43,3 +43,18 @@ test("past-run-lists-every-payslip", async ({ page }) => {
   await expect(page.getByRole("list", { name: "Payslips" })
     .getByRole("listitem")).toHaveCount(30);
 });
+
+test("pay-records-are-outside-an-employees-view", async ({ page }) => {
+  await page.goto("/#/pay-run/loans/LN-2041");
+  await expect(page.getByRole("heading", { level: 1,
+    name: "Ayesha Siddiqui" })).toBeVisible();
+  await page.evaluate(() => { location.hash = "#/home"; });
+  await page.getByRole("heading", { level: 1 }).first().waitFor();
+  await page.getByRole("button", { name: /HR manager|Viewing as/ })
+    .first().click();
+  await page.getByRole("menuitemradio", { name: /Employee/ }).click();
+  await page.evaluate(() => { location.hash = "#/pay-run/loans/LN-2041"; });
+  await expect(page.getByRole("heading", { level: 1,
+    name: "Outside your view" })).toBeVisible();
+  await expect(page.getByText("Ayesha Siddiqui")).toHaveCount(0);
+});
