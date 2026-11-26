@@ -10,7 +10,11 @@ import {
 } from "@payroll/engine";
 import { DEMO_PERIOD, monthKey } from "./calendar";
 import { payslipInput, type InputOpts } from "./pay-inputs";
-import { PENSION_NOT_COMPUTED, payslipWithoutPension } from "./pension";
+import {
+  PENSION_LINE_ID,
+  PENSION_NOT_COMPUTED,
+  payslipWithoutPension,
+} from "./pension";
 import { BACK_PAY_RAISE } from "./roster";
 import type {
   BackPayDerivation,
@@ -43,7 +47,10 @@ export function slipOf(e: DemoEmployee, o: InputOpts, id: string)
     : calculatePayslip(input, DEFAULT_PAYROLL_PACKS);
   return { id, employeeId: e.id, basis: national
     ? "engine-steps-without-pension" : "calculatePayslip", input,
-  payslip: r.value, trace: r.trace, sif: e.iban === null
+  payslip: r.value, trace: r.trace,
+  pension: national ? { status: "not-computed", traceId: PENSION_LINE_ID,
+    reason: { en: PENSION_NOT_COMPUTED.en, ar: PENSION_NOT_COMPUTED.ar } }
+    : null, sif: e.iban === null
     ? { included: false, reason: HELD_NO_IBAN } : { included: true } };
 }
 

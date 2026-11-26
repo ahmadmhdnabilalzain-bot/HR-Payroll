@@ -4,7 +4,7 @@ export const DEMO_LABELS_EN = {
   "company.badge": "Fictional demo",
   "company.fakeNotice": "Fictional demo: the bank, its branches, " +
     "people, numbers and amounts are invented.",
-  "scope.rules": "Mainland rules; free-zone status unconfirmed",
+  "scope.rules": "UAE mainland rules",
   "dept.exec": "Executive office", "dept.retail": "Retail and branches",
   "dept.corp": "Corporate banking", "dept.ops": "Operations",
   "dept.credit": "Credit and risk", "dept.compliance": "Compliance",

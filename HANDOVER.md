@@ -269,12 +269,13 @@ waits for the GM (HR manager prepared it). Expats' payslips come from
 `calculatePayslip`; nationals' from the same engine steps without
 pension (`PENSION_NOT_COMPUTED`, a visible "not computed" line: the
 Abu Dhabi fund may apply, unconfirmed). Emiratisation is headcount by
-nationality only. Every figure says "mainland rules; free-zone status
-unconfirmed". `issuesOf` lists only problems the engine or the SIF
-check raise (held pay without IBAN, an IBAN typo, an unknown routing
-code, overtime over the daily limit, a loan cut by the Article 25
-cap, a sick day unpaid in probation, two documents near expiry, the
-partial settlement), each with a plain reason, a suggested fix (EN,
+nationality only. Every figure says "UAE mainland rules" (the client
+is mainland). `issuesOf` names its source on each issue: the engine
+(overtime over the daily limit, a loan cut by the Article 25 cap, a
+sick day unpaid in probation, the partial settlement), the SIF
+validator (an IBAN typo, the fictional routing code), or the demo's
+own checks (held pay without IBAN, two documents near expiry, the
+pension item); each with a plain reason, a suggested fix (EN,
 AR) and a `fixKind`. Selectors: `headline`, `costByDepartment`,
 `issuesOf`, `needsConfirmation`, `payslipByEmployee`,
 `explainPayslipLine` (inputs, rule ids, source status, steps),

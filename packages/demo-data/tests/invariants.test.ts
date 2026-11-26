@@ -67,6 +67,23 @@ describe("pay run invariants (seeds 1, 2026, 7777)", () => {
       }
     }));
 
+  it("nationals: the same engine steps as calculatePayslip", () => each(
+    (c) => {
+      // Pension is the only difference: compare everything else with
+      // calculatePayslip on the same input as a non-national.
+      for (const s of c.payRun.payslips.filter((x) =>
+        x.basis === "engine-steps-without-pension")) {
+        const r = calculatePayslip({ ...s.input, employee: {
+          ...s.input.employee, workerClass: "expat-full-time" } },
+        DEFAULT_PAYROLL_PACKS).value;
+        const pick = (p: typeof r) => serializeDemo([p.earnings,
+          p.deductions, p.gross, p.totalDeductions, p.net, p.caps,
+          p.deferred, p.loanBalances, p.flags, p.unpaidDays,
+          p.daysInPeriod, p.payStart, p.payEnd]);
+        expect(pick(s.payslip)).toBe(pick(r));
+      }
+    }));
+
   it("nationals' pension is a visible 'not computed' line", () => each(
     (c) => {
       for (const s of c.payRun.payslips) {
@@ -78,6 +95,8 @@ describe("pay run invariants (seeds 1, 2026, 7777)", () => {
           .toBe(national);
         expect(s.payslip.notComputed.includes(PENSION_NOT_COMPUTED.en))
           .toBe(national);
+        expect(s.pension?.status ?? null)
+          .toBe(national ? "not-computed" : null);
       }
     }));
 

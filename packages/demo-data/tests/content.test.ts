@@ -103,7 +103,8 @@ describe("the demo bank", () => {
   });
 });
 
-describe("problems the engine and the SIF check really raise", () => {
+describe("problems from the engine, the SIF check and demo checks",
+  () => {
   const issues = issuesOf(c);
   const codes = issues.map((i) => i.code);
 
@@ -163,18 +164,21 @@ describe("selectors, explanations and labels", () => {
     expect(x.rules.length).toBeGreaterThan(0);
     expect(x.rules[0]!.ruleId).toMatch(/^ae-payroll@/);
     expect(x.steps[0]).toMatch(/^Formula/);
-    expect(x.rulesScope).toBe("mainland rules; free-zone status " +
-      "unconfirmed");
+    expect(x.rulesScope).toBe("UAE mainland rules");
     for (const l of explainPayslip(c, s.id)) {
       for (const r of l.rules) expect(r.source).not.toBeNull();
     }
     expect(() => explainPayslipLine(c, s.id, "nope")).toThrow();
+    const n = c.payRun.payslips.find((x) => x.pension !== null)!;
+    const p = explainPayslipLine(c, n.id, n.pension!.traceId);
+    expect(p.text.en).toBe(n.pension!.reason.en);
+    expect(p.text.en).not.toMatch(/untranslated/);
   });
 
   it("headline basis, documents and the pay calendar", () => {
     const h = headline(c);
     expect(h.basis.ruleSet).toBe("UAE mainland");
-    expect(h.basis.freeZone).toBe("unconfirmed");
+    expect(Object.keys(h.basis).sort()).toEqual(["pension", "ruleSet"]);
     expect(h.basis.pension).toMatch(/^UAE nationals: not computed \(/);
     const d = documents(c);
     expect(d[0]!.daysLeft).toBeLessThanOrEqual(d[1]!.daysLeft);

@@ -37,6 +37,9 @@ export const PENSION_NOT_COMPUTED = {
   arReviewed: false,
 } as const;
 
+/** The visible "not computed" trace line on a national's payslip. */
+export const PENSION_LINE_ID = "pension.not-computed";
+
 const sum = (xs: { amount: Fils }[]): Fils =>
   fils(xs.reduce((s, x) => s + x.amount, 0n));
 
@@ -68,7 +71,7 @@ export function payslipWithoutPension(input: PayslipInput)
   const earnings = [...fixed, ...v.lines];
   total(t, "earn.gross", "Gross pay", "sum of the earnings lines",
     { lines: String(earnings.length) }, sum(earnings));
-  t.add({ id: "pension.not-computed", label: "Pension: not computed",
+  t.add({ id: PENSION_LINE_ID, label: "Pension: not computed",
     formula: "not computed", inputs: { reason: PENSION_NOT_COMPUTED.en },
     result: "not computed", rules: [] });
   const e = input.employee;

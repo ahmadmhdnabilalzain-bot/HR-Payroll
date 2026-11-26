@@ -61,6 +61,12 @@ export interface DemoPayslip {
   input: PayslipInput;
   payslip: Payslip;
   trace: TraceLine[];
+  /**
+   * The pension line: "not computed" with its reason (UAE nationals),
+   * or null (no pension line for other staff). Never a silent zero.
+   */
+  pension: { status: "not-computed"; traceId: string;
+    reason: { en: string; ar: string } } | null;
   /** In the SIF, or held back with the reason. */
   sif: { included: true } | { included: false; reason: string };
 }

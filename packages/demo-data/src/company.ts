@@ -18,7 +18,7 @@ import { buildApprovals, buildDocuments, buildExpenses } from "./workplace";
 export const DEFAULT_SEED = 2026;
 
 /** Shown with every figure's source. One place, so it can change. */
-export const RULES_SCOPE = "mainland rules; free-zone status unconfirmed";
+export const RULES_SCOPE = "UAE mainland rules";
 
 /** The FICTIONAL bank: invented name and codes; it pays its own staff. */
 export const DEMO_BANK = { id: "co-demo-bank", name: "Zarqan Demo Bank",

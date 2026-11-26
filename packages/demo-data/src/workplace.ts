@@ -58,12 +58,15 @@ export function buildExpenses(): DemoExpenseClaim[] {
   ];
 }
 
-/** The head of each employee's department decides (no one self-checks). */
+/**
+ * The most senior person of the same department and location decides
+ * (a branch's own manager); the GM when that is the employee.
+ */
 function checkerOf(es: DemoEmployee[], e: DemoEmployee): string {
-  const heads = es.filter((x) => x.departmentId === e.departmentId)
-    .sort((a, b) => b.grade - a.grade);
-  const head = heads[0]!;
-  return head.id === e.id ? "emp-001" : head.id;
+  const senior = es.filter((x) => x.departmentId === e.departmentId &&
+    x.grade > e.grade).sort((a, b) => b.grade - a.grade);
+  const local = senior.filter((x) => x.location === e.location);
+  return (local[0] ?? senior[0])?.id ?? "emp-001";
 }
 
 const item = (n: number, x: Omit<ApprovalItem, "id" | "status">)

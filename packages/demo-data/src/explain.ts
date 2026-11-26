@@ -7,6 +7,7 @@ import {
   type TraceLine,
   type TraceRule,
 } from "@payroll/engine";
+import { PENSION_LINE_ID, PENSION_NOT_COMPUTED } from "./pension";
 import type { DemoCompany, DemoPayslip } from "./types";
 
 const PACKS = [...PAYROLL_PACKS, ...GPSSA_PACKS, ...GRATUITY_PACKS];
@@ -56,9 +57,18 @@ export function explainLine(c: DemoCompany, payslipId: string,
   const rules = line.rules.map((r) => ({ ...r,
     ruleId: `${r.packId}@${r.packVersion}:${r.key}`, source: sourceOf(r) }));
   return { payslipId, line, inputs: { ...line.inputs }, rules,
-    steps: stepsOf(line, rules),
-    text: { en: explainTrace([line], "en"), ar: explainTrace([line], "ar"),
-      arReviewed: false }, rulesScope: c.rulesScope };
+    steps: stepsOf(line, rules), text: textOf(line),
+    rulesScope: c.rulesScope };
+}
+
+/** The engine's catalog, except the demo's own pension line. */
+function textOf(line: TraceLine): ExplainedLine["text"] {
+  if (line.id === PENSION_LINE_ID) {
+    return { en: PENSION_NOT_COMPUTED.en, ar: PENSION_NOT_COMPUTED.ar,
+      arReviewed: false };
+  }
+  return { en: explainTrace([line], "en"), ar: explainTrace([line], "ar"),
+    arReviewed: false };
 }
 
 /** The trace line behind one payslip line (its traceId), explained. */

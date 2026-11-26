@@ -582,3 +582,5 @@ The owner can overrule any of these. Full list with reasons:
   payslip is computed and held out of the SIF; the demo's "today" is
   2026-10-27 with the run waiting for the GM; commit trailers follow
   the harness (Opus) line, as Plans 3 and 6 recorded.
+- Owner confirmed the client is mainland: every figure says "UAE
+  mainland rules"; the free-zone wording is dropped.

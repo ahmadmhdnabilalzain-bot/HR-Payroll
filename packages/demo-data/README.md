@@ -24,12 +24,14 @@ const demo = buildDemoCompany(); // seed 2026; same seed, same bytes
   trace; totals are sums of the payslips.
 - The WPS SIF from `packages/wps` and its validation report. One
   payslip (no IBAN) is held out of the file, with its reason.
-- Problems the engine or the SIF check really raise, each with a plain
-  reason and a suggested fix (`issuesOf`): held pay (no IBAN), an IBAN
-  that fails mod 97, the fictional bank's routing code not in the
-  bundled table, overtime over the 2-hour daily limit, a loan
-  instalment cut by the Article 25 cap, a sick day unpaid in
-  probation, two documents near expiry, the partial final settlement.
+- Problems, each with its source, a plain reason, a suggested fix
+  (EN/AR) and a `fixKind` (`issuesOf`). From the engine: overtime
+  over the 2-hour daily limit, a loan instalment cut by the Article 25
+  cap, a sick day unpaid in probation, the partial final settlement.
+  From the SIF validator: an IBAN that fails mod 97, the fictional
+  bank's routing code not in the bundled table. From the demo's own
+  checks: held pay (no IBAN), two documents near expiry, the pension
+  item.
 - Leave (6 requests: pending, sick, unpaid, rejected) with engine
   balances; October attendance with overtime, night work and unpaid
   absence; two expense claims; a leaver with gratuity
@@ -44,8 +46,8 @@ const demo = buildDemoCompany(); // seed 2026; same seed, same bytes
   "needs confirmation" item (`PENSION_NOT_COMPUTED`, one place).
 - Emiratisation: headcount by nationality only, labelled "sample
   data, regime for banks to be confirmed". No target, status or fine.
-- Every figure carries "mainland rules; free-zone status unconfirmed"
-  (`RULES_SCOPE`).
+- Every figure carries "UAE mainland rules" (`RULES_SCOPE`; the client
+  is mainland).
 - No claim of acceptance by any regulator, bank or ministry.
 
 ## Fake identifiers

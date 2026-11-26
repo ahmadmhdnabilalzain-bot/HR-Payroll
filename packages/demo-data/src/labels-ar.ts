@@ -7,7 +7,7 @@ export const DEMO_LABELS_AR: Record<DemoLabelKey, string> = {
   "company.badge": "عرض تجريبي وهمي",
   "company.fakeNotice": "عرض تجريبي وهمي: البنك وفروعه وموظفوه " +
     "وأرقامه ومبالغه كلها من وحي الخيال.",
-  "scope.rules": "قواعد البر الرئيسي؛ وضع المناطق الحرة غير مؤكد",
+  "scope.rules": "قواعد البر الرئيسي في الإمارات",
   "dept.exec": "المكتب التنفيذي", "dept.retail": "الأفراد والفروع",
   "dept.corp": "الخدمات المصرفية للشركات", "dept.ops": "العمليات",
   "dept.credit": "الائتمان والمخاطر", "dept.compliance": "الامتثال",

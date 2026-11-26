@@ -31,12 +31,10 @@ export interface HeadlineTotals {
 
 export interface HeadlineBasis {
   ruleSet: "UAE mainland";
-  freeZone: "unconfirmed";
   pension: string;
 }
 
 export const HEADLINE_BASIS: HeadlineBasis = { ruleSet: "UAE mainland",
-  freeZone: "unconfirmed",
   pension: `UAE nationals: not computed (${PENSION_NOT_COMPUTED.en})` };
 
 /** The numbers the dashboard leads with; every one is a sum. */
