@@ -11,7 +11,7 @@ export function Emiratisation() {
   return (
     <ReportPage title="Emiratisation"
       period={`Headcount as of ${formatDate(n.asOf, p.lang)}`}
-      figure={{ label: "UAE nationals on the payroll",
+      figure={{ label: "UAE nationals, active",
         value: <span className={s.big}>
           {n.uaeNationals} of {n.headcount}</span> }}
       columns={[{ label: "Nationality" },
@@ -19,9 +19,9 @@ export function Emiratisation() {
       rows={[...n.rows.map((r) => [r.name, String(r.count)]),
         ["Total", String(n.headcount)]]}
       bars={[...n.rows.map((r) => Math.round(r.count * 1000 / max)), 0]}
-      note={`Headcount only. ${n.label[0]?.toUpperCase() ?? ""}${n.label
-        .slice(1)}. No target, rate, status or fine is worked out, and
-        nothing is sent to Nafis from here.`}
+      note={`${n.headcountText}. Headcount only (${n.label}). No target,
+        rate, status or fine is worked out, and nothing is sent to Nafis
+        from here.`}
       csvName="headcount-by-nationality.csv" />
   );
 }

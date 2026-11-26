@@ -76,6 +76,8 @@ export interface Nationalities {
   asOf: string;
   label: string;
   headcount: number;
+  /** The package's one headcount sentence. */
+  headcountText: string;
   uaeNationals: number;
   rows: NationalityCount[];
 }

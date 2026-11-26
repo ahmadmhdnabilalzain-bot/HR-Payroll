@@ -7,7 +7,7 @@ import { NotFound } from "./Outside";
 import s from "./papers.module.css";
 import { Stack, Status } from "./Status";
 import { usePapers, type Papers } from "./usePapers";
-import { WARNING_STATUS } from "./words";
+import { VERB, WARNING_STATUS } from "./words";
 
 const LIST = hrefOf("people", "papers", "warnings");
 
@@ -44,7 +44,7 @@ function historyOf(p: Papers, w: WarningRow): HistoryItem[] {
     tone: "info" }];
   if (w.step !== null) {
     const [word, tone] = WARNING_STATUS[w.status];
-    out.push({ text: p.byLine(word, w.step), tone });
+    out.push({ text: p.byLine(VERB[w.status] ?? word, w.step), tone });
   } else if (w.status === "closed") {
     out.push({ text: "Given and closed", tone: "quiet" });
   }

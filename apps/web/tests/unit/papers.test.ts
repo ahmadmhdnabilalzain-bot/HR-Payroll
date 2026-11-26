@@ -109,3 +109,16 @@ describe("papers overview and registry", () => {
     expect(mine.every((a) => a.status === "live")).toBe(true);
   });
 });
+
+describe("papers copy", () => {
+  it("never claims, in words or data", async () => {
+    const { readFileSync } = await import("node:fs");
+    const words = readFileSync("src/people/papers/words.ts", "utf8");
+    const BANNED = /\b(compliant|approved|certified|guaranteed)\b/i;
+    expect(words).not.toMatch(BANNED);
+    const shown = JSON.stringify([d.papers.requests(), d.papers.letters()
+      .map((l) => [l.purpose, l.addressee, l.reference]),
+    d.papers.visas(), d.papers.warnings(), d.papers.nationalities()]);
+    expect(shown).not.toMatch(BANNED);
+  });
+});

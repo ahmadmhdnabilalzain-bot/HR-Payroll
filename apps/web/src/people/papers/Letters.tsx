@@ -15,7 +15,7 @@ import { NotFound } from "./Outside";
 import s from "./papers.module.css";
 import { Stack, Status } from "./Status";
 import { usePapers, type Papers } from "./usePapers";
-import { LETTER_KIND, LETTER_KINDS, LETTER_STATUS } from "./words";
+import { LETTER_KIND, LETTER_KINDS, LETTER_STATUS, VERB } from "./words";
 
 const LIST = hrefOf("people", "papers", "letters");
 
@@ -94,7 +94,8 @@ function historyOf(p: Papers, l: LetterRow): HistoryItem[] {
     when: p.when(l.requestedOn), tone: "info" }];
   if (l.step !== null) {
     const [word, tone] = LETTER_STATUS[l.status];
-    out.push({ text: p.byLine(word, l.step), tone });
+    out.push({ text: p.byLine(l.status === "issued" ? "Signed and issued"
+      : VERB[l.status] ?? word, l.step), tone });
   } else if (l.status === "issued") {
     out.push({ text: "Issued", tone: "ok" });
   }
@@ -120,15 +121,15 @@ function Paper(props: { p: Papers; l: LetterRow }) {
           {p.data.companyName[p.lang]} since {joined}, on a monthly salary
           of <Money value={l.monthlySalary} tween={false} />, as per
           contract. Issued at the employee's request for:{" "}
-          {l.purpose.toLowerCase()}.</p>
+          {l.purpose}.</p>
       ) : l.kind === "noc" ? (
         <p>{p.data.companyName[p.lang]} has no objection to{" "}
-          {p.nameOf(l.employeeId)}, {p.roleOf(l.employeeId)}, taking part
-          in: {l.purpose.toLowerCase()}.</p>
+          {p.nameOf(l.employeeId)}, {p.roleOf(l.employeeId)}. Purpose:{" "}
+          {l.purpose}.</p>
       ) : (
         <p>This confirms that {p.nameOf(l.employeeId)} worked for{" "}
           {p.data.companyName[p.lang]} as {p.roleOf(l.employeeId)}, from{" "}
-          {joined}. Purpose: {l.purpose.toLowerCase()}.</p>
+          {joined}. Purpose: {l.purpose}.</p>
       )}
       <p className={s.paperSign}>
         {l.status === "issued" && l.step !== null

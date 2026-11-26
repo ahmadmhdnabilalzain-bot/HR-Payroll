@@ -13,7 +13,9 @@ export function Pension() {
   const rows = p.data.people.people().filter((x) => x.status !== "left");
   return (
     <FilterList title="Pension (GPSSA)"
-      lede={p.data.basis().pension[p.lang]}
+      lede={`${p.data.basis().pension[p.lang].replace(
+        " Not included in this figure.", "")} Nothing is worked out or
+        sent to a fund from this page.`}
       rows={rows} rowKey={(x) => x.id}
       searchText={(x) => `${x.name[p.lang]} ${x.nationality}`}
       rowHref={(x) => hrefOf("people", x.id)}
@@ -29,7 +31,7 @@ export function Pension() {
           new Intl.DisplayNames(["en"], { type: "region" })
             .of(x.nationality) ?? x.nationality },
         { key: "p", label: "Pension", render: (x) => (
-          <Status word={x.uaeNational ? "Not computed" : "Not applicable"}
+          <Status word={x.uaeNational ? "Not computed" : "Not a UAE national"}
             tone={x.uaeNational ? "warn" : "quiet"} />) },
       ]}
       empty="Nobody here." />

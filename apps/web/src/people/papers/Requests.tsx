@@ -13,7 +13,7 @@ import { requestIsOpen, requestRows, type RequestRow } from "./model";
 import s from "./papers.module.css";
 import { Stack, Status } from "./Status";
 import { usePapers, type Papers } from "./usePapers";
-import { LINK_LABEL, REQUEST_KINDS, REQUEST_STATUS, waitText }
+import { LINK_LABEL, REQUEST_KINDS, REQUEST_STATUS, VERB, waitText }
   from "./words";
 
 const LIST = hrefOf("people", "papers", "requests");
@@ -28,8 +28,7 @@ export function Requests() {
   return (
     <>
       <FilterList title="Staff requests"
-        lede="What people have asked HR for, oldest first. Open one to
-          act on it."
+        lede="What people have asked HR for. Open one to act on it."
         rows={rows} rowKey={(r) => r.id}
         searchText={(r) => `${r.title} ${p.nameOf(r.employeeId)}`}
         rowHref={(r) => hrefOf("people", "papers", "requests", r.id)}
@@ -94,7 +93,7 @@ function historyOf(p: Papers, r: RequestRow): HistoryItem[] {
       : [raised];
   }
   const [word, tone] = REQUEST_STATUS[r.status];
-  return [raised, { text: p.byLine(word, r.step), tone }];
+  return [raised, { text: p.byLine(VERB[r.status] ?? word, r.step), tone }];
 }
 
 /** The record of one request, with the decision. */

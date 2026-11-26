@@ -16,8 +16,8 @@ export function Visas() {
   const rows = visaRows(p.data, p.state);
   return (
     <FilterList title="Visas and government cases"
-      lede="Renewals in progress, soonest expiry first. Government fees
-        are not shown: the demo has no fee schedule."
+      lede="Renewals and new visas. Government fees are not shown: the
+        demo has no fee schedule."
       rows={rows} rowKey={(v) => v.id}
       searchText={(v) => `${v.kind} ${p.nameOf(v.employeeId)}`}
       rowHref={(v) => hrefOf("people", "papers", "visas", v.id)}

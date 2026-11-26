@@ -9,8 +9,8 @@ import type {
 
 /**
  * The papers screens' own words (English; Arabic stays hidden until
- * a native speaker has read it). Plain words, never "approved",
- * "compliant" or "certified": a status says who did what, and when.
+ * a native speaker has read it). Plain words only: a status says who
+ * did what, and when, and makes no claim about a rule or an authority.
  */
 export type Tone = "warn" | "info" | "ok" | "quiet" | "danger";
 
@@ -54,6 +54,11 @@ export const LETTER_KINDS: [LetterKind, string][] = [
   ["salary-certificate", "Salary certificate"],
   ["noc", "No-objection letter"], ["experience", "Experience letter"],
 ];
+
+/** What a step is called in a history line ("Started by ..."). */
+export const VERB: Record<string, string> = { "in-progress": "Started",
+  done: "Marked done", declined: "Declined", withdrawn: "Withdrawn",
+  pending: "Sent for signature", issued: "Issued", discarded: "Discarded" };
 
 /** "1 day", "3 days", "today". */
 export function waitText(days: number): string {

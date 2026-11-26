@@ -17,6 +17,7 @@ const REGION = new Intl.DisplayNames(["en"], { type: "region" });
 function nationalitiesOf(c: DemoCompany): Nationalities {
   const n = c.nationalities;
   return { asOf: n.asOf, label: n.label, headcount: n.headcount,
+    headcountText: n.headcountText,
     uaeNationals: n.uaeNationals,
     rows: n.byNationality.map((r) => ({
       name: REGION.of(r.nationality) ?? r.nationality, count: r.count })) };
