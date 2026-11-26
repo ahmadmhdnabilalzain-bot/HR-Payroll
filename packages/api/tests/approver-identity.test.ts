@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { dispatch } from "./helpers/channel-jobs";
 import { meal, submitted } from "./helpers/expense-fixtures";
 import { rowsOf } from "./helpers/channel-jobs";
 import { as, world, type World } from "./helpers/reimb-world";
@@ -65,6 +66,27 @@ describe("approver identity at decision time", () => {
         { errorCode: "NOT_AN_APPROVER" }, { errorCode: "NOT_AN_APPROVER" }]);
       const no = "This decision cannot be made from WhatsApp. Open the app.";
       expect(w.replies(H_PHONE)).toEqual([no, no]);
+    });
+
+  it("a demoted approver gets no buttons when the step reaches them",
+    async () => {
+      const w = await waWorld("wlater");
+      const owner = { approver: { kind: "role", role: "owner" },
+        minTotal: "0.00" };
+      expect((await setChain(w, [owner, HR_TIER])).status).toBe(200);
+      await waUser(w.ctx, w.s, w.s.hr, H_PHONE);
+      const id = await w.claim("51.00");
+      const d = await as(w as unknown as World, w.s.owner, "PATCH",
+        `/v1/users/${w.s.hr.userId}`, { role: "employee" });
+      expect(d.status, d.text).toBe(200);
+      const ok = await as(w as unknown as World, w.s.owner, "POST",
+        `/v1/approvals/${id}/approve`, { stepOrder: 1 });
+      expect(ok.status, ok.text).toBe(200);
+      await dispatch(w.ctx);
+      expect((await approvalOf(w.ctx, w.s, id)).currentStep).toBe(2);
+      expect(w.ctx.fakes.outbox.whatsapp.filter((m) =>
+        m.toE164 === H_PHONE && "buttonPayloads" in m &&
+        m.buttonPayloads.length > 0)).toEqual([]);
     });
 
   it("service user (API key) is never an approver", async () => {

@@ -387,10 +387,11 @@ Date: 2026-11-26. Merged `origin/claude/quirky-wozniak-b7xkvr` at
 kit, web groundwork). Not pushed.
 
 Commits: `53627bb` (merge), `434ee6c` (ops: serve.ts and
-RECEIPTS_DIR), `2803463` (tests and the `verdictFor` role check), and
-the commit that adds this section.
+RECEIPTS_DIR), `2803463` (tests and the `verdictFor` role check),
+`0f52225` (this section, handover, ledger) and a follow-up commit
+(revocation and recipient tests, runbook backup note).
 
-### Conflicts (20 files) and resolutions
+### Conflicts (21 files) and resolutions
 
 Both sides were kept everywhere.
 
@@ -452,7 +453,16 @@ Both sides were kept everywhere.
   gets no notices, cannot act by WhatsApp, and the feed URL gives 404).
   The SSO link path already read memberships under the no-tenant
   policy, which hides revoked rows; JIT never matches an employee that
-  had a membership.
+  had a membership. Tested (`revoked-member-channels.test.ts`): with
+  `revoked_at` set, the WhatsApp tap is refused (`TENANT_FORBIDDEN`
+  audit, nothing decided; without the `actorCtx` filter the revoked
+  manager's tap approved the claim), no new notice or message, and the
+  feed URL gives 404. Each of the three filters was removed in turn
+  and the test failed.
+- `approval.pending` recipients follow the inbox rule: users excluded
+  when the request opened and, on a role step, users who no longer
+  hold the role get no notice (a demoted hr approver got approve
+  buttons when step 2 reached them; tested).
 - A named chain approver must be a human member (`chains.ts`): an API
   key's service user is refused with `CHAIN_INVALID`.
 - `deploy/serve.ts` passes `fsBlobStore(RECEIPTS_DIR)` and the channel
@@ -460,7 +470,11 @@ Both sides were kept everywhere.
   an absolute `RECEIPTS_DIR` for api, migrate and serve (test added);
   compose sets it and mounts a `receipts` volume on the api service;
   the Dockerfile creates the directory for the `node` user; the env
-  example and runbook list it. Smoke test on a throwaway PostgreSQL
+  example and runbook list it, and the runbook's backup section says
+  the `receipts` volume must be copied with every dump (command
+  untested). The Dockerfile and compose changes were not built or
+  run here (untested); CI's compose job needs no change (compose sets
+  `RECEIPTS_DIR`). Smoke test on a throwaway PostgreSQL
   16 with `init-roles.sql`: `main.ts migrate`, `serve.ts` (health
   200) and `main.ts jobs` all ran.
 
@@ -477,10 +491,13 @@ Both sides were kept everywhere.
   status inside them, and no salary, fils, gross, IBAN, labour id,
   Emirates ID or HR sentinel in any body; a key with `payroll:read`
   does see salaries (not vacuous).
+- `approver-identity.test.ts` also: a demoted approver gets no
+  buttons when a later step reaches them.
+- `revoked-member-channels.test.ts`: see the revocation fix above.
 
 ### Checks (run one package at a time)
 
-- `packages/api`: 96 files, 692 tests, green
+- `packages/api`: 97 files, 694 tests, green
   (`vitest run --maxWorkers=1 --testTimeout=60000`, real PostgreSQL
   suites included and confirmed running).
 - `packages/contract` 11 files, 131 tests; `packages/engine` 53
@@ -501,3 +518,8 @@ Both sides were kept everywhere.
   and was left as is (a revoked user cannot open a tenant, so cannot
   decide in the app; WhatsApp is now covered by `actorCtx`).
 - A fresh security review of Tasks 4, 5, 7, 8 and 9 is still owed.
+- Outside the worktree: the smoke test first ran `CREATE DATABASE
+  payroll` by mistake on another agent's PostgreSQL (port 55439,
+  `/tmp/p9pg`) and dropped it again at once; the throwaway server's
+  data directory `/var/lib/postgresql/smoke-p13` is left behind,
+  stopped (safe to delete).

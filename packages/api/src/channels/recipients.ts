@@ -40,13 +40,27 @@ async function employee(tx: Db, c: string, id: string) {
   return e ?? { full_name: "", manager_id: null };
 }
 
+/**
+ * The step's eligible users as the inbox shows them: never someone
+ * excluded when the request opened (claimant, submitter, makers), and
+ * on a role step only those who hold the role now.
+ */
 async function stepEligible(tx: Db, c: string, approvalId: string,
   step: number): Promise<string[]> {
-  const [s] = await tx.query<{ eligible: string[] }>(
-    `SELECT array_to_json(eligible) AS eligible FROM approval_steps
-     WHERE company_id = $1 AND request_id = $2 AND step_order = $3`,
+  const [s] = await tx.query<{ eligible: string[]; excluded: string[];
+    approver: { kind: string; role?: string } }>(
+    `SELECT array_to_json(s.eligible) AS eligible, s.approver,
+       array_to_json(r.excluded) AS excluded
+     FROM approval_steps s JOIN approval_requests r
+       ON r.company_id = s.company_id AND r.id = s.request_id
+     WHERE s.company_id = $1 AND s.request_id = $2 AND s.step_order = $3`,
     [c, approvalId, step]);
-  return members(tx, c, s?.eligible ?? []);
+  if (s === undefined) return [];
+  const ids = s.eligible.filter((u) => !s.excluded.includes(u));
+  const ok = await members(tx, c, ids);
+  if (s.approver.kind !== "role") return ok;
+  const holders = await ofRoles(tx, c, [s.approver.role!]);
+  return ok.filter((u) => holders.includes(u));
 }
 
 async function payRunUsers(tx: Db, c: string, runId: string) {
