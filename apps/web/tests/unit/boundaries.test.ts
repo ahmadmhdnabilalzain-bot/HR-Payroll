@@ -35,6 +35,8 @@ describe("boundaries", () => {
     // in parallel merge without conflicts.
     const allowed = [
       "src/demo/data/adapter.ts",
+      "src/demo/data/files-types.ts",
+      "src/demo/data/files.ts",
       "src/demo/data/papers.ts",
       "src/demo/data/people.ts",
       "src/demo/data/run-detail.ts",
