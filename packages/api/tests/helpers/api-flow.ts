@@ -127,8 +127,8 @@ async function attendance(hit: Hitter, owner: string, emp: string,
   await hit("listAttendance", emp, c, {}, undefined,
     { query: "?from=2026-01-01&to=2026-12-31" });
   await hit("correctAttendance", owner, c, { id: i.body.id }, {
-    clockIn: "2026-03-01T05:00:00.000Z",
-    clockOut: "2026-03-01T13:00:00.000Z", note: "fixed" });
+    clockIn: "2026-02-28T05:00:00.000Z",
+    clockOut: "2026-02-28T13:00:00.000Z", note: "fixed" });
 }
 
 async function payroll(hit: Hitter, owner: string, owner2: string,

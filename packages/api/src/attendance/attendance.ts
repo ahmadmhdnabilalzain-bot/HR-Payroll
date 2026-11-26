@@ -75,13 +75,42 @@ export async function loadRecord(tx: Db, companyId: string, id: string)
   return r;
 }
 
-export async function correct(tx: Db, companyId: string, id: string,
-  c: { clockIn: string; clockOut: string | null; note: string })
-  : Promise<AttendanceRow> {
-  if (c.clockOut !== null && Date.parse(c.clockOut) < Date.parse(c.clockIn)) {
-    throw new ApiError("VALIDATION_FAILED", "clockOut is before clockIn",
-      { fields: ["body.clockOut"] });
+/** A correction may span at most this long (a decision, not a law). */
+export const MAX_CORRECTION_MS = 24 * 3600 * 1000;
+
+function checkTimes(c: { clockIn: string; clockOut: string | null },
+  now: Date): void {
+  const bad = (field: string, msg: string) => new ApiError(
+    "VALIDATION_FAILED", msg, { fields: [`body.${field}`] });
+  const start = Date.parse(c.clockIn);
+  if (start > now.getTime()) throw bad("clockIn", "clockIn is in the future");
+  if (c.clockOut === null) return;
+  const end = Date.parse(c.clockOut);
+  if (end < start) throw bad("clockOut", "clockOut is before clockIn");
+  if (end > now.getTime()) throw bad("clockOut", "clockOut is in the future");
+  if (end - start > MAX_CORRECTION_MS) {
+    throw bad("clockOut", "a record may span at most 24 hours");
   }
+}
+
+/** Reopening a record while the person has another open one: 409. */
+async function checkOpen(tx: Db, companyId: string, r: AttendanceRow,
+  clockOut: string | null): Promise<void> {
+  if (clockOut !== null) return;
+  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
+    "id = $2 FOR UPDATE", [companyId, r.employee_id]);
+  const other = await tx.query(
+    `SELECT 1 FROM attendance WHERE company_id = $1 AND employee_id = $2
+     AND clock_out IS NULL AND id <> $3`, [companyId, r.employee_id, r.id]);
+  if (other.length > 0) throw new ApiError("ALREADY_CLOCKED_IN");
+}
+
+export async function correct(tx: Db, companyId: string, old: AttendanceRow,
+  c: { clockIn: string; clockOut: string | null; note: string }, now: Date)
+  : Promise<AttendanceRow> {
+  checkTimes(c, now);
+  await checkOpen(tx, companyId, old, c.clockOut);
+  const id = old.id;
   const minutes = c.clockOut === null ? null
     : minutesBetween(c.clockIn, c.clockOut);
   const [r] = await tx.query<AttendanceRow>(
