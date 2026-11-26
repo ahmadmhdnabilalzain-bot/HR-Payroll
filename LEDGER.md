@@ -615,3 +615,17 @@ The owner can overrule any of these. Full list with reasons:
   fund; unconfirmed); Arabic hidden unless reviewed.
 - Done tonight before pausing: C-1 crash fix (idle-in-transaction
   timeout killed the API process) cherry-picked to main (c668f64).
+
+## 17. Product name (2026-11-26)
+
+- Owner chose the working name **Mubinflow** (Arabic *mubin*, "clear,
+  evident", plus "flow"; reads "moo-BEEN-flow"). Backups from the same
+  root: Mubinly (reads "clearly"), Mubinpay, Mubinio. Why it won: easy to
+  say, Arabic-origin, matches "every number explained, problems caught
+  plainly".
+- Checked 2026-11-26: mubinflow.com not registered at the .com registry;
+  search shows no company or product with the name (only people named
+  Mubin). NOT done: UAE trademark register search, app stores, other
+  TLDs, and a native-speaker check of the connotation (the word also
+  appears in the Quran as "clear"). Domain purchase is the owner's call.
+- The on-screen name lives in one place (`apps/web/src/brand.ts`).
