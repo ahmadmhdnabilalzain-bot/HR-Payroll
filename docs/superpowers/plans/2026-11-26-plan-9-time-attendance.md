@@ -1,4 +1,4 @@
-# Plan 9: Time, Attendance, Shifts, Leave Policies and Work-From-Home
+# Plan 9: Time, Attendance, Leave Policies and WFH Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:subagent-driven-development (recommended) or
@@ -129,8 +129,8 @@ and a reference plan only).
   native speaker reviews it (HANDOVER known limits).
 - Contract changes to Plan 3 schemas are additive (new optional fields,
   new routes) except the named widenings in Rulings 6 and 7.
-- No deletes except the two WFH sample tables (retention and erasure,
-  Ruling 20); every other removal is a status.
+- No deletes except the WFH sample and pause tables (retention and
+  erasure, Ruling 20); every other removal is a status.
 - Audit actions match `^[a-z]+(\.[a-z-]+)+$` with no hyphen in the
   first segment.
 - Migrations are numbered `901_` to `908_` (Plan 9's range).
@@ -503,8 +503,10 @@ Law task: fresh per-task review.
     `CARRY_OVER_ABOVE_HALF` (`carryOverMaxDays * 10000 > annualDays *
     carryOverMaxShareBps`; ER 19(1) speaks of the worker's carry
     forward; whether a more generous policy is allowed is not in the
-    note), `SICK_BELOW_STATUTORY` (sick, `annualDays` not null and
-    below `sickLeaveMaxDaysPerYear`), `MATERNITY_IS_PER_BIRTH`
+    note), `SICK_DAYS_DIFFER_FROM_LAW` (sick, `annualDays` not null
+    and not equal to `sickLeaveMaxDaysPerYear`; Art 31(3) says "no
+    more than" 90 days, so this is our reading, not a floor),
+    `MATERNITY_IS_PER_BIRTH`
     (maternity with `annualDays` not null; Art 30 grants leave per
     birth). Each carries its rule; warnings never block.
 
@@ -543,7 +545,7 @@ Law task: fresh per-task review.
   calendar 20 gives `ANNUAL_BELOW_STATUTORY` and
   `MONTHLY_BELOW_FIRST_YEAR_RATE`; carry-over 16 of 30 gives
   `CARRY_OVER_ABOVE_HALF`, 15 of 30 none; sick 60 gives
-  `SICK_BELOW_STATUTORY`; maternity with 60 gives
+  `SICK_DAYS_DIFFER_FROM_LAW`; maternity with 60 gives
   `MATERNITY_IS_PER_BIRTH`; annual calendar 30, upfront, no carry-over:
   `[]`.
 - `balance_identity` (fast-check): `available + taken + pending +
@@ -555,7 +557,7 @@ Law task: fresh per-task review.
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(engine): leave counting and accrual`.
 
-### Task 3: Time route registry, settings, holiday and Ramadan calendar, work sites, profiles
+### Task 3: Route registry, settings, holiday calendar, sites, profiles
 
 **Files:**
 - Create: `packages/contract/src/routes-time.ts`,
@@ -886,7 +888,7 @@ and none has method `DELETE`.
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(api): shifts, rosters and swaps`.
 
-### Task 5: Browser and phone clock-in with geofence; corrections with approval
+### Task 5: Browser and phone clock-in, geofence, corrections
 
 **Files:**
 - Create: `packages/contract/src/time-clock.ts`
@@ -1038,9 +1040,6 @@ reading gives `not-applied`; nearest of two sites wins.
 - `correction_sod_and_scope`: a manager approving own request gives
   403 `SOD_VIOLATION`; a non-report's request gives 404; approving twice
   gives 409 `CORRECTION_NOT_PENDING`.
-- `locked_day_refuses_edits`: with a stub row making the day locked
-  (inserted directly once Task 6's table exists; until then this test
-  is added in Task 6), Plan 3's hr `PUT` gives 409 `TIMESHEET_LOCKED`.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/api test geofence clock
   corrections`. Expected: FAIL.
@@ -1234,7 +1233,8 @@ equal Plan 5's literals; `PAY_INPUTS_STATEMENT` equals the exact text.
 `timesheets.test.ts` (fixtures from `seedTime`; legal values read from
 `loadTimeParams`):
 - `prepare_builds_days_from_roster_and_records`: a 09:00 to 19:00 day
-  on a 09:00 to 17:00 shift with break 60 gives `overtimeMinutes` 60;
+  on a 09:00 to 17:00 shift with break 60 (net 420) gives
+  `overtimeMinutes` 120;
   the holiday is kind `holiday`; the company rest day is `rest`.
 - `prepare_twice_concurrently_one_timesheet`: two `Promise.all`
   prepares give statuses `{201, 200}` and one id; `SELECT count(*)` 1.
@@ -1285,12 +1285,14 @@ of `src/wfh/`; `pay-inputs.ts` has no `Date`, `deps`, `tx` or `./db`.
   `pnpm --filter @payroll/api test timesheets pay-inputs clock-math`.
   Expected: FAIL.
 - [ ] **Step 3: Implement** the files above; add
-  `locked_day_refuses_edits` to `corrections.test.ts` now.
+  `locked_day_refuses_edits` to `corrections.test.ts` now: with an
+  approved timesheet for the month, Plan 3's hr `PUT` on that day gives
+  409 `TIMESHEET_LOCKED`.
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(api): timesheets, overtime review, pay
   inputs`.
 
-### Task 7: Leave policies, half days, blackouts, accrual and carry-over
+### Task 7: Leave policies, half days, blackouts, carry-over
 
 **Files:**
 - Create: `packages/contract/src/time-leave-policy.ts`
@@ -1615,15 +1617,837 @@ of `src/wfh/`; `pay-inputs.ts` has no `Date`, `deps`, `tx` or `./db`.
 - [ ] **Step 5: Commit** `feat(api): team calendar, availability,
   flags`.
 
-<!-- TASKS -->
+### Task 9: Work-from-home settings, notice, consent, pause
+
+Privacy task: fresh per-task review.
+
+**Files:**
+- Create: `packages/contract/src/time-wfh.ts`
+- Modify: contract `routes-time.ts`, `errors.ts`, `examples.ts`,
+  `index.ts`, `tests/routes-time.test.ts`
+- Create: `packages/api/migrations/907_wfh_consent.sql`,
+  `src/wfh/limits.ts`, `src/wfh/settings.ts`,
+  `src/wfh/notice-template.ts`, `src/wfh/notice.ts`,
+  `src/wfh/consent.ts`, `src/wfh/pause.ts`, `src/wfh/status.ts`,
+  `src/routes/wfh.ts`
+- Modify: api `src/attendance/attendance.ts` (clock-out closes an open
+  pause), `src/app.ts`, `tests/helpers/seed-time.ts`,
+  `tests/conformance.test.ts`, `tests/leak.test.ts`
+- Test: `packages/api/tests/wfh-settings.test.ts`,
+  `tests/wfh-consent.test.ts`, `tests/wfh-pause.test.ts`
+
+**Interfaces:**
+- Consumes: Task 1 `TIME_PACKS`, `loadWfhRetention`; Task 3
+  `loadProfile`, `timeAudit`; Plan 3 attendance records, `dubaiDate`.
+- Produces (contract):
+  - `ActivityCategory = z.enum(["communication","meetings",
+    "documents","spreadsheets","development","design","research",
+    "business-apps","social-media","entertainment","shopping","news",
+    "personal","other"])` (product list, not law).
+  - `NEVER_COLLECTED = ["screenshots","screen-video","keystrokes",
+    "page-contents","window-titles","web-addresses","camera",
+    "microphone"] as const`.
+  - `WfhSettings { enabled: boolean; retentionDays: int 1..3650 |
+    null; activityCategories: boolean; locationHourly: boolean;
+    maxTrackedMinutesPerRecord: int 60..1440; impactAssessment: { done:
+    boolean; date: IsoDate | null }; legalReview: "not-reviewed" |
+    "reviewed-by-company-counsel"; noticeVersion: int | null;
+    neverCollected: typeof NEVER_COLLECTED; retentionSource: "company
+    setting; PDPL sets no period (Art 5(7))" }` and
+    `WfhSettingsUpdate` (strict partial of the first seven fields).
+    Product defaults (not law): categories true, location true,
+    tracked bound 960 minutes; `retentionDays` has no default.
+  - `WfhNotice { version: int; publishedAt; textEn: string; textAr:
+    null; arabicStatus: "not-reviewed"; collects: { activeTime: true;
+    categories: boolean; locationHourly: boolean }; neverCollected;
+    retentionDays: int; legalReview; companyNote: string | null }`;
+    `WfhNoticePublish { companyNote?: string 1..2000 }`.
+  - `WfhConsent { employeeId; noticeVersion; decision: "granted" |
+    "declined" | "withdrawn"; at }`; `WfhConsentCreate { noticeVersion:
+    int; decision: "granted" | "declined" }`; `WfhWithdraw { erase:
+    boolean }`; `WfhWithdrawResult { consent: WfhConsent; erasedRows:
+    int }`.
+  - `WfhState = z.enum(["off","not-tracked","needs-consent","declined",
+    "ready","tracking","paused","stopped-limit"])`; `WfhStatus { state;
+    attendanceId: Id | null; trackedUntil: Timestamp | null;
+    lastLocationAt: Timestamp | null; nextLocationDueAt: Timestamp |
+    null; collects; noticeVersion: int | null }`.
+  - Routes appended (9): `getWfhSettings GET /v1/wfh/settings` (all),
+    `updateWfhSettings PUT /v1/wfh/settings` (owner; mfa),
+    `publishWfhNotice POST /v1/wfh/notices` (owner, hr; 201,
+    `WfhNotice`), `getCurrentWfhNotice GET /v1/wfh/notices/current`
+    (all; `WfhNotice`), `recordWfhConsent POST /v1/wfh/consent` (all;
+    `WfhConsent`), `withdrawWfhConsent POST /v1/wfh/consent/withdraw`
+    (all; `WfhWithdrawResult`), `getWfhStatus GET /v1/wfh/me/status`
+    (all), `pauseWfh POST /v1/wfh/me/pause` (all), `resumeWfh POST
+    /v1/wfh/me/resume` (all); the last three respond `WfhStatus`.
+  - Error codes: `RETENTION_REQUIRED` 422,
+    `IMPACT_ASSESSMENT_REQUIRED` 422, `NOTICE_REQUIRED` 422,
+    `NOTICE_VERSION_STALE` 409, `TRACKING_DISABLED` 422, `NOT_TRACKED`
+    422, `CONSENT_REQUIRED` 422, `NOT_REMOTE_RECORD` 422,
+    `TRACKING_LIMIT_REACHED` 422, `ALREADY_PAUSED` 409, `NOT_PAUSED`
+    409.
+- Produces (api):
+  - Migration 907: `wfh_settings(company_id pk, enabled,
+    retention_days, activity_categories, location_hourly,
+    max_tracked_minutes, impact_assessment_done,
+    impact_assessment_date, legal_review, notice_version, updated_at)`,
+    `wfh_notices(company_id, version, published_at, text_en,
+    collects jsonb, retention_days, legal_review, company_note,
+    pk(company_id, version))`, `wfh_consents(id, company_id,
+    employee_id, notice_version, decision, at)` (append only; the
+    latest row per employee is the current decision), `wfh_pauses(id,
+    company_id, employee_id, attendance_id, started_at, ended_at)`;
+    `payroll_app` gets DELETE on `wfh_pauses` only (erasure and
+    retention, Ruling 20).
+    No column for any item of `NEVER_COLLECTED`.
+  - `limits.ts`: `LOCATION_INTERVAL_MINUTES = 60` (owner's decision,
+    LEDGER 2026-11-25, not law), `MAX_CLOCK_SKEW_MINUTES = 2`,
+    `MAX_LATE_UPLOAD_HOURS = 24`, `MAX_MINUTES_PER_UPLOAD = 240`
+    (product bounds).
+  - `renderNotice(s: { companyName: string; version: number;
+    retentionDays: number; categories: boolean; locationHourly:
+    boolean; legalReview: string; companyNote: string | null }):
+    string` in `notice-template.ts` returns exactly the text below,
+    with items 2 and 3 of the list left out when that item is off, the
+    list renumbered, the line "HR and the owner see daily totals and
+    the hourly locations." replaced by "HR and the owner see daily
+    totals." when location is off, and the last line replaced by
+    "Legal review: this
+    wording was reviewed by the company's counsel." when
+    `legalReview` is `reviewed-by-company-counsel`:
+
+```text
+Work-from-home tracking notice (version {version})
+
+{companyName} asks to record the following while you are clocked in
+for remote work, and only then:
+1. Active time: whether you used your computer in each minute (yes or
+   no). Not what you typed.
+2. App and website categories: one category per minute, such as
+   "documents" or "meetings". Not page contents, window titles, web
+   addresses or messages.
+3. Location: one reading about once an hour, stored rounded to about
+   110 metres.
+
+Never recorded: screenshots, screen video, keystrokes, page contents,
+window titles, web addresses, camera or microphone. The product has no
+setting that turns these on.
+
+You can see everything recorded about you, pause at any time and
+download a copy. Paused time is shown as paused.
+
+Who sees it: you see all of it. Your manager sees daily totals only.
+HR and the owner see daily totals and the hourly locations.
+
+It is never used to calculate pay. A person reviews it before it
+affects attendance or overtime.
+
+It is deleted after {retentionDays} days. {companyName} set this
+period; the UAE data protection law (Federal Decree-Law 45 of 2021)
+sets no fixed period.
+
+You may decline, or withdraw your consent at any time. Withdrawing
+stops recording at once and lets you erase what was recorded.
+
+Legal review: this wording has not been reviewed by a lawyer.
+```
+
+    A `companyNote` is appended after a blank line under the heading
+    "Note from {companyName}:". The template cites no article numbers
+    in the text; the plan's sources are PDPL Arts 4, 5(7), 6, 13 and 15
+    (READ, English translation).
+  - Settings rules: enabling needs `retentionDays` (422
+    `RETENTION_REQUIRED`; the value passes through `loadWfhRetention`,
+    so the engine's unsourced rule refuses a missing one),
+    `impactAssessment.done` (422 `IMPACT_ASSESSMENT_REQUIRED`, PDPL
+    Art 21) and at least one published notice (422
+    `NOTICE_REQUIRED`). Publishing a notice needs `retentionDays`.
+    Changing `retentionDays`, `activityCategories`, `locationHourly`
+    or `legalReview` while a notice exists publishes the next notice
+    version from the template in the same transaction (keeping the
+    last `companyNote`), so every earlier consent becomes stale.
+    Unknown keys (such as `screenshots`) give 400.
+  - Consent rules: only the employee linked to the caller records or
+    withdraws (owner or hr acting for someone else is impossible: the
+    body has no employee id); a version other than the current gives
+    409 `NOTICE_VERSION_STALE`; withdrawal with `erase: true` deletes
+    the employee's closed pauses and, once Task 10 exists, sample rows,
+    and returns the count of sample rows.
+  - `currentWfhState(tx, deps, companyId, employeeId):
+    Promise<WfhStatus>`: `off` (settings disabled), `not-tracked`
+    (profile `wfhTracked` false), `needs-consent` (no decision for the
+    current version), `declined` (declined or withdrawn), `ready` (no
+    open remote attendance record), `stopped-limit` (open remote record
+    older than `maxTrackedMinutesPerRecord`), `paused` (open pause),
+    else `tracking`; `trackedUntil` = clock-in plus the bound;
+    `nextLocationDueAt` = last accepted location plus
+    `LOCATION_INTERVAL_MINUTES` (or now when none).
+  - `STATE_ERROR`: `off` gives `TRACKING_DISABLED`, `not-tracked`
+    `NOT_TRACKED`, `needs-consent` and `declined` `CONSENT_REQUIRED`,
+    `ready` `NOT_REMOTE_RECORD`, `stopped-limit`
+    `TRACKING_LIMIT_REACHED` (all 422).
+  - Pause rules: pause needs state `tracking` (409 `ALREADY_PAUSED`
+    when paused, else the `STATE_ERROR` code); resume needs `paused`
+    (409 `NOT_PAUSED`);
+    clock-out closes an open pause at the clock-out time. Pauses are
+    tracking data: no audit rows, no limit, never shown to the manager
+    except as `pausedMinutes` totals.
+  - Audit: `wfh.settings.updated` (`data: { changed }`),
+    `wfh.notice.published` (`data: { version }`),
+    `wfh.consent.granted`, `wfh.consent.declined`,
+    `wfh.consent.withdrawn` (`data: { erased: boolean, rows }`).
+  - `seedTime` sets the report's profile to `hybrid` with `wfhTracked:
+    true` and returns `{ wfhEmployeeId }`; it does not enable tracking.
+
+- [ ] **Step 1: Write the failing tests**
+
+`wfh-settings.test.ts`:
+- `wfh_enable_requires_retention`: `PUT { enabled: true }` with MFA
+  gives 422 `RETENTION_REQUIRED`; with retention but no assessment 422
+  `IMPACT_ASSESSMENT_REQUIRED`; with both but no notice 422
+  `NOTICE_REQUIRED`; after publishing a notice it succeeds.
+- `wfh_settings_need_owner_mfa`: hr gives 403 `FORBIDDEN`; the owner
+  without MFA 403 `MFA_REQUIRED`.
+- `wfh_no_switch_for_forbidden_capture`: `PUT { screenshots: true }`,
+  `{ keystrokes: true }` and `{ pageContents: true }` each give 400;
+  `GET` returns `neverCollected` equal to `NEVER_COLLECTED`; the
+  database has no column whose name matches
+  `/screen|keystroke|key_log|url|title|content/` in any `wfh_` table
+  (from `information_schema.columns`).
+- `notice_text_exact`: `renderNotice` for categories and location on,
+  not reviewed, equals the plan's text with values filled; with
+  location off the list has two items, no "Location" item, and the
+  line reads exactly "HR and the owner see daily totals."; with
+  `reviewed-by-company-counsel` the last line changes.
+- `notice_arabic_hidden`: `textAr` is `null` and `arabicStatus
+  "not-reviewed"`.
+- `settings_change_bumps_notice`: changing `retentionDays` publishes
+  version 2 and `GET /v1/wfh/notices/current` shows the new days.
+
+`wfh-consent.test.ts`:
+- `consent_stale_version`: consenting to version 1 after version 2 is
+  current gives 409 `NOTICE_VERSION_STALE`.
+- `consent_states`: with tracking enabled, the report's status moves
+  `needs-consent` to `ready` (granted) and to `tracking` after a
+  remote clock-in; a site clock-in leaves `ready`; declining gives
+  `declined`; a new notice version gives `needs-consent` again.
+- `consent_only_self`: the body has no employee field (strict schema
+  rejects `employeeId` with 400), and an owner without an employee link
+  gets 422 `NO_EMPLOYEE_LINK`.
+- `consent_audit_has_no_text`: `wfh.consent.granted` data has no
+  notice text and no category.
+
+`wfh-pause.test.ts`:
+- `pause_and_resume`: while `tracking`, pause gives `paused`, a second
+  pause 409 `ALREADY_PAUSED`, resume gives `tracking`, a second resume
+  409 `NOT_PAUSED`.
+- `pause_needs_tracking`: pausing while `needs-consent` gives 422
+  `CONSENT_REQUIRED`.
+- `clock_out_closes_pause`: clock-out while paused leaves no open
+  pause; status becomes `ready`.
+- `pause_not_audited`: the audit row count is unchanged by pause and
+  resume.
+- `stopped_limit_state`: with the bound at 60 minutes and the clock 61
+  minutes after a remote clock-in, the status is `stopped-limit`.
+
+- [ ] **Step 2: Run** `pnpm --filter @payroll/api test wfh`. Expected:
+  FAIL.
+- [ ] **Step 3: Implement** the files above.
+- [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
+- [ ] **Step 5: Commit** `feat(api): wfh settings, notice, consent,
+  pause`.
+
+### Task 10: Work-from-home uploads, views and retention
+
+Privacy task: fresh per-task review.
+
+**Files:**
+- Modify: contract `time-wfh.ts`, `routes-time.ts`, `errors.ts`,
+  `examples.ts`, `index.ts`, `tests/routes-time.test.ts`
+- Create: `packages/api/migrations/908_wfh_samples.sql`,
+  `src/wfh/ingest-activity.ts`, `src/wfh/ingest-location.ts`,
+  `src/wfh/sample-window.ts` (pure), `src/wfh/views.ts`,
+  `src/wfh/retention.ts`
+- Modify: api `src/routes/wfh.ts`, `src/wfh/consent.ts` (erase),
+  `src/time/timesheet-build.ts` (`wfh` totals), `src/main.ts`
+  (`purge-wfh` command), `src/app.ts`, root `package.json` (script
+  `api:purge-wfh` = `tsx packages/api/src/main.ts purge-wfh`),
+  `tests/conformance.test.ts`, `tests/leak.test.ts`
+- Test: `packages/api/tests/wfh-ingest.test.ts`,
+  `tests/wfh-views.test.ts`, `tests/wfh-retention.test.ts`,
+  `tests/wfh-leak.test.ts`, `tests/delete-grants.test.ts`
+
+**Interfaces:**
+- Consumes: Task 9 `currentWfhState`, `ActivityCategory`, limits,
+  settings, pauses, consents; Task 6 `TimesheetDay.wfh`; Task 3
+  `assertRange`, `timeAudit`; Plan 3 `viewerScope`, `loadConfig`.
+- Produces (contract):
+  - `ActivityMinute { at: Timestamp (seconds and milliseconds zero);
+    active: boolean; category: ActivityCategory | null }` (strict);
+    `WfhActivityUpload { attendanceId: Id; minutes: ActivityMinute[]
+    (1..240) }` (strict); `WfhActivityResult { accepted: int;
+    duplicates: int }`.
+  - `WfhLocationUpload { attendanceId: Id; at: Timestamp; lat: number
+    -90..90; lng: number -180..180; accuracyM: int 0..100000; source:
+    "phone" | "browser"; indicatorShown: z.literal(true) }` (strict);
+    `WfhLocationPoint { at; lat; lng; source }`.
+  - `WfhDayTotals { activeMinutes: int; idleMinutes: int;
+    pausedMinutes: int; categories: Partial<Record<ActivityCategory,
+    int>> }`; `WfhDay { date; attendanceIds: Id[]; totals:
+    WfhDayTotals; hours: { hour: "00".."23"; activeMinutes: int;
+    categories: Partial<Record<ActivityCategory, int>> }[]; locations:
+    WfhLocationPoint[] }` (own data); `WfhDaySummary { employeeId;
+    date; totals: WfhDayTotals; locationSamples: int }`;
+    `WfhExport { generatedAt; employeeId; consents: WfhConsent[];
+    pauses: { startedAt; endedAt: Timestamp | null }[]; days: WfhDay[] }`.
+  - Routes appended (6): `postWfhActivity POST /v1/wfh/activity` (all;
+    `WfhActivityResult`), `postWfhLocation POST /v1/wfh/location`
+    (all; 201, `WfhLocationPoint`), `getMyWfhDays GET /v1/wfh/me/days`
+    (all; query `{ from; to }`; `WfhDay[]`), `exportMyWfhData GET
+    /v1/wfh/me/export` (all; `WfhExport`), `getWfhSummary GET
+    /v1/wfh/summary` (all, scoped; query `{ from; to; employeeId? }`;
+    `WfhDaySummary[]`), `listWfhLocations GET /v1/wfh/locations`
+    (owner, hr; mfa; query `{ employeeId; from; to }`;
+    `WfhLocationPoint[]`).
+  - Error codes: `SAMPLE_OUTSIDE_CLOCKED_TIME` 422, `TRACKING_PAUSED`
+    422, `LOCATION_TOO_FREQUENT` 409, `CATEGORY_NOT_COLLECTED` 422,
+    `LOCATION_NOT_COLLECTED` 422.
+- Produces (api):
+  - Migration 908: `wfh_activity_minutes(company_id, employee_id,
+    attendance_id, at timestamptz, active boolean, category text check
+    in the enum or null, pk(company_id, employee_id, at))`,
+    `wfh_location_samples(id, company_id, employee_id, attendance_id,
+    at, lat_e3 int, lng_e3 int, source, unique(company_id, employee_id,
+    at))`; indexes on `(company_id, at)`; RLS as Plan 3; grants
+    select, insert and **delete** on these two tables (Task 9 granted
+    it on `wfh_pauses`; nowhere else, Ruling 20).
+  - `sample-window.ts` (pure): `SampleWindow { clockIn: string;
+    clockOut: string | null; boundMinutes: number; consentAt: string;
+    pauses: { start: string; end: string | null }[]; now: string }`;
+    `checkSampleTime(at: string, w: SampleWindow): "ok" | "outside" |
+    "paused"`: `outside` when `at < clockIn`, `at >= clockOut`, `at >=
+    clockIn + bound`, `at < consentAt`, `at > now + skew` or `at < now -
+    MAX_LATE_UPLOAD_HOURS`; `paused` when inside a pause (`start <= at <
+    end`, open pause to infinity).
+  - Activity rules: state checks use the current state (settings
+    enabled, profile tracked, current consent granted; else the Task 9
+    code); the record must be the caller's remote record (422
+    `NOT_REMOTE_RECORD`); every minute passes `checkSampleTime` against
+    the record's own clock-in, clock-out and the pauses (first failure:
+    422 `SAMPLE_OUTSIDE_CLOCKED_TIME` or `TRACKING_PAUSED` with
+    `detail.index`); a category while `activityCategories` is false
+    gives 422 `CATEGORY_NOT_COLLECTED`; any failure stores nothing;
+    otherwise `INSERT ... ON CONFLICT DO NOTHING` and `duplicates`
+    counts the skipped minutes. Late uploads for a closed record are
+    accepted when every minute is inside its window.
+  - Location rules: the same state, record and window checks;
+    `locationHourly` false gives 422 `LOCATION_NOT_COLLECTED`; an
+    accepted sample of the same employee less than
+    `LOCATION_INTERVAL_MINUTES` before or after `at` gives 409
+    `LOCATION_TOO_FREQUENT`; the gap check runs after `SELECT ... FROM
+    employees WHERE id = $1 FOR UPDATE`, so two simultaneous posts
+    cannot both pass; coordinates are rounded to 3 decimals
+    before storage; `accuracyM` and `indicatorShown` are not stored.
+  - Neither upload writes an audit row or a log field beyond Plan 3's
+    request line.
+  - `purgeExpiredWfh(tx, deps, companyId): Promise<{ activity: number;
+    locations: number; pauses: number }>` deletes rows with `at` (or a
+    closed pause's `ended_at`) older than `now - retentionDays`; it
+    runs at the start of every `/v1/wfh/` handler and in `main.ts
+    purge-wfh` through `purgeAllCompanies(ownerDb: Db, appDb: Db, deps:
+    AppDeps): Promise<number>` (lists company ids on the migrate
+    connection, purges each through `withTenant` on the app
+    connection, returns the number of companies); audit `wfh.purged` with the
+    three counts only when one is above zero. Every read also filters
+    `at >= now - retentionDays`.
+  - `wfhDayTotals(tx, companyId, employeeId, from, to):
+    Promise<Map<string, WfhDayTotals>>` (dates by `dubaiDate(at)`;
+    `pausedMinutes` from pauses clipped to the day) used by Task 6.
+  - Views: `getMyWfhDays` and `exportMyWfhData` return only the
+    caller's own data (hourly detail and locations); `getWfhSummary`
+    returns totals and `locationSamples` counts (employee: self;
+    manager: direct reports; hr and owner: all; others 404 on
+    `employeeId`); `listWfhLocations` (owner, hr, MFA) writes audit
+    `wfh.locations.viewed` (`data: { employeeId, count }`). No route
+    returns a per-minute timeline to anyone but the employee.
+  - `seedTime` gains `seedWfh(app, seeded)`: enables tracking with
+    retention 30, publishes a notice, the report consents, clocks in
+    remote and uploads 10 minutes and one location at the sentinel
+    `WFH_SENTINEL = { lat: 1.234, lng: 1.432 }`.
+
+- [ ] **Step 1: Write the failing tests**
+
+`wfh-ingest.test.ts`:
+- `wfh_activity_accepted_and_idempotent`: 10 minutes accepted; the
+  same upload again gives `accepted 0, duplicates 10`.
+- `wfh_upload_rejections_store_nothing` (Review Focus 3): each of
+  these stores no row (count before equals count after) and returns
+  the code shown: a minute after clock-out sent late (422
+  `SAMPLE_OUTSIDE_CLOCKED_TIME`); a minute inside a pause, sent after
+  resume (422 `TRACKING_PAUSED`); any upload after consent was
+  withdrawn, even for earlier minutes (422 `CONSENT_REQUIRED`); a body
+  with an extra `url`, `title`, `windowTitle`, `screenshot` or
+  `keystrokes` field at the top or minute level (400
+  `VALIDATION_FAILED`); a site record (422 `NOT_REMOTE_RECORD`); a
+  colleague's record (422 `NOT_REMOTE_RECORD`); a minute with
+  seconds (400).
+- `wfh_forgotten_clock_out_stops_at_bound` (Review Focus 4): bound 120
+  minutes, no clock-out, clock 5 hours later: a minute at clock-in plus
+  121 minutes gives 422 `SAMPLE_OUTSIDE_CLOCKED_TIME`, a location at
+  the same time too, and status is `stopped-limit`.
+- `location_hourly_gap`: samples at 10:00 accepted, 10:59 gives 409
+  `LOCATION_TOO_FREQUENT`, 11:00 accepted; a late upload at 10:30 gives
+  409.
+- `location_concurrent_once`: two `Promise.all` posts for 12:00 and
+  12:01 give one 201 and one 409, and one row exists.
+- `location_rounded_and_minimal`: the stored row has `lat_e3` 1234;
+  the table has no accuracy or indicator column.
+- `location_needs_indicator`: `indicatorShown: false` or missing gives
+  400.
+- `category_not_collected`: with categories off, a minute with a
+  category gives 422 `CATEGORY_NOT_COLLECTED`; `category: null` works.
+- `uploads_not_audited`: audit row count unchanged by uploads.
+
+`wfh-views.test.ts`:
+- `own_days_detail`: the report's `me/days` shows hourly categories and
+  the location; `me/export` holds consents, pauses and days.
+- `summary_totals_only`: the manager's summary for the report has
+  totals and `locationSamples 1` and no `lat`, `lng` or `hours` keys.
+- `locations_owner_hr_mfa`: hr without MFA gives 403 `MFA_REQUIRED`;
+  with MFA returns the point and writes `wfh.locations.viewed`; a
+  manager gets 403.
+- `timesheet_shows_wfh_totals`: the report's March timesheet day has
+  `wfh.activeMinutes` equal to the uploaded active minutes.
+- `pay_inputs_ignore_wfh`: `GET /v1/time/pay-inputs` before and after
+  `seedWfh` uploads are deep-equal.
+
+`wfh-retention.test.ts`:
+- `reads_hide_expired`: retention 30; with the clock 31 days after the
+  uploads and no purge yet, `me/days` and the summary return nothing
+  for those dates.
+- `purge_deletes_and_audits_counts`: the next `/v1/wfh/` call deletes
+  the rows (`SELECT count(*)` 0) and writes one `wfh.purged` event
+  whose data has only the three counts.
+- `withdraw_with_erase`: `erase: true` returns `erasedRows` 11 and
+  leaves no rows; `erase: false` keeps them until retention.
+- `purge_command`: `main.ts purge-wfh` logic (`purgeAllCompanies`) run
+  against two companies purges each and crosses no tenant.
+
+`wfh-leak.test.ts`:
+- `wfh_leak_manager_and_peer_see_no_coordinates` (Review Focus 1): for
+  every `GET` route in `ROUTES` and every role of `seedCompany` except
+  the report itself, hr and owner, the body text contains neither
+  `1.234` nor `1.432`; for owner and hr only `listWfhLocations` and no
+  other route contains them; hourly detail (`"hours"`) appears only in
+  the report's own responses.
+
+`delete-grants.test.ts`: `information_schema.role_table_grants` for
+`payroll_app` lists `DELETE` on exactly `wfh_activity_minutes`,
+`wfh_location_samples` and `wfh_pauses`.
+
+- [ ] **Step 2: Run** `pnpm --filter @payroll/api test wfh
+  delete-grants`. Expected: FAIL.
+- [ ] **Step 3: Implement** the files above.
+- [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
+- [ ] **Step 5: Commit** `feat(api): wfh uploads, views, retention`.
+
+### Task 11: Time client, desktop agent interface, end-to-end, handover
+
+**Files:**
+- Create: `packages/time-client/package.json` (`@payroll/time-client`,
+  exports `.` to `./src/index.ts`; dependency `@payroll/contract`
+  (workspace); dev `vitest`, `@types/node` 22.20.7 for tests only),
+  `packages/time-client/tsconfig.json` (engine's)
+- Create in `packages/time-client/src/`: `ports.ts`,
+  `location-sources.ts`, `indicator.ts`, `hourly-sampler.ts`,
+  `activity-meter.ts`, `categories.ts`, `desktop-agent.ts`, `index.ts`
+- Test: `packages/time-client/tests/location-sources.test.ts`,
+  `tests/indicator.test.ts`, `tests/sampler.test.ts`,
+  `tests/activity-meter.test.ts`, `tests/categories.test.ts`,
+  `tests/desktop-agent.test.ts`, `tests/purity.test.ts`
+- Create: `packages/api/tests/time-e2e.test.ts`
+- Modify: `packages/contract/tests/routes-time.test.ts` (final count),
+  `HANDOVER.md`, `LEDGER.md`
+
+**Interfaces:**
+- Consumes: contract `WfhStatus`, `WfhLocationUpload`,
+  `ActivityMinute`, `ActivityCategory`, `WfhState`, `NEVER_COLLECTED`,
+  `CLOCK_LOCATION_NOTICE` (types and constants only); every route of
+  Tasks 3 to 10 (e2e).
+- Produces (`@payroll/time-client`, all from `index.ts`):
+  - `ports.ts`: `Clock { now(): Date }`; `GeoReading { lat: number;
+    lng: number; accuracyM: number }`; `LocationSource { kind: "phone"
+    | "browser"; available(): Promise<boolean>; current():
+    Promise<GeoReading> }`; `PhoneBridge { isAvailable():
+    Promise<boolean>; getLocation(): Promise<GeoReading> }` (the native
+    app implements it); `GeolocationLike { getCurrentPosition(ok, err,
+    opts): void }` (the browser's `navigator.geolocation` fits it);
+    `IndicatorView` (below); `Indicator { show(v: IndicatorView): void
+    }`; `TrackingApi { status(): Promise<WfhStatus>; postLocation(b:
+    WfhLocationUpload): Promise<void>; postActivity(b: {
+    attendanceId: string; minutes: ActivityMinute[] }): Promise<void> }`.
+  - `location-sources.ts`: `phoneBridgeSource(b: PhoneBridge):
+    LocationSource`; `browserLocationSource(g: GeolocationLike |
+    undefined): LocationSource` (options `{ enableHighAccuracy: false,
+    maximumAge: 0, timeout: 20000 }`; `available()` is false when `g`
+    is undefined); `chooseLocationSource(phone: LocationSource,
+    browser: LocationSource): Promise<LocationSource | null>` (phone
+    first, then browser, else null).
+  - `indicator.ts`: `IndicatorView { visible: boolean; state: WfhState
+    | "location-error"; tone: "active" | "paused" | "warning" | "off";
+    textEn: string; textAr: null; lines: string[] }`;
+    `indicatorFor(status: WfhStatus, source: "phone" | "browser" |
+    null): IndicatorView`; texts (exact): `tracking` "Tracking on:
+    active time, app categories, location once an hour" (the parts
+    switched off are left out), `paused` "Tracking paused",
+    `stopped-limit` "Clock-out missing: tracking stopped", others
+    "Tracking off"; with source `browser` and state `tracking`, `lines`
+    includes "Location only while this page is open". `visible` is
+    true for `tracking`, `paused`, `stopped-limit` and
+    `location-error`.
+  - `hourly-sampler.ts`: `TickResult = "sampled" | "not-due" |
+    "not-tracking" | "no-source" | "not-collected" | "location-error"`;
+    `createHourlySampler(d: { api: TrackingApi; source: LocationSource
+    | null; indicator: Indicator; clock: Clock }): { tick():
+    Promise<TickResult> }`. Each tick: read `status`; call
+    `indicator.show(indicatorFor(...))` before anything else; return
+    `not-tracking` unless state `tracking`; `not-collected` when
+    location is off; `no-source` without a source; `not-due` when
+    `now < nextLocationDueAt` (the server's value is the truth); else
+    read the location (error: show the `location-error` view, return
+    `location-error`) and post it with `at = now`, `indicatorShown:
+    true` and `source = source.kind`. The caller ticks once a minute.
+  - `activity-meter.ts`: `createActivityMeter(clock: Clock, start:
+    Date): { noteInput(): void; drain(): ActivityMinute[] }`:
+    `noteInput` takes no argument and only marks the current minute as
+    active (no key, count, target or text is accepted or kept);
+    `drain` returns every whole minute from the last drain (or
+    `start`) to the last complete minute, `category: null` (a browser
+    cannot see other apps).
+  - `categories.ts`: `CategoryRule { match: string; kind: "host-suffix"
+    | "app-id"; category: ActivityCategory }`;
+    `DEFAULT_CATEGORY_RULES: readonly CategoryRule[]` (product list,
+    generic entries only, labelled "product default, not law");
+    `categorise(appOrHost: string, rules = DEFAULT_CATEGORY_RULES):
+    ActivityCategory` (unknown gives `"other"`); it runs on the device
+    and its input never appears in any upload type.
+  - `desktop-agent.ts`: `AgentCapabilities { activeTime: boolean;
+    categories: boolean; screenshots: false; keystrokes: false;
+    pageContents: false; windowTitles: false; webAddresses: false }`;
+    `DesktopActivityAgent { platform: "macos" | "windows" | "linux";
+    capabilities(): AgentCapabilities; start(ctx: { attendanceId:
+    string; categoriesOn: boolean }): Promise<void>; stop():
+    Promise<void>; drain(): Promise<ActivityMinute[]> }`;
+    `assertAgentCapabilities(c: unknown): AgentCapabilities` (throws
+    an `Error` with `code` `FORBIDDEN_CAPABILITY` and a message naming
+    the key when any of the five forbidden keys is not exactly `false`,
+    or an unknown key exists).
+- Final `TIME_ROUTE_IDS` has 66 ids (13 + 13 + 5 + 9 + 7 + 4 + 9 + 6).
+
+- [ ] **Step 1: Write the failing tests**
+
+`location-sources.test.ts`: `chooseLocationSource` returns the phone
+when available, the browser when only it is, `null` when neither;
+`browserLocationSource(undefined).available()` is false; the browser
+source passes `maximumAge: 0`.
+
+`indicator.test.ts`: `tracking` with both items on gives the exact
+text and `visible: true`; location off drops "location once an hour";
+browser source adds "Location only while this page is open"; `ready`
+gives `visible: false`; `textAr` is `null`.
+
+`sampler.test.ts` (fake clock, api, source, indicator recording calls
+in one ordered log):
+- `sampler_shows_indicator_before_reading`: on a due tick the log is
+  `status`, `show(tracking)`, `current`, `postLocation`, in that order,
+  and the posted body has `indicatorShown: true`.
+- `sampler_hourly_by_server_time`: `nextLocationDueAt` 10:00, ticks at
+  09:59 (not-due), 10:00 (sampled).
+- `sampler_paused_never_reads`: state `paused` gives `not-tracking`
+  and `current` is never called; `show` got the paused view.
+- `sampler_stopped_limit_never_reads`: same for `stopped-limit`.
+- `sampler_location_error_visible`: a throwing source gives
+  `location-error` and a visible warning view.
+
+`activity-meter.test.ts`: `noteInput.length === 0`; input in minutes 1
+and 3 of a 4-minute span gives `active` true, false, true, false;
+every drained object has exactly the keys `at`, `active`, `category`
+and `category` null; a second drain returns only new minutes.
+
+`categories.test.ts`: a known host suffix maps to its category, an
+unknown string to `"other"`; the result is a member of
+`ActivityCategory.options`.
+
+`desktop-agent.test.ts`: `assertAgentCapabilities` accepts the
+all-false object, throws `FORBIDDEN_CAPABILITY` for `screenshots:
+true`, `keystrokes: true` and an unknown key `screenVideo`; a
+type-level check (`// @ts-expect-error`) refuses `screenshots: true`
+in an `AgentCapabilities` literal.
+
+`purity.test.ts`: no file in `packages/time-client/src` contains
+`Date.now`, an argument-less `new Date()` (building a date from a
+given time is allowed), `navigator`, `window`, `document`,
+`setTimeout`, `setInterval`, `fetch(`, `localStorage` or imports
+`node:`; the words `screenshot`, `keystroke` and `keylog` appear only
+in `desktop-agent.ts` as `false` capability keys.
+
+`time-e2e.test.ts` (`time_attendance_end_to_end`): seed a company and
+`seedTime`; publish a March roster; the report clocks in by phone
+inside Site A and out at 00:30 Dubai the next day; files a correction
+for a missed day, which the manager approves; in April the report
+prepares and submits the March timesheet, the manager decides overtime
+and approves; `GET /v1/time/pay-inputs` for March holds the approved
+overtime with its night minutes and the `PAY_INPUTS_STATEMENT`; the
+WFH part runs `seedWfh`, pauses, has an upload inside the pause
+refused, checks the manager's summary has no coordinates, withdraws
+with erase and finds zero sample rows; the pay inputs are deep-equal
+before and after the WFH steps; `GET /v1/audit-events/verify` returns
+`ok: true`.
+
+`routes-time.test.ts` (final): `TIME_ROUTES.length === 66` and the
+literal id list has all 66.
+
+- [ ] **Step 2: Run** `pnpm --filter @payroll/time-client test` and
+  `pnpm --filter @payroll/api test time-e2e`. Expected: FAIL.
+- [ ] **Step 3: Implement** the package files above.
+- [ ] **Step 4: Run** `pnpm install` (new workspace package) and
+  `pnpm check`. Expected: PASS.
+- [ ] **Step 5: Update `HANDOVER.md`** (state; package layout rows for
+  `time-client` and the new `src/time/`, `src/wfh/` areas; the
+  `api:purge-wfh` command; limits: no web or phone screen shows the
+  indicator yet, the desktop agent is an interface only, no scheduler
+  (retention runs on access and by command), holiday and Ramadan dates
+  are company-entered, the PDPL executive regulations appear unissued,
+  the notice wording needs counsel and Arabic needs native review,
+  app-store review risk for background location) and **append to
+  `LEDGER.md`** section 3 every ruling below with today's date.
+- [ ] **Step 6: Commit** `feat(time-client): sampler, indicator, agent
+  interface; e2e; handover`.
 
 
 ---
 
 ## Desktop agent: reference implementation plan (not built here)
 
-<!-- AGENT -->
+The desktop agent is out of this plan's build; Task 11 ships its
+interface (`DesktopActivityAgent`, `AgentCapabilities`) and the upload
+route exists (Task 10). A later plan builds it from these points.
+Platform facts carry the research note's statuses; nothing here is
+from memory.
+
+1. **What it collects:** one `ActivityMinute` per minute while the
+   employee is clocked in remote and the server state is `tracking`:
+   `active` (any input in the minute, as a yes or no) and, when the
+   company collects categories, one `ActivityCategory` from
+   `categorise()` run on the device. The app id or host name never
+   leaves the device. It never requests screen recording, never reads
+   window titles or page contents, and never records keys.
+2. **Permissions:** macOS needs the Accessibility permission for
+   active-window and idle detection; Screen Recording is needed only
+   for screenshots or some window titles, so the agent never asks for
+   it (vendor guidance, secondary, per the feasibility note). Windows
+   details: NOT FOUND in our research; the build plan must research
+   them first. Linux: not researched.
+3. **Browser categories:** the host name of the active tab needs either
+   a browser extension or OS window access; NOT FOUND in our research
+   which is less intrusive. The build plan decides after research, and
+   either way only the category leaves the device.
+4. **Control and visibility:** a tray or menu-bar icon with the same
+   `indicatorFor` text, a Pause button calling `POST /v1/wfh/me/pause`,
+   a link to the employee's own data, and stop on clock-out or
+   `stopped-limit`. It polls `GET /v1/wfh/me/status` once a minute and
+   uploads at most 240 minutes per call, retrying with the same
+   minutes (uploads are idempotent).
+5. **Proof of scope:** `assertAgentCapabilities` runs at start-up and
+   refuses to start if any forbidden capability is not `false`; the
+   build plan adds a test that the packaged agent requests no Screen
+   Recording entitlement.
+6. **Distribution:** code signing, notarisation (macOS) and update
+   channel are decided by the build plan; app-store rules are a review
+   risk for the phone app's background location (Apple reports
+   UNVERIFIED, Google Play requires a declaration, video and prominent
+   disclosure: feasibility note).
+7. **Status:** BET (master list UQ38); not started.
 
 ## Rulings
 
-<!-- RULINGS -->
+Claude's calls under the owner's "decide, don't ask" instruction. Each
+says what it costs if wrong. The executor appends them to `LEDGER.md`.
+
+1. **Engine, API and a pure client package; no screens.** A later web
+   plan (Plan 4's app) and a phone app build screens against
+   `TIME_ROUTES` and `@payroll/time-client`. Cost: the owner cannot
+   click through rosters, timesheets or tracking until those ship.
+2. **Legal values live in a new engine pack `ae-time`** with
+   `time`-prefixed keys (unique next to Plan 5's and Plan 8's packs,
+   which share one overrides style); source ids are added only if
+   absent, with Plan 5's url and note format. Cost: a textual merge in
+   `sources.ts` when Plan 5 lands in parallel.
+3. **Status mapping.** `official` only for values the labour law note
+   quotes as READ: 8 hours a day and 48 a week (17(1)), Ramadan minus 2
+   hours (ER 15(2)), 5 hours and 1 hour (18), 2 extra hours a day and
+   144 hours in 3 weeks (19(1)), 22:00 to 04:00 (19(3)), 2 consecutive
+   rest days (19(5)), one weekly rest day (21), holiday work
+   compensated (28(2)), 30 days and 2 days a month (29(1)), half of the
+   annual leave (ER 19(1)), 90 sick days (31(3)), 60 maternity days
+   (30(1)). Conventions: ISO weeks, calendar leave year, a rostered
+   break is assumed taken, carried days are used first. Our readings
+   (warnings only): comparing a monthly accrual with 2 days a month,
+   a sick balance with "no more than" 90 days, and a maternity balance
+   with a per-birth grant. Cost: a
+   convention that counsel reads differently changes flags and
+   balances; one pack value or function changes.
+4. **Overtime candidate = worked beyond the shift's net minutes, or
+   beyond the daily normal limit (minus the Ramadan reduction) when no
+   shift is published;** night minutes come from the worked time
+   outside the shift, or the tail of the day without a shift. Work on a
+   rest day or holiday is a whole day of rest-day work, not overtime,
+   as Plan 5 models it. The daily cap is a flag and never cuts minutes
+   (Plan 5 Ruling 8). Cost: a company paying overtime only beyond 8
+   hours even on longer shifts sees more candidates; reviewers approve
+   fewer.
+5. **Registry and numbering:** `TIME_ROUTES` in `routes-time.ts`, 66
+   routes, tests assert membership in `ROUTES` and Plan 9's own count,
+   never a total, so Plans 6, 7 and 8 can merge in any order (rename
+   Plan 3's list to `CORE_ROUTES` only if no plan did yet; `ROUTES`
+   concatenates every list). Migrations `901_` to `908_`. Cost: one
+   merge of `routes.ts` and `errors.ts`.
+6. **Named leave widenings:** `LeaveRequest.days` and the
+   `LeaveBalance` day fields become multiples of 0.5, and
+   `dayCountRule` gains `"working-days"`; the `days` column becomes
+   `half_units`. Plan 3 Ruling 23 asked for additive changes only; half
+   days cannot be expressed otherwise. Cost: Plan 4's mocks and any
+   client that assumed whole days need an update.
+7. **Attendance widening:** `AttendanceRecord.source` gains
+   `"correction"`; clock-in and clock-out gain an optional body (no
+   body still works, method `"unknown"`). Cost: a strict client enum
+   needs one more value.
+8. **Leave day basis is per policy:** `calendar` (Plan 3's rule, the
+   default) or `working` (skips published rest days, else company rest
+   days, and company holidays). Art 29(7) (rest days inside an
+   interrupted leave) is not modelled. Cost: an interrupted-leave case
+   is counted by hand.
+9. **A half day of unpaid leave counts as 1 in `unpaidLeaveDaysIn`**
+   (ceil), so Plan 3's pay run refuses the month until amounts are
+   entered and the SIF leave-days field stays a whole number. Cost:
+   the SIF shows one unpaid day for a half day; flooring would instead
+   pay a full month silently.
+10. **Accrual:** upfront (with an optional joining-year pro-rata by
+    whole months) or monthly (a month counts when fully served and
+    ended); carry-over is a once-per-year run, idempotent by a run row,
+    capped and optionally expiring. Cost: companies with anniversary
+    leave years or daily accrual need a later policy kind.
+11. **Corrections:** employees request with approval; hr and owner keep
+    Plan 3's direct `PUT` (they are the approvers), audited as before;
+    both refuse a locked day. Cost: an hr edit has no second pair of
+    eyes; the audit log shows it.
+12. **A `require` geofence never refuses a clock-in;** an outside or
+    missing location creates the record with an `exception` for
+    review. Cost: a company wanting a hard stop gets a review queue
+    instead; refusing would lose real work time.
+13. **Location minimisation:** clock-in coordinates are discarded after
+    the geofence (only result, site and distance to 10 m are kept);
+    hourly WFH locations are stored to 3 decimals; accuracy is not
+    stored. Cost: a dispute about the exact spot cannot be settled from
+    the data.
+14. **Timesheets are monthly, submitted after the month ends, frozen at
+    submit, and lock their days;** a later leave change marks them
+    `stale` instead of changing them. Paying overtime a month in
+    arrears is the company's choice outside the product. Cost: a
+    payroll run before month end uses the previous month's time.
+15. **Pay inputs are an export only:** approved sheets only; shapes
+    mirror Plan 5's `OvertimeEntry`, `RestDayWork` and `Absence` with a
+    literal-copy test (a type-level test against the engine is added
+    when Plan 5 lands); unrecorded absences are flagged and never
+    become unpaid days; half-day absences and conflicts are listed for
+    manual entry; the sick-leave year is the calendar year and the
+    counter includes any probation sick days (Plan 5 Ruling 5 leaves
+    the year to us). Cost: HR re-keys inputs into the pay run and fixes
+    a probation counter by hand.
+16. **No built-in calendar:** the Cabinet holiday list is NOT FOUND, so
+    holidays and Ramadan periods are company-entered; company rest days
+    have no default and working-day leave refuses until they are set.
+    Cost: set-up work for every company.
+17. **Flags are informational with `consequence: "none"`;** thresholds
+    are product defaults; patterns show their inputs; the employee sees
+    their own flags. PDPL Art 18 concerns automated decisions; there is
+    none here. Cost: no automated discipline, by design.
+18. **Health leave types are hidden from everyone but the employee,
+    their manager, hr and owner** (PDPL Art 1 sensitive data); pending
+    leave is hidden from peers. Cost: colleagues see "away" only.
+19. **WFH lawful basis is consent with notice (PDPL Arts 4, 6, 13);**
+    declining does not block remote clock-in (a company policy on that
+    is outside the product); enabling needs an owner-attested impact
+    assessment (Art 21), a retention period and a notice; changing what
+    is collected or the retention republishes the notice and asks for
+    consent again; settings changes and location views need MFA; the
+    notice states its legal-review status. Cost: tracking stops for
+    everyone until they re-consent after each change.
+20. **Deletes only on the WFH sample and pause tables** (retention and
+    erasure, PDPL Arts 5(7) and 15); retention runs at the start of
+    every `/v1/wfh/` call and by `pnpm api:purge-wfh` (no scheduler),
+    and every read filters by the cutoff; samples, pauses and uploads
+    are never audited, purges audit counts only. Cost: data of a
+    company nobody opens lingers until the purge command runs.
+21. **Retention has no default:** the pack param is `unsourced` (PDPL
+    sets no period) and the company must enter one. Cost: one more
+    set-up step before tracking.
+22. **"Once an hour" is a 60-minute gap enforced by the server on both
+    sides of every sample;** uploads may arrive up to 24 hours late;
+    tracking stops at a tracked-hours bound (product default 16 hours)
+    so a forgotten clock-out cannot run all night. Cost: a genuine
+    shift longer than the bound needs the company to raise it.
+23. **Withdrawal stops every upload at once,** including late uploads
+    of earlier minutes; erasure is the employee's choice at withdrawal.
+    Cost: minutes still queued on a device are lost.
+24. **Who sees what:** the employee sees everything about themselves;
+    managers see daily totals only; hr and owner see totals and, with
+    MFA, hourly locations; nobody else sees a per-minute timeline.
+    Cost: a manager cannot inspect a single hour.
+25. **Categories, not contents:** a fixed product category list,
+    classified on the device; the browser fallback sends active minutes
+    only (`noteInput()` takes no argument); the desktop agent is an
+    interface plus the reference section above. Cost: browser-only
+    staff produce no categories until the agent ships.
+26. **The visible indicator is a model in `@payroll/time-client`:** the
+    sampler shows it before every reading and the server requires
+    `indicatorShown: true` on every location. Cost: no person sees the
+    indicator until a web or phone screen renders it, so tracking
+    cannot honestly run in production before that plan.
+27. **Phone location first, browser as fallback,** with the browser
+    limited to while the page is open (no background location). Cost:
+    browser-only staff miss samples when the tab is closed.
+28. **One approval helper for this plan (`assertTimeDecidable`):**
+    separation of duties is checked before scope; it does not use
+    Plan 6's or Plan 8's helpers so the plans stay independent. Cost:
+    a later move to the approval spine (UQ18).
+29. **Swaps exchange two published slots** after the peer accepts and
+    an approver who manages both parties (or hr, owner) approves; a
+    changed entry voids the approval. The overtime cost of a swap
+    (UQ30) is out: it needs Plan 5 rates. Cost: managers judge cost by
+    hand.
+30. **Rosters have a draft and a published copy with a time snapshot;**
+    roster flags never block saving or publishing. Cost: a careless
+    roster can be published with flags showing.
+31. **Availability shows counts only;** a staffing minimum warns and
+    never refuses leave. Cost: a department can drop below its minimum
+    if the approver ignores the warning.
+32. **Ruled out, each with its cost:** biometric devices, face check-in
+    and kiosks (biometric data is sensitive under PDPL); QR check-in;
+    IP restriction; hourly permissions; a compensatory-off ledger;
+    leave encashment amounts (Plan 5); swap cost previews; push or
+    email reminders; part-time leave pro-rata (ER 18); shift-worker
+    56-hour averaging (ER 15(4)(d)); notice during leave; the desktop
+    agent build; web and phone screens; PDPL access tooling beyond the
+    WFH export; DIFC and ADGM rules. Cost: each is a visible gap in the
+    handover.
+33. **Plan 3 functions consumed but not named there:**
+    `correctAttendance` is exported from `src/attendance/attendance.ts`
+    and `balanceFor` delegates to `policyBalance` with its signature
+    unchanged. Cost: a small refactor of Plan 3 code.
+34. **Review:** per-task review of Tasks 1 and 2 (law), 6 (pay inputs),
+    9 and 10 (privacy and security), plus one whole-branch review
+    (speed ruling); no pause for plan review (ledger, 2026-11-25).
+    Cost: a slipped bug in Tasks 3 to 5, 7, 8 or 11 is caught at the
+    end.
