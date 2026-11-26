@@ -47,6 +47,21 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
     `${who} ${a.type === "withdraw-leave" ? "withdrew" : "restored"} a ` +
       "time off request.");
     case "esign": return esign(a.entry, d, make);
+    case "req-new": {
+      const line = a.draft.kind === "ticket" ? a.draft.values["line"] : "";
+      return line === undefined || line === "" ? null
+        : make("people.payslip-question-asked", "people",
+          emp(a.draft.employeeId), `${nameOf(a.draft.employeeId)} asked ` +
+          `HR about a payslip line: ${line}.`);
+    }
+    case "req-new-undo": {
+      const r = s.reqMade.find((x) => x.id === a.id);
+      const line = r?.kind === "ticket" ? r.values["line"] : undefined;
+      return r === undefined || line === undefined ? null
+        : make("people.payslip-question-withdrawn", "people",
+          emp(r.employeeId), `${nameOf(r.employeeId)} withdrew a ` +
+          `payslip question: ${line}.`);
+    }
     case "rule-edit": return make("setup.rule-changed", "setup",
       { kind: "rule", id: a.edit.key, label: a.edit.what },
       `${who} changed a rule: ${a.edit.what}.`);

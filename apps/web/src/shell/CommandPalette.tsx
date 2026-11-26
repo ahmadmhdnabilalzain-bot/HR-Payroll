@@ -12,6 +12,9 @@ import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import type { MessageKey } from "../i18n/t";
 import { useTheme } from "../theme/ThemeProvider";
+import { navigate } from "../demo/route";
+import { interpret } from "../reports/ask/interpret";
+import { useAskContext } from "../reports/ask/useAsk";
 import { VIEWS } from "../views";
 import { areasFor, routeOf, WORD, WORD_ICON } from "../nav/registry";
 import { Icon } from "../ui/Icon";
@@ -85,7 +88,19 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
     month: formatMonthName(data.headline().runMonth, lang) }),
   [data, state, dispatch, t, lang, p.arabicShown, resolved, setPref,
     setLang, switchRole, run]);
-  const shown = all.filter((c) => matches(c, query));
+  const ask = useAskContext();
+  // X34: words that name a report offer to open it, set to the month
+  // or cost centre named. Two words at least, so one-word searches
+  // keep finding pages first.
+  const asked = query.trim().split(/\s+/).length < 2 ? null
+    : interpret(query, ask);
+  const askCommand: Command[] = asked?.kind !== "match" ? [] : [{
+    id: "ask-report", group: "actions", icon: "file",
+    label: `Open ${asked.target.label}${asked.filterText === ""
+      ? "" : `, ${asked.filterText}`}`,
+    hint: t("shell.askHint"), keywords: "",
+    run: () => navigate("reports", ...asked.rest) }];
+  const shown = [...askCommand, ...all.filter((c) => matches(c, query))];
   const pick = (c: Command | undefined): void => {
     if (c === undefined) return;
     p.onClose();

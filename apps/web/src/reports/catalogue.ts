@@ -5,6 +5,7 @@ import { INSPECTION_BLURBS } from "./inspection";
 import { MORE_BLURBS } from "./more";
 import { PLANNING_BLURBS } from "./planning";
 import { ANALYSIS_BLURBS } from "./analysis";
+import { ASK_BLURBS } from "./ask/blurbs";
 
 /** What each report answers, by area id: the home page's one line. */
 export const BLURB: Readonly<Record<string, string>> = {
@@ -15,6 +16,7 @@ export const BLURB: Readonly<Record<string, string>> = {
   ...MORE_BLURBS,
   ...INSPECTION_BLURBS,
   ...ANALYSIS_BLURBS,
+  ...ASK_BLURBS,
   "reports.summary": "What is this month's pay, and how does it compare " +
     "with last month?",
   "reports.departments": "Which department costs the most?",

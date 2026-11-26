@@ -10,9 +10,11 @@ import { useEntrance } from "../ui/templates/listEnter";
 import tp from "../ui/templates/templates.module.css";
 import s from "./Reports.module.css";
 import { Footnote } from "../components/explain";
+import { AskBox } from "./ask/AskBox";
+import { canAsk } from "./ask/useAsk";
 
 /** Reports home: every report, grouped, with the question it answers. */
-export function Catalogue() {
+export function Catalogue(p: { autoFocusAsk?: boolean }) {
   const { lang, t } = useLocale();
   const ctx = useDemo();
   const groups = panelOf(ctx.state.role, "reports");
@@ -27,12 +29,16 @@ export function Catalogue() {
         <p className={s.sub}>Reports are for the HR manager and the
           General manager.</p>
       )}
+      {canAsk(ctx.state.role) && (
+        <AskBox autoFocus={p.autoFocusAsk === true} />
+      )}
       {groups.map(({ group, areas }) => (
         <section key={group.id} aria-labelledby={`rg-${group.id}`}>
           <h2 id={`rg-${group.id}`} className={s.group}>
             {group.label[lang]}</h2>
           <ul className={s.list}>
-            {areas.filter((a) => a.id !== "reports.all").map((a) => {
+            {areas.filter((a) => a.id !== "reports.all" &&
+              a.id !== "reports.ask").map((a) => {
               const r = routeOf(a, { data: ctx.data, state: ctx.state });
               return (
                 <li key={a.id}>
