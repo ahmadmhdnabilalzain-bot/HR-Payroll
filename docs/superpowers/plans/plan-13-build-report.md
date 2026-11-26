@@ -662,3 +662,4 @@ Important, 9 Minor). One commit per item, test first.
   gives no JIT account and no enforcement pass, the attacker-company
   scenario, the claim refusal (also on real PostgreSQL). Not done: more
   than one JIT candidate is still a plain 401, not a security event.
+- M4: `liveKey` also needs the service user's unrevoked membership (a revoked one gives 401); tested.

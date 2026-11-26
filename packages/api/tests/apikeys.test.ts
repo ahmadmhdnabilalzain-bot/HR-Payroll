@@ -167,4 +167,19 @@ describe("API keys", () => {
       e.entityId === made.body.id);
     expect(ev.actorUserId).toBe(svc!.service_user_id);
   });
+
+  it("M4: a revoked service-user membership stops the key", async () => {
+    const ctx = await makeApp();
+    const s = await seedCompany(ctx, "akm4");
+    const k = await newKey(ctx, s, ["employees:read"]);
+    expect((await asKey(ctx, k.secret, s.companyId, "GET",
+      "/v1/employees")).status).toBe(200);
+    await rowsOf(ctx, s.companyId, `UPDATE memberships SET revoked_at = $2
+      WHERE company_id = $1 AND user_id = (SELECT service_user_id
+        FROM api_keys WHERE company_id = $1) RETURNING user_id`,
+    [s.companyId, ctx.clock.now.toISOString()]);
+    const r = await asKey(ctx, k.secret, s.companyId, "GET",
+      "/v1/employees");
+    expect(r.status).toBe(401);
+  });
 });

@@ -44,6 +44,11 @@ async function liveKey(tx: Db, c: string, bearer: string, now: Date)
      WHERE company_id = $1 AND key_id = $2`, [c, p.keyId]);
   if (k === undefined || k.status !== "active") return null;
   if (k.expires_at !== null && new Date(k.expires_at) <= now) return null;
+  // Review M4: the service user's membership must still be live.
+  const m = await tx.query(
+    `SELECT 1 FROM memberships WHERE company_id = $1 AND user_id = $2
+       AND revoked_at IS NULL`, [c, k.service_user_id]);
+  if (m.length === 0) return null;
   const h = hashKeySecret(p.secret);
   const prevOk = k.prev_secret_hash !== null && k.prev_valid_until !== null &&
     now < new Date(k.prev_valid_until) && same(h, k.prev_secret_hash);
