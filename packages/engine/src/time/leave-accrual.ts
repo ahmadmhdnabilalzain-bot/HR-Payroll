@@ -156,14 +156,16 @@ function warn(code: string, rule: TraceRule,
 function annualWarnings(f: LeavePolicyFacts, days: number,
   p: TimeParams): TimeFlag[] {
   const d = { annualDays: String(days) };
-  const out: TimeFlag[] = [];
+  // The law's days are calendar days: a working-day policy is not
+  // compared with either the 30 days or the 2 days a month.
   if (f.dayCount === "working") {
-    out.push(warn("ANNUAL_BASIS_NOT_COMPARED", p.annualLeaveMinDays.rule,
-      d));
-  } else if (days < p.annualLeaveMinDays.v) {
+    return [warn("ANNUAL_BASIS_NOT_COMPARED", p.annualLeaveMinDays.rule,
+      d)];
+  }
+  const out: TimeFlag[] = [];
+  if (days < p.annualLeaveMinDays.v) {
     out.push(warn("ANNUAL_BELOW_STATUTORY", p.annualLeaveMinDays.rule, d));
   }
-  // The plan's condition names no basis, so this runs on both.
   if (f.accrual === "monthly" && days < 12 * p.firstYearDaysPerMonth.v) {
     out.push(warn("MONTHLY_BELOW_FIRST_YEAR_RATE",
       p.firstYearDaysPerMonth.rule, d));

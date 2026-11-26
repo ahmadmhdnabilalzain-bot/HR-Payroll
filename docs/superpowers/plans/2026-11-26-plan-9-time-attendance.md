@@ -528,7 +528,8 @@ Law task: fresh per-task review.
     codes: `ANNUAL_BELOW_STATUTORY` (annual, calendar, `annualDays <
     annualLeaveMinDays`), `ANNUAL_BASIS_NOT_COMPARED` (annual, working
     basis; the law's 30 days are not compared with working days),
-    `MONTHLY_BELOW_FIRST_YEAR_RATE` (annual, monthly, `annualDays / 12 <
+    `MONTHLY_BELOW_FIRST_YEAR_RATE` (annual, calendar basis only as
+    for the 30 days (review M3), monthly, `annualDays / 12 <
     firstYearDaysPerMonth`, compared as `annualDays < 12 * that`),
     `CARRY_OVER_ABOVE_HALF` (`carryOverMaxDays * 10000 > annualDays *
     carryOverMaxShareBps`; ER 19(1) speaks of the worker's carry

@@ -184,10 +184,9 @@ describe("checkLeavePolicy", () => {
     expect(all.length).toBe(6);
     for (const f of all) expect(f.rule, f.code).not.toBeNull();
   });
-  it("monthly_rate_compared_on_working_basis_too", () => {
+  it("monthly_rate_not_compared_on_working_basis", () => {
     expect(codes({ annualDays: 20, accrual: "monthly",
-      dayCount: "working" })).toEqual(["ANNUAL_BASIS_NOT_COMPARED",
-      "MONTHLY_BELOW_FIRST_YEAR_RATE"]);
+      dayCount: "working" })).toEqual(["ANNUAL_BASIS_NOT_COMPARED"]);
   });
   it("null_annual_days_compares_nothing", () => {
     expect(codes({ annualDays: null, carryOverMaxDays: 5 })).toEqual([]);
