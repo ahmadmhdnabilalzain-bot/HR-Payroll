@@ -4,10 +4,12 @@
  * out), the last chain check run in this session and the "edit one
  * entry" demo. Shared by the Audit trail page and the IT dashboard.
  */
+type AuditArea = "pay" | "people" | "time" | "access" | "setup";
+
 export interface AuditAddition {
   /** Action code, e.g. "access.api-key-revoked". */
   action: string;
-  area: "access";
+  area: AuditArea;
   actorId: string;
   /** The demo's date (ISO); the time follows the trail's last entry. */
   on: string;
@@ -18,14 +20,21 @@ export interface AuditAddition {
 /** The entry the "edit one entry" demo changes in its copy. */
 export const TAMPER_AT = 11;
 
-/** Additions as trail entries: the time follows the trail's last
- * entry on the same day, so the trail stays in time order. */
+/** The demo clock: entries follow the trail's last entry, two minutes
+ * apart, so the trail stays in time order (a new day starts at 09:00). */
 export function auditDrafts(added: readonly AuditAddition[],
   lastAt: string) {
-  return added.map((x) => ({
-    at: lastAt.slice(0, 10) === x.on ? lastAt : `${x.on}T09:00`,
-    actorId: x.actorId, action: x.action, area: x.area,
-    subject: x.subject, summary: x.summary }));
+  let at = lastAt;
+  return added.map((x) => {
+    const day = at.slice(0, 10) === x.on;
+    const from = day ? Number(at.slice(11, 13)) * 60 +
+      Number(at.slice(14, 16)) : 9 * 60 - 2;
+    const m = Math.min(from + 2, 23 * 60 + 59);
+    at = `${x.on}T${String(Math.floor(m / 60)).padStart(2, "0")}:` +
+      String(m % 60).padStart(2, "0");
+    return { at, actorId: x.actorId, action: x.action, area: x.area,
+      subject: x.subject, summary: x.summary };
+  });
 }
 
 export interface AuditCheckResult {

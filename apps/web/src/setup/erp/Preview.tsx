@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useDemo } from "../../demo/state";
 import b from "../../ui/button.module.css";
+import { amountsHidden, MONEY_MASK, maskMoney } from "../../ui/mask";
 import type { SetupErpSource } from "./source";
 import s from "./erp.module.css";
 
@@ -65,8 +67,11 @@ export function ErpPreview(p: { src: SetupErpSource }) {
 /** The posting preview, its totals, and a download of the file. */
 export function PostingPreviewBlock(p: { src: SetupErpSource }) {
   const { posting } = p.src;
+  const hide = amountsHidden(useDemo().state);
+  const num = (v: string): string => hide && v !== "" ? "••••••" : v;
   const download = (): void => {
-    const url = URL.createObjectURL(new Blob([p.src.csv],
+    const text = hide ? p.src.csvMasked : p.src.csv;
+    const url = URL.createObjectURL(new Blob([text],
       { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
@@ -81,9 +86,11 @@ export function PostingPreviewBlock(p: { src: SetupErpSource }) {
         head={["Account", "Name", "Cost centre", "Debit", "Credit"]}
         ends={[3, 4]}
         rows={posting.lines.map((l) => [l.account, l.accountName,
-          l.costCentre, l.cells[6] ?? "", l.cells[7] ?? ""])}
+          l.costCentre, num(l.cells[6] ?? ""),
+          num(l.cells[7] ?? "")])}
         foot={["Total", posting.display.lines, "",
-          posting.display.debits, posting.display.credits]} />
+          hide ? MONEY_MASK : posting.display.debits,
+          hide ? MONEY_MASK : posting.display.credits]} />
       <div className={s.actions}>
         <button type="button" className={`${b.btn} ${b.secondary}`}
           onClick={download}>Download {posting.fileName}</button>
@@ -97,14 +104,16 @@ export function PostingPreviewBlock(p: { src: SetupErpSource }) {
 
 /** The Teams card a waiting request would send. */
 export function TeamsPreview(p: { src: SetupErpSource }) {
+  const hide = amountsHidden(useDemo().state);
+  const m = (v: string): string => hide ? maskMoney(v) : v;
   return (
     <Block title="Cards it would send"
       hint="One card for each request waiting. Shown here, not sent.">
       {p.src.cards.map((c) => (
         <article key={c.id} className={s.card} aria-label={c.title}>
-          <strong>{c.title}</strong>
-          {c.amount !== null && <span>{c.amount}</span>}
-          <small>{c.detail}</small>
+          <strong>{m(c.title)}</strong>
+          {c.amount !== null && <span>{m(c.amount)}</span>}
+          <small>{m(c.detail)}</small>
           <div className={s.buttons}>{c.buttons.map((x) => (
             <span key={x} className={s.fake}>{x}</span>))}</div>
         </article>
