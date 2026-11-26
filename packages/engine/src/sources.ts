@@ -24,6 +24,12 @@ const ARTICLES: Record<string, RuleSource> = {
   DL33_ART30: { url: LAW_URL, note: DL33 + "Article 30(1)-(2)" },
   DL33_ART31: { url: LAW_URL, note: DL33 + "Article 31(2)-(3)" },
   DL33_ART39: { url: LAW_URL, note: DL33 + "Article 39(1)(c)" },
+  DL33_ART9: { url: LAW_URL, note: DL33 + "Article 9(1)-(6)" },
+  DL33_ART43: { url: LAW_URL, note: DL33 + "Article 43(1)-(5)" },
+  DL33_ART44: { url: LAW_URL, note: DL33 +
+    "Article 44 (heading and list read; body not read closely)" },
+  DL33_ART45: { url: LAW_URL, note: DL33 + "Article 45 (list read)" },
+  DL33_ART53: { url: LAW_URL, note: DL33 + "Article 53" },
   ER1_2022_ART19: { url: LEG + "1547", note: ER1 + "Article 19(1)" },
   DL57_ART4: { url: LEG + "2254", note: DL57 + "Article 4(1)" },
   DL57_ART5: { url: LEG + "2254", note: DL57 + "Article 5(2)" },
