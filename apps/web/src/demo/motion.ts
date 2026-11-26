@@ -17,10 +17,11 @@ const easeOutCubic = (p: number): number => 1 - (1 - p) ** 3;
  * The first render shows the target as is: no count-up on load. The
  * steps are integer (per mille of the gap), so no float reaches money.
  */
-export function useTweenedBigint(target: bigint, ms: number = DUR.slow)
-  : bigint {
-  const [shown, setShown] = useState(target);
-  const from = useRef(target);
+export function useTweenedBigint(target: bigint, ms: number = DUR.slow,
+  start?: bigint): bigint {
+  const first = start !== undefined && !reducedMotion() ? start : target;
+  const [shown, setShown] = useState(first);
+  const from = useRef(first);
   useLayoutEffect(() => {
     const start = from.current;
     if (start === target) return undefined;

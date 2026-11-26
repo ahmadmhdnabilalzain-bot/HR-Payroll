@@ -15,10 +15,13 @@ const MASK = "•".repeat(6);
  * Arabic, the fils set smaller, eased when the value changes, and
  * masked when amounts are hidden. Screen readers get the plain text.
  */
-export function Money(p: { value: Fils; size?: Size; tween?: boolean }) {
+export function Money(p: { value: Fils; size?: Size; tween?: boolean;
+  /** Count up from zero once, on first show (the opening pass). */
+  countUp?: boolean }) {
   const { lang, t } = useLocale();
   const { state } = useDemo();
-  const shown = useTweenedBigint(p.value);
+  const shown = useTweenedBigint(p.value, p.countUp === true ? 800 : 250,
+    p.countUp === true ? 0n : undefined);
   const v = p.tween === false ? p.value : fils(shown);
   const size = p.size ?? "md";
   if (state.hideAmounts) {

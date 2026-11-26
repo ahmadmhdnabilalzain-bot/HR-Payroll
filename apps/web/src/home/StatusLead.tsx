@@ -22,7 +22,8 @@ export function StatusLead() {
   const run = useRunApproval();
   const h = data.headline();
   const month = formatMonthName(h.runMonth, lang);
-  const nameOf = (id: string): string => data.employee(id).name[lang];
+  const nameOf = (id: string): string =>
+    data.employee(id).name[lang].replace(/ /g, "\u00a0");
   const names = (ids: string[]): string => formatList(ids.map(nameOf), lang);
   const checker = nameOf(data.runPeople().checkerId);
   const held = run.blockedBy;

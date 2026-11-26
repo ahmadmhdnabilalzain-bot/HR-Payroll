@@ -143,7 +143,7 @@ export function ExplainPanel(p: { explanation: Explanation;
       <div className={s.scrim} onClick={close} aria-hidden="true" />
       <div ref={panel} className={s.panel} role="dialog" aria-modal="true"
         aria-labelledby={`${id}-t`}>
-        <header className={s.head}>
+        <div className={s.head}>
           <div className={s.headText}>
             <p className={s.subject}>{e.subject}</p>
             <h2 id={`${id}-t`} className={s.title}>{e.title}</h2>
@@ -152,8 +152,9 @@ export function ExplainPanel(p: { explanation: Explanation;
             aria-label={t("explain.close")} onClick={close}>
             <Icon name="x" size={20} />
           </button>
-        </header>
-        <div className={s.body}>
+        </div>
+        <div className={s.body} tabIndex={0} role="region"
+          aria-label={t("explain.working")}>
           <div className={s.result}>
             <span className={s.resultLabel}>{e.result.label}</span>
             <Value v={e.result.value} size="lg" />

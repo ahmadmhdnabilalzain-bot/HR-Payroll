@@ -2,7 +2,10 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useSwitchRole } from "../demo/actions";
 import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
+import type { MessageKey } from "../i18n/t";
 import { useTheme } from "../theme/ThemeProvider";
+import { VIEWS } from "../views";
+import { NAV_ITEMS } from "./nav";
 import { Icon } from "../ui/Icon";
 import { commands, matches, type Command, type Group } from "./commands";
 import s from "./CommandPalette.module.css";
@@ -44,7 +47,9 @@ export function CommandPalette(p: { open: boolean; arabicShown: boolean;
   );
 }
 
-const GROUPS: Group[] = ["actions", "people"];
+const GROUPS: Group[] = ["go", "actions", "people"];
+const GROUP_KEY: Record<Group, MessageKey> = { go: "shell.groupGo",
+  actions: "shell.groupActions", people: "shell.groupPeople" };
 
 function Palette(p: { arabicShown: boolean; onClose(): void }) {
   const { lang, t, setLang } = useLocale();
@@ -57,7 +62,10 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
   const all = useMemo(() => commands({ data, state, dispatch, t, lang,
     arabicShown: p.arabicShown,
     toggleTheme: () => setPref(resolved === "dark" ? "light" : "dark"),
-    toggleLang: () => setLang(lang === "en" ? "ar" : "en"), switchRole }),
+    toggleLang: () => setLang(lang === "en" ? "ar" : "en"), switchRole,
+    sections: NAV_ITEMS.filter(([id]) => VIEWS[id] !== undefined)
+      .map(([id, key, icon]) => [id, t(key), icon]),
+    peopleShown: VIEWS.people !== undefined }),
   [data, state, dispatch, t, lang, p.arabicShown, resolved, setPref,
     setLang, switchRole]);
   const shown = all.filter((c) => matches(c, query));
@@ -102,11 +110,9 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
           const items = shown.filter((c) => c.group === g);
           if (items.length === 0) return null;
           return (
-            <div key={g} role="group" aria-label={g === "actions"
-              ? t("shell.groupActions") : t("shell.groupPeople")}>
+            <div key={g} role="group" aria-label={t(GROUP_KEY[g])}>
               <p className={s.group} aria-hidden="true">
-                {g === "actions" ? t("shell.groupActions")
-                  : t("shell.groupPeople")}
+                {t(GROUP_KEY[g])}
               </p>
               {items.map((c) => {
                 const i = shown.indexOf(c);

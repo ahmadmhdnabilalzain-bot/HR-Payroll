@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { openIssues } from "../demo/derive";
-import { useFlip, useTweenedNumber } from "../demo/motion";
+import { isBlocking, openIssues } from "../demo/derive";
+import {
+  reducedMotion,
+  useFlip,
+  useTweenedNumber,
+} from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { IssueRow } from "./IssueRow";
@@ -28,7 +32,17 @@ export function IssueList() {
   const more = open.length - shown.length;
   const box = useRef<HTMLOListElement>(null);
   useFlip(box, [shown.map((i) => i.id).join()]);
-  const count = useTweenedNumber(open.length);
+  const blocking = useTweenedNumber(open.filter(isBlocking).length);
+  const review = useTweenedNumber(open.filter((i) => !isBlocking(i))
+    .length);
+  const counts = [blocking > 0 ? t("home.blockCount", { count: blocking })
+    : "", review > 0 ? t("home.reviewCount", { count: review }) : ""]
+    .filter(Boolean).join(" · ");
+  const [opening, setOpening] = useState(!reducedMotion());
+  useEffect(() => {
+    const h = setTimeout(() => setOpening(false), 900);
+    return () => clearTimeout(h);
+  }, []);
   return (
     <section className={s.panel} aria-labelledby="issues-title">
       <header className={s.head}>
@@ -36,8 +50,7 @@ export function IssueList() {
           {t("home.blockersTitle")}
         </h2>
         <span className={`${s.count} tabular`} data-zero={open.length === 0}>
-          {open.length === 0 ? t("home.noIssues")
-            : t("home.openIssues", { count })}
+          {open.length === 0 ? t("home.noIssues") : counts}
         </span>
       </header>
       {state.role === "gm" && <p className={s.sub}>{t("home.gmNote")}</p>}
@@ -47,7 +60,8 @@ export function IssueList() {
         <ol className={s.list} ref={box}>
           {shown.map((i, n) => (
             <IssueRow key={i.id} issue={i}
-              delay={all && n >= FIRST ? (n - FIRST) * 90 : null} />
+              delay={opening ? n * 90 + 150
+                : all && n >= FIRST ? (n - FIRST) * 90 : null} />
           ))}
         </ol>
       )}

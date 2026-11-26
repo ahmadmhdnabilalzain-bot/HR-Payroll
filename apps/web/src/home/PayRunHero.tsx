@@ -32,7 +32,8 @@ export function PayRunHero() {
             {t("home.net")}
           </h2>
           <p className={s.figure}>
-            <Suspense fallback={<Money value={h.netTotalFils} size="hero" />}>
+            <Suspense fallback={<Money value={h.netTotalFils} size="hero"
+              countUp />}>
               <ExplainedNet />
             </Suspense>
           </p>
@@ -99,7 +100,7 @@ function ExplainedNet() {
   const run = useRunDetail();
   return (
     <Explainable explanation={run.explain["run:net"]}>
-      <Money value={data.headline().netTotalFils} size="hero" />
+      <Money value={data.headline().netTotalFils} size="hero" countUp />
     </Explainable>
   );
 }

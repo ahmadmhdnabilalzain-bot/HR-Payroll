@@ -1,19 +1,26 @@
+import { useDemo } from "../demo/state";
 import { Approvals } from "./Approvals";
 import { Departments } from "./Departments";
+import { EmployeeHome } from "./EmployeeHome";
 import { Expiries } from "./Expiries";
 import { IssueList } from "./IssueList";
+import { ManagerHome } from "./ManagerHome";
 import { PayRunHero } from "./PayRunHero";
 import { Setup } from "./Setup";
 import { StatusLead } from "./StatusLead";
 import s from "./Home.module.css";
 
 /**
- * Home, for HR or the GM. The first screenful answers one question:
- * can October be paid, and what is the one next step. The sentence
- * leads, the figure supports it, progress shows where the run is, and
- * at most three issues stand before approval. Context sits below.
+ * Home, per role. HR and the GM: can October be paid, and what is the
+ * one next step (the sentence leads, the figure supports it, progress,
+ * at most three issues, approvals). The team manager: the requests
+ * waiting for them and their team's leave. The employee: their own pay
+ * day, payslip and leave. Only HR and the GM see company pay.
  */
 export function Home() {
+  const { state } = useDemo();
+  if (state.role === "employee") return <EmployeeHome />;
+  if (state.role === "manager") return <ManagerHome />;
   return (
     <div className={s.page}>
       <StatusLead />
