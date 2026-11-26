@@ -66,7 +66,7 @@ async function openInvite(tx: Db, deps: HandlerDeps, token: string) {
   const [inv] = await tx.query<InviteRow>(
     `SELECT id, email, role, employee_id, expires_at, used_at
      FROM invites WHERE token_hash = $1 FOR UPDATE`, [tokenHash(token)]);
-  if (inv === undefined) throw new ApiError("INVITE_INVALID");
+  if (inv === undefined) throw new ApiError("INVITE_NOT_FOUND");
   if (inv.used_at !== null) throw new ApiError("INVITE_USED");
   if (Date.parse(inv.expires_at) <= deps.now().getTime()) {
     throw new ApiError("INVITE_EXPIRED");

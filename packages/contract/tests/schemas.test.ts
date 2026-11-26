@@ -5,6 +5,8 @@ import {
   PAY_TRACE_RESULT,
   PAY_TRACE_RESULT_EXAMPLE,
   PayRun,
+  PayRunEntry,
+  LeaveRequestQuery,
   RoleChange,
   AuditEvent,
   EXAMPLES,
@@ -142,6 +144,20 @@ describe("additions after Task 1", () => {
     for (const l of slip.trace.filter((t) => t.id.startsWith("pay."))) {
       expect(PAY_TRACE_RESULT.safeParse(l.result).success).toBe(true);
     }
+  });
+  it("PayRunEntry takes serviceUnpaidLeaveDays", () => {
+    const id = "00000000-0000-4000-8000-000000000001";
+    expect(PayRunEntry.safeParse({ employeeId: id,
+      serviceUnpaidLeaveDays: 12 }).success).toBe(true);
+    expect(PayRunEntry.safeParse({ employeeId: id,
+      serviceUnpaidLeaveDays: -1 }).success).toBe(false);
+  });
+  it("LeaveRequestQuery filters by year (query text)", () => {
+    expect(LeaveRequestQuery.parse({ year: "2026" })).toEqual(
+      { year: 2026 });
+  });
+  it("INVITE_NOT_FOUND is an API code", () => {
+    expect(ERROR_STATUS.INVITE_NOT_FOUND).toBe(404);
   });
   it("RoleChange accepts a role only", () => {
     expect(RoleChange.safeParse({ role: "hr" }).success).toBe(true);

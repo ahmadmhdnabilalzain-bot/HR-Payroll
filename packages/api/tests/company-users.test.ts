@@ -132,7 +132,7 @@ describe("company and users", () => {
     expect((await accept(ctx, token)).body.error.code)
       .toBe("INVITE_EXPIRED");
     expect((await accept(ctx, `${a.companyId}.nope`)).body.error.code)
-      .toBe("INVITE_INVALID");
+      .toBe("INVITE_NOT_FOUND");
     expect((await accept(ctx, "garbage")).body.error.code)
       .toBe("INVITE_INVALID");
   });

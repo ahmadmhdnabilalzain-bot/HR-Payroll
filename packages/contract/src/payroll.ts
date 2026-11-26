@@ -31,6 +31,12 @@ export const PayRunEntry = z.object({
     .max(30)
     .optional(),
   unusedLeaveDays: z.number().int().min(0).optional(),
+  /**
+   * Leavers only: unpaid leave days over the whole service, passed to
+   * the gratuity calculation. Omitted means 0 and the settlement lists
+   * "unpaid leave over service (not entered)" under notComputed.
+   */
+  serviceUnpaidLeaveDays: z.number().int().min(0).optional(),
 });
 export type PayRunEntry = z.infer<typeof PayRunEntry>;
 
