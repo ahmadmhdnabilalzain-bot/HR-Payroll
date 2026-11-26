@@ -16,7 +16,7 @@ export function OwnerBriefScreen() {
   const waiting = openApprovals(data, state).length;
   const rows = briefRows(brief, { fig: figures(data, state),
     verdict: runId === null ? undefined : state.decided[runId],
-    settlementFils: null }, m);
+    dues: state }, m);
   return (
     <ReportPage title="Owner brief" period={brief.title}
       figure={{ label: "Waiting for a decision", value: String(waiting) }}

@@ -54,6 +54,8 @@ export interface BriefItem {
   /** What happens next, or who it waits for. */
   next: string;
   live: BriefLive;
+  /** The person a row is about (the leaver, for the settlement). */
+  subjectId: string | null;
 }
 
 export interface OwnerBrief {
@@ -87,9 +89,10 @@ export function ownerBrief(c: DemoCompany): OwnerBrief {
   const expired = c.documents.filter((d) => d.daysLeft < 0);
   const review = accessReview(c);
   const settle = c.payRun.settlements[0];
-  const item = (i: Omit<BriefItem, "amount" | "count" | "live"> &
-    Partial<Pick<BriefItem, "amount" | "count" | "live">>): BriefItem =>
-    ({ amount: null, count: null, live: null, ...i });
+  type Opt = "amount" | "count" | "live" | "subjectId";
+  const item = (i: Omit<BriefItem, Opt> & Partial<Pick<BriefItem, Opt>>)
+    : BriefItem => ({ amount: null, count: null, live: null,
+    subjectId: null, ...i });
   const items: BriefItem[] = [
     item({ id: "net", area: "Pay", item: "October net pay",
       text: `${plural(h.payslips, "payslip", "payslips")}, as the run ` +
@@ -105,10 +108,11 @@ export function ownerBrief(c: DemoCompany): OwnerBrief {
       next: "Open the pay run to fix them.", live: "issues-open" }),
     ...(settle === undefined ? [] : [item({ id: "settlement", area: "Pay",
       item: "Final settlement, outside the run",
-      text: `${nameOf(c, settle.employeeId)}: gratuity and unused leave.`,
+      text: `${nameOf(c, settle.employeeId)}: gratuity and leave pay ` +
+        "worked out; notice pay and other dues to add.",
       amount: settle.result.total,
       next: "Paid on its own, not in the salary file.",
-      live: "settlement" })]),
+      live: "settlement", subjectId: settle.employeeId })]),
     item({ id: "headcount", area: "People", item: "On the payroll",
       text: h.headcountText, count: h.payslips,
       next: "Nothing to do." }),

@@ -1,4 +1,4 @@
-import type { Fils } from "@payroll/engine";
+import { fils, type Fils } from "@payroll/engine";
 import type { DemoData } from "./data/types";
 import { isBlocking, openIssues, runPhase, type RunPhase } from "./derive";
 import type { DemoState } from "./state";
@@ -25,6 +25,14 @@ export interface Figures {
   phase: RunPhase;
   /** True once the checker has signed the run off. */
   signedOff: boolean;
+}
+
+/** A final settlement's total as the state has it: the engine's
+ * gratuity and leave pay plus any other dues HR added by hand. */
+export function settlementTotal(base: Fils, s: Pick<DemoState,
+  "otherDues">, employeeId: string | null): Fils {
+  const dues = employeeId === null ? undefined : s.otherDues[employeeId];
+  return dues === undefined ? base : fils(base + dues.amount);
 }
 
 export function figures(d: DemoData, s: DemoState): Figures {

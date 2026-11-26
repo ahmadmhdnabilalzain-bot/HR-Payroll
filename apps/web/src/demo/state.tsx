@@ -264,7 +264,9 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "pay-withdraw":
     case "pay-restore":
     case "fine-decide":
-    case "fine-undo": return reducePay(s, a);
+    case "fine-undo":
+    case "dues-set":
+    case "dues-undo": return reducePay(s, a);
     case "connect-edit":
     case "connect-undo": return reduceConnect(s, a);
     case "prior-add":

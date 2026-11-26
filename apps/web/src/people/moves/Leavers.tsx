@@ -1,4 +1,5 @@
 import type { LeaverChecklistView } from "../../demo/data/moves-types";
+import { settlementTotal } from "../../demo/figures";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { Money } from "../../ui/Money";
@@ -36,7 +37,8 @@ function LeaverList() {
         { key: "d", label: "Last working day",
           render: (l) => l.lastWorkingDay.display },
         { key: "s", label: "Settlement", end: true,
-          render: (l) => <Money value={l.settlement.total.value} size="sm" />
+          render: (l) => <Money value={settlementTotal(
+            l.settlement.total.value, state, l.employeeId)} size="sm" />
         },
         { key: "p", label: "Checklist", end: true, render: (l) => {
           const x = prog(l);
