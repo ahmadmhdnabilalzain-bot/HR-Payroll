@@ -6,7 +6,6 @@ import {
 } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { recorder, runFlow, type Hit } from "./helpers/api-flow";
-import { isPending, PLAN7_PENDING } from "./helpers/plan7-pending";
 import { makeApp } from "./helpers/test-app";
 
 type Ctx = Awaited<ReturnType<typeof makeApp>>;
@@ -24,18 +23,14 @@ describe("whole-API conformance", () => {
     const routes = (ctx.app.routes as { method: string; path: string }[])
       .filter((r) => r.method !== "ALL")
       .map((r) => `${r.method} ${r.path}`);
-    const key = (r: { method: string; path: string }) =>
-      `${r.method} ${r.path.replace(/\{([a-zA-Z]+)\}/g, ":$1")}`;
-    const all = ROUTES.map(key);
-    const want = ROUTES.filter((r) => !isPending(r.id)).map(key);
-    expect(new Set(routes).size).toBe(routes.length);
-    expect(routes.filter((r) => !all.includes(r))).toEqual([]);
-    expect(want.filter((w) => !routes.includes(w))).toEqual([]);
+    const want = ROUTES.map((r) =>
+      `${r.method} ${r.path.replace(/\{([a-zA-Z]+)\}/g, ":$1")}`);
+    expect([...routes].sort()).toEqual([...want].sort());
   });
 
   it("one happy-path call per route parses with its response schema",
     () => {
-      for (const r of ROUTES.filter((x) => !isPending(x.id))) {
+      for (const r of ROUTES) {
         const ok = hits.find((h) => h.id === r.id && h.res.status < 300);
         expect(ok, `${r.id} never succeeded`).toBeDefined();
         const body = r.status === 204 ? null : ok!.res.body;
@@ -45,10 +40,6 @@ describe("whole-API conformance", () => {
       }
     });
 
-  it("every Plan 7 route is served (none pending)", () => {
-    expect([...PLAN7_PENDING]).toEqual([]);
-  });
-
   it("Plan 7 downloads send their stored type as an attachment", () => {
     const types = ["application/pdf", "image/png", "image/jpeg"];
     for (const r of DOCUMENT_ROUTES.filter((x) =>
@@ -57,6 +48,21 @@ describe("whole-API conformance", () => {
       expect(types, r.id).toContain(ok!.res.headers.get("content-type"));
       expect(ok!.res.headers.get("content-disposition"), r.id)
         .toMatch(/^attachment;/);
+    }
+  });
+
+  it("binary and csv-optional routes answer their media types", () => {
+    const bin = hits.find((h) => h.id === "downloadReceipt")!;
+    expect(bin.res.headers.get("content-type")).toBe("image/png");
+    expect(bin.res.headers.get("content-disposition"))
+      .toMatch(/^attachment; filename="receipt-[0-9a-f-]{36}\.png"$/);
+    const csv = ROUTES.filter((r) => r.contentType === "text/csv-optional");
+    for (const r of csv) {
+      const types = hits.filter((h) => h.id === r.id && h.res.status < 300)
+        .map((h) => h.res.headers.get("content-type") ?? "");
+      expect(types.some((t) => t.startsWith("text/csv")), r.id).toBe(true);
+      expect(types.some((t) => t.startsWith("application/json")), r.id)
+        .toBe(true);
     }
   });
 

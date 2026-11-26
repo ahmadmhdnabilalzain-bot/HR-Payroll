@@ -11,7 +11,10 @@ export const SummaryQuery = z.object({
   from: IsoDate,
   to: IsoDate,
   groupBy: z.enum(["category", "employee", "department", "status"]),
+  /** With a run: that run's claims, whatever their item dates. */
   payRunId: Id.optional(),
+  /** Default: approved and reimbursed claims. */
+  status: ClaimStatus.optional(),
   format: ReportFormat.optional(),
 });
 export type SummaryQuery = z.infer<typeof SummaryQuery>;
@@ -85,11 +88,26 @@ export const UnpaidRow = z.object({
   employeeName: z.string(),
   total: Money,
   decidedAt: Timestamp,
-  reason: z.enum(["awaiting-pay-run", "in-draft-run", "employee-left"]),
+  /**
+   * in-draft-run: linked to a draft run. final-run-pending: the
+   * employee has left but a run can still pay it (their final month
+   * has no approved run yet). employee-left: no run can pay it any
+   * more. awaiting-pay-run: the next run that covers them pays it.
+   */
+  reason: z.enum(["awaiting-pay-run", "in-draft-run", "final-run-pending",
+    "employee-left"]),
 });
 export type UnpaidRow = z.infer<typeof UnpaidRow>;
 
-export const UnpaidReport = listOf(UnpaidRow);
+/** Carried on the unpaid report: how to record a manual payment. */
+export const UNPAID_NOTE = "A claim paid outside payroll must be " +
+  "cancelled by HR with a note saying so; otherwise the next pay run " +
+  "that covers the employee pays it again.";
+
+export const UnpaidReport = z.object({
+  items: z.array(UnpaidRow),
+  note: z.literal(UNPAID_NOTE),
+});
 
 export const PayoutsQuery = z.object({
   payRunId: Id,

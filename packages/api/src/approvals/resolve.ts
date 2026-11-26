@@ -13,6 +13,8 @@ export interface ResolveInput {
   overLimit: boolean;
   claimantUserId: string | null;
   submitterUserId: string;
+  /** Also never eligible: other claimant users, the subject's makers. */
+  alsoExcluded?: string[];
   lineManagerUserId: string | null;
   members: { userId: string; role: Role }[];
 }
@@ -80,6 +82,7 @@ export function resolveChain(i: ResolveInput): ResolvedStep[] {
   }
   const excluded = new Set([i.submitterUserId]);
   if (i.claimantUserId !== null) excluded.add(i.claimantUserId);
+  for (const u of i.alsoExcluded ?? []) excluded.add(u);
   const steps = specs.map((a, n) => stepFor(a, n + 1, i, excluded));
   if (!hasDistinctApprovers(steps.map((s) => s.eligible))) {
     throw new ApiError("NO_ELIGIBLE_APPROVER");

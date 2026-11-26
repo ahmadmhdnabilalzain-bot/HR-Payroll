@@ -6,11 +6,23 @@ import { keyringFromKey } from "../../src/crypto/keyring";
 import type { SubjectHandler } from "../../src/approvals/subjects";
 import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
+import {
+  notConfiguredAccess,
+  type AccessPort,
+} from "../../src/ports/access";
+import {
+  notConnectedCalendar,
+  type CalendarPort,
+} from "../../src/ports/calendar";
+import {
+  notConfiguredDocuments,
+  type DocumentPort,
+} from "../../src/ports/documents";
 import type { ReceiptReader } from "../../src/receipts/reader";
 import { nullReceiptReader } from "../../src/receipts/reader";
 import type { PdfRenderer } from "../../src/pdf/renderer";
-import { memoryBlobStore } from "../../src/storage/blob";
 import { textPdfRenderer } from "./text-pdf";
+import { memoryBlobStore, type BlobStore } from "../../src/storage/blob";
 import { createTestDb } from "./test-db";
 
 export const TEST_KEK = new Uint8Array(32).fill(7);
@@ -25,18 +37,26 @@ export function sequentialId(n: number): string {
   return `00000000-0000-4000-8000-${n.toString(16).padStart(12, "0")}`;
 }
 
-export interface MakeAppOpts {
+export interface AppOpts {
   start?: string;
   db?: Db;
+  calendar?: CalendarPort;
+  documents?: DocumentPort;
+  access?: AccessPort;
   /** Approval subject handlers (default: the app's own). */
   subjects?: SubjectHandler[];
   /** Receipt reader (default: the null reader). */
   reader?: ReceiptReader;
   /** Letter renderer (default: the readable text renderer). */
   pdf?: PdfRenderer;
+  /** Blob store (default: a fresh memory store). */
+  blobs?: BlobStore;
 }
 
-export async function makeApp(opts: MakeAppOpts = {}) {
+/** Plan 6's name for the same options. */
+export type MakeAppOpts = AppOpts;
+
+export async function makeApp(opts: AppOpts = {}) {
   const clock: Clock = {
     now: new Date(opts.start ?? "2026-03-01T08:00:00.000Z"),
     advance(ms) {
@@ -54,7 +74,10 @@ export async function makeApp(opts: MakeAppOpts = {}) {
     keyring: keyringFromKey(TEST_KEK, rand),
     log: (line) => logs.push(line),
     passwordCost: { N: 1024 },
-    blobs: memoryBlobStore(),
+    calendar: opts.calendar ?? notConnectedCalendar,
+    documents: opts.documents ?? notConfiguredDocuments,
+    access: opts.access ?? notConfiguredAccess,
+    blobs: opts.blobs ?? memoryBlobStore(),
     receiptReader: opts.reader ?? nullReceiptReader,
     pdf: opts.pdf ?? textPdfRenderer(),
   };

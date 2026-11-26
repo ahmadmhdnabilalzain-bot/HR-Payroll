@@ -6,6 +6,7 @@ import type { App } from "./http/context";
 import { registerApprovalRoutes } from "./routes/approvals";
 import { registerExpenseClaimRoutes } from "./routes/expense-claims";
 import { registerExpensePolicyRoutes } from "./routes/expense-policy";
+import { registerExpenseReportRoutes } from "./routes/expense-reports";
 import { registerReceiptRoutes } from "./routes/receipts";
 
 export interface ExpenseAppOpts {
@@ -18,7 +19,7 @@ export const DEFAULT_SUBJECTS: readonly SubjectHandler[] = [
   expenseClaimSubject,
 ];
 
-/** Plan 6 routes: approvals, receipts, expense policy and claims. */
+/** Plan 6 routes: approvals, receipts, policy, claims and reports. */
 export function registerExpenseApp(app: App, deps: AppDeps,
   opts: ExpenseAppOpts): void {
   const handlers = handlerMap(opts.subjects ?? DEFAULT_SUBJECTS);
@@ -26,4 +27,5 @@ export function registerExpenseApp(app: App, deps: AppDeps,
   registerReceiptRoutes(app, deps, claimReceiptViewer);
   registerExpensePolicyRoutes(app, deps);
   registerExpenseClaimRoutes(app, deps, handlers);
+  registerExpenseReportRoutes(app, deps);
 }

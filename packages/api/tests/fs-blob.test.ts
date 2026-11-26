@@ -30,6 +30,15 @@ describe("fsBlobStore", () => {
     }
   });
 
+  it("delete removes a blob; a missing key is fine", async () => {
+    const k = `${C}/receipts/${C}`;
+    await store.put(k, new Uint8Array([5]));
+    await store.delete(k);
+    expect(await store.get(k)).toBeNull();
+    await store.delete(k);
+    await expect(store.delete("../x")).rejects.toThrow(/BLOB_KEY_INVALID/);
+  });
+
   it("never overwrites a stored blob", async () => {
     await expect(store.put(KEY, new Uint8Array([9]))).rejects.toThrow();
     expect(await store.get(KEY)).toEqual(new Uint8Array([1, 2, 3]));

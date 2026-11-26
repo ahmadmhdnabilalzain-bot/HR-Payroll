@@ -1,6 +1,6 @@
 import { DOCUMENT_ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
-import { PLAN7_PENDING } from "./helpers/plan7-pending";
+
 import {
   SENTINELS,
   seedCompany,
@@ -61,8 +61,7 @@ function opens(role: Role, t: Target, kind: Kind): boolean {
   return role === "manager" && kind !== "download" && REPORTS.includes(t);
 }
 
-const routes = DOCUMENT_ROUTES.filter((r) => r.method === "GET" &&
-  !PLAN7_PENDING.has(r.id));
+const routes = DOCUMENT_ROUTES.filter((r) => r.method === "GET");
 
 describe("Plan 7 routes leak nothing a viewer may not see", () => {
   let ctx: Awaited<ReturnType<typeof makeApp>>;

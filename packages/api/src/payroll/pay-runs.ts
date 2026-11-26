@@ -1,5 +1,6 @@
 import {
   NOT_COMPUTED_PAY,
+  REIMBURSEMENT_WPS_NOTE,
   type PayRun,
   type PayRunCreate,
 } from "@payroll/contract";
@@ -66,7 +67,8 @@ export const toPayRun = (r: RunRow): PayRun => ({
   gross: toMoney(fils(BigInt(r.gross))), notComputed: [...NOT_COMPUTED_PAY],
   sifFileId: r.sif_file_id, changedSinceLastRun: r.changes,
   reimbursementTotal: toMoney(fils(BigInt(r.reimbursement_total))),
-  claimCount: r.claim_count, pendingClaimCount: r.pending_claim_count });
+  claimCount: r.claim_count, pendingClaimCount: r.pending_claim_count,
+  reimbursementNote: r.claim_count > 0 ? REIMBURSEMENT_WPS_NOTE : null });
 
 export async function loadRun(tx: Db, companyId: string, id: string,
   lock = false): Promise<RunRow> {
@@ -134,6 +136,21 @@ async function insertRun(ctx: ReqCtx<PayRunCreate>, key: string,
 }
 
 /**
+ * The stored run for this key (a 200 replay), or 409 when another run
+ * holds the month. The key is read again after the month check: a
+ * request with the same key may have committed between the two reads.
+ */
+async function priorRun(tx: Db, c: string, key: string, body: PayRunCreate,
+  requestHash: string): Promise<Reply | null> {
+  const prior = await byKey(tx, c, key);
+  if (prior !== null) return replay(prior, requestHash);
+  if (!(await liveRunExists(tx, c, body))) return null;
+  const won = await byKey(tx, c, key);
+  if (won !== null) return replay(won, requestHash);
+  throw new ApiError("RUN_EXISTS_FOR_PERIOD");
+}
+
+/**
  * Idempotent create. The key is looked up first (a retry after inputs
  * changed still gets its run); the insert uses ON CONFLICT DO NOTHING
  * on the key and on the one-live-run-per-month index, and a loser
@@ -146,11 +163,8 @@ export async function createPayRun(ctx: ReqCtx<PayRunCreate>, key: string)
   const { tx, deps, body } = ctx;
   const c = ctx.tenant!.companyId;
   const requestHash = sha256Hex(canonicalJson(body));
-  const prior = await byKey(tx, c, key);
-  if (prior !== null) return replay(prior, requestHash);
-  if (await liveRunExists(tx, c, body)) {
-    throw new ApiError("RUN_EXISTS_FOR_PERIOD");
-  }
+  const prior = await priorRun(tx, c, key, body, requestHash);
+  if (prior !== null) return prior;
   const snap = await buildSnapshot(tx, deps, c, body, { newRun: true });
   const out = computePayRun(snap);
   if (out.problems.length > 0) throw problemsError(out.problems);
@@ -197,7 +211,7 @@ export async function approvePayRun(ctx: ReqCtx<unknown, unknown,
   await appendAudit(tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "pay-run.approved", entityType: "pay-run", entityId: r.id,
     data: { year: r.year, month: r.month } });
-  await markReimbursed(ctx, r.id);
+  await markReimbursed(ctx, r.id, r.claim_count);
   return toPayRun(await loadRun(tx, c, r.id));
 }
 

@@ -70,4 +70,83 @@ export const errors: ArOf<typeof en> = {
   EMPLOYEE_DATA_UNREADABLE: "تعذّرت قراءة بعض بيانات الموظفين المحفوظة. " +
     "اطلب من الدعم فحصها.",
   RUN_EMPTY: "لا يوجد موظفون في مسير الرواتب هذا. أضف أشخاصًا أولًا.",
+  // Plan 6: approvals, receipts and expense claims.
+  RECEIPT_BASE64_INVALID: "تعذّرت قراءة ملف الإيصال. حاول رفعه مرة أخرى.",
+  NOT_AN_APPROVER: "لست من المعتمدين لهذه الخطوة.",
+  APPROVER_NEEDED_LATER: "أنت مطلوب لخطوة لاحقة، لذا يجب أن يعتمد " +
+    "هذه الخطوة شخص آخر.",
+  APPROVAL_NOT_PENDING: "هذا الاعتماد مغلق بالفعل.",
+  APPROVAL_STEP_CHANGED: "تقدّم هذا الاعتماد في الأثناء. حدّث الصفحة " +
+    "وراجعه مرة أخرى.",
+  CHAIN_VERSION_CONFLICT: "غيّر شخص آخر سلسلة الاعتماد. حدّث الصفحة " +
+    "وحاول مرة أخرى.",
+  CATEGORY_CODE_TAKEN: "يوجد تصنيف مصروفات يستخدم هذا الرمز بالفعل.",
+  POLICY_VERSION_CONFLICT: "غيّر شخص آخر سياسة المصروفات. حدّث الصفحة " +
+    "وحاول مرة أخرى.",
+  CLAIM_NOT_EDITABLE: "لم يعد من الممكن تعديل هذه المطالبة.",
+  CLAIM_NOT_CANCELLABLE: "لم يعد من الممكن إلغاء هذه المطالبة.",
+  RECEIPT_TOO_LARGE: "حجم الإيصال أكبر من 5 ميغابايت.",
+  RECEIPT_TYPE_NOT_ALLOWED: "يجب أن تكون الإيصالات ملفات JPEG أو PNG أو " +
+    "PDF.",
+  NO_ELIGIBLE_APPROVER: "لا يوجد شخص آخر يمكنه الاعتماد. أضف مالكًا " +
+    "آخر أو مستخدم موارد بشرية أو معتمدًا أولًا.",
+  CHAIN_INVALID: "سلسلة الاعتماد غير صالحة. راجع المستويات والمعتمدين.",
+  RECEIPT_TYPE_MISMATCH: "نوع الملف لا يطابق محتواه.",
+  POLICY_INVALID: "سياسة المصروفات غير صالحة. راجع الصفوف المحددة.",
+  CANCEL_NOTE_REQUIRED: "أضف ملاحظة لإلغاء مطالبة معتمدة.",
+  CLAIM_PROBLEMS: "في المطالبة مشكلات. صحّح البنود المحددة.",
+  RECEIPT_QUOTA_EXCEEDED: "رُفع عدد كبير من الإيصالات اليوم. حاول غدًا " +
+    "أو اطلب من الموارد البشرية رفع الحد.",
+  EXCLUDED_CLAIM_INVALID: "لا يمكن استبعاد إلا المطالبات المعتمدة التي " +
+    "تنتظر الدفع من المسير.",
+  // Plan 8 (hiring, onboarding, tasks, exits, goals).
+  TASK_TRANSITION: "لا يمكن نقل هذه المهمة إلى تلك الحالة.",
+  REQUISITION_NOT_OPEN: "طلب التوظيف هذا غير مفتوح.",
+  CANDIDATE_EXISTS: "يوجد مرشح بهذا البريد الإلكتروني.",
+  APPLICATION_EXISTS: "تقدّم هذا المرشح هنا من قبل.",
+  APPLICATION_CLOSED: "هذا الطلب مغلق.",
+  SCORECARD_EXISTS: "أرسلت بطاقة تقييم لهذا من قبل.",
+  APPLICATION_NOT_AT_OFFER: "انقل الطلب إلى مرحلة العرض أولاً.",
+  OFFER_EXISTS: "لهذا الطلب عرض قائم.",
+  OFFER_NOT_APPROVED: "لم يُعتمد العرض بعد.",
+  OFFER_EXPIRED: "انتهت صلاحية العرض قبل تاريخ الرد.",
+  OFFER_NOT_WITHDRAWABLE: "لم يعد ممكناً سحب هذا العرض.",
+  OFFER_NOT_ACCEPTED: "لا يتحول إلى تعيين إلا العرض المقبول.",
+  EXIT_EXISTS: "لهذا الشخص طلب خروج مفتوح.",
+  EXIT_NOT_APPROVED: "اعتمد طلب الخروج أولاً.",
+  EXIT_NOT_OPEN: "طلب الخروج هذا لم يعد مفتوحاً.",
+  EXIT_ACCESS_REVOKED: "أُلغي الوصول، فيبقى طلب الخروج.",
+  SETTLEMENT_REQUIRED: "احسب التسوية النهائية أولاً.",
+  EXIT_BEFORE_LAST_DAY: "أغلق الخروج ابتداءً من آخر يوم عمل.",
+  CLEARANCE_OPEN: "بعض مهام إخلاء الطرف ما زالت مفتوحة.",
+  ACCESS_NOT_REVOKED: "ألغِ وصول الشخص أولاً.",
+  GOAL_CLOSED: "هذا الهدف مغلق.",
+  SETTLEMENT_STALE: "تغيّر الراتب؛ احسب التسوية من جديد.",
+  ASSIGNEE_NOT_MEMBER: "المكلَّف ليس عضواً هنا.",
+  INTERVIEW_TIMES: "يجب أن تنتهي المقابلة بعد بدئها.",
+  INTERVIEWER_ROLE: "يجب أن يكون المقابِلون مالكين أو موارد بشرية أو مديرين.",
+  EMPLOYMENT_TERMS_REQUIRED: "حدّد شروط التوظيف أولاً.",
+  SALARY_REQUIRED: "حدّد الراتب الأساسي أولاً.",
+  // Plan 7. NEEDS NATIVE REVIEW: every string below.
+  FILE_EMPTY: "الملف فارغ.",
+  FILE_BASE64_INVALID: "تعذّرت قراءة الملف. ارفعه مرة أخرى.",
+  SALARY_LETTER_NEEDS_HR: "الرسائل التي تعرض الراتب يصدرها المالك أو " +
+    "الموارد البشرية فقط.",
+  FILE_NOT_AVAILABLE: "هذا الملف مستخدم أو رفعه شخص آخر. ارفعه مرة أخرى.",
+  DOCUMENT_SLOT_EXISTS: "لدى هذا الموظف مستند من هذا النوع. أضف نسخة " +
+    "جديدة بدلاً من ذلك.",
+  VERSION_NOT_CURRENT: "توجد نسخة أحدث. افتح آخر نسخة.",
+  VERSION_NOT_DRAFT: "لا يُنشر إلا الإصدار المسودة.",
+  TEMPLATE_NOT_PUBLISHED: "لا يوجد إصدار منشور لهذا القالب بعد.",
+  FILE_TOO_LARGE: "حجم الملف أكبر من 10 ميغابايت.",
+  FILE_TYPE_NOT_ALLOWED: "يمكن رفع ملفات PDF وPNG وJPEG فقط.",
+  MALFORMED_PLACEHOLDER: "أحد الحقول في القالب مكتوب بشكل غير صحيح.",
+  UNKNOWN_MERGE_FIELD: "يستخدم القالب حقلاً غير موجود.",
+  MERGE_VALUE_MISSING: "بعض البيانات التي تحتاجها الرسالة ناقصة.",
+  ARABIC_NOT_REVIEWED: "تحتاج هذه النسخة العربية إلى مراجعة متحدث أصلي " +
+    "قبل إصدارها.",
+  NOT_ARABIC_TEMPLATE: "المراجعة اللغوية للقوالب العربية فقط.",
+  EMPLOYEE_REQUIRED: "اختر موظفاً لهذه الرسالة.",
+  OVERRIDE_NOT_ALLOWED: "لا يمكن تغيير هذه القيمة هنا.",
+  PDF_RENDERER_UNAVAILABLE: "لا يمكن إنشاء الرسائل الآن. حاول لاحقاً.",
 };

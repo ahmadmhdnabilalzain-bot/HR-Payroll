@@ -67,7 +67,7 @@ describe("employee documents (Review Focus 1 and 2)", () => {
     expect(bytes.headers.get("content-disposition"))
       .toMatch(/^attachment;/);
     expect(bytes.headers.get("x-content-type-options")).toBe("nosniff");
-    expect(bytes.headers.get("content-security-policy")).toBe("sandbox");
+    expect(bytes.headers.get("content-security-policy")).toMatch(/^sandbox/);
   });
 
   it("the outsider's documents are 404 to the employee", async () => {

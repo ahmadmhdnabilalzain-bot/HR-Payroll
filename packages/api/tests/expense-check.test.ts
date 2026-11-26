@@ -23,7 +23,8 @@ function input(items: CheckItem[], limit: Partial<LimitF> | null = null,
     joiningDate: "2025-01-01", claimWindowDays: 90,
     categories: new Map([[CAT, { kind: "receipt", active: true }]]),
     limits: () => l, monthToDate: new Map(),
-    otherSignatures: new Set(), otherHashes: new Set(), ...over };
+    otherSignatures: new Set(), otherHashes: new Set(),
+    companyHashes: new Set(), ...over };
 }
 const f = (n: bigint): Fils => fils(n);
 

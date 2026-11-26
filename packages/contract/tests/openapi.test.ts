@@ -98,4 +98,10 @@ describe("buildOpenApi", () => {
       expect(op.responses["200"]?.content).toHaveProperty(
         "application/pdf");
     });
+  it("tenant operations list 413, 415 and 429 errors", () => {
+    const op = (doc.paths["/v1/receipts"] as Record<string, Op>).post!;
+    for (const code of ["413", "415", "429"]) {
+      expect(op.responses, code).toHaveProperty(code);
+    }
+  });
 });

@@ -32,6 +32,39 @@ merged (`f28df25`). Conflicts were resolved by keeping both sides:
 After the merge: api 330 tests pass; contract 98 pass; web 102 of 103
 (`every-error-code-has-text` fails on Plan 6's codes, as before).
 
+### Second merge (after Task 8)
+
+On the coordinator's request, `claude/quirky-wozniak-b7xkvr` (Plan 6
+with review fixes, Plan 8, Plan 3 and engine fixes) was merged again.
+Resolutions:
+
+1. Origin's side was taken where Plan 7 had no part: pay runs, the
+   contract `PayRun`, web mocks.
+2. Both sides kept in the route table, registry, examples, index,
+   audit allowlist, seed rows, test app options, flow and handover.
+   `DOCUMENT_ROUTES` joins `ROUTES` beside `HR_ROUTES` (not inside
+   Plan 3's `CORE_ROUTES`), and Plan 8's route-count test now
+   subtracts Plan 7's 35.
+3. Plan 6's review added `downloadHeaders` (nosniff, `sandbox;
+   default-src 'none'`, CORP) to every download; Plan 7's duplicate
+   header lines were removed, and its disposition still goes through
+   `contentDisposition`.
+4. **A real integration bug the merge exposed:** the allowlists are
+   spread into one table and Plan 7's `kind` check (letter kinds only)
+   replaced Plan 8's (`kind: word`), so 43 Plan 8 tests got 500
+   `AUDIT_SENSITIVE_DATA`. Plan 7 now leaves `kind` to Plan 8's check
+   (letter kinds are plain words), and a new test
+   (`audit-keys-documents.test.ts`) fails if a Plan 7 audit key
+   collides with an expense or HR key.
+5. The pending-route helpers are gone (origin removed
+   `PLAN6_PENDING`; every Plan 7 route is served), so the conformance,
+   leak and runtime-role suites cover every route.
+6. Web: origin's catalogues plus English and Arabic texts for Plan 7's
+   18 codes (Arabic marked `NEEDS NATIVE REVIEW`); the web suite is
+   green (103 of 103).
+7. Plan 8's exit-document port (`src/ports/documents.ts`) is still
+   "not configured"; wiring it to Plan 7's letters is later work.
+
 ## Progress
 
 | Task | Commit message | State |

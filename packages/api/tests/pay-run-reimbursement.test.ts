@@ -27,7 +27,8 @@ describe("reimbursement into payroll", () => {
     expect(r.status, r.text).toBe(201);
     runId = r.body.id;
     expect(r.body).toMatchObject({ reimbursementTotal: "250.00",
-      claimCount: 1, pendingClaimCount: 0 });
+      claimCount: 1, pendingClaimCount: 0,
+      reimbursementNote: REIMBURSEMENT_WPS_NOTE });
     const p = await slipOf(w, runId, w.s.emp.report);
     expect(p).toMatchObject({ gross: "5500.00", salaryNet: "5500.00",
       net: "5750.00", reimbursementTotal: "250.00",
@@ -81,6 +82,6 @@ describe("reimbursement into payroll", () => {
     const r = await postRun(w.ctx, w.s.hr, w.s, "a-1", APRIL);
     expect(r.status, r.text).toBe(201);
     expect(r.body).toMatchObject({ claimCount: 0,
-      reimbursementTotal: "0.00" });
+      reimbursementTotal: "0.00", reimbursementNote: null });
   });
 });

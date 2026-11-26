@@ -10,6 +10,8 @@ import {
   ExpenseItemInput,
   REIMBURSEMENT_WPS_NOTE,
   ReceiptSuggestion,
+  ReceiptUpload,
+  RECEIPT_QUOTA_DEFAULT,
   VAT_STATEMENT,
 } from "../src/index";
 
@@ -118,5 +120,27 @@ describe("statements and wording", () => {
     expect(ERROR_STATUS.RECEIPT_BASE64_INVALID).toBe(400);
     expect(ERROR_STATUS.CLAIM_PROBLEMS).toBe(422);
     expect(ERROR_STATUS.EXCLUDED_CLAIM_INVALID).toBe(422);
+  });
+});
+
+describe("safe free text (security review I-2)", () => {
+  it("refuses control and bidi characters in free text", () => {
+    const up = { fileName: "r.png", contentType: "image/png",
+      dataBase64: "AAAA" };
+    expect(ReceiptUpload.safeParse(up).success).toBe(true);
+    for (const bad of ["x\u0000.png", "\u202egnp.exe", "a\u0085b",
+      "a\u2066b", "line\nbreak"]) {
+      expect(ReceiptUpload.safeParse({ ...up, fileName: bad }).success, bad)
+        .toBe(false);
+    }
+    expect(ReceiptUpload.safeParse({ ...up, fileName: "مطعم.png" })
+      .success).toBe(true);
+    expect(ApprovalDecisionWithNote.safeParse({ stepOrder: 1,
+      note: "no\u0000pe" }).success).toBe(false);
+  });
+  it("the receipt quota has a product default and a 429 code", () => {
+    expect(RECEIPT_QUOTA_DEFAULT).toEqual({ perUserPerDay: 50,
+      perCompanyPerDay: 1000 });
+    expect(ERROR_STATUS.RECEIPT_QUOTA_EXCEEDED).toBe(429);
   });
 });

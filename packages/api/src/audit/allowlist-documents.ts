@@ -3,7 +3,6 @@ import {
   DocumentType,
   EMIRATISATION_OVERRIDABLE,
   Lang,
-  LetterKind,
   RetentionClass,
   Role,
 } from "@payroll/contract";
@@ -41,7 +40,7 @@ export const DOCUMENT_AUDIT_CHECKS: Record<string, Check> = {
   versionId: uuid,
   mime: oneOf(AllowedMime.options),
   type: oneOf(DocumentType.options),
-  kind: oneOf(LetterKind.options),
+  // `kind` (letter kind) is checked by Plan 8's HR list as a plain word.
   lang: oneOf(Lang.options),
   templateVersion: isInt,
   sha256: (v) => typeof v === "string" && /^[0-9a-f]{64}$/.test(v),

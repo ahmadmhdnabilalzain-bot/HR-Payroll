@@ -20,11 +20,14 @@ function lineTrace(r: ComputedReimbursement): TraceLine {
  * payslip after the salary net is known. Lines, gross, settlement and
  * the salary trace are untouched, so a reimbursement never enters a
  * deduction cap, GPSSA or gratuity base, or the SIF (which reads
- * lines). Applying it again gives the same payslip.
+ * lines). The salary net is taken from the incoming `net`, so a salary
+ * step's deductions are kept. Applying it again gives the same payslip.
  */
 export function applyReimbursements(slip: ComputedPayslip,
   items: SnapshotReimbursement[]): ComputedPayslip {
-  const salaryNet = slip.salaryNet;
+  // The incoming net is the salary net plus any earlier reimbursements
+  // (backed out, so applying twice gives the same payslip).
+  const salaryNet = fils(slip.net - slip.reimbursementTotal);
   const mine = items.filter((r) => r.employeeId === slip.employeeId)
     .sort((a, b) => (a.claimId < b.claimId ? -1 : a.claimId > b.claimId
       ? 1 : 0));

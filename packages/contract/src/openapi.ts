@@ -51,7 +51,8 @@ function errorStatuses(r: RouteDef): string[] {
   if (r.auth === "public") return ["400", "401", "409", "410", "423",
     "500"];
   if (r.auth === "user") return ["400", "401", "403", "409", "500"];
-  return ["400", "401", "403", "404", "409", "410", "422", "500"];
+  return ["400", "401", "403", "404", "409", "410", "413", "415", "422",
+    "429", "500"];
 }
 
 const BINARY = { type: "string", format: "binary" };

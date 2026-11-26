@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ApprovalView } from "./approvals";
 import { PolicyCode } from "./expense-policy";
-import { Id, IsoDate, listOf, Money, Timestamp } from "./primitives";
+import { Id, IsoDate, listOf, Money, text, Timestamp } from "./primitives";
 import { Trn } from "./receipts";
 
 /** Carried on every claim and every VAT report. */
@@ -16,9 +16,9 @@ export const VatRecoverability = z.literal("not-assessed");
 const common = {
   categoryId: Id,
   date: IsoDate,
-  description: z.string().trim().min(1).max(200),
+  description: text(1, 200),
   receiptIds: z.array(Id).max(10),
-  justification: z.string().trim().min(3).max(500).optional(),
+  justification: text(3, 500).optional(),
 };
 
 const ReceiptItemInput = z.object({
@@ -27,7 +27,7 @@ const ReceiptItemInput = z.object({
   /** VAT inclusive. */
   amount: Money,
   vatAmount: Money,
-  supplierName: z.string().trim().min(1).max(120).nullable(),
+  supplierName: text(1, 120).nullable(),
   supplierTrn: Trn.nullable(),
   /** Information only: no exchange rate is applied (AED only). */
   originalCurrency: z.string().regex(/^[A-Z]{3}$/).optional(),
@@ -106,12 +106,14 @@ export const ExpenseClaim = z.object({
   policyVersion: z.number().int().min(0).nullable(),
   approval: ApprovalView.nullable(),
   vatRecoverability: VatRecoverability,
+  /** Always the fixed VAT_STATEMENT text (owner decision, M-5). */
+  vatStatement: z.literal(VAT_STATEMENT),
 });
 export type ExpenseClaim = z.infer<typeof ExpenseClaim>;
 
 export const ExpenseClaimList = listOf(ExpenseClaim);
 
-const Title = z.string().trim().min(1).max(120);
+const Title = text(1, 120);
 
 export const ExpenseClaimCreate = z.object({
   employeeId: Id.optional(),
@@ -127,7 +129,7 @@ export const ExpenseClaimUpdate = z.object({
 export type ExpenseClaimUpdate = z.infer<typeof ExpenseClaimUpdate>;
 
 export const ClaimCancel = z.object({
-  note: z.string().trim().min(3).max(500).optional(),
+  note: text(3, 500).optional(),
 });
 export type ClaimCancel = z.infer<typeof ClaimCancel>;
 
@@ -158,5 +160,6 @@ export const CLAIM_PROBLEM_CODES = [
   "RECEIPT_NOT_FOUND",
   "EXPENSE_OVER_LIMIT",
   "JUSTIFICATION_REQUIRED",
+  "CLAIM_TOTAL_TOO_LARGE",
 ] as const;
 export type ClaimProblemCode = (typeof CLAIM_PROBLEM_CODES)[number];

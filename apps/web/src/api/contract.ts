@@ -92,9 +92,9 @@ type Computed = Extract<Settlement, { status: "computed" }>;
 export type AppSettlement =
   | Money<Computed, "gratuity" | "leavePay" | "total">
   | Extract<Settlement, { status: "refused" }>;
-type SlipMoney = "gross" | "net" | "salaryNet" | "reimbursementTotal";
 export type AppPayslip = Omit<
-  Money<Payslip, SlipMoney>, "lines" | "settlement" | "reimbursements"
+  Money<Payslip, "gross" | "net" | "salaryNet" | "reimbursementTotal">,
+  "lines" | "settlement" | "reimbursements"
 > & { lines: AppPayslipLine[]; settlement: AppSettlement | null;
   reimbursements: AppReimbursementLine[] };
 export type AppSifFile = Money<SifFile, "total">;
@@ -148,7 +148,8 @@ export const fromWirePayRun = (w: PayRun): AppPayRun =>
   ({ ...w, gross: from(w.gross),
     reimbursementTotal: from(w.reimbursementTotal) });
 export const toWirePayRun = (a: AppPayRun): PayRun =>
-  ({ ...a, gross: to(a.gross), reimbursementTotal: to(a.reimbursementTotal) });
+  ({ ...a, gross: to(a.gross),
+    reimbursementTotal: to(a.reimbursementTotal) });
 export const fromWireSifFile = (w: SifFile): AppSifFile =>
   ({ ...w, total: from(w.total) });
 export const toWireSifFile = (a: AppSifFile): SifFile =>

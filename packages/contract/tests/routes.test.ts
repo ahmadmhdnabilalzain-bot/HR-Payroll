@@ -1,20 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  CORE_ROUTES,
   DOCUMENT_ROUTES,
   FILE_BODY_LIMIT,
   ROUTES,
 } from "../src/index";
-
-const docIds = new Set(DOCUMENT_ROUTES.map((r) => r.id));
-const older = ROUTES.filter((r) => !docIds.has(r.id));
 
 function paramNames(path: string): string[] {
   return [...path.matchAll(/\{([a-zA-Z]+)\}/g)].map((m) => m[1] ?? "");
 }
 
 describe("ROUTES", () => {
-  it("has 75 routes before Plan 7 (Plan 3's 50 plus Plan 6's 25)", () => {
-    expect(older.length).toBe(75);
+  it("core has 75 routes (Plan 3's 50 plus Plan 6's 25)", () => {
+    expect(CORE_ROUTES.length).toBe(75);
   });
   it("ids are unique", () => {
     const ids = ROUTES.map((r) => r.id);
@@ -34,11 +32,12 @@ describe("ROUTES", () => {
       }
     }
   });
-  it("mfa routes are tenant routes", () => {
+  it("mfa routes are tenant routes (Plan 3 set fixed)", () => {
     for (const r of ROUTES.filter((x) => x.mfa)) {
       expect(r.auth, r.id).toBe("tenant");
     }
-    expect(ROUTES.filter((x) => x.mfa).map((x) => x.id).sort()).toEqual(
+    expect(CORE_ROUTES.filter((x) => x.mfa).map((x) => x.id).sort())
+      .toEqual(
       ["approvePayRun", "changeUserRole", "downloadSifFile",
         "getEmployeeBank", "putApprovalChain", "putEmployeeBank",
         "putEmployeeSalary"]);
@@ -72,7 +71,7 @@ describe("ROUTES", () => {
     }
   });
   it("owner-only routes are the four", () => {
-    const owner = older.filter((r) => r.roles.length === 1)
+    const owner = CORE_ROUTES.filter((r) => r.roles.length === 1)
       .map((r) => r.id).sort();
     expect(owner).toEqual(["approvePayRun", "changeUserRole", "inviteUser",
       "listUsers", "putApprovalChain",
@@ -83,7 +82,7 @@ describe("ROUTES", () => {
     expect(text.map((r) => r.id)).toEqual(["downloadSifFile"]);
   });
   it("binary routes are GETs; the upload has a 7.5 MB body limit", () => {
-    const binary = older.filter((r) => r.contentType === "binary");
+    const binary = CORE_ROUTES.filter((r) => r.contentType === "binary");
     expect(binary.map((r) => r.id)).toEqual(["downloadReceipt"]);
     for (const r of binary) expect(r.method, r.id).toBe("GET");
     const up = ROUTES.find((r) => r.id === "uploadReceipt");

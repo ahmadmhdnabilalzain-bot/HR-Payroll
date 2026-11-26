@@ -24,12 +24,14 @@ const RATES = {
 
 /** Replaces the policy's limits (rates stay), whatever its version. */
 export async function setLimits(ctx: Ctx, s: Seeded,
-  limits: unknown[], claimWindowDays: number | null = null) {
+  limits: unknown[], claimWindowDays: number | null = null,
+  receiptQuota?: { perUserPerDay: number; perCompanyPerDay: number }) {
   const cur = await must(call(ctx.app, s.hr.token, s.companyId, "GET",
     "/v1/expense-policy"), 200);
   return must(call(ctx.app, s.hr.token, s.companyId, "PUT",
     "/v1/expense-policy", { claimWindowDays, limits, ...RATES,
-      expectedVersion: cur.version }), 200);
+      expectedVersion: cur.version,
+      ...(receiptQuota === undefined ? {} : { receiptQuota }) }), 200);
 }
 
 /** Categories meals, mileage and per-diem; rates car 0.75, gcc 200. */

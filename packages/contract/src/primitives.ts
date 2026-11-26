@@ -25,6 +25,19 @@ export const Period = z.object({
 export const Email = z.email().max(254);
 export const Name = z.string().trim().min(1).max(200);
 
+/**
+ * No C0 or C1 control characters (NUL included) and no bidi embedding,
+ * override or isolate characters: free text that is stored, shown or
+ * exported (file names, notes, descriptions, reader suggestions).
+ */
+export const SAFE_TEXT = new RegExp("^[^\\u0000-\\u001f\\u007f-\\u009f" +
+  "\\u202a-\\u202e\\u2066-\\u2069]*$");
+
+/** Trimmed free text of `min` to `max` characters, SAFE_TEXT only. */
+export function text(min: number, max: number) {
+  return z.string().trim().min(min).max(max).regex(SAFE_TEXT);
+}
+
 /** Every list response: `{ items }`, so fields can be added later. */
 export function listOf<T extends z.ZodType>(item: T) {
   return z.object({ items: z.array(item) });

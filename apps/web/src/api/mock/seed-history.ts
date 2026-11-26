@@ -39,6 +39,7 @@ function lastMonthRun(s: MockSeed, today: string, sifFileId: string) {
     employeeCount: payslips.length, gross,
     notComputed: [...NOT_COMPUTED_PAY], sifFileId,
     reimbursementTotal: fils(0n), claimCount: 0, pendingClaimCount: 0,
+    reimbursementNote: null,
   };
   return { run, payslips };
 }

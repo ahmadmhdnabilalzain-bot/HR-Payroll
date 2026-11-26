@@ -1,3 +1,4 @@
+import { RECEIPT_QUOTA_DEFAULT } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { seedCompany, type Seeded, type SeedUser } from "./helpers/seed";
 import { call, makeApp } from "./helpers/test-app";
@@ -57,7 +58,8 @@ describe("expense categories and policy", () => {
     const r = await as(s.employee, "GET", "/v1/expense-policy");
     expect(r.status, r.text).toBe(200);
     expect(r.body).toEqual({ version: 0, claimWindowDays: null,
-      limits: [], mileageRates: [], perDiemRates: [] });
+      limits: [], mileageRates: [], perDiemRates: [],
+      receiptQuota: RECEIPT_QUOTA_DEFAULT });
   });
 
   it("put is optimistic and validated", async () => {
