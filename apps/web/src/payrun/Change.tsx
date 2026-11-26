@@ -45,7 +45,12 @@ export function CountChange(p: { now: number; prev: number;
 export function SignedMoney(p: { value: Fils }) {
   const { t } = useLocale();
   if (p.value === 0n) {
-    return <span className={s.muted}>{t("payrun.noChange")}</span>;
+    return (
+      <span className={s.muted}>
+        <span aria-hidden="true">{"\u2013"}</span>
+        <span className="visually-hidden">{t("payrun.noChange")}</span>
+      </span>
+    );
   }
   return (
     <span className={s.signed} data-dir={p.value > 0n ? "up" : "down"}>

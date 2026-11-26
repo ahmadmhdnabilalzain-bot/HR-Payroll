@@ -888,9 +888,7 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-block-start: var(--space-7);
-  padding-block-start: var(--space-4);
-  border-block-start: 1px solid var(--color-divider);
+  margin-block-start: var(--space-6);
 }
 
 .navBack {
@@ -1107,4 +1105,9 @@
     align-items: center;
     min-block-size: 44px;
   }
+}
+
+/* Sums, not working: no dotted rule at rest (it returns on hover). */
+.totals .plainFig:not(:hover):not(:focus-visible) {
+  border-block-end-color: transparent;
 }

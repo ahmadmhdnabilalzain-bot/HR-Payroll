@@ -14,7 +14,6 @@ import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
 import { Avatar } from "../ui/Avatar";
 import { ChangeNote, CountChange, monthName, SignedMoney } from "./Change";
-import { ExplainHint } from "./ExplainHint";
 import { RollMoney } from "./Roll";
 import s from "./PayRun.module.css";
 
@@ -53,7 +52,6 @@ export function ReviewStep() {
           </h2>
           <p className={s.stepSub}>{t("payrun.reviewSub", { month })}</p>
         </div>
-        <ExplainHint />
       </div>
       <dl className={s.totals}>
         <div className={`${s.total} ${s.totalLead}`}>
@@ -74,7 +72,8 @@ export function ReviewStep() {
         <div className={s.total}>
           <dt>{t("payrun.people")}</dt>
           <dd className={s.count}>
-            <Explainable explanation={d.explain["run:people"]}>
+            <Explainable explanation={d.explain["run:people"]}
+              className={s.plainFig}>
               <span className="tabular">{people}</span>
             </Explainable>
           </dd>
@@ -82,7 +81,12 @@ export function ReviewStep() {
             prev={d.prev.headcount} month={pm} /></dd>
         </div>
       </dl>
-      <p className={s.footnote}>{d.pensionNote}</p>
+      <p className={s.footnote}>
+        {t("payrun.pensionShort")}{" "}
+        <ExplainLink explanation={d.explain["run:net"]}>
+          {t("payrun.pensionWhy")}
+        </ExplainLink>
+      </p>
 
       <section aria-labelledby="changed-title" className={s.block}>
         <h3 id="changed-title" className={s.blockTitle}>
@@ -173,7 +177,7 @@ function Total(p: { label: string; now: Fils; prev: Fils; month: string;
     <div className={s.total}>
       <dt>{p.label}</dt>
       <dd>
-        <Explainable explanation={p.why}>
+        <Explainable explanation={p.why} className={s.plainFig}>
           <RollMoney value={p.now} size="lg" />
         </Explainable>
       </dd>
