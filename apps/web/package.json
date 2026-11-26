@@ -1,0 +1,41 @@
+{
+  "name": "@payroll/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run",
+    "e2e": "playwright test --trace off"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "@fontsource/ibm-plex-sans-arabic": "5.3.0",
+    "@payroll/contract": "workspace:*",
+    "@payroll/engine": "workspace:*",
+    "@payroll/wps": "workspace:*",
+    "@tanstack/react-query": "5.108.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-router": "7.18.7",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.1",
+    "@playwright/test": "1.63.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.13",
+    "@types/node": "22.20.7",
+    "@types/react": "19.3.3",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "axe-core": "4.14.1",
+    "jsdom": "31.0.1",
+    "vite": "8.3.8",
+    "vitest": "5.1.2"
+  }
+}
