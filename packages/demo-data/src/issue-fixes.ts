@@ -20,8 +20,7 @@ export const FIX: Record<string, Fix> = {
     "demo.", ar: "لا إجراء مطلوب في العرض التجريبي." } },
   OVERTIME_DAILY_CAP_EXCEEDED: { kind: "review", fix: { en: "Confirm the " +
     "overtime was agreed and recorded.",
-  ar: "تحقق من الموافقة على العمل الإضافي " +
-    "ونظّم البدلاء حتى لا يتجاوز أحد ساعتين إضافيتين يوميًا." } },
+  ar: "تأكد من أن العمل الإضافي متفق عليه ومسجَّل." } },
   DEDUCTION_DEFERRED: { kind: "review", fix: { en: "Agree a smaller " +
     "instalment with the employee, or let the rest move to next month.",
   ar: "اتفق مع الموظف على قسط أصغر؛ نقل المحرك الباقي إلى الشهر " +
