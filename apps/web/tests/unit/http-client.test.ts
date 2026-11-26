@@ -93,12 +93,25 @@ describe("http client", () => {
       .toBe("https://api.test/v1/attendance?from=2026-11-01&to=2026-11-30");
   });
 
+  it("leave-year-and-role-change", async () => {
+    const t = stub(200, { items: [] });
+    await t.api.listLeaveRequests({ status: "pending", year: 2026 });
+    expect(t.calls[0]?.url).toBe(
+      "https://api.test/v1/leave-requests?status=pending&year=2026");
+    const r = stub(200, EXAMPLES["CompanyUser"]);
+    await r.api.changeUserRole("u1", "hr");
+    expect(r.calls[0]?.url).toBe("https://api.test/v1/users/u1");
+    expect(r.calls[0]?.init.method).toBe("PATCH");
+    expect(JSON.parse(String(r.calls[0]?.init.body))).toEqual({ role: "hr" });
+  });
+
   it("problems-decoded", async () => {
-    const problem = { employeeId: "e1", code: "ENTERED_AMOUNTS_REQUIRED",
+    const problem = { employeeId: "00000000-0000-4000-8000-0000000000e1",
+      code: "ENTERED_AMOUNTS_REQUIRED",
       missing: ["basic"] };
     const t = stub(422, { error: { code: "PAY_RUN_PROBLEMS",
       message: "Problems", requestId: "r2",
-      detail: { problems: [JSON.stringify(problem)] } } });
+      detail: { problems: [problem] } } });
     const e = await t.api.createPayRun({ period: { year: 2026, month: 3 },
       entries: [] }, "k").catch((x: unknown) => x);
     expect(e).toMatchObject({ code: "PAY_RUN_PROBLEMS",

@@ -33,9 +33,8 @@ const FORMULA: Record<AppPayslipLine["kind"], string> = {
 };
 
 /**
- * Plan 4 also wants unpaid leave days over the service; the contract's
- * PayRunEntry has no field for it yet (asked of Plan 3), so the mock
- * checks only what a client can send.
+ * As the api: a leaver needs `unusedLeaveDays`. `serviceUnpaidLeaveDays`
+ * is optional (omitted means 0, and a computed settlement says so).
  */
 const SETTLEMENT_FIELDS = ["unusedLeaveDays"] as const;
 
@@ -155,7 +154,10 @@ export function computeRun(x: PayInput): SlipDraft[] {
     .map((id) => ({ employeeId: id, code: "EMPLOYEE_NOT_IN_PERIOD",
       missing: [] }));
   for (const e of scope) {
-    problems.push(...problemsFor(e, entries.get(e.id), x));
+    if ((e.salary ?? []).length === 0) {
+      problems.push({ employeeId: e.id, code: "SALARY_MISSING",
+        missing: ["salary"] });
+    } else problems.push(...problemsFor(e, entries.get(e.id), x));
   }
   if (problems.length > 0) {
     throw MockFail.problems(problems);

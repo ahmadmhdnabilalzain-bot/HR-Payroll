@@ -36,6 +36,7 @@ const ROUTE_IDS: Record<ApiMethod, string> = {
   verifyAudit: "verifyAuditChain",
   listUsers: "listUsers",
   inviteUser: "inviteUser",
+  changeUserRole: "changeUserRole",
 };
 
 /** Resolved once; an unknown route id fails at load, not at call. */

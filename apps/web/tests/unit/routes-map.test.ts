@@ -9,7 +9,7 @@ describe("routes map", () => {
       .filter(([, r]) => !known.has(`${r.method} ${r.path}`))
       .map(([k]) => k);
     expect(missing).toEqual([]);
-    expect(Object.keys(CLIENT_ROUTES).length).toBe(33);
+    expect(Object.keys(CLIENT_ROUTES).length).toBe(34);
   });
 
   it("no-route-mapped-twice", () => {
