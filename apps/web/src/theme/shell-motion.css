@@ -18,7 +18,8 @@
   content: "";
   position: absolute;
   inset-block-start: 0;
-  left: 0;
+  /* Physical left in both directions: glide.ts measures offsetLeft. */
+  inset-inline-start: 0;
   z-index: -1;
   inline-size: var(--glide-w, 0px);
   block-size: var(--glide-h, 0px);
@@ -27,6 +28,11 @@
   opacity: 0;
   pointer-events: none;
   will-change: transform;
+}
+
+[dir="rtl"] [data-glide]::before {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
 }
 
 [data-glide][data-glide-on="true"]::before {
@@ -89,25 +95,29 @@ html[data-route-motion]::view-transition-group(shell-phone) {
   animation: none;
 }
 
-html[data-route-motion]::view-transition-old(shell-bar),
-html[data-route-motion]::view-transition-old(shell-tabs),
-html[data-route-motion]::view-transition-old(shell-phone) {
+/* On both pages: the live new one only. On one page only (tabs that
+ * come or go): it slides and fades with the page. */
+html[data-route-motion]::view-transition-old(shell-bar):not(:only-child),
+html[data-route-motion]::view-transition-old(shell-tabs):not(:only-child),
+html[data-route-motion]::view-transition-old(shell-phone):not(:only-child) {
   animation: none;
   opacity: 0;
 }
 
-html[data-route-motion]::view-transition-new(shell-bar),
-html[data-route-motion]::view-transition-new(shell-tabs),
-html[data-route-motion]::view-transition-new(shell-phone) {
+html[data-route-motion]::view-transition-new(shell-bar):not(:only-child),
+html[data-route-motion]::view-transition-new(shell-tabs):not(:only-child),
+html[data-route-motion]::view-transition-new(shell-phone):not(:only-child) {
   animation: none;
 }
 
-html[data-route-motion]::view-transition-old(root) {
+html[data-route-motion]::view-transition-old(root),
+html[data-route-motion]::view-transition-old(shell-tabs):only-child {
   animation: route-out var(--dur-base, 200ms)
     var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1)) both;
 }
 
-html[data-route-motion]::view-transition-new(root) {
+html[data-route-motion]::view-transition-new(root),
+html[data-route-motion]::view-transition-new(shell-tabs):only-child {
   animation: route-in var(--dur-slow, 320ms)
     var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) both;
 }

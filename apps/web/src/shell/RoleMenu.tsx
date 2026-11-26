@@ -8,6 +8,7 @@ import { NotificationsSheet, useUnread } from "../home/inbox/Notifications";
 import { useTheme } from "../theme/ThemeProvider";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
+import { usePresence } from "../ui/presence";
 import s from "./TopBar.module.css";
 
 export const ROLES: Role[] = ["hr", "gm", "it", "manager", "employee"];
@@ -32,6 +33,8 @@ export function RoleMenu() {
   const [notes, setNotes] = useState(false);
   const dark = resolved === "dark";
   const box = useRef<HTMLDivElement>(null);
+  // The menu fades out over --dur-fast before it leaves (inert).
+  const menu = usePresence(open, 140);
   useEffect(() => {
     if (!open) return undefined;
     const off = (e: Event): void => {
@@ -59,8 +62,9 @@ export function RoleMenu() {
         <span className={s.roleText}>{roleLabel(state.role)}</span>
         <Icon name="chevronDown" size={14} />
       </button>
-      {open && (
-        <div className={s.menu} role="menu"
+      {menu.mounted && (
+        <div className={s.menu} role="menu" data-leaving={menu.leaving}
+          inert={menu.leaving} aria-hidden={menu.leaving || undefined}
           aria-label={t("shell.viewingAs")}>
           <div className={s.phoneOnly} role="group"
             aria-label={t("shell.phoneTools")}>
