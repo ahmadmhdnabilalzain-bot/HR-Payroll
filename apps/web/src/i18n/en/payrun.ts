@@ -13,7 +13,7 @@ export const payrun = {
   stateDone: "Done",
   stateNow: "Now",
   stateNext: "Next",
-  stateToFix: { one: "{count} to fix", other: "{count} to fix" },
+  stateToFix: { one: "{count} stops pay", other: "{count} stop pay" },
   stateWaiting: "Waiting",
   back: "Back",
   continueTo: "Continue to {step}",
@@ -33,7 +33,13 @@ export const payrun = {
   fewerPeople: { one: "{count} fewer than {month}",
     other: "{count} fewer than {month}" },
   changedTitle: "What changed since {month}",
-  changedSub: "The people whose pay moved, and why.",
+  changedSub: "Only the people whose pay moved or is held, and why.",
+  showAll: "Show all {count} people",
+  showChanged: "Show only changes",
+  hint: "Tap a figure with a dotted line to see how it is worked out.",
+  hintOk: "Got it",
+  payLocked: "Pay opens once the General Manager approves the run.",
+  footLine: "UAE mainland rules, as we read them. Fictional data.",
   everyone: "Everyone on this run",
   colName: "Name",
   colNet: "Net pay",
@@ -49,10 +55,10 @@ export const payrun = {
   fixTitle: "Fix before approval",
   fixSub: "Problems found before payday, each with its reason and the " +
     "next step.",
-  toFixTitle: "Stops the salary file",
+  toFixTitle: "Stops pay",
   toFixSub: "A payslip without a bank account holds the whole run. The " +
     "General Manager cannot approve until it is fixed.",
-  checksTitle: "Check before approving",
+  checksTitle: "Check",
   checksSub: "These do not stop the run. Mark each one once it is " +
     "looked at.",
   setupTitle: "Setup to confirm",
@@ -132,9 +138,4 @@ export const payrun = {
   colTotal: "Total",
   showText: "Show the file as the bank receives it",
 
-  sideTitle: "How the figures are worked out",
-  sideSub: "Open any figure with a dotted line to see its inputs, the " +
-    "rules with their source, and the working.",
-  pension: "UAE nationals' pension",
-  scope: "{scope}. Fictional data.",
 } satisfies EnNamespace;

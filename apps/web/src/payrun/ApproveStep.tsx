@@ -11,8 +11,8 @@ import {
   decisionTime,
   forgetDecision,
   recordDecision,
-  type StepId,
 } from "./model";
+import type { Go } from "./PayRun";
 import s from "./PayRun.module.css";
 
 /** A list of names in a sentence: "A", "A and B", "A, B and C". */
@@ -26,7 +26,7 @@ function names(xs: string[]): string {
  * General Manager approves, and only once no payslip lacks a valid
  * bank account (the shared useRunApproval, as on Home).
  */
-export function ApproveStep(p: { go(to: StepId): void }) {
+export function ApproveStep(p: { go: Go }) {
   const { lang, t } = useLocale();
   const { data, state, dispatch } = useDemo();
   const a = useRunApproval();

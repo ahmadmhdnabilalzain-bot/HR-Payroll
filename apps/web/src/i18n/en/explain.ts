@@ -8,10 +8,10 @@ export const explain = {
   inputs: "What went in",
   rules: "Rules used",
   notDone: "Not worked out here",
-  official: "Official",
+  official: "Official source",
   secondary: "Secondary source",
-  convention: "Convention",
-  unsourced: "No source",
+  convention: "Our working rule",
+  unsourced: "No source yet",
   scope: "{scope}. Fictional data.",
   how: "How this is worked out",
 } satisfies EnNamespace;

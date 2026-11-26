@@ -76,8 +76,8 @@ export function rulePlain(key: string, note: string | null,
   const [plain, article] = PLAIN[key] ?? [humanize(key), null];
   if (status === "unsourced") return { text: plain, citation: null };
   if (status === "convention") {
-    return { text: plain, citation: "Our own working convention, not " +
-      "a rule of law." };
+    return { text: plain, citation: "A working rule we chose; the law " +
+      "does not set it." };
   }
   if (status === "secondary") {
     const src = note ?? "a secondary source";

@@ -24,7 +24,6 @@ export function PayStep() {
   const amount = state.hideAmounts ? "AED ••••••"
     : formatMoney(f.total, lang);
   const issues = f.findings.filter((x) => x.kind === "issue");
-  const notes = f.findings.filter((x) => x.kind === "note");
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>{t("payrun.payTitle")}</h2>
@@ -81,23 +80,21 @@ export function PayStep() {
             <Icon name="check" size={18} />{t("payrun.findingsNone")}
           </p>
         )}
-        <ul className={s.cards}>
-          {[...issues, ...notes].map((x) => (
-            <li key={x.id} className={s.card}
-              data-tone={x.kind === "issue" ? "bad" : undefined}>
-              <p className={s.cardHead}>
-                <span className={s.status}
-                  data-tone={x.kind === "issue" ? "bad" : "info"}>
-                  <span className={s.pip} aria-hidden="true" />
-                  {x.kind === "issue" ? t("payrun.needsFix")
-                    : t("payrun.note")}
+        {issues.length > 0 && (
+          <ul className={s.group}>
+            {issues.map((x) => (
+              <li key={x.id} className={s.row}>
+                <span className={s.dotCol}>
+                  <span className={s.dot8} data-tone="bad" />
                 </span>
-                <span className={s.cardWho}>{x.title}</span>
-              </p>
-              <p className={s.cardReason}>{x.text}</p>
-            </li>
-          ))}
-        </ul>
+                <span className={s.rowMain}>
+                  <span className={s.name}>{x.title}</span>
+                  <span className={s.reasonMain}>{x.text}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section aria-labelledby="records-title" className={s.block}>
