@@ -100,10 +100,9 @@ export function WhatIf() {
   const reset = (): void => pick(who);
   const changed = r.asked.length > 0;
   const netDiff = (r.after.net - r.before.net) as Fils;
-  const netLine = netDiff === 0n ? "Net pay does not change."
-    : `Net pay ${netDiff > 0n ? "rises" : "falls"} by ` +
-      `${formatMoney((netDiff > 0n ? netDiff : -netDiff) as Fils, lang)} ` +
-      "a month.";
+  const netLine = netDiff === 0n ? "October net pay does not change."
+    : `October net pay ${netDiff > 0n ? "rises" : "falls"} by ` +
+      `${formatMoney((netDiff > 0n ? netDiff : -netDiff) as Fils, lang)}.`;
   if (state.hideAmounts) {
     return (
       <div className={s.page}>

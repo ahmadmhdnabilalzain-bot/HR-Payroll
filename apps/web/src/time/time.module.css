@@ -194,7 +194,7 @@
     var(--color-surface-2) 0 2px, var(--color-surface) 2px 8px);
   outline: 1px dashed var(--color-text-muted);
   outline-offset: -3px;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   font-weight: 500;
 }
 

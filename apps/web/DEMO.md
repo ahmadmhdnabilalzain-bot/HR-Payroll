@@ -31,8 +31,8 @@ pnpm --filter @payroll/web build:offline
   only and always with a word: red stops pay, amber is a check, muted
   green is done. Charts draw the month in focus in ink and the rest in
   grey (`--color-bar-1..4`). Light and dark are designed as equals.
-- **Type:** nothing on a page is smaller than 13 (column headers,
-  the sources line and calendar day letters included). Body 15 (17
+- **Type:** nothing the templates draw is smaller than 13 (column
+  headers, the sources line and calendar day letters included). Body 15 (17
   on phones), page title `--text-title` 34/40
   (28/34 on phones), a report's lead figure `--text-figure` 48/52
   (40/44), the Home figure `--text-hero` 56 (48). All in tokens.css.
