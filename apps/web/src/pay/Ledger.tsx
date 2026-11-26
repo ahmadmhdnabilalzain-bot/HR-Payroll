@@ -1,9 +1,13 @@
 import type { Fils } from "@payroll/engine";
+import { bonusStatus } from "../demo/bonus-state";
 import { settlementTotal } from "../demo/figures";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
+import { useLocale } from "../i18n/LocaleProvider";
+import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { FilterList } from "../ui/templates";
+import { dayMonth } from "./derive";
 import { usePay } from "./load";
 import s from "./pay.module.css";
 import type { DeductionLine } from "./types";
@@ -42,12 +46,23 @@ type Item = { key: string; name: string; what: string; when: string;
 /**
  * R13, as far as the records go: money paid outside the monthly run
  * (a final settlement, a salary advance) and what joins the next run
- * (corrections). The data has no bonus run.
+ * (corrections), and the bonus runs HR has prepared (bonus runs have
+ * their own screens; they show here as one line each).
  */
 export function OffCycle() {
   const pay = usePay();
-  const { state } = useDemo();
+  const { data, state } = useDemo();
+  const { lang } = useLocale();
+  const payday = dayMonth(data.payCalendar().payday, lang);
   const items: Item[] = [
+    ...state.bonusRuns.map((r) => ({ key: r.id, name: r.label,
+      what: `Bonus run, ${r.totals.count} ` +
+        `${r.totals.count === 1 ? "person" : "people"}`,
+      when: bonusStatus(r) === "signed" ? `Signed off, pays ${payday}`
+        : bonusStatus(r) === "declined" ? "Declined"
+          : bonusStatus(r) === "waiting" ? "Waiting for sign off"
+            : "Draft", amount: r.totals.gross, outside: true,
+      href: hrefOf("pay-run", "bonus", r.id) })),
     ...pay.settlements.map((x) => ({ key: `fs-${x.employeeId}`,
       name: x.name, what: "Final settlement", when: `Pay by ${x.due}`,
       amount: settlementTotal(x.total, state, x.employeeId), outside: true,
@@ -64,7 +79,12 @@ export function OffCycle() {
   return (
     <FilterList title="Off-cycle payments"
       lede={"Money paid outside the monthly run, and what joins next " +
-        "month's run. There is no bonus run this year."}
+        "month's run. A bonus run is prepared by HR, reviewed, and " +
+        "signed off by the General manager; open Bonus runs to start " +
+        "one."}
+      actions={state.role === "hr" ? (
+        <a className={`${b.btn} ${b.primary}`}
+          href={hrefOf("pay-run", "bonus")}>Bonus runs</a>) : undefined}
       rows={items} rowKey={(x) => x.key} rowHref={(x) => x.href}
       searchText={(x) => `${x.name} ${x.what}`}
       segments={[

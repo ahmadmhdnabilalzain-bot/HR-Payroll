@@ -99,10 +99,10 @@ partial, missing (not built), not for a bank, skipped.
 | 1 | R08 | Pension in the run (GPSSA) | partial | pension shown as "Not computed"; fund rate unconfirmed (WP20) |
 | 2 | P44 | Pension (GPSSA) register | partial | register of 14 nationals, no contribution figures (WP20) |
 | 3 | X04 | Employer cost and costing | partial | employer cost leaves pension out and says so (WP20) |
-| 4 | R13 | Off-cycle and bonus runs | partial | off-cycle list only; no bonus run (WP21) |
+| 4 | R13 | Off-cycle and bonus runs | built | bonus run: prepare, review, GM sign off, pay run history |
 | 5 | S41 | Arabic screens (switch) | partial | hidden unless ?ar=1; labels not native-reviewed (WP24) |
 | 6 | H12 | Help and training videos | partial | how-to cards with a "Video to record" marker, no clips |
-| 7 | P66 | Sales commission statements | missing | not built; sample plan for relationship managers needed (WP30) |
+| 7 | P66 | Sales commission statements | built | sample plan, monthly statements, GM sign off, own statement |
 | 8 | R43 | AI anomaly checks | missing | no run-level flags on the pre-pay checks (WP29) |
 | 9 | H15 | AI assistant, cited policy Q&A | missing | not built (WP29) |
 | 10 | E16 | Ask about a payslip line | missing | not built (WP29) |

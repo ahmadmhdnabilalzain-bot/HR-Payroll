@@ -7,6 +7,7 @@ import { AREAS as EXIT_FILES } from "./exit-files";
 import { AREAS as HOME_ME } from "./home-me";
 import { AREAS as PAY } from "./pay";
 import { AREAS as PAYROLL_EXTRAS } from "./payroll-extras";
+import { AREAS as PAY_VARIABLE } from "./pay-variable";
 import { AREAS as PEOPLE_MOVES } from "./people-moves";
 import { AREAS as PEOPLE_PAPERS } from "./people-papers";
 import { AREAS as PEOPLE_SAFETY } from "./people-safety";
@@ -41,6 +42,7 @@ export const ALL_AREAS: readonly Area[] = [
   ...TIME,
   ...PAY,
   ...PAYROLL_EXTRAS,
+  ...PAY_VARIABLE,
   ...REPORTS,
   ...COST,
   ...SETUP_RULES,
