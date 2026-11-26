@@ -28,6 +28,8 @@ function emp(over: Partial<SnapshotEmployee> = {}): SnapshotEmployee {
     employeeId: E1, name: "Asha", joiningDate: "2019-01-01",
     lastWorkingDate: null, workerClass: "expat-full-time",
     salaryVersion: 1, unpaidLeaveDays: 0,
+    bank: { routingCode: "803320101", iban: "AE070331234567890123456" },
+    labourPersonId: "00000000000001",
     components: [
       { code: "basic", label: "Basic", amount: fils(400000n),
         sifBucket: "fixed" },

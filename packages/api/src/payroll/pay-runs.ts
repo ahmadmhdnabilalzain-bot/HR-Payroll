@@ -10,7 +10,9 @@ import type { Db } from "../db/db";
 import { toMoney } from "../db/money";
 import { Reply, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
-import { computePayRun } from "./compute";
+import { sealerFor } from "../people/employees";
+import { diffSnapshots, lastApproved, type Change } from "./changes";
+import { computePayRun, type RunSnapshot } from "./compute";
 import { problemsError } from "./problems";
 import { storePayslips } from "./payslips";
 import {
@@ -36,6 +38,7 @@ export interface RunRow {
   approved_by: string | null;
   approved_at: string | null;
   sif_file_id: string | null;
+  changes: Change[];
 }
 
 /**
@@ -52,7 +55,7 @@ export const toPayRun = (r: RunRow): PayRun => ({
   createdAt: r.created_at, approvedAt: r.approved_at,
   inputHash: r.input_hash, employeeCount: r.employee_count,
   gross: toMoney(fils(BigInt(r.gross))), notComputed: [...NOT_COMPUTED_PAY],
-  sifFileId: r.sif_file_id });
+  sifFileId: r.sif_file_id, changedSinceLastRun: r.changes });
 
 export async function loadRun(tx: Db, companyId: string, id: string,
   lock = false): Promise<RunRow> {
@@ -89,9 +92,28 @@ async function liveRunExists(tx: Db, companyId: string, b: PayRunCreate) {
 /** No conflict target: the key and the one-live-run index both count. */
 const INSERT_RUN = `INSERT INTO pay_runs (id, company_id, year, month,
     status, idempotency_key, request_hash, input_hash, snapshot_enc, gross,
-    employee_count, created_by, created_at)
-  VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12)
+    employee_count, created_by, created_at, changes)
+  VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12, $13)
   ON CONFLICT DO NOTHING RETURNING id`;
+
+type Computed = ReturnType<typeof computePayRun>;
+
+/** The insert; null when another request won the key or the month. */
+async function insertRun(ctx: ReqCtx<PayRunCreate>, key: string,
+  requestHash: string, snap: RunSnapshot, out: Computed) {
+  const { tx, deps, body } = ctx;
+  const c = ctx.tenant!.companyId;
+  const id = deps.newId();
+  const mac = (await sealerFor(tx, deps, c)).mac;
+  const inputHash = snapshotHash(snap, mac);
+  const changes = diffSnapshots(await lastApproved(tx, deps, c), snap);
+  const inserted = await tx.query(INSERT_RUN,
+    [id, c, body.period.year, body.period.month, key, requestHash,
+      inputHash, await sealSnapshot(tx, deps, c, id, snap),
+      out.gross.toString(), out.payslips.length, ctx.user!.id,
+      deps.now().toISOString(), JSON.stringify(changes)]);
+  return inserted.length === 0 ? null : { id, inputHash };
+}
 
 /**
  * Idempotent create. The key is looked up first (a retry after inputs
@@ -113,20 +135,16 @@ export async function createPayRun(ctx: ReqCtx<PayRunCreate>, key: string)
   const out = computePayRun(snap);
   if (out.problems.length > 0) throw problemsError(out.problems);
   if (out.payslips.length === 0) throw new ApiError("RUN_EMPTY");
-  const id = deps.newId();
-  const at = deps.now().toISOString();
-  const inputHash = snapshotHash(snap);
-  const inserted = await tx.query(INSERT_RUN,
-    [id, c, body.period.year, body.period.month, key, requestHash,
-      inputHash, await sealSnapshot(tx, deps, c, id, snap),
-      out.gross.toString(), out.payslips.length, ctx.user!.id, at]);
-  if (inserted.length === 0) {
+  const run = await insertRun(ctx, key, requestHash, snap, out);
+  if (run === null) {
     const winner = await byKey(tx, c, key);
     if (winner !== null) return replay(winner, requestHash);
     throw new ApiError("RUN_EXISTS_FOR_PERIOD");
   }
+  const { id, inputHash } = run;
   await storePayslips(tx, deps, c, id, out.payslips);
-  await appendAudit(tx, { companyId: c, at, actorUserId: ctx.user!.id,
+  await appendAudit(tx, { companyId: c, at: deps.now().toISOString(),
+    actorUserId: ctx.user!.id,
     action: "pay-run.created", entityType: "pay-run", entityId: id,
     data: { ...body.period, employeeCount: out.payslips.length,
       inputHash } });
@@ -148,7 +166,8 @@ export async function approvePayRun(ctx: ReqCtx<unknown, unknown,
   const stored = await openSnapshot(tx, deps, c, r.id, r.snapshot_enc);
   const now = await buildSnapshot(tx, deps, c,
     { period: stored.period, entries: stored.entries });
-  if (snapshotHash(now) !== r.input_hash) {
+  const mac = (await sealerFor(tx, deps, c)).mac;
+  if (snapshotHash(now, mac) !== r.input_hash) {
     throw new ApiError("RUN_INPUTS_CHANGED");
   }
   const at = deps.now().toISOString();

@@ -18,6 +18,9 @@ import {
   type DbPair,
 } from "./test-db";
 
+const BANK = { routingCode: "803320101",
+  iban: "AE070331234567890123456" };
+
 const salaryBody = (amount: string) => ({ components: [{ code: "basic",
   label: "B", labelAr: null, amount, sifBucket: "fixed" }] });
 
@@ -97,7 +100,9 @@ export function pgConcurrencyCases(open: () => Promise<DbPair>): void {
       const e = await call(ctx.app, a.token, a.companyId, "POST",
         "/v1/employees", { number: "E-1", fullName: "P", jobTitle: "C",
           nationality: "IN", workerClass: "expat-full-time",
-          joiningDate: "2019-01-01" });
+          joiningDate: "2019-01-01", labourPersonId: "00000000000001" });
+      await call(ctx.app, a.token, a.companyId, "PUT",
+        `/v1/employees/${e.body.id}/bank`, BANK);
       await call(ctx.app, a.token, a.companyId, "PUT",
         `/v1/employees/${e.body.id}/salary`, { components: [{ code: "basic",
           label: "B", labelAr: null, amount: "4000.00",
@@ -133,8 +138,10 @@ export function pgConcurrencyCases(open: () => Promise<DbPair>): void {
       const e = await call(ctx.app, ta, a.companyId, "POST",
         "/v1/employees", { number: `E-${i}`, fullName: `P${i}`,
           jobTitle: "C", nationality: "IN", workerClass: "expat-full-time",
-          joiningDate: "2019-01-01" });
+          joiningDate: "2019-01-01", labourPersonId: `0000000000000${i}` });
       ids.push(e.body.id);
+      await call(ctx.app, ta, a.companyId, "PUT",
+        `/v1/employees/${e.body.id}/bank`, BANK);
       await call(ctx.app, ta, a.companyId, "PUT",
         `/v1/employees/${e.body.id}/salary`, salaryBody("4000.00"));
     }

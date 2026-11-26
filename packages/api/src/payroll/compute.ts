@@ -33,6 +33,9 @@ export interface SnapshotEmployee {
   salaryVersion: number;
   components: SnapshotComponent[];
   unpaidLeaveDays: number;
+  /** As approved: the SIF is built from these, never from live rows. */
+  bank: { routingCode: string; iban: string } | null;
+  labourPersonId: string | null;
 }
 
 export interface RunSnapshot {
@@ -184,6 +187,11 @@ export function computePayRun(s: RunSnapshot): { problems: Problem[];
     if (e.components.length === 0) {
       problems.push(problem(e.employeeId, "SALARY_MISSING", ["salary"]));
     } else problems.push(...entryProblems(e, x, s.period));
+    const wps = [...(e.bank === null ? ["bank"] : []),
+      ...(e.labourPersonId === null ? ["labourPersonId"] : [])];
+    if (wps.length > 0) {
+      problems.push(problem(e.employeeId, "EMPLOYEE_BANK_MISSING", wps));
+    }
   }
   if (problems.length > 0) return { problems, payslips: [], gross: fils(0n) };
   const payslips = paid.map((e) => payslipOf(e,

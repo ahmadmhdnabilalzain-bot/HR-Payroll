@@ -142,9 +142,12 @@ describe("pay runs and payslips", () => {
   it("problems list ids and codes, never amounts", async () => {
     const j = await as(s.hr, "POST", "/v1/employees", { number: "J-1",
       fullName: "Joiner", jobTitle: "Clerk", nationality: "IN",
-      workerClass: "expat-full-time", joiningDate: "2026-06-10" });
-    await as(s.hr, "PUT", `/v1/employees/${j.body.id}/salary`,
+      workerClass: "expat-full-time", joiningDate: "2026-06-10",
+      labourPersonId: "00000000000099" });
+    await as(s.owner, "PUT", `/v1/employees/${j.body.id}/salary`,
       salaryOf(SALARY_SENTINEL));
+    await as(s.owner, "PUT", `/v1/employees/${j.body.id}/bank`,
+      { routingCode: "803320101", iban: "AE990000000000000000099" });
     const r = await postRun(ctx, s.hr, s, "jun-1",
       { period: { year: 2026, month: 6 }, entries: [] });
     expect(r.status).toBe(422);
@@ -152,5 +155,36 @@ describe("pay runs and payslips", () => {
     expect(r.body.error.detail.problems).toEqual([{ employeeId: j.body.id,
       code: "ENTERED_AMOUNTS_REQUIRED", missing: ["basic", "housing"] }]);
     expect(r.text).not.toContain(SALARY_SENTINEL);
+  });
+
+  it("a run needs bank details and a labour id for everyone", async () => {
+    const e = await as(s.hr, "POST", "/v1/employees", { number: "N-1",
+      fullName: "No Bank", jobTitle: "Clerk", nationality: "IN",
+      workerClass: "expat-full-time", joiningDate: "2019-01-01" });
+    await as(s.owner, "PUT", `/v1/employees/${e.body.id}/salary`,
+      salaryOf("1000.00"));
+    const r = await postRun(ctx, s.hr, s, "nb-1",
+      { period: { year: 2027, month: 3 }, entries: [] });
+    expect(r.status).toBe(422);
+    expect(r.body.error.detail.problems).toContainEqual({
+      employeeId: e.body.id, code: "EMPLOYEE_BANK_MISSING",
+      missing: ["bank", "labourPersonId"] });
+    await as(s.hr, "PATCH", `/v1/employees/${e.body.id}`,
+      { lastWorkingDate: "2026-07-31" });
+  });
+
+  it("a run lists who changed since the last approved run", async () => {
+    await as(s.owner, "PUT", `/v1/employees/${s.emp.outsider}/bank`,
+      { routingCode: "803320101", iban: "AE880000000000000000088" });
+    const r = await postRun(ctx, s.hr, s, "aug-1", { period:
+      { year: 2026, month: 8 }, entries: [] });
+    expect(r.status, r.text).toBe(201);
+    const changes = r.body.changedSinceLastRun as { employeeId: string;
+      fields: string[] }[];
+    expect(changes).toContainEqual({ employeeId: s.emp.outsider,
+      fields: ["bank"] });
+    expect(changes).toContainEqual({ employeeId: s.emp.report,
+      fields: ["salary"] });
+    expect(JSON.stringify(changes)).not.toMatch(/AE88|2300/);
   });
 });

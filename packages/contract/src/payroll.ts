@@ -79,6 +79,15 @@ export const PayRun = z.object({
   notComputed: z.array(z.string()),
   /** The run's SIF file once generated (one per run), else null. */
   sifFileId: Id.nullable(),
+  /**
+   * For the approver: employees who are new, or whose salary, bank
+   * details or labour id changed, since the last approved run (field
+   * names only). Absent from older servers.
+   */
+  changedSinceLastRun: z.array(z.object({
+    employeeId: Id,
+    fields: z.array(z.enum(["new", "salary", "bank", "labourPersonId"])),
+  })).optional(),
 });
 export type PayRun = z.infer<typeof PayRun>;
 
