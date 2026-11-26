@@ -1,0 +1,52 @@
+/*
+ * Motion tokens: one set for the whole demo. Every transition and
+ * keyframe reads these, with the same values as fallbacks, e.g.
+ * `transition: transform var(--dur-base, 200ms)
+ *   var(--ease-out, cubic-bezier(0.2, 0, 0, 1));`
+ *
+ * Rules that go with them:
+ * - Animate transform and opacity only; never `transition: all`.
+ * - Nothing that moves may shift layout or leave a half-state when it
+ *   is interrupted: a new state starts from where the old one is.
+ * - Hover motion only under `@media (hover: hover)`.
+ *
+ * Scale:
+ * - fast  120 ms: presses, toggles, hover, small state changes.
+ * - base  200 ms: tabs, menus, toasts, cross-fades.
+ * - slow  320 ms: sheets, drawers, route slides.
+ * - hero  480 ms: one moment per screen (a total landing, a seal).
+ *
+ * --spring is a whole timing (duration and curve) for things that
+ * land: sheets, the tab indicator, the success check. It stands in
+ * for the figure flight in ui/flight.ts, which samples a real spring
+ * (stiffness 300, damping 30, mass 1; about 0.87 of critical, a hair
+ * of settle and no bounce) over 420 ms into a CSS linear() easing.
+ * The cubic-bezier here overshoots by about the same hair. Use it as
+ * `transition: transform var(--spring, 420ms cubic-bezier(...))`.
+ *
+ * Reduced motion: every duration is 0.01ms, so things still arrive
+ * (transitionend fires) but nothing travels. base.css also clamps any
+ * hard-coded duration to the same.
+ */
+:root {
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-hero: 480ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-spring: 420ms;
+  --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+  --spring: 420ms cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.01ms;
+    --dur-base: 0.01ms;
+    --dur-slow: 0.01ms;
+    --dur-hero: 0.01ms;
+    --dur-spring: 0.01ms;
+    --spring: 0.01ms cubic-bezier(0.22, 1.2, 0.36, 1);
+  }
+}
