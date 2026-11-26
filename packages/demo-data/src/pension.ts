@@ -59,11 +59,11 @@ function total(t: TraceBuilder, id: string, label: string,
  * PENSION_NOT_COMPUTED, and its trace has a visible "not computed"
  * line, so the missing pension is never a silent zero.
  */
-export function payslipWithoutPension(input: PayslipInput)
-  : Traced<Payslip> {
+export function payslipWithoutPension(input: PayslipInput,
+  overrides?: Record<string, number>): Traced<Payslip> {
   const onDate = formatIsoDate({ y: input.year, m: input.month, d: 1 });
   const p = loadPayrollParams(selectPack(DEFAULT_PAYROLL_PACKS.payroll,
-    onDate), undefined);
+    onDate), overrides);
   // The validator asks nationals for GPSSA input; that check is the
   // pension step, so it is run on an otherwise identical copy.
   const w = validatePayslipInput({ ...input, employee: { ...input.employee,
