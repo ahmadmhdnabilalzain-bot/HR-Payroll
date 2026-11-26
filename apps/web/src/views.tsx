@@ -5,6 +5,7 @@ import { PayRun } from "./payrun/PayRun";
 import { People } from "./people/People";
 import { Reports } from "./reports/Reports";
 import { SectionPage } from "./shell/SectionPage";
+import { SetupRules } from "./setup/rules/SetupRules";
 import { TimeOff } from "./timeoff/TimeOff";
 
 /**
@@ -24,5 +25,6 @@ export const VIEWS: Partial<Record<Section, ComponentType<ViewProps>>> = {
   people: People,
   "time-off": TimeOff,
   reports: Reports,
+  setup: SetupRules,
   s: SectionPage,
 };
