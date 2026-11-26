@@ -1,10 +1,24 @@
-import { useMemo, useRef, useState, type PointerEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import type { EsignMark, EsignSigner } from "../../demo/data/esign-types";
 import { undoable } from "../../demo/esign-state";
 import { hrefOf } from "../../demo/route";
 import { useDemo, type Role } from "../../demo/state";
 import b from "../../ui/button.module.css";
-import { justSigned, markSigned, SignStamp } from "../../ui/SignStamp";
+import { reducedMotion } from "../../demo/motion";
+import { useHeightTween } from "../../ui/heightTween";
+import {
+  justSigned,
+  markSigned,
+  SignStamp,
+  signSequence,
+  STAMP_MS,
+} from "../../ui/SignStamp";
 import { Sheet, type RecordTab } from "../../ui/templates";
 import t from "../../ui/templates/templates.module.css";
 import { usePresence } from "../../ui/presence";
@@ -129,6 +143,11 @@ export function SignBlock(p: { docId: string; as?: Signer;
   const sheet = usePresence(open, 240);
   const undo = useUndo();
   const row = rows.find((r) => r.doc.id === p.docId);
+  // A new stamp (or the row card opening into the block) eases the
+  // card's height, once the sheet has gone (audit 2, item 6).
+  const card = useRef<HTMLElement>(null);
+  useHeightTween(card, row?.progress.lines.filter((l) => l.mark !== null)
+    .length);
   if (row === undefined) return null;
   const fp = fingerprintOf(data, row.doc);
   const styleOf = (by: string) =>
@@ -144,7 +163,7 @@ export function SignBlock(p: { docId: string; as?: Signer;
   if (p.compact === true && row.progress.lines.every((l) =>
     l.mark === null)) {
     return (
-      <section className={s.rowCard}
+      <section className={s.rowCard} ref={card}
         aria-label={`E-signature: ${row.doc.title}`}>
         <span className={s.rowText}>
           <h3 className={s.rowTitle}>{row.doc.title}</h3>
@@ -163,7 +182,8 @@ export function SignBlock(p: { docId: string; as?: Signer;
     );
   }
   return (
-    <section className={s.block} aria-label={`E-signature: ${row.doc.title}`}>
+    <section className={s.block} ref={card}
+      aria-label={`E-signature: ${row.doc.title}`}>
       <div className={s.blockHead}>
         {p.heading !== false && (p.level === 2
           ? <h2 className={s.blockTitle}>{row.doc.title}</h2>
@@ -277,7 +297,22 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
   const myTurn = next !== null && next.personId === who.by;
   const listed = row.doc.signers.some((x) => x.personId === who.by);
   const style = world.profiles.find((x) => x.key === who.by)?.style;
+  // The signature is recorded once the sheet has gone: the sheet
+  // closes on what it showed, and the card behind changes after it,
+  // never under the scrim. Unmounting runs it (the sheet's exit
+  // ended, or the page went away), so it is never lost.
+  const pending = useRef<(() => void) | null>(null);
+  useEffect(() => () => {
+    const run = pending.current;
+    pending.current = null;
+    run?.();
+  }, []);
   const finish = (verdict: "signed" | "declined"): void => {
+    if (pending.current !== null) return;
+    pending.current = () => record(verdict);
+    p.onClose();
+  };
+  const record = (verdict: "signed" | "declined"): void => {
     // The stamp the signature makes lands once, wherever it shows.
     markSigned(data.esign.ref(row.doc.id, next!.order));
     dispatch({ type: "esign", entry: { kind: "sign", docId: row.doc.id,
@@ -301,9 +336,19 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
           from: "sent", by: who.by, role: who.role, on: data.esign.asOf } });
     }
     const seq = state.nextEsign;
-    toast.show(verdict === "signed" ? E.signedToast(row.doc.title)
-      : E.declinedToast(row.doc.title), () => undo(row, seq, who, verdict));
-    p.onClose();
+    const say = (): void => toast.show(verdict === "signed"
+      ? E.signedToast(row.doc.title) : E.declinedToast(row.doc.title),
+    () => undo(row, seq, who, verdict));
+    // On a phone the toast would sit on the stamp as it lands: it
+    // waits until the stamp has settled, and only on the same page.
+    const phone = typeof matchMedia === "function" &&
+      matchMedia("(max-width: 760px)").matches;
+    if (!phone || reducedMotion()) return say();
+    const hash = location.hash;
+    const { land } = signSequence(verdict === "signed");
+    setTimeout(() => {
+      if (location.hash === hash) say();
+    }, land + STAMP_MS);
   };
   const submit = (): void => {
     if (declining) {
