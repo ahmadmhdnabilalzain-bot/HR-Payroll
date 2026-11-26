@@ -1,0 +1,189 @@
+/* WP6 Pay: the few pieces the templates leave to the screen. */
+
+/* The templates' container, for the pages outside a template. */
+.page {
+  display: grid;
+  gap: var(--space-5);
+  max-inline-size: var(--container);
+  margin-inline: auto;
+  padding: var(--space-5) var(--page-pad) var(--space-8);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.dot {
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-faint);
+}
+
+.dot[data-tone="done"] { background: var(--color-success); }
+.dot[data-tone="check"] { background: var(--color-warning); }
+.dot[data-tone="bad"] { background: var(--color-danger); }
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* Maker and checker as a short chain (as on Approve). */
+.chain {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  list-style: none;
+}
+
+.chainItem {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.node {
+  display: grid;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border: 1.5px solid var(--color-divider-strong);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+}
+
+.chainItem[data-state="done"] .node {
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: var(--color-on-accent);
+}
+
+.chainItem[data-state="bad"] .node {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.chainLabel {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.chainWho {
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.decide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.decide > p {
+  flex: 1 1 260px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  list-style: none;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-block-size: 48px;
+  padding: var(--space-3) var(--space-4);
+}
+
+.row + .row {
+  box-shadow: inset 16px 1px 0 -15px var(--color-divider);
+}
+
+.rowText {
+  display: grid;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.rowText small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.rowEnd {
+  flex: none;
+  text-align: end;
+}
+
+.note {
+  max-inline-size: 72ch;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.section {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.loading {
+  padding-block: var(--space-6);
+  color: var(--color-text-muted);
+}
+
+.inline {
+  color: var(--color-accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.inline:hover {
+  text-decoration: underline;
+}
+
+.change[data-sign="down"] {
+  color: var(--color-text);
+}
+
+.choices {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (max-width: 760px) {
+  .row {
+    flex-wrap: wrap;
+  }
+
+  .decide > :global(button) {
+    flex: 1 1 100%;
+    min-block-size: 44px;
+  }
+}
