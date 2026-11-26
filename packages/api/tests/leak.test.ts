@@ -50,7 +50,7 @@ const ID_KIND: Record<string, Kind> = {
   listAuditEvents: null, verifyAuditChain: null,
   getChannelSettings: null, listNotifications: null,
   getNotificationPrefs: null, listNotificationDeliveries: null,
-  listNotificationTemplates: null,
+  listNotificationTemplates: null, getMyChannels: null,
 };
 
 /** Query strings a route needs. */

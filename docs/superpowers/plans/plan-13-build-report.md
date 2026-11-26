@@ -84,3 +84,35 @@ In progress (updated after each task).
   Plan 3's sealed-column union is not widened.
 - Notification titles and bodies are stored in clear (the plan's
   table); only the outbox payload is sealed.
+
+### Task 3: dispatcher, senders, WhatsApp opt-in
+
+- Jobs get an `Enter` (`(tenant, fn) => withTenant(db, tenant, fn)`)
+  built in `main.ts`, not a raw `Db`: Plan 3's `one-place` test
+  forbids `withTenant(` outside the request plumbing and `main.ts`.
+  `dispatchDue(enter, deps)`; `main.ts jobs` runs every job in
+  `src/jobs/jobs.ts` once and exits (Plan 11's `jobs` command does not
+  exist on this branch, so Task 3 created it).
+- SECURITY DEFINER functions vs forced RLS: forced RLS applies to the
+  table owner too unless it is a superuser or has BYPASSRLS, and the
+  owner role in the real-PostgreSQL suite (and in production) is
+  neither. Each table a cross-company function reads gets a "job
+  scan" policy keyed to the migrating role (`app_company_id() IS NULL
+  AND current_user = '<owner>'`, written with `format(%L,
+  current_user)`). `payroll_app` never matches it. Functions use `SET
+  search_path FROM CURRENT` (the PostgreSQL suite migrates into a
+  per-test schema, so `= public` would break). Covered by
+  `pg-channels.integration.test.ts` on real PostgreSQL: rows of two
+  companies found through the runtime role; the runtime role still
+  reads nothing without a tenant.
+- A wrong verification code is counted and committed (`Refuse`), so
+  the fifth wrong code withdraws the opt-in.
+- "An email delivery exists" (fallback rule) means an email row for
+  the notice that is not `skipped`; a person who switched email off
+  still gets the fallback (Ruling 14).
+- Withdrawing in the app marks waiting WhatsApp rows `skipped
+  no-opt-in` and adds their email fallbacks at once (the plan said the
+  fallback "applies at dispatch", but skipped rows are never picked
+  again).
+- `channel_opt_ins.phone_last4` is stored so `getMyChannels` needs no
+  decryption.

@@ -1,3 +1,5 @@
+import { dispatchDue } from "../../src/channels/dispatch";
+import { withTenant } from "../../src/db/tenant";
 import type { Hitter } from "./api-flow";
 import type { makeApp } from "./test-app";
 
@@ -22,6 +24,22 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
   await hit("putChannelSettings", u.owner, c, {}, { ...settingsBody(s.body),
     emailEnabled: true, expectedVersion: s.body.version });
   await notifications(hit, u);
+  await optInFlow(_ctx, hit, u);
+}
+
+async function optInFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {
+  const c = u.company;
+  const s = await hit("getChannelSettings", u.owner, c);
+  await hit("putChannelSettings", u.owner, c, {}, { ...settingsBody(s.body),
+    whatsappEnabled: true, expectedVersion: s.body.version });
+  await hit("getMyChannels", u.emp, c);
+  await hit("startWhatsAppOptIn", u.emp, c, {}, { phone: "+971500000077",
+    consentVersion: 1, agreed: true });
+  await dispatchDue((t, fn) => withTenant(ctx.deps.db, t, fn), ctx.deps);
+  const sent = ctx.fakes.outbox.whatsapp.at(-1) as { bodyParams: string[] };
+  await hit("verifyWhatsAppOptIn", u.emp, c, {},
+    { code: sent.bodyParams[0] });
+  await hit("withdrawWhatsAppOptIn", u.emp, c);
 }
 
 async function notifications(hit: Hitter, u: FlowUsers) {

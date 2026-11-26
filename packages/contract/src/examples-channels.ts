@@ -11,6 +11,7 @@ import {
   type Notification,
 } from "./notifications";
 import { TEMPLATES } from "./templates";
+import { WHATSAPP_CONSENT_TEXT, type MyChannels } from "./whatsapp";
 
 const ID = "00000000-0000-4000-8000-000000000d01";
 const USER = "00000000-0000-4000-8000-000000000d02";
@@ -39,6 +40,12 @@ const t = TEMPLATES["approval-pending"];
 const template = { kind: "approval-pending", en: t.en, ar: t.ar,
   arReviewed: false, whatsappTemplate: t.whatsappTemplate };
 
+const mine: MyChannels = { email: { address: "sara@example.com" },
+  whatsapp: { status: "active", phoneLast4: "0001", consentVersion: 1,
+    consentedAt: AT }, providers: { email: "configured",
+    whatsapp: "configured" },
+  consentText: WHATSAPP_CONSENT_TEXT.en.replace("{company}", "Acme LLC") };
+
 /** One valid example per Plan 13 schema, keyed by schema name. */
 export const CHANNEL_EXAMPLES: Readonly<Record<string, unknown>> = {
   ProviderStatus: providers,
@@ -56,4 +63,8 @@ export const CHANNEL_EXAMPLES: Readonly<Record<string, unknown>> = {
   DeliveryRowList: { items: [delivery] },
   TemplateInfo: template,
   TemplateInfoList: { items: [template] },
+  WhatsAppOptInStart: { phone: "+971500000001", consentVersion: 1,
+    agreed: true },
+  WhatsAppVerify: { code: "123456" },
+  MyChannels: mine,
 };

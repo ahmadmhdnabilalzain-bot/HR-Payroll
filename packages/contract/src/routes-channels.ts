@@ -17,6 +17,11 @@ import {
   type RouteDef,
 } from "./route-def";
 import { TemplateInfoList } from "./templates";
+import {
+  MyChannels,
+  WhatsAppOptInStart,
+  WhatsAppVerify,
+} from "./whatsapp";
 
 /** Task 1: company channel settings. */
 const SETTINGS: readonly RouteDef[] = [
@@ -47,8 +52,23 @@ const NOTIFY: readonly RouteDef[] = [
     path: "/v1/notification-templates", response: TemplateInfoList }),
 ];
 
+/** Task 3: the caller's channels and WhatsApp opt-in. */
+const OPT_IN: readonly RouteDef[] = [
+  ten(ALL_ROLES, { id: "getMyChannels", method: "GET",
+    path: "/v1/me/channels", response: MyChannels }),
+  ten(ALL_ROLES, { id: "startWhatsAppOptIn", method: "POST",
+    path: "/v1/me/channels/whatsapp/opt-in", body: WhatsAppOptInStart,
+    response: MyChannels }),
+  ten(ALL_ROLES, { id: "verifyWhatsAppOptIn", method: "POST",
+    path: "/v1/me/channels/whatsapp/verify", body: WhatsAppVerify,
+    response: MyChannels }),
+  ten(ALL_ROLES, { id: "withdrawWhatsAppOptIn", method: "POST",
+    path: "/v1/me/channels/whatsapp/withdraw", response: MyChannels }),
+];
+
 /** Plan 13: channels and integrations (the last route group). */
 export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SETTINGS,
   ...NOTIFY,
+  ...OPT_IN,
 ];

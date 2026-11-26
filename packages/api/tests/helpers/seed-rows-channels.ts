@@ -33,4 +33,12 @@ export async function seedChannelRows(admin: Db, c: string, _emp: string,
        user_id, channel, kind, status, created_at)
      VALUES ($1, $2, $3, $4, 'email', 'inbound-received', 'sent', $5)`,
     [rowId(c, "d2"), c, rowId(c, "d1"), user, AT]);
+  await admin.query(
+    `INSERT INTO channel_opt_ins (id, company_id, user_id, channel,
+       phone_enc, phone_hash, phone_last4, status, consent_version,
+       created_at) VALUES ($1, $2, $3, 'whatsapp', 'x', $4, '0000',
+       'pending', 1, $5)`, [rowId(c, "d3"), c, user, `h-${c}`, AT]);
+  await admin.query(
+    `INSERT INTO channel_verify_codes (company_id, opt_in_id, code_hash,
+       expires_at) VALUES ($1, $2, 'x', $3)`, [c, rowId(c, "d3"), AT]);
 }

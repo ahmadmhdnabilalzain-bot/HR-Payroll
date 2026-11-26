@@ -20,6 +20,7 @@ export * from "./expense-reports";
 export * from "./channel-settings";
 export * from "./notifications";
 export * from "./templates";
+export * from "./whatsapp";
 export * from "./lists";
 export * from "./routes";
 export { ALL_ROLES, DECIDERS, OWNER, PAYROLL } from "./route-def";
