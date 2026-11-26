@@ -19,6 +19,7 @@ import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { openItemsOf, severityOf } from "./attention";
 import { shortBranch } from "./filter";
+import { plainOnly } from "../payrun/FixStep";
 import { lastFour } from "./Payslip";
 import { useRoll } from "./useRoll";
 import {
@@ -361,7 +362,7 @@ function Notes(q: { person: Person }) {
                 data-tone={sev === "stops-pay" ? "danger" : "warn"} />
               <span className={s.itemMain}>
                 <span className={s.itemTitle}>{n.title[lang]}</span>
-                <span className={s.itemSub}>{n.reason[lang]}</span>
+                <span className={s.itemSub}>{plainOnly(n.reason[lang])}</span>
               </span>
               <span className={s.itemEnd}>
                 {sev === "stops-pay" ? t("people.stopsPay")

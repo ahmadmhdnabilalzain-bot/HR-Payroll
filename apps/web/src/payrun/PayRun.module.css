@@ -1050,8 +1050,6 @@ a.navNext:active,
 
 .footLine {
   margin-block-start: var(--space-4);
-  color: var(--color-text-muted);
-  font-size: var(--text-2xs);
 }
 
 /* Phone: own composition. A one-line stepper; lists as rows. */

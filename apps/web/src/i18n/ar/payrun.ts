@@ -40,7 +40,6 @@ export const payrun: ArOf<typeof en> = {
   showChanged: "اعرض التغييرات فقط",
   hint: "اضغط على أي رقم تحته خط منقط لترى طريقة حسابه.",
   hintOk: "حسنًا",
-  footLine: "قواعد البر الرئيسي في الإمارات كما نفهمها. بيانات وهمية.",
   everyone: "جميع من في هذه الدورة",
   colName: "الاسم",
   colNet: "الصافي",

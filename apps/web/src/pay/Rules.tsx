@@ -7,7 +7,7 @@ export function PayGroups() {
   return (
     <SettingsPage title="Pay groups"
       lede={"Who is paid together. Both groups are paid in the same " +
-        "monthly run; the payday is a sample date."}
+        "monthly run."}
       groups={pay.groups.map((g) => ({ title: g.label, items: [
         { key: `${g.id}-n`, label: "People",
           value: String(g.names.length),

@@ -38,7 +38,6 @@ export const payrun = {
   showChanged: "Show only changes",
   hint: "Tap a figure with a dotted line to see how it is worked out.",
   hintOk: "Got it",
-  footLine: "UAE mainland rules, as we read them. Fictional data.",
   everyone: "Everyone on this run",
   colName: "Name",
   colNet: "Net pay",

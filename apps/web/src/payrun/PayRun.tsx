@@ -2,6 +2,7 @@ import { Suspense, useState } from "react";
 import { useRunApproval } from "../demo/actions";
 import { reducedMotion } from "../demo/motion";
 import { hrefOf, navigate } from "../demo/route";
+import { Footnote } from "../components/explain";
 import { useDemo } from "../demo/state";
 import { formatDayMonth, formatMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -126,7 +127,7 @@ function RunSteps(p: ViewProps) {
           </a>
         )}
       </nav>
-      <p className={s.footLine}>{t("payrun.footLine")}</p>
+      <Footnote className={s.footLine} />
     </div>
   );
 }
