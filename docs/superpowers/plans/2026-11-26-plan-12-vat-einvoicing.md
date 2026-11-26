@@ -636,8 +636,8 @@ Money and law task: fresh per-task review.
   - `BoxFigure { amount: Fils | null; vat: Fils | null; adjustment:
     Fils | null }`; `Vat201Problem { code: "EMIRATE_REQUIRED" |
     "INPUT_TAX_UNDECIDED" | "CLAIMED_EXCEEDS_VAT" |
-    "VAT_ON_NON_STANDARD" | "TREATMENT_DIRECTION_INVALID" |
-    "FTA_BOX_NOT_ENTERED"; docIds: string[]; box: string | null }`;
+    "CLAIMED_ON_UNTAXED" | "VAT_ON_NON_STANDARD" |
+    "TREATMENT_DIRECTION_INVALID" | "FTA_BOX_NOT_ENTERED"; docIds: string[]; box: string | null }`;
     `Vat201Warning { code: "LAYOUT_FROM_2021_GUIDE" | "NEGATIVE_BOX" |
     "REFUND_NOT_APPLICABLE" | "VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED" |
     "NIL_RETURN"; box: string | null; periodStart: string | null }`.
@@ -666,6 +666,7 @@ Money and law task: fresh per-task review.
     claimedVat null (box 9 or 10 doc) -> INPUT_TAX_UNDECIDED
     claimedVat > vat         -> CLAIMED_EXCEEDS_VAT
     vat > 0 on zero-rated, exempt or out-of-scope -> VAT_ON_NON_STANDARD
+    claimedVat > 0 on an excluded purchase -> CLAIMED_ON_UNTAXED
     box2, box6, box7: "entered" -> its amount and vat; "none" -> 0;
                       "not-entered" -> figure null, FTA_BOX_NOT_ENTERED
     adjustments -> the adjustment column of their box (0 when absent)
@@ -681,8 +682,12 @@ Money and law task: fresh per-task review.
 
     Corrections: documents with `correctsPeriodStart` are counted in
     this return as normal and also grouped by that period; their net
-    VAT effect = sale VAT (credit notes negative) minus claimed VAT on
-    purchases (credit notes negative); `overThreshold` when the
+    VAT effect is each document's Box 14 effect, as the mapping places
+    it (credit notes negative): standard sale `+vat`; standard
+    purchase `-claimedVat`; reverse-charge purchase `vat -
+    claimedVat`; anything else `0` (review fix I1, 2026-11-26: the
+    earlier "sale VAT minus claimed VAT" left out Box 3 and counted
+    documents in no box); `overThreshold` when the
     absolute effect for one period is more than
     `errorCorrectionThresholdFils`, which adds the warning
     `VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED` for that period. Always the
@@ -728,6 +733,16 @@ Money and law task: fresh per-task review.
   credit notes correcting `2026-01-01` with claimed VAT totalling
   `1000001n` give `corrections[0]` `{ "2026-01-01", 1000001n, true
   }` and the warning; `1000000n` gives `overThreshold false`.
+- `correction_effect_formula_as_written`: a sale VAT `100n` and a
+  reverse-charge purchase VAT `500n` claimed `0n` correcting
+  `2026-01-01` give `600n`; a standard purchase claimed `50n`
+  correcting `2025-10-01` gives `-50n`.
+- `reverse_charge_correction_over_threshold_warns` (VAT `1500000n`,
+  claimed `0n`: effect `1500000n`, warning),
+  `reverse_charge_fully_claimed_correction_no_warning` (VAT and
+  claimed `2000000n`: effect `0n`, no warning),
+  `excluded_purchase_correction_has_no_effect` (zero-rated, claimed
+  `2000000n`: effect `0n`), `claimed_on_untaxed_purchase_problem`.
 - `sale_reverse_charge_invalid`, `claimed_exceeds_vat`,
   `vat_on_exempt_problem`, `emirate_required`: each gives its code.
 - `nil_return`: no documents, FTA boxes `none`: status `complete`,
@@ -736,10 +751,12 @@ Money and law task: fresh per-task review.
   `ftaPopulated`; every result carries `LAYOUT_FROM_2021_GUIDE`.
 
 `vat201-props.test.ts` (fast-check, 0 to 30 random complete
-documents, FTA boxes `none`): box8 VAT equals the sum of box1 VAT over
-emirates plus box3 VAT; box14 equals box12 minus box13; adding a
-document and its matching credit note leaves every box unchanged;
-computing twice gives deep-equal output.
+documents including credit notes and corrections, random entered or
+`none` FTA boxes, random signed adjustments): box8 VAT equals box1
+VAT over emirates plus boxes 2, 3, 6 and 7 VAT; box14 equals box12
+minus box13; adding a document and its reverse leaves every box
+unchanged; the corrections total equals the Box 14 change the
+correcting documents cause; computing twice gives deep-equal output.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/engine test vat201`.
   Expected: FAIL.
