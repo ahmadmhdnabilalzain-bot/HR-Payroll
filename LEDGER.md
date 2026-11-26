@@ -629,3 +629,6 @@ The owner can overrule any of these. Full list with reasons:
   TLDs, and a native-speaker check of the connotation (the word also
   appears in the Quran as "clear"). Domain purchase is the owner's call.
 - The on-screen name lives in one place (`apps/web/src/brand.ts`).
+- Owner confirmed (2026-11-26): the first client's entity is **mainland**
+  (not DIFC/ADGM). Mainland rule labels in the demo are now accurate for
+  the jurisdiction; the Abu Dhabi pension fund question stays open.
