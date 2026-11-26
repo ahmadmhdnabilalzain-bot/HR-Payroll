@@ -265,7 +265,12 @@ Law task: fresh per-task review.
     - `FTA_EINV_FAQ` (3.1): "FTA e-invoicing page and FAQ, updated 17
       Nov 2026".
     - `MOF_EINV_GUIDELINES` (3.1): "MoF E-invoicing Guidelines V2.1,
-      glossary only".
+      glossary only (V1.1 path; link serves V2.1)".
+    - `RESEARCH_CT_ZERO_RATE` (25 Nov note, corporate tax): url `""`,
+      note naming `docs/research/2026-11-25-vat-corporate-tax-
+      einvoicing.md` and its words "0% on taxable income up to AED
+      375,000", snippet level (review fix I2: the bulletin snippet
+      cut off the 0% word, so it cannot be the 0% band's source).
     - `CD106_2025` (3.6): "Cabinet Decision 106 of 2025, table rows 1
       to 3 (search extract)".
     - `FTA_CT_SB_BULLETIN` (4): "FTA Basic Tax Information Bulletin:
@@ -311,7 +316,7 @@ Law task: fresh per-task review.
     | key | value | status | source |
     |---|---|---|---|
     | zeroBandUpperFils | 37500000 | secondary | FTA_CT_SB_BULLETIN |
-    | zeroBandRateBps | 0 | secondary | FTA_CT_SB_BULLETIN |
+    | zeroBandRateBps | 0 | secondary | RESEARCH_CT_ZERO_RATE |
     | mainRateBps | 900 | secondary | FTA_CT_SB_BULLETIN |
     | taxRounding | "HALF_UP" | convention | ENGINE_CONVENTION |
     | sbrRevenueThresholdFils | 300000000 | secondary | FTA_CT_SBR_TOPIC |
