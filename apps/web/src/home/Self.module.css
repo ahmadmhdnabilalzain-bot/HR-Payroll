@@ -133,6 +133,7 @@
 .empty {
   padding-block: var(--space-4);
   color: var(--color-text-muted);
+  font-size: 15px;
 }
 
 .rows {

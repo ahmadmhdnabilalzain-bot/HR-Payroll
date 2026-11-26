@@ -12,7 +12,6 @@ import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { Inbox } from "./inbox/Inbox";
-import { ToSignCard } from "../people/esign/ToSignCard";
 import { LeaveForm } from "./LeaveForm";
 import { RequestList } from "./RequestList";
 import s from "./Self.module.css";
@@ -27,7 +26,6 @@ export function EmployeeHome() {
   const { data, state } = useDemo();
   const [asking, setAsking] = useState(false);
   const me = personFor(data, "employee");
-  const person = data.people.person(me);
   const slip = data.people.payslip(me);
   const cal = data.payCalendar();
   const month = formatMonthName(data.headline().runMonth, lang);
@@ -49,9 +47,11 @@ export function EmployeeHome() {
       <div className={s.cards}>
         <section className={s.card} aria-labelledby="self-net">
           <h2 id="self-net" className={s.label}>{t("home.selfNet")}</h2>
-          {slip !== null && <Money value={slip.netFils} size="lg" />}
-          <p className={s.meta}>{person?.name[lang]}</p>
-          <a className={`${b.btn} ${b.secondary}`}
+          {slip !== null && <Money value={slip.netFils} size="hero" />}
+          <p className={s.meta}>
+            {t("home.arrives", { date: formatDayMonth(cal.payday, lang) })}
+          </p>
+          <a className={`${b.btn} ${b.primary}`}
             href={hrefOf("people", me, "payslip")}>
             {t("home.openPayslip")}
           </a>
@@ -64,12 +64,11 @@ export function EmployeeHome() {
               dayCountVars(balance.availableDays, lang))}
           </p>
           {!asking && (
-            <button type="button" className={`${b.btn} ${b.primary}`}
+            <button type="button" className={`${b.btn} ${b.secondary}`}
               onClick={() => setAsking(true)}>{t("home.requestLeave")}</button>
           )}
         </section>
       </div>
-      <ToSignCard />
       {asking && <LeaveForm employeeId={me} onDone={() => setAsking(false)} />}
       <RequestList title={t("home.myRequests")} rows={mine}
         empty={t("timeoff.requestsEmpty")} />

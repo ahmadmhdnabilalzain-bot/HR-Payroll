@@ -130,6 +130,7 @@ export const home = {
   selfHeld: "Your {month} pay is held until your bank details are " +
     "entered.",
   selfNet: "Your net pay",
+  arrives: "Arrives {date}",
   openPayslip: "Open payslip",
   leaveLeft: "Annual leave left",
   requestLeave: "Request leave",
@@ -160,6 +161,7 @@ export const home = {
   cardNationals: "UAE nationals of {total} active",
   cardNationalsSub: "Headcount by nationality",
   cardLeave: "Off in the next 7 days",
+  nobodyOff: "Nobody is off",
   cardDocs: "Documents expiring in 30 days",
   cardWaiting: "Waiting for a decision",
   cardLeaveNext: "Next: {name}, from {date}",
