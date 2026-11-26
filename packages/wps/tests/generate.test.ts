@@ -1,8 +1,8 @@
-import { EngineError, fils } from "@payroll/engine";
+import { EngineError, fils, parseAed } from "@payroll/engine";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { sifFileName } from "../src/filename";
-import { generateSif, type SifBatch } from "../src/generate";
+import { generateSif, type SifBatch, type SifEmployee } from "../src/generate";
 import { defaultLayout as L } from "../src/layout";
 import type { EdrInput, EvpInput } from "../src/records";
 
@@ -76,9 +76,9 @@ describe("generateSif", () => {
     expect(r.lines.map((l) => l.slice(0, 3))).toEqual(["EDR", "SCR"]);
     expect(r.total).toBe(400000n);
   });
-  it("emits no EVP when variable is positive but none supplied", () => {
+  it("rejects variable pay without an EVP (EVP_REQUIRED)", () => {
     const b: SifBatch = { ...batch, employees: [{ edr }] };
-    expect(generateSif(b, L).lines).toHaveLength(2);
+    expect(codeOf(b)).toBe("EVP_REQUIRED");
   });
   it("rejects an EVP when variable is zero", () => {
     const b: SifBatch = {
@@ -91,6 +91,13 @@ describe("generateSif", () => {
     const other = { ...evp, personId: "915012345664" };
     const b: SifBatch = { ...batch, employees: [{ edr, evp: other }] };
     expect(codeOf(b)).toBe("EVP_MISMATCH");
+  });
+  it("a layout with a smaller reference cap makes the SCR throw", () => {
+    const small = { ...L, referenceMaxLength: 5 };
+    expect(() => generateSif(batch, small)).toThrowError(
+      expect.objectContaining({ code: "FIELD_TOO_LONG" }));
+    expect(generateSif({ ...batch, reference: "abcde" }, small).lines)
+      .toHaveLength(3);
   });
   it("rejects an empty batch", () => {
     expect(codeOf({ ...batch, employees: [] })).toBe("EMPTY_BATCH");
@@ -116,7 +123,12 @@ describe("generateSif", () => {
   it("rejects wrong day counts", () => {
     expect(codeOf(withEdr({ days: 30 }))).toBe("DAYS_MISMATCH");
     expect(codeOf(withEdr({ payStart: "2016-01-31", payEnd: "2016-01-01" })))
-      .toBe("DAYS_MISMATCH");
+      .toBe("PAY_END_BEFORE_START");
+  });
+  it("rejects pay end the day before pay start with days 0", () => {
+    const b = withEdr({ payStart: "2016-01-02", payEnd: "2016-01-01",
+      days: 0, unpaidLeaveDays: 99 });
+    expect(codeOf(b)).toBe("PAY_END_BEFORE_START");
   });
   it("rejects a pay start before 2010-10-01", () => {
     const b: SifBatch = {
@@ -207,20 +219,23 @@ describe("total property", () => {
     const emp = fc.record({ fixed: amt, variable: amt });
     fc.assert(
       fc.property(fc.array(emp, { minLength: 1, maxLength: 200 }), (xs) => {
-        const employees = xs.map((x, i) => ({
-          edr: {
+        const employees = xs.map((x, i): SifEmployee => {
+          const personId = String(i + 1);
+          const e = {
             ...edr,
-            personId: String(i + 1),
+            personId,
             fixed: fils(x.fixed),
             variable: fils(x.variable),
-          },
-        }));
+          };
+          return x.variable === 0n
+            ? { edr: e }
+            : { edr: e, evp: { ...evp, personId, housing: e.variable } };
+        });
         const r = generateSif({ ...batch, employees }, L);
         const sum = xs.reduce((s, x) => s + x.fixed + x.variable, 0n);
         const scr = r.lines[r.lines.length - 1]!.split(",");
         expect(r.total).toBe(sum);
-        const frac = String(sum % 100n).padStart(2, "0");
-        expect(scr[7]).toBe(`${sum / 100n}.${frac}`);
+        expect(parseAed(scr[7]!)).toBe(sum);
         expect(scr[6]).toBe(String(xs.length));
       }),
     );

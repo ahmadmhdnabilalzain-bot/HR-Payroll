@@ -12,15 +12,23 @@ import {
 
 function statusList(line: TraceLine, lang: Lang): string {
   const words = STATUS_WORDS[lang];
-  const seen = [...new Set(line.rules.map((r) => r.status))];
+  // A caller's override is shown as such, never as the pack's status.
+  const seen = [...new Set(line.rules.map((r) =>
+    r.overridden ? "overridden" : r.status))];
   if (seen.length === 0) return words["none"] ?? "";
   return seen.map((s) => words[s] ?? s).join(", ");
 }
 
 const YEARS_PATTERN = /^(\d+) years and (\d+) days$/;
 
+/** The catalog id of a trace line: the text before any "#code". */
+export function baseId(id: string): string {
+  const hash = id.indexOf("#");
+  return hash === -1 ? id : id.slice(0, hash);
+}
+
 function resultText(line: TraceLine, lang: Lang): string {
-  if (MONEY_IDS.includes(line.id) && /^-?\d+$/.test(line.result)) {
+  if (MONEY_IDS.includes(baseId(line.id)) && /^-?\d+$/.test(line.result)) {
     const [open, close] = LTR_ISOLATE[lang];
     return open + formatAed(fils(BigInt(line.result))) + close;
   }
@@ -36,8 +44,9 @@ const ZERO_OUTCOMES: readonly string[] = ["not-eligible", "not-applicable"];
 /** A zero gratuity line has its own message that states the reason. */
 function messageKey(line: TraceLine): string {
   const outcome = line.inputs["outcome"] ?? "";
-  return line.id === "gratuity.total" && ZERO_OUTCOMES.includes(outcome)
-    ? `${line.id}.${outcome}` : line.id;
+  const id = baseId(line.id);
+  return id === "gratuity.total" && ZERO_OUTCOMES.includes(outcome)
+    ? `${id}.${outcome}` : id;
 }
 
 function explainLine(line: TraceLine, lang: Lang): string {

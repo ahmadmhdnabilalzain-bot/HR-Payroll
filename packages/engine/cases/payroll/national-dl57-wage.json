@@ -1,0 +1,59 @@
+{
+  "id": "national-dl57-wage",
+  "title": "UAE national, DL57, contribution on the full wage",
+  "input": {
+    "year": 2026,
+    "month": 6,
+    "employee": {
+      "workerClass": "uae-national",
+      "joiningDate": "2020-03-01",
+      "leavingDate": null,
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": {
+        "regime": "dl57-2023",
+        "fixingMonth": "2026-01",
+        "fixingBasic": "1000000",
+        "fixingAllowances": "500000",
+        "arrears": "0"
+      }
+    },
+    "absences": [],
+    "sickDaysUsedBefore": 0,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [],
+    "loans": []
+  },
+  "overrides": {
+    "gpssaContributionSalaryBase": "wage"
+  },
+  "expected": {
+    "gross": "1500000",
+    "totalDeductions": "165000",
+    "net": "1335000",
+    "employerCost": "187500"
+  },
+  "sourceIds": [
+    "DL57_ART4",
+    "DL57_ART5",
+    "DL57_ART10"
+  ],
+  "status": "unsourced"
+}

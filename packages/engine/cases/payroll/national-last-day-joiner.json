@@ -1,0 +1,61 @@
+{
+  "id": "national-last-day-joiner",
+  "title": "UAE national joining 30 June, share deferred",
+  "input": {
+    "year": 2026,
+    "month": 6,
+    "employee": {
+      "workerClass": "uae-national",
+      "joiningDate": "2026-06-30",
+      "leavingDate": null,
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": {
+        "regime": "dl57-2023",
+        "fixingMonth": "2026-06",
+        "fixingBasic": "1000000",
+        "fixingAllowances": "500000",
+        "arrears": "0"
+      }
+    },
+    "absences": [],
+    "sickDaysUsedBefore": 0,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [],
+    "loans": []
+  },
+  "overrides": {
+    "gpssaContributionSalaryBase": "wage"
+  },
+  "expected": {
+    "gross": "49999",
+    "totalDeductions": "24999",
+    "net": "25000",
+    "employerCost": "187500"
+  },
+  "sourceIds": [
+    "DL57_ART4",
+    "DL57_ART5",
+    "DL57_ART10",
+    "DL57_ART11",
+    "DL33_ART25"
+  ],
+  "status": "unsourced"
+}

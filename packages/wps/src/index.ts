@@ -9,3 +9,4 @@ export * from "./parse";
 export * from "./validate";
 export * from "./routing-codes";
 export * from "./report";
+export * from "./from-payslip";

@@ -34,6 +34,8 @@ them apart is deliberate.
 | 2026-11-25 | "If LinkedIn is risky ignore it. But the rest it should be full integration." LinkedIn is excluded for now; Instagram, TikTok, Snapchat and X get full integrations. |
 | 2026-11-25 | "I need a feature for meetings within the app itself. Video and audio with summarized meeting points and assigned list of tasks per staff." Added to scope (UQ37); feasibility research in progress. |
 | 2026-11-25 | "Work from home would record screen time and location service." On screenshots and keystroke logging: "No, I don't want those 2." Both are out of scope, with no switch. "Location service will just record once every hour." |
+| 2026-11-26 | UI brief (before designing the interface): "I am not looking for something standard. This has to look extremely advanced with motion graphics and animation, extremely smooth, easy user interface and navigation, looking super high tech, bright and dark mode switches, no long side bar menus, the flow of the functions need to be clear and doesn't confuse the staff. It shouldn't look like it was made with AI. I genuinely want clients to be amazed." Supersedes the standard shell in Plan 4. |
+| 2026-11-26 | Autonomous mode: "I'm gonna leave you to work alone... keep the laptop on. Carry on in the parallel builds. Don't stop. For technical matters, you finalize them; you don't need my approval. For the design I have to approve: keep the mock-ups (concepts A, B and C) and I will check them when I wake up. For the features, don't stop building, build in parallel. I'm expecting in 6 or 7 hours you will be done with at least 40 or 50 extra features." |
 | 2026-11-25 | Asked for the combined list of all competitors' features (`docs/superpowers/specs/2026-11-25-combined-feature-list.md`). |
 
 ## 2. Standing instructions (the owner's words)
@@ -84,9 +86,10 @@ Each item gets its own plan under `docs/superpowers/plans/`.
    Money type, gratuity and settlement with trace, rule-change preview,
    English and Arabic explanation, case library, demo command.
 2. Plan 2: WPS (SIF) generator and validator: **done** (built task by
-   task with review, 2026-11-26). Layout from two bank guides that agree;
-   unconfirmed by MOHRE. Generator, validator, routing codes, report,
-   demo commands `pnpm sif` and `pnpm sif:check`.
+   task, tasks 1 to 5 each reviewed, task 6 not; whole-branch review and
+   one fix round done, 2026-11-26). Layout from two bank guides that
+   agree; unconfirmed by MOHRE. Generator, validator, routing codes,
+   report, demo commands `pnpm sif` and `pnpm sif:check`.
 3. Plan 3: data model, API, tenancy and security baseline.
 4. Plan 4: web app (Arabic and English).
 5. Later: M2 and M3 items; then adjacent modules (expenses, tasks,
@@ -171,7 +174,8 @@ undecided.
   (`FIELD_NOT_ASCII`, `FIELD_HAS_COMMA`); days and counts are whole
   numbers of 0 or more (`INVALID_COUNT`). A missing SCR reference is
   written as an empty last field. Only the reference has a length cap
-  (35, now `layout.referenceMaxLength`).
+  (35, `layout.referenceMaxLength`, used by the generator and the
+  validator alike since the final fix round).
 - Task 3: an EVP given while variable pay is zero is refused
   (`EVP_WITHOUT_VARIABLE`): inconsistent input is an error. Extra codes
   `EVP_MISMATCH` and `INVALID_TIME`. Person ids are compared without
@@ -197,13 +201,189 @@ undecided.
   record type, count and total mismatches are reported only when the SCR
   is smaller than what was read.
 - Task 6: `sif:check` always passes a `today`: `--today`, else the
-  machine's local date read by the shell, never the core. `sif` checks
+  Dubai calendar date read by the shell, never the core. `sif` checks
   the file it made the same way and writes nothing on any error. Output
-  goes to `out/` by default, which git ignores.
+  goes to `/out/` by default, which git ignores. (Corrected in the final
+  fix round: the clock was first the host's local date, and `sif` had no
+  `--today`. A UTC host would have refused a Dubai-dated batch as a
+  future date from 00:00 to 04:00 Dubai time, not late in the Dubai
+  day.) Task 6 had no task review (speed ruling); the whole-branch
+  review covered it.
 - Task 6: batch amounts are strings read by the engine's `parseAed`, so
   "4000" and "4000.5" are accepted as well as "4000.00". zod stays in
   shell files (`batch-schema.ts`); a bad field is named by its path, such
   as `employees.0.edr.fixed`, under `INVALID_BATCH_FILE`.
+- Task 6: the purity scanner (`tests/purity.test.ts`) was rewritten in
+  the final fix round as one tokenising pass. It removes line and
+  multi-line block comments, and empties "..." and '...' strings,
+  template literals (their `${}` code is still scanned) and regex
+  literals, so words in messages are not code and a quote in a regex or
+  a comment marker in a string cannot hide code. It reads import
+  strings (single, double or backtick quotes, and `import(`). It bans
+  `Date`, `Intl`, `performance`, `Temporal`, timers, `crypto`,
+  `globalThis`/`global`, `process`, `console`, `Math.random`, `fetch(`,
+  `require(` and dynamic `import(` in the core. It does not catch: a
+  regex-versus-division guess that is wrong (it uses the previous
+  token), a global reached through an alias (`const g = self`) or
+  computed string (`globalThis[k]` is caught by the name, `self` and
+  `window` are not banned), or code outside `src/`.
+
+Rulings made in the Plan 2 final fix round (2026-11-26). The owner can
+overrule any of these.
+
+- Ruling: the generator throws `EVP_REQUIRED` when variable pay is above
+  zero and no EVP is given. Why: the Emirates Islamic guide says the EVP
+  is mandatory when variable pay is given. Cost if wrong: a batch with
+  variable pay and no breakdown is refused; relax one check in
+  `generate.ts`. The validator still gives `EVP_MISSING` as a warning for
+  third-party files.
+- Ruling: a period must have days of 1 or more: pay end on or after pay
+  start (`PAY_END_BEFORE_START`, generator and validator). Why: the DIB
+  guide has the end after the start; days 0 with a reversed period
+  passed both checks before. Cost if wrong: a one-off zero-day line is
+  refused; relax one check in each place.
+- Ruling: `generate` takes `--today YYYY-MM-DD` like `check`. Without
+  it the shell uses the Asia/Dubai calendar date
+  (`toLocaleDateString('en-CA', { timeZone: 'Asia/Dubai' })`, in
+  `shell.ts` only). Why: a UTC host judged a Dubai-dated batch as a
+  future date from 00:00 to 04:00 Dubai time. Cost if wrong: none for
+  UAE use; a future non-UAE market needs a time zone setting.
+- Ruling: the purity scanner is one tokenising pass (see the Task 6
+  scanner bullet). Why: the old two-step stripping could be bypassed.
+  Cost if wrong: a rare false alarm in the core, fixed in the test.
+- Ruling: the SCR EDR count stays unpadded (`1`). Why: the two guides
+  disagree (DIB sample `01`, Emirates Islamic sample `1`) and the field
+  is numeric; the validator accepts both. Cost if wrong: a bank that
+  wants `01` rejects the file; add a layout parameter and pad. The first
+  bank test upload should confirm it.
+- Ruling: the reference cap is only `layout.referenceMaxLength`
+  (`REFERENCE_MAX` deleted). Why: one source of truth. Cost if wrong:
+  none; a smaller cap in a layout now also stops the generator.
+- Ruling: `ROUTING_UNKNOWN` is deduplicated per code per file. When an
+  EDR and the SCR share an unknown code, only the first (the EDR) gets
+  the warning. Why: the warning is about the code, and the first line
+  names it. Cost if wrong: the SCR line shows no warning of its own;
+  pinned by a test, change both together.
+
+## 10. Rulings made during the Plan 5 build (Claude's calls)
+
+The owner can overrule any of these. Dated 2026-11-26. Rulings 1 to 22
+are the plan's (`docs/superpowers/plans/2026-11-26-plan-5-monthly-payroll.md`,
+section "Rulings", with the cost of each if wrong); B1 to B6 were made
+while building (`docs/superpowers/plans/plan-5-build-report.md`).
+
+- Ruling 1: two packs with keys unique across both, `ae-payroll` (from
+  2022-02-02) and `ae-gpssa` (from 2023-10-31), selected on the month's
+  first day: first payroll month March 2022, first for nationals
+  November 2023.
+- Ruling 2: one source id per article (`DL33_ART19` and so on), not a
+  new `article` field on `RuleSource`.
+- Ruling 3: calendar-day proration (`convention`), rounded HALF_UP once
+  per line.
+- Ruling 4: sick and maternity pay reduce earnings, not deductions, so
+  they do not use the 50% cap; "full pay" is read as the wage.
+- Ruling 5: the sick-leave year and the days already used are inputs;
+  probation sick days are unpaid and do not use up the 90.
+- Ruling 6: leave beyond the law (sick over 90, maternity over 105) is
+  unpaid and flagged, never refused.
+- Ruling 7: overtime hourly rate = contractual basic / 30 / the
+  contract's daily hours (at most 8); minutes, not hours.
+- Ruling 8: the 2-hour daily overtime cap flags and never cuts pay; the
+  144-hour three-week limit is cited but not checked.
+- Ruling 9: rest-day and holiday work pays an extra day's wage plus 50%
+  of basic; "premium only" is a supported override; shift workers get
+  25% at night; days off in lieu pay 0.
+- Ruling 10: the GPSSA regime (`dl57-2023` or `law7-1999`) is an input,
+  never inferred.
+- Ruling 11: the GPSSA contribution salary base is unsourced: every UAE
+  national's payslip throws `UNSOURCED_PARAM` until the caller passes
+  `gpssaContributionSalaryBase`, and then flags `OVERRIDE_USED`.
+- Ruling 12: GPSSA is not prorated (DL57 Art 11(3)); Law 7 skips a
+  partial last month; the salary is fixed in January or the joining
+  month and passed in, and a wrong month is refused; unpaid leave does
+  not reduce it.
+- Ruling 13: GCC nationals are refused, as in the gratuity.
+- Ruling 14: the deduction cap base is the earned wage (basic and
+  allowances after proration); "five days' wage" uses the contractual
+  wage / 30; caps round DOWN.
+- Ruling 15: violation cap conflict (Art 25(1)(f) 5% against Art
+  39(1)(c) five days): the stricter is used and flagged.
+- Ruling 16: when the 50% cap binds the order is GPSSA, court debt,
+  overpayment, violation, damage, scheme, loan (a param); remainders are
+  deferred and reported.
+- Ruling 17: the GPSSA employee share counts towards the 50% cap and can
+  be deferred; the caller resubmits it as `GpssaInput.arrears`.
+- Ruling 18: loans need written consent; "scheme" (Art 25(1)(d) and
+  (e)) always needs consent; no interest is computed.
+- Ruling 19: WPS split: fixed = earned basic, variable = everything
+  else itemised in the EVP; deductions come off fixed first, then other
+  allowances, overtime, encashment, passage, medical, conveyance,
+  housing; the adapter lives in `packages/wps`.
+- Ruling 20: exit leave pay belongs to `calculateSettlement`; the
+  payslip refuses encashment in a leaving month (`ENCASHMENT_AT_EXIT`).
+- Ruling 21: ILOE and the WPS 85% test are not computed and are listed
+  on every payslip; no demo command in Plan 5.
+- Ruling 22: Law 7 rates and the 2.5% government support are `official`
+  (read in the official site's English text; amendments unread).
+- Ruling B1: `calculatePayslip` checks the period (`INVALID_PERIOD`)
+  before it selects a pack, so month 13 is reported as a bad period and
+  not as `selectPack`'s `INVALID_DATE`. Cost if wrong: none.
+- Ruling B2: overtime and rest-day work may share a date (extra hours on
+  a worked rest day); only a date listed twice in one list, or work on
+  an absence date, is refused. Cost if wrong: one more check.
+- Ruling B3: a deferred remainder is `kind-cap` when the kind cap left
+  was not more than the overall cap left, else `overall-cap`. Cost if
+  wrong: a label only; amounts do not change.
+- Ruling B4: the `ded.scheme` message says "savings or welfare scheme"
+  instead of the plan's "approved scheme", to keep approval words out of
+  product text. Cost if wrong: one string.
+- Ruling B5: override keys that no pack uses are ignored, as in the
+  gratuity (no new error code). Cost if wrong: a typo in an override
+  name is silently unused; `OVERRIDE_USED` lists only keys used.
+- Ruling B6: `deductionOrder` is loaded as text and parsed by
+  `applyDeductions`, which refuses anything but the seven kinds once
+  each (`INVALID_PARAM`). Cost if wrong: none.
+- Review fixes (2026-11-26, after the whole-branch review, READY AFTER
+  FIXES). Ruling B5 is replaced by B7.
+- Ruling B7: overrides are recorded when params load, so
+  `OVERRIDE_USED` lists every overridden key read, traced or not. An
+  override key that no payroll or GPSSA pack defines is refused
+  (`UNKNOWN_OVERRIDE`); a known key this payslip did not read is shown
+  in an `OVERRIDE_UNUSED` flag. Cost if wrong: a caller that sends extra
+  keys must drop them.
+- Ruling B8: the GPSSA employee share has its own trace line
+  (`gpssa.employee-share`); `ded.gpssa` shows the share and the arrears
+  as inputs; the pension lines carry the salary-base rule, and
+  explanations show any overridden rule as "overridden". Cost: none.
+- Ruling B9: in a leaving month a deferred remainder raises
+  `DEDUCTION_DUE_AT_EXIT` ("must be settled at exit in the final
+  settlement, which this engine does not compute") instead of
+  `DEDUCTION_DEFERRED`. Whether the 50% cap applies at final settlement
+  is not found. Cost if wrong: wording only.
+- Ruling B10: the employer GPSSA share is rounded once: payable =
+  round(salary x (employer rate - support rate)), support = gross -
+  payable. Salary 300,100 fils gives gross 45,015, payable 37,513 and
+  support 7,502 (before: 37,512 and 7,503). Cost if GPSSA invoices round
+  the support instead: 1 fils a month on some salaries.
+- Ruling B11: night overtime minutes above the night window (360 for
+  22:00-04:00) on one date are refused (`INVALID_MINUTES`), not
+  clamped, so nothing is silently changed. Cost if wrong: an input
+  error for a night that spans two dates; the caller splits it.
+- Ruling B12 (review M13): the government's "(2.5%) of its share" (DL57
+  Art 4(1)(b), L7 Art 2(2)) is read as 2.5 percentage points of the
+  contribution salary, so a private employer pays 12.5% below AED
+  20,000. The other reading (2.5% of the 15%, 0.375% of salary) is not
+  coded. Cost if wrong: the employer share is 2.125% of salary too low.
+- Ruling B13: case files declare the weakest status among the rules in
+  their trace, and the runner fails a case that claims more; the two
+  national cases are `unsourced` (they depend on the salary-base
+  override). Cost: none.
+- Open from the review, not fixed: M1 (Law 7, joining and leaving in
+  one month drops the whole contribution), M5 (no flag when probation
+  makes sick days unpaid), M10 (two daily bases: calendar days for
+  proration, 30 for overtime and caps), M11 (WPS fixed can be 0 when
+  deductions take all of basic; half-pay days are not in
+  `unpaidLeaveDays`).
 - Task 6: the purity scanner ignores words inside string literals for
   `Date` and the other globals (a message said "Date must be ..."); it
   still reads import strings.

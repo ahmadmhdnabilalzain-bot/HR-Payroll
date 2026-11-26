@@ -1,0 +1,175 @@
+{
+  "id": "sick-cross-15-july",
+  "title": "Sick all July after 10 days used: 5 full, 26 half",
+  "input": {
+    "year": 2026,
+    "month": 7,
+    "employee": {
+      "workerClass": "expat-full-time",
+      "joiningDate": "2020-03-01",
+      "leavingDate": null,
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": null
+    },
+    "absences": [
+      {
+        "date": "2026-07-01",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-02",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-03",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-04",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-05",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-06",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-07",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-08",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-09",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-10",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-11",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-12",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-13",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-14",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-15",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-16",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-17",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-18",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-19",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-20",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-21",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-22",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-23",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-24",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-25",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-26",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-27",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-28",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-29",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-30",
+        "kind": "sick"
+      },
+      {
+        "date": "2026-07-31",
+        "kind": "sick"
+      }
+    ],
+    "sickDaysUsedBefore": 10,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [],
+    "loans": []
+  },
+  "expected": {
+    "gross": "870968",
+    "totalDeductions": "0",
+    "net": "870968",
+    "employerCost": "0"
+  },
+  "sourceIds": [
+    "DL33_ART31",
+    "DL33_ART1",
+    "ENGINE_CONVENTION"
+  ],
+  "status": "convention"
+}

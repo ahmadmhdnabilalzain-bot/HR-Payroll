@@ -20,47 +20,144 @@ function isCore(path: string): boolean {
   return !SHELL.has(relative(SRC, path).split("\\").join("/"));
 }
 
-/** Drops comments; keeps "//" inside strings such as URLs. */
-function stripComments(text: string): string {
-  return text.replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:"'\\])\/\/.*$/gm, "$1");
+/** Source with comments removed; `bare` also has literals emptied. */
+interface Scanned {
+  readonly kept: string;
+  readonly bare: string;
 }
 
-/** Empties "..." and '...' literals, so message words are not code. */
-function blankStrings(code: string): string {
-  return code.replace(/"(?:[^"\\\n]|\\.)*"/g, '""')
-    .replace(/'(?:[^'\\\n]|\\.)*'/g, "''");
+const REGEX_AFTER_PUNCT = /[(,=:[!&|?{};+\-*%<>~^]$/;
+const REGEX_AFTER_WORD = new RegExp(
+  "(?:^|[^\\w$.])(?:return|typeof|case|void|delete|in|of|new|throw|" +
+    "else|do|yield|await)$",
+);
+
+/** True when a `/` here starts a regex literal, not a division. */
+function regexAllowed(bare: string): boolean {
+  const t = bare.trimEnd().slice(-12);
+  return t === "" || REGEX_AFTER_PUNCT.test(t) || REGEX_AFTER_WORD.test(t);
 }
 
-/** Import checks read string contents; the rest skip them. */
+/**
+ * One left-to-right pass over the source. Comments (line, and block
+ * across lines), "..." '...' strings, template literals (with their
+ * `${}` code) and regex literals are each recognised as a token, so a
+ * quote inside a regex or a comment marker inside a string cannot hide
+ * code. `kept` keeps literals (import specifiers are read from it);
+ * `bare` has them emptied (banned names are read from it).
+ */
+function scan(src: string): Scanned {
+  let kept = "";
+  let bare = "";
+  const braces: number[] = [];
+  let i = 0;
+  let inTemplate = false;
+  const both = (k: string, b: string): void => {
+    kept += k;
+    bare += b;
+  };
+  const quoted = (q: string): void => {
+    let j = i + 1;
+    while (j < src.length && src[j] !== q && src[j] !== "\n") {
+      j += src[j] === "\\" ? 2 : 1;
+    }
+    both(src.slice(i, j + 1), q + q);
+    i = j + 1;
+  };
+  const template = (): void => {
+    let j = i;
+    while (j < src.length && src[j] !== "`" && !src.startsWith("${", j)) {
+      j += src[j] === "\\" ? 2 : 1;
+    }
+    if (src.startsWith("${", j)) {
+      both(src.slice(i, j + 2), "`` ");
+      braces.push(0);
+      inTemplate = false;
+      i = j + 2;
+    } else {
+      both(src.slice(i, j + 1), "``");
+      inTemplate = false;
+      i = j + 1;
+    }
+  };
+  const regex = (): void => {
+    let j = i + 1;
+    let cls = false;
+    while (j < src.length && src[j] !== "\n" && (cls || src[j] !== "/")) {
+      if (src[j] === "\\") j++;
+      else if (src[j] === "[") cls = true;
+      else if (src[j] === "]") cls = false;
+      j++;
+    }
+    both(src.slice(i, j + 1), "/ /");
+    i = j + 1;
+  };
+  while (i < src.length) {
+    const c = src[i]!;
+    if (inTemplate) template();
+    else if (src.startsWith("//", i)) {
+      while (i < src.length && src[i] !== "\n") i++;
+    } else if (src.startsWith("/*", i)) {
+      const end = src.indexOf("*/", i + 2);
+      i = end === -1 ? src.length : end + 2;
+      both(" ", " ");
+    } else if (c === '"' || c === "'") quoted(c);
+    else if (c === "`") {
+      both("`", "");
+      i++;
+      inTemplate = true;
+    } else if (c === "/" && regexAllowed(bare)) regex();
+    else {
+      if (c === "{" && braces.length > 0) braces[braces.length - 1]!++;
+      if (c === "}" && braces.length > 0) {
+        if (braces[braces.length - 1] === 0) {
+          braces.pop();
+          inTemplate = true;
+        } else braces[braces.length - 1]!--;
+      }
+      both(c, c);
+      i++;
+    }
+  }
+  return { kept, bare };
+}
+
+/** Import checks read literals (from `kept`); the rest do not. */
 const IMPORTS: [string, RegExp][] = [
-  ["node: import", /["']node:/],
-  ["fs import", /from\s+["'](?:node:)?fs(?:\/promises)?["']/],
-  ["zod import", /from\s+["']zod["']/],
+  ["node: import", /["'`]node:/],
+  ["fs import",
+    /(?:from|import)\s*\(?\s*["'`](?:node:)?fs(?:\/promises)?["'`]/],
+  ["zod import", /(?:from|import)\s*\(?\s*["'`]zod["'`]/],
 ];
 
 const BANNED: [string, RegExp][] = [
-  ["process.", /\bprocess\./],
-  ["console.", /\bconsole\./],
+  ["process", /\bprocess\b/],
+  ["console", /\bconsole\b/],
   ["Date", /\bDate\b/],
+  ["Intl", /\bIntl\b/],
+  ["performance", /\bperformance\b/],
+  ["Temporal", /\bTemporal\b/],
+  ["timers", /\b(?:setTimeout|setInterval|setImmediate)\b/],
+  ["crypto", /\bcrypto\b/],
+  ["globalThis", /\bglobalThis\b|(?<![.\w$])global\b/],
   ["Math.random", /\bMath\.random\b/],
   ["fetch(", /\bfetch\s*\(/],
   ["require(", /\brequire\s*\(/],
+  ["dynamic import", /\bimport\s*\(/],
 ];
 
 function breaches(text: string): string[] {
-  const code = stripComments(text);
-  const bare = blankStrings(code);
+  const { kept, bare } = scan(text);
   return [
-    ...IMPORTS.filter(([, re]) => re.test(code)),
+    ...IMPORTS.filter(([, re]) => re.test(kept)),
     ...BANNED.filter(([, re]) => re.test(bare)),
   ].map(([name]) => name);
 }
 
-const SPEC = /(?:from|import)\s*\(?\s*"([^"]+)"/g;
+const SPEC = /(?:from|import)\s*\(?\s*["'`]([^"'`]+)["'`]/g;
 
 function specifiers(text: string): string[] {
-  return [...stripComments(text).matchAll(SPEC)].map((m) => m[1] ?? "");
+  return [...scan(text).kept.matchAll(SPEC)].map((m) => m[1] ?? "");
 }
 
 function resolveTs(from: string, spec: string): string {
@@ -107,16 +204,73 @@ describe("pure core", () => {
       ["node: import", "fs import"]);
     expect(breaches('import { readFile } from "fs";')).toEqual(
       ["fs import"]);
+    expect(breaches('import { readFile } from "fs/promises";')).toEqual(
+      ["fs import"]);
     expect(breaches('import { z } from "zod";')).toEqual(["zod import"]);
+    expect(breaches("import { z } from 'zod';")).toEqual(["zod import"]);
+    expect(breaches("import 'zod';")).toEqual(["zod import"]);
     expect(breaches("const t = new Date();")).toEqual(["Date"]);
     expect(breaches("process.exit(1); console.log(1);")).toEqual(
-      ["process.", "console."]);
+      ["process", "console"]);
     expect(breaches("Math.random(); fetch(u); require(m);")).toEqual(
       ["Math.random", "fetch(", "require("]);
+  });
+  it("the scanner flags the names the old denylist missed", () => {
+    const cases: [string, string][] = [
+      ["new Intl.DateTimeFormat().format()", "Intl"],
+      ["performance.now()", "performance"],
+      ["Temporal.Now.instant()", "Temporal"],
+      ["setTimeout(f, 1)", "timers"],
+      ["setInterval(f, 1)", "timers"],
+      ["crypto.randomUUID()", "crypto"],
+      ['globalThis["Date"]', "globalThis"],
+      ["global['Date']", "globalThis"],
+      ["const d = new (globalThis as any).Date();", "globalThis"],
+    ];
+    for (const [code, name] of cases) {
+      expect(breaches(code), code).toContain(name);
+    }
+    expect(breaches("const m = await import('zod');")).toEqual(
+      ["zod import", "dynamic import"]);
+    expect(breaches("await import(name);")).toEqual(["dynamic import"]);
+    expect(breaches("import('node:fs')")).toEqual(
+      ["node: import", "fs import", "dynamic import"]);
+  });
+  it("comment markers inside strings cannot hide code", () => {
+    expect(breaches('"/*"; new Date(); "*/"')).toEqual(["Date"]);
+    const multi = 'const a = "/*";\nnew Date();\nprocess.exit(1);\n' +
+      'const b = "*/";';
+    expect(breaches(multi)).toEqual(["process", "Date"]);
+    expect(breaches("const a = '//'; new Date();")).toEqual(["Date"]);
+    expect(breaches("const a = `/*`;\nnew Date();\n`*/`;")).toEqual(
+      ["Date"]);
+  });
+  it("a quote inside a regex literal cannot desync the scan", () => {
+    expect(breaches('x.replace(/"/g, ""); new Date(); "a"')).toEqual(
+      ["Date"]);
+    expect(breaches("x.replace(/'/g, ''); new Date(); 'a'")).toEqual(
+      ["Date"]);
+    expect(breaches('x.split(/["\']/); new Date();')).toEqual(["Date"]);
+    expect(breaches('const r = /\\/"/; process.exit(1); "x"')).toEqual(
+      ["process"]);
+    expect(breaches("const half = (a + b) / 2; new Date(); // 2/3"))
+      .toEqual(["Date"]);
+  });
+  it("code inside a template placeholder is still scanned", () => {
+    expect(breaches("const s = `now ${new Date()}`;")).toEqual(["Date"]);
+    expect(breaches("const s = `a ${f({ k: 1 })} ${process.pid}`;"))
+      .toEqual(["process"]);
+    expect(breaches("const s = `a Date b`;")).toEqual([]);
+  });
+  it("comments and literal words are not code", () => {
     expect(breaches('// new Date()\nconst u = "https://x";')).toEqual([]);
+    expect(breaches("/* a\n new Date()\n process.exit */ const a = 1;"))
+      .toEqual([]);
     expect(breaches("const createdDate = parseIsoDate(t);")).toEqual([]);
     expect(breaches('report("Date must be real");')).toEqual([]);
+    expect(breaches("const a = /Date/.test(x);")).toEqual([]);
     expect(breaches('const s = "x"; new Date();')).toEqual(["Date"]);
+    expect(breaches("// it's a comment\nnew Date();")).toEqual(["Date"]);
   });
   it("core files use no clock, I/O, zod, randomness or globals", () => {
     for (const file of core) {

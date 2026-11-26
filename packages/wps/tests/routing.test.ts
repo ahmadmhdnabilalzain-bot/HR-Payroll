@@ -13,6 +13,7 @@ describe("lookupRouting", () => {
     expect(lookupRouting("")).toBeNull();
   });
   it("has well formed, unique codes", () => {
+    expect(ROUTING_CODES.length).toBeGreaterThan(0);
     for (const r of ROUTING_CODES) {
       expect(r.code).toMatch(/^[0-9]{9}$/);
       expect(r.name.length).toBeGreaterThan(0);
@@ -47,12 +48,24 @@ describe("ROUTING_UNKNOWN", () => {
         .map((f) => [f.line, f.value]),
     ).toEqual([[1, "123456789"], [4, "987654321"]]);
   });
-  it("is reported on the SCR too, once per line", () => {
+  it("is reported on the SCR (the employer's bank) too", () => {
     const fs = validateSif(text(set(4, 3, "123456789")), L);
     expect(
       fs.filter((f) => f.code === "ROUTING_UNKNOWN").map((f) => f.line),
     ).toEqual([4]);
   });
+  it("an EDR and the SCR sharing a code give one warning, on the EDR",
+    () => {
+      // Dedupe is per code per file, so the SCR warning is dropped. That
+      // is intended: the warning is about the code, and the EDR line
+      // already names it. The SCR's own unknown code is still reported.
+      const lines = set(1, 3, "123456789", set(4, 3, "123456789"));
+      const fs = validateSif(text(lines), L);
+      expect(
+        fs.filter((f) => f.code === "ROUTING_UNKNOWN")
+          .map((f) => [f.line, f.value]),
+      ).toEqual([[1, "123456789"]]);
+    });
   it("does not repeat on an EVP that follows its EDR", () => {
     const lines = set(2, 3, "123456789", set(1, 3, "123456789"));
     const fs = validateSif(text(lines), L);

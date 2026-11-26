@@ -68,6 +68,21 @@ describe("sif generate", () => {
     expect(r.code, r.out).toBe(0);
     expect(m.writes).toEqual(["out/0000000123456160126113000.SIF"]);
   });
+  it("--today decides whether the creation date is in the future",
+    async () => {
+      const files = { "b.json": await readFile(sample, "utf8") };
+      const early = memIo({ ...files });
+      const r1 = await runCli(
+        ["generate", "b.json", "--today", "2016-01-25"], early.io);
+      expect(r1.code).toBe(1);
+      expect(r1.out).toContain("FUTURE_CREATION_DATE");
+      expect(early.writes).toEqual([]);
+      const ok = memIo({ ...files });
+      const r2 = await runCli(
+        ["generate", "b.json", "--today", "2016-01-26"], ok.io);
+      expect(r2.code, r2.out).toBe(0);
+      expect(ok.writes).toHaveLength(1);
+    });
   it("invalid JSON field names the path and writes nothing", async () => {
     const json = await sampleJson();
     const emp = (json.employees as { edr: Record<string, unknown> }[])[0];
@@ -161,6 +176,11 @@ describe("sif check", () => {
   it("the real clock gives a valid ISO date", () => {
     expect(nodeIo.today()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
+  it("the real clock is the Dubai calendar date", () => {
+    const dubai = new Date().toLocaleDateString("en-CA",
+      { timeZone: "Asia/Dubai" });
+    expect(nodeIo.today()).toBe(dubai);
+  });
 });
 
 describe("sif args", () => {
@@ -171,7 +191,6 @@ describe("sif args", () => {
     [["check"]],
     [["check", "a", "b"]],
     [["check", "a", "--bogus"]],
-    [["generate", "a", "--today", "2016-01-01"]],
     [["check", "a", "--out", "d"]],
     [["generate", "a", "--out"]],
   ])("%j is INVALID_ARGS", async (args) => {

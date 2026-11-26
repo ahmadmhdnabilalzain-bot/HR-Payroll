@@ -1,0 +1,68 @@
+{
+  "id": "deductions-over-cap",
+  "title": "Court debt, overpayment and damage over the 50% cap",
+  "input": {
+    "year": 2026,
+    "month": 6,
+    "employee": {
+      "workerClass": "expat-full-time",
+      "joiningDate": "2020-03-01",
+      "leavingDate": null,
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": null
+    },
+    "absences": [],
+    "sickDaysUsedBefore": 0,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [
+      {
+        "ref": "C1",
+        "kind": "court-debt",
+        "amount": "375000",
+        "consentOnFile": true
+      },
+      {
+        "ref": "O1",
+        "kind": "overpayment",
+        "amount": "300000",
+        "consentOnFile": true
+      },
+      {
+        "ref": "G1",
+        "kind": "damage",
+        "amount": "250000",
+        "consentOnFile": true
+      }
+    ],
+    "loans": []
+  },
+  "expected": {
+    "gross": "1500000",
+    "totalDeductions": "750000",
+    "net": "750000",
+    "employerCost": "0"
+  },
+  "sourceIds": [
+    "DL33_ART25",
+    "ENGINE_CONVENTION"
+  ],
+  "status": "convention"
+}

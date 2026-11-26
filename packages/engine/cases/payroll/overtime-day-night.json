@@ -1,0 +1,60 @@
+{
+  "id": "overtime-day-night",
+  "title": "120 overtime minutes and 60 night minutes",
+  "input": {
+    "year": 2026,
+    "month": 6,
+    "employee": {
+      "workerClass": "expat-full-time",
+      "joiningDate": "2020-03-01",
+      "leavingDate": null,
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": null
+    },
+    "absences": [],
+    "sickDaysUsedBefore": 0,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [
+      {
+        "date": "2026-06-10",
+        "minutes": 120,
+        "nightMinutes": 0
+      },
+      {
+        "date": "2026-06-11",
+        "minutes": 60,
+        "nightMinutes": 60
+      }
+    ],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [],
+    "loans": []
+  },
+  "expected": {
+    "gross": "1516667",
+    "totalDeductions": "0",
+    "net": "1516667",
+    "employerCost": "0"
+  },
+  "sourceIds": [
+    "DL33_ART19",
+    "ENGINE_CONVENTION"
+  ],
+  "status": "convention"
+}
