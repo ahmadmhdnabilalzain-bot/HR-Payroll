@@ -14,6 +14,11 @@ import { inPeriod, type RunSnapshot, type SnapshotEmployee } from "./compute";
  */
 export async function buildSnapshot(tx: Db, deps: HandlerDeps,
   companyId: string, body: PayRunCreate): Promise<RunSnapshot> {
+  // Share-lock every employee row (fixed order): salary, bank and leave
+  // decision writes (which lock the employee row) wait for this run's
+  // create or approval to commit, so the snapshot is never stale.
+  await tx.query(`SELECT id FROM employees WHERE company_id = $1
+    ORDER BY id FOR SHARE`, [companyId]);
   const rows = await listEmployees(tx, deps, companyId);
   const employees: SnapshotEmployee[] = [];
   for (const r of rows) {

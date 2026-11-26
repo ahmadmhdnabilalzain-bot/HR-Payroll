@@ -18,6 +18,9 @@ import {
   type DbPair,
 } from "./test-db";
 
+const salaryBody = (amount: string) => ({ components: [{ code: "basic",
+  label: "B", labelAr: null, amount, sifBucket: "fixed" }] });
+
 const statuses = (rs: { status: number }[]) =>
   rs.map((r) => r.status).sort((a, b) => a - b);
 
@@ -112,6 +115,54 @@ export function pgConcurrencyCases(open: () => Promise<DbPair>): void {
         "SELECT count(*) AS n FROM payslips");
       expect(slips[0]?.n).toBe(1n);
     });
+
+  it("a salary change racing an approval is never missed", async () => {
+    const { db, admin } = await open();
+    const ctx = await makeApp({ db });
+    const a = await signup(ctx.app, "race2");
+    const ta = (await enableMfa(ctx.app, ctx.clock, a)).token;
+    const inv = await call(ctx.app, ta, a.companyId, "POST",
+      "/v1/users/invite", { email: "o2@example.com", role: "owner" });
+    const b = await call(ctx.app, null, null, "POST",
+      "/v1/auth/accept-invite", { setupToken: inv.body.setupToken,
+        password: PASSWORD, displayName: "Owner Two" });
+    const tb = (await enableMfa(ctx.app, ctx.clock, { token: b.body.token,
+      email: "o2@example.com" })).token;
+    const ids: string[] = [];
+    for (let i = 1; i <= 6; i++) {
+      const e = await call(ctx.app, ta, a.companyId, "POST",
+        "/v1/employees", { number: `E-${i}`, fullName: `P${i}`,
+          jobTitle: "C", nationality: "IN", workerClass: "expat-full-time",
+          joiningDate: "2019-01-01" });
+      ids.push(e.body.id);
+      await call(ctx.app, ta, a.companyId, "PUT",
+        `/v1/employees/${e.body.id}/salary`, salaryBody("4000.00"));
+    }
+    for (let m = 1; m <= 6; m++) {
+      const run = await call(ctx.app, ta, a.companyId, "POST",
+        "/v1/pay-runs", { period: { year: 2026, month: m }, entries: [] },
+        { "idempotency-key": `m${m}` });
+      const [ap] = await Promise.all([
+        call(ctx.app, tb, a.companyId, "POST",
+          `/v1/pay-runs/${run.body.id}/approve`),
+        call(ctx.app, ta, a.companyId, "PUT",
+          `/v1/employees/${ids[m - 1]}/salary`,
+          salaryBody(`${4000 + m}.00`))]);
+      if (ap!.status === 409) {
+        expect(ap!.body.error.code).toBe("RUN_INPUTS_CHANGED");
+        continue;
+      }
+      expect(ap!.status).toBe(200);
+      // Approved: the salary write must have committed after it.
+      const ev = await admin.query<{ action: string; seq: bigint }>(
+        `SELECT action, seq FROM audit_events WHERE (action =
+           'pay-run.approved' AND entity_id = $1) OR (action =
+           'employee.salary.updated' AND entity_id = $2) ORDER BY seq
+           DESC LIMIT 2`, [run.body.id, ids[m - 1]]);
+      expect(ev.map((r) => r.action)).toEqual(
+        ["employee.salary.updated", "pay-run.approved"]);
+    }
+  });
 
   it("20 parallel audit appends: seq 1 to 20, chain verifies", async () => {
     const { db, admin } = await open();

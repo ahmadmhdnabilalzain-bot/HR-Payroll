@@ -103,6 +103,10 @@ export async function createRequest(tx: Db, t: Tenant, userId: string,
 export async function decide(tx: Db, t: Tenant, userId: string, id: string,
   to: "approved" | "rejected", d: { at: string; note: string | null }) {
   const r = await loadRequest(tx, t.companyId, id, true);
+  // Lock the employee row: a pay run being created or approved holds
+  // it shared, so a leave decision cannot slip past its snapshot.
+  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
+    "id = $2 FOR UPDATE", [t.companyId, r.employee_id]);
   const ref = await employeeRef(tx, t.companyId, r.employee_id);
   if (t.role === "manager") {
     if (r.employee_id === t.employeeId) throw new ApiError("SOD_VIOLATION");
@@ -121,6 +125,8 @@ export async function decide(tx: Db, t: Tenant, userId: string, id: string,
 /** Own pending request, or (owner/hr) any request not yet cancelled. */
 export async function cancel(tx: Db, t: Tenant, id: string) {
   const r = await loadRequest(tx, t.companyId, id, true);
+  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
+    "id = $2 FOR UPDATE", [t.companyId, r.employee_id]);
   const own = r.employee_id === t.employeeId;
   const payroll = t.role === "owner" || t.role === "hr";
   if (!own && !payroll) {
