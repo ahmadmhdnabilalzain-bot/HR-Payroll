@@ -10,7 +10,8 @@ import { reducedMotion } from "../demo/motion";
  * - Travel: 420 ms on a spring (stiffness 300, damping 30, mass 1;
  *   about 0.87 of critical damping, so a hair of settle, no bounce).
  * - Then the clone fades over 160 ms while the target takes the new
- *   value (call `onLand` to start the target's own roll there).
+ *   value (call `onLand` to start the target's own roll there), with
+ *   a hair of give as it receives it (1.03 to 1 over 280 ms).
  * - Reduced motion: no travel. The target fades in over 120 ms and
  *   `onLand` runs at once.
  */
@@ -19,6 +20,9 @@ import { reducedMotion } from "../demo/motion";
 export const FLIGHT_MS = 420;
 /** The clone's fade once it has landed. */
 export const LAND_FADE_MS = 160;
+
+/** The target's give as it receives the chip. */
+export const RECEIVE_MS = 280;
 
 /** A spring (k 300, c 30, m 1) sampled into a CSS linear() easing. */
 function springEasing(k = 300, c = 30, ms = FLIGHT_MS, n = 24): string {
@@ -122,7 +126,14 @@ export function fly(o: FlyOptions): () => void {
     clone.remove();
   };
   fade.onfinish = done;
-  travel.onfinish = land;
+  travel.onfinish = () => {
+    // The target takes the chip: a hair of give, then home. Scheduled
+    // from the travel's end, on the same clock as the flight.
+    target?.animate([{ transform: "scale(1.03)" },
+      { transform: "scale(1)" }], { duration: RECEIVE_MS,
+      easing: "cubic-bezier(0.2, 0, 0, 1)" });
+    land();
+  };
   return () => {
     travel.cancel();
     fade.cancel();

@@ -8,6 +8,7 @@ import b from "../ui/button.module.css";
 import { Icon } from "../ui/Icon";
 import { useToast } from "../ui/Toast";
 import { IbanForm } from "./IbanForm";
+import { useIbanFlight } from "./useIbanFlight";
 import { useSaveIban } from "./useSaveIban";
 import s from "./IssueList.module.css";
 
@@ -44,7 +45,13 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
       () => dispatch({ type: "reopen", id: i.id }));
   };
   const save = useSaveIban();
-  const saveIban = (value: string): void => save(i.employeeId ?? "", value);
+  const flight = useIbanFlight();
+  // The pay it releases flies up into the salary-file total first.
+  const saveIban = (value: string): void => {
+    const id = i.employeeId ?? "";
+    flight({ from: row.current?.querySelector("input") ?? null, id, value,
+      finish: () => save(id, value) });
+  };
   const step = ONE_TAP[i.fixKind];
   const mask = useMaskText();
   const canAct = state.role === "hr" && i.employeeId !== null;
