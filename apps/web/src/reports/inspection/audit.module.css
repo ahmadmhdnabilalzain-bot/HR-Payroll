@@ -274,12 +274,12 @@ a.tap {
 
 /* Print: the pack alone, black on white, no controls. */
 @media print {
-  :global(body) * {
+  :global(body):has(.pack) * {
     visibility: hidden;
   }
 
-  .pack,
-  .pack * {
+  :global(body):has(.pack) .pack,
+  :global(body):has(.pack) .pack * {
     visibility: visible;
   }
 

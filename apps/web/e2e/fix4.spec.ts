@@ -44,13 +44,13 @@ test("print-rules-leave-other-pages-alone", async ({ page }) => {
 test("emirates-id-show-is-logged-and-masks-again", async ({ page }) => {
   test.skip(test.info().project.name === "phone", "desktop flow");
   await page.goto("/#/people/emp-023");
-  await expect(page.getByText(/^784-\*+/)).toBeVisible();
+  await expect(page.getByText(/^784-[*•]+/)).toBeVisible();
   await page.getByRole("button", { name: "Show" }).click();
   await expect(page.getByText(/^784-\d{4}-\d{7}-\d$/)).toBeVisible();
   await page.evaluate(() => { location.hash = "#/reports/audit"; });
   await expect(page.getByText("Emirates ID shown").first()).toBeVisible();
   await page.evaluate(() => { location.hash = "#/people/emp-023"; });
-  await expect(page.getByText(/^784-\*+/)).toBeVisible();
+  await expect(page.getByText(/^784-[*•]+/)).toBeVisible();
 });
 
 test("expiry-register-says-what-it-tracks", async ({ page }) => {
