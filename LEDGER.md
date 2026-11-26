@@ -78,8 +78,10 @@ Each item gets its own plan under `docs/superpowers/plans/`.
 1. Plan 1: payroll engine: **done** (built, reviewed, fix wave applied).
    Money type, gratuity and settlement with trace, rule-change preview,
    English and Arabic explanation, case library, demo command.
-2. Plan 2: WPS (SIF) generator and validator, once the layout is sourced
-   from two or more documents that agree.
+2. Plan 2: WPS (SIF) generator and validator: **done** (built task by
+   task with review, 2026-11-26). Layout from two bank guides that agree;
+   unconfirmed by MOHRE. Generator, validator, routing codes, report,
+   demo commands `pnpm sif` and `pnpm sif:check`.
 3. Plan 3: data model, API, tenancy and security baseline.
 4. Plan 4: web app (Arabic and English).
 5. Later: M2 and M3 items; then adjacent modules (expenses, tasks,
@@ -146,3 +148,53 @@ The owner can overrule any of these. Source: the build ledger.
 - u.ae wages page (updated 14 Oct 2026): 85% paid on time; currency may be
   non-AED if the contract says so, which conflicts with the 2018 guide
   (AED only). The SIF generator keeps AED only (parameter) until sourced.
+
+## 9. Rulings made during the Plan 2 build (Claude's calls)
+
+The owner can overrule any of these. Source: the Plan 2 build ledger and
+task reports (2026-11-25 to 2026-11-26). The product name is still
+undecided.
+
+- Task 1: the layout is data only (`layout.ts`) with its source (DIB and
+  Emirates Islamic guides) and status `secondary`. The package has a pure
+  barrel. Costs one file if a third source disagrees.
+- Task 2: every written field must be printable ASCII without commas
+  (`FIELD_NOT_ASCII`, `FIELD_HAS_COMMA`); days and counts are whole
+  numbers of 0 or more (`INVALID_COUNT`). A missing SCR reference is
+  written as an empty last field. Only the reference has a length cap
+  (35, now `layout.referenceMaxLength`).
+- Task 3: an EVP given while variable pay is zero is refused
+  (`EVP_WITHOUT_VARIABLE`): inconsistent input is an error. Extra codes
+  `EVP_MISMATCH` and `INVALID_TIME`. Person ids are compared without
+  leading zeros. The file name year is the year mod 100.
+- Task 4: ids must be digits and exactly 14 (person) or 13 (employer)
+  long, as the generator writes them; the DIB guide allows 14 to 35 and
+  13 to 35. Extra codes `AMOUNT_FORMAT`, `COUNT_FORMAT`, `CURRENCY` and
+  `PAY_START_TOO_EARLY`, because no planned code fitted.
+- Task 4: an account of the right length that fails the IBAN mod 97
+  check gives an `IBAN_CHECKSUM` warning, not an error. The DIB sample's
+  own account fails it.
+- Task 4: one root cause gives one finding (for example no total check
+  when an EDR cannot be read). Only the last line counts as the SCR. A
+  bad `today` is a caller error (`INVALID_DATE`), not a file finding. An
+  EVP under a zero-variable EDR is not a validator error.
+- Task 4: the Emirates Islamic test sample is reconstructed from the
+  guide's description; the guide text is not in the repo.
+- Task 5: the routing code table holds six banks from the research note
+  (partial, old, `secondary`). `ROUTING_UNKNOWN` is a warning, once per
+  code, not on EVP lines. `FIELD_TOO_LONG` for an SCR reference over 35.
+- Task 5: the report echoes file values quoted, with control and
+  non-ASCII characters as "?", cut at 40 characters. After an unknown
+  record type, count and total mismatches are reported only when the SCR
+  is smaller than what was read.
+- Task 6: `sif:check` always passes a `today`: `--today`, else the
+  machine's local date read by the shell, never the core. `sif` checks
+  the file it made the same way and writes nothing on any error. Output
+  goes to `out/` by default, which git ignores.
+- Task 6: batch amounts are strings read by the engine's `parseAed`, so
+  "4000" and "4000.5" are accepted as well as "4000.00". zod stays in
+  shell files (`batch-schema.ts`); a bad field is named by its path, such
+  as `employees.0.edr.fixed`, under `INVALID_BATCH_FILE`.
+- Task 6: the purity scanner ignores words inside string literals for
+  `Date` and the other globals (a message said "Date must be ..."); it
+  still reads import strings.

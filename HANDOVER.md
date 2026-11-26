@@ -1,7 +1,7 @@
 # Handover
 
 Read this first. Keep it current: update it in the same commit as any change
-of state. Last updated: 2026-11-25.
+of state. Last updated: 2026-11-26.
 
 ## What this project is
 
@@ -19,6 +19,11 @@ source-cited, with an open API and Arabic from the start.
   trace and source-cited rule-packs. A whole-branch review found no
   calculation errors; one fix wave addressed its honesty and packaging
   findings.
+- **Plan 2 (WPS SIF generator and validator) is built**, one task at a
+  time with a review after each. `packages/wps` writes a salary
+  information file (SIF) from a batch and checks any SIF file, with a
+  plain-English report. Format only: it pays nobody and claims no
+  compliance.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -36,6 +41,21 @@ explained trace, and what is **not computed** (notice pay, deductions, other
 dues: no sourced rule yet). The `--change` option shows a clearly labelled
 HYPOTHETICAL before and after.
 
+```bash
+pnpm sif -- packages/wps/samples/batch.json --out out
+pnpm sif:check -- out/0000000123456160126113000.SIF
+pnpm sif:check -- <file.SIF> --today 2026-11-26
+```
+
+`sif` reads a batch JSON (amounts as strings such as `"4000.00"`), writes
+the `.SIF` file into `--out` (default `out/`, ignored by git) and prints
+the report. It writes nothing when the batch is invalid, generation fails
+or the generated file has an error. `sif:check` validates any SIF file.
+Both exit 1 on any error and 0 otherwise (warnings alone give 0). `today`
+for the future-date check is `--today`, else the machine's local date;
+only the shell reads the clock. The sample reproduces the DIB guide
+sample and gives one warning (its account fails the IBAN check).
+
 ## Engine layout (`packages/engine`)
 
 | Area | Files |
@@ -48,6 +68,24 @@ HYPOTHETICAL before and after.
 | Explanation in English and Arabic | `src/explain/` |
 | Case library and runner (I/O shell) | `src/cases/`, `cases/gratuity/*.json` |
 | Demo command (I/O shell) | `src/cli.ts`, `src/main.ts` |
+
+## WPS layout (`packages/wps`)
+
+| Area | Files |
+|---|---|
+| Layout parameters (data only) | `src/layout.ts` |
+| Field formats, EDR/EVP/SCR lines | `src/format.ts`, `src/records.ts` |
+| Generator and file name | `src/generate.ts`, `src/filename.ts` |
+| Parser and validator | `src/parse.ts`, `src/validate*.ts` |
+| IBAN and routing codes | `src/iban.ts`, `src/routing-codes.ts` |
+| Findings and report | `src/findings.ts`, `src/report.ts` |
+| Demo command (I/O shell) | `src/cli*.ts`, `src/main.ts`, `src/shell.ts` |
+| Batch file schema (zod, shell) | `src/batch-schema.ts` |
+| Sample batch | `samples/batch.json` |
+
+`@payroll/wps` is the pure barrel; `@payroll/wps/shell` holds the files,
+clock and zod. A purity test keeps the core free of them, as in the
+engine.
 
 The pure engine core has no clock, file, network or environment access; a
 test enforces it. Statutory values live only in rule-pack parameters, each
@@ -71,6 +109,18 @@ engine refuses to run without an explicit value.
 - The primary text of Ministerial Resolution 340 of 2026 (WPS) is unread.
   The SIF layout is sourced from two bank guides
   (`docs/research/2026-11-25-wps-sif-layout.md`), not the central bank spec.
+- WPS limits: the layout is confirmed only by two bank guides (DIB,
+  Emirates Islamic), not by MOHRE or a bank test upload. The Emirates
+  Islamic test sample is reconstructed from the guide's description.
+- Ids must be exactly 14 digits (person) and 13 (employer), zero-padded;
+  the DIB guide allows 14 to 35 and 13 to 35. A layout can change this.
+- The routing code table has six banks and is old (2016 era), so real
+  files often get a `ROUTING_UNKNOWN` warning.
+- Amounts are inputs: no monthly pay run exists yet. One currency, AED.
+- "EVP parts add up to variable pay" is inferred, so it is a warning.
+- The generator writes the SCR count as `1`; the DIB sample shows `01`.
+- Finding codes added beyond the plan: `AMOUNT_FORMAT`, `COUNT_FORMAT`,
+  `CURRENCY`, `PAY_START_TOO_EARLY`, `FIELD_TOO_LONG`, `ROUTING_UNKNOWN`.
 - Deferred minors and the reviewer rulings are in `LEDGER.md` (section 3).
 
 ## Where things are
@@ -92,10 +142,10 @@ needs checking against official sources before anything is built on it.
 
 ## Next step
 
-Plan 2: the WPS (SIF) file generator and validator, format only (see
-`LEDGER.md` section 3 for scope). Layout is sourced; write the plan, build
-it test-first with per-task review, keep this handover current. The owner
-wants no technical questions: decide, record a ruling, continue.
+Plan 3: data model, API, tenancy and security baseline (`LEDGER.md`
+section 4). Before it, a whole-branch review of Plan 2. Write the plan,
+build it test-first with per-task review, keep this handover current. The
+owner wants no technical questions: decide, record a ruling, continue.
 
 ## Tooling (25 Nov 2026)
 

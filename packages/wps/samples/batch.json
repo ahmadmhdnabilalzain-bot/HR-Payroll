@@ -1,0 +1,34 @@
+{
+  "employerId": "123456",
+  "bankRoutingCode": "802420101",
+  "createdDate": "2016-01-26",
+  "createdTime": "113000",
+  "month": { "year": 2016, "month": 1 },
+  "reference": "abc company",
+  "employees": [
+    {
+      "edr": {
+        "personId": "915012345663",
+        "routingCode": "802420101",
+        "account": "AE160240043520123456701",
+        "payStart": "2016-01-01",
+        "payEnd": "2016-01-31",
+        "days": 31,
+        "fixed": "4000.00",
+        "variable": "2500.00",
+        "unpaidLeaveDays": 0
+      },
+      "evp": {
+        "personId": "915012345663",
+        "routingCode": "802420101",
+        "housing": "500.00",
+        "conveyance": "200.00",
+        "medical": "300.00",
+        "passage": "0.00",
+        "overtime": "400.00",
+        "otherAllowances": "1100.00",
+        "leaveEncashment": "0.00"
+      }
+    }
+  ]
+}

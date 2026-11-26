@@ -36,6 +36,9 @@ importers:
       '@payroll/engine':
         specifier: workspace:*
         version: link:../engine
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
     devDependencies:
       '@types/node':
         specifier: 22.20.7
