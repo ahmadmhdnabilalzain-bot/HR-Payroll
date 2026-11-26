@@ -1,0 +1,29 @@
+# Render Blueprint for the HR payroll platform demo.
+# Rules (LEDGER section 14): every resource is named hr-payroll-*; this
+# file must never reuse the name of any other resource in the workspace
+# (Render would apply this file to it); the owner's other project
+# (manar-erp) is never touched. Created with existingResources
+# create_new, never adopt.
+projects:
+  - name: hr-payroll
+    environments:
+      - name: demo
+        services:
+          # Free placeholder. The seeded demo API and its private
+          # Postgres are added here once the demo data is ready.
+          - type: web
+            name: hr-payroll-demo-site
+            runtime: static
+            buildCommand: echo "static placeholder, nothing to build"
+            staticPublishPath: ./deploy/render/demo-placeholder
+            autoDeployTrigger: commit
+            buildFilter:
+              paths:
+                - deploy/render/demo-placeholder/**
+            headers:
+              - path: /*
+                name: X-Robots-Tag
+                value: noindex, nofollow
+              - path: /*
+                name: X-Content-Type-Options
+                value: nosniff
