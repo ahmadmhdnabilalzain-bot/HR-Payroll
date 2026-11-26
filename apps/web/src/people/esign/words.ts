@@ -15,9 +15,12 @@ export const E = {
   linkLede: (name: string) => `The signing link HR passed on to ${name}. ` +
     "They read each paper and sign it on their own phone.",
   nothing: "Nothing to sign.",
+  noneHere: "No paper here needs your signature.",
   waitingYou: (n: number) => `Waiting for your signature (${n})`,
   all: "All",
   waiting: "Awaiting",
+  others: "Waiting for someone else",
+  finished: "Signed or declined",
   done: "Signed",
   paper: "Paper",
   about: "About",

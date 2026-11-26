@@ -28,6 +28,7 @@ import {
 import type { PayRequest } from "./pay-state";
 import s from "./pay.module.css";
 import type { LoanStatus, LoanView } from "./types";
+import { signTab } from "../people/esign/Sign";
 
 const LIST = hrefOf("pay-run", "loans");
 const KIND = { loan: "Loan", advance: "Salary advance" } as const;
@@ -226,6 +227,7 @@ function LoanPage(p: { loan: LoanView }) {
             <p className={s.note}>{l.note}</p>
           </div>
         ) },
+        signTab(`loan:${l.ref}`),
       ]} />
   );
 }

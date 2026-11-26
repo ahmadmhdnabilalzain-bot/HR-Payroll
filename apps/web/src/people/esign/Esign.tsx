@@ -1,6 +1,7 @@
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { FilterList } from "../../ui/templates";
+import t from "../../ui/templates/templates.module.css";
 import { Outside } from "../team/common";
 import { packCount, waitingFor } from "./model";
 import { SignBlock, useEsign, useSigner, type Signer } from "./Sign";
@@ -93,7 +94,7 @@ function Links() {
 
 function LinkHelp() {
   return (
-    <div className={s.page}>
+    <div className={`${t.page} ${s.page}`}>
       <h1 className={s.title}>A signing link</h1>
       <p className={s.lede}>Open the link HR passed on to you. It shows
         the papers waiting for your signature.</p>
@@ -123,8 +124,11 @@ export function ToSign(p: { signer: Signer; title: string; lede: string }) {
     x.personId === p.signer.by));
   const waiting = waitingFor(mine, p.signer.by);
   const rest = mine.filter((r) => !waiting.includes(r));
+  const others = rest.filter((r) =>
+    r.progress.word === "Awaiting signature");
+  const closed = rest.filter((r) => !others.includes(r));
   return (
-    <div className={s.page}>
+    <div className={`${t.page} ${s.page}`}>
       <header className={s.section}>
         <h1 className={s.title}>{p.title}</h1>
         <p className={s.lede}>{p.lede}</p>
@@ -140,11 +144,20 @@ export function ToSign(p: { signer: Signer; title: string; lede: string }) {
                 as={p.signer} /></li>))}
           </ul>)}
       </section>
-      {rest.length > 0 && (
-        <section className={s.section} aria-labelledby="ts-done">
-          <h2 id="ts-done" className={s.sectionTitle}>{E.done}</h2>
+      {others.length > 0 && (
+        <section className={s.section} aria-labelledby="ts-others">
+          <h2 id="ts-others" className={s.sectionTitle}>{E.others}</h2>
           <ul className={s.cards}>
-            {rest.map((r) => (
+            {others.map((r) => (
+              <li key={r.doc.id}><SignBlock docId={r.doc.id}
+                as={p.signer} /></li>))}
+          </ul>
+        </section>)}
+      {closed.length > 0 && (
+        <section className={s.section} aria-labelledby="ts-done">
+          <h2 id="ts-done" className={s.sectionTitle}>{E.finished}</h2>
+          <ul className={s.cards}>
+            {closed.map((r) => (
               <li key={r.doc.id}><SignBlock docId={r.doc.id}
                 as={p.signer} /></li>))}
           </ul>

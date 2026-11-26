@@ -24,6 +24,7 @@ import {
 import type { PayRequest } from "./pay-state";
 import s from "./pay.module.css";
 import type { SettlementView } from "./types";
+import { signTab } from "../people/esign/Sign";
 
 const LIST = hrefOf("pay-run", "settlements");
 
@@ -162,6 +163,7 @@ function Statement(p: { x: SettlementView }) {
           ...(sent === undefined ? [] : [{ id: "decision",
             label: "Decision", render: () => (
               <RequestPanel r={sent} what="Settlement" />) }]),
+          signTab(`settle:${x.employeeId}`),
         ]} />
       {open && (
         <ApprovalForm open title="Send the settlement for a decision"

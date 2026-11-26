@@ -7,6 +7,7 @@ import { Outside } from "../team/common";
 import { safetyHref, useSafety, type Safety } from "./common";
 import { fill, T } from "./words";
 import s from "./safety.module.css";
+import { SignLink } from "../esign/Sign";
 
 const W = T.policies;
 
@@ -95,6 +96,7 @@ function Policy(p: { row: PolicyView | null; sf: Safety }) {
                           onClick={() => p.sf.mark(key, "read",
                             fill(W.recordedMsg, { name: a.name }))}>
                           {W.record}</button>
+                        <SignLink docId={`policy:${r.id}:${a.employeeId}`} />
                       </span>)}
                   </li>);
               })}

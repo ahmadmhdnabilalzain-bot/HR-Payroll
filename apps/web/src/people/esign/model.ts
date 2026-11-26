@@ -111,9 +111,17 @@ export function rowOf(d: DemoData, s: S, doc: EsignDoc): EsignRow {
     [...made, ...screenMarks(d, s, doc)]) };
 }
 
-export function esignRows(d: DemoData, s: S,
-  w: EsignWorld = esignWorld(d, s)): EsignRow[] {
-  return w.docs.map((doc) => rowOf(d, s, doc));
+/** Rows per (data, state) pair: the nav counts and screens share them. */
+const cache = new WeakMap<DemoData, WeakMap<S, EsignRow[]>>();
+
+export function esignRows(d: DemoData, s: S, w?: EsignWorld): EsignRow[] {
+  const byState = cache.get(d) ?? new WeakMap<S, EsignRow[]>();
+  cache.set(d, byState);
+  const hit = byState.get(s);
+  if (hit !== undefined) return hit;
+  const rows = (w ?? esignWorld(d, s)).docs.map((doc) => rowOf(d, s, doc));
+  byState.set(s, rows);
+  return rows;
 }
 
 /** Who signs in the demo as the current role (a person id). */

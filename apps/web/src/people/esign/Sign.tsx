@@ -1,9 +1,10 @@
 import { useMemo, useRef, useState, type PointerEvent } from "react";
 import type { EsignMark, EsignSigner } from "../../demo/data/esign-types";
 import { undoable } from "../../demo/esign-state";
+import { hrefOf } from "../../demo/route";
 import { useDemo, type Role } from "../../demo/state";
 import b from "../../ui/button.module.css";
-import { Sheet } from "../../ui/templates";
+import { Sheet, type RecordTab } from "../../ui/templates";
 import t from "../../ui/templates/templates.module.css";
 import { useToast } from "../../ui/Toast";
 import { stepBy } from "../papers/model";
@@ -16,6 +17,7 @@ import {
   lastReminder,
   type EsignRow,
 } from "./model";
+import { PackLine } from "./PackLine";
 import s from "./esign.module.css";
 import { E } from "./words";
 
@@ -123,6 +125,8 @@ export function SignBlock(p: { docId: string; as?: Signer;
   const styleOf = (by: string) =>
     world.profiles.find((x) => x.key === by)?.style;
   const mine = undoable(state.esignLog, row.doc.id, who.by);
+  const office = p.as === undefined && (state.role === "hr" ||
+    state.role === "gm" || state.role === "it");
   const reminded = lastReminder(state.esignLog, row.doc.id);
   return (
     <section className={s.block} aria-label={`E-signature: ${row.doc.title}`}>
@@ -136,7 +140,8 @@ export function SignBlock(p: { docId: string; as?: Signer;
         <p className={s.note}>{E.reminded(`${data.esign.date(
           reminded.on).display}, ${reminded.time}`)}</p>)}
       <div className={s.row}>
-        {row.progress.word === "Awaiting signature" && (
+        {row.progress.word === "Awaiting signature" && (office ||
+          row.progress.next?.personId === who.by) && (
           <button type="button" className={`${b.btn} ${b.secondary} ${
             s.tall}`} aria-label={`${E.sign}: ${row.doc.title}`}
             onClick={() => setOpen(true)}>{E.sign}</button>)}
@@ -371,5 +376,53 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
         {!myTurn && <p className={s.note}>{data.esign.note}</p>}
       </div>
     </Sheet>
+  );
+}
+
+/** A record's "E-signature" tab: the SignBlocks of the papers given. */
+export function signTab(...docIds: string[]): RecordTab {
+  return { id: "esign", label: "E-signature", render: () => (
+    <SignTabBody docIds={docIds} />) };
+}
+
+function SignTabBody(p: { docIds: string[] }) {
+  const { data } = useDemo();
+  const { rows } = useEsign();
+  const shown = p.docIds.filter((id) => rows.some((r) => r.doc.id === id));
+  return (
+    <div className={s.page}>
+      <p className={s.note}>{data.esign.note}</p>
+      {shown.length === 0 ? <p className={s.note}>{E.noneHere}</p>
+        : shown.map((id) => <SignBlock key={id} docId={id} />)}
+    </div>
+  );
+}
+
+/** A joining pack's tab: its count, reminders, then each paper. */
+export function packTab(key: string | null | undefined): RecordTab {
+  return { id: "esign-pack", label: "Signing pack", render: () => (
+    <PackTabBody k={key ?? ""} />) };
+}
+
+function PackTabBody(p: { k: string }) {
+  const { world } = useEsign();
+  const pack = world.packs.find((x) => x.key === p.k);
+  if (pack === undefined) return <p className={s.note}>{E.noneHere}</p>;
+  return (
+    <div className={s.page}>
+      <PackLine packKey={pack.key} />
+      <SignTabBody docIds={pack.docIds} />
+    </div>
+  );
+}
+
+/** A paper's status word and a link to its record in the register. */
+export function SignLink(p: { docId: string }) {
+  const { rows } = useEsign();
+  const row = rows.find((r) => r.doc.id === p.docId);
+  if (row === undefined) return null;
+  return (
+    <a className={s.muted} href={hrefOf("people", "files", "signatures",
+      row.doc.id)}>{`E-signature: ${row.progress.word}`}</a>
   );
 }

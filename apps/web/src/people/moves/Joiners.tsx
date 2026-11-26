@@ -7,6 +7,7 @@ import { Checklist } from "./Checklist";
 import { Dot } from "./Dot";
 import { Missing } from "./Missing";
 import { itemsNow, progressOf } from "./view";
+import { packTab } from "../esign/Sign";
 
 const hrefJoiner = (id: string): string =>
   hrefOf("people", "moves", "joiners", id);
@@ -88,6 +89,6 @@ function JoinerRecord(p: { id: string }) {
               ? "Not on the staff list yet"
               : <a href={hrefOf("people", j.employeeId)}>Open profile</a> }]}
           />
-        ) }]} />
+        ) }, packTab(j.employeeId ?? cand?.offerId)]} />
   );
 }

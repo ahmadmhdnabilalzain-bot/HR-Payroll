@@ -154,3 +154,33 @@ describe("fingerprint", () => {
     expect(fingerprintOf(d, doc)).toMatch(/^[0-9a-f]{64}$/);
   });
 });
+
+describe("every paper has a screen that carries the sign option", () => {
+  /** Host area to the screen file that renders its SignBlock. */
+  const HOSTS: Record<string, string> = {
+    letters: "src/people/papers/Letters.tsx",
+    offers: "src/people/moves/Offers.tsx",
+    warnings: "src/people/papers/Warnings.tsx",
+    revisions: "src/pay/Revisions.tsx",
+    loans: "src/pay/Loans.tsx",
+    encash: "src/time/more/Encash.tsx",
+    ending: "src/people/moves/Ending.tsx",
+    settlements: "src/pay/Settlements.tsx",
+    probation: "src/people/growth/Probation.tsx",
+    policies: "src/people/safety/Policies.tsx",
+    privacy: "src/me/MyProfile.tsx",
+    bank: "src/me/MyProfile.tsx",
+    pack: "src/people/more/NewEmployee.tsx",
+  };
+  it("each kind's host is listed and its screen uses the sign parts",
+    async () => {
+      const { readWeb } = await import("../helpers/files");
+      const kinds = new Set(d.esign.docs().map((x) => x.kind));
+      expect([...kinds].sort()).toEqual([...d.esign.kinds].sort());
+      for (const doc of d.esign.docs()) {
+        const file = HOSTS[doc.host.area];
+        expect(file, doc.host.area).toBeDefined();
+        expect(readWeb(file!)).toMatch(/signTab|SignBlock|SignLink|PackLine/);
+      }
+    });
+});
