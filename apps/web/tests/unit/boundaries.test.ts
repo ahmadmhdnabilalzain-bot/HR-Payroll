@@ -31,10 +31,18 @@ describe("boundaries", () => {
   it("demo-data-only-in-adapter", () => {
     // adapter.ts, plus the pay run's lazy detail chunk beside it, plus
     // people.ts (People and Time off), which only adapter.ts imports.
-    expect(filesImporting(/^@payroll\/demo-data/))
-      .toEqual(["src/demo/data/adapter.ts", "src/demo/data/people.ts",
-        "src/demo/data/run-detail.ts", "src/demo/data/run-explain.ts",
-        "src/setup/access/data.ts", "src/demo/data/time.ts"]);
+    // One path per line, sorted on compare, so builders adding a line
+    // in parallel merge without conflicts.
+    const allowed = [
+      "src/demo/data/adapter.ts",
+      "src/demo/data/people.ts",
+      "src/demo/data/run-detail.ts",
+      "src/demo/data/run-explain.ts",
+      "src/demo/data/time.ts",
+      "src/setup/access/data.ts",
+    ];
+    expect([...filesImporting(/^@payroll\/demo-data/)].sort())
+      .toEqual([...allowed].sort());
   });
 
   it("money-wire-only-in-contract", () => {
