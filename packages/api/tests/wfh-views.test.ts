@@ -37,6 +37,12 @@ describe("wfh views", () => {
     expect(x.status, x.text).toBe(200);
     expect(x.body.consents.length).toBeGreaterThan(0);
     expect(x.body.days.length).toBe(1);
+    const stored = await ctx.deps.db.query(
+      "SELECT 1 FROM wfh_activity_minutes WHERE employee_id = $1",
+      [s.emp.report]);
+    expect(x.body.minutes.length).toBe(stored.length);
+    expect(Object.keys(x.body.minutes[0]).sort()).toEqual(['active', 'at',
+      'attendanceId', 'category']);
     expect(Array.isArray(x.body.pauses)).toBe(true);
   });
 

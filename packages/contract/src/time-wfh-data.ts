@@ -67,6 +67,9 @@ export const WfhExport = z.object({
   pauses: z.array(z.object({ startedAt: Timestamp,
     endedAt: Timestamp.nullable() })),
   days: z.array(WfhDay),
+  /** Every stored minute of the employee ("employee sees all"). */
+  minutes: z.array(z.object({ at: Timestamp, active: z.boolean(),
+    category: ActivityCategory.nullable(), attendanceId: Id })),
 });
 export type WfhExport = z.infer<typeof WfhExport>;
 

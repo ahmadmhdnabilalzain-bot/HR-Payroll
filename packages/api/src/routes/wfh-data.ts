@@ -13,7 +13,12 @@ import { dubaiDate } from "../time/dubai";
 import { assertRange } from "../time/range";
 import { ingestActivity, ingestLocation } from "../wfh/ingest";
 import { purgeExpiredWfh, wfhCutoff } from "../wfh/retention";
-import { locationsIn, ownDays, wfhDayTotals } from "../wfh/views";
+import {
+  locationsIn,
+  minutesIn,
+  ownDays,
+  wfhDayTotals,
+} from "../wfh/views";
 
 type Range = { from: string; to: string };
 
@@ -48,7 +53,10 @@ async function exportMine(ctx: ReqCtx) {
     consents: consents.map((c) => ({ employeeId: emp,
       noticeVersion: c.notice_version, decision: c.decision, at: c.at })),
     pauses: pauses.map((p) => ({ startedAt: p.s, endedAt: p.e })),
-    days: await ownDays(ctx.tx, co(ctx), emp, from, today, now) };
+    days: await ownDays(ctx.tx, co(ctx), emp, from, today, now),
+    minutes: (await minutesIn(ctx.tx, co(ctx), emp, from, today, now))
+      .map((m) => ({ at: m.at, active: m.active, category: m.category,
+        attendanceId: m.attendance_id })) };
 }
 
 /** Employees the caller may see totals of (others 404 when named). */
