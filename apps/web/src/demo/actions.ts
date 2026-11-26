@@ -52,9 +52,12 @@ export function useSwitchRole(): (role: Role) => void {
     };
     // The new role's Home opens at its top, status sentence in view.
     // A page the new role may not open gives way to its Home, so a
-    // switch never lands on "outside your view".
+    // switch never lands on "outside your view". Decided at the click:
+    // a navigation made while the crossfade starts is left alone.
+    const from = location.hash;
+    const away = !mayOpen(role, parseHash(from));
     const run = (): void => {
-      if (!mayOpen(role, parseHash(location.hash))) {
+      if (away && location.hash === from) {
         const oldURL = location.href;
         history.pushState(null, "", hrefOf("home"));
         dispatchEvent(new HashChangeEvent("hashchange",
