@@ -223,11 +223,13 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
   const sig = keys.join("\u0001");
   const last = useRef<string | null>(null);
   const before = useRef<Map<string, Spot> | null>(null);
+  const tall = useRef(0);
   const ghosts = useRef(new Map<string, HTMLElement>());
   // Render phase: the DOM still shows the old rows.
   if (last.current !== null && last.current !== sig &&
     host.current !== null) {
     before.current = measure(host.current);
+    tall.current = host.current.getBoundingClientRect().height;
   }
   useLayoutEffect(() => {
     const root = host.current;
@@ -269,6 +271,17 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
       a.oncancel = drop;
     });
     const h = root.getBoundingClientRect();
+    // A shorter list: what follows it (the page foot) rises with the
+    // rows rather than jumping. A longer one pushes it down at once,
+    // so it never crosses rows on their way in.
+    const lift = (tall.current - h.height) / z;
+    if (lift > 0.5) {
+      for (let el = root.nextElementSibling; el !== null;
+        el = el.nextElementSibling) {
+        (el as HTMLElement).animate([{ transform: `translateY(${lift}px)` },
+          { transform: "none" }], { duration: slow, easing: ease });
+      }
+    }
     let fresh = 0;
     root.querySelectorAll<HTMLElement>(":scope > ul > li[data-key]")
       .forEach((el) => {

@@ -1,7 +1,7 @@
 /**
  * List to record motion. When a list row opens its record, the row's
  * face and name travel into the record's header (a shared-element view
- * transition, 280 ms, cubic-bezier(.32, .72, 0, 1)); going back runs
+ * transition, --dur-slow on --ease-in-out); going back runs
  * the same path the other way, to the same row, at the same scroll,
  * with the list's search and filter kept. Without the View Transitions
  * API, or with reduced motion, the page dissolves in over 120 ms.
@@ -18,9 +18,9 @@
  * Back button all take the same path.
  */
 
-export const LIST_MS = 280;
+export const LIST_MS = 320;
 export const FADE_MS = 120;
-export const LIST_EASE = "cubic-bezier(.32,.72,0,1)";
+export const LIST_EASE = "cubic-bezier(0.4,0,0.2,1)";
 
 const FACE = "list-face";
 const NAME = "list-name";
@@ -146,12 +146,40 @@ function dissolve(): void {
     { duration: FADE_MS, easing: "linear" });
 }
 
+/** The route listeners of one hash change, run as one change. */
+let batch: { key: string; renders: (() => void)[]; done: boolean }
+  | null = null;
+
 /**
  * Runs a route change. `render` must commit the new page synchronously
  * (flushSync). Between a list and one of its records the change is
  * animated; anything else renders and goes to the top.
+ *
+ * Every hook that follows the route listens for the hash change (the
+ * shell and each page head), so one change arrives several times in
+ * the same task. The first one runs the change; the others join it
+ * (they render with it, or at once if it has rendered already): two
+ * view transitions in a row would cut the first one off mid-flight.
  */
 export function changeRoute(oldUrl: string, render: () => void): void {
+  const key = `${hashOf(oldUrl)}>${location.hash}`;
+  if (batch !== null && batch.key === key) {
+    if (batch.done) render();
+    else batch.renders.push(render);
+    return;
+  }
+  const mine = { key, renders: [render], done: false };
+  batch = mine;
+  setTimeout(() => {
+    if (batch === mine) batch = null;
+  }, 0);
+  runRoute(oldUrl, () => {
+    mine.done = true;
+    mine.renders.forEach((r) => r());
+  });
+}
+
+function runRoute(oldUrl: string, render: () => void): void {
   const from = hashOf(oldUrl);
   const to = location.hash;
   scrolls.set(from, scrollY);

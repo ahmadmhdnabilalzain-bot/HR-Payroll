@@ -1716,11 +1716,13 @@ li + li.actRow > .row {
   display: none;
 }
 
-/* List to record (listMotion.ts): the face and the name travel, 280 ms
- * on the sheet curve; the rest of the page crossfades under them. */
+/* List to record (listMotion.ts): the face and the name travel on an
+ * in-out curve (no long tail, so they land on their row exactly when
+ * the trip ends); the rest of the page crossfades under them. */
 :global(html[data-list-motion])::view-transition-group(*) {
-  animation-duration: 280ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  animation-duration: var(--dur-slow, 320ms);
+  animation-timing-function: var(--ease-in-out,
+    cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 /* The old page leaves quickly, so two pages never read as one. */
@@ -1741,14 +1743,13 @@ li + li.actRow > .row {
   inline-size: auto;
   object-fit: contain;
   object-position: left center;
-  animation-duration: 280ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  animation-duration: var(--dur-slow, 320ms);
 }
 
 :global(html[data-list-motion])::view-transition-old(list-face),
 :global(html[data-list-motion])::view-transition-new(list-face) {
   block-size: 100%;
-  animation-duration: 280ms;
+  animation-duration: var(--dur-slow, 320ms);
 }
 
 /* The axis break: two slanted gaps cut through each total bar near its

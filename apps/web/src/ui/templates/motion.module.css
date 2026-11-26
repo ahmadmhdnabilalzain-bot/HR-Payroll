@@ -7,6 +7,9 @@
 .host {
   position: relative;
   min-inline-size: 0;
+  /* Leaving rows never draw past the list's new end (clip, not
+   * hidden: the sticky column headers still stick). */
+  overflow: clip;
 }
 
 /* A row sliding to its new place covers a row that leaves under it. */
