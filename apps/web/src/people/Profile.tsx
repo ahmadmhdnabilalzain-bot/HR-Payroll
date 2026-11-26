@@ -17,6 +17,7 @@ import { Footnote } from "../components/explain";
 import { Icon } from "../ui/Icon";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
+import { useMaskText } from "../ui/mask";
 import { openItemsOf, severityOf } from "./attention";
 import { shortBranch } from "./filter";
 import { EmiratesId } from "./EmiratesId";
@@ -377,6 +378,8 @@ function Leave(q: { person: Person }) {
 function Notes(q: { person: Person }) {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
+  // Amounts in the reasons follow "Hide amounts" and the IT view.
+  const mask = useMaskText();
   // Expiring papers are said once, under Documents.
   const notes = openItemsOf(data, state, q.person.id)
     .filter((n) => n.fixKind !== "renew-document");
@@ -392,7 +395,8 @@ function Notes(q: { person: Person }) {
                 data-tone={sev === "stops-pay" ? "danger" : "warn"} />
               <span className={s.itemMain}>
                 <span className={s.itemTitle}>{n.title[lang]}</span>
-                <span className={s.itemSub}>{plainOnly(n.reason[lang])}</span>
+                <span className={s.itemSub}>{mask(plainOnly(n.reason[lang]))}
+                </span>
               </span>
               <span className={s.itemEnd}>
                 {sev === "stops-pay" ? t("people.stopsPay")
