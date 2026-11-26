@@ -10,6 +10,7 @@ import type { MessageKey } from "../i18n/t";
 import type { T } from "../i18n/t";
 import type { Lang } from "../i18n/types";
 import type { IconName } from "../ui/Icon";
+import { WELCOME_HASH } from "../welcome/route";
 
 export type Group = "go" | "actions" | "people";
 
@@ -137,6 +138,12 @@ function actions(e: Env): Command[] {
         document.getElementById("run-title")
           ?.scrollIntoView({ block: "start", behavior: "smooth" });
       }) });
+  }
+  if (company) {
+    list.push({ id: "replay", group: "actions",
+      label: e.t("shell.actReplay"), hint: "", icon: "arrowEnd",
+      keywords: "opening welcome intro story replay",
+      run: () => { location.hash = WELCOME_HASH; } });
   }
   if (e.arabicShown) {
     list.push({ id: "lang", group: "actions", label: e.t("shell.actLang"),

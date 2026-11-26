@@ -584,3 +584,22 @@ are in `docs/demo/copy-audit.md`.
 
 `pnpm --filter @payroll/web test` and `pnpm --filter @payroll/web
 e2e`. Screenshot, axe and recording scripts live outside the repo.
+
+## The opening (#/welcome, preview for the owner)
+
+- **Where:** `src/welcome`. Not in the bar, panels or registry; reached
+  by URL and "Replay opening" in the palette (HR and GM). The login-like
+  first screen links it only if the owner approves.
+- **Stack:** plain three.js (no React renderer) and GSAP ScrollTrigger,
+  both in one lazy chunk (`stage.ts`); the entry chunk carries neither
+  (`tests/unit/bundle.test.ts`). The offline file inlines it.
+- **Scroll:** one sticky 100 svh stage over a tall track; one scrubbed
+  ScrollTrigger drives a scene position from 0 to 4.55. Every scene is
+  a pure function of that position, so scrolling back is exact.
+- **Figures:** `story.ts` reads the same selectors as the product, from
+  the company as it starts; the fixed file total comes from
+  `source.at` with the bank letters' IBANs. Nothing is typed
+  (`tests/unit/welcome-story.test.ts`). Amounts are masked when hidden
+  or when the role may not see company pay.
+- **Fallback:** reduced motion, no WebGL or `?static=1` shows the same
+  five scenes as a composed page with one fade each.

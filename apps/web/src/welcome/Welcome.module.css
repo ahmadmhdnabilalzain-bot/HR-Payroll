@@ -1,0 +1,356 @@
+/* The opening: one composed frame in the brand's ink and paper, the
+ * same in both themes. Colours only through the cine tokens. */
+.root {
+  position: relative;
+  min-block-size: 100svh;
+  background: var(--color-cine-paper);
+  color: var(--color-cine-ink);
+}
+
+.skip {
+  position: fixed;
+  inset-block-start: 16px;
+  inset-inline-end: 16px;
+  z-index: 3;
+  padding-block: 8px;
+  padding-inline: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-cine-paper);
+  color: var(--color-cine-grey-700);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.skip:hover {
+  color: var(--color-cine-ink);
+}
+
+.skip:focus-visible,
+.open:focus-visible {
+  outline: 2px solid var(--color-cine-ink);
+  outline-offset: 3px;
+}
+
+.track {
+  position: relative;
+}
+
+.stage {
+  position: sticky;
+  inset-block-start: 0;
+  block-size: 100svh;
+  overflow: hidden;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  opacity: 0;
+}
+
+.copy {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.copy .open {
+  pointer-events: auto;
+}
+
+.side {
+  inset-block: 0;
+  inset-inline-start: max(6vw, 32px);
+  inline-size: min(30rem, 34vw);
+  justify-content: center;
+}
+
+.centre {
+  inset: 0;
+  align-items: center;
+  text-align: center;
+  padding-inline: 16px;
+}
+
+.first {
+  justify-content: flex-end;
+  padding-block-end: 22svh;
+}
+
+.last {
+  justify-content: center;
+  padding-block-start: 14svh;
+  visibility: visible;
+}
+
+.title {
+  font-size: clamp(30px, 3.6vw, 56px);
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  max-inline-size: 16ch;
+}
+
+.centre .title {
+  max-inline-size: 20ch;
+}
+
+.body {
+  font-size: clamp(16px, 1.25vw, 20px);
+  line-height: 1.5;
+  color: var(--color-cine-grey-700);
+  max-inline-size: 36ch;
+}
+
+.open {
+  margin-block-start: 16px;
+  min-block-size: 48px;
+  padding-inline: 28px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-cine-ink);
+  color: var(--color-cine-paper);
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+
+.hint {
+  position: absolute;
+  inset-block-end: 32px;
+  inset-inline: 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-cine-grey-700);
+  letter-spacing: 0.02em;
+}
+
+/* Phones and tall windows: the words on top, the object under them. */
+@media (max-aspect-ratio: 11/10) {
+  .side {
+    inset-block: 0 auto;
+    inset-inline: 0;
+    inline-size: auto;
+    justify-content: flex-start;
+    padding-block-start: max(64px, 9svh);
+    padding-inline: 24px;
+  }
+
+  .title {
+    font-size: clamp(28px, 7.4vw, 44px);
+  }
+
+  .first {
+    padding-block-end: 26svh;
+  }
+
+  .last {
+    padding-block-start: 10svh;
+  }
+}
+
+/* ---------- the static story ---------- */
+
+.flat {
+  display: grid;
+}
+
+.scene {
+  min-block-size: 100svh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  align-items: center;
+  gap: 48px;
+  padding-block: 72px;
+  padding-inline: max(6vw, 24px);
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out);
+}
+
+.scene[data-in] {
+  opacity: 1;
+}
+
+.sceneCentre {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+}
+
+.sceneCopy {
+  display: grid;
+  gap: 16px;
+}
+
+.flatMark {
+  margin: 0;
+  line-height: 0;
+  color: var(--color-cine-ink);
+}
+
+.flatMark svg {
+  max-inline-size: 80vw;
+  block-size: auto;
+}
+
+.figure {
+  display: grid;
+  gap: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.paper,
+.lifted,
+.total,
+.rows li,
+.cards li {
+  background: var(--color-cine-card);
+  border: 1px solid var(--color-cine-grey-200);
+  border-radius: 16px;
+}
+
+.paper {
+  padding: 24px;
+}
+
+.lifted {
+  padding: 20px 24px;
+  margin-inline-start: 15%;
+}
+
+.meta {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-cine-grey-700);
+}
+
+.name {
+  margin-block: 4px 12px;
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.lines {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.lines div,
+.chip,
+.steps li,
+.rows li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.lines dd {
+  margin: 0;
+}
+
+.net {
+  border-block-start: 1px solid var(--color-cine-grey-200);
+  padding-block-start: 8px;
+  font-weight: 600;
+}
+
+.chip {
+  margin-block: 0 12px;
+  font-weight: 600;
+}
+
+.steps {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.steps li:last-child {
+  font-weight: 600;
+}
+
+.total {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  padding: 20px 24px;
+}
+
+.big {
+  font-size: clamp(28px, 3vw, 44px);
+  font-weight: 600;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.rows li {
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.rows li > span:first-child {
+  display: grid;
+}
+
+.rows li > span:last-child {
+  white-space: nowrap;
+}
+
+.rows li[data-flag] {
+  border-color: var(--color-cine-grey-500);
+}
+
+.cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.cards li {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 20px;
+}
+
+.amount {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.signed {
+  margin-block-start: 8px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--color-cine-grey-200);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .scene {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .lifted {
+    margin-inline-start: 8%;
+  }
+}

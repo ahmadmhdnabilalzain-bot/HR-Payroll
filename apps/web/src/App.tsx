@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState }
+  from "react";
 import { documentTitle } from "./brand";
 import { showArabic } from "./demo/flags";
 import { useRoute } from "./demo/route";
@@ -10,13 +11,18 @@ import { Outside } from "./shell/Outside";
 import { PhoneTabs, TopBar } from "./shell/TopBar";
 import { mayOpen } from "./nav/registry";
 import { VIEWS } from "./views";
+import { useWelcome } from "./welcome/route";
 import s from "./App.module.css";
+
+/** The opening (#/welcome): three.js and its scenes load only here. */
+const Welcome = lazy(() => import("./welcome/Welcome"));
 
 /** The demo shell: ribbon, slim top bar, one section, the palette. */
 export function App() {
   const { lang, t, setLang } = useLocale();
   const { data, state } = useDemo();
   const route = useRoute();
+  const welcome = useWelcome();
   /* The one route guard: a deep link the role may not open. */
   const allowed = mayOpen(state.role, route);
   const shown = route.section;
@@ -33,6 +39,7 @@ export function App() {
   const atHome = route.section === "home" && route.unknown !== true;
   const home = atHome ? t("shell.navHome") : null;
   useEffect(() => {
+    if (welcome) return undefined;
     const el = main.current;
     const set = (): void => {
       const page = home ?? el?.querySelector("h1")?.textContent ?? "";
@@ -44,7 +51,19 @@ export function App() {
     const seen = new MutationObserver(set);
     seen.observe(el, { subtree: true, childList: true, characterData: true });
     return () => seen.disconnect();
-  }, [home, lang]);
+  }, [home, lang, welcome]);
+  const paletteEl = (
+    <CommandPalette open={palette} arabicShown={arabicShown}
+      onClose={() => setPalette(false)} />
+  );
+  if (welcome) {
+    return (
+      <>
+        <Suspense fallback={null}><Welcome /></Suspense>
+        {paletteEl}
+      </>
+    );
+  }
   return (
     <>
       <TopBar route={route} onSearch={open} />
@@ -61,8 +80,7 @@ export function App() {
         </>}
       </main>
       <PhoneTabs route={route} />
-      <CommandPalette open={palette} arabicShown={arabicShown}
-        onClose={() => setPalette(false)} />
+      {paletteEl}
     </>
   );
 }

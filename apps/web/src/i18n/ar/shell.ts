@@ -47,6 +47,7 @@ export const shell: ArOf<typeof en> = {
   actLang: "تبديل اللغة",
   actRole: "العرض بصفة {role}",
   actSources: "عرض مصدر الأرقام",
+  actReplay: "إعادة عرض الافتتاحية",
   actIssue: "فتح البند: {name}",
   actApproval: "اتخاذ قرار: {title}",
   actApprove: "التوقيع على رواتب {month}",

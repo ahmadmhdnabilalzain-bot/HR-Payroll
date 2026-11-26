@@ -3,9 +3,10 @@
  * Montserrat Bold "Mubin" plus Light "Flow"), outlined to paths so no
  * font is needed. Generated from mubinflow-wordmark-ink.svg; filled
  * with `currentColor` so it follows the theme (ink on light, paper on
- * dark). Never retype the name in another font.
+ * dark). Never retype the name in another font. The opening
+ * (src/welcome) extrudes the same path in 3D.
  */
-const D =
+export const WORDMARK_PATH =
   "M83.0 0.0V-700.0H217.0L479.0 -265.0L737.0 -700.0H870.0L872.0 0.0" +
   "H720.0L719.0 -420.0L513.0 -74.0H440.0L235.0 -411.0V0.0Z " +
   "M1259.0 8.0Q1192.0 8.0 1139.5 -18.0Q1087.0 -44.0 1058.0 -97.5" +
@@ -60,7 +61,7 @@ export function Wordmark(p: { height?: number; label: string }) {
     <svg viewBox="0 0 5739.0 795.0" height={h} role="img"
       aria-label={p.label} className="wordmark">
       <g transform="translate(0.0,787.0)" fill="currentColor">
-        <path d={D} />
+        <path d={WORDMARK_PATH} />
       </g>
     </svg>
   );

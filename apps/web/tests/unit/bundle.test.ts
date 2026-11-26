@@ -50,4 +50,17 @@ describe("bundle", () => {
     expect(code.length).toBeGreaterThan(0);
     expect(code).not.toContain("tier1DaysPerYear");
   }, 60000);
+
+  it("three-only-in-the-opening-chunk", async () => {
+    const out = await build({ root: WEB_ROOT, logLevel: "silent",
+      build: { write: false } });
+    const all = chunks(out as Out | Out[]);
+    const entry = all.find((c) => c.type === "chunk" && c.isEntry);
+    const code = entry?.type === "chunk" ? entry.code : "";
+    expect(code).not.toContain("WebGLRenderer");
+    expect(code).not.toContain("ScrollTrigger");
+    const three = all.filter((c) => c.type === "chunk" &&
+      c.code.includes("WebGLRenderer"));
+    expect(three.map((c) => c.isDynamicEntry)).toEqual([true]);
+  }, 60000);
 });
