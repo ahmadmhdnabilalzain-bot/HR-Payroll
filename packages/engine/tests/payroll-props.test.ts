@@ -62,6 +62,17 @@ describe("calculatePayslip properties", () => {
       }
     }), RUNS);
   });
+  it("taken plus deferred equals requested on every deduction", () => {
+    fc.assert(fc.property(payslipCase, (c) => {
+      const { value: s, trace } = run(c);
+      for (const l of s.deductions) {
+        const x = trace.find((y) => y.id === l.traceId)!.inputs;
+        expect(BigInt(x["taken"]!) + BigInt(x["deferred"]!))
+          .toBe(BigInt(x["requested"]!));
+        expect(x["taken"]).toBe(String(l.amount));
+      }
+    }), RUNS);
+  });
   it("deductions never exceed half the earned wage", () => {
     fc.assert(fc.property(payslipCase, (c) => {
       const s = run(c).value;

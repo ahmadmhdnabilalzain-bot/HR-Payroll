@@ -86,8 +86,12 @@ function shares(salary: Fils, exempt: boolean, p: GpssaParams): Shares {
   const pct = (bps: bigint) => mulDiv(salary, bps, 10000n, p.rounding.v);
   const below = p.govSupportBelow;
   const supported = below === null || salary < below.v;
-  return { employee: pct(p.employeeBps.v), gross: pct(p.employerBps.v),
-    support: supported ? pct(p.govSupportBps.v) : fils(0n) };
+  const gross = pct(p.employerBps.v);
+  // The payable share is rounded once; support is what is left of gross.
+  const payable = supported ? pct(p.employerBps.v - p.govSupportBps.v)
+    : gross;
+  return { employee: pct(p.employeeBps.v), gross,
+    support: fils(gross - payable) };
 }
 
 /** The rules that set the contribution salary. */
@@ -112,8 +116,9 @@ function traceShares(t: TraceBuilder, salary: Fils, s: Shares,
     rules: [p.employerBps.rule, p.lastMonth.rule, p.rounding.rule,
       p.base.rule] });
   t.add({ id: "gpssa.gov-support", label: "Government support",
-    formula: "salary * govSupportBps / 10000 when salary is below the " +
-      "threshold (none under Law 7), else 0",
+    formula: "employer gross - round(salary * (employerBps - " +
+      "govSupportBps) / 10000) when salary is below the threshold (none " +
+      "under Law 7), else 0",
     inputs: { ...inputs, govSupportBps: String(p.govSupportBps.v),
       below: p.govSupportBelow === null ? "none"
         : String(p.govSupportBelow.v) },

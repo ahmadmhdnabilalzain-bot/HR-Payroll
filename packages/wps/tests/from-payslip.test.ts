@@ -65,6 +65,18 @@ describe("payslipToSifEmployee", () => {
     expect([e.edr.fixed, e.edr.variable]).toEqual([0n, 550000n]);
     expect(e.evp?.housing).toBe(550000n);
   });
+  it("follows the deduction order past the first bucket", () => {
+    const e = adapt(fx({ employee: { basicMonthly: fils(400000n),
+      allowances: [
+        { code: "other", kind: "other", monthly: fils(300000n) },
+        { code: "housing", kind: "housing", monthly: fils(300000n) }] },
+    deductions: [ded("C1", "court-debt", 250000n),
+      ded("O1", "overpayment", 200000n)] }));
+    expect(e.edr.fixed).toBe(0n);
+    expect(e.evp).toMatchObject({ otherAllowances: 250000n,
+      housing: 300000n });
+    expect(e.edr.variable).toBe(550000n);
+  });
   it("puts overtime in the overtime field", () => {
     const e = adapt(fx({ overtime: [
       { date: "2026-06-10", minutes: 120, nightMinutes: 0 },
