@@ -94,7 +94,8 @@ async function main(argv: string[]): Promise<void> {
   if (argv[2] === "migrate") return;
   if (argv[2] === "sweep-files") return sweepFiles(cfg);
   if (argv[2] === "jobs") return runJobs(cfg);
-  const db = await openPg(cfg.databaseUrl, { runtime: true });
+  const db = await openPg(cfg.databaseUrl, { runtime: true,
+    onIdleError: (l) => process.stdout.write(`${JSON.stringify(l)}\n`) });
   await assertRuntimeRole(db);
   if (argv[2] === "purge-wfh") return purgeWfh(cfg, db);
   const blobs = fsBlobStore(cfg.receiptsDir);

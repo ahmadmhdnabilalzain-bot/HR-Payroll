@@ -233,6 +233,7 @@ async function run(c: Context<Env>, def: RouteDef, deps: AppDeps,
   const auth = await authenticate(deps, c.req.header("authorization"));
   c.set("userId", auth.user.id);
   if (def.auth === "user") {
+    await readBodyFirst(c, def);
     return withTenant(deps.db, { companyId: null, userId: auth.user.id },
       async (tx) => handler({ ...base(c, deps, await validate(c, def)),
         ...auth, tenant: null, tx, enter: NO_ENTER }));
@@ -240,13 +241,20 @@ async function run(c: Context<Env>, def: RouteDef, deps: AppDeps,
   return inTenant(c, def, deps, auth, handler);
 }
 
+/**
+ * Reads the whole body before a connection is taken: a slow or stalled
+ * body must never hold a transaction open (Hono caches it for
+ * validate()).
+ */
+async function readBodyFirst(c: Context<Env>, def: RouteDef)
+  : Promise<void> {
+  if (def.body !== undefined) await c.req.arrayBuffer().catch(() => null);
+}
+
 async function inTenant(c: Context<Env>, def: RouteDef, deps: AppDeps,
   auth: Authed, handler: Handler): Promise<unknown> {
   const companyId = resolveCompanyHeader(c.req.header("x-company-id"));
-  // Read the whole body before a connection is taken: a slow or
-  // stalled upload must not hold a transaction (Hono caches it for
-  // validate()).
-  if (def.body !== undefined) await c.req.arrayBuffer().catch(() => null);
+  await readBodyFirst(c, def);
   let v: Validated | null = null;
   const step = (fn: (ctx: ReqCtx) => Promise<unknown>) =>
     withTenant(deps.db, { companyId, userId: auth.user.id }, async (tx) => {
@@ -290,6 +298,7 @@ async function runWithKey(c: Context<Env>, def: RouteDef, deps: AppDeps,
   rateHeaders(c, k, deps.now());
   c.set("userId", k.user.id);
   c.set("companyId", k.companyId);
+  await readBodyFirst(c, def);
   return withTenant(deps.db, { companyId: k.companyId, userId: k.user.id },
     async (tx) => {
       const tenant: Tenant = { companyId: k.companyId, role: "hr",

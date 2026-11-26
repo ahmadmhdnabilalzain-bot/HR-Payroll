@@ -1,6 +1,6 @@
 import type { Db } from "../../src/db/db";
 import { MIGRATIONS_DIR, migrate } from "../../src/db/migrate";
-import { openPg } from "../../src/db/pg";
+import { openPg, type PgOptions } from "../../src/db/pg";
 import type { DbPair } from "./test-db";
 
 /**
@@ -44,8 +44,8 @@ async function dbName(admin: Db): Promise<string> {
 }
 
 /** A fresh schema, migrated by the owner, with both handles. */
-export async function freshPgPair(runtimeMax = 10)
-  : Promise<DbPair & { owner: Db }> {
+export async function freshPgPair(runtimeMax = 10,
+  runtimeOpts: PgOptions = {}): Promise<DbPair & { owner: Db }> {
   const schema = `t_${process.pid}_${n++}`;
   const root = await openPg(ADMIN_URL!, { max: 1 });
   await ensureRoles(root);
@@ -56,7 +56,8 @@ export async function freshPgPair(runtimeMax = 10)
   const admin = await openPg(urlFor(null, schema), { max: 2 });
   await admin.exec(
     `GRANT payroll_app TO ${RUNTIME} WITH INHERIT FALSE, SET TRUE`);
-  const db = await openPg(urlFor(RUNTIME, schema), { max: runtimeMax });
+  const db = await openPg(urlFor(RUNTIME, schema), { ...runtimeOpts,
+    max: runtimeMax });
   // The owner handle stays open for jobs that run as the owner role.
   opened.push(admin, db, owner);
   return { db, admin, owner };
