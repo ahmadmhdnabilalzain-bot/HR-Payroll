@@ -378,13 +378,25 @@ Law task: fresh per-task review.
   `sourceUrl null`.
 
 `no-tax-figures.test.ts`: the files under `packages/engine/src/tax/`
-and (from Task 6, skipped while absent) `packages/api/src/tax/`,
-`packages/api/src/einvoicing/` and `packages/contract/src/tax/`
-contain none of `37500000`,
+and the product files (from Task 6; an empty set while absent) under
+`packages/api/src/tax/`, `packages/api/src/einvoicing/`,
+`packages/contract/src/tax/` and `packages/contract/src/einvoicing/`,
+plus `packages/contract/src/routes-vat.ts` (any
+`routes-(vat|tax|einvoic)*.ts`) and `packages/api/src/routes/`
+`(vat|tax|einvoic)*.ts`, contain none of `37500000`,
 `300000000`, `5000000000`, `"2026-10-30"`, `"2027-03-31"`,
-`"2027-07-01"`, `"0235"`; the contract and api files also contain
-none of the banned words of the Global Constraints (case-insensitive;
-`"not tax advice"` is removed before the scan).
+`"2027-07-01"`, `"0235"`. The product files also contain none of the
+banned words of the Global Constraints, with variants
+(case-insensitive): "compliant", "FTA approved" or "FTA-approved",
+"certified", "submitted to (the) FTA", "filed with (the) FTA",
+"recoverable", "claimable", "recover input tax", "5%", "5 %", "five
+per cent", the same for 9, and "tax advice". `"not tax advice"` is
+removed before the scan, and so are URLs and percent-encoded bytes
+(so `2015%20` is not "5%"). The engine `src/tax/` files pass the same
+word scan, allowing only the quoted FTA label "Total value of
+recoverable tax". Once `routes-vat.ts` exists, the test fails unless
+it is scanned and `contract/src/tax` and `api/src/tax` exist (review
+fix I3).
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/engine test tax-packs
   no-tax-figures`. Expected: FAIL (modules not found).
@@ -642,7 +654,8 @@ Money and law task: fresh per-task review.
     Fils | null }`; `Vat201Problem { code: "EMIRATE_REQUIRED" |
     "INPUT_TAX_UNDECIDED" | "CLAIMED_EXCEEDS_VAT" |
     "CLAIMED_ON_UNTAXED" | "VAT_ON_NON_STANDARD" |
-    "TREATMENT_DIRECTION_INVALID" | "FTA_BOX_NOT_ENTERED"; docIds: string[]; box: string | null }`;
+    "TREATMENT_DIRECTION_INVALID" | "FTA_BOX_NOT_ENTERED"; docIds:
+    string[]; box: string | null }`;
     `Vat201Warning { code: "LAYOUT_FROM_2021_GUIDE" | "NEGATIVE_BOX" |
     "REFUND_NOT_APPLICABLE" | "VOLUNTARY_DISCLOSURE_MAY_BE_NEEDED" |
     "NIL_RETURN"; box: string | null; periodStart: string | null }`.
