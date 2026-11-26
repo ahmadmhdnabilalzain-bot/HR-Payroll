@@ -35,6 +35,15 @@ export function RoleMenu() {
   const box = useRef<HTMLDivElement>(null);
   // The menu fades out over --dur-fast before it leaves (inert).
   const menu = usePresence(open, 140);
+  // A chosen role waits for the menu's exit, so the switch never
+  // fades the page under a menu still on screen (audit 2, item 7).
+  const chosen = useRef<{ role: Role; at: string } | null>(null);
+  useEffect(() => {
+    const c = chosen.current;
+    if (menu.mounted || c === null) return;
+    chosen.current = null;
+    switchRole(c.role, c.at);
+  }, [menu.mounted]);
   useEffect(() => {
     if (!open) return undefined;
     const off = (e: Event): void => {
@@ -106,7 +115,7 @@ export function RoleMenu() {
               <button key={r} type="button" role="menuitemradio"
                 aria-checked={state.role === r} className={s.menuItem}
                 onClick={() => {
-                  switchRole(r);
+                  chosen.current = { role: r, at: location.hash };
                   setOpen(false);
                 }}>
                 <Avatar id={who.id} name={who.name.en} size="sm" />

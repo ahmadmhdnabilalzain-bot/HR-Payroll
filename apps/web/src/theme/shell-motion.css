@@ -89,11 +89,13 @@ html[data-route-motion] [data-vt="phone"] {
   view-transition-name: shell-phone;
 }
 
-/* Page pace by default; "quick" (the role switch): 120 ms out and
- * 200 ms in, overlapped, in place. */
+/* Page pace by default; "quick" (the role switch): 120 ms out, then
+ * 200 ms in, in place: one after the other, so no frame shows both
+ * pages' headlines. */
 html[data-route-motion] {
   --route-out: var(--dur-base, 200ms);
   --route-in: var(--dur-slow, 320ms);
+  --route-in-delay: 0ms;
   --route-shift-out: -24px;
   --route-shift-in: 32px;
 }
@@ -101,6 +103,7 @@ html[data-route-motion] {
 html[data-route-motion][data-route-pace="quick"] {
   --route-out: var(--dur-fast, 120ms);
   --route-in: var(--dur-base, 200ms);
+  --route-in-delay: var(--dur-fast, 120ms);
   --route-shift-out: -8px;
   --route-shift-in: 8px;
 }
@@ -135,7 +138,8 @@ html[data-route-motion]::view-transition-old(shell-tabs):only-child {
 html[data-route-motion]::view-transition-new(root),
 html[data-route-motion]::view-transition-new(shell-tabs):only-child {
   animation: route-in var(--route-in, 320ms)
-    var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) both;
+    var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) var(--route-in-delay, 0ms)
+    both;
 }
 
 /* Forward: the old page leaves to the start, the new comes from the
