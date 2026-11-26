@@ -1,0 +1,4 @@
+# Real deployment secrets never go into git.
+.env
+*.env
+!.env.example
