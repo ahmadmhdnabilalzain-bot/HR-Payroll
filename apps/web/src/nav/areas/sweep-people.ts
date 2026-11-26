@@ -56,7 +56,7 @@ export const AREAS: readonly Area[] = [
       "accepted offer sign off" },
   { id: "setup.cover", section: "setup", group: "access",
     label: { en: "Approval cover", ar: "بدلاء الموافقة" }, status: "live",
-    archetype: "LF", roles: HR_GM, route: more("cover"),
+    archetype: "LF", roles: HR_GM, noIt: true, route: more("cover"),
     count: coversWaiting,
     keywords: "H10 leave cover delegate deputy away holiday approver " +
       "stand in who decides" },

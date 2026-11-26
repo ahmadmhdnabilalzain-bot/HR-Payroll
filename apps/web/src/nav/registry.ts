@@ -17,12 +17,14 @@ const BAR: Record<Role, readonly SectionId[]> = {
 
 /**
  * The IT manager runs access and connections: every Setup area HR can
- * reach is theirs too (WP8 and WP9 list only hr and gm). People and
+ * reach is theirs too (WP8 and WP9 list only hr and gm), except an
+ * area marked `noIt` (it shows people's pay or records). People and
  * Reports areas must name "it" themselves (no company pay).
  */
 export function roleAllows(a: Area, role: Role): boolean {
   if (a.roles === undefined || a.roles.includes(role)) return true;
-  return role === "it" && a.section === "setup" && a.roles.includes("hr");
+  return role === "it" && a.section === "setup" && a.noIt !== true &&
+    a.roles.includes("hr");
 }
 
 const keyOf = (r: AreaRoute): string[] => [r.section, ...(r.rest ?? [])];
