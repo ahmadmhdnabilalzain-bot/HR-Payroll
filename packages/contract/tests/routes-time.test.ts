@@ -42,6 +42,10 @@ describe("TIME_ROUTES", () => {
     expect(TIME_ROUTES.filter((r) => r.roles.length === 1)
       .map((r) => r.id)).toEqual(["updateWfhSettings"]);
   });
+  it("has 66 routes (13 + 13 + 5 + 9 + 7 + 4 + 9 + 6)", () => {
+    expect(TIME_ROUTES.length).toBe(66);
+    expect(TIME_ROUTE_IDS.length).toBe(66);
+  });
   it("lists exactly Plan 9's ids in order", () => {
     expect(TIME_ROUTES.map((r) => r.id)).toEqual(TIME_ROUTE_IDS);
   });
