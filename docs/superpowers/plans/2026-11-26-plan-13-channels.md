@@ -2600,10 +2600,13 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`.
     on marketing SMS only and nothing on WhatsApp; this plan neither
     claims nor denies a rule and asks counsel. Cost: none in code.
 28. **API keys: one service user per key with role `hr`, a
-    default-deny scope map, no salary, bank, pay-run, SIF, approval or
-    MFA routes, salary and identity fields only with `payroll:read`,
-    SHA-256 of a 256-bit secret, rotation grace up to 72 hours,
-    fixed one-minute windows.** Cost: fixed windows allow a burst of
+    default-deny scope map, no salary or bank routes, no pay-run
+    actions (create, approve, void), no SIF, approval or MFA routes;
+    `payroll:read` exposes payslips and pay runs (read only) by
+    design, and salary and identity fields appear only with
+    `payroll:read`; SHA-256 of a 256-bit secret, rotation grace up to
+    72 hours, fixed one-minute windows.** (Reworded after the security
+    review: the old text said "no pay-run routes".) Cost: fixed windows allow a burst of
     up to twice the limit across a window edge; writes are audited
     under the key's service user, not a person.
 29. **Service users never approve, never get notices and are not
