@@ -160,7 +160,7 @@
   overscroll-behavior: contain;
   padding: var(--space-5) var(--space-6)
     calc(var(--space-6) + env(safe-area-inset-bottom));
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
   line-height: 1.5;
 }
 
@@ -207,7 +207,9 @@
 
 .step {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
+  grid-template-columns: 24px minmax(0, 1fr) minmax(120px, auto);
+  animation: step-in var(--dur-slow) var(--ease-out) both;
+  animation-delay: calc(120ms + var(--i, 0) * 40ms);
   align-items: baseline;
   gap: var(--space-3);
   padding-block: var(--space-3);
@@ -227,7 +229,7 @@
 }
 
 .stepText {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   line-height: 1.45;
 }
 
@@ -283,17 +285,25 @@
 }
 
 .rules {
-  display: grid;
-  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-2);
 }
 
 .rule {
+  position: relative;
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-panel);
+}
+
+.rule + .rule::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--space-4) 0;
+  block-size: 1px;
+  background: var(--color-divider);
 }
 
 .ruleText {
@@ -332,14 +342,8 @@
   color: var(--color-text-muted);
 }
 
-.notBox {
-  padding: var(--space-4);
-  border-radius: var(--radius-panel);
-  background: var(--color-warning-bg);
-}
-
 .notBox .h3 {
-  color: var(--color-warning);
+  color: var(--color-text);
 }
 
 .notList {
@@ -347,7 +351,8 @@
   gap: var(--space-2);
   margin: 0;
   padding-inline-start: var(--space-5);
-  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
 }
 
 .scope {
@@ -411,4 +416,11 @@
 .body:focus-visible {
   outline-offset: -2px;
   border-radius: 0;
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }

@@ -10,10 +10,10 @@ export const explain: ArOf<typeof en> = {
   inputs: "المدخلات",
   rules: "القواعد المستخدمة",
   notDone: "غير محسوب هنا",
-  official: "رسمي",
+  official: "مصدر رسمي",
   secondary: "مصدر ثانوي",
-  convention: "عرف متبع",
-  unsourced: "بلا مصدر",
+  convention: "قاعدة عمل لدينا",
+  unsourced: "بلا مصدر بعد",
   scope: "{scope}. بيانات وهمية.",
   how: "طريقة الحساب",
 };

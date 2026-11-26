@@ -1,21 +1,36 @@
 import type { Fils } from "@payroll/engine";
+import { useId, useState } from "react";
 import { ExplainLink, Explainable } from "../components/explain";
+import type { PersonRow } from "../demo/data/run-types";
 import { useTweenedNumber } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
+import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
 import { ChangeNote, CountChange, monthName, SignedMoney } from "./Change";
+import { ExplainHint } from "./ExplainHint";
+import { RollMoney } from "./Roll";
 import s from "./PayRun.module.css";
 
-/** Step 1: what this month pays, against last month, and who. */
+/**
+ * Step 1: what this month pays, against last month. Only the people
+ * whose pay moved or is held are listed; everyone else sits behind
+ * "Show all 31 people".
+ */
 export function ReviewStep() {
   const { lang, t } = useLocale();
   const d = useRunDetail();
   const typos = new Set(useDemo().data.badIbanIds());
+  const [all, setAll] = useState(false);
+  const listId = useId();
   const pm = d.prevMonth;
   const month = monthName(pm, lang);
   const people = useTweenedNumber(d.totals.headcount);
+  const flagged = (p: PersonRow): boolean =>
+    p.significant || p.prevNet === null || !p.inFile || typos.has(p.id);
+  const shown = d.people.filter(flagged);
+  const rest = d.people.filter((p) => !flagged(p));
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>{t("payrun.reviewTitle")}</h2>
@@ -25,8 +40,9 @@ export function ReviewStep() {
           <dt>{t("payrun.net")}</dt>
           <dd className={s.leadFigure}>
             <Explainable explanation={d.explain["run:net"]}>
-              <Money value={d.totals.net} size="hero" />
+              <RollMoney value={d.totals.net} size="hero" />
             </Explainable>
+            <ExplainHint />
           </dd>
           <dd><ChangeNote now={d.totals.net} prev={d.prev.net} month={pm} />
           </dd>
@@ -42,23 +58,32 @@ export function ReviewStep() {
             prev={d.prev.headcount} month={pm} /></dd>
         </div>
       </dl>
+      <p className={s.footnote}>{d.pensionNote}</p>
 
       <section aria-labelledby="changed-title" className={s.block}>
         <h3 id="changed-title" className={s.blockTitle}>
           {t("payrun.changedTitle", { month })}
         </h3>
         <p className={s.blockSub}>{t("payrun.changedSub")}</p>
-        <ul className={s.changes}>
-          {d.changes.map((c, i) => (
-            <li key={c.personId} className={s.changeRow}
-              style={{ "--i": Math.min(i, 8) } as object}>
-              <span className={s.changeWho}>
-                <span className={s.name}>{c.name}</span>
-                <span className={s.reason}>{c.reason}</span>
-              </span>
-              <span className={s.num}><SignedMoney value={c.change} /></span>
-            </li>
+        <ul className={s.group} id={listId}>
+          {shown.map((p, i) => (
+            <PersonLine key={p.id} p={p} i={i} typo={typos.has(p.id)}
+              month={month} />
           ))}
+          {all && rest.map((p, i) => (
+            <PersonLine key={p.id} p={p} i={i} typo={false} month={month} />
+          ))}
+          <li className={s.disclosureRow}>
+            <button type="button" className={s.disclosure}
+              aria-expanded={all} aria-controls={listId}
+              onClick={() => setAll(!all)}>
+              <span className={s.chev} data-open={all}>
+                <Icon name="chevronEnd" size={18} />
+              </span>
+              {all ? t("payrun.showChanged")
+                : t("payrun.showAll", { count: d.people.length })}
+            </button>
+          </li>
         </ul>
         {d.settlements.map((x) => (
           <p key={x.personId} className={s.settlement}>
@@ -69,59 +94,45 @@ export function ReviewStep() {
           </p>
         ))}
       </section>
-
-      <section aria-labelledby="everyone-title" className={s.block}>
-        <h3 id="everyone-title" className={s.blockTitle}>
-          {t("payrun.everyone")}
-        </h3>
-        <table className={s.table}>
-          <thead>
-            <tr>
-              <th scope="col">{t("payrun.colName")}</th>
-              <th scope="col" className={s.numCol}>{t("payrun.colNet")}</th>
-              <th scope="col" className={s.numCol}>
-                {t("payrun.colChange", { month })}
-              </th>
-              <th scope="col" className={s.fileCol}>
-                {t("payrun.colFile")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {d.people.map((p) => (
-              <tr key={p.id}>
-                <th scope="row" className={s.who}>
-                  <span className={s.name}>{p.name}</span>
-                  <span className={s.reason}>
-                    {p.significant ? p.reasons.join("; ") : p.department}
-                  </span>
-                </th>
-                <td className={s.numCol} data-label={t("payrun.colNet")}>
-                  <Explainable explanation={d.explain[p.explainId]}>
-                    <Money value={p.net} size="sm" />
-                  </Explainable>
-                </td>
-                <td className={s.numCol}
-                  data-label={t("payrun.colChange", { month })}>
-                  {p.prevNet === null
-                    ? <span className={s.muted}>
-                      {t("payrun.newThisMonth")}</span>
-                    : <SignedMoney value={p.change} />}
-                </td>
-                <td className={s.fileCol}>
-                  <span className={s.status} data-tone={!p.inFile ? "bad"
-                    : typos.has(p.id) ? "warn" : "ok"}>
-                    <span className={s.pip} aria-hidden="true" />
-                    {!p.inFile ? t("payrun.held") : typos.has(p.id)
-                      ? t("payrun.ibanTypo") : t("payrun.inFile")}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
     </section>
+  );
+}
+
+function PersonLine(p: { p: PersonRow; i: number; typo: boolean;
+  month: string }) {
+  const { t } = useLocale();
+  const d = useRunDetail();
+  const r = p.p;
+  const flag = !r.inFile ? t("payrun.held") : p.typo ? t("payrun.ibanTypo")
+    : null;
+  return (
+    <li className={s.row} style={{ "--i": Math.min(p.i, 8) } as object}>
+      <span className={s.dotCol}>
+        {flag !== null && (
+          <span className={s.dot8} data-tone={r.inFile ? "warn" : "bad"} />
+        )}
+      </span>
+      <span className={s.rowMain}>
+        <span className={s.name}>{r.name}</span>
+        <span className={s.reason}>
+          {r.significant ? r.reasons.join("; ") : r.department}
+        </span>
+        {flag !== null && (
+          <span className={s.flag} data-tone={r.inFile ? "warn" : "bad"}>
+            {flag}
+          </span>
+        )}
+      </span>
+      <span className={s.rowFigures}>
+        <Explainable explanation={d.explain[r.explainId]}>
+          <Money value={r.net} size="md" />
+        </Explainable>
+        <span className={s.rowChange}>
+          {r.prevNet === null ? t("payrun.newThisMonth")
+            : <SignedMoney value={r.change} />}
+        </span>
+      </span>
+    </li>
   );
 }
 
@@ -129,7 +140,7 @@ function Total(p: { label: string; now: Fils; prev: Fils; month: string }) {
   return (
     <div className={s.total}>
       <dt>{p.label}</dt>
-      <dd><Money value={p.now} size="lg" /></dd>
+      <dd><RollMoney value={p.now} size="lg" /></dd>
       <dd><ChangeNote now={p.now} prev={p.prev} month={p.month} /></dd>
     </div>
   );

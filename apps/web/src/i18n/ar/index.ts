@@ -8,8 +8,9 @@ import { explain } from "./explain";
 import { home } from "./home";
 import { payrun } from "./payrun";
 import { people } from "./people";
+import { reports } from "./reports";
 import { shell } from "./shell";
 import { timeoff } from "./timeoff";
 
 export const ar: ArOf<EnCatalog> = { common, errors, shell, home,
-  people, timeoff, explain, payrun };
+  people, timeoff, explain, payrun, reports };

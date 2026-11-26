@@ -3,6 +3,7 @@ import type { Section } from "./demo/state";
 import { Home } from "./home/Home";
 import { PayRun } from "./payrun/PayRun";
 import { People } from "./people/People";
+import { Reports } from "./reports/Reports";
 import { TimeOff } from "./timeoff/TimeOff";
 
 /**
@@ -21,4 +22,5 @@ export const VIEWS: Partial<Record<Section, ComponentType<ViewProps>>> = {
   "pay-run": PayRun,
   people: People,
   "time-off": TimeOff,
+  reports: Reports,
 };

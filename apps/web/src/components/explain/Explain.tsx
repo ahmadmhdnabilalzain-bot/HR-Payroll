@@ -42,19 +42,24 @@ export function Explainable(p: { explanation: Explanation | undefined;
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
+  const origin = useRef<DOMRect | null>(null);
   if (p.explanation === undefined) return <>{p.children}</>;
   return (
     <>
       <button ref={btn} type="button" aria-haspopup="dialog"
         className={`${s.trigger} ${p.className ?? ""}`}
-        onClick={() => setOpen(true)}>
+        onClick={() => {
+          origin.current = btn.current?.getBoundingClientRect() ?? null;
+          setOpen(true);
+        }}>
         {p.children}
         <span className="visually-hidden">
           {t("explain.open", { title: p.explanation.title })}
         </span>
       </button>
       {open && (
-        <ExplainPanel explanation={p.explanation} onClose={() => {
+        <ExplainPanel explanation={p.explanation} origin={origin.current}
+          onClose={() => {
           setOpen(false);
           btn.current?.focus({ preventScroll: true });
         }} />
@@ -68,22 +73,52 @@ export function ExplainLink(p: { explanation: Explanation | undefined;
   children: ReactNode; className?: string | undefined }) {
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
+  const origin = useRef<DOMRect | null>(null);
   if (p.explanation === undefined) return null;
   return (
     <>
       <button ref={btn} type="button" aria-haspopup="dialog"
         className={`${s.link} ${p.className ?? ""}`}
-        onClick={() => setOpen(true)}>
+        onClick={() => {
+          origin.current = btn.current?.getBoundingClientRect() ?? null;
+          setOpen(true);
+        }}>
         {p.children}
       </button>
       {open && (
-        <ExplainPanel explanation={p.explanation} onClose={() => {
+        <ExplainPanel explanation={p.explanation} origin={origin.current}
+          onClose={() => {
           setOpen(false);
           btn.current?.focus({ preventScroll: true });
         }} />
       )}
     </>
   );
+}
+
+const OPEN_EASE = "cubic-bezier(.32,.72,0,1)";
+
+/**
+ * The panel opens from the figure: its result flies from where the
+ * figure was to its place in the panel (320 ms). Reduced motion: the
+ * panel fades in over 120 ms instead.
+ */
+function openFrom(origin: DOMRect | null, el: HTMLElement | null,
+  panel: HTMLElement | null): void {
+  if (reducedMotion()) {
+    panel?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 });
+    return;
+  }
+  if (origin === null || el === null) return;
+  const r = el.getBoundingClientRect();
+  if (r.width === 0) return;
+  const zoom = Number(getComputedStyle(document.documentElement)
+    .getPropertyValue("zoom")) || 1;
+  const dx = (origin.left - r.left) / zoom;
+  const dy = (origin.top - r.top) / zoom;
+  el.animate([{ transform: `translate(${dx}px, ${dy}px)`, opacity: 0.6 },
+    { transform: "none", opacity: 1 }],
+  { duration: 320, easing: OPEN_EASE });
 }
 
 const FOCUSABLE = "button, [href], input, [tabindex]:not([tabindex='-1'])";
@@ -95,11 +130,12 @@ const FOCUSABLE = "button, [href], input, [tabindex]:not([tabindex='-1'])";
  * from the bottom on phones. Escape or the scrim closes it.
  */
 export function ExplainPanel(p: { explanation: Explanation;
-  onClose(): void }) {
+  origin?: DOMRect | null; onClose(): void }) {
   const { t, dir } = useLocale();
   const e = p.explanation;
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
+  const result = useRef<HTMLDivElement>(null);
   const [leaving, setLeaving] = useState(false);
   const close = (): void => {
     if (reducedMotion()) {
@@ -112,6 +148,7 @@ export function ExplainPanel(p: { explanation: Explanation;
   useEffect(() => {
     panel.current?.querySelector<HTMLElement>("[data-close]")
       ?.focus({ preventScroll: true });
+    openFrom(p.origin ?? null, result.current, panel.current);
     const html = document.documentElement;
     const was = html.style.overflow;
     html.style.overflow = "hidden";
@@ -155,7 +192,7 @@ export function ExplainPanel(p: { explanation: Explanation;
         </div>
         <div className={s.body} tabIndex={0} role="region"
           aria-labelledby={`${id}-t`}>
-          <div className={s.result}>
+          <div className={s.result} ref={result}>
             <span className={s.resultLabel}>{e.result.label}</span>
             <Value v={e.result.value} size="lg" />
           </div>
@@ -164,7 +201,8 @@ export function ExplainPanel(p: { explanation: Explanation;
             <h3 id={`${id}-w`} className={s.h3}>{t("explain.working")}</h3>
             <ol className={s.steps}>
               {e.steps.map((x, i) => (
-                <li key={i} className={s.step}>
+                <li key={i} className={s.step}
+                  style={{ "--i": Math.min(i, 12) } as object}>
                   <span className={s.stepText}>{x.text}</span>
                   {x.value !== undefined && (
                     <span className={s.stepValue}><Value v={x.value} /></span>
