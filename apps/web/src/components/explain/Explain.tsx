@@ -125,8 +125,8 @@ export function ExplainLink(p: { explanation: Explanation | undefined;
   );
 }
 
-/** The drawer's curve: quick to leave, long settle (Apple's sheet). */
-const OPEN_EASE = "cubic-bezier(.32,.72,0,1)";
+/** The flight's curve: quick to leave, long settle. */
+const OPEN_EASE = "cubic-bezier(.2,.8,.2,1)";
 /** The tapped figure flies into the drawer header over this long. */
 export const FLIGHT_MS = 380;
 /** Reduced motion: the drawer only fades, in and out. */
@@ -136,9 +136,12 @@ const CLOSE_MS = 200;
 
 /**
  * The drawer opens from the figure: the tapped figure flies from where
- * it was into the drawer header (380 ms) while the drawer slides in
- * 32 px (280 ms, CSS). Reduced motion: a 120 ms fade only. Web
- * Animations, so the global reduced-motion CSS rule cannot cut it.
+ * it was into the drawer header (380 ms) while the drawer, opaque from
+ * its first frame, slides in 32 px (280 ms, CSS). The figure's start
+ * is measured with the drawer already at its 32 px offset, so it
+ * leaves exactly from the tapped figure and lands with the drawer.
+ * Reduced motion: a 120 ms fade only. Web Animations, so the global
+ * reduced-motion CSS rule cannot cut it.
  */
 function openFrom(origin: DOMRect | null, el: HTMLElement | null,
   layer: HTMLElement | null): void {
@@ -148,6 +151,9 @@ function openFrom(origin: DOMRect | null, el: HTMLElement | null,
     return;
   }
   if (origin === null || el === null) return;
+  // Measure the figure where it lands, not mid-flight: an effect run
+  // twice (React's development check) must not fly from itself.
+  for (const a of el.getAnimations()) a.cancel();
   const r = el.getBoundingClientRect();
   if (r.width === 0) return;
   const zoom = Number(getComputedStyle(document.documentElement)
@@ -158,7 +164,17 @@ function openFrom(origin: DOMRect | null, el: HTMLElement | null,
   el.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${k})`,
     transformOrigin: "0 0" },
   { transform: "none", transformOrigin: "0 0" }],
-  { duration: FLIGHT_MS, easing: OPEN_EASE });
+  // On a phone the sheet rises from the bottom edge in 280 ms: the
+  // figure lands with it, so it never overshoots and settles back.
+  { duration: phone() ? SHEET_MS : FLIGHT_MS, easing: OPEN_EASE });
+}
+
+/** The phone sheet's rise (the CSS --drawer-ms). */
+const SHEET_MS = 280;
+
+function phone(): boolean {
+  return typeof matchMedia === "function" &&
+    matchMedia("(max-width: 760px)").matches;
 }
 
 const FOCUSABLE = "button, [href], input, [tabindex]:not([tabindex='-1'])";
@@ -185,11 +201,18 @@ export function ExplainPanel(p: { explanation: Explanation;
     if (reducedMotion()) {
       layer.current?.animate([{ opacity: 1 }, { opacity: 0 }],
         { duration: FADE_MS, easing: "linear", fill: "forwards" });
-      setTimeout(p.onClose, FADE_MS);
+      setTimeout(done, FADE_MS);
       return;
     }
     setLeaving(true);
-    setTimeout(p.onClose, CLOSE_MS);
+    // Unmount when the slide-out ends; the timer is only a fallback.
+    setTimeout(done, CLOSE_MS + 120);
+  };
+  const gone = useRef(false);
+  const done = (): void => {
+    if (gone.current) return;
+    gone.current = true;
+    p.onClose();
   };
   useEffect(() => {
     panel.current?.querySelector<HTMLElement>("[data-close]")
@@ -225,7 +248,10 @@ export function ExplainPanel(p: { explanation: Explanation;
       data-reduced={reducedMotion()} onKeyDown={onKey}>
       <div className={s.scrim} onClick={close} aria-hidden="true" />
       <div ref={panel} className={s.panel} role="dialog" aria-modal="true"
-        aria-labelledby={`${id}-t`}>
+        aria-labelledby={`${id}-t`}
+        onAnimationEnd={(ev) => {
+          if (leaving && ev.target === ev.currentTarget) done();
+        }}>
         {/* A div, not <header>: in a portal on <body> a header would
             become a banner landmark. */}
         <div className={s.head}>
@@ -255,7 +281,7 @@ export function ExplainPanel(p: { explanation: Explanation;
               {e.steps.map((x, i) => (
                 <li key={i} className={s.step}
                   data-limit={x.limit !== undefined}
-                  style={{ "--i": Math.min(i, 12) } as object}>
+                  style={{ "--i": Math.min(i, 10) } as object}>
                   <span className={s.stepText}>
                     {x.limit !== undefined && (
                       <span className={s.limitWord}>
@@ -273,7 +299,8 @@ export function ExplainPanel(p: { explanation: Explanation;
             </ol>
           </section>
           {e.inputs.length > 0 && (
-            <section aria-labelledby={`${id}-i`} className={s.section}>
+            <section aria-labelledby={`${id}-i`}
+              className={`${s.section} ${s.after}`}>
               <h3 id={`${id}-i`} className={s.h3}>{t("explain.inputs")}</h3>
               <dl className={s.inputs}>
                 {e.inputs.map((x) => (
@@ -289,7 +316,8 @@ export function ExplainPanel(p: { explanation: Explanation;
             </section>
           )}
           {e.rules.length > 0 && (
-            <section aria-labelledby={`${id}-r`} className={s.section}>
+            <section aria-labelledby={`${id}-r`}
+              className={`${s.section} ${s.after}`}>
               <h3 id={`${id}-r`} className={s.h3}>{t("explain.rules")}</h3>
               <ul className={s.rules}>
                 {e.rules.map((r) => (
@@ -311,14 +339,14 @@ export function ExplainPanel(p: { explanation: Explanation;
           )}
           {e.notComputed.length > 0 && (
             <section aria-labelledby={`${id}-n`}
-              className={`${s.section} ${s.notBox}`}>
+              className={`${s.section} ${s.notBox} ${s.after}`}>
               <h3 id={`${id}-n`} className={s.h3}>{t("explain.notDone")}</h3>
               <ul className={s.notList}>
                 {e.notComputed.map((x) => <li key={x}>{x}</li>)}
               </ul>
             </section>
           )}
-          <p className={s.scope}>
+          <p className={`${s.scope} ${s.after}`}>
             {t("explain.scope", { scope: e.scope })}
           </p>
         </div>

@@ -127,7 +127,41 @@ function Aside(q: { slip: PayslipView }) {
       <ExplainLink explanation={net} className={s.asideLink}>
         {t("people.howNet")}
       </ExplainLink>
+      <Months slip={q.slip} />
     </aside>
+  );
+}
+
+/**
+ * This month against the months before it: net pay as a short bar
+ * each (grey, this month in ink), newest first. Past months come from
+ * the payroll history, net only.
+ */
+function Months(q: { slip: PayslipView }) {
+  const { lang, t } = useLocale();
+  const { data } = useDemo();
+  const past = data.home.payslips(q.slip.employeeId).slice(-5).reverse();
+  if (past.length === 0) return null;
+  const rows = [{ month: q.slip.month, netFils: q.slip.netFils,
+    now: true }, ...past.map((x) => ({ ...x, now: false }))];
+  const max = rows.reduce((m, x) => (x.netFils > m ? x.netFils : m), 1n);
+  return (
+    <section className={s.months} aria-labelledby="slip-months">
+      <h2 id="slip-months" className={s.monthsTitle}>
+        {t("people.slipMonths")}</h2>
+      <ol className={s.monthList}>
+        {rows.map((x) => (
+          <li key={x.month} className={s.month} data-now={x.now}>
+            <span className={s.monthName}>{formatMonth(x.month, lang)}</span>
+            <Money value={x.netFils} size="sm" tween={false} />
+            <span className={s.monthBar} aria-hidden="true">
+              <span style={{ inlineSize: `${Number(
+                (x.netFils * 1000n) / max) / 10}%` }} />
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 

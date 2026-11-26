@@ -44,13 +44,23 @@
 }
 
 .layer {
-  /* Motion: the drawer slides 32 px over 280 ms; the tapped figure
-   * flies into the header over 380 ms (JS); the steps then follow,
-   * 80 ms apart. Reduced motion: a 120 ms fade only (JS). */
+  /* Motion, measured frame by frame at 25 fps:
+   * - the drawer is opaque from its first frame and slides 32 px over
+   *   280 ms (no fade, so no ghost frame); the scrim fades under it;
+   * - the tapped figure flies into the header over 380 ms (JS);
+   * - the working follows 20 ms apart and every step is in by 400 ms,
+   *   then what went in, the rules and the rest (never before the
+   *   working);
+   * - closing: 200 ms, the drawer slides back 32 px as it fades.
+   * Reduced motion: a 120 ms fade in and out only (JS). */
   --drawer-ms: 280ms;
-  --drawer-ease: cubic-bezier(0.32, 0.72, 0, 1);
-  --steps-from: 320ms;
-  --steps-gap: 80ms;
+  --drawer-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --close-ms: 200ms;
+  --close-ease: cubic-bezier(0.4, 0, 1, 1);
+  --steps-from: 0ms;
+  --steps-gap: 20ms;
+  --steps-ms: 160ms;
+  --after-steps: 260ms;
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -81,7 +91,7 @@
 }
 
 .layer[data-leaving="true"] .panel {
-  animation: slide-out var(--dur-base) var(--ease-out) forwards;
+  animation: slide-out var(--close-ms) var(--close-ease) forwards;
 }
 
 [dir="rtl"] .layer[data-leaving="true"] .panel,
@@ -90,7 +100,13 @@
 }
 
 .layer[data-leaving="true"] .scrim {
-  animation: fade-out var(--dur-base) var(--ease-out) forwards;
+  animation: fade-out var(--close-ms) var(--close-ease) forwards;
+}
+
+/* Once leaving, nothing inside replays its entrance. */
+.layer[data-leaving="true"] .step,
+.layer[data-leaving="true"] .after {
+  animation: none;
 }
 
 @keyframes fade {
@@ -101,20 +117,21 @@
   to { opacity: 0; }
 }
 
+/* Opaque throughout: only the position moves. */
 @keyframes slide {
-  from { transform: translateX(32px); opacity: 0; }
+  from { transform: translateX(32px); }
 }
 
 @keyframes slide-rtl {
-  from { transform: translateX(-32px); opacity: 0; }
+  from { transform: translateX(-32px); }
 }
 
 @keyframes slide-out {
-  to { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(32px); opacity: 0; }
 }
 
 @keyframes slide-out-rtl {
-  to { transform: translateX(-24px); opacity: 0; }
+  to { transform: translateX(-32px); opacity: 0; }
 }
 
 .head {
@@ -235,7 +252,7 @@
 .step {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) minmax(120px, auto);
-  animation: step-in 320ms var(--drawer-ease) both;
+  animation: step-in var(--steps-ms) var(--drawer-ease) both;
   animation-delay: calc(var(--steps-from) + var(--i, 0) * var(--steps-gap));
   align-items: baseline;
   gap: var(--space-3);
@@ -425,18 +442,20 @@
   }
 }
 
+/* The phone sheet rises from the bottom edge, opaque throughout. */
 @keyframes rise {
-  from { transform: translateY(40px); opacity: 0; }
+  from { transform: translateY(100%); }
 }
 
 @keyframes sink {
-  to { transform: translateY(32px); opacity: 0; }
+  to { transform: translateY(100%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .panel,
   .scrim,
   .step,
+  .after,
   .layer[data-leaving="true"] .panel,
   .layer[data-leaving="true"] .scrim {
     animation: none;
@@ -448,11 +467,23 @@
   border-radius: 0;
 }
 
+/* From a third, not from nothing: the working is never an empty
+ * space under its heading, even on the drawer's first frame. */
 @keyframes step-in {
   from {
-    opacity: 0;
-    transform: translateY(8px);
+    opacity: 0.3;
+    transform: translateY(6px);
   }
+}
+
+/* What went in, the rules and the rest: after the working. */
+.after {
+  animation: after-in var(--steps-ms) var(--drawer-ease) both;
+  animation-delay: var(--after-steps);
+}
+
+@keyframes after-in {
+  from { opacity: 0.3; }
 }
 
 /* The page's one provenance line (Footnote). */

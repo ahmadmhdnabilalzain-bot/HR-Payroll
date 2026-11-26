@@ -1,13 +1,30 @@
+import { useEffect, useState } from "react";
 import { useRunApproval } from "../demo/actions";
 import { useRunDetail } from "../demo/useRunDetail";
-import { formatDate, formatMoney, formatNumber } from "../i18n/format";
+import { formatDate, formatNumber, formatTime } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
-import { downloadText } from "../lib/download";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
-import b from "../ui/button.module.css";
 import { useDemo } from "../demo/state";
+import { nowMs } from "./model";
+import { FILE_DOWNLOADED } from "./RunBar";
 import s from "./PayRun.module.css";
+
+/** When the file was downloaded in this visit (ms), if it was. */
+let downloadedAt: number | null = null;
+
+function useDownloaded(): number | null {
+  const [at, setAt] = useState(downloadedAt);
+  useEffect(() => {
+    const on = (): void => {
+      downloadedAt = nowMs();
+      setAt(downloadedAt);
+    };
+    addEventListener(FILE_DOWNLOADED, on);
+    return () => removeEventListener(FILE_DOWNLOADED, on);
+  }, []);
+  return at;
+}
 
 /**
  * Step 4: the salary file, named in one sentence (people, amount, bank,
@@ -21,33 +38,39 @@ export function PayStep() {
   const d = useRunDetail();
   const f = d.file;
   const ready = a.phase === "file";
-  const amount = state.hideAmounts ? "AED ••••••"
-    : formatMoney(f.total, lang);
+  const got = useDownloaded();
   const issues = f.findings.filter((x) => x.kind === "issue");
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>{t("payrun.payTitle")}</h2>
       <p className={s.stepSub}>{t("payrun.paySub")}</p>
 
+      {/* The file as an object: what it is, the amount at display
+          size, where it goes, and its state. Download is the row's
+          one primary action above. */}
       <div className={s.fileCard} data-ready={ready}>
-        <Icon name="file" size={28} />
+        <span className={s.fileGlyph} aria-hidden="true">
+          <Icon name="file" size={28} />
+          <span className={s.fileExt}>SIF</span>
+        </span>
         <div className={s.fileCardText}>
-          <p className={s.fileHeadline}>
-            {t("payrun.fileHeadline", { count: f.people, amount,
-              bank: f.bank, date: formatDate(f.dated, lang) })}
+          <p className={s.fileLabel}>{t("payrun.fileLabel")}</p>
+          <p className={s.fileFigure}>
+            <Money value={f.total} size="hero" tween={false} />
           </p>
-          <p className={s.status} data-tone={ready ? "ok" : "warn"}>
+          <p className={s.fileMeta}>
+            {t("payrun.fileMeta", { count: f.people, bank: f.bank,
+              date: formatDate(f.dated, lang) })}
+          </p>
+          <p className={s.status} data-tone={ready ? "ok" : "warn"}
+            role="status">
             <span className={s.pip} aria-hidden="true" />
-            {ready ? t("payrun.ready", { bank: f.bank })
-              : t("payrun.draft")}
+            {!ready ? t("payrun.draft")
+              : got !== null ? t("payrun.downloaded", { bank: f.bank,
+                time: formatTime(new Date(got).toISOString(), lang) })
+                : t("payrun.ready", { bank: f.bank })}
           </p>
         </div>
-        <button type="button"
-          className={`${b.btn} ${b.primary} ${b.large} ${s.act}`}
-          disabled={!ready}
-          onClick={() => downloadText(f.fileName, f.text, "text/plain")}>
-          {t("payrun.download")}
-        </button>
       </div>
 
       <section aria-labelledby="summary-title" className={s.block}>

@@ -4,9 +4,10 @@ test("pay-run: fix both IBANs, the GM approves, the file opens",
   async ({ page }) => {
     await page.goto("/#/pay-run/approve");
     const approve = page.getByRole("button", { name: "Sign off pay run" });
-    const toPay = page.getByRole("button", { name: "Continue to Pay" });
     await expect(approve).toBeDisabled();
-    await expect(toPay).toBeDisabled();
+    // One primary action: the sticky row holds it; no disabled twin.
+    await expect(page.getByRole("button", { name: "Continue to Pay" }))
+      .toHaveCount(0);
     await expect(page.locator("#approve-why"))
       .toContainText("Bank details still need fixing");
 

@@ -6,15 +6,33 @@
   gap: var(--gutter);
 }
 
+/* Paper with a little depth: it opens by lifting 6 px off the page
+ * as its shadow deepens (280 ms). No tilt, no parallax. */
 .slip {
   display: grid;
   gap: var(--space-6);
   padding: var(--space-6);
   border-radius: var(--radius-panel);
   background: var(--color-surface);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 4%,
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 5%,
       transparent),
-    0 8px 24px color-mix(in srgb, var(--color-shadow) 6%, transparent);
+    0 14px 36px color-mix(in srgb, var(--color-shadow) 9%, transparent);
+  animation: lift 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes lift {
+  from {
+    transform: translateY(6px);
+    box-shadow: 0 1px 1px color-mix(in srgb, var(--color-shadow) 4%,
+        transparent),
+      0 2px 6px color-mix(in srgb, var(--color-shadow) 4%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slip {
+    animation: none;
+  }
 }
 
 /* The document's top edge: employer and period, then the person. */
@@ -99,6 +117,65 @@
   font-size: var(--text-md);
 }
 
+/* Net pay by month: this month in ink, the months before in grey. */
+.months {
+  inline-size: 100%;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-divider);
+}
+
+.monthsTitle {
+  margin-block-end: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.monthList {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.month {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px var(--space-3);
+  align-items: baseline;
+  font-size: var(--text-sm);
+}
+
+.monthName {
+  color: var(--color-text-muted);
+}
+
+.month[data-now="true"] .monthName {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.monthBar {
+  grid-column: 1 / -1;
+  display: block;
+  block-size: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+
+.monthBar > span {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--color-text-faint);
+}
+
+.month[data-now="true"] .monthBar > span {
+  background: var(--color-text);
+}
+
 .groupTitle {
   padding-block-end: var(--space-2);
   color: var(--color-text-muted);
@@ -111,13 +188,16 @@
   margin: 0;
 }
 
+/* Label and amount share one baseline, whatever their sizes (17 px
+ * labels and 15 px figures on a phone). */
 .line,
 .total {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
   min-block-size: 48px;
+  padding-block: 2px;
   border-block-start: 1px solid var(--color-divider);
   font-size: var(--text-md);
 }
@@ -209,14 +289,36 @@
     visibility: visible;
   }
 
+  /* The document alone, edge to edge on the sheet, flat ink on
+   * paper (the page switches to the light theme for printing). */
   .slip {
     position: absolute;
     inset-block-start: 0;
     inset-inline: 0;
+    gap: var(--space-5);
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
     box-shadow: none;
+    animation: none;
   }
 
   .slip :global(button) {
     border-block-end-color: transparent;
+    color: inherit;
+  }
+
+  .slip * {
+    color: var(--color-text);
+  }
+
+  .line,
+  .total {
+    min-block-size: 32px;
+    break-inside: avoid;
+  }
+
+  .docHead {
+    padding-block-end: var(--space-3);
   }
 }

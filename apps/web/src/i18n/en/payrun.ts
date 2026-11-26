@@ -17,6 +17,9 @@ export const payrun = {
   stateWaiting: "Waiting",
   back: "Back",
   continueTo: "Continue to {step}",
+  actContinue: "Continue",
+  actApprove: "Sign off",
+  actDownload: "Download",
   loading: "Loading the pay run",
 
   reviewTitle: "What this month pays",
@@ -34,6 +37,9 @@ export const payrun = {
     other: "{count} fewer than {month}" },
   changedTitle: "What changed since {month}",
   changedSub: "Only the people whose pay moved or is held, and why.",
+  colPerson: "Person",
+  colAgainst: "Against {month}",
+  colNetOf: "{month} net",
   showAll: "Show all {count} people",
   showChanged: "Show only changes",
   hint: "Tap a figure with a dotted line to see how it is worked out.",
@@ -69,6 +75,7 @@ export const payrun = {
   fileNow: "Salary file now",
   fileLine: { one: "{count} person", other: "{count} people" },
   heldNow: "held out",
+  noneHeld: "nobody held out",
   enterIban: "Enter IBAN",
   markReviewed: "Mark reviewed",
   reviewed: "Reviewed",
@@ -112,6 +119,10 @@ export const payrun = {
   payTitle: "Pay",
   paySub: "The salary file to upload to the bank under the Wage " +
     "Protection System.",
+  fileLabel: "Salary file",
+  fileMeta: "{count} people · {bank} · dated {date}",
+  downloaded: "Downloaded at {time}. Upload it to {bank}; the bank " +
+    "checks it again on upload.",
   fileHeadline: "Salary file for {count} people, {amount}, to {bank}, " +
     "dated {date}",
   draft: "Draft: the file is final once the General manager signs off.",

@@ -30,7 +30,15 @@ export function ReviewStep() {
   const people = useTweenedNumber(d.totals.headcount);
   const flagged = (p: PersonRow): boolean =>
     p.significant || p.prevNet === null || !p.inFile || typos.has(p.id);
-  const shown = d.people.filter(flagged);
+  // Held and mistyped first (they stop or risk pay), then the largest
+  // moves against last month.
+  const weight = (p: PersonRow): number =>
+    !p.inFile ? 2 : typos.has(p.id) ? 1 : 0;
+  const mag = (x: bigint): bigint => (x < 0n ? -x : x);
+  const shown = d.people.filter(flagged).sort((a, b) =>
+    weight(b) - weight(a) || (mag(b.change) > mag(a.change) ? 1
+      : mag(b.change) < mag(a.change) ? -1 : 0));
+  const runMonth = monthName(d.month, lang);
   const rest = d.people.filter((p) => !flagged(p));
   return (
     <section aria-labelledby="step-title" className={s.step}>
@@ -72,7 +80,14 @@ export function ReviewStep() {
           {t("payrun.changedTitle", { month })}
         </h3>
         <p className={s.blockSub}>{t("payrun.changedSub")}</p>
-        <ul className={s.group} id={listId}>
+        <ul className={`${s.group} ${s.changes}`} id={listId}>
+          <li className={s.changesHead} aria-hidden="true">
+            <span />
+            <span>{t("payrun.colPerson")}</span>
+            <span className={s.end}>{t("payrun.colAgainst", { month })}</span>
+            <span className={s.end}>
+              {t("payrun.colNetOf", { month: runMonth })}</span>
+          </li>
           {shown.map((p, i) => (
             <PersonLine key={p.id} p={p} i={i} typo={typos.has(p.id)}
               month={month} />
@@ -129,14 +144,15 @@ function PersonLine(p: { p: PersonRow; i: number; typo: boolean;
           </span>
         )}
       </span>
-      <span className={s.rowFigures}>
+      <span className={s.rowChangeCol}>
+        {r.prevNet === null
+          ? <span className={s.newWord}>{t("payrun.newThisMonth")}</span>
+          : <SignedMoney value={r.change} />}
+      </span>
+      <span className={s.rowNet}>
         <Explainable explanation={d.explain[r.explainId]}>
           <Money value={r.net} size="md" />
         </Explainable>
-        <span className={s.rowChange}>
-          {r.prevNet === null ? t("payrun.newThisMonth")
-            : <SignedMoney value={r.change} />}
-        </span>
       </span>
     </li>
   );
