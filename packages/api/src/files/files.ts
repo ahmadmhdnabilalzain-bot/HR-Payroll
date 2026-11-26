@@ -17,6 +17,7 @@ import {
 } from "../receipts/base64";
 import { sniffContentType } from "../receipts/sniff";
 import { nameForType, safeFileName } from "./names";
+import { checkFileQuota } from "./quota";
 
 /** What file storage needs from a request. */
 export type FileCtx = Pick<ReqCtx, "tx" | "deps" | "tenant" | "user" |
@@ -98,6 +99,7 @@ export async function storeFile(ctx: FileCtx, name: string,
 export async function uploadFile(ctx: ReqCtx<FileUpload>)
   : Promise<FileRef> {
   const bytes = decodeUpload(ctx.body.contentBase64);
+  await checkFileQuota(ctx);
   const ref = await storeFile(ctx, ctx.body.name, bytes);
   await appendAudit(ctx.tx, { companyId: ctx.tenant!.companyId,
     at: ref.uploadedAt, actorUserId: ctx.user!.id,

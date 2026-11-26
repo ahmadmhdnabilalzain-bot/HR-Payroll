@@ -19,7 +19,7 @@ import { fsBlobStore } from "../packages/api/src/storage/fs-blob";
 
 async function main(): Promise<void> {
   const cfg = loadConfig(process.env);
-  const db = await openPg(cfg.databaseUrl);
+  const db = await openPg(cfg.databaseUrl, { runtime: true });
   await assertRuntimeRole(db);
   const log = (line: Record<string, unknown>) =>
     process.stdout.write(`${JSON.stringify(line)}\n`);

@@ -3,7 +3,10 @@
  * role in MIGRATE_DATABASE_URL) and serves (as the runtime role in
  * DATABASE_URL); `tsx src/main.ts migrate` only migrates;
  * `tsx src/main.ts purge-wfh` migrates, then deletes work-from-home
- * data past each company's retention (no scheduler). The runtime
+ * data past each company's retention (no scheduler);
+ * `tsx src/main.ts sweep-files` deletes uploads nobody claimed within
+ * 24 hours (needs JOBS_LIST_DATABASE_URL, a role that lists every
+ * company past RLS, e.g. payroll_backup). The runtime
  * role must be granted payroll_app by the operator:
  *   GRANT payroll_app TO <runtime role> WITH INHERIT FALSE, SET TRUE;
  */
@@ -17,6 +20,7 @@ import { systemDeps } from "./deps";
 import { letterRenderer } from "./pdf/setup";
 import type { Db } from "./db/db";
 import { purgeAllCompanies } from "./db/wfh-purge-all";
+import { sweepUnclaimedFiles } from "./files/sweep";
 import { fsBlobStore } from "./storage/fs-blob";
 
 async function runMigrations(cfg: Config): Promise<void> {
@@ -43,11 +47,30 @@ async function purgeWfh(cfg: Config, db: Db): Promise<void> {
   }
 }
 
+async function sweepFiles(cfg: Config): Promise<void> {
+  if (cfg.jobsListUrl === null) {
+    throw new Error("JOBS_LIST_DATABASE_URL is required for sweep-files");
+  }
+  const list = await openPg(cfg.jobsListUrl, { max: 1 });
+  const owner = await openPg(cfg.migrateUrl, { max: 1 });
+  try {
+    const removed = await sweepUnclaimedFiles({ list, owner,
+      blobs: fsBlobStore(cfg.receiptsDir), now: () => new Date(),
+      olderThanHours: 24 });
+    process.stdout.write(`${JSON.stringify({ event: "files-swept",
+      removed })}\n`);
+  } finally {
+    await list.close();
+    await owner.close();
+  }
+}
+
 async function main(argv: string[]): Promise<void> {
   const cfg = loadConfig(process.env);
   await runMigrations(cfg);
   if (argv[2] === "migrate") return;
-  const db = await openPg(cfg.databaseUrl);
+  if (argv[2] === "sweep-files") return sweepFiles(cfg);
+  const db = await openPg(cfg.databaseUrl, { runtime: true });
   await assertRuntimeRole(db);
   if (argv[2] === "purge-wfh") return purgeWfh(cfg, db);
   const blobs = fsBlobStore(cfg.receiptsDir);

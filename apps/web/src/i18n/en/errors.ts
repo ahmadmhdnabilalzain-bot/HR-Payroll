@@ -164,4 +164,6 @@ export const errors = {
     "try again.",
   PDF_RENDERER_BUSY: "Many letters are being prepared. Try again in a " +
     "few seconds.",
+  FILE_QUOTA_EXCEEDED: "Today's upload limit is reached. Try again " +
+    "tomorrow.",
 } satisfies EnNamespace;

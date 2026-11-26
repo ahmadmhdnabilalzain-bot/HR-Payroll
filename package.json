@@ -13,6 +13,7 @@
     "api:migrate": "tsx packages/api/src/main.ts migrate",
     "letters:sample": "tsx packages/api/src/letters/sample.ts",
     "api:purge-wfh": "tsx packages/api/src/main.ts purge-wfh",
+    "api:sweep-files": "tsx packages/api/src/main.ts sweep-files",
     "lines": "node scripts/check-line-length.mjs",
     "lines:test": "node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r --if-present typecheck",

@@ -221,6 +221,10 @@ async function run(c: Context<Env>, def: RouteDef, deps: AppDeps,
 async function inTenant(c: Context<Env>, def: RouteDef, deps: AppDeps,
   auth: Authed, handler: Handler): Promise<unknown> {
   const companyId = resolveCompanyHeader(c.req.header("x-company-id"));
+  // Read the whole body before a connection is taken: a slow or
+  // stalled upload must not hold a transaction (Hono caches it for
+  // validate()).
+  if (def.body !== undefined) await c.req.arrayBuffer().catch(() => null);
   let v: Validated | null = null;
   const step = (fn: (ctx: ReqCtx) => Promise<unknown>) =>
     withTenant(deps.db, { companyId, userId: auth.user.id }, async (tx) => {
