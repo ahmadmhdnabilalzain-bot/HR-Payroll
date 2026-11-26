@@ -92,6 +92,8 @@ export function FixStep() {
   const fixed = Object.keys(state.ibans);
   const isHr = state.role === "hr";
   const flow = useFlow(h.heldNetFils);
+  const open = checks.filter((i) => state.resolved[i.id] === undefined)
+    .length;
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>{t("payrun.fixTitle")}</h2>
@@ -120,8 +122,10 @@ export function FixStep() {
         <h3 id="tofix-title" className={s.groupTitle}>
           {t("payrun.fixListTitle")}
           <span className={s.groupCount}>
-            {t("payrun.fixCount", { stops: blockers.length,
-              checks: checks.length })}
+            {blockers.length === 0 ? t("payrun.fixNoStops")
+              : t("payrun.fixStops", { count: blockers.length })},{" "}
+            {open === 0 ? t("payrun.fixNoChecks")
+              : t("payrun.fixChecks", { count: open })}
           </span>
         </h3>
         <ul className={s.group}>

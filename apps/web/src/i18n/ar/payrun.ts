@@ -55,7 +55,10 @@ export const payrun: ArOf<typeof en> = {
   fixSub: "ما يوقف الصرف أولًا: قسيمة بلا حساب بنكي صحيح توقف الدورة " +
     "كلها. بنود المراجعة لا توقفها؛ علّم كل بند بعد مراجعته.",
   fixListTitle: "قبل الاعتماد",
-  fixCount: "{stops} توقف الصرف، {checks} للمراجعة",
+  fixStops: n("{count} يوقف الصرف"),
+  fixNoStops: "لا شيء يوقف الصرف",
+  fixChecks: n("{count} للمراجعة"),
+  fixNoChecks: "لا شيء للمراجعة",
   kindStops: "يوقف الصرف",
   kindCheck: "للمراجعة",
   kindConfirm: "للتأكيد",

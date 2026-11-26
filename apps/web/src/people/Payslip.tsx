@@ -113,10 +113,12 @@ function Aside(q: { slip: PayslipView }) {
             : to === null ? t("people.ibanMissing")
               : <span dir="ltr" className="tabular">{to}</span>}</dd>
         </div>
-        <div>
-          <dt>{t("people.paidOn")}</dt>
-          <dd>{day}</dd>
-        </div>
+        {q.slip.held === null && (
+          <div>
+            <dt>{t("people.paidOn")}</dt>
+            <dd>{day}</dd>
+          </div>
+        )}
       </dl>
       <button type="button" onClick={() => print()}
         className={[b.btn, b.secondary, p.tall, s.print].join(" ")}>

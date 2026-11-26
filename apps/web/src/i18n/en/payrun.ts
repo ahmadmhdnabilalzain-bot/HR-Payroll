@@ -54,7 +54,10 @@ export const payrun = {
   fixSub: "What stops pay comes first: a payslip without a valid bank " +
     "account holds the whole run. Checks do not; mark each once looked at.",
   fixListTitle: "Before approval",
-  fixCount: "{stops} stop pay, {checks} to check",
+  fixStops: { one: "{count} stops pay", other: "{count} stop pay" },
+  fixNoStops: "nothing stops pay",
+  fixChecks: { one: "{count} to check", other: "{count} to check" },
+  fixNoChecks: "nothing to check",
   kindStops: "Stops pay",
   kindCheck: "Check",
   kindConfirm: "Confirm",
