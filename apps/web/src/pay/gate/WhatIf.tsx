@@ -7,9 +7,10 @@ import { formatMoney } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../../ui/button.module.css";
 import { Money } from "../../ui/Money";
-import { KeyValues, PageHead } from "../../ui/templates";
+import { PageHead } from "../../ui/templates";
 import { filsOfInput } from "../derive";
 import s from "./gate.module.css";
+import tpl from "../../ui/templates/templates.module.css";
 import { Footnote } from "../../components/explain";
 
 const aedOf = (f: Fils): string => {
@@ -17,17 +18,39 @@ const aedOf = (f: Fils): string => {
   return `${v / 100n}.${String(v % 100n).padStart(2, "0")}`;
 };
 
-function Moved(p: { before: Fils; after: Fils }) {
-  const { lang } = useLocale();
+/** One figure as run, with the change, and the difference. */
+function Row(p: { label: string; before: Fils; after: Fils }) {
   const diff = (p.after - p.before) as Fils;
   return (
-    <span>
-      <Money value={p.after} size="sm" tween={false} />
-      <span className={s.muted}>
-        {diff === 0n ? " No change" : ` ${formatMoney(diff, lang,
-          { plus: true })} from ${formatMoney(p.before, lang)}`}
-      </span>
-    </span>
+    <tr>
+      <th scope="row">{p.label}</th>
+      <td data-label="As run">
+        <Money value={p.before} size="sm" tween={false} /></td>
+      <td data-label="With the change">
+        <Money value={p.after} size="sm" tween={false} /></td>
+      <td data-label="Difference">{diff === 0n ? <span className={s.muted}>No change</span>
+        : <Money value={diff} size="sm" tween={false} signed />}</td>
+    </tr>
+  );
+}
+
+function Compare(p: { title: string; rows: { label: string;
+  before: Fils; after: Fils }[] }) {
+  return (
+    <table className={s.compare}>
+      <caption>{p.title}</caption>
+      <thead>
+        <tr>
+          <td />
+          <th scope="col">As run</th>
+          <th scope="col">With the change</th>
+          <th scope="col">Difference</th>
+        </tr>
+      </thead>
+      <tbody>
+        {p.rows.map((x) => <Row key={x.label} {...x} />)}
+      </tbody>
+    </table>
   );
 }
 
@@ -36,6 +59,7 @@ function Moved(p: { before: Fils; after: Fils }) {
  * see the engine work the run out again. Nothing is saved.
  */
 export function WhatIf() {
+  const { lang } = useLocale();
   const x = useExtras();
   const { state } = useDemo();
   const first = x.people.find((p) => p.hasOvertime) ?? x.people[0]!;
@@ -74,6 +98,11 @@ export function WhatIf() {
   };
   const reset = (): void => pick(who);
   const changed = r.asked.length > 0;
+  const netDiff = (r.after.net - r.before.net) as Fils;
+  const netLine = netDiff === 0n ? "Net pay does not change."
+    : `Net pay ${netDiff > 0n ? "rises" : "falls"} by ` +
+      `${formatMoney((netDiff > 0n ? netDiff : -netDiff) as Fils, lang)} ` +
+      "a month.";
   if (state.hideAmounts) {
     return (
       <div className={s.page}>
@@ -89,9 +118,9 @@ export function WhatIf() {
         lede={"Change one person's October basic salary or add overtime, " +
           "and the engine works the run out again. Nothing is saved, and " +
           "the pay run is not changed."} />
-      <form className={s.block} onSubmit={submit} noValidate
+      <form className={s.tryCard} onSubmit={submit} noValidate
         aria-label="Change to try">
-        <div className={s.actions}>
+        <div className={s.fields}>
           <label className={s.field}>
             <span>Person</span>
             <select value={who} onChange={(e) => pick(e.target.value)}>
@@ -122,28 +151,37 @@ export function WhatIf() {
             onClick={reset} disabled={!changed}>Back to the run</button>
         </div>
       </form>
-      <section className={s.block} aria-live="polite"
+      <section className={s.result} aria-live="polite"
         aria-label="What the engine worked out">
         <p className={s.lead}>{changed ? r.asked.join(". ") + "."
           : `${r.name} as run. Change a figure and choose Work it out.`}
         </p>
-        <h2 className={s.blockTitle}>{r.name}</h2>
-        <KeyValues items={[
-          { label: "Gross pay", value: <Moved before={r.before.gross}
-            after={r.after.gross} /> },
-          { label: "Deductions", value: <Moved before={r.before.deductions}
-            after={r.after.deductions} /> },
-          { label: "Net pay", value: <Moved before={r.before.net}
-            after={r.after.net} /> },
+        <div className={s.pair}>
+          <div className={tpl.figure}>
+            <span>{r.name}'s net pay, as run</span>
+            <strong><Money value={r.before.net} tween={false} /></strong>
+          </div>
+          <span className={s.arrow} aria-hidden="true">→</span>
+          <div className={tpl.figure} data-after={changed}>
+            <span>With the change</span>
+            <strong><Money value={r.after.net} /></strong>
+          </div>
+        </div>
+        <p className={s.diffLine}>{netLine}</p>
+        <Compare title={r.name} rows={[
+          { label: "Gross pay", before: r.before.gross,
+            after: r.after.gross },
+          { label: "Deductions", before: r.before.deductions,
+            after: r.after.deductions },
+          { label: "Net pay", before: r.before.net, after: r.after.net },
         ]} />
-        <h2 className={s.blockTitle}>October run</h2>
-        <KeyValues items={[
-          { label: "Gross pay", value: <Moved before={r.run.before.gross}
-            after={r.run.after.gross} /> },
-          { label: "Net pay", value: <Moved before={r.run.before.net}
-            after={r.run.after.net} /> },
-          { label: "Salary file", value: <Moved before={r.run.before.inFile}
-            after={r.run.after.inFile} /> },
+        <Compare title="October run" rows={[
+          { label: "Gross pay", before: r.run.before.gross,
+            after: r.run.after.gross },
+          { label: "Net pay", before: r.run.before.net,
+            after: r.run.after.net },
+          { label: "Salary file", before: r.run.before.inFile,
+            after: r.run.after.inFile },
         ]} />
         <p className={s.muted}>Worked out by the same engine as the pay run,
           on the same rules.</p>

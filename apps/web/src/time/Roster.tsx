@@ -3,7 +3,8 @@ import type { TimeData } from "../demo/data/time-types";
 import { dayText, rangeText } from "../people/words";
 import b from "../ui/button.module.css";
 import { useToast } from "../ui/Toast";
-import { FilterList } from "../ui/templates";
+import { FilterList, PageHead, StatusPill } from "../ui/templates";
+import tpl from "../ui/templates/templates.module.css";
 import { Status, useTimeData, useWho } from "./shared";
 import s from "./time.module.css";
 import { plural } from "./words";
@@ -13,90 +14,146 @@ const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 const dow = (iso: string): number => new Date(`${iso}T00:00:00Z`)
   .getUTCDay();
 
+/** Short letters for the shifts: initials, longer only when two clash. */
+function lettersOf(shifts: { id: string; label: string }[]):
+  Map<string, string> {
+  const out = new Map<string, string>();
+  const used = new Set<string>();
+  for (const x of shifts) {
+    const words = x.label.split(/\s+/).filter(Boolean);
+    const tries = [words[0]?.[0] ?? "?",
+      words.map((w) => w[0]).join("").slice(0, 2),
+      x.label.slice(0, 2), x.id.slice(-2)].map((w) => w.toUpperCase());
+    const pick = tries.find((w) => !used.has(w)) ?? x.id;
+    used.add(pick);
+    out.set(x.id, pick);
+  }
+  return out;
+}
+
 /**
- * T20, Shifts and rosters: the two planned weeks by person. The month
- * template starts on the 1st and the plan starts on the 9th, so this
- * grid shows just the planned days (published week, then draft week).
+ * T20, Shifts and rosters: the two planned weeks by person. Names down
+ * the side (they stay put while the days scroll), 14 day columns under
+ * each week's state (published or draft, as Planning decides it), a
+ * shift as its short letter (the key under the lede), rest days shaded
+ * and leave as a hatched cell with the word. The demo's day is marked
+ * when it falls in the plan.
  */
 export function Roster() {
   const t = useTimeData();
   const who = useWho();
+  const { state } = useDemo();
   const rows = t.roster.filter((r) => who.visible.has(r.employeeId));
   const shift = (id: string | null) => t.shifts.find((x) => x.id === id);
+  const letters = lettersOf(t.shifts);
   const first = t.rosterDays[0]?.iso ?? "";
   const last = t.rosterDays.at(-1)?.iso ?? "";
+  const weeks = weeksOf(t).map((w) => ({ ...w,
+    published: !w.draft || state.timeDecided[w.id] !== undefined }));
+  const weekOf = (iso: string) => weeks.find((w) => w.from <= iso &&
+    iso <= w.to);
+  const today = t.asOf >= first && t.asOf <= last ? t.asOf : null;
   return (
-    <>
-      <div className={s.rosterPage}>
-        <header className={s.rosterHead}>
-          <h1 className={s.rosterTitle}>Shifts and rosters</h1>
-          <p className={s.muted}>
-            {rangeText(first, last, who.lang)}. The first week is
-            published, the second is a draft. Leave is shown so no one is
-            planned on it.
-          </p>
-          <p className={s.legend} aria-label="Key">
-            <span data-tone="shift">Shift</span>
-            <span data-tone="booked">Leave</span>
-            <span data-tone="waiting">Leave, waiting</span>
-            <span data-tone="rest">Rest day</span>
-          </p>
-        </header>
-        <div className={s.gridScroll} tabIndex={0} role="region"
-          aria-label="Roster, scrolls sideways">
-          <table className={s.grid}>
-            <thead>
-              <tr>
-                <th scope="col"><span className="visually-hidden">Who
-                </span></th>
-                {t.rosterDays.map((d) => (
-                  <th key={d.iso} scope="col" data-draft={d.status ===
-                    "draft"}>
-                    <span>{DOW[dow(d.iso)]}</span>
-                    {Number(d.iso.slice(8))}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.employeeId}>
-                  <th scope="row">{who.name(r.employeeId)}</th>
-                  {r.cells.map((c) => {
-                    const sh = shift(c.shiftId);
-                    const tone = c.kind === "shift" ? "shift"
-                      : c.kind === "rest" ? "rest"
-                        : c.pending ? "waiting" : "booked";
-                    const label = c.kind === "shift" && sh !== undefined
-                      ? `${sh.label}, ${sh.hours}` : c.kind === "rest"
-                        ? "Rest day" : c.pending ? "Leave, waiting"
-                          : "Leave";
-                    return (
-                      <td key={c.date} data-tone={tone} title={label}>
-                        <span className="visually-hidden">{label}</span>
-                      </td>
-                    );
-                  })}
-                </tr>
+    <div className={tpl.page}>
+      <PageHead title="Shifts and rosters"
+        lede={`${rangeText(first, last, who.lang)}. Leave is shown so ` +
+          "no one is planned on it."}
+        meta={(
+          <ul className={s.key} aria-label="Key">
+            {t.shifts.map((x) => (
+              <li key={x.id}><span className={s.keyCell}>
+                {letters.get(x.id)}</span>{x.label}, {x.hours}</li>
+            ))}
+            <li><span className={s.keyCell} data-tone="rest" />Rest day
+            </li>
+            <li><span className={s.keyCell} data-tone="booked">Leave
+            </span>Leave, booked</li>
+            <li><span className={s.keyCell} data-tone="waiting">Waiting
+            </span>Leave, waiting</li>
+          </ul>
+        )} />
+      <div className={s.gridScroll} tabIndex={0} role="region"
+        aria-label="Roster, scrolls sideways">
+        <table className={s.grid}>
+          <colgroup>
+            <col className={s.nameCol} />
+            {t.rosterDays.map((d) => <col key={d.iso} />)}
+          </colgroup>
+          <thead>
+            <tr className={s.weekRow}>
+              <td />
+              {weeks.map((w) => (
+                <th key={w.id} scope="colgroup" colSpan={7}
+                  data-draft={!w.published}>
+                  <span className={s.weekText}>
+                    {rangeText(w.from, w.to, who.lang)}</span>
+                  {w.published ? <StatusPill tone="ok">Published</StatusPill>
+                    : <StatusPill tone="warn">Draft</StatusPill>}
+                </th>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </tr>
+            <tr>
+              <th scope="col"><span className="visually-hidden">Who
+              </span></th>
+              {t.rosterDays.map((d) => (
+                <th key={d.iso} scope="col"
+                  data-draft={weekOf(d.iso)?.published === false}
+                  data-today={d.iso === today}
+                  data-weekend={[0, 6].includes(dow(d.iso))}>
+                  <span aria-hidden="true">{DOW[dow(d.iso)]}</span>
+                  {Number(d.iso.slice(8))}
+                  {d.iso === today && (
+                    <span className="visually-hidden">, today</span>
+                  )}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.employeeId}>
+                <th scope="row">{who.name(r.employeeId)}</th>
+                {r.cells.map((c) => {
+                  const sh = shift(c.shiftId);
+                  const tone = c.kind === "shift" ? "shift"
+                    : c.kind === "rest" ? "rest"
+                      : c.pending ? "waiting" : "booked";
+                  const label = c.kind === "shift" && sh !== undefined
+                    ? `${sh.label}, ${sh.hours}` : c.kind === "rest"
+                      ? "Rest day" : c.pending ? "Leave, waiting"
+                        : "Leave";
+                  const shown = c.kind === "shift"
+                    ? letters.get(c.shiftId ?? "") ?? ""
+                    : c.kind === "leave" ? c.pending ? "Waiting" : "Leave"
+                      : "";
+                  return (
+                    <td key={c.date} data-tone={tone} title={label}
+                      data-today={c.date === today}>
+                      <span aria-hidden="true">{shown}</span>
+                      <span className="visually-hidden">{label}</span>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <div className={s.after}>
-        <h2 className={s.sectionTitle}>Shifts</h2>
+      <section className={s.block} aria-labelledby="shifts-title">
+        <h2 id="shifts-title" className={s.sectionTitle}>Shifts</h2>
         <ul className={s.shiftGrid}>
           {t.shifts.map((x) => (
             <li key={x.id} className={s.shiftCard}>
-              <strong>{x.label}</strong>
+              <strong><span className={s.keyCell}>{letters.get(x.id)}
+              </span>{x.label}</strong>
               <span>{x.hours}</span>
               <span className={s.muted}>Break: {x.breakText}</span>
             </li>
           ))}
         </ul>
-        <Footnote />
-      </div>
-    </>
+      </section>
+      <Footnote />
+    </div>
   );
 }
 

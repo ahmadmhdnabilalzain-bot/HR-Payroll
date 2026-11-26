@@ -138,72 +138,69 @@
 }
 
 /* The roster grid: two planned weeks, people as rows. */
-.rosterPage {
+.block {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-4);
-  max-inline-size: var(--container);
-  margin-inline: auto;
-  padding: var(--space-5) var(--page-pad) var(--space-5);
+  gap: var(--space-3);
 }
 
-.rosterHead {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.rosterTitle {
-  font-size: var(--text-3xl);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.legend {
+/* The key: each shift's letter, rest, leave and leave waiting. */
+.key {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: var(--space-3) var(--space-5);
   margin: 0;
+  padding: 0;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+  list-style: none;
 }
 
-.legend span {
+.key li {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.legend span::before {
-  content: "";
-  inline-size: 14px;
-  block-size: 14px;
-  border-radius: 3px;
-  background: var(--color-surface-2);
+.keyCell {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 28px;
+  block-size: 24px;
+  padding-inline: var(--space-1);
+  border-radius: 6px;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-divider);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* Calendar bars are neutral: colour is for state only (DEMO.md). */
-.legend [data-tone="shift"]::before,
-.grid td[data-tone="shift"] {
-  background: color-mix(in srgb, var(--color-text-muted) 30%,
-    var(--color-surface));
+.shiftCard .keyCell {
+  margin-inline-end: var(--space-2);
 }
 
-.legend [data-tone="booked"]::before,
+/* Leave: a hatched cell that says so; waiting adds a dashed edge. */
+.keyCell[data-tone="booked"],
 .grid td[data-tone="booked"] {
-  background: var(--color-text-muted);
+  background: repeating-linear-gradient(135deg,
+    var(--color-surface-2) 0 4px, var(--color-surface) 4px 8px);
+  color: var(--color-text);
+  font-weight: 500;
 }
 
-.legend [data-tone="waiting"]::before {
-  background: transparent;
-  outline: 2px dashed var(--color-text-muted);
-  outline-offset: -2px;
-}
-
+.keyCell[data-tone="waiting"],
 .grid td[data-tone="waiting"] {
-  background: transparent;
-  outline: 2px dashed var(--color-text-muted);
-  outline-offset: -4px;
+  background: repeating-linear-gradient(135deg,
+    var(--color-surface-2) 0 2px, var(--color-surface) 2px 8px);
+  outline: 1px dashed var(--color-text-muted);
+  outline-offset: -3px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.keyCell[data-tone="rest"],
+.grid td[data-tone="rest"] {
+  background: var(--color-surface-2);
 }
 
 .gridScroll {
@@ -213,60 +210,131 @@
   overflow-x: auto;
   border-radius: var(--radius-panel);
   background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-hairline);
+}
+
+.gridScroll:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .grid {
   inline-size: 100%;
+  min-inline-size: 880px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: var(--text-xs);
+  table-layout: fixed;
+  font-size: 13px;
 }
 
 .grid th,
 .grid td {
-  min-inline-size: 30px;
-  block-size: 36px;
+  block-size: 48px;
   padding: 0;
   border-block-end: 1px solid var(--color-divider);
-  border-inline-end: 1px solid var(--color-surface);
+  border-inline-end: 1px solid var(--color-divider);
   text-align: center;
 }
 
-.grid thead th {
-  block-size: 48px;
-  color: var(--color-text-muted);
+.grid td:last-child,
+.grid th:last-child {
+  border-inline-end: 0;
+}
+
+.grid tbody tr:last-child > * {
+  border-block-end: 0;
+}
+
+/* The weeks: a date range and its state, over their seven days. */
+.weekRow th,
+.weekRow td {
+  block-size: 52px;
+  padding-inline: var(--space-4);
+  background: var(--color-surface);
+  text-align: start;
+}
+
+.weekRow th {
   font-weight: 500;
 }
 
-.grid thead th span {
-  display: block;
-  font-size: 10px;
+.weekRow th > * + * {
+  margin-inline-start: var(--space-3);
 }
 
+.weekText {
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.grid thead tr:last-child th {
+  block-size: 52px;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-muted);
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid thead tr:last-child th > span:first-child {
+  display: block;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+/* The draft week is a shade quieter until it is published. */
 .grid thead th[data-draft="true"] {
   background: var(--color-surface-2);
 }
 
-.grid tbody th {
-  position: sticky;
-  inset-inline-start: 0;
-  min-inline-size: 150px;
-  padding-inline: var(--space-3);
-  background: var(--color-surface);
-  font-weight: 500;
-  text-align: start;
-  white-space: nowrap;
+/* The demo's day, when it falls in the plan: an ink edge and figure. */
+.grid th[data-today="true"] {
+  color: var(--color-text);
+  font-weight: 700;
+  box-shadow: inset 0 -3px 0 var(--color-text);
 }
 
-.grid td[data-tone="rest"] {
-  background: var(--color-surface-2);
+.grid td[data-today="true"] {
+  box-shadow: inset 2px 0 0 var(--color-text), inset -2px 0 0 var(--color-text);
+}
+
+.nameCol {
+  inline-size: 200px;
+}
+
+.grid tbody th,
+.grid thead tr:last-child th:first-child,
+.weekRow td:first-child {
+  position: sticky;
+  z-index: 1;
+  inset-inline-start: 0;
+}
+
+.grid tbody th {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.grid td[data-tone="shift"] {
+  color: var(--color-text);
+  font-weight: 600;
 }
 
 @media (max-width: 720px) {
+  .grid {
+    min-inline-size: 820px;
+  }
+
+  .nameCol {
+    inline-size: 128px;
+  }
+
   .grid tbody th {
-    min-inline-size: 118px;
-    max-inline-size: 118px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding-inline: var(--space-3);
   }
 }
