@@ -21,8 +21,12 @@ export interface HeadlineTotals {
   heldNet: Fils;
   /** Leaver's gratuity and leave pay: outside the run and the SIF. */
   settlements: Fils;
+  /** Counted issues: issuesOf() less notes and confirmations. */
+  issuesOpen: number;
+  /** The same number (kept for callers that read `issues`). */
   issues: number;
   needsConfirmation: number;
+  notes: number;
   pendingApprovals: number;
   rulesScope: string;
   /** Source status for every headline figure, shown on demand. */
@@ -41,16 +45,17 @@ export const HEADLINE_BASIS: HeadlineBasis = { ruleSet: "UAE mainland",
 export function headlineTotals(c: DemoCompany): HeadlineTotals {
   const t = c.payRun.totals;
   const issues = issuesOf(c);
+  const open = issues.filter((i) => i.kind === "issue").length;
   return { employees: c.employees.length,
     uaeNationals: c.nationalities.uaeNationals, payslips: t.payslips,
     gross: t.gross, deductions: t.deductions, net: t.net,
     sifTotal: c.sif.total, heldNet: t.heldNet,
     settlements: fils(c.payRun.settlements.reduce((s, x) =>
       s + x.result.total, 0n)),
-    issues: issues.filter((i) => i.severity !== "needs-confirmation")
-      .length,
+    issuesOpen: open, issues: open,
     needsConfirmation: issues.filter((i) =>
-      i.severity === "needs-confirmation").length,
+      i.kind === "needs-confirmation").length,
+    notes: issues.filter((i) => i.kind === "note").length,
     pendingApprovals: c.approvals.length, rulesScope: c.rulesScope,
     basis: { ...HEADLINE_BASIS } };
 }
@@ -101,7 +106,7 @@ export function costByDepartment(c: DemoCompany): DepartmentCost[] {
 
 /** Items the UI lists as "needs confirmation" (e.g. pension). */
 export function needsConfirmation(c: DemoCompany): DemoIssue[] {
-  return issuesOf(c).filter((i) => i.severity === "needs-confirmation");
+  return issuesOf(c).filter((i) => i.kind === "needs-confirmation");
 }
 
 export function employeeById(c: DemoCompany, id: string) {
@@ -135,6 +140,10 @@ export interface SifSummary {
   total: Fils;
   errors: number;
   warnings: number;
+  /** Lines in the file by record type; findings cite file lines. */
+  lines: { total: number; edr: number; evp: number; scr: number };
+  /** Why a finding can sit on line 51 of a 31-employee file. */
+  linesNote: string;
   report: string;
   rulesScope: string;
 }
@@ -145,7 +154,23 @@ export function sifSummary(c: DemoCompany): SifSummary {
     heldOut: c.payRun.payslips.filter((s) => !s.sif.included).length,
     total: c.sif.total, errors: errors.length,
     warnings: c.sif.findings.length - errors.length,
+    lines: linesOf(c), linesNote: linesNoteOf(c),
     report: c.sif.report, rulesScope: c.rulesScope };
+}
+
+function linesOf(c: DemoCompany): SifSummary["lines"] {
+  const rows = c.sif.text.split(/\r?\n/).filter((l) => l !== "");
+  const n = (t: string) => rows.filter((l) => l.startsWith(t)).length;
+  return { total: rows.length, edr: n("EDR"), evp: n("EVP"),
+    scr: n("SCR") };
+}
+
+function linesNoteOf(c: DemoCompany): string {
+  const l = linesOf(c);
+  return `The file has ${l.total} lines for ${l.edr} employees: one ` +
+    "salary line each, a second line with the allowance breakdown for " +
+    `${l.evp} of them, and one control line at the end. Line numbers ` +
+    "count every line of the file.";
 }
 
 export function employeesWithCase(c: DemoCompany, tag: string) {
