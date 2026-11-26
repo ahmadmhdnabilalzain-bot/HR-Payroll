@@ -31,9 +31,10 @@ No new dependency.
 (principle 6 "one approval spine", UQ9 pre-pay gate, UQ18, UQ25, UQ35),
 `docs/superpowers/specs/2026-11-25-combined-feature-list.md` (section
 H: expense management), `docs/superpowers/specs/2026-11-25-idea-pool.md`
-(G4, G10, G11, C7, T2, U5), `docs/research/2026-11-25-uae-spend-ap-
-specialists.md` ("reimbursements flowing into payroll, claim approvals
-tied to HR records, role-based limits"),
+(G4, G10, G11, C7, T2, U5),
+`docs/research/2026-11-25-uae-spend-ap-specialists.md`
+("reimbursements flowing into payroll, claim approvals tied to HR
+records, role-based limits"),
 `docs/research/2026-11-25-vat-corporate-tax-einvoicing.md` (input VAT
 and FTA Decision 17 of 2026, secondary only),
 `docs/superpowers/plans/2026-11-26-plan-3-backend.md` (every pattern
@@ -70,10 +71,15 @@ Plan 3 functions by name, never by line number.
   `REIMBURSEMENT_WPS_NOTE`, exact text: "Reimbursements are not in the
   WPS salary file. Pay them by separate transfer. Whether they must go
   through WPS is not sourced."
-- No cards, no payments, no bank transfers, no payout files.
+- No cards, no payments, no bank transfers, no bank payment files (the
+  payouts report is a list for HR, not a bank file).
 - Audit `data` never holds an amount, VAT figure, TRN, supplier name or
   receipt content; it holds ids, counts, codes and field names
-  (`assertNoSensitive` stays as it is).
+  (`assertNoSensitive` stays as it is). Action names follow the form
+  Plan 3 shipped: Plan 3's own names (`pay-run.created`) are
+  hyphenated, which its draft `AuditEvent.action` regex
+  `^[a-z]+(\.[a-z-]+)+$` would refuse; whatever regex Plan 3 ships,
+  `expense-claim.*` and `approval-chain.*` must pass it.
 - Receipt bytes are encrypted with the company DEK before they reach the
   `BlobStore`; AAD `"<companyId>:receipts:content:<receiptId>"`.
 - OCR output is a suggestion only: stored, shown, never copied into an
@@ -138,8 +144,11 @@ Mergeable on its own; Plan 4 can mock expense screens from this commit.
 - Create in `packages/contract/src/`: `approvals.ts`, `receipts.ts`,
   `expenses.ts`, `expense-reports.ts`
 - Modify: `payroll.ts`, `routes.ts`, `errors.ts`, `openapi.ts`,
-  `examples.ts`, `index.ts`; and `packages/api/src/payroll/payslips.ts`,
-  `src/payroll/pay-runs.ts` (no-claim values only, Step 4)
+  `examples.ts`, `index.ts`; and in `packages/api`:
+  `src/payroll/compute.ts`, `src/payroll/payslips.ts`,
+  `src/payroll/pay-runs.ts`, `tests/compute.test.ts` (no-claim values
+  only, Step 4); `packages/web/src/api/mock/` payslip and pay-run mocks
+  if that package exists
 - Test: create `packages/contract/tests/expenses.test.ts`; modify
   `tests/routes.test.ts`, `tests/openapi.test.ts`,
   `tests/schemas.test.ts`
@@ -327,12 +336,19 @@ count plus 25); every `binary` route is a `GET`; `uploadReceipt` has
   FAIL, missing exports.
 - [ ] **Step 3: Implement** the four files and the modifications above.
 - [ ] **Step 4: Run** `pnpm --filter @payroll/contract test` and
-  `pnpm check`. Expected: PASS. Plan 3's API tests that build payslips
-  now fail typecheck on the new required fields; Task 6 fixes them, so
-  until then set them in `toPayslipView` to the no-claim values
-  (`reimbursements: []`, `reimbursementTotal: "0.00"`, `salaryNet =
-  net`, `reimbursementNote: null`, run `claimCount` and
-  `pendingClaimCount` 0) in this task.
+  `pnpm check`. Expected: PASS. The new required fields break the
+  typecheck of Plan 3's payslip and pay-run code, so in this task fill
+  them with the no-claim values (`reimbursements: []`,
+  `reimbursementTotal` 0, `salaryNet` = `net`, `reimbursementNote:
+  null`; run `reimbursementTotal` 0, `claimCount` 0,
+  `pendingClaimCount` 0) wherever Plan 3 builds them: the
+  `computePayRun` result in `src/payroll/compute.ts` (Plan 3 derives
+  `ComputedPayslip` from `Payslip`), its builders in
+  `tests/compute.test.ts`, and the serialisers in
+  `src/payroll/payslips.ts` and `src/payroll/pay-runs.ts`. If
+  `packages/web` exists, add the same values to its payslip and pay-run
+  mocks under `src/api/mock/` so they still parse. Task 6 replaces the
+  constants with real values.
 - [ ] **Step 5: Commit** `feat(contract): expenses, approvals, receipts`.
 
 ### Task 2: Approval spine (chains, resolution, decisions)
@@ -406,7 +422,8 @@ High risk (separation of duties): this task keeps a per-task review.
     claimantUserId: string | null; lineManagerUserId: string | null;
     total: Fils; overLimit: boolean; summary: ApprovalTask["summary"]
     }`; `interface SubjectHandler { type: SubjectType; facts(tx,
-    companyId, subjectId): Promise<SubjectFacts>; onClosed(ctx:
+    companyId, subjectId): Promise<SubjectFacts>; canView(ctx: ReqCtx,
+    subjectId: string): Promise<boolean>; onClosed(ctx:
     ReqCtx, subjectId: string, outcome: "approved" | "rejected" |
     "returned"): Promise<void> }`; `type SubjectHandlers =
     ReadonlyMap<SubjectType, SubjectHandler>`.
@@ -421,8 +438,9 @@ High risk (separation of duties): this task keeps a per-task review.
   - `decide.ts`: `decide(ctx, handlers, approvalId, action: "approve" |
     "reject" | "return", body)`: locks the request `FOR UPDATE`; not
     pending 409 `APPROVAL_NOT_PENDING`; `body.stepOrder !==
-    current_step` 409 `APPROVAL_STEP_CHANGED`; caller cannot see the
-    subject 404 `NOT_FOUND`; then `mayDecide`. Approve moves to the next
+    current_step` 409 `APPROVAL_STEP_CHANGED`; `handler.canView`
+    false and the caller not in any step's `eligible`: 404 `NOT_FOUND`;
+    then `mayDecide`. Approve moves to the next
     step or closes as `approved`; reject and return close at once. On
     close, calls `handler.onClosed`. Audit `approval.step-approved`,
     `approval.rejected`, `approval.returned` (`data: { subjectType,
@@ -447,20 +465,24 @@ employee, `O2` second owner; default one-tier chain unless stated):
   applied, no extra step.
 - `resolve_submitter_excluded`: hr H files for E whose line manager is
   H: H is not eligible anywhere.
-- `resolve_needs_distinct_people`: tiers hr "0.00" and hr "100.00",
-  members O and H (one hr): second tier falls back to owner; with tiers
-  owner and owner and only O: `NO_ELIGIBLE_APPROVER`.
-- `may_decide_blocks_reuse`: steps eligible `[[O, O2], [O]]`: O on step
-  1 gives `APPROVER_NEEDED_LATER`; O2 gives `ok`; then O on step 2
-  gives `ok`, O2 on step 2 gives `NOT_AN_APPROVER`.
+- `resolve_needs_distinct_people`: E's claim, tiers hr "0.00" and hr
+  "100.00", total 200.00, members O, H, E (one hr): both steps are
+  `[H]`, so `NO_ELIGIBLE_APPROVER` (fallback happens only for an empty
+  step); with tiers hr and owner: steps `[H]`, `[O]`.
+- `may_decide_blocks_reuse` (excluded `[E]`): steps eligible `[[O,
+  O2], [O]]`: O on step 1 gives `APPROVER_NEEDED_LATER`; O2 gives
+  `ok`; then O on step 2 gives `ok`; O2 on step 2 (prior approver)
+  gives `SOD_VIOLATION`; H on step 2 gives `NOT_AN_APPROVER`; E on
+  step 1 gives `SOD_VIOLATION`.
 - fast-check: for random members (1 to 6 users) and chains (1 to 5
   tiers), when `resolveChain` returns, no step's eligible list contains
   the claimant or submitter and `hasDistinctApprovers` is true.
 
 `approvals.test.ts` (Review Focus 2; uses `tests/helpers/test-subject.ts`,
 a `SubjectHandler` over an in-test table `test_subjects(id, company_id,
-employee_id, total, status)` created by the helper, so the spine is
-tested without expenses):
+employee_id, total, status)` created by the helper with RLS forced, a
+`company_id` policy and select, insert, update grants to `payroll_app`
+like every tenant table, so the spine is tested without expenses):
 - `inbox_shows_pending_for_eligible_only`: M sees the task, H does not.
 - `approve_closes_and_calls_handler`: M approves step 1 of a one-step
   request: status `approved`, handler outcome `approved`, audit
@@ -505,7 +527,9 @@ High risk (untrusted files): this task keeps a per-task review.
   receiptReader: ReceiptReader`), `src/app.ts` (`bodyLimit` and
   `binary` handling in `register`), `src/config.ts` (`receiptsDir`
   from `RECEIPTS_DIR`, required), `src/main.ts` (`fsBlobStore`),
-  `tests/helpers/test-app.ts` (memory store; `makeApp({ reader })`)
+  `tests/helpers/test-app.ts` (memory store; `makeApp({ reader })`),
+  `tests/main.test.ts` (valid env gains `RECEIPTS_DIR`; new case:
+  without it `loadConfig` throws `RECEIPTS_DIR is required`)
 - Test: `packages/api/tests/receipts-sniff.test.ts`,
   `tests/receipts.test.ts`, `tests/fs-blob.test.ts`
 
@@ -711,9 +735,10 @@ again with 0 gives 409 `POLICY_VERSION_CONFLICT`; an unknown
 `limits.0.categoryId`; employee `PUT` gives 403 `FORBIDDEN`; the audit
 event `data` holds no amount string.
 
-`expenses-purity.test.ts`: `src/expenses/policy.ts`,
-`src/expenses/check.ts` (and, from Task 6, `src/expenses/reimburse.ts`)
-contain none of `Date`, `process`, `fetch`, `node:`, `randomUUID`,
+`expenses-purity.test.ts`: `src/approvals/resolve.ts`,
+`src/expenses/policy.ts`, `src/expenses/check.ts` (and, from Task 6,
+`src/expenses/reimburse.ts`) contain none of `Date`, `process`,
+`fetch`, `node:`, `randomUUID`,
 `./db`, `../db`.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/api test expense`.
@@ -761,6 +786,12 @@ contain none of `Date`, `process`, `fetch`, `node:`, `randomUUID`,
     visible: 404 `NOT_FOUND`.
   - `toClaimView(row, items, approval): ExpenseClaim` (the only claim
     serialiser; `vatRecoverability: "not-assessed"`).
+  - Pricing is stored at save and redone at submit: on create and
+    patch, `priceItem` runs per item; a mileage or per diem item with no
+    rate yet is stored with `amount` 0 and `rate_applied` null and shown
+    as `"0.00"` with `rateApplied: null` (no problem at save); submit
+    prices every item again with the current policy, stores the result,
+    and an item still without a rate gives `RATE_NOT_FOUND`.
   - Create: an employee files for self (`employeeId` omitted or equal,
     else 403 `FORBIDDEN`); owner and hr may file for anyone
     (`createdBy` records them). Save-time checks only: each
@@ -783,6 +814,7 @@ contain none of `Date`, `process`, `fetch`, `node:`, `randomUUID`,
     Audit `expense-claim.submitted` (`data: { itemCount, flagCodes }`).
   - `expenseClaimSubject: SubjectHandler`: `facts` gives total
     (including VAT), `overLimit` (any `over_limit` item) and summary;
+    `canView` is `claimVisible`;
     `onClosed` sets `approved` or `rejected` with `decided_at`, or
     `returned` (editable again; a later submit opens a new request).
     Audit `expense-claim.approved`, `.rejected`, `.returned`.
@@ -858,8 +890,9 @@ High risk (money): this task keeps a per-task review.
 
 **Files:**
 - Create: `packages/api/src/expenses/reimburse.ts` (pure)
-- Modify: `src/payroll/snapshot.ts` (load claims), `src/payroll/
-  compute.ts` (`computePayRun` calls `applyReimbursements` last for each
+- Modify: `src/payroll/snapshot.ts` (load claims),
+  `src/payroll/compute.ts` (`computePayRun` calls `applyReimbursements`
+  last for each
   payslip), `src/payroll/pay-runs.ts` (link, approve, void,
   `excludeClaimIds`, counts), `src/payroll/payslips.ts` (serialise the
   new fields), `tests/compute.test.ts` (builders gain `reimbursements:
@@ -1105,16 +1138,17 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`
    would move one function.
 4. **VAT: capture only.** Fields `amount` (VAT inclusive), `vatAmount`,
    `supplierName`, `supplierTrn`; the only check is `vatAmount <=
-   amount`; no rate, no recoverability (`"not-assessed"` plus
-   `VAT_STATEMENT`). FTA Decision 17 of 2026 is known from secondary
-   summaries only. Cost: the accountant judges recovery outside the
+   amount`; no rate, no recoverability. The flagged parameter is
+   `vatRecoverability`, fixed at `"not-assessed"` with status
+   `unsourced` and carried with `VAT_STATEMENT` on every claim and VAT
+   report. FTA Decision 17 of 2026 is known from secondary summaries
+   only. Cost: the accountant judges recovery outside the
    product until the official text is read and a rule-pack exists.
 5. **TRN format `^\d{15}$` is a convention, not a sourced rule.** No
    checksum. Cost: a valid TRN of another shape is refused; one regex.
 6. **AED only.** `originalCurrency` and `originalAmount` are free
    information fields, flagged `FOREIGN_CURRENCY`; no exchange rate is
-   applied (the Central Bank rate rule applies to VAT, not to employee
-   repayment). Cost: claimants convert by hand.
+   applied. Cost: claimants convert by hand.
 7. **Mileage and per diem are company policy values with no default**
    (no statutory private-sector rate was read). Whole kilometres and
    whole days, so no rounding exists. Rates are dated and the applied
@@ -1197,7 +1231,7 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`
     later-merged plan renumbers its files before merging (the runner
     records names, so a renumber after deployment is not allowed).
     Cost: one rename at merge.
-27. **No cards, no payments, no payout files** (licensed partners,
+27. **No cards, no payments, no bank payment files** (licensed partners,
     ledger 2026-11-25). Cost: none now; card spend joins the spine as a
     new `SubjectType` later.
 28. **Review and parallelism:** per-task review for Task 2 (separation
