@@ -69,6 +69,15 @@ test("RECEIPTS_DIR is required and absolute for api, migrate, serve", () => {
   }
 });
 
+test("provider secrets we set ourselves have a minimum length", () => {
+  const env = goodApi();
+  env.WHATSAPP_APP_SECRET = "short";
+  assert.ok(checkEnv(env, "api").includes(
+    "WHATSAPP_APP_SECRET is shorter than 24 characters"));
+  env.WHATSAPP_APP_SECRET = pw();
+  assert.deepEqual(checkEnv(env, "api"), []);
+});
+
 test("weak, short, placeholder and URL-unsafe passwords fail", () => {
   assert.match(passwordProblem("short"), /shorter/);
   assert.match(passwordProblem("a".repeat(30)), /too few/);

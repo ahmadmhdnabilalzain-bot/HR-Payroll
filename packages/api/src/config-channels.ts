@@ -47,12 +47,33 @@ export function httpsUrl(env: Env, name: string): string | null {
   return v.replace(/\/+$/, "");
 }
 
+/** Shared secrets we set ourselves (review M9): at least this long. */
+export const MIN_PROVIDER_SECRET = 24;
+const OWN_SECRETS = ["WHATSAPP_APP_SECRET", "WHATSAPP_VERIFY_TOKEN",
+  "INBOUND_EMAIL_BASIC_AUTH"] as const;
+
+function checkSecrets(env: Env): void {
+  for (const n of OWN_SECRETS) {
+    const v = env[n] ?? "";
+    if (v !== "" && v.length < MIN_PROVIDER_SECRET) {
+      throw new Error(`${n} must be at least ${MIN_PROVIDER_SECRET} ` +
+        "characters");
+    }
+  }
+  const basic = env.INBOUND_EMAIL_BASIC_AUTH ?? "";
+  if (basic !== "" && !/^[^:]+:.{16,}$/.test(basic)) {
+    throw new Error("INBOUND_EMAIL_BASIC_AUTH must be user:password with " +
+      "a password of at least 16 characters");
+  }
+}
+
 export function loadChannelConfig(env: Env): ChannelConfig {
   const e = group(env, "EMAIL");
   const w = group(env, "WHATSAPP");
   const i = group(env, "INBOUND");
   const g = group(env, "GOOGLE_SSO");
   const m = group(env, "ENTRA_SSO");
+  checkSecrets(env);
   return {
     email: e && { token: e[0]!, from: e[1]! },
     whatsapp: w && { phoneNumberId: w[0]!, accessToken: w[1]!,

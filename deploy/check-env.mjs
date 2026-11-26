@@ -136,6 +136,18 @@ function checkPort(env, name, problems) {
   }
 }
 
+/** Our own provider secrets, when set (Plan 13, review M9). */
+const OWN_SECRETS = ["WHATSAPP_APP_SECRET", "WHATSAPP_VERIFY_TOKEN",
+  "INBOUND_EMAIL_BASIC_AUTH"];
+function checkProviderSecrets(env, problems) {
+  for (const name of OWN_SECRETS) {
+    const v = env[name];
+    if (v !== undefined && v !== "" && v.length < MIN_PASSWORD) {
+      problems.push(`${name} is shorter than ${MIN_PASSWORD} characters`);
+    }
+  }
+}
+
 /** Encrypted receipt files (Plan 6): required, an absolute path. */
 function checkReceiptsDir(env, problems) {
   const dir = required(env, "RECEIPTS_DIR", problems);
@@ -177,6 +189,7 @@ function checkApi(env, problems) {
   checkMasterKey(env, problems);
   checkPort(env, "PORT", problems);
   checkReceiptsDir(env, problems);
+  checkProviderSecrets(env, problems);
 }
 
 function checkServe(env, problems) {
@@ -188,6 +201,7 @@ function checkServe(env, problems) {
   checkMasterKey(env, problems);
   checkPort(env, "PORT", problems);
   checkReceiptsDir(env, problems);
+  checkProviderSecrets(env, problems);
 }
 
 /** Pure: returns the list of problems (empty when all is well). */

@@ -122,4 +122,21 @@ describe.skipIf(!ADMIN_URL)("Plan 13 jobs on real PostgreSQL", () => {
         "/v1/sso-settings/domains", { domain: "pg.test" });
       expect(claim.body.error.code).toBe("SSO_DOMAIN_CLAIMED");
     });
+
+  it("M9: the purge removes old counters of both companies", async () => {
+    const { db, admin } = await freshPgPair(2);
+    await seedTwoCompanies(admin);
+    await admin.exec(`UPDATE rate_counters SET window_start = 0`);
+    const before = await admin.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM rate_counters");
+    expect(before[0]!.n).toBeGreaterThanOrEqual(2);
+    const [r] = await withTenant(db, { companyId: null, userId: null },
+      (tx) => tx.query<{ counters: number }>(
+        "SELECT * FROM purge_channel_state($1)",
+        ["2026-03-01T08:00:00.000Z"]));
+    expect(r!.counters).toBe(before[0]!.n);
+    const after = await admin.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM rate_counters");
+    expect(after[0]!.n).toBe(0);
+  });
 });

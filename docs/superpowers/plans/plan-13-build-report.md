@@ -667,3 +667,14 @@ Important, 9 Minor). One commit per item, test first.
 - M3: a wrong TOTP at the SSO callback is counted toward the lockout like a password sign-in (committed, then 401); five lock the account; tested.
 - M1: the address guard judges NAT64 (`64:ff9b::/96`) and 6to4 (`2002::/16`) by their embedded IPv4, refuses IPv4-compatible `::/96` (dotted or hex), NAT64 local-use `64:ff9b:1::/48`, site-local `fec0::/10`, Teredo `2001::/32` and `192.88.99.0/24`, and `checkWebhookUrl` drops a trailing dot before its name checks; tested.
 - M6: past the daily email-in limit the hook writes one `RATE_LIMITED` item per day (so the limit is visible) and nothing after it: no `inbound_seen` and no item rows; tested.
+- M9: `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN` and
+  `INBOUND_EMAIL_BASIC_AUTH` need at least 24 characters (and the Basic
+  value `user:password` with a 16+ character password) in the config
+  loader and in `check-env.mjs`. `POST /v1/auth/sso/{p}/start` is
+  limited to 300 starts per minute across the service (product
+  default; a per-address limit belongs in the gateway: the route has
+  no caller identity). `main.ts jobs` gains `channel-purge`
+  (`purge_channel_state`, migration `1313`, SECURITY DEFINER; owner
+  DELETE and SELECT policies on `rate_counters`; `payroll_app` still
+  has no DELETE grant): SSO states a day past expiry and rate counters
+  older than two days go. Tested on pglite and real PostgreSQL.

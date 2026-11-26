@@ -289,6 +289,27 @@ describe("SSO with OpenID Connect", () => {
       expect(u!.locked_until).not.toBeNull();
     });
 
+  it("M9: SSO starts are limited; expired states are purged",
+    async () => {
+      const ctx = await makeApp();
+      const exp = new Date(ctx.clock.now.getTime() + 600_000).toISOString();
+      await db(ctx, `INSERT INTO sso_states (state_hash, provider, intent,
+        nonce, code_verifier_enc, expires_at) SELECT 'h' || g, 'google',
+        'login', 'n', 'v', $1 FROM generate_series(1, 300) g`, [exp]);
+      const r = await call(ctx.app, null, null, "POST",
+        "/v1/auth/sso/google/start", { intent: "login" });
+      expect(r.status).toBe(429);
+      ctx.clock.advance(2 * 86400_000);
+      const { JOBS } = await import("../src/jobs/jobs");
+      const purge = JOBS.find((j) => j.name === "channel-purge")!;
+      const { db: _d, ...deps } = ctx.deps;
+      const out = await purge.run((t, fn) => withTenant(ctx.deps.db, t, fn),
+        deps);
+      expect(out.states).toBe(300);
+      expect((await call(ctx.app, null, null, "POST",
+        "/v1/auth/sso/google/start", { intent: "login" })).status).toBe(200);
+    });
+
   it("sso_not_configured and settings need owner MFA", async () => {
     const ctx = await makeApp({ channels: fakeChannels({ oidc: false }) });
     const r = await call(ctx.app, null, null, "POST",

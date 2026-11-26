@@ -18,10 +18,29 @@ export interface StateRow {
   code_verifier_enc: string;
 }
 
+/**
+ * SSO starts per minute across the service (review M9; a product
+ * default: the public start route has no caller identity, so a
+ * per-address limit belongs in the gateway).
+ */
+export const SSO_STARTS_PER_MINUTE = 300;
+
+async function startsLastMinute(tx: Db, now: Date): Promise<number> {
+  // A state expires STATE_MS after it was made.
+  const since = new Date(now.getTime() + STATE_MS - 60_000).toISOString();
+  const [r] = await tx.query<{ n: number }>(
+    "SELECT count(*)::int AS n FROM sso_states WHERE expires_at > $1",
+    [since]);
+  return r?.n ?? 0;
+}
+
 /** State and nonce: 32 random bytes; only the state's hash is kept. */
 export async function createState(tx: Db, deps: HandlerDeps,
   provider: SsoProvider, intent: StateRow["intent"],
   extra: { userId?: string; inviteToken?: string } = {}) {
+  if (await startsLastMinute(tx, deps.now()) >= SSO_STARTS_PER_MINUTE) {
+    throw new ApiError("RATE_LIMITED");
+  }
   const state = b64(deps.randomBytes(32));
   const nonce = b64(deps.randomBytes(32));
   const pk = pkcePair(deps.randomBytes(32));

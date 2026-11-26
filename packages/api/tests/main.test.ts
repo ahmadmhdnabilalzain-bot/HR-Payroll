@@ -57,6 +57,19 @@ describe("loadConfig", () => {
     expect(() => loadConfig({ ...BASE_ENV, WHATSAPP_APP_SECRET: "s" }))
       .toThrow(/WHATSAPP_PHONE_NUMBER_ID/);
   });
+  it("M9: our own provider secrets have a minimum length", () => {
+    const wa = { WHATSAPP_PHONE_NUMBER_ID: "1", WHATSAPP_ACCESS_TOKEN: "t",
+      WHATSAPP_GRAPH_VERSION: "v21.0",
+      WHATSAPP_APP_SECRET: "a".repeat(24),
+      WHATSAPP_VERIFY_TOKEN: "b".repeat(24) };
+    expect(loadConfig({ ...BASE_ENV, ...wa }).channels.whatsapp)
+      .not.toBeNull();
+    expect(() => loadConfig({ ...BASE_ENV, ...wa,
+      WHATSAPP_APP_SECRET: "short" })).toThrow(/at least 24/);
+    expect(() => loadConfig({ ...BASE_ENV, INBOUND_EMAIL_DOMAIN: "in.x",
+      INBOUND_EMAIL_BASIC_AUTH: "hook-only-no-password-here-x" }))
+      .toThrow(/user:password/);
+  });
   it("public base URLs must be https", () => {
     expect(() => loadConfig({ ...BASE_ENV,
       PUBLIC_API_BASE_URL: "http://x" }))

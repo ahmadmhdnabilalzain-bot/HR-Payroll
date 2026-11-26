@@ -18,4 +18,15 @@ export const JOBS: readonly Job[] = [
     ({ ...await dispatchDue(enter, deps) }) },
   { name: "webhook-delivery", run: async (enter, deps) =>
     ({ ...await deliverDueWebhooks(enter, deps) }) },
+  { name: "channel-purge", run: purgeChannelState },
 ];
+
+/** Expired SSO states and old rate counters (review M9). */
+async function purgeChannelState(enter: Enter, deps: HandlerDeps)
+  : Promise<Record<string, number>> {
+  return enter({ companyId: null, userId: null }, async (tx) => {
+    const [r] = await tx.query<{ states: number; counters: number }>(
+      "SELECT * FROM purge_channel_state($1)", [deps.now().toISOString()]);
+    return { states: r?.states ?? 0, counters: r?.counters ?? 0 };
+  });
+}
