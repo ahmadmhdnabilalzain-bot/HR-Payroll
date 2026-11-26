@@ -15,11 +15,14 @@ export type SsoStartRequest = z.infer<typeof SsoStartRequest>;
 export const SsoStartResponse = z.object({
   authorizeUrl: z.string(),
   expiresAt: Timestamp,
+  /** Keep in this browser tab; send back with the callback (M2). */
+  binding: z.string(),
 });
 
 export const SsoCallbackRequest = z.object({
   code: z.string().min(1).max(2048),
   state: z.string().min(1).max(200),
+  binding: z.string().min(1).max(200),
   totp: z.string().regex(/^\d{6}$/).optional(),
 });
 export type SsoCallbackRequest = z.infer<typeof SsoCallbackRequest>;

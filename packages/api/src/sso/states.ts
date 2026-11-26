@@ -45,28 +45,31 @@ export async function createState(tx: Db, deps: HandlerDeps,
   const nonce = b64(deps.randomBytes(32));
   const pk = pkcePair(deps.randomBytes(32));
   const hash = sha256Hex(state);
+  const binding = b64(deps.randomBytes(32));
   const expiresAt = new Date(deps.now().getTime() + STATE_MS).toISOString();
   await tx.query(
     `INSERT INTO sso_states (state_hash, provider, intent, user_id,
-       invite_token_enc, nonce, code_verifier_enc, expires_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+       invite_token_enc, nonce, code_verifier_enc, expires_at,
+       binding_hash) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
     [hash, provider, intent, extra.userId ?? null,
       extra.inviteToken === undefined ? null : deps.keyring.encryptGlobal(
         `sso_states:invite:${hash}`, extra.inviteToken), nonce,
       deps.keyring.encryptGlobal(`sso_states:verifier:${hash}`,
-        pk.verifier), expiresAt]);
-  return { state, nonce, challenge: pk.challenge, expiresAt };
+        pk.verifier), expiresAt, sha256Hex(binding)]);
+  return { state, nonce, challenge: pk.challenge, expiresAt, binding };
 }
 
 /** Used once, unexpired, for this provider; else 400. */
 export async function consumeState(tx: Db, deps: HandlerDeps,
-  provider: SsoProvider, state: string): Promise<StateRow & {
+  provider: SsoProvider, state: string, binding: string)
+  : Promise<StateRow & {
     verifier: string; inviteToken: string | null }> {
   const now = deps.now().toISOString();
   const [r] = await tx.query<StateRow>(
     `UPDATE sso_states SET used_at = $2 WHERE state_hash = $1
        AND used_at IS NULL AND expires_at > $2 AND provider = $3
-     RETURNING *`, [sha256Hex(state), now, provider]);
+       AND binding_hash = $4
+     RETURNING *`, [sha256Hex(state), now, provider, sha256Hex(binding)]);
   if (r === undefined) throw new ApiError("SSO_STATE_INVALID");
   const h = r.state_hash;
   return { ...r, verifier: deps.keyring.decryptGlobal(

@@ -14,7 +14,8 @@ let n = 0;
 /** Start (or link-start), sign the token with the sent nonce, call back. */
 async function sso(ctx: Ctx, p: "google" | "microsoft",
   claims: Record<string, unknown>, o: { start?: Record<string, unknown>;
-    link?: string; bearer?: string | null; totp?: string } = {}) {
+    link?: string; bearer?: string | null; totp?: string;
+    binding?: string } = {}) {
   const start = o.link !== undefined
     ? await call(ctx.app, o.link, null, "POST",
       `/v1/me/sso-identities/${p}/link`)
@@ -31,7 +32,8 @@ async function sso(ctx: Ctx, p: "google" | "microsoft",
     ...claims }));
   const bearer = o.bearer === undefined ? o.link ?? null : o.bearer;
   return call(ctx.app, bearer, null, "POST", `/v1/auth/sso/${p}/callback`,
-    { code, state: s.state, ...(o.totp ? { totp: o.totp } : {}) });
+    { code, state: s.state, binding: o.binding ?? start.body.binding,
+      ...(o.totp ? { totp: o.totp } : {}) });
 }
 
 const google = (sub: string, email: string) => ({ sub, email,
@@ -148,11 +150,12 @@ describe("SSO with OpenID Connect", () => {
     const ctx = await makeApp();
     const a = await signup(ctx.app, "ssod");
     const b = await signup(ctx.app, "ssoe");
-    await call(ctx.app, null, null, "POST", "/v1/auth/sso/google/start",
-      { intent: "login" });
+    const started = await call(ctx.app, null, null, "POST",
+      "/v1/auth/sso/google/start", { intent: "login" });
     const st = oidcOf(ctx).starts.at(-1)!;
     const cb = (p: string) => call(ctx.app, null, null, "POST",
-      `/v1/auth/sso/${p}/callback`, { code: "x", state: st.state });
+      `/v1/auth/sso/${p}/callback`, { code: "x", state: st.state,
+        binding: started.body.binding });
     expect((await cb("microsoft")).body.error.code).toBe("SSO_STATE_INVALID");
     ctx.clock.advance(11 * 60_000);
     expect((await cb("google")).body.error.code).toBe("SSO_STATE_INVALID");
@@ -309,6 +312,21 @@ describe("SSO with OpenID Connect", () => {
       expect((await call(ctx.app, null, null, "POST",
         "/v1/auth/sso/google/start", { intent: "login" })).status).toBe(200);
     });
+
+  it("M2: the callback needs the start's browser binding", async () => {
+    const ctx = await makeApp();
+    const a = await signup(ctx.app, "ssom2");
+    const m = await enableMfa(ctx.app, ctx.clock, a);
+    expect((await sso(ctx, "google", google("g-m2", a.email),
+      { link: m.token })).status).toBe(200);
+    // A callback URL sent to a victim carries code and state, but not
+    // the binding kept in the attacker's own browser.
+    const r = await sso(ctx, "google", google("g-m2", a.email),
+      { binding: "not-the-binding-of-this-start" });
+    expect(r.body.error.code).toBe("SSO_STATE_INVALID");
+    expect((await sso(ctx, "google", google("g-m2", a.email))).status)
+      .toBe(200);
+  });
 
   it("sso_not_configured and settings need owner MFA", async () => {
     const ctx = await makeApp({ channels: fakeChannels({ oidc: false }) });

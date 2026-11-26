@@ -33,7 +33,7 @@ async function startFor(ctx: ReqCtx, p: SsoProvider,
     intent, extra));
   return { authorizeUrl: ctx.deps.channels.oidc.authorizeUrl(p, {
     state: s.state, nonce: s.nonce, codeChallenge: s.challenge,
-    redirectUri: uri }), expiresAt: s.expiresAt };
+    redirectUri: uri }), expiresAt: s.expiresAt, binding: s.binding };
 }
 
 /** POST /v1/auth/sso/{provider}/start (public). */
@@ -113,7 +113,7 @@ export async function ssoCallback(ctx: ReqCtx<SsoCallbackRequest, unknown,
   P>): Promise<LoginResponse> {
   const p = ctx.params.provider;
   const st = await ctx.enter(NO_TENANT, (tx) => consumeState(tx, ctx.deps,
-    p, ctx.body.state));
+    p, ctx.body.state, ctx.body.binding));
   const id = await identityOf(ctx, p, ctx.body.code, st);
   let userId: string;
   if (st.intent === "link") {

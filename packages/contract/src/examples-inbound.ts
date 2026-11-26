@@ -65,7 +65,8 @@ export const INBOUND_EXAMPLES: Readonly<Record<string, unknown>> = {
   ApiKeyCreated: { key, secret: "hrk_0123456789abcdef_" +
     "EXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEX" },
   SsoStartResponse: { authorizeUrl: "https://accounts.google.com/o/" +
-    "oauth2/v2/auth?state=...", expiresAt: AT },
+    "oauth2/v2/auth?state=...", expiresAt: AT,
+    binding: "EXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEX" },
   SsoIdentityList: { items: [{ id: ID, provider: "google",
     email: "sara@acme.test", linkedAt: AT, lastUsedAt: null }] },
   SsoSettings: { allowedDomains: ["acme.test"],

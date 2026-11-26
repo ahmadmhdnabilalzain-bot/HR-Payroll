@@ -84,7 +84,8 @@ async function ssoFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {
   ctx.fakes.txt.set(dom.txtName, [dom.txtValue]);
   await hit("verifySsoDomain", u.owner, c, {}, { domain: "flow.test" });
   const oidc = ctx.deps.channels.oidc as FakeOidc;
-  await hit("ssoLinkStart", u.owner, null, { provider: "google" });
+  const ls = await hit("ssoLinkStart", u.owner, null,
+    { provider: "google" });
   const code = (st: { nonce: string }) => {
     const now = Math.floor(ctx.clock.now.getTime() / 1000);
     oidc.codes.set("flow", oidc.issuer.idToken({ sub: "flow-1",
@@ -95,12 +96,12 @@ async function ssoFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {
   const linkSt = oidc.starts.at(-1)!;
   await call(ctx.app, u.owner, null, "POST",
     "/v1/auth/sso/google/callback", { code: code(linkSt),
-      state: linkSt.state });
-  await hit("ssoStart", null, null, { provider: "google" },
+      state: linkSt.state, binding: ls.body.binding });
+  const ss = await hit("ssoStart", null, null, { provider: "google" },
     { intent: "login" });
   const st = oidc.starts.at(-1)!;
   await hit("ssoCallback", null, null, { provider: "google" },
-    { code: code(st), state: st.state });
+    { code: code(st), state: st.state, binding: ss.body.binding });
   const ids = await hit("listSsoIdentities", u.owner, null);
   await hit("unlinkSsoIdentity", u.owner, null,
     { id: ids.body.items[0].id });
