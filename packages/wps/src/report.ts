@@ -11,8 +11,22 @@ function where(f: Finding): string {
   return `line ${f.line}${field}`;
 }
 
+const MAX_VALUE = 40;
+
+/**
+ * File text is untrusted: show it quoted, control and non-ASCII
+ * characters as "?", at most 40 characters. Echoed file text is the one
+ * part of the report that is not our own wording.
+ */
+function quote(v: string): string {
+  const clean = v.replace(/[^\x20-\x7e]/g, "?");
+  const cut = clean.length > MAX_VALUE
+    ? `${clean.slice(0, MAX_VALUE)}...` : clean;
+  return `"${cut.replace(/"/g, "'")}"`;
+}
+
 function describe(f: Finding): string {
-  const value = f.value === "" ? "" : ` (value: "${f.value}")`;
+  const value = f.value === "" ? "" : ` (value: ${quote(f.value)})`;
   return `  ${where(f)}: ${f.severity} ${f.code}: ${f.message}${value}`;
 }
 

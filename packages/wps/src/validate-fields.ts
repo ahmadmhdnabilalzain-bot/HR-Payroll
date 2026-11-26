@@ -9,6 +9,8 @@ export interface Ctx {
   readonly layout: SifLayout;
   readonly out: Finding[];
   readonly today: string | undefined;
+  /** Unknown routing codes already reported, so each is reported once. */
+  readonly unknownRouting: Set<string>;
 }
 
 type Severity = Finding["severity"];
@@ -52,9 +54,10 @@ export function checkRouting(
   const v = fieldAt(r, n);
   const len = ctx.layout.routingLength;
   if (/^[0-9]+$/.test(v) && v.length === len) {
-    if (lookup && lookupRouting(v) === null) {
+    if (lookup && lookupRouting(v) === null && !ctx.unknownRouting.has(v)) {
+      ctx.unknownRouting.add(v);
       report(ctx, "ROUTING_UNKNOWN", "warning", r, n,
-        "Routing code is not in the bundled table (partial, 2016-era)");
+        "Routing code is not in the bundled table (partial and old)");
     }
     return v;
   }

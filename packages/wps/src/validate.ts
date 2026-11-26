@@ -81,8 +81,19 @@ function checkMonths(
   }
 }
 
-function checkTotals(ctx: Ctx, w: Walk, scr: ScrInfo): void {
-  if (scr.count !== null && scr.count !== w.edrCount) {
+/**
+ * `unknown`: some line had an unknown record type and may be a hidden
+ * EDR, so a count or total larger than what we read is not an error yet.
+ * Smaller is still certain.
+ */
+function checkTotals(
+  ctx: Ctx,
+  w: Walk,
+  scr: ScrInfo,
+  unknown: boolean,
+): void {
+  if (scr.count !== null && scr.count !== w.edrCount &&
+    !(unknown && scr.count > w.edrCount)) {
     report(ctx, "EDR_COUNT_MISMATCH", "error", scr.rec, 7,
       `SCR count differs from the ${w.edrCount} EDR lines`);
   }
@@ -91,7 +102,8 @@ function checkTotals(ctx: Ctx, w: Walk, scr: ScrInfo): void {
     if (e.fixed === null || e.variable === null) return;
     sum += e.fixed + e.variable;
   }
-  if (w.complete && scr.total !== null && scr.total !== sum) {
+  if (w.complete && scr.total !== null && scr.total !== sum &&
+    !(unknown && scr.total > sum)) {
     report(ctx, "TOTAL_MISMATCH", "error", scr.rec, 8,
       "SCR total differs from the sum of fixed and variable pay");
   }
@@ -109,16 +121,15 @@ export function validateSif(
 ): Finding[] {
   if (today !== undefined) parseIsoDate(today, "today");
   const parsed = parseSif(text);
-  const ctx: Ctx = { layout, out: [...parsed.findings], today };
+  const ctx: Ctx = { layout, out: [...parsed.findings], today,
+    unknownRouting: new Set() };
   const w = walk(ctx, parsed.records);
   checkEmployees(ctx, w.edrs);
   const scr = lastScr(ctx, parsed.records);
   if (scr !== null) {
     if (scr.month !== null) checkMonths(ctx, w.edrs, scr.month);
-    // An unknown record type may hide an EDR: do not guess the totals.
-    if (!parsed.findings.some((f) => f.code === "RECORD_TYPE")) {
-      checkTotals(ctx, w, scr);
-    }
+    const unknown = parsed.findings.some((f) => f.code === "RECORD_TYPE");
+    checkTotals(ctx, w, scr, unknown);
   }
   return sortFindings(ctx.out);
 }

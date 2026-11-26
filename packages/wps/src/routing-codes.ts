@@ -10,9 +10,10 @@
  * note and never guessed. Before production, get the live list from
  * the bank or the central bank.
  *
- * `entityId` is the bank digits of an IBAN, which the research note
- * records as equal to routing code digits 2 to 4; it is taken from the
- * code, not looked up separately.
+ * `entityId` is derived from routing code digits 2 to 4. That matches
+ * the IBAN bank digits in the guide samples for Dubai Islamic Bank
+ * (024) and Emirates Islamic (034) only; for the other four banks it is
+ * unverified, and the note says a code and an IBAN bank id may differ.
  */
 export interface RoutingCode {
   readonly entityId: string;

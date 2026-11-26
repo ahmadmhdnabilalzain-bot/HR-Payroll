@@ -41,6 +41,25 @@ describe("renderReport", () => {
     const out = renderReport([f], "d.SIF");
     expect(out.startsWith("No errors, 1 warning")).toBe(true);
   });
+  it("sanitises echoed values and never leaks banned words", () => {
+    const at = { line: 1, field: 2 };
+    const fs = [
+      makeFinding("A", "error", at, "bad", "approved"),
+      makeFinding("B", "error", at, "bad", "x\rcompliant\n\0\t"),
+      makeFinding("C", "error", at, "bad", "y".repeat(500)),
+    ];
+    const out = renderReport(fs, "f.SIF");
+    const lines = out.split("\n");
+    expect(out).not.toMatch(/[\r\0\t]/);
+    expect(lines.some((l) => l.includes('(value: "x?compliant???")')))
+      .toBe(true);
+    expect(lines.some((l) => l.includes(`"${"y".repeat(40)}..."`))).toBe(true);
+    expect(lines.every((l) => l.length < 200)).toBe(true);
+    // Own wording stays clean once quoted values are removed.
+    const own = out.replace(/\(value: ".*"\)/g, "");
+    expect(own).not.toMatch(BANNED);
+    expect(own.trimEnd().endsWith(CLOSING)).toBe(true);
+  });
   it("never says compliant, approved or certified", () => {
     const files = [BASE, set(1, 3, "1"), set(3, 5, "x"), []];
     for (const f of files) {

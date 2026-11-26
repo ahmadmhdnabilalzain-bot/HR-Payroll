@@ -37,7 +37,7 @@ export interface ScrInput {
   readonly reference?: string;
 }
 
-export const REFERENCE_MAX = 35;
+const REFERENCE_MAX = 35;
 
 /** Every value written to a line passes through here. */
 function field(value: string, max?: number): string {

@@ -4,6 +4,7 @@ export interface SifLayout {
   readonly employerIdLength: number;
   readonly accountLength: number;
   readonly routingLength: number;
+  readonly referenceMaxLength: number;
   readonly minPayStart: string;
   readonly lineEnding: string;
   readonly currency: string;
@@ -16,6 +17,7 @@ export const defaultLayout: SifLayout = {
   employerIdLength: 13,
   accountLength: 23,
   routingLength: 9,
+  referenceMaxLength: 35,
   minPayStart: "2010-10-01",
   lineEnding: "\r\n",
   currency: "AED",

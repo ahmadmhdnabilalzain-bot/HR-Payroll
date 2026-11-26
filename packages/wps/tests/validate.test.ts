@@ -141,6 +141,22 @@ describe("validateSif details", () => {
     const fs = validateSif(text(set(3, 1, "EDX")), L);
     expect(fs.map((f) => f.code)).toEqual(["RECORD_TYPE"]);
   });
+  it("still reports a count and total smaller than the known records", () => {
+    const [a, b, c, d] = BASE as [string, string, string, string];
+    const scr = set(4, 7, "1", set(4, 8, "1.00"))[3]!;
+    const fs = validateSif(text([a, b, "junk,1", c, scr]), L);
+    expect(fs.map((f) => f.code)).toEqual([
+      "RECORD_TYPE", "EDR_COUNT_MISMATCH", "TOTAL_MISMATCH",
+    ]);
+    void d;
+  });
+  it("skips count and total when the SCR is larger than known", () => {
+    const [a, b, c, d] = BASE as [string, string, string, string];
+    const scr = set(4, 7, "3", set(4, 8, "99999.00"))[3]!;
+    const fs = validateSif(text([a, b, "junk,1", c, scr]), L);
+    expect(fs.map((f) => f.code)).toEqual(["RECORD_TYPE"]);
+    void d;
+  });
   it("still checks count and total when all record types are known", () => {
     const fs = validateSif(text(set(4, 7, "5", set(4, 8, "1.00"))), L);
     expect(fs.map((f) => f.code)).toEqual([

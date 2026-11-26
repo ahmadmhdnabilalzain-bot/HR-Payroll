@@ -1,7 +1,6 @@
 import { parseIsoDate, type Fils } from "@payroll/engine";
 import { formatMonth } from "./format";
 import type { EdrInfo } from "./validate-edr";
-import { REFERENCE_MAX } from "./records";
 import { fieldAt, type ParsedRecord } from "./parse";
 import {
   checkAmount,
@@ -84,9 +83,10 @@ export function checkScr(ctx: Ctx, r: ParsedRecord): ScrInfo {
   const month = checkMonth(ctx, r);
   const count = checkCount(ctx, r, 7);
   const total = checkAmount(ctx, r, 8);
-  if (fieldAt(r, 10).length > REFERENCE_MAX) {
+  const refMax = ctx.layout.referenceMaxLength;
+  if (fieldAt(r, 10).length > refMax) {
     report(ctx, "FIELD_TOO_LONG", "error", r, 10,
-      `Employer reference is longer than ${REFERENCE_MAX} characters`);
+      `Employer reference is longer than ${refMax} characters`);
   }
   if (fieldAt(r, 9) !== ctx.layout.currency) {
     report(ctx, "CURRENCY", "error", r, 9,

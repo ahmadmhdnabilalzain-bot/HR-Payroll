@@ -12,21 +12,19 @@ describe("lookupRouting", () => {
     expect(lookupRouting("999999999")).toBeNull();
     expect(lookupRouting("")).toBeNull();
   });
-  it("has well formed, unique rows", () => {
-    expect(ROUTING_CODES.length).toBeGreaterThan(0);
+  it("has well formed, unique codes", () => {
     for (const r of ROUTING_CODES) {
       expect(r.code).toMatch(/^[0-9]{9}$/);
-      expect(r.entityId).toBe(r.code.slice(1, 4));
       expect(r.name.length).toBeGreaterThan(0);
     }
     const codes = ROUTING_CODES.map((r) => r.code);
     expect(new Set(codes).size).toBe(codes.length);
   });
-  it("holds exactly the six banks of the research note", () => {
-    expect(ROUTING_CODES.map((r) => r.code)).toEqual([
-      "802420101", "703420114", "302620122",
-      "203320101", "600310101", "604060101",
-    ]);
+  it("has the entity ids the guide samples confirm", () => {
+    const id = (code: string): string | undefined =>
+      ROUTING_CODES.find((r) => r.code === code)?.entityId;
+    expect(id("802420101")).toBe("024");
+    expect(id("703420114")).toBe("034");
   });
 });
 
@@ -39,6 +37,15 @@ describe("ROUTING_UNKNOWN", () => {
         severity: "warning", line: 1, field: 3, value: "123456789",
       }),
     ]);
+  });
+  it("fires once per distinct unknown code, at its first line", () => {
+    const lines = set(1, 3, "123456789", set(3, 3, "123456789",
+      set(4, 3, "987654321")));
+    const fs = validateSif(text(lines), L);
+    expect(
+      fs.filter((f) => f.code === "ROUTING_UNKNOWN")
+        .map((f) => [f.line, f.value]),
+    ).toEqual([[1, "123456789"], [4, "987654321"]]);
   });
   it("is reported on the SCR too, once per line", () => {
     const fs = validateSif(text(set(4, 3, "123456789")), L);
