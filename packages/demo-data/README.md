@@ -97,6 +97,15 @@ end in `.test`. Arabic labels are NEEDS NATIVE REVIEW
   difference, to pay in November), `trafficFines` (to decide; recovery
   not computed), `finalSettlements`, and read-only `payGroups` and
   `payElements`. Every record has display strings (no raw dates).
+- **WP5 Time (`time.ts`).** `shifts` (templates with display hours),
+  `rosterPlan` (9 to 22 November, first week published, leave shown,
+  the engine's roster checks), `attendanceAgainstShifts` (October,
+  engine day sheets: overtime, night overtime, late arrivals past a
+  sample 15-minute grace; three planted late days), `attendanceToday`,
+  `punches` and `unmatchedPunches` (an unassigned badge, an out with no
+  in), `overtimeClaims` (October's, paid, valued as the engine's
+  difference; two pending for November as estimates) and
+  `overtimePreApprovals` (operations at month-end, engine estimate).
 
 ## Tests
 
