@@ -10,6 +10,9 @@ saved (a reload starts the story again).
 pnpm --filter @payroll/web dev      # http://localhost:5173
 pnpm --filter @payroll/web build    # static site in apps/web/dist
 pnpm --filter @payroll/web preview  # serve dist on :4173
+pnpm --filter @payroll/web build:offline
+# one self-contained file: dist-offline/mubinflow-demo.html, opens by
+# double click (file://), no network, no server
 ```
 
 - Hash routing (`#/section/rest`): every visit loads `index.html`, so
@@ -46,11 +49,20 @@ returns:
 
 **Shared rules** (`src/demo/derive.ts`, `src/demo/actions.ts`):
 `openIssues`, `confirmations`, `notes`, `pendingApprovals`,
-`personOf(role)`, `steps`, `runPhase`, and `useRunApproval()`. The
-pay run's Approve on Home and on the Pay run page must both use
+`personOf(role)`, `approvalBlockedBy`, `steps`, `runPhase` ("bank-
+details" | "approve" | "declined" | "file"), and `useRunApproval()`.
+The pay run's Approve on Home and on the Pay run page must both use
 `useRunApproval()`: it is disabled while any payslip has no bank
-account (the real API refuses a whole run then; never a partial run)
-and returns the reason. Role switches go through `useSwitchRole()`
+account or an IBAN that fails its check digits (the real API refuses
+a whole run; the bank would reject a mistyped one; never a partial
+run), and `blockedBy` names who holds it back.
+
+**Explain any figure** with `<Explainable explanation={...}>` from
+`src/components/explain` and `useRunDetail()` (`src/demo/
+useRunDetail.ts`, a lazy chunk: wrap its user in `<Suspense>` with
+the plain figure as fallback, as the Home net figure does).
+
+Role switches go through `useSwitchRole()`
 (a quiet crossfade).
 
 **Show money** only with `<Money value={fils} />` (`src/ui/Money.tsx`):
@@ -73,7 +85,8 @@ package. Never write "compliant", "approved", "certified" or
   net figure with its make-up and the salary-file split, the progress
   steps, at most three issues ("N more to review" expands), and
   approvals. Setup to confirm, expiries and departments sit below.
-- **Signature moment:** entering an IBAN re-runs the real file check;
+- **Signature moment:** entering an IBAN re-runs the real file check
+  (both blockers: Priya Nair's missing IBAN, Juma Al Zaabi's typo);
   the held amount rolls into the file total, the issue count drops, the
   steps advance and the sentence changes. "Fill from bank letter" types
   the fictional letter's IBAN for the presenter.

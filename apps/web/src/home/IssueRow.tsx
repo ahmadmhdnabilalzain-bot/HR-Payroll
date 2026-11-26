@@ -63,7 +63,6 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
       <div className={s.body}>
         <p className={s.titleRow}>
           <span className={s.name}>{i.title[lang]}</span>
-          {who !== null && <span className={s.role}>{who.role[lang]}</span>}
         </p>
         <p className={s.reason}>{i.reason[lang]}</p>
         {canAct && editing && (

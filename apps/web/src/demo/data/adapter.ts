@@ -17,6 +17,7 @@ import {
   type DemoCompany,
   type DemoIssue,
 } from "@payroll/demo-data";
+import { adaptPeople } from "./people";
 import type {
   Approval,
   DemoData,
@@ -104,6 +105,7 @@ export function adapt(c: DemoCompany): DemoData {
       pension: both(PENSION_NOT_COMPUTED.en, PENSION_NOT_COMPUTED.ar) }),
     runPeople: () => ({ makerId: run.makerEmployeeId,
       checkerId: run.checkerEmployeeId }),
+    people: adaptPeople(c),
   };
 }
 

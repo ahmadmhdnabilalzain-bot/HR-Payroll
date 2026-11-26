@@ -496,11 +496,14 @@ backups are not encrypted or copied off the host.
 ## Client demo (branch `demo-web`, 2026-11-26)
 
 `apps/web` is now the browser-only client demo on `@payroll/demo-data`
-(see `apps/web/DEMO.md`). Scene 1 (Home) is built and verified: light
-and dark, English and Arabic RTL (behind `?ar=1` until the Arabic is
-reviewed), desktop and phone, axe clean. Scenes 2 to 4 (pay run end
-to end, explain-why drawer, employee view) wait for the owner's
-go-ahead on scene 1. `src/api` groundwork is kept but not mounted.
+(see `apps/web/DEMO.md`, which also documents the store API). Home,
+the shell, the demo store, the phone layout and the offline
+single-file build are on `demo-web` and verified (1920, 1440 and 1280
+wide, iPhone 13, 14 and 15 Pro in Chromium emulation, light and dark,
+axe clean). Pay run, Explain, Reports, People and Time off are built
+on `demo-payrun-explain` and `demo-people-timeoff` and merge into
+`demo-web`; a final integration pass follows. `src/api` groundwork is
+kept but not mounted.
 
 ## Next step
 

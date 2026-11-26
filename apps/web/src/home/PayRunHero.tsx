@@ -1,4 +1,7 @@
+import { Suspense } from "react";
+import { Explainable } from "../components/explain";
 import { notes } from "../demo/derive";
+import { useRunDetail } from "../demo/useRunDetail";
 import { useDemo } from "../demo/state";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -29,7 +32,10 @@ export function PayRunHero() {
             {t("home.net")}
           </h2>
           <p className={s.figure}>
-            <Money value={h.netTotalFils} size="hero" />
+            <Suspense fallback={<Money value={h.netTotalFils} size="hero"
+              countUp />}>
+              <ExplainedNet />
+            </Suspense>
           </p>
           <p className={s.caveat}>
             <Icon name="info" size={16} />
@@ -85,5 +91,16 @@ export function PayRunHero() {
       <Sources note={note?.reason[lang] ?? null} />
       <StepTracker />
     </section>
+  );
+}
+
+/** The net figure opens its explanation (loaded with the run detail). */
+function ExplainedNet() {
+  const { data } = useDemo();
+  const run = useRunDetail();
+  return (
+    <Explainable explanation={run.explain["run:net"]}>
+      <Money value={data.headline().netTotalFils} size="hero" countUp />
+    </Explainable>
   );
 }

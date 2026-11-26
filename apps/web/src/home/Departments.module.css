@@ -111,3 +111,11 @@
     grid-row: 2;
   }
 }
+
+/* Touch screens: at least 44 by 44 px. */
+@media (pointer: coarse) {
+  .seg button {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+}

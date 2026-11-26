@@ -1,4 +1,5 @@
 import type { Fils } from "@payroll/engine";
+import type { PeopleData } from "./people-types";
 
 /**
  * What the screens read: a thin view over `@payroll/demo-data`, built
@@ -131,6 +132,8 @@ export interface DemoData {
   payCalendar(): PayCalendar;
   basis(): Basis;
   runPeople(): RunPeople;
+  /** People and Time off (people-types.ts). */
+  people: PeopleData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };

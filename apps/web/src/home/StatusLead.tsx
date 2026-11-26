@@ -1,5 +1,6 @@
 import { useRunApproval } from "../demo/actions";
 import { isBlocking, openIssues } from "../demo/derive";
+import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import {
   formatList,
@@ -22,11 +23,13 @@ export function StatusLead() {
   const run = useRunApproval();
   const h = data.headline();
   const month = formatMonthName(h.runMonth, lang);
-  const nameOf = (id: string): string => data.employee(id).name[lang];
+  const nameOf = (id: string): string =>
+    data.employee(id).name[lang].replace(/ /g, "\u00a0");
   const names = (ids: string[]): string => formatList(ids.map(nameOf), lang);
   const checker = nameOf(data.runPeople().checkerId);
   const held = run.blockedBy;
   const sentence = run.phase === "file" ? t("home.statusFile", { month })
+    : run.phase === "declined" ? t("home.statusDeclined", { month })
     : run.phase === "approve"
       ? (run.isChecker ? t("home.statusApproveYou", { month })
         : t("home.statusApprove", { month, name: checker }))
@@ -42,20 +45,40 @@ export function StatusLead() {
       <div className={s.row}>
         <h1 key={sentence} className={s.sentence}>{sentence}</h1>
         <div className={s.action}>
-          {run.isChecker && run.phase !== "file" && (
+          {run.isChecker && (run.phase === "approve" ||
+            run.phase === "bank-details") && (
             <>
               <button type="button" className={`${b.btn} ${b.primary}
                 ${b.large}`} disabled={!run.canDecide}
-                aria-describedby={run.canDecide ? undefined : "approve-why"}
+                aria-describedby={held.length === 0 ? undefined
+                  : "approve-why"}
                 onClick={() => run.decide("approve")}>
                 {t("home.primaryApprove", { month })}
               </button>
-              {!run.canDecide && (
+              {!run.canDecide && held.length > 0 && (
                 <p id="approve-why" className={s.why}>
                   {t("home.approveWaits", { names: names(held) })}
                 </p>
               )}
             </>
+          )}
+          {!run.isChecker && firstHeld === undefined &&
+            run.phase !== "bank-details" && (
+            <a className={`${b.btn} ${b.primary} ${b.large}`}
+              href={run.phase === "file" ? hrefOf("pay-run", "pay")
+                : hrefOf("pay-run", "approve")}>
+              {run.phase === "file" ? t("home.primaryOpenPay")
+                : t("home.primaryOpenRun")}
+            </a>
+          )}
+          {run.isChecker && (run.phase === "file" ||
+            run.phase === "declined") && (
+            <a className={`${b.btn} ${b.secondary} ${b.large}`}
+              href={hrefOf("pay-run", run.phase === "file" ? "pay"
+                : "approve")}>
+              {run.phase === "file" ? t("home.primaryOpenPay")
+                : t("home.primaryOpenRun")}
+            </a>
           )}
           {!run.isChecker && firstHeld !== undefined && (
             <button type="button" className={`${b.btn} ${b.primary}
