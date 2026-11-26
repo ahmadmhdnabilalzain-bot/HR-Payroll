@@ -35,6 +35,8 @@ describe("boundaries", () => {
     // in parallel merge without conflicts.
     const allowed = [
       "src/demo/data/adapter.ts",
+      "src/demo/data/checks-types.ts",
+      "src/demo/data/checks.ts",
       "src/demo/data/payroll-extras-types.ts",
       "src/demo/data/payroll-extras.ts",
       "src/demo/data/files-types.ts",
@@ -49,6 +51,7 @@ describe("boundaries", () => {
       "src/reports/source-explain.ts",
       "src/reports/cost/source.ts",
       "src/reports/planning/source.ts",
+      "src/pay/variable/source.ts",
       "src/reports/more/source.ts",
       "src/pay/more/source.ts",
       "src/setup/more/source.ts",
@@ -73,7 +76,9 @@ describe("boundaries", () => {
       "src/demo/data/more.ts",
       "src/demo/data/pay.ts",
       "src/demo/data/requests-types.ts",
+      "src/demo/data/referrals.ts",
       "src/demo/data/rule-change.ts",
+      "src/demo/data/sandbox.ts",
       "src/demo/data/requests.ts",
       "src/demo/data/verify-types.ts",
       "src/demo/data/verify.ts",

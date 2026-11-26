@@ -19,6 +19,7 @@ import {
 } from "./defs";
 import { Catalogue } from "./Catalogue";
 import { Guard } from "./Guard";
+import { CHECKS_SCREENS } from "./checks";
 import { COST_SCREENS } from "./cost";
 import { PLANNING_SCREENS } from "./planning";
 import { SAFETY_SCREENS } from "../people/safety/Report";
@@ -43,6 +44,7 @@ const SCREENS: Record<string, { view: ComponentType<ViewProps>;
   "dashboard-exec": { view: DashboardExec, gmOnly: true },
   ...COST_SCREENS,
   ...PLANNING_SCREENS,
+  ...CHECKS_SCREENS,
   ...SAFETY_SCREENS,
   ...MORE_SCREENS,
   ...INSPECTION_SCREENS,

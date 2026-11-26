@@ -53,3 +53,8 @@ export * from "./wpe-planning";
 export * from "./wpe-audit";
 export * from "./wpe-time-finish";
 export * from "./wpe-esign";
+export * from "./wpe-bonus";
+export * from "./wpe-commission";
+export * from "./wpe-checks";
+export * from "./wpe-sandbox";
+export * from "./wpe-referrals";

@@ -1,12 +1,14 @@
 import type { Area } from "../types";
 import { CORE_AREAS } from "./core";
 import { AREAS as AUDIT_ROOM } from "./audit-room";
+import { AREAS as CHECKS } from "./checks";
 import { AREAS as COST } from "./cost";
 import { AREAS as ERP } from "./erp";
 import { AREAS as EXIT_FILES } from "./exit-files";
 import { AREAS as HOME_ME } from "./home-me";
 import { AREAS as PAY } from "./pay";
 import { AREAS as PAYROLL_EXTRAS } from "./payroll-extras";
+import { AREAS as PAY_VARIABLE } from "./pay-variable";
 import { AREAS as PEOPLE_MOVES } from "./people-moves";
 import { AREAS as PEOPLE_PAPERS } from "./people-papers";
 import { AREAS as PEOPLE_SAFETY } from "./people-safety";
@@ -17,6 +19,7 @@ import { AREAS as PLANNING } from "./planning";
 import { AREAS as REPORTS } from "./reports";
 import { AREAS as REQUESTS } from "./requests";
 import { AREAS as RULE_CHANGE } from "./rule-change";
+import { AREAS as SANDBOX } from "./sandbox";
 import { AREAS as SETUP_ACCESS } from "./setup-access";
 import { AREAS as SETUP_RULES } from "./setup-rules";
 import { AREAS as SETUP_STRUCTURE } from "./setup-structure";
@@ -41,6 +44,7 @@ export const ALL_AREAS: readonly Area[] = [
   ...TIME,
   ...PAY,
   ...PAYROLL_EXTRAS,
+  ...PAY_VARIABLE,
   ...REPORTS,
   ...COST,
   ...SETUP_RULES,
@@ -57,6 +61,8 @@ export const ALL_AREAS: readonly Area[] = [
   ...VERIFY,
   ...ESIGN,
   ...RULE_CHANGE,
+  ...SANDBOX,
   ...AUDIT_ROOM,
   ...TIME_FINISH,
+  ...CHECKS,
 ];

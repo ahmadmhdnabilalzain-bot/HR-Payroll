@@ -5,6 +5,8 @@ import { CorrectionRecord, Corrections } from "./Corrections";
 import { ExpenseRecord, Expenses } from "./Expenses";
 import { FineRecord, Fines } from "./Fines";
 import { Gate } from "./gate/Gate";
+import { BonusRecord, BonusRuns } from "./variable/Bonus";
+import { CommissionRecord, CommissionStatements } from "./variable/Commission";
 import { Deductions, OffCycle } from "./Ledger";
 import { LoanRecord, Loans } from "./Loans";
 import { Loading, Outside } from "./parts";
@@ -21,7 +23,7 @@ import { SettlementRecord, Settlements } from "./Settlements";
  */
 export const PAY_AREAS = ["loans", "revisions", "corrections",
   "settlements", "runs", "fines", "groups", "elements", "deductions",
-  "off-cycle", "expenses", "more", "gate"] as const;
+  "off-cycle", "expenses", "more", "gate", "bonus", "commission"] as const;
 export type PayAreaId = (typeof PAY_AREAS)[number];
 
 export const isPayArea = (x: string | undefined): x is PayAreaId =>
@@ -47,6 +49,10 @@ function screen(area: PayAreaId, id: string | undefined,
     case "more": return <PayMore rest={rest} />;
     case "expenses": return id === undefined ? <Expenses />
       : <ExpenseRecord id={id} />;
+    case "bonus": return id === undefined ? <BonusRuns />
+      : <BonusRecord id={id} />;
+    case "commission": return id === undefined ? <CommissionStatements />
+      : <CommissionRecord id={id} />;
     case "gate": return <Gate rest={["gate", id ?? ""]} />;
   }
 }

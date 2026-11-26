@@ -63,11 +63,29 @@ import {
   type EidSlice,
 } from "./eid-state";
 import {
+  REFERRAL_INITIAL,
+  reduceReferral,
+  type ReferralAction,
+  type ReferralSlice,
+} from "./referral-state";
+import {
+  reduceSandbox,
+  SANDBOX_INITIAL,
+  type SandboxAction,
+  type SandboxSlice,
+} from "./sandbox-state";
+import {
   PLANNING_INITIAL,
   reducePlanning,
   type PlanningAction,
   type PlanningSlice,
 } from "./planning-state";
+import {
+  CHECKS_INITIAL,
+  reduceChecks,
+  type ChecksAction,
+  type ChecksSlice,
+} from "./checks-state";
 import {
   reduceSafety,
   SAFETY_INITIAL,
@@ -148,6 +166,18 @@ import {
   type RuleChangeSlice,
 } from "../setup/rule-change/state";
 import {
+  BONUS_INITIAL,
+  reduceBonus,
+  type BonusAction,
+  type BonusSlice,
+} from "./bonus-state";
+import {
+  COMMISSION_INITIAL,
+  reduceCommission,
+  type CommissionAction,
+  type CommissionSlice,
+} from "./commission-state";
+import {
   ESIGN_INITIAL,
   reduceEsign,
   type EsignAction,
@@ -173,7 +203,8 @@ export interface DemoState
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     EidSlice, FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
     AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
-    AuditorSlice, FinishSlice, EsignSlice {
+    SandboxSlice, ReferralSlice, AuditorSlice, FinishSlice, EsignSlice,
+    BonusSlice, CommissionSlice, ChecksSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -222,9 +253,14 @@ export type Action =
   | VerifyAction
   | RuleChangeAction
   | PlanningAction
+  | ChecksAction
+  | SandboxAction
+  | ReferralAction
   | AuditorAction
   | FinishAction
   | EsignAction
+  | BonusAction
+  | CommissionAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -244,9 +280,14 @@ export const INITIAL: DemoState = {
   ...VERIFY_INITIAL,
   ...RULE_CHANGE_INITIAL,
   ...PLANNING_INITIAL,
+  ...CHECKS_INITIAL,
+  ...SANDBOX_INITIAL,
+  ...REFERRAL_INITIAL,
   ...AUDITOR_INITIAL,
   ...FINISH_INITIAL,
   ...ESIGN_INITIAL,
+  ...BONUS_INITIAL,
+  ...COMMISSION_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -333,6 +374,17 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "plan-set":
     case "plan-signoff":
     case "plan-unsign": return reducePlanning(s, a);
+    case "check-mark":
+    case "check-unmark":
+    case "view-save":
+    case "view-remove": return reduceChecks(s, a);
+    case "sandbox-pick":
+    case "sandbox-discard":
+    case "sandbox-restore":
+    case "sandbox-save":
+    case "sandbox-unsave": return reduceSandbox(s, a);
+    case "ref-mark":
+    case "ref-unmark": return reduceReferral(s, a);
     case "more-hire":
     case "more-hire-withdraw":
     case "more-hire-restore":
@@ -385,6 +437,16 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "rule-change-step":
     case "rule-change-undo": return reduceRuleChange(s, a);
     case "esign": return reduceEsign(s, a);
+    case "bonus-new":
+    case "bonus-remove":
+    case "bonus-send":
+    case "bonus-unsend":
+    case "bonus-decide":
+    case "bonus-undecide": return reduceBonus(s, a);
+    case "commission-prepare":
+    case "commission-unprepare":
+    case "commission-decide":
+    case "commission-undecide": return reduceCommission(s, a);
   }
 }
 

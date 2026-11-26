@@ -9,6 +9,7 @@ import { Missing } from "./Missing";
 import { Offers } from "./Offers";
 import { Transfers } from "./Transfers";
 import { Requisitions, Vacancies } from "./Requisitions";
+import { ReferralsPage } from "../referrals";
 
 /**
  * Hiring, joining and leaving: `#/people/moves/<screen>/<id>`. HR and
@@ -28,6 +29,7 @@ export function Moves(p: ViewProps) {
     case "transfers": return <Transfers />;
     case "end": return <Endings />;
     case "board": return <Board />;
+    case "referrals": return <ReferralsPage />;
     case "requisitions": return <Requisitions />;
     case "vacancies": return <Vacancies />;
     default: return <Missing what="page" />;
