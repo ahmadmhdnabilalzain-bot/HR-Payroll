@@ -1,5 +1,6 @@
 import type { Area } from "../types";
 import { CORE_AREAS } from "./core";
+import { AREAS as AUDIT_ROOM } from "./audit-room";
 import { AREAS as COST } from "./cost";
 import { AREAS as ERP } from "./erp";
 import { AREAS as EXIT_FILES } from "./exit-files";
@@ -53,4 +54,5 @@ export const ALL_AREAS: readonly Area[] = [
   ...ERP,
   ...VERIFY,
   ...RULE_CHANGE,
+  ...AUDIT_ROOM,
 ];

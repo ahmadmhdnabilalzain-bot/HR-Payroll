@@ -1,6 +1,8 @@
 import { hrefOf } from "../../demo/route";
 import { FilterList, KeyValues, RecordTabs } from "../../ui/templates";
 import type { AccessData, PermissionView } from "./data";
+import { EXTERNAL_ID } from "../auditor/external";
+import { useExternalUsers } from "../auditor/useExternal";
 import { Status } from "./ui";
 import s from "./access.module.css";
 
@@ -35,13 +37,17 @@ function ByArea(p: { d: AccessData; ids: string[] }) {
 /** S20: the people who can sign in with more than the Employee role. */
 export function UsersList(p: { d: AccessData }) {
   const { d } = p;
+  const outside = useExternalUsers();
+  const rows = [...d.users, ...outside];
   return (
     <FilterList title="Users and roles"
       lede={`${d.users.length} people hold a role beyond Employee. ` +
-        d.matrix.employeeOnlyText}
-      rows={d.users} rowKey={(u) => u.id}
+        d.matrix.employeeOnlyText + (outside.length === 0 ? "" :
+        " One outside auditor has read-only access for a set time.")}
+      rows={rows} rowKey={(u) => u.id}
       searchText={(u) => `${u.name} ${u.jobText} ${u.rolesText} ${u.email}`}
-      rowHref={(u) => base("users", u.id)}
+      rowHref={(u) => u.id === EXTERNAL_ID ? hrefOf("setup", "auditor")
+        : base("users", u.id)}
       segments={[{ id: "all", label: "Everyone", match: () => true },
         { id: "admin", label: "Admin roles",
           match: (u) => isAdmin(d, u.rolesText) },
