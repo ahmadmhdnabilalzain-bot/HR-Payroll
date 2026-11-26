@@ -11,7 +11,7 @@ import { Money } from "../ui/Money";
 import { Avatar } from "../ui/Avatar";
 import { ChangeNote, CountChange, monthName, SignedMoney } from "./Change";
 import { ExplainHint } from "./ExplainHint";
-import { RollDigits } from "../ui/RollDigits";
+import { RollMoney } from "./Roll";
 import s from "./PayRun.module.css";
 
 /**
@@ -56,7 +56,7 @@ export function ReviewStep() {
           <dt>{t("payrun.net")}</dt>
           <dd className={s.leadFigure}>
             <Explainable explanation={d.explain["run:net"]}>
-              <RollDigits value={d.totals.net} size="hero" />
+              <RollMoney value={d.totals.net} size="hero" />
             </Explainable>
           </dd>
           <dd><ChangeNote now={d.totals.net} prev={d.prev.net} month={pm} />
@@ -162,7 +162,7 @@ function Total(p: { label: string; now: Fils; prev: Fils; month: string }) {
   return (
     <div className={s.total}>
       <dt>{p.label}</dt>
-      <dd><RollDigits value={p.now} size="lg" /></dd>
+      <dd><RollMoney value={p.now} size="lg" /></dd>
       <dd><ChangeNote now={p.now} prev={p.prev} month={p.month} /></dd>
     </div>
   );

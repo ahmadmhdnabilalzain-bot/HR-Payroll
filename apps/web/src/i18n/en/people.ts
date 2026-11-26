@@ -94,7 +94,6 @@ export const people = {
   payslipShort: "{month} payslip",
   copyEmail: "Copy email address",
   emailCopied: "Email address copied: {email}",
-  printProfile: "Print",
   slipAside: "Payment",
   paidTo: "Paid to",
   paidOn: "Paid on",

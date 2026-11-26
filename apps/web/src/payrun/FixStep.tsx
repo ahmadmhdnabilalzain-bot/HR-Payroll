@@ -250,14 +250,14 @@ function CheckRow(p: { issue: Issue; canAct: boolean; index: number }) {
         <span className={s.name}>{i.title[lang]}
           {name !== "" && <span className={s.who}> · {name}</span>}</span>
         <span className={s.reasonMain}>{plainOnly(i.reason[lang])}</span>
-        <span className={s.reason}>{i.suggestedFix[lang]}</span>
-        {ex !== null && (
-          <span>
+        {/* One action per row (the button at its end); the working
+            is a quiet link inside the advice, not a second action. */}
+        <span className={s.reason}>{i.suggestedFix[lang]}
+          {ex !== null && <>{" "}
             <ExplainLink explanation={d.explain[ex]} className={s.rowLink}>
               {t("payrun.howWorked")}
-            </ExplainLink>
-          </span>
-        )}
+            </ExplainLink></>}
+        </span>
       </span>
       <span className={s.rowAction}>
         {done !== undefined ? (

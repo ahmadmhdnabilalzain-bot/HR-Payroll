@@ -164,7 +164,17 @@ function openFrom(origin: DOMRect | null, el: HTMLElement | null,
   el.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${k})`,
     transformOrigin: "0 0" },
   { transform: "none", transformOrigin: "0 0" }],
-  { duration: FLIGHT_MS, easing: OPEN_EASE });
+  // On a phone the sheet rises from the bottom edge in 280 ms: the
+  // figure lands with it, so it never overshoots and settles back.
+  { duration: phone() ? SHEET_MS : FLIGHT_MS, easing: OPEN_EASE });
+}
+
+/** The phone sheet's rise (the CSS --drawer-ms). */
+const SHEET_MS = 280;
+
+function phone(): boolean {
+  return typeof matchMedia === "function" &&
+    matchMedia("(max-width: 760px)").matches;
 }
 
 const FOCUSABLE = "button, [href], input, [tabindex]:not([tabindex='-1'])";
@@ -191,11 +201,18 @@ export function ExplainPanel(p: { explanation: Explanation;
     if (reducedMotion()) {
       layer.current?.animate([{ opacity: 1 }, { opacity: 0 }],
         { duration: FADE_MS, easing: "linear", fill: "forwards" });
-      setTimeout(p.onClose, FADE_MS);
+      setTimeout(done, FADE_MS);
       return;
     }
     setLeaving(true);
-    setTimeout(p.onClose, CLOSE_MS);
+    // Unmount when the slide-out ends; the timer is only a fallback.
+    setTimeout(done, CLOSE_MS + 120);
+  };
+  const gone = useRef(false);
+  const done = (): void => {
+    if (gone.current) return;
+    gone.current = true;
+    p.onClose();
   };
   useEffect(() => {
     panel.current?.querySelector<HTMLElement>("[data-close]")
@@ -231,7 +248,10 @@ export function ExplainPanel(p: { explanation: Explanation;
       data-reduced={reducedMotion()} onKeyDown={onKey}>
       <div className={s.scrim} onClick={close} aria-hidden="true" />
       <div ref={panel} className={s.panel} role="dialog" aria-modal="true"
-        aria-labelledby={`${id}-t`}>
+        aria-labelledby={`${id}-t`}
+        onAnimationEnd={(ev) => {
+          if (leaving && ev.target === ev.currentTarget) done();
+        }}>
         {/* A div, not <header>: in a portal on <body> a header would
             become a banner landmark. */}
         <div className={s.head}>

@@ -112,7 +112,8 @@ export function Profile(q: { id: string }) {
 
 /**
  * The person's own actions, at the end of the name row: the payslip
- * (or time off, where pay is not shown) and a "..." menu for the rest.
+ * (or time off, where pay is not shown) and a "..." menu for the rest
+ * (no Print: the profile has no paper layout; the payslip does).
  * Every item works in the demo; nothing opens outside it.
  */
 function Actions(q: { person: Person }) {
@@ -144,7 +145,6 @@ function Actions(q: { person: Person }) {
         { label: t("people.copyEmail"), onSelect: copy },
         ...(pay ? [{ label: t("people.seeTimeOff"),
           onSelect: () => navigate("time-off") }] : []),
-        { label: t("people.printProfile"), onSelect: () => print() },
       ]} />
     </div>
   );

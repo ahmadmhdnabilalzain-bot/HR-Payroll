@@ -335,9 +335,14 @@
   margin-block-start: var(--space-2);
 }
 
-.rowLink {
-  min-block-size: 32px;
+/* The working, as a quiet link at the end of the advice line. */
+.reason .rowLink {
+  display: inline;
+  min-block-size: 0;
+  padding-block: 4px;
+  color: var(--color-text);
   font-size: var(--text-sm);
+  font-weight: 500;
 }
 .rowChange {
   color: var(--color-text-muted);

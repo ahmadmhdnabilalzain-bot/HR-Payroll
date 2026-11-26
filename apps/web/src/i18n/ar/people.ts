@@ -105,7 +105,6 @@ export const people: ArOf<typeof en> = {
   payslipShort: "قسيمة راتب {month}",
   copyEmail: "نسخ البريد الإلكتروني",
   emailCopied: "تم نسخ البريد الإلكتروني: {email}",
-  printProfile: "طباعة",
   slipAside: "الدفع",
   paidTo: "يُدفع إلى",
   paidOn: "يُدفع في",
