@@ -38,11 +38,12 @@ const TONE_WORD: Record<CalTone, string> = { booked: "Booked",
 
 /**
  * CA, calendar: a month grid with people (or anything) as rows. Each event is
- * a bar with its label written above it (as far as the row's next event), and
- * a legend names the tones. Weekends (Saturday, Sunday) are shaded. On phones
- * the grid becomes the month's list (day, what, whose), so nothing scrolls
- * sideways; pass `agenda={false}` when the page lists the month itself. Month
- * changes are the builder's (pass `onMonth`).
+ * a bar across its days; a legend names the tones. Weekends (Saturday,
+ * Sunday) are shaded. The labels are never squeezed into the day columns:
+ * the month's list (day, what, whose, the tone's word) sits under the grid,
+ * and on phones it replaces the grid, so nothing scrolls sideways. Pass
+ * `agenda={false}` when the page lists the month itself (as `children`).
+ * Month changes are the builder's (pass `onMonth`).
  */
 export function MonthCalendar(p: {
   title: string;
@@ -73,7 +74,7 @@ export function MonthCalendar(p: {
     p.rows.find((r) => r.id === id)?.label ?? "";
   return (
     <div className={s.page}>
-      <PageHead title={p.title} lede={p.lede} actions={p.onMonth && (
+      <PageHead title={p.title} lede={p.lede} meta={p.onMonth && (
         <div className={s.segments}>
           <button type="button" onClick={() => p.onMonth?.(-1)}>
             {t("tpl.prevMonth")}</button>
@@ -115,18 +116,13 @@ export function MonthCalendar(p: {
                   const e = mark(r.id, d);
                   const starts = e !== undefined &&
                     (e.start === d || d === first);
-                  // Room for the label: up to the row's next event.
-                  const next = p.events.filter((x) => x.rowId === r.id &&
-                    x.start > d).map((x) => x.start).sort()[0] ?? "9999";
-                  const span = days.filter((x) => x >= d && x < next)
-                    .length;
                   return (
                     <td key={d} data-weekend={weekend(d)}
-                      data-tone={e?.tone} title={e?.label}>
+                      data-tone={e?.tone} data-start={starts}
+                      data-end={e !== undefined && (e.end === d ||
+                        d === last)} title={e?.label}>
                       {starts && (
-                        <span className={s.calLabel} style={{
-                          "--span": span } as CSSProperties}>
-                          {e.label}</span>
+                        <span className="visually-hidden">{e.label}</span>
                       )}
                     </td>
                   );

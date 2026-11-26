@@ -63,6 +63,93 @@
   font-size: var(--text-sm);
 }
 
+/* The page's three facts, under the lede: no boxes. */
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-7);
+  margin: var(--space-3) 0 0;
+}
+
+.figures div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.figures dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.figures dd {
+  margin: 0;
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+/* The matrix's key: what a cell says, what each dot means. */
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+}
+
+.keyList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-sm);
+  list-style: none;
+}
+
+.keyList li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.name {
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.name:hover {
+  text-decoration: underline;
+}
+
+/* The matrix scrolls in both directions inside its own region, so the
+ * skill names (top) and the people (start) both stay in view. */
+.matrix {
+  max-block-size: min(70vh, 720px);
+  overflow: auto;
+}
+
+.matrix thead th {
+  position: sticky;
+  z-index: 1;
+  inset-block-start: 0;
+  background: var(--color-surface-secondary);
+}
+
+.matrix thead th:first-child {
+  z-index: 3;
+}
+
+.matrix tbody th {
+  z-index: 2;
+  box-shadow: inset -1px 0 0 var(--color-divider);
+}
+
+.matrix td {
+  text-align: center;
+}
+
 .scroll {
   /* Positioned, so hidden labels in the cells scroll with it. */
   position: relative;
@@ -91,7 +178,7 @@
 }
 
 .table thead th {
-  min-inline-size: 96px;
+  min-inline-size: 112px;
   color: var(--color-text-muted);
   font-weight: 500;
   vertical-align: bottom;

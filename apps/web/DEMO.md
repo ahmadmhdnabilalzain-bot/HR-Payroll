@@ -255,10 +255,13 @@ way `time-off.ts` does (`sessionApprovals`).
 shaded. Props: `title`, `lede?`, `month` (`YYYY-MM`), `monthLabel`,
 `rows: { id, label }[]`, `events: { rowId, start, end, tone:
 booked|waiting|holiday|shift, label }[]`, `onMonth?(step)`,
-`agenda?` (one row: a month grid with the day's labels), `legend?`
+`agenda?` (false when the page lists the month itself), `legend?`
 (what each tone means here), `children?` (the page's own list under
-the grid). On phones the cells keep dots and the day names are
-listed under the grid.
+the grid). The grid draws bars only: labels are never squeezed into
+a day column, they are the month's list under the grid (day, what,
+whose, the tone's word), which replaces the grid on phones. Row names
+wrap and stay put while the days scroll; the month stepper is the
+head's meta line.
 
 ```tsx
 <MonthCalendar title="Rosters" month="2026-10" monthLabel="October 2026"
