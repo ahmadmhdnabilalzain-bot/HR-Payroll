@@ -1,7 +1,7 @@
 .hero {
   display: grid;
   gap: var(--space-5);
-  padding: var(--space-6);
+  padding: var(--space-5) var(--space-6);
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-panel);
   background: var(--color-surface);
@@ -9,34 +9,48 @@
 
 .top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
   gap: var(--space-7);
-  align-items: end;
+  align-items: center;
 }
 
 .lead {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   min-inline-size: 0;
 }
 
-.labelRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
+.figure {
+  margin: 0;
 }
 
-.label {
-  font-size: var(--text-md);
-  font-weight: 500;
+.sub {
+  color: var(--color-text);
+  font-size: var(--text-base);
+}
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
   color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.dot {
+  inline-size: 3px;
+  block-size: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-faint);
 }
 
 .sourcesBtn {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  min-block-size: 28px;
+  min-block-size: 32px;
+  margin-inline-start: var(--space-2);
   padding-inline: var(--space-2);
   border: 0;
   border-radius: var(--radius-control);
@@ -50,59 +64,6 @@
   background: var(--color-accent-soft);
 }
 
-.figure {
-  margin-block: var(--space-1) 0;
-}
-
-.sub {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
-}
-
-.dot {
-  inline-size: 3px;
-  block-size: 3px;
-  border-radius: var(--radius-pill);
-  background: var(--color-text-faint);
-}
-
-.status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
-  margin: var(--space-2) 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--text-md);
-  font-weight: 500;
-}
-
-.status li {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.pip {
-  inline-size: 8px;
-  block-size: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--color-success);
-  transition: background-color var(--dur-base) ease;
-}
-
-.status [data-tone="warn"] .pip {
-  background: var(--color-warning);
-}
-
-.status [data-tone="info"] .pip {
-  background: var(--color-info);
-}
-
 .equation {
   display: grid;
   margin: 0;
@@ -114,7 +75,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
-  padding-block: var(--space-3);
+  padding-block: var(--space-2);
   border-block-end: 1px solid var(--color-divider);
 }
 
@@ -133,34 +94,22 @@
   color: var(--color-text-muted);
 }
 
-.equation .part {
-  padding-block: var(--space-2);
-  border-block-end: 0;
-  font-size: var(--text-sm);
-}
-
-.equation .total + .part {
-  margin-block-start: var(--space-2);
-  border-block-start: 1px dashed var(--color-divider-strong);
-  padding-block-start: var(--space-3);
-}
-
-.people {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
 .equation .total {
-  border-block-end: 0;
+  border-block-end: 1px dashed var(--color-divider-strong);
   font-weight: 500;
 }
 
 .equation .total dt {
   color: var(--color-text);
+}
+
+.equation .part {
+  border-block-end: 0;
+}
+
+.part[data-zero="true"] dd,
+.part[data-zero="true"] dt {
+  color: var(--color-text-faint);
 }
 
 .sources {
@@ -192,24 +141,29 @@
   font-size: var(--text-sm);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .top {
     grid-template-columns: 1fr;
-    gap: var(--space-5);
+    gap: var(--space-4);
   }
 }
 
 @media (max-width: 560px) {
-  .people {
-    display: grid;
-    gap: 2px;
+  .hero {
+    padding: var(--space-4);
   }
 
   .people .dot {
     display: none;
   }
 
-  .hero {
-    padding: var(--space-5) var(--space-4);
+  .people {
+    display: grid;
+    gap: 2px;
+  }
+
+  .sourcesBtn {
+    justify-self: start;
+    margin-inline-start: calc(var(--space-2) * -1);
   }
 }

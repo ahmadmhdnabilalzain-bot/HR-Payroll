@@ -23,7 +23,8 @@ describe("demo copy", () => {
   it("displayed-data-has-no-claims", () => {
     const d = buildDemoData();
     const shown = [
-      ...d.issues().flatMap((i) => [i.plainReason.en, i.suggestedFix.en]),
+      ...d.issues().flatMap((i) => [i.title.en, i.reason.en,
+        i.suggestedFix.en]),
       ...d.approvalsInbox().map((a) => a.title.en),
       ...d.documents().map((x) => x.kind.en),
       d.basis().ruleSet.en, d.basis().pension.en, d.companyName.en,

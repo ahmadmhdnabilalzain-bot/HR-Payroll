@@ -1,20 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { buildDemoData } from "../../src/demo/data/adapter";
+import { buildDemoSource } from "../../src/demo/data/adapter";
 import {
-  actionable,
-  openIssueCount,
+  approvalBlockedBy,
+  confirmations,
+  notes,
+  openIssues,
   pendingApprovals,
   personOf,
   runApprovalId,
   steps,
-  waitingApprovals,
 } from "../../src/demo/derive";
 import { INITIAL, reduce, type DemoState } from "../../src/demo/state";
-import { groupIban, isUaeIban } from "../../src/home/IbanForm";
+import { groupIban } from "../../src/home/IbanForm";
 
-const d = buildDemoData();
+const src = buildDemoSource();
+const d = src.at({});
 const now = (s: DemoState): string | undefined =>
-  steps(d, s).find((x) => x.state === "now")?.id;
+  steps(src.at(s.ibans), s).find((x) => x.state === "now")?.id;
 
 describe("demo selectors", () => {
   it("headline-matches-its-parts", () => {
@@ -27,64 +29,74 @@ describe("demo selectors", () => {
       .toBe(h.grossTotalFils);
   });
 
-  it("open-issues-start-at-the-package-count", () => {
-    expect(openIssueCount(d, INITIAL)).toBe(d.headline().issuesOpen);
-    expect(d.issues().filter((i) => !actionable(i)).length)
-      .toBe(d.headline().needsConfirmation);
-  });
-
-  it("issue-ids-are-unique", () => {
+  it("counts-reconcile-with-the-rows", () => {
+    expect(openIssues(d, INITIAL).length).toBe(d.headline().issuesOpen);
+    expect(confirmations(d).length).toBe(d.headline().needsConfirmation);
+    expect(notes(d).length).toBe(1);
     const ids = d.issues().map((i) => i.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("tracker-advances-with-the-state", () => {
-    expect(now(INITIAL)).toBe("review");
-    const all = d.issues().filter(actionable).reduce((s, i) =>
-      reduce(s, { type: "resolve", id: i.id, how: "reviewed" }), INITIAL);
-    expect(openIssueCount(d, all)).toBe(0);
-    expect(now(all)).toBe("approve");
-    const run = runApprovalId(d) ?? "";
-    expect(now(reduce(all, { type: "decide", id: run,
-      verdict: "approve" }))).toBe("sif");
-    expect(now(reduce(all, { type: "decide", id: run,
-      verdict: "decline" }))).toBe("approve");
+  it("entering-the-letter-iban-reruns-the-file-check", () => {
+    const held = approvalBlockedBy(d, INITIAL);
+    expect(held.length).toBe(1);
+    const who = held[0] ?? "";
+    expect(now(INITIAL)).toBe("bank");
+    const iban = src.bankLetterIban(who);
+    expect(src.tryIban({}, who, iban)).toEqual({ ok: true });
+    const s = reduce(INITIAL, { type: "iban", employeeId: who,
+      value: iban });
+    const after = src.at(s.ibans);
+    const h = after.headline();
+    expect(after.heldIds()).toEqual([]);
+    expect(h.heldNetFils).toBe(0n);
+    expect(h.sifTotalFils).toBe(h.netTotalFils);
+    expect(h.sifPeople).toBe(d.headline().sifPeople + 1);
+    expect(openIssues(after, s).length).toBe(openIssues(d, INITIAL)
+      .length - 1);
+    expect(now(s)).toBe("approve");
   });
 
-  it("approving-with-open-issues-keeps-review-open", () => {
+  it("a-mistyped-iban-is-refused-in-plain-words", () => {
+    const who = d.heldIds()[0] ?? "";
+    const good = src.bankLetterIban(who);
+    const bad = good.slice(0, -1) + String((Number(good.at(-1)) + 1) % 10);
+    const r = src.tryIban({}, who, bad);
+    expect(r.ok).toBe(false);
+    expect(src.tryIban({}, who, "AE12").ok).toBe(false);
+  });
+
+  it("approval-moves-the-run-to-the-file", () => {
+    const who = d.heldIds()[0] ?? "";
+    const s0 = reduce(INITIAL, { type: "iban", employeeId: who,
+      value: src.bankLetterIban(who) });
     const run = runApprovalId(d) ?? "";
-    const s = reduce(INITIAL, { type: "decide", id: run,
-      verdict: "approve" });
-    const review = steps(d, s).find((x) => x.id === "review");
-    expect(review?.state).toBe("open");
-    expect(now(s)).toBe("sif");
+    expect(now(reduce(s0, { type: "decide", id: run,
+      verdict: "approve" }))).toBe("sif");
+    expect(now(reduce(s0, { type: "decide", id: run,
+      verdict: "decline" }))).toBe("approve");
   });
 
   it("maker-and-checker-differ", () => {
     const p = d.runPeople();
     expect(p.makerId).not.toBe(p.checkerId);
-    const gm = { ...INITIAL, role: "gm" as const };
-    expect(waitingApprovals(d, gm).map((a) => a.kind)).toContain("pay-run");
-    expect(waitingApprovals(d, INITIAL).some((a) => a.kind === "pay-run"))
-      .toBe(false);
     expect(personOf(d, "gm")).toBe(p.checkerId);
+    const gm = { ...INITIAL, role: "gm" as const };
+    expect(pendingApprovals(d, gm)[0]?.kind).toBe("pay-run");
   });
 
-  it("pending-approvals-drop-when-decided-and-come-back-on-undo", () => {
+  it("decisions-drop-and-undo-brings-them-back", () => {
     const all = pendingApprovals(d, INITIAL);
     expect(all.length).toBe(d.headline().approvalsPending);
     const first = all[0]?.id ?? "";
     const s1 = reduce(INITIAL, { type: "decide", id: first,
       verdict: "approve" });
     expect(pendingApprovals(d, s1).length).toBe(all.length - 1);
-    const s2 = reduce(s1, { type: "undecide", id: first });
-    expect(pendingApprovals(d, s2).length).toBe(all.length);
+    expect(pendingApprovals(d, reduce(s1, { type: "undecide",
+      id: first })).length).toBe(all.length);
   });
 
-  it("uae-iban-shape", () => {
-    expect(isUaeIban("AE07 0331 2345 6789 0123 456")).toBe(true);
-    expect(isUaeIban("AE07033123456789012345")).toBe(false);
-    expect(isUaeIban("GB07033123456789012345 6")).toBe(false);
+  it("groups-an-iban-like-the-letter", () => {
     expect(groupIban("ae070331234567890123456"))
       .toBe("AE07 0331 2345 6789 0123 456");
   });

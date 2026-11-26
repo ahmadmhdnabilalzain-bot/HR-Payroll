@@ -11,7 +11,7 @@ import "./theme/base.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import { loadDemoData } from "./demo/data/load";
+import { loadDemoSource } from "./demo/data/load";
 import { DemoProvider } from "./demo/state";
 import { LocaleProvider } from "./i18n/LocaleProvider";
 import { ThemeProvider } from "./theme/ThemeProvider";
@@ -22,7 +22,7 @@ import { ToastProvider } from "./ui/Toast";
  * `@payroll/demo-data`, no network calls, nothing saved. The API
  * client groundwork (src/api) stays for the real product.
  */
-const data = await loadDemoData();
+const source = await loadDemoSource();
 
 const root = document.getElementById("root");
 if (root !== null) {
@@ -30,7 +30,7 @@ if (root !== null) {
     <StrictMode>
       <LocaleProvider>
         <ThemeProvider>
-          <DemoProvider data={data}>
+          <DemoProvider source={source}>
             <ToastProvider>
               <App />
             </ToastProvider>

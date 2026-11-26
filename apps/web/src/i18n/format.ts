@@ -65,6 +65,13 @@ export function formatLongDay(iso: string, lang: Lang): string {
   }).format(civil(iso));
 }
 
+/** The month's name alone, "October", for running text. */
+export function formatMonthName(ym: string, lang: Lang): string {
+  return new Intl.DateTimeFormat(LOCALE[lang], {
+    timeZone: "UTC", month: "long",
+  }).format(civil(`${ym}-01`));
+}
+
 /** A pay month (`YYYY-MM`) as "November 2026". */
 export function formatMonth(ym: string, lang: Lang): string {
   return new Intl.DateTimeFormat(LOCALE[lang], {

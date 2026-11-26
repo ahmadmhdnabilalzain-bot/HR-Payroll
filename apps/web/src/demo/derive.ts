@@ -1,41 +1,14 @@
-import type {
-  Approval,
-  DemoData,
-  Issue,
-  Severity,
-  SifCheck,
-} from "./data/types";
+import type { Approval, DemoData, Issue, Severity } from "./data/types";
 import type { DemoState, Role } from "./state";
 
-const RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2,
-  "needs-confirmation": 3 };
+const RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2 };
 
-/** Setup items wait on someone outside the system; not problems. */
-export const actionable = (i: Issue): boolean =>
-  i.severity !== "needs-confirmation";
+/** Only kind "issue" is a problem to fix before approval. */
+export const actionable = (i: Issue): boolean => i.kind === "issue";
 
-const checks = new WeakMap<object, SifCheck>();
-
-/** The salary file check for the IBANs entered so far (memoised). */
-export function sifCheck(d: DemoData, s: DemoState): SifCheck {
-  const hit = checks.get(s.ibans);
-  if (hit !== undefined) return hit;
-  const c = d.sifCheck(s.ibans);
-  checks.set(s.ibans, c);
-  return c;
-}
-
-/** Bank issues settle only when the re-run file check says so. */
-export function isOpen(d: DemoData, s: DemoState, i: Issue): boolean {
-  if (!actionable(i)) return false;
-  const id = i.employeeId ?? "";
-  if (i.code === "SIF_HELD_NO_IBAN") {
-    return sifCheck(d, s).heldIds.includes(id);
-  }
-  if (i.code === "IBAN_CHECKSUM") {
-    return sifCheck(d, s).badAccountIds.includes(id);
-  }
-  return s.resolved[i.id] === undefined;
+/** Open until settled; bank issues leave the data when an IBAN passes. */
+export function isOpen(_d: DemoData, s: DemoState, i: Issue): boolean {
+  return actionable(i) && s.resolved[i.id] === undefined;
 }
 
 /** Open first (most serious first), then settled, in a stable order. */
@@ -50,8 +23,14 @@ export function openIssues(d: DemoData, s: DemoState): Issue[] {
   return openThenSettled(d, s).filter((i) => isOpen(d, s, i));
 }
 
+/** Client setup to confirm (pension fund, settlement inputs). */
 export function confirmations(d: DemoData): Issue[] {
-  return d.issues().filter((i) => !actionable(i));
+  return d.issues().filter((i) => i.kind === "needs-confirmation");
+}
+
+/** Context shown once, quietly (the invented demo bank code). */
+export function notes(d: DemoData): Issue[] {
+  return d.issues().filter((i) => i.kind === "note");
 }
 
 /** The person behind a role: HR prepared the run, the GM checks it. */
@@ -78,8 +57,9 @@ export function runApprovalId(d: DemoData): string | null {
  * any payslip has no bank account, so the demo never implies a partial
  * run. Approve stays disabled, with this reason, until it is empty.
  */
-export function approvalBlockedBy(d: DemoData, s: DemoState): string[] {
-  return sifCheck(d, s).heldIds;
+export function approvalBlockedBy(d: DemoData, _s: DemoState)
+  : string[] {
+  return d.heldIds();
 }
 
 export type RunPhase = "bank-details" | "approve" | "file";

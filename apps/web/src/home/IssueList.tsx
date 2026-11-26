@@ -1,54 +1,58 @@
-import { useRef } from "react";
-import { confirmations, openThenResolved } from "../demo/derive";
+import { useRef, useState } from "react";
+import { openIssues } from "../demo/derive";
 import { useFlip, useTweenedNumber } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { IssueRow } from "./IssueRow";
 import s from "./IssueList.module.css";
 
+/** How many issues show before "N more to review". */
+const FIRST = 3;
+
 /**
- * Open issues, most serious first, each with its reason, suggested
- * fix and an inline next step. A settled issue moves down (the list
- * reorders with FLIP) and can be undone. Items waiting on someone
- * outside the system sit apart, under "Needs confirmation".
+ * What stands before approval: the open issues, most serious first, at
+ * most three at a time with the rest one tap away. The count in the
+ * heading is always the number of rows behind it. A settled issue
+ * leaves the list (its neighbours slide up) and the toast offers undo.
  */
 export function IssueList() {
   const { t } = useLocale();
   const { data, state } = useDemo();
-  const list = openThenResolved(data, state);
-  const waiting = confirmations(data);
+  const [all, setAll] = useState(false);
+  const open = openIssues(data, state);
+  const shown = all ? open : open.slice(0, FIRST);
+  const more = open.length - shown.length;
   const box = useRef<HTMLOListElement>(null);
-  useFlip(box, [list.map((i) => i.id).join()]);
-  const resolvedCount = useTweenedNumber(Object.keys(state.resolved)
-    .length);
+  useFlip(box, [shown.map((i) => i.id).join()]);
+  const count = useTweenedNumber(open.length);
   return (
     <section className={s.panel} aria-labelledby="issues-title">
       <header className={s.head}>
-        <div>
-          <h2 id="issues-title" className={s.title}>
-            {t("home.issuesTitle")}
-          </h2>
-          <p className={s.sub}>
-            {state.role === "gm" ? t("home.gmNote") : t("home.issuesSub")}
-          </p>
-        </div>
-        {resolvedCount > 0 && (
-          <span className={`${s.count} tabular`}>
-            {t("home.resolvedToday", { count: resolvedCount })}
-          </span>
-        )}
+        <h2 id="issues-title" className={s.title}>
+          {t("home.blockersTitle")}
+        </h2>
+        <span className={`${s.count} tabular`} data-zero={open.length === 0}>
+          {open.length === 0 ? t("home.noIssues")
+            : t("home.openIssues", { count })}
+        </span>
       </header>
-      <ol className={s.list} ref={box}>
-        {list.map((i) => <IssueRow key={i.id} issue={i} />)}
-      </ol>
-      {waiting.length > 0 && (
-        <div className={s.confirm}>
-          <h3 className={s.confirmTitle}>{t("home.confirmTitle")}</h3>
-          <p className={s.sub}>{t("home.confirmSub")}</p>
-          <ol className={s.list}>
-            {waiting.map((i) => <IssueRow key={i.id} issue={i} />)}
-          </ol>
-        </div>
+      {state.role === "gm" && <p className={s.sub}>{t("home.gmNote")}</p>}
+      {open.length === 0 ? (
+        <p className={s.clear}>{t("home.allClear")}</p>
+      ) : (
+        <ol className={s.list} ref={box}>
+          {shown.map((i, n) => (
+            <IssueRow key={i.id} issue={i}
+              delay={all && n >= FIRST ? (n - FIRST) * 90 : null} />
+          ))}
+        </ol>
+      )}
+      {(more > 0 || (all && open.length > FIRST)) && (
+        <button type="button" className={s.more}
+          aria-expanded={all} onClick={() => setAll(!all)}>
+          {all ? t("home.showFewer")
+            : t("home.moreToReview", { count: more })}
+        </button>
       )}
     </section>
   );

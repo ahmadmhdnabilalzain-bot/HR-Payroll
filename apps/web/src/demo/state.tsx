@@ -5,7 +5,7 @@ import {
   useReducer,
   type ReactNode,
 } from "react";
-import type { DemoData } from "./data/types";
+import type { DemoData, DemoSource } from "./data/types";
 
 export type Role = "hr" | "gm";
 export type Section = "home" | "pay-run" | "people" | "time-off" |
@@ -69,7 +69,13 @@ export function reduce(s: DemoState, a: Action): DemoState {
   }
 }
 
-interface Demo {
+/**
+ * The demo store. `data` is the company as the state makes it (IBANs
+ * entered re-run the salary file check); `source` answers "would this
+ * IBAN pass?"; `state` holds every choice made; `dispatch` changes it.
+ */
+export interface Demo {
+  source: DemoSource;
   data: DemoData;
   state: DemoState;
   dispatch(a: Action): void;
@@ -78,10 +84,13 @@ interface Demo {
 const DemoContext = createContext<Demo | null>(null);
 
 /** Demo state lives in memory only: a reload starts the story again. */
-export function DemoProvider(p: { data: DemoData; children: ReactNode }) {
+export function DemoProvider(p: { source: DemoSource;
+  children: ReactNode }) {
   const [state, dispatch] = useReducer(reduce, INITIAL);
-  const value = useMemo(() => ({ data: p.data, state, dispatch }),
-    [p.data, state]);
+  const data = useMemo(() => p.source.at(state.ibans),
+    [p.source, state.ibans]);
+  const value = useMemo(() => ({ source: p.source, data, state,
+    dispatch }), [p.source, data, state]);
   return (
     <DemoContext.Provider value={value}>{p.children}</DemoContext.Provider>
   );
