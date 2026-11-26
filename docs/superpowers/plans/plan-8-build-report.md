@@ -7,12 +7,13 @@ on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`. Task 1 (the engine
 
 ## Status
 
-In progress. Tasks 2 and 3 done.
+In progress. Tasks 2 to 4 done.
 
 | Task | Commit message |
 |---|---|
 | 2 | `feat(api): task manager` |
 | 3 | `feat(api): requisitions and applicant tracker` |
+| 4 | `feat(api): offers with approval` |
 
 ## Gate
 
@@ -46,6 +47,14 @@ lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
 5. **Tenancy seed.** Plan 3's tenancy suite fails while any tenant
    table lacks rows for both companies; Plan 8's rows are seeded by
    `tests/helpers/seed-rows-hr.ts`.
+7. **Salary rules.** Plan 3's salary check is `checkSalary` in
+   `src/people/employee-writes.ts` (not `validateSalary` in
+   `employees.ts`); offers call it directly, no export was renamed.
+8. **Encryption.** `sealerFor(tx, deps, companyId, "offers")` gives
+   exactly the planned AAD `<companyId>:offers:salary_enc:<offerId>`.
+9. **Engine terms helper.** `src/onboarding/engine-terms.ts` runs
+   `calculateProbation` and `validateContractNotice` for offers (and
+   Task 5 terms). Offers check both at `startDate`, as planned.
 6. **Leak test.** HR fixtures live in `tests/helpers/leak-hr.ts` and
    `seed-hr.ts` (`seedHr` runs after Plan 3's pay run and SIF, so the
    HR records never change those fixtures).
@@ -81,6 +90,12 @@ lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
    withdrawn) is 409 `APPLICATION_CLOSED`; cancelling a cancelled
    interview returns it unchanged. The calendar title is
    `Interview: <requisition title>` (no candidate name leaves the app).
+11. **Offers store their terms** (`probation_end_date`,
+    `terms_trace`) as computed at creation, so a later pack change does
+    not silently alter an offer already approved. Offer visibility for
+    managers: the requisition's hiring manager only (salary null).
+12. **Offer example trace** in the contract carries no rule values, so
+    the contract holds no statutory number.
 10. **Duplicates** (candidate email, application, scorecard) are found
     with `INSERT ... ON CONFLICT DO NOTHING RETURNING`, so a unique
     violation never aborts the request's one transaction.
@@ -94,6 +109,8 @@ lines`, `pnpm lines:test`, and typecheck plus tests of `contract`,
 - Task 3: `approvals`, `requisitions` and `applications` tests were
   written first and seen red (20 failing); the contract schemas came
   just before them.
+- Task 4: `offers.test.ts` was written first and seen red (seed
+  failed: no offer routes).
 
 ## Concerns
 

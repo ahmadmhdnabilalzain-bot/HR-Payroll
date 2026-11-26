@@ -99,9 +99,13 @@ async function interviews(ctx: ReqCtx, appId: string) {
   return rows.map(toInterview);
 }
 
-/** The application's live (or hired) offer: offers come in Task 4. */
-async function offerId(_ctx: ReqCtx, _appId: string) {
-  return null;
+/** The application's live (or hired) offer, if any. */
+async function offerId(ctx: ReqCtx, appId: string) {
+  const [r] = await ctx.tx.query<{ id: string }>(
+    `SELECT id FROM offers WHERE company_id = $1 AND application_id = $2
+     AND status IN ('pending-approval', 'approved', 'accepted', 'hired')`,
+    [co(ctx), appId]);
+  return r?.id ?? null;
 }
 
 export async function toApplication(ctx: ReqCtx,

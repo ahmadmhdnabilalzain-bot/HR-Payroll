@@ -10,6 +10,7 @@ export const HR_IDS = {
   application: "00000000-0000-4000-8000-000000000806",
   interview: "00000000-0000-4000-8000-000000000807",
   scorecard: "00000000-0000-4000-8000-000000000808",
+  offer: "00000000-0000-4000-8000-000000000809",
 } as const;
 
 const AT = "2026-03-01T08:00:00Z";
@@ -78,6 +79,28 @@ const application = {
   createdAt: AT,
 };
 
+const termsTrace = [{
+  id: "employment.probation.end", label: "Probation end date",
+  formula: "joining date + months (clamped to month end) - 1 day",
+  inputs: { joiningDate: "2026-04-01", probationMonths: "3" },
+  result: "2026-06-30",
+  // No legal value in the contract: real rules come from the engine.
+  rules: [],
+}];
+
+const offer = {
+  id: HR_IDS.offer, applicationId: HR_IDS.application,
+  candidateName: "Sample Candidate", jobTitle: "Accountant",
+  departmentId: IDS.department, managerId: IDS.manager,
+  startDate: "2026-04-01",
+  salary: [{ code: "basic", label: "Basic salary", labelAr: null,
+    amount: "1234.00", sifBucket: "fixed" }],
+  probationMonths: 3, probationEndDate: "2026-06-30",
+  contractNoticeDays: 30, termsTrace, expiresOn: "2026-03-15",
+  status: "approved", createdBy: IDS.user, decidedBy: IDS.user,
+  decidedAt: AT, respondedOn: null, employeeId: null, createdAt: AT,
+};
+
 /** One example per Plan 8 response schema. */
 export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   TaskSummary: taskSummary,
@@ -90,4 +113,6 @@ export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   Interview: interview,
   Application: application,
   ApplicationList: { items: [application] },
+  Offer: offer,
+  OfferList: { items: [offer] },
 };

@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import * as hiring from "./hiring";
+import * as offers from "./offers";
 import * as tasks from "./tasks";
 
 /** Plan 8's named schemas (OpenAPI components and EXAMPLES keys). */
@@ -12,6 +13,8 @@ export const HR_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
     "StageEvent", "Scorecard", "ScorecardCreate", "Interview",
     "InterviewCreate", "ApplicationCreate", "Application",
     "RequisitionList", "CandidateList", "ApplicationList"]),
+  ...pick(offers, ["OfferCreate", "Offer", "OfferResponse",
+    "OfferList"]),
 };
 
 function pick(

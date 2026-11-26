@@ -1,3 +1,4 @@
+import { EMPLOYMENT_PACKS } from "@payroll/engine";
 import type { Res } from "./test-app";
 
 /** The conformance recorder: calls one route by id. */
@@ -70,8 +71,30 @@ export async function hiring(hit: Hitter, f: HrFlowCtx) {
   return { applicationId: id, requisitionId };
 }
 
+/** An accepted offer on the application (owner2 approves). */
+export async function offers(hit: Hitter, f: HrFlowCtx,
+  applicationId: string, noticeDays: number) {
+  const body = { applicationId, jobTitle: "Accountant",
+    startDate: "2026-04-01", probationMonths: 3,
+    contractNoticeDays: noticeDays, salary: [{ code: "basic",
+      label: "Basic", labelAr: null, amount: "4100.00",
+      sifBucket: "fixed" }] };
+  const spare = await hit("createOffer", f.owner, f.c, {}, body);
+  await hit("withdrawOffer", f.owner, f.c, { id: spare.body.id });
+  const o = await hit("createOffer", f.owner, f.c, {}, body);
+  const id = o.body.id as string;
+  await hit("listOffers", f.owner, f.c);
+  await hit("getOffer", f.owner, f.c, { id });
+  await hit("decideOffer", f.owner2, f.c, { id }, { approve: true });
+  await hit("recordOfferResponse", f.owner, f.c, { id },
+    { accepted: true, respondedOn: "2026-03-01" });
+  return id;
+}
+
 /** One happy-path call per Plan 8 route, after Plan 3's flow. */
 export async function hrFlow(hit: Hitter, f: HrFlowCtx): Promise<void> {
   await tasks(hit, f);
-  await hiring(hit, f);
+  const h = await hiring(hit, f);
+  await offers(hit, f, h.applicationId,
+    EMPLOYMENT_PACKS[0]!.params.empNoticeMinDays!.value as number);
 }

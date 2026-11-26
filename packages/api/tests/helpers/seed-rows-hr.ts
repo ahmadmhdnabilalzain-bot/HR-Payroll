@@ -64,5 +64,11 @@ async function seedHiring(admin: Db, c: string,
 export async function seedHrRows(admin: Db, c: string, user: string,
   emp: string): Promise<void> {
   await seedTasks(admin, c, user, emp);
-  await seedHiring(admin, c, user);
+  const app = await seedHiring(admin, c, user);
+  await admin.query(
+    `INSERT INTO offers (id, company_id, application_id, job_title,
+       start_date, salary_enc, probation_months, contract_notice_days,
+       terms_trace, status, created_by, created_at)
+     VALUES ($1, $2, $3, 'Clerk', '2026-04-01', 'x', 0, 1, '[]',
+       'pending-approval', $4, $5)`, [rowId(c, "7a"), c, app, user, AT]);
 }

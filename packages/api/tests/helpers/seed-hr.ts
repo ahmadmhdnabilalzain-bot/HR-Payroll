@@ -1,5 +1,6 @@
+import { EMPLOYMENT_PACKS } from "@payroll/engine";
 import type { App } from "../../src/http/context";
-import type { Seeded, SeedUser } from "./seed";
+import { salaryOf, type Seeded, type SeedUser } from "./seed";
 import { call, PASSWORD, type Clock } from "./test-app";
 
 type Ctx = { app: App; clock: Clock };
@@ -13,6 +14,8 @@ export interface HrSeeded {
   candidateId: string;
   /** On the requisition above, at stage `offer`. */
   applicationId: string;
+  /** Accepted offer on that application, basic OFFER_SENTINEL. */
+  offerId: string;
 }
 
 async function must(p: Promise<{ status: number; text: string; body: any }>,
@@ -58,10 +61,30 @@ async function hiring(ctx: Ctx, s: Seeded) {
     candidateId: cand.id as string, applicationId: app.id as string };
 }
 
+/** The seeded offer's basic salary: only owner and hr may see it. */
+export const OFFER_SENTINEL = "8888.01";
+
+/** An offer by hr, approved by the owner (MFA) and accepted. */
+async function offer(ctx: Ctx, s: Seeded, applicationId: string) {
+  const hit = (u: SeedUser, path: string, body: unknown, want = 200) =>
+    must(call(ctx.app, u.token, s.companyId, "POST", path, body), want);
+  const o = await hit(s.hr, "/v1/offers", { applicationId,
+    jobTitle: "Accountant", startDate: "2026-04-01",
+    salary: salaryOf(OFFER_SENTINEL).components, probationMonths: 3,
+    contractNoticeDays: EMPLOYMENT_PACKS[0]!.params.empNoticeMinDays!
+      .value, managerId: s.emp.manager }, 201);
+  await hit(s.owner, `/v1/offers/${o.id}/decision`, { approve: true });
+  await hit(s.hr, `/v1/offers/${o.id}/response`,
+    { accepted: true, respondedOn: "2026-03-01" });
+  return o.id as string;
+}
+
 /** Plan 8 fixtures on top of `seedCompany`. */
 export async function seedHr(ctx: Ctx, s: Seeded): Promise<HrSeeded> {
   const task = await must(call(ctx.app, s.hr.token, s.companyId, "POST",
     "/v1/tasks", { title: "Upload signed contract",
       assigneeUserId: s.employee.userId, employeeId: s.emp.report }), 201);
-  return { taskId: task.id, ...await hiring(ctx, s) };
+  const hired = await hiring(ctx, s);
+  return { taskId: task.id, ...hired,
+    offerId: await offer(ctx, s, hired.applicationId) };
 }

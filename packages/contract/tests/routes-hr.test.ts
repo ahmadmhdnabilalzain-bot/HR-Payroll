@@ -12,10 +12,13 @@ const HR_ROUTE_IDS = [
   "createCandidate", "listApplications", "createApplication",
   "getApplication", "moveApplicationStage", "submitScorecard",
   "scheduleInterview", "cancelInterview",
+  // Task 4: offers
+  "createOffer", "listOffers", "getOffer", "decideOffer",
+  "recordOfferResponse", "withdrawOffer",
 ];
 
 /** Plan 8 routes that need an MFA session (Ruling 16). */
-const HR_MFA: string[] = [];
+const HR_MFA: string[] = ["decideOffer"];
 
 describe("HR_ROUTES", () => {
   it("ids are exactly the planned list, in order", () => {

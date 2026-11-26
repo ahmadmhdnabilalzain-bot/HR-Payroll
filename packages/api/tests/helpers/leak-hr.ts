@@ -1,4 +1,8 @@
-import { CANDIDATE_EMAIL_SENTINEL, type HrSeeded } from "./seed-hr";
+import {
+  CANDIDATE_EMAIL_SENTINEL,
+  OFFER_SENTINEL,
+  type HrSeeded,
+} from "./seed-hr";
 
 type Role = "owner" | "hr" | "manager" | "employee";
 
@@ -11,12 +15,15 @@ export const HR_ID_KIND: Record<string, string | null> = {
   listCandidates: null,
   listApplications: null,
   getApplication: "application",
+  listOffers: null,
+  getOffer: "offer",
 };
 
 const FIXTURE: Record<string, keyof HrSeeded> = {
   task: "taskId",
   requisition: "requisitionId",
   application: "applicationId",
+  offer: "offerId",
 };
 
 export const HR_KINDS = Object.keys(FIXTURE);
@@ -34,18 +41,20 @@ export function hrVisible(role: Role, kind: string): boolean {
   // The seeded task is hr's, assigned to the employee user.
   if (kind === "task") return role === "employee";
   // The seeded requisition's hiring manager is the manager user.
-  if (kind === "requisition" || kind === "application") {
+  if (["requisition", "application", "offer"].includes(kind)) {
     return role === "manager";
   }
   return false;
 }
 
 /** GET paths whose owner body must carry the given sentinel. */
-export function hrOwnerPaths(_h: HrSeeded): [string, string][] {
-  return [["/v1/candidates", CANDIDATE_EMAIL_SENTINEL]];
+export function hrOwnerPaths(h: HrSeeded): [string, string][] {
+  return [["/v1/candidates", CANDIDATE_EMAIL_SENTINEL],
+    [`/v1/offers/${h.offerId}`, OFFER_SENTINEL],
+    ["/v1/offers", OFFER_SENTINEL]];
 }
 
 /** Values only owner and hr may receive. */
 export function hrSentinels(_h: HrSeeded): string[] {
-  return [CANDIDATE_EMAIL_SENTINEL];
+  return [CANDIDATE_EMAIL_SENTINEL, OFFER_SENTINEL];
 }
