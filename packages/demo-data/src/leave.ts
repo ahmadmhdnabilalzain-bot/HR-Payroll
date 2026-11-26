@@ -1,6 +1,7 @@
 import { accruedHalves, balanceHalves } from "@payroll/engine";
 import { AS_OF, workingDaysBetween } from "./calendar";
 import { PROBATION_SICK_DATE, UNPAID_DATES } from "./pay-inputs";
+import { LEAVE_BASIS, leaveDaysOf, unusedLeaveAtExit } from "./settlement";
 import type {
   CaseTag,
   DemoEmployee,
@@ -72,9 +73,19 @@ function balanceOf(e: DemoEmployee, reqs: DemoLeaveRequest[])
   const b = balanceHalves({ accruedHalves: accrued, carriedHalves: 0,
     carriedExpiresOn: null, adjustmentHalves: 0, taken, pendingHalves,
     asOf });
+  const exit = e.leavingDate !== null && e.leavingDate <= AS_OF;
+  if (exit) {
+    // The same function as the settlement, so the two cannot differ.
+    const days = leaveDaysOf(unusedLeaveAtExit(e, reqs,
+      ANNUAL_POLICY.annualDays));
+    return { employeeId: e.id, leaveTypeId: "lt-annual", year: 2026,
+      accruedHalves: accrued, takenHalves: b.takenHalves, pendingHalves,
+      availableHalves: null, availableDays: days, basis: LEAVE_BASIS };
+  }
   return { employeeId: e.id, leaveTypeId: "lt-annual", year: 2026,
     accruedHalves: accrued, takenHalves: b.takenHalves, pendingHalves,
-    availableHalves: b.availableHalves };
+    availableHalves: b.availableHalves,
+    availableDays: b.availableHalves / 2, basis: null };
 }
 
 /** Annual leave balances from the engine, for everyone already joined. */
@@ -82,12 +93,4 @@ export function buildLeaveBalances(employees: DemoEmployee[],
   reqs: DemoLeaveRequest[]): DemoLeaveBalance[] {
   return employees.filter((e) => e.joiningDate <= AS_OF)
     .map((e) => balanceOf(e, reqs));
-}
-
-/** Whole unused days for a settlement (half days are not paid out). */
-export function unusedLeaveDays(balances: DemoLeaveBalance[],
-  employeeId: string): number {
-  const b = balances.find((x) => x.employeeId === employeeId);
-  return b === undefined ? 0 : Math.max(0, Math.floor(b.availableHalves
-    / 2));
 }

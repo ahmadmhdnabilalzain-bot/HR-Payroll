@@ -3,6 +3,7 @@ import {
   GPSSA_PACKS,
   GRATUITY_PACKS,
   PAYROLL_PACKS,
+  STATUS_WORDS,
   type RuleSource,
   type TraceLine,
   type TraceRule,
@@ -16,6 +17,51 @@ export interface SourcedRule extends TraceRule {
   /** "<packId>@<version>:<key>", the rule's stable id. */
   ruleId: string;
   source: RuleSource | null;
+  /** The status the demo shows (may differ from the pack's label). */
+  presentedStatus: string;
+  /** The demo's own words for that status, or null. */
+  presentedLabel: string | null;
+}
+
+type Lang = "en" | "ar";
+
+/**
+ * Where the demo shows a different status from the engine pack's
+ * label (a ruling; the engine is not changed). The pack labels the
+ * 50% overall deduction limit "official"; the demo presents it as
+ * secondary-sourced. Arabic: NEEDS NATIVE REVIEW.
+ */
+export const PRESENTED_STATUS: Record<string, { status: string;
+  label: Record<Lang, string> }> = {
+  "ae-payroll:deductionOverallCapBps": { status: "secondary",
+    label: { en: "secondary-sourced, as we read it",
+      ar: "مصدر ثانوي، كما نفهمه" } },
+};
+
+const presentedOf = (r: TraceRule) =>
+  r.overridden ? undefined : PRESENTED_STATUS[`${r.packId}:${r.key}`];
+
+function sourced(r: TraceRule): SourcedRule {
+  const p = presentedOf(r);
+  return { ...r, ruleId: `${r.packId}@${r.packVersion}:${r.key}`,
+    source: sourceOf(r),
+    presentedStatus: p?.status ?? (r.overridden ? "overridden" : r.status),
+    presentedLabel: p?.label.en ?? null };
+}
+
+/** The status list the demo shows, in the engine's own order. */
+function statusText(rules: TraceRule[], lang: Lang): string {
+  const words = rules.map((r) => presentedOf(r)?.label[lang] ??
+    STATUS_WORDS[lang][r.overridden ? "overridden" : r.status] ?? r.status);
+  return [...new Set(words)].join(", ");
+}
+
+/** The engine's sentence, its closing status list in our words. */
+function presentedText(line: TraceLine, lang: Lang): string {
+  const text = explainTrace([line], lang);
+  if (!line.rules.some((r) => presentedOf(r) !== undefined)) return text;
+  return text.replace(/\(([^()]*)\)\.$/, `(${statusText(line.rules,
+    lang)}).`);
 }
 
 export interface ExplainedLine {
@@ -46,16 +92,15 @@ export function findPayslip(c: DemoCompany, payslipId: string)
 function stepsOf(line: TraceLine, rules: SourcedRule[]): string[] {
   return [`Formula: ${line.formula}`,
     ...Object.entries(line.inputs).map(([k, v]) => `Input ${k} = ${v}`),
-    ...rules.map((r) => `Rule ${r.ruleId} = ${r.value} (${r.overridden
-      ? "overridden" : r.status}${r.source === null ? ""
-      : `, ${r.source.note}`})`),
+    ...rules.map((r) => `Rule ${r.ruleId} = ${r.value} (` +
+      `${r.presentedLabel ?? r.presentedStatus}${r.source === null ? ""
+        : `, ${r.source.note}`})`),
     `Result: ${line.result}`];
 }
 
 export function explainLine(c: DemoCompany, payslipId: string,
   line: TraceLine): ExplainedLine {
-  const rules = line.rules.map((r) => ({ ...r,
-    ruleId: `${r.packId}@${r.packVersion}:${r.key}`, source: sourceOf(r) }));
+  const rules = line.rules.map(sourced);
   return { payslipId, line, inputs: { ...line.inputs }, rules,
     steps: stepsOf(line, rules), text: textOf(line),
     rulesScope: c.rulesScope };
@@ -67,7 +112,7 @@ function textOf(line: TraceLine): ExplainedLine["text"] {
     return { en: PENSION_NOT_COMPUTED.en, ar: PENSION_NOT_COMPUTED.ar,
       arReviewed: false };
   }
-  return { en: explainTrace([line], "en"), ar: explainTrace([line], "ar"),
+  return { en: presentedText(line, "en"), ar: presentedText(line, "ar"),
     arReviewed: false };
 }
 
