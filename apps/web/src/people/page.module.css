@@ -127,7 +127,17 @@
   background: currentColor;
 }
 
+/* The usual state stays quiet: muted word, a green dot. */
 .status[data-tone="ok"] {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.status[data-tone="ok"]::before {
+  background: var(--color-success);
+}
+
+.status[data-tone="done"] {
   color: var(--color-success);
 }
 
@@ -174,6 +184,7 @@
   min-block-size: 44px;
   padding-inline: var(--space-4);
   font-size: var(--text-md);
+  text-decoration: none;
 }
 
 @media (max-width: 760px) {

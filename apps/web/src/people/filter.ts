@@ -22,4 +22,4 @@ export function filterPeople(list: Person[], query: string,
 
 /** A branch name without the "(fictional)" tag, for dense rows. */
 export const shortBranch = (name: string): string =>
-  name.replace(/\s*\((fictional|[^)]*)\)\s*$/u, "");
+  name.replace(/\s*\([^)]*\)\s*$/u, "").split(/[,،]/u)[0] ?? name;

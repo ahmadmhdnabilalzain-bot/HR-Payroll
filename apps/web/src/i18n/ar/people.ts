@@ -50,7 +50,7 @@ export const people: ArOf<typeof en> = {
   emiratesId: "الهوية الإماراتية",
   iban: "رقم الآيبان",
   ibanMissing: "غير مسجل",
-  requestsGoTo: "تُرسل طلبات الإجازة إلى",
+  requestsGoTo: "يوافق على الإجازات",
   pay: "الراتب",
   netFor: "صافي راتب {month}",
   gross: "إجمالي الراتب",

@@ -290,7 +290,9 @@ function Leave(q: { person: Person }) {
               {bal === null ? "–" : dayCountText(bal.availableDays, t, lang)}
             </span>
             {bal !== null && bal.basis !== null && (
-              <span className={s.factSub}>{bal.basis}</span>
+              <span className={s.factSub}>
+                {bal.basis.charAt(0).toUpperCase() + bal.basis.slice(1)}.
+              </span>
             )}
             {bal !== null && bal.basis === null && (
               <span className={s.factSub}>

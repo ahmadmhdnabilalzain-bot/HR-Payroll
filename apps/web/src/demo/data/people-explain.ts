@@ -55,7 +55,9 @@ function stepsOf(line: TraceLine): ExplainStep[] {
       `${days(Number(i["totalHalfDays"]))}`);
   }
   if (isInt(i["basicMonthly"])) add("Basic salary", money(i["basicMonthly"]));
-  if (isInt(i["minutes"])) add(`Overtime worked: ${hours(Number(i["minutes"]))}`);
+  if (isInt(i["minutes"])) {
+    add(`Overtime worked: ${hours(Number(i["minutes"]))}`);
+  }
   if (isInt(i["upliftBps"])) {
     add(`Paid at ${100 + Number(i["upliftBps"]) / 100}% of the hourly rate`);
   }
@@ -77,15 +79,26 @@ function stepsOf(line: TraceLine): ExplainStep[] {
 const STATUSES: readonly SourceStatus[] = ["official", "secondary",
   "convention", "unsourced"];
 
+/** "HALF_UP" and "calendar-days" read as "half up", "calendar days". */
+function valueText(v: string | number | boolean): string {
+  if (typeof v === "boolean") return v ? "yes" : "no";
+  const x = String(v);
+  return /^[A-Za-z]+([_-][A-Za-z]+)*$/.test(x)
+    ? x.replace(/[_-]/g, " ").toLowerCase() : x;
+}
+
 function ruleOf(r: LineSource["rules"][number]): ExplainRule {
-  const name = r.key.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+  const bps = /Bps$/.test(r.key) && typeof r.value === "number";
+  const name = r.key.replace(/Bps$/, "").replace(/([a-z])([A-Z])/g, "$1 $2")
+    .toLowerCase();
+  const shown = bps ? `${Number(r.value) / 100}%` : valueText(r.value);
   const said = r.presentedLabel === null ? "" : ` (${r.presentedLabel})`;
   const known = STATUSES.find((x) => x === r.presentedStatus);
   const citation = r.source?.note ?? null;
   const status: SourceStatus = citation === null ? "unsourced"
     : known ?? "unsourced";
   return { text: `${name[0]?.toUpperCase() ?? ""}${name.slice(1)}: ` +
-    `${String(r.value).replace(/-/g, " ")}${said}`, status, citation };
+    `${shown}${said}`, status, citation };
 }
 
 /** The engine's sentence without its closing status list. */

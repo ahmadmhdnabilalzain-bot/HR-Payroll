@@ -100,11 +100,12 @@
 
 .table .num {
   text-align: end;
+  white-space: nowrap;
 }
 
 .row {
   position: relative;
-  animation: row-in var(--dur-slow) var(--ease-out) both;
+  animation: row-in var(--dur-slow) var(--ease-out) backwards;
   animation-delay: calc(var(--i, 0) * 90ms);
 }
 
@@ -153,6 +154,10 @@
   font-weight: 500;
 }
 
+.table .name {
+  white-space: nowrap;
+}
+
 .soft {
   color: var(--color-text-muted);
 }
@@ -185,6 +190,17 @@
   flex: 1;
   gap: 1px;
   min-inline-size: 0;
+}
+
+.cardTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cardStatus {
+  font-size: var(--text-md);
 }
 
 .cardSub {

@@ -150,7 +150,15 @@ function Rows(q: { rows: Person[] }) {
               {initials(x.name.en)}
             </span>
             <span className={s.cardMain}>
-              <span className={s.name}>{x.name[lang]}</span>
+              <span className={s.cardTop}>
+                <span className={s.name}>{x.name[lang]}</span>
+                {x.status !== "active" && (
+                  <span className={`${p.status} ${s.cardStatus}`}
+                    data-tone={statusTone(x)}>
+                    {statusWord(x, t)}
+                  </span>
+                )}
+              </span>
               <span className={s.cardSub}>
                 {x.role[lang]} · {x.department[lang]}
               </span>
@@ -159,11 +167,6 @@ function Rows(q: { rows: Person[] }) {
               </span>
             </span>
             <span className={s.cardEnd}>
-              {x.status !== "active" && (
-                <span className={p.status} data-tone={statusTone(x)}>
-                  {statusWord(x, t)}
-                </span>
-              )}
               <Icon name="chevronEnd" size={18} />
             </span>
           </a>

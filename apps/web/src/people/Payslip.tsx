@@ -131,15 +131,15 @@ function Slip(q: { slip: PayslipView }) {
         <h2 id="slip-ded" className={s.groupTitle}>
           {t("people.deductions")}
         </h2>
+        {deductions.length === 0 && slip.pension === null && (
+          <p className={s.none}>{t("people.noDeductions")}</p>
+        )}
         <dl className={s.lines}>
           {deductions.map((l) => (
             <Line key={l.traceId} slip={slip} line={l} />
           ))}
           {slip.pension !== null && (
             <Pension slip={slip} traceId={slip.pension.traceId} />
-          )}
-          {deductions.length === 0 && slip.pension === null && (
-            <p className={s.none}>{t("people.noDeductions")}</p>
           )}
           <Total slip={slip} traceId={slip.deductionsTraceId}
             label={t("people.totalDeductions")}

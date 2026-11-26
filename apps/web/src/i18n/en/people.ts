@@ -43,7 +43,7 @@ export const people = {
   emiratesId: "Emirates ID",
   iban: "IBAN",
   ibanMissing: "Not on file",
-  requestsGoTo: "Time off requests go to",
+  requestsGoTo: "Approves time off",
   pay: "Pay",
   netFor: "Net pay for {month}",
   gross: "Gross pay",
