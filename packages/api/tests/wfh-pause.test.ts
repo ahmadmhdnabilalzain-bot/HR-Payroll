@@ -75,6 +75,19 @@ describe("wfh pause", () => {
     expect(open).toEqual([]);
   });
 
+  it("withdraw_with_erase_removes_an_open_pause", async () => {
+    await as(s.employee, "POST", "/v1/attendance/clock-in",
+      { method: "web", workLocation: "remote" });
+    expect((await as(s.employee, "POST", `${ME}/pause`)).status).toBe(200);
+    const w = await as(s.employee, "POST", "/v1/wfh/consent/withdraw",
+      { erase: true });
+    expect(w.status, w.text).toBe(200);
+    expect(await ctx.deps.db.query("SELECT 1 FROM wfh_pauses")).toEqual([]);
+    await as(s.employee, "POST", "/v1/attendance/clock-out");
+    await as(s.employee, "POST", "/v1/wfh/consent", { noticeVersion: 1,
+      decision: "granted" });
+  });
+
   it("stopped_limit_state", async () => {
     await as(s.owner, "PUT", "/v1/wfh/settings",
       { maxTrackedMinutesPerRecord: 60 });
