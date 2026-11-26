@@ -59,6 +59,21 @@
   font-size: var(--text-sm);
 }
 
+/* Digits on their way to the total are dim; the total is solid. */
+.settled {
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.rolling {
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settled {
+    transition: none;
+  }
+}
+
 .masked {
   color: var(--color-text-muted);
 }
