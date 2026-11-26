@@ -40,7 +40,7 @@
   border: 0;
   background: transparent;
   color: var(--color-text);
-  font-size: 16px;
+  font-size: var(--text-lg);
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -366,7 +366,7 @@
 }
 
 .node[data-depth="2"] .name {
-  font-size: 14px;
+  font-size: var(--text-md);
   font-weight: 500;
 }
 

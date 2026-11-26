@@ -7,24 +7,27 @@
   padding: 40px var(--page-pad) var(--space-8);
 }
 
-/* The head: the h1 top is 96 px under the bar on every page. Without
- * group tabs: 40 (page) + 8 + the breadcrumb row (48, always there).
- * Under the tabs (8 + 32 under the bar): no breadcrumb row and the h1
- * 56 under them. Phones: 16 under the tabs. */
+/* The head: one title slot. The h1 (28/34, 22/28 on phones) top is
+ * 147 px from the page top on desktop on every page (the bar is 83):
+ * 64 under the bar when there are no group tabs, with the crumb row
+ * (44, always reserved, empty when there is nothing to say) in the
+ * 64 above it; under the tabs (8 + 32 under the bar) 24 under them,
+ * and no crumb row. The first tab's text and the title share the 152
+ * column. Phones: the title is 139 from the top, 16 under the tabs. */
 .head {
-  --head-top: var(--space-2);
+  --head-top: calc(var(--space-5) * -1 - var(--space-2));
   display: grid;
   gap: 0;
   margin-block-start: var(--head-top);
 }
 
 .head[data-tabs="true"] {
-  --head-top: var(--space-4);
+  --head-top: calc(var(--space-4) * -1);
 }
 
 @media (max-width: 760px) {
   .head {
-    --head-top: 0px;
+    --head-top: calc(var(--space-4) * -1);
   }
 
   .head[data-tabs="true"] {
@@ -36,7 +39,7 @@
   display: flex;
   align-items: center;
   min-block-size: 44px;
-  margin-block-end: var(--space-1);
+  margin-block-end: var(--space-3);
   color: var(--color-text-muted);
   font-size: 13px;
   line-height: 18px;
@@ -282,7 +285,7 @@
   min-inline-size: 0;
   border: 0;
   background: transparent;
-  font-size: max(16px, var(--text-md));
+  font-size: var(--text-md);
   outline: none;
 }
 
@@ -873,7 +876,7 @@ li + li.actRow > .row {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-surface);
-  font-size: max(16px, var(--text-md));
+  font-size: var(--text-md);
   font-weight: 400;
 }
 
@@ -1109,11 +1112,11 @@ li + li.actRow > .row {
 
 .figure strong [class*="cur"],
 .figure strong [class*="frac"] {
-  font-size: 0.6em;
+  font-size: var(--text-figure-unit);
 }
 
 .figure strong [class*="masked"] > span:last-child {
-  font-size: 0.6em;
+  font-size: var(--text-figure-unit);
 }
 
 .chart {
@@ -1308,7 +1311,7 @@ li + li.actRow > .row {
       transparent),
     0 12px 32px color-mix(in srgb, var(--color-shadow) 8%, transparent);
   color: var(--color-text);
-  font-size: 16px;
+  font-size: var(--text-md);
   line-height: 26px;
 }
 
@@ -1425,7 +1428,7 @@ li + li.actRow > .row {
     box-shadow: none;
     background: Canvas;
     color: CanvasText;
-    font-size: 12pt;
+    font-size: 15px;
   }
 }
 

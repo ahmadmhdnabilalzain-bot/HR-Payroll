@@ -1,3 +1,5 @@
+/* Sizes are tokens only, never em: hero 56 (AED 17, fils 22), lg 22
+ * (AED and fils 15), md 15 (13), sm 13 (12). */
 .money {
   display: inline-flex;
   align-items: baseline;
@@ -14,14 +16,14 @@
 }
 
 .cur {
-  font-size: max(0.7em, 14px);
+  font-size: var(--text-xs);
   font-weight: 500;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }
 
 .frac {
-  font-size: max(0.72em, 14px);
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
@@ -38,14 +40,14 @@
 }
 
 .hero .cur {
-  font-size: 0.3em;
+  font-size: var(--text-lg);
   letter-spacing: 0.06em;
   align-self: flex-start;
   margin-block-start: 0.35em;
 }
 
 .hero .frac {
-  font-size: 0.42em;
+  font-size: var(--text-xl);
   letter-spacing: -0.01em;
 }
 
@@ -55,6 +57,11 @@
   letter-spacing: -0.01em;
 }
 
+.lg .cur,
+.lg .frac {
+  font-size: var(--text-md);
+}
+
 .md {
   font-size: var(--text-md);
   font-weight: 500;
@@ -62,6 +69,11 @@
 
 .sm {
   font-size: var(--text-sm);
+}
+
+.sm .cur,
+.sm .frac {
+  font-size: var(--text-2xs);
 }
 
 /* Digits on their way to the total are muted; the total is solid. */
@@ -85,10 +97,4 @@
 
 .masked > span:last-child {
   letter-spacing: 0.12em;
-}
-
-@media (max-width: 560px) {
-  .hero {
-    font-size: 52px;
-  }
 }

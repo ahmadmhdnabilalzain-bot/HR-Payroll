@@ -228,16 +228,16 @@
 
 .resultFigure {
   justify-self: start;
-  font-size: 40px;
-  line-height: 44px;
+  font-size: var(--text-3xl);
+  line-height: 34px;
   will-change: transform;
 }
 
 .resultFigure.resultFigure > :global(*) {
-  font-size: 40px;
+  font-size: var(--text-3xl);
   font-weight: 400;
   letter-spacing: -0.02em;
-  line-height: 44px;
+  line-height: 34px;
 }
 
 .result :global(*) {

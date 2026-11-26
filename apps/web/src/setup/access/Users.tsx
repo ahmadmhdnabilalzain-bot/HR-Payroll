@@ -1,3 +1,4 @@
+import { Outside } from "../../shell/Outside";
 import { hrefOf } from "../../demo/route";
 import { FilterList, KeyValues, RecordTabs } from "../../ui/templates";
 import type { AccessData, PermissionView } from "./data";
@@ -198,10 +199,7 @@ export function PermissionRecord(p: { d: AccessData; id: string }) {
   );
 }
 
+/** A page or record that is not there: the shell's not-found page. */
 export function NotFound(p: { back: string }) {
-  return (
-    <div className={s.loading}>
-      <p>We could not find that. <a href={p.back}>Go back to the list</a>.</p>
-    </div>
-  );
+  return <Outside missing back={{ label: "Setup", href: p.back }} />;
 }

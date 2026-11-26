@@ -193,7 +193,7 @@
   background: var(--color-surface);
   color: var(--color-text);
   font: inherit;
-  font-size: max(16px, var(--text-md));
+  font-size: var(--text-md);
   font-weight: 400;
 }
 

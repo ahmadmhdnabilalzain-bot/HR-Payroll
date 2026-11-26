@@ -48,10 +48,11 @@ export function PayRunHero() {
   // "Waiting for you" list joins the first screen.
   const phone = usePhone();
   return (
+    <>
+    <StatusSentence />
     <section className={s.hero} aria-labelledby="run-title" data-card="">
       <div className={s.top}>
         <div className={s.lead}>
-          <StatusSentence />
           <div className={s.netCard}>
             <p className={s.figure} data-hero-figure="">
               <Explainable explanation={net}>
@@ -93,6 +94,7 @@ export function PayRunHero() {
         )}
       </div>
     </section>
+    </>
   );
 }
 

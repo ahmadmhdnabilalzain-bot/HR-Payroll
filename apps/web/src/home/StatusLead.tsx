@@ -13,8 +13,9 @@ import b from "../ui/button.module.css";
 import s from "./StatusLead.module.css";
 
 /**
- * The page leads with one sentence about the pay run (the date line
- * above it), inside the top card.
+ * The page leads with one sentence about the pay run, in the shared
+ * title slot (28 at the column, the date line under it), above the
+ * top card.
  */
 export function StatusSentence() {
   const { lang, t } = useLocale();
@@ -32,13 +33,13 @@ export function StatusSentence() {
       : t("home.statusBank", { month, count: run.blockedBy.length });
   return (
     <header className={s.lead}>
+      <h1 key={sentence} id="run-title" className={s.sentence}>
+        {sentence}
+      </h1>
       <p className={s.date}>
         {t("home.dateLine", { date: formatLongDay(data.payCalendar().asOf,
           lang), company: data.companyName[lang] })}
       </p>
-      <h1 key={sentence} id="run-title" className={s.sentence}>
-        {sentence}
-      </h1>
     </header>
   );
 }
