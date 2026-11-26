@@ -76,6 +76,31 @@ Nothing here has had an external penetration test.
   scratch database was tested, including audit chain checks and an API
   sign-in against the restored data.
 
+### Letters and uploads (Plan 7)
+
+- [ ] **Chrome for letters runs as a non-root user with its sandbox
+  on.** The API image has no Chrome, so letters answer 503 there. When
+  Chrome is added (`CHROME_PATH`), run it as the image's `node` user
+  and leave `CHROME_NO_SANDBOX` unset. `CHROME_NO_SANDBOX=1` turns
+  Chrome's own sandbox off and is only for development as root; the
+  API logs `chrome.sandbox.off` at start when it is set. The request
+  lock-down (only `data:` URLs, a dead proxy, a CSP, JavaScript off)
+  stays in either case, but a renderer exploit is contained only by
+  the sandbox.
+- [x] Letter renders are capped (3 at once, 6 waiting, then 503 with
+  `Retry-After`) and rate-limited (20 a minute per user, 120 per
+  company, in process memory); they run outside database
+  transactions.
+- [x] Uploads are read before a database connection is taken; the
+  runtime pool cuts statements at 30 s and idle transactions at 15 s;
+  uploads have a daily quota (50 per user, 1000 per company).
+- [ ] **Sweep unclaimed uploads.** Run `pnpm api:sweep-files` (for
+  example daily from cron) with `JOBS_LIST_DATABASE_URL` set to the
+  `payroll_backup` role: it deletes uploads nobody attached within 24
+  hours. No scheduler runs it for you.
+- [ ] **Virus scan.** Uploads are checked by magic bytes only (PDF,
+  PNG, JPEG); a PDF may carry JavaScript for the reader that opens it.
+
 ## Not done (open)
 
 Each item is a known gap, not an oversight to discover later.
