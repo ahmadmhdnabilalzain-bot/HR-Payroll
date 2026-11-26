@@ -1,4 +1,4 @@
-import { openIssueCount, steps, type StepId } from "../demo/derive";
+import { steps, type StepId } from "../demo/derive";
 import { useDemo } from "../demo/state";
 import { formatDayMonth } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
@@ -8,7 +8,7 @@ import s from "./StepTracker.module.css";
 
 const LABEL: Record<StepId, MessageKey> = {
   inputs: "home.stepInputs",
-  review: "home.stepReview",
+  bank: "home.stepBank",
   approve: "home.stepApprove",
   sif: "home.stepSif",
   pay: "home.stepPay",
@@ -46,9 +46,7 @@ export function StepTracker() {
               {x.state !== "next" && (
                 <span className={s.tag}>
                   {x.state === "done" ? t("home.stepDone")
-                    : x.state === "open" ? t("home.openIssues",
-                      { count: openIssueCount(data, state) })
-                      : t("home.stepNow")}
+                    : t("home.stepNow")}
                 </span>
               )}
             </span>

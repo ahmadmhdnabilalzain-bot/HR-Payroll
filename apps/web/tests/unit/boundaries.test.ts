@@ -28,9 +28,11 @@ describe("boundaries", () => {
     expect(bad).toEqual([]);
   });
 
+  // people.ts is the adapter's People and Time off half; only
+  // adapter.ts imports it, so both stay in the lazy data chunk.
   it("demo-data-only-in-adapter", () => {
     expect(filesImporting(/^@payroll\/demo-data/))
-      .toEqual(["src/demo/data/adapter.ts"]);
+      .toEqual(["src/demo/data/adapter.ts", "src/demo/data/people.ts"]);
   });
 
   it("money-wire-only-in-contract", () => {

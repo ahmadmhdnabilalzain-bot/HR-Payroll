@@ -1,10 +1,5 @@
 import type { DemoData } from "../demo/data/types";
-import {
-  actionable,
-  openThenResolved,
-  personOf,
-  waitingApprovals,
-} from "../demo/derive";
+import { openIssues, pendingApprovals, personOf } from "../demo/derive";
 import type { Action, DemoState, Role } from "../demo/state";
 import type { T } from "../i18n/t";
 import type { Lang } from "../i18n/types";
@@ -74,18 +69,18 @@ function actions(e: Env): Command[] {
 }
 
 function people(e: Env): Command[] {
-  const issues = openThenResolved(e.data, e.state).filter((i) =>
-    actionable(i) && e.state.resolved[i.id] === undefined &&
+  const issues = openIssues(e.data, e.state).filter((i) =>
     i.employeeId !== null);
   const fromIssues = issues.map((i): Command => {
     const who = e.data.employee(i.employeeId ?? "");
     return { id: `issue:${i.id}`, group: "people", icon: "alert",
       label: e.t("shell.actIssue", { name: who.name[e.lang] }),
-      hint: who.role[e.lang],
-      keywords: `${who.name.en} ${who.name.ar} ${i.plainReason.en}`,
+      hint: i.title[e.lang],
+      keywords: `${who.name.en} ${who.name.ar} ${i.title.en} ` +
+        i.reason.en,
       run: () => e.dispatch({ type: "focus-issue", id: i.id }) };
   });
-  const fromApprovals = waitingApprovals(e.data, e.state).map((a)
+  const fromApprovals = pendingApprovals(e.data, e.state).map((a)
     : Command => {
     const who = e.data.employee(a.employeeId ?? a.makerId);
     return { id: `approval:${a.id}`, group: "people", icon: "check",

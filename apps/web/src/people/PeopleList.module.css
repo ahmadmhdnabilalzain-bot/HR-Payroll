@@ -1,0 +1,230 @@
+.list {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.searchBox {
+  display: flex;
+  flex: 1 1 320px;
+  align-items: center;
+  gap: var(--space-2);
+  max-inline-size: 480px;
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-divider-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  transition: border-color var(--dur-fast) ease;
+}
+
+.searchBox:focus-within {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.input {
+  flex: 1;
+  min-inline-size: 0;
+  block-size: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-text-faint);
+}
+
+.select {
+  min-block-size: 44px;
+  padding-inline: var(--space-3) var(--space-6);
+  border: 1px solid var(--color-divider-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-lg);
+}
+
+.clear {
+  min-block-size: 44px;
+  margin-block-start: var(--space-2);
+  padding-inline: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-divider-strong);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  font-weight: 500;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-divider);
+  vertical-align: middle;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-inline-start: 0;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-inline-end: 0;
+}
+
+.table .num {
+  text-align: end;
+}
+
+.row {
+  position: relative;
+  animation: row-in var(--dur-slow) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.table tbody tr {
+  transition: background-color var(--dur-fast) ease;
+}
+
+.table tbody tr:hover {
+  background: var(--color-surface-2);
+}
+
+/* The name link covers the whole row, so the row is one target. */
+.nameLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 52px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.nameLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.nameLink:focus-visible {
+  outline: none;
+}
+
+.nameLink:focus-visible::after {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+  border-radius: var(--radius-control);
+}
+
+.name {
+  font-weight: 500;
+}
+
+.soft {
+  color: var(--color-text-muted);
+}
+
+.rows {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 64px;
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--color-divider);
+  color: var(--color-text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card:active {
+  background: var(--color-surface-2);
+}
+
+.cardMain {
+  display: grid;
+  flex: 1;
+  gap: 1px;
+  min-inline-size: 0;
+}
+
+.cardSub {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardEnd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-faint);
+  font-size: var(--text-md);
+}
+
+@media (max-width: 1100px) {
+  .table th:nth-child(4),
+  .table td:nth-child(4) {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .table {
+    display: none;
+  }
+
+  .rows {
+    display: grid;
+  }
+
+  .searchBox {
+    flex-basis: 100%;
+    max-inline-size: none;
+  }
+
+  .select {
+    flex: 1 1 100%;
+  }
+}

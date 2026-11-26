@@ -1,7 +1,8 @@
 import { useRef } from "react";
+import { useRunApproval } from "../demo/actions";
 import type { Approval, ApprovalKind } from "../demo/data/types";
 import { pendingApprovals, personOf } from "../demo/derive";
-import { useFlip } from "../demo/motion";
+import { useFlip, useTweenedNumber } from "../demo/motion";
 import { useDemo, type Verdict } from "../demo/state";
 import { formatDayMonth } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
@@ -16,20 +17,27 @@ const KIND: Record<ApprovalKind, MessageKey> = {
   "pay-run": "home.kindPayRun",
 };
 
-/** What waits for the current role; maker and checker always differ. */
+/**
+ * Everything waiting for a decision, the viewer's own first. Only the
+ * checker can decide; everyone else sees who it waits for. The pay run
+ * uses the shared run approval, so Home and the Pay run page agree.
+ */
 export function Approvals() {
   const { t } = useLocale();
   const { data, state } = useDemo();
   const list = pendingApprovals(data, state);
   const box = useRef<HTMLUListElement>(null);
   useFlip(box, [list.map((a) => a.id).join(), state.role]);
+  const count = useTweenedNumber(list.length);
   return (
     <section className={s.panel} aria-labelledby="approvals-title">
       <header className={s.head}>
         <h2 id="approvals-title" className={s.title}>
           {t("home.approvalsTitle")}
         </h2>
-        <span className={`${s.count} tabular`}>{list.length}</span>
+        <span className={`${s.note} tabular`}>
+          {t("home.waiting", { count })}
+        </span>
       </header>
       {list.length === 0 ? (
         <p className={s.empty}>{t("home.approvalsEmpty")}</p>
@@ -45,25 +53,32 @@ export function Approvals() {
 function ApprovalRow(p: { a: Approval }) {
   const { lang, t } = useLocale();
   const { data, state, dispatch } = useDemo();
+  const run = useRunApproval();
   const toast = useToast();
   const a = p.a;
+  const isRun = a.kind === "pay-run";
   const mine = a.checkerId === personOf(data, state.role);
-  const checker = data.employee(a.checkerId).name[lang];
   const who = data.employee(a.employeeId ?? a.makerId).name[lang];
+  const checker = data.employee(a.checkerId).name[lang];
+  const blocked = isRun && !run.canDecide;
   const decide = (verdict: Verdict) => (): void => {
-    dispatch({ type: "decide", id: a.id, verdict });
+    if (isRun) run.decide(verdict);
+    else dispatch({ type: "decide", id: a.id, verdict });
     toast.show(t("home.decided", { title: `${t(KIND[a.kind])} · ${who}` }),
       () => dispatch({ type: "undecide", id: a.id }));
   };
+  const why = isRun && blocked ? t("home.approveWaits", {
+    count: run.blockedBy.length,
+    name: data.employee(run.blockedBy[0] ?? a.makerId).name[lang] })
+    : undefined;
   return (
     <li className={s.row} data-flip={a.id} id={`approval-${a.id}`}>
       <div className={s.main}>
         <span className={s.kind}>{t(KIND[a.kind])}</span>
-        <span className={s.what}>{a.title[lang]}</span>
+        <span className={s.what}>{isRun ? t("home.preparedBy",
+          { name: who }) : who}</span>
         <span className={s.meta}>
-          {a.kind === "pay-run" ? t("home.preparedBy", { name: who })
-            : who}
-          {" · "}
+          {isRun ? null : `${a.title[lang]} · `}
           {t("home.requested", { date: formatDayMonth(a.requestedOn,
             lang) })}
         </span>
@@ -73,9 +88,13 @@ function ApprovalRow(p: { a: Approval }) {
         {mine ? (
           <div className={s.buttons}>
             <button type="button" className={`${b.btn} ${b.secondary}`}
-              onClick={decide("decline")}>{t("home.decline")}</button>
+              disabled={blocked} onClick={decide("decline")}>
+              {t("home.decline")}
+            </button>
             <button type="button" className={`${b.btn} ${b.primary}`}
-              onClick={decide("approve")}>{t("home.approve")}</button>
+              disabled={blocked} title={why} onClick={decide("approve")}>
+              {t("home.approve")}
+            </button>
           </div>
         ) : (
           <span className={s.waitingFor}>
@@ -83,6 +102,7 @@ function ApprovalRow(p: { a: Approval }) {
           </span>
         )}
       </div>
+      {mine && why !== undefined && <p className={s.why}>{why}</p>}
     </li>
   );
 }

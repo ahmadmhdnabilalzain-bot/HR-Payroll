@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSwitchRole } from "../demo/actions";
 import { personOf } from "../demo/derive";
 import { useDemo, type Role } from "../demo/state";
 import type { MessageKey } from "../i18n/t";
@@ -20,7 +21,8 @@ function initials(name: string): string {
 /** Who the demo is being viewed as; the person is from the data. */
 export function RoleMenu() {
   const { lang, t } = useLocale();
-  const { data, state, dispatch } = useDemo();
+  const { data, state } = useDemo();
+  const switchRole = useSwitchRole();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -61,7 +63,7 @@ export function RoleMenu() {
               <button key={r} type="button" role="menuitemradio"
                 aria-checked={state.role === r} className={s.menuItem}
                 onClick={() => {
-                  dispatch({ type: "role", role: r });
+                  switchRole(r);
                   setOpen(false);
                 }}>
                 <span className={s.avatar} aria-hidden="true">

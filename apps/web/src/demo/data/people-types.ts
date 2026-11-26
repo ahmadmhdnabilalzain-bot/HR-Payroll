@@ -119,17 +119,6 @@ export interface DocumentView {
   state: "expired" | "expiring-30" | "expiring-90" | "valid";
 }
 
-/** An open item about one person, in the package's own words. */
-export interface PersonNote {
-  id: string;
-  kind: "issue" | "needs-confirmation" | "note";
-  title: string;
-  reason: Localized;
-  fix: Localized;
-  /** Already readable ("8 November"), from the package. */
-  dateText: string | null;
-}
-
 export type LeaveTypeId = "lt-annual" | "lt-sick" | "lt-unpaid";
 export type LeaveStatus = "approved" | "pending" | "rejected";
 
@@ -202,7 +191,6 @@ export interface PeopleData {
   payslip(employeeId: string): PayslipView | null;
   explain(payslipId: string, traceId: string): ExplainedFigure;
   documentsOf(employeeId: string): DocumentView[];
-  notesOf(employeeId: string): PersonNote[];
   leaveTypes(): LeaveTypeView[];
   reasons(): ReasonOption[];
   leaveRequests(): LeaveRequestView[];

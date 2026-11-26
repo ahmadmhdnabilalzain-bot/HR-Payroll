@@ -12,7 +12,6 @@ import {
   explainPayslipLine,
   isDemoLabelKey,
   isWorkingDay,
-  issuesOf,
   PENSION_NOT_COMPUTED,
   payslipByEmployee,
   type DemoCompany,
@@ -206,7 +205,6 @@ export function adaptPeople(c: DemoCompany): PeopleData {
   const personas = { hrId: run.makerEmployeeId, gmId: run.checkerEmployeeId,
     employeeId: employee.id,
     managerId: approverIn(c.employees, employee.id) };
-  const issues = issuesOf(c);
   const requests = requestsOf(c);
   return {
     asOf: c.asOf,
@@ -221,10 +219,6 @@ export function adaptPeople(c: DemoCompany): PeopleData {
       .map((d) => ({ id: d.id, employeeId: d.employeeId,
         kind: label(`doc.${d.kind}`), numberMasked: d.number.masked,
         expiresOn: d.expiresOn, daysLeft: d.daysLeft, state: d.state })),
-    notesOf: (id) => issues.filter((i) => i.employeeId === id)
-      .map((i, n) => ({ id: `${i.code}:${i.subjectId ?? id}:${n}`,
-        kind: i.kind, title: i.title, reason: i.plainReason,
-        fix: i.suggestedFix, dateText: i.date?.display ?? null })),
     leaveTypes: () => c.leaveTypes.map((t) => ({
       id: t.id as LeaveTypeId, name: label(t.labelKey), paid: t.paid,
       annualDays: t.annualDays })),

@@ -68,6 +68,15 @@
   display: none;
 }
 
+button.navItem {
+  border: 0;
+  background: transparent;
+}
+
+.navSearch {
+  display: none;
+}
+
 a.navItem:hover {
   color: var(--color-text);
 }
@@ -347,9 +356,10 @@ a.navItem:hover {
     flex-direction: column;
     gap: 2px;
     block-size: auto;
-    min-inline-size: 64px;
-    padding: var(--space-2) var(--space-1);
-    font-size: var(--text-2xs);
+    min-inline-size: 72px;
+    min-block-size: 52px;
+    padding: var(--space-1);
+    font-size: var(--text-xs);
   }
 
   .navItem svg {
@@ -359,5 +369,14 @@ a.navItem:hover {
   .navItem[aria-current="page"] {
     background: transparent;
     color: var(--color-accent);
+  }
+
+  .navItem[data-phone="no"],
+  .search {
+    display: none;
+  }
+
+  .navSearch {
+    display: inline-flex;
   }
 }

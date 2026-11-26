@@ -132,38 +132,21 @@
   font-weight: 400;
 }
 
+/* Phone: the dots stay in one row; only the current step is named. */
 @media (max-width: 560px) {
-  .steps {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
+  .step:not([data-state="now"]) .label,
+  .step:not([data-state="now"]) .meta {
+    visibility: hidden;
   }
 
-  .track {
-    inset-inline: auto;
-    inset-inline-start: calc(var(--node) / 2 - 1px);
-    inset-block: calc(var(--node) / 2) calc(var(--node) / 2 + 12px);
-    inline-size: 2px;
-    block-size: auto;
+  .step[data-state="now"] .label,
+  .step[data-state="now"] .meta {
+    white-space: nowrap;
   }
 
-  .trackFill {
-    transform: scaleY(var(--fill));
-    transform-origin: 50% 0;
-  }
-
-  [dir="rtl"] .trackFill {
-    transform-origin: 50% 0;
-  }
-
-  .step {
-    grid-template-columns: var(--node) 1fr auto;
-    justify-items: start;
-    align-items: center;
-    column-gap: var(--space-3);
-    text-align: start;
-  }
-
-  .node {
-    margin: 0;
+  .step:first-of-type[data-state="now"],
+  .step:last-of-type[data-state="now"] {
+    overflow: visible;
   }
 }
+

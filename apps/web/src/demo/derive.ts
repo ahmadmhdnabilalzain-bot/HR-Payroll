@@ -2,30 +2,36 @@ import type { Approval, DemoData, Issue, Severity } from "./data/types";
 import type { DemoState, Role } from "./state";
 import { allApprovals, personFor } from "./time-off";
 
-const RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2,
-  "needs-confirmation": 3 };
+const RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2 };
 
-/** Issues a person can act on now; confirmations wait on others. */
-export const actionable = (i: Issue): boolean =>
-  i.severity !== "needs-confirmation";
+/** Only kind "issue" is a problem to fix before approval. */
+export const actionable = (i: Issue): boolean => i.kind === "issue";
 
-/** Open first (most serious first), then resolved, in a stable order. */
-export function openThenResolved(d: DemoData, s: DemoState): Issue[] {
-  const group = (i: Issue): number => s.resolved[i.id] !== undefined
-    ? 1 : 0;
-  return d.issues().filter(actionable).map((i, n) => ({ i, n }))
-    .sort((a, b) => group(a.i) - group(b.i) ||
-      RANK[a.i.severity] - RANK[b.i.severity] || a.n - b.n)
-    .map(({ i }) => i);
+/** Open until settled; bank issues leave the data when an IBAN passes. */
+export function isOpen(_d: DemoData, s: DemoState, i: Issue): boolean {
+  return actionable(i) && s.resolved[i.id] === undefined;
 }
 
+/** Open first (most serious first), then settled, in a stable order. */
+export function openThenSettled(d: DemoData, s: DemoState): Issue[] {
+  return d.issues().filter(actionable).map((i, n) => ({ i, n,
+    g: isOpen(d, s, i) ? 0 : 1 }))
+    .sort((a, b) => a.g - b.g || RANK[a.i.severity] - RANK[b.i.severity] ||
+      a.n - b.n).map(({ i }) => i);
+}
+
+export function openIssues(d: DemoData, s: DemoState): Issue[] {
+  return openThenSettled(d, s).filter((i) => isOpen(d, s, i));
+}
+
+/** Client setup to confirm (pension fund, settlement inputs). */
 export function confirmations(d: DemoData): Issue[] {
-  return d.issues().filter((i) => !actionable(i));
+  return d.issues().filter((i) => i.kind === "needs-confirmation");
 }
 
-export function openIssueCount(d: DemoData, s: DemoState): number {
-  return d.issues().filter((i) =>
-    actionable(i) && s.resolved[i.id] === undefined).length;
+/** Context shown once, quietly (the invented demo bank code). */
+export function notes(d: DemoData): Issue[] {
+  return d.issues().filter((i) => i.kind === "note");
 }
 
 /**
@@ -34,13 +40,6 @@ export function openIssueCount(d: DemoData, s: DemoState): number {
  */
 export function personOf(d: DemoData, role: Role): string {
   return personFor(d, role);
-}
-
-/** What waits for the current role's decision. */
-export function waitingApprovals(d: DemoData, s: DemoState): Approval[] {
-  const me = personOf(d, s.role);
-  return allApprovals(d, s).filter((a) =>
-    a.checkerId === me && s.decided[a.id] === undefined);
 }
 
 /** Everything still undecided, the current role's own first. */
@@ -56,9 +55,26 @@ export function runApprovalId(d: DemoData): string | null {
   return d.approvalsInbox().find((a) => a.kind === "pay-run")?.id ?? null;
 }
 
-export type StepId = "inputs" | "review" | "approve" | "sif" | "pay";
-/** "open": passed in time but issues are still open (never hidden). */
-export type StepState = "done" | "now" | "next" | "open";
+/**
+ * Who still holds the run back: the real API refuses a whole run while
+ * any payslip has no bank account, so the demo never implies a partial
+ * run. Approve stays disabled, with this reason, until it is empty.
+ */
+export function approvalBlockedBy(d: DemoData, _s: DemoState)
+  : string[] {
+  return d.heldIds();
+}
+
+export type RunPhase = "bank-details" | "approve" | "file";
+
+export function runPhase(d: DemoData, s: DemoState): RunPhase {
+  const run = runApprovalId(d);
+  if (run !== null && s.decided[run] === "approve") return "file";
+  return approvalBlockedBy(d, s).length > 0 ? "bank-details" : "approve";
+}
+
+export type StepId = "inputs" | "bank" | "approve" | "sif" | "pay";
+export type StepState = "done" | "now" | "next";
 
 export interface Step {
   id: StepId;
@@ -67,23 +83,19 @@ export interface Step {
 }
 
 /**
- * The pay run's progress. Inputs closed on the cut-off; review is
- * current while actionable issues are open, then approval is; once
- * the checker records a decision, the salary file is. Progress only:
- * nothing here stops a person acting.
+ * The pay month as five dated steps. Inputs closed on the cut-off;
+ * bank details are current while a payslip is held out; then the
+ * approval; then the salary file. Review items never hold it back.
  */
 export function steps(d: DemoData, s: DemoState): Step[] {
   const c = d.payCalendar();
-  const run = runApprovalId(d);
-  const now: StepId = run !== null && s.decided[run] === "approve"
-    ? "sif"
-    : openIssueCount(d, s) === 0 ? "approve" : "review";
+  const phase = runPhase(d, s);
+  const now: StepId = phase === "file" ? "sif"
+    : phase === "approve" ? "approve" : "bank";
   const order: [StepId, string][] = [["inputs", c.cutOff],
-    ["review", c.asOf], ["approve", c.approveBy], ["sif", c.sifDue],
+    ["bank", c.asOf], ["approve", c.approveBy], ["sif", c.sifDue],
     ["pay", c.payday]];
   const at = order.findIndex(([id]) => id === now);
-  const open = openIssueCount(d, s) > 0;
   return order.map(([id, date], i) => ({ id, date,
-    state: i === at ? "now" : i > at ? "next"
-      : id === "review" && open ? "open" : "done" }));
+    state: i < at ? "done" : i === at ? "now" : "next" }));
 }
