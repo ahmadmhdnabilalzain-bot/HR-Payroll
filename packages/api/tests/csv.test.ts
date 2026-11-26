@@ -28,4 +28,13 @@ describe("toCsv", () => {
       expect(toCsv(null, ["h"], [['=HYPERLINK("http://x","y")']]))
         .toBe(`${BOM}h\r\n"'=HYPERLINK(""http://x"",""y"")"\r\n`);
     });
+  it("semicolon, leading-space and full-width formulas are neutralised",
+    () => {
+      const out = toCsv(null, ["h"], [["Cafe;=1+1"], [" =1+1"],
+        ["\uff1d1+1"], ["\uff0bx"], ["\uff0d5"], ["\uff20SUM"],
+        ["  @x"], ["plain text"]]);
+      expect(out).toBe(`${BOM}h\r\n"Cafe;=1+1"\r\n' =1+1\r\n` +
+        "'\uff1d1+1\r\n'\uff0bx\r\n'\uff0d5\r\n'\uff20SUM\r\n" +
+        "'  @x\r\nplain text\r\n");
+    });
 });
