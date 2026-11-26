@@ -17,6 +17,7 @@ only; no hooks and no MCP servers were installed.
 | impeccable | pbakaus/impeccable | 2fc5e14 |
 | gsap-core, -timeline, -scrolltrigger, -react, -plugins, -utils, -performance, -frameworks | greensock/gsap-skills | aed9cfd |
 | diagram-design | cathrynlavery/diagram-design | b228c5d |
+| risky-changes, decisions, adr-verbatim, file-tree | davidondrej/cloudroom | d87487d |
 | agent-reach (CLI in `~/.agent-reach-venv` + skill) | Panniantong/Agent-Reach | 8d9ecc1 |
 
 Agent Reach: read-only, default no-login channels, no accounts
@@ -49,3 +50,13 @@ plugin).
   choosing to create that account and key.
 - Hooks shipped by impeccable (design checks on every edit): skipped to
   keep behaviour predictable.
+
+## Cloudroom (davidondrej/cloudroom), partly installed
+
+It is a desktop app plus a Rust service that runs coding agents in cloud
+sandboxes. The app and service were not installed: they run on a desktop
+or a server the owner controls and would host project code at a third
+party. Only four of its generic skills were installed (risky-changes,
+decisions, adr-verbatim, file-tree). Its other skills need the Cloudroom
+runtime, a third-party search service key (deepapi), or scan the host
+machine (malware-scan), so they were skipped.

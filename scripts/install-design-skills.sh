@@ -36,6 +36,10 @@ install_set "$G" aed9cfd3277740755f6bfc1155c7aa645403b760 \
 install_set cathrynlavery/diagram-design \
   b228c5d77794a84150fca41b22940bb316b1398d skills/diagram-design
 
+# Cloudroom: only its four general-purpose skills (no app, no runtime).
+install_set davidondrej/cloudroom d87487dc2a178b176cce2323a4e48b705d18dccf \
+  skills/risky-changes skills/decisions skills/adr-verbatim skills/file-tree
+
 # Agent Reach (read-only web/social reader): CLI in an isolated venv from
 # the pinned source with its own constraints file, plus its skill file.
 # No logins are configured; default no-login channels only.
