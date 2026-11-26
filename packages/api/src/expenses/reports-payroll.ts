@@ -45,9 +45,37 @@ interface UnpaidDb { id: string; employee_id: string; full_name: string;
   last_working_date: string | null }
 
 /**
- * Approved, unpaid claims with why they wait: linked to a draft run,
- * the employee has left (no future run pays them), or the next run.
+ * The first day of the month after the latest approved run, or null
+ * with no approved run: the earliest month a new run can still pay.
  */
+async function firstOpenDay(ctx: ReqCtx): Promise<string | null> {
+  const [r] = await ctx.tx.query<{ y: number | null; m: number | null }>(
+    `SELECT year AS y, month AS m FROM pay_runs WHERE company_id = $1
+       AND status = 'approved' ORDER BY year DESC, month DESC LIMIT 1`,
+    [ctx.tenant!.companyId]);
+  if (r === undefined || r.y === null || r.m === null) return null;
+  const y = r.m === 12 ? r.y + 1 : r.y;
+  const m = r.m === 12 ? 1 : r.m + 1;
+  return `${y}-${String(m).padStart(2, "0")}-01`;
+}
+
+type Reason = UnpaidRow["reason"];
+
+/**
+ * Why an approved claim is unpaid. `employee-left` only when no run
+ * can pay it any more (the employee's last day is before the first
+ * month a new run can cover); a leaver whose final run is still open
+ * is `final-run-pending`, so HR does not pay it twice by hand.
+ */
+export function unpaidReason(linked: boolean, lastDay: string | null,
+  today: string, firstOpen: string | null): Reason {
+  if (linked) return "in-draft-run";
+  if (lastDay === null || lastDay >= today) return "awaiting-pay-run";
+  return firstOpen !== null && lastDay < firstOpen ? "employee-left"
+    : "final-run-pending";
+}
+
+/** Approved, unpaid claims with why they wait. */
 export async function unpaidReport(ctx: ReqCtx): Promise<UnpaidRow[]> {
   const rows = await ctx.tx.query<UnpaidDb>(
     `SELECT c.id, c.employee_id, e.full_name, c.total, c.decided_at,
@@ -57,12 +85,11 @@ export async function unpaidReport(ctx: ReqCtx): Promise<UnpaidRow[]> {
      WHERE c.company_id = $1 AND c.status = 'approved'
      ORDER BY c.decided_at, c.id`, [ctx.tenant!.companyId]);
   const today = dubaiDate(ctx.deps.now());
+  const open = await firstOpenDay(ctx);
   return rows.map((r) => ({ claimId: r.id, employeeId: r.employee_id,
     employeeName: r.full_name, total: money(r.total),
-    decidedAt: r.decided_at,
-    reason: r.pay_run_id !== null ? "in-draft-run"
-      : r.last_working_date !== null && r.last_working_date < today
-        ? "employee-left" : "awaiting-pay-run" }));
+    decidedAt: r.decided_at, reason: unpaidReason(r.pay_run_id !== null,
+      r.last_working_date, today, open) }));
 }
 
 interface PayoutDb { employee_id: string; full_name: string;

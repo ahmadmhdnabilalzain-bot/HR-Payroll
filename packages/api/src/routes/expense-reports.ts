@@ -1,5 +1,6 @@
 import {
   REIMBURSEMENT_WPS_NOTE,
+  UNPAID_NOTE,
   VAT_STATEMENT,
   type Payouts,
   type PayoutsQuery,
@@ -58,5 +59,5 @@ export function registerExpenseReportRoutes(app: App, deps: AppDeps)
   register(app, deps, "expenseAging", async (ctx) =>
     ({ items: await agingReport(ctx) }));
   register(app, deps, "expenseUnpaid", async (ctx) =>
-    ({ items: await unpaidReport(ctx) }));
+    ({ items: await unpaidReport(ctx), note: UNPAID_NOTE }));
 }

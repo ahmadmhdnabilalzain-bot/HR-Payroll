@@ -1,5 +1,6 @@
 import { IDS } from "./examples-people";
 import { VAT_STATEMENT } from "./expenses";
+import { UNPAID_NOTE } from "./expense-reports";
 import { REIMBURSEMENT_WPS_NOTE } from "./payroll";
 
 const X = (n: string) => `00000000-0000-4000-8000-0000000006${n}`;
@@ -142,6 +143,6 @@ export const EXPENSE_EXAMPLES: Record<string, unknown> = {
   SummaryReport: summary,
   VatRegister: vatRegister,
   AgingReport: { items: [aging] },
-  UnpaidReport: { items: [unpaid] },
+  UnpaidReport: { items: [unpaid], note: UNPAID_NOTE },
   Payouts: payouts,
 };

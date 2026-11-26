@@ -1,5 +1,6 @@
 import {
   IBAN_SENTINEL,
+  UNPAID_NOTE,
   REIMBURSEMENT_WPS_NOTE,
   VAT_STATEMENT,
 } from "@payroll/contract";
@@ -111,7 +112,10 @@ describe("expense reports", () => {
       (x: { claimId: string }) => x.claimId === id)?.reason;
     expect(reason(mealsClaim)).toBe("in-draft-run");
     expect(reason(waiting)).toBe("awaiting-pay-run");
-    expect(reason(left)).toBe("employee-left");
+    // No March run is approved yet: the leaver's final run still pays
+    // it, so HR must not pay it by hand (review I-1).
+    expect(reason(left)).toBe("final-run-pending");
+    expect(r.body.note).toBe(UNPAID_NOTE);
   });
 
   it("aging_report", async () => {
@@ -147,5 +151,31 @@ describe("expense reports", () => {
         expect(text).not.toContain("claimable");
       }
     }
+  });
+});
+
+describe("unpaid report after the leaver's final run", () => {
+  it("employee-left only when no run can still pay the claim", async () => {
+    const w = await world("left");
+    const out = w.s.emp.outsider;
+    await as(w, w.s.hr, "PATCH", `/v1/employees/${out}`,
+      { lastWorkingDate: "2026-02-28" });
+    const feb = await postRun(w.ctx, w.s.hr, w.s, "feb", { period:
+      { year: 2026, month: 2 }, entries: [{ employeeId: out,
+        unusedLeaveDays: 0, serviceUnpaidLeaveDays: 0 }] });
+    expect(feb.status, feb.text).toBe(201);
+    const ok = await as(w, w.o2, "POST",
+      `/v1/pay-runs/${feb.body.id}/approve`);
+    expect(ok.status, ok.text).toBe(200);
+    const late = await claimFor(w, out, "21.00", "2026-02-10");
+    const stillPaid = await claimOf(w, "22.00");
+    const r = await as(w, w.s.hr, "GET", "/v1/expense-reports/unpaid");
+    const reason = (id: string) => r.body.items.find(
+      (x: { claimId: string }) => x.claimId === id)?.reason;
+    expect(reason(late)).toBe("employee-left");
+    expect(reason(stillPaid)).toBe("awaiting-pay-run");
+    const march = await postRun(w.ctx, w.s.hr, w.s, "mar", MARCH);
+    expect(march.status, march.text).toBe(201);
+    expect(march.body.claimCount).toBe(1);
   });
 });
