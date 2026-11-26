@@ -323,8 +323,8 @@ working as designed: switch to HR manager.
 **They see.** Six words in the top bar that never grow: Home, People,
 Time, Pay, Reports, Setup. Each opens a panel of groups (for Pay: This
 month, Changes, Owed and leaving), with small counts of things waiting
-(People shows "Hiring requests 1 waiting"; Reports shows "Anomaly checks
-7 waiting"). Pay also lists Bonus runs, Sales commission and the
+(People shows "Hiring requests 1 waiting"; Reports shows "Anomaly checks"
+with a count: 7 on a fresh load, 8 by this point in the script). Pay also lists Bonus runs, Sales commission and the
 Pay-structure sandbox.
 Cmd K lists people, areas and actions, for example "Open issue: James
 Whitfield, Final settlement needs notice pay" first for "James". On the
