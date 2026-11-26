@@ -17,6 +17,7 @@ import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
 import { openItemsOf, severityOf } from "./attention";
 import { shortBranch } from "./filter";
+import { EmiratesId } from "./EmiratesId";
 import { useRoll } from "./useRoll";
 import {
   countryName,
@@ -196,7 +197,7 @@ function Employment(q: { person: Person }) {
           <span className={s.email}>{x.email}</span>
         </Fact>
         <Fact label={t("people.emiratesId")}>
-          <span dir="ltr" className="tabular">{x.emiratesIdMasked}</span>
+          <EmiratesId person={x} />
         </Fact>
         {canSeePay(data, state, x.id) && (
           <Fact label={t("people.iban")}>

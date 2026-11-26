@@ -60,4 +60,6 @@ export const shell = {
   outsideHelp: "It is for another role. Switch role from the menu at " +
     "the top, or go back to your Home.",
   outsideBack: "Back to Home",
+  missingTitle: "This page does not exist",
+  missingHelp: "The link may be old or mistyped.",
 } satisfies EnNamespace;

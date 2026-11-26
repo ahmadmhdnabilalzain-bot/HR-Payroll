@@ -180,8 +180,13 @@ export function LetterRecord(props: { id: string }) {
         Withdraw</button>
     </>
   )) : l.status === "issued" ? (
-    <button type="button" className={`${b.btn} ${b.secondary}`}
-      onClick={() => print()}>Print</button>
+    <>
+      <button type="button" className={`${b.btn} ${b.secondary}`}
+        onClick={() => print()}>Print</button>
+      <button type="button" className={`${b.btn} ${b.secondary}`}
+        title="Opens the print window: choose Save as PDF"
+        onClick={() => print()}>Save as PDF</button>
+    </>
   ) : l.step !== null ? (
     <button type="button" className={`${b.btn} ${b.secondary}`}
       onClick={() => p.dispatch({ type: "paper-undo", id: l.id })}>

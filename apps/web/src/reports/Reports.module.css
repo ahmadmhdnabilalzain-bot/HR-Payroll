@@ -269,12 +269,13 @@
 
 /* Print: the report alone, black on white, no controls. */
 @media print {
-  :global(body) * {
+  /* Only where a report is on screen: other pages print as they are. */
+  :global(body):has(.report) * {
     visibility: hidden;
   }
 
-  .report,
-  .report * {
+  :global(body):has(.report) .report,
+  :global(body):has(.report) .report * {
     visibility: visible;
   }
 

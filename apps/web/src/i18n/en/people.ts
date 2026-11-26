@@ -53,6 +53,10 @@ export const people = {
   nationality: "Nationality",
   email: "Work email",
   emiratesId: "Emirates ID",
+  eidShow: "Show",
+  eidHide: "Hide",
+  eidNote: "Shown to HR and written to the audit trail. It hides again " +
+    "when you leave.",
   iban: "IBAN",
   ibanMissing: "Not on file",
   requestsGoTo: "Approves time off",

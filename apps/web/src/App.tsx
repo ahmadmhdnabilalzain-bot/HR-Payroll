@@ -29,7 +29,8 @@ export function App() {
   }, [arabicShown, lang, setLang]);
   /* The tab names the page: Home, else the page's own heading. */
   const main = useRef<HTMLElement>(null);
-  const home = route.section === "home" ? t("shell.navHome") : null;
+  const atHome = route.section === "home" && route.unknown !== true;
+  const home = atHome ? t("shell.navHome") : null;
   useEffect(() => {
     const el = main.current;
     const set = (): void => {
@@ -52,7 +53,8 @@ export function App() {
             {t("common.arReviewBanner")}
           </p>
         )}
-        {allowed ? <View key={shown} rest={route.rest} />
+        {route.unknown === true ? <Outside key="missing" missing />
+          : allowed ? <View key={shown} rest={route.rest} />
           : <Outside key={`outside-${shown}`} />}
       </main>
       <PhoneTabs route={route} />

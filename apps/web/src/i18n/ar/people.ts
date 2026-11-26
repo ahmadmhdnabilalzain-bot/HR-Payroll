@@ -61,6 +61,10 @@ export const people: ArOf<typeof en> = {
   nationality: "الجنسية",
   email: "البريد الإلكتروني للعمل",
   emiratesId: "الهوية الإماراتية",
+  eidShow: "إظهار",
+  eidHide: "إخفاء",
+  eidNote: "يظهر لمسؤول الموارد البشرية ويُسجَّل في سجل التدقيق. " +
+    "يُخفى عند مغادرة الصفحة.",
   iban: "رقم الآيبان",
   ibanMissing: "غير مسجل",
   requestsGoTo: "يوافق على الإجازات",

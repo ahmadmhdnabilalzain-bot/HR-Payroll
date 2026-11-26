@@ -49,6 +49,12 @@ import {
   type PapersSlice,
 } from "./papers-state";
 import {
+  EID_INITIAL,
+  reduceEid,
+  type EidAction,
+  type EidSlice,
+} from "./eid-state";
+import {
   reduceSafety,
   SAFETY_INITIAL,
   type SafetyAction,
@@ -114,7 +120,7 @@ export type Resolution = "reviewed" | "renewal";
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
-    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice {
+    EidSlice, FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -151,6 +157,7 @@ export type Action =
   | MovesAction
   | PayAction
   | SafetyAction
+  | EidAction
   | RequestsAction
   | { type: "files"; op: FilesOp }
   | ConnectAction
@@ -167,7 +174,7 @@ export const INITIAL: DemoState = {
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL, ...TEAM_INITIAL,
   ...MOVES_INITIAL, ...PAY_INITIAL, ...SAFETY_INITIAL, ...REQUESTS_INITIAL,
-  ...FILES_INITIAL,
+  ...FILES_INITIAL, ...EID_INITIAL,
   ...CONNECT_INITIAL, ...PRIOR_INITIAL,
   ...HOLD_INITIAL,
   ...MORE_INITIAL,
@@ -181,7 +188,7 @@ function without<T>(r: Record<string, T>, key: string): Record<string, T> {
 
 export function reduce(s: DemoState, a: Action): DemoState {
   switch (a.type) {
-    case "role": return { ...s, role: a.role };
+    case "role": return { ...s, role: a.role, eidShown: null };
     case "toggle-amounts": return { ...s, hideAmounts: !s.hideAmounts };
     case "iban":
       return { ...s, ibans: { ...s.ibans, [a.employeeId]: a.value } };
@@ -238,6 +245,8 @@ export function reduce(s: DemoState, a: Action): DemoState {
       notesRead: s.notesRead.filter((x) => !a.ids.includes(x)) };
     case "safety-mark":
     case "safety-unmark": return reduceSafety(s, a);
+    case "eid-show":
+    case "eid-hide": return reduceEid(s, a);
     case "req-step":
     case "req-undo":
     case "req-new":

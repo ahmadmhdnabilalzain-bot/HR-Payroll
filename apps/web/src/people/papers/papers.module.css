@@ -201,8 +201,7 @@
 
 @media print {
   :global(body):has([data-letter]) {
-    background: #fff;
-    color-scheme: light;
+    background: none;
   }
 
   /* Everything that is not the letter or a parent of it is dropped. */
@@ -221,15 +220,16 @@
   }
 
   :global(body):has([data-letter]) .paper {
-    --color-text: #111;
-    --color-text-muted: #555;
-    --color-surface: #fff;
-    --color-accent: #0f6b66;
+    color-scheme: light;
+    --color-text: CanvasText;
+    --color-text-muted: GrayText;
+    --color-surface: Canvas;
+    --color-accent: CanvasText;
     max-inline-size: none;
     padding: 0;
     border-radius: 0;
-    background: #fff;
-    color: #111;
+    background: Canvas;
+    color: CanvasText;
     font-size: 12pt;
     line-height: 1.7;
   }

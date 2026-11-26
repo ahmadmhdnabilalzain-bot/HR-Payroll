@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useDemo } from "../../demo/state";
+import { formatDate } from "../../i18n/format";
+import { useLocale } from "../../i18n/LocaleProvider";
 import { FilterList } from "../../ui/templates";
 import b from "../../ui/button.module.css";
 import { useReportsSource } from "../load";
@@ -28,9 +31,19 @@ function statusText(c: AuditCheck | null, tampered: boolean): string {
 /** Audit trail (LF): every entry, the chain check, and a tamper demo. */
 export function Audit() {
   const src = useReportsSource();
+  const { data, state } = useDemo();
+  const { lang } = useLocale();
   const [check, setCheck] = useState<AuditCheck | null>(null);
   const [tampered, setTampered] = useState(false);
-  const rows: AuditView[] = src.audit.map((r) => tampered &&
+  /* Emirates ID shown in full: written down at once, newest first.
+     These are not part of the checked chain (they hold no fingerprint). */
+  const shown: AuditView[] = state.eidLog.map((e, i) => ({
+    id: `eid-${i}`, seq: 10000 + i, when: formatDate(e.on, lang),
+    who: data.people.person(e.by)?.name[lang] ?? e.by, area: "People",
+    action: "Emirates ID shown", summary: "Shown in full on the profile",
+    subject: data.people.person(e.employeeId)?.name[lang] ?? e.employeeId,
+    shortHash: "not chained", shortPrev: "" })).reverse();
+  const rows: AuditView[] = [...shown, ...src.audit].map((r) => tampered &&
     r.seq === TAMPER_AT ? { ...r, summary: `${r.summary} (edited)` } : r);
   const tone = check === null ? "" : check.ok ? s.ok : s.broken;
   return (

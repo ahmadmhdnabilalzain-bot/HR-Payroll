@@ -32,8 +32,8 @@ export function DashboardHr() {
       : share(sum("departed"), (sum("start") + sum("now")) / 2), "-",
     "People who left, against the average headcount"],
     ["Papers expiring in 30 days", String(soon.length),
-      `${gone.length} already expired`, "Visas, Emirates IDs and " +
-        "passports to renew"],
+      `${gone.length} already expired`, "Visas and Emirates IDs " +
+        "to renew"],
     ["Waiting for a decision", String(waiting), "-",
       "Requests in the approvals inbox"],
     [`Unpaid leave in ${last.label}`, plural(last.unpaidDays, "day",

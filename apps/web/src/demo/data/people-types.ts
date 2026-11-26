@@ -175,6 +175,8 @@ export interface PeopleData {
   explain(payslipId: string, traceId: string, label: string,
     lang: "en" | "ar"): Explanation;
   documentsOf(employeeId: string): DocumentView[];
+  /** The full (fake) Emirates ID: only behind HR's logged Show. */
+  emiratesIdFull(employeeId: string): string | null;
   leaveTypes(): LeaveTypeView[];
   reasons(): ReasonOption[];
   leaveRequests(): LeaveRequestView[];
