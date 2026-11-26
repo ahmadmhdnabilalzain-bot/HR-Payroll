@@ -213,6 +213,11 @@ export function Waterfall(p: { steps: WaterfallStep[]; label: string }) {
                   data-origin={down ? "100% 50%" : "0% 50%"}
                   className={total ? s.markInk : down ? s.markHollow
                     : s.markGrey} />
+                {total && (
+                  <path d={`M${a + 7} ${yy + row - 4} l6 -${row - 8} ` +
+                    `M${a + 12} ${yy + row - 4} l6 -${row - 8}`}
+                    className={s.axisBreak} />
+                )}
                 {next !== undefined && (
                   <line x1={b} x2={b} y1={yy + row - 6}
                     y2={yy + row + gap + 6} className={s.connector} />
