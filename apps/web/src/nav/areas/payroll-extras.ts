@@ -48,7 +48,7 @@ export const AREAS: readonly Area[] = [
     label: { en: "Compare old payroll", ar: "مقارنة التشغيل الموازي" },
     status: "live", archetype: "RP", roles: HR_GM, noIt: true,
     route: mig("parallel"),
-    keywords: "S38 parallel run compare keka old system migration" },
+    keywords: "S38 parallel run compare current old system migration" },
   { id: "setup.custom-fields", section: "setup", group: "people",
     label: { en: "Custom fields", ar: "الحقول المخصصة" },
     status: "live", archetype: "ST", roles: HR_GM, route: mig("fields"),
