@@ -21,6 +21,7 @@ export const TIME_CHECKS: Record<string, Check> = {
   rowCount: isInt,
   rows: isInt,
   fromYear: isInt,
+  month: isInt,
   activity: isInt,
   locations: isInt,
   pauses: isInt,

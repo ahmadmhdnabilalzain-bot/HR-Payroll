@@ -15,6 +15,9 @@ const TIME_ROUTE_IDS = [
   "listCorrectionRequests", "createCorrectionRequest",
   "approveCorrectionRequest", "rejectCorrectionRequest",
   "cancelCorrectionRequest",
+  "listTimesheets", "getTimesheet", "prepareTimesheet", "submitTimesheet",
+  "decideOvertime", "approveTimesheet", "rejectTimesheet",
+  "reopenTimesheet", "getPayInputs",
 ];
 
 const FORBIDDEN_PATH =

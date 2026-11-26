@@ -72,6 +72,23 @@ describe("attendance corrections", () => {
     expect(colleague.status).toBe(403);
   });
 
+  it("locked_day_refuses_edits", async () => {
+    const list = await as(s.employee, "GET",
+      "/v1/attendance?from=2026-03-02&to=2026-03-02");
+    await ctx.deps.db.query(
+      `INSERT INTO timesheets (id, company_id, employee_id, year, month,
+         status, created_at) VALUES ('00000000-0000-4000-8000-0000000c0de1',
+         $1, $2, 2026, 3, 'approved', now())`, [s.companyId, s.emp.report]);
+    const put = await as(s.hr, "PUT",
+      `/v1/attendance/${list.body.items[0].id}`, {
+        clockIn: "2026-03-02T05:00:00.000Z",
+        clockOut: "2026-03-02T12:00:00.000Z", note: "edit" });
+    expect(put.status).toBe(409);
+    expect(put.body.error.code).toBe("TIMESHEET_LOCKED");
+    await ctx.deps.db.query("UPDATE timesheets SET status = 'draft' " +
+      "WHERE id = '00000000-0000-4000-8000-0000000c0de1'");
+  });
+
   it("correction_sod_and_scope", async () => {
     const own = await as(s.manager, "POST", C, day("2026-03-06", "05:00",
       "13:00"));

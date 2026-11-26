@@ -1,3 +1,5 @@
+import { PAY_INPUTS_STATEMENT } from "./time-pay-inputs";
+
 /**
  * Plan 9 examples. Fixture names only ("Company Day A"), arbitrary
  * dates and coordinates; no real calendar data and no legal value.
@@ -37,7 +39,23 @@ const correction = { id: id(8), employeeId: TIME_IDS.employee,
   reason: "Forgot to clock in", status: "pending",
   requestedBy: id(9), decidedBy: null, decidedAt: null, decisionNote: null };
 
+const summary = { id: id(10), employeeId: TIME_IDS.employee, year: 2026,
+  month: 3, status: "draft", stale: false, totals: { scheduled: 420,
+    worked: 420, overtime: 0, overtimeNight: 0, approvedOvertime: 0,
+    approvedNight: 0, restDayWorkDays: 0 }, flags: [], submittedAt: null,
+  submittedBy: null, approvedAt: null, approvedBy: null };
+const sheetDay = { date: "2026-03-02", kind: "work", shift: { start:
+  "09:00", end: "17:00", breakMinutes: 60 }, records: [], leave: null,
+  scheduledMinutes: 420, workedMinutes: 0, lateMinutes: 0,
+  earlyLeaveMinutes: 0, overtimeMinutes: 0, overtimeNightMinutes: 0,
+  restDayWorkMinutes: 0, decision: null, flags: [], trace: [], wfh: null };
+
 const ROSTER_EXAMPLES = {
+  TimesheetSummaryList: { items: [summary] },
+  Timesheet: { ...summary, days: [sheetDay] },
+  PayInputs: { year: 2026, month: 3, statement: PAY_INPUTS_STATEMENT,
+    sickYear: "calendar-year", employees: [], missingTimesheets: [],
+    notApproved: [], flagsNotDeducted: [] },
   CorrectionRequest: correction,
   CorrectionRequestList: { items: [correction] },
   ShiftTemplate: shift,

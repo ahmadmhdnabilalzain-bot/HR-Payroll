@@ -1,16 +1,9 @@
 import type { Db } from "../db/db";
 import { ApiError } from "../http/errors";
 
-/**
- * True when a timesheet covering `date` is submitted or approved. The
- * `timesheets` table arrives with migration 904; until then nothing
- * is locked (guarded by `to_regclass`).
- */
+/** True when a timesheet covering `date` is submitted or approved. */
 export async function isDayLocked(tx: Db, companyId: string,
   employeeId: string, date: string): Promise<boolean> {
-  const [t] = await tx.query<{ r: string | null }>(
-    "SELECT to_regclass('timesheets')::text AS r");
-  if (t?.r === null || t?.r === undefined) return false;
   const rows = await tx.query(
     `SELECT 1 FROM timesheets WHERE company_id = $1 AND employee_id = $2
      AND year = $3 AND month = $4 AND status IN ('submitted', 'approved')`,

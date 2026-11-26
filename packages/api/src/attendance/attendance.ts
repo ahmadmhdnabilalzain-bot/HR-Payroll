@@ -1,6 +1,7 @@
-import type {
-  AttendanceCorrection,
-  AttendanceRecord,
+import {
+  MAX_RECORD_MS,
+  type AttendanceCorrection,
+  type AttendanceRecord,
 } from "@payroll/contract";
 import type { Tenant } from "../auth/guard";
 import { appendAudit } from "../audit/audit";
@@ -96,6 +97,11 @@ export async function clockOut(tx: Db, t: Tenant, now: Date)
   const open = await openRecord(tx, t.companyId, linked(t));
   if (open === null) throw new ApiError("NOT_CLOCKED_IN");
   const at = now.toISOString();
+  // More than 24 hours after clock-in: the record stays open (shown
+  // as a missed clock-out) and is fixed by a correction instead.
+  if (now.getTime() - Date.parse(open.clock_in) > MAX_RECORD_MS) {
+    throw new ApiError("CLOCK_OUT_TOO_LATE");
+  }
   const [r] = await tx.query<AttendanceRow>(
     `UPDATE attendance SET clock_out = $3, minutes = $4
      WHERE company_id = $1 AND id = $2 RETURNING *`,

@@ -10,7 +10,11 @@ import {
   seedCompany,
   type Seeded,
 } from "./helpers/seed";
-import { TIME_ID_KIND, TIME_QUERY } from "./helpers/leak-time";
+import {
+  sheetFixtures,
+  TIME_ID_KIND,
+  TIME_QUERY,
+} from "./helpers/leak-time";
 
 /**
  * Review Focus 1. The sentinels sit only on records the manager and
@@ -23,7 +27,8 @@ const ROLES: Role[] = ["owner", "hr", "manager", "employee"];
 type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
 
-type Kind = "employee" | "payslip" | "payRun" | "sifFile" | null;
+type Kind = "employee" | "payslip" | "payRun" | "sifFile" |
+  "timesheet" | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
 const ID_KIND: Record<string, Kind> = {
   getCompany: null, listUsers: null, listEmployees: null,
@@ -67,6 +72,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   let runId: string;
   let sifId: string;
   const slips = {} as Record<Target, string>;
+  let sheets = {} as Record<Target, string>;
   beforeAll(async () => {
     ctx = await makeApp();
     s = await seedCompany(ctx, "leak");
@@ -84,13 +90,16 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       { wps: { employerId: "0000000123456", bankRoutingCode: "802420101" } });
     sifId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
       `/v1/pay-runs/${runId}/sif`)).body.id;
+    sheets = await sheetFixtures(ctx, s);
   });
   /** Every `{id}` to try for a route, with the record it belongs to. */
   const idsFor = (kind: Kind): [Target | null, string | null][] =>
     kind === "employee" ? TARGETS.map((t) => [t, s.emp[t]])
     : kind === "payslip" ? TARGETS.map((t) => [t, slips[t]])
     : kind === "payRun" ? [[null, runId]]
-    : kind === "sifFile" ? [[null, sifId]] : [[null, null]];
+    : kind === "sifFile" ? [[null, sifId]]
+    : kind === "timesheet" ? TARGETS.map((t) => [t, sheets[t]])
+    : [[null, null]];
   const path = (r: RouteDef, id: string | null) =>
     (id === null ? r.path : r.path.replace("{id}", id)) +
     (QUERY[r.id] ?? "");
@@ -140,7 +149,8 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   it("company B's owner gets 404 for every A id", async () => {
     const b = await signup(ctx.app, "other");
     const mfa = await enableMfa(ctx.app, ctx.clock, b);
-    const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile"];
+    const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile",
+      "timesheet"];
     const allIds = kinds.flatMap((k) => idsFor(k).map(([, id]) => id!));
     for (const r of getRoutes.filter((x) => x.path.includes("{id}"))) {
       for (const id of allIds) {

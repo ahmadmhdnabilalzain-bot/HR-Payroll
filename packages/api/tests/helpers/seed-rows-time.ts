@@ -52,4 +52,13 @@ async function seedRosterRows(admin: Db, c: string, emp: string) {
        clock_in, reason, status, requested_by, created_at) VALUES ($1, $2,
        $3, '2026-03-02', $4, 'seed', 'cancelled', $3, $4)`,
     [rowId(c, "96"), c, emp, AT]);
+  const sheet = rowId(c, "97");
+  await admin.query(
+    `INSERT INTO timesheets (id, company_id, employee_id, year, month,
+       status, created_at) VALUES ($1, $2, $3, 2026, 1, 'draft', $4)`,
+    [sheet, c, emp, AT]);
+  await admin.query(
+    `INSERT INTO overtime_decisions (company_id, timesheet_id, date,
+       approved_minutes, approved_night_minutes, decided_by, decided_at)
+     VALUES ($1, $2, '2026-01-05', 0, 0, $3, $4)`, [c, sheet, emp, AT]);
 }

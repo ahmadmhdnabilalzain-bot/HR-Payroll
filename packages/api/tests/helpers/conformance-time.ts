@@ -106,6 +106,26 @@ async function correctionFlow(f: TimeFlowCtx) {
   await hit("listCorrectionRequests", emp, c);
 }
 
+/** February has ended at the conformance clock (2026-03-01). */
+async function timesheetFlow(f: TimeFlowCtx) {
+  const { hit, owner, emp, c } = f;
+  const feb = { year: 2026, month: 2 };
+  const s = await hit("prepareTimesheet", emp, c, {}, feb);
+  const id = { id: s.body.id as string };
+  await hit("getTimesheet", emp, c, id);
+  await hit("listTimesheets", emp, c, {}, undefined,
+    { query: "?year=2026&month=2" });
+  await hit("submitTimesheet", emp, c, id);
+  await hit("decideOvertime", owner, c, id, { days: [{
+    date: "2026-02-02", approvedMinutes: 0, approvedNightMinutes: 0 }] });
+  await hit("approveTimesheet", owner, c, id);
+  await hit("getPayInputs", owner, c, {}, undefined,
+    { query: "?year=2026&month=2" });
+  await hit("reopenTimesheet", owner, c, id, { note: "check again" });
+  await hit("submitTimesheet", emp, c, id);
+  await hit("rejectTimesheet", owner, c, id, { note: "fix a day" });
+}
+
 /** Every Plan 9 route, in task order. */
 export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await settingsFlow(f);
@@ -113,4 +133,5 @@ export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await rosterFlow(f, p);
   await swapFlow(f, p);
   await correctionFlow(f);
+  await timesheetFlow(f);
 }

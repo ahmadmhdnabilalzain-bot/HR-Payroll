@@ -3,6 +3,8 @@ import * as settingsRoutes from "./routes-time-settings";
 import * as settings from "./time-settings";
 import * as rosters from "./time-rosters";
 import * as clock from "./time-clock";
+import * as sheets from "./time-timesheets";
+import * as pay from "./time-pay-inputs";
 
 function named(mod: Record<string, unknown>, names: readonly string[]) {
   const out: Record<string, z.ZodType> = {};
@@ -31,4 +33,9 @@ export const TIME_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
     "SwapDecision"]),
   ...named(clock, ["ClockBody", "GeofenceView", "CorrectionRequest",
     "CorrectionRequestList", "CorrectionCreate", "CorrectionReject"]),
+  ...named(sheets, ["OvertimeDecision", "TimesheetDay", "TimesheetSummary",
+    "Timesheet", "TimesheetSummaryList", "TimesheetPrepare",
+    "OvertimeDecisionInput", "TimesheetNote"]),
+  ...named(pay, ["PayInputOvertime", "PayInputRestDayWork",
+    "PayInputAbsence", "ManualItem", "PayInputEmployee", "PayInputs"]),
 };

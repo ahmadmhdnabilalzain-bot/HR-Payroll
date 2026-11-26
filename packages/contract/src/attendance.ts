@@ -28,11 +28,17 @@ export const AttendanceRecord = z.object({
 });
 export type AttendanceRecord = z.infer<typeof AttendanceRecord>;
 
+/** A record longer than this is refused (Plan 9: a product bound). */
+export const MAX_RECORD_MS = 24 * 3600 * 1000;
+
 export const AttendanceCorrection = z.object({
   clockIn: Timestamp,
   clockOut: Timestamp.nullable(),
   note: z.string().min(3).max(1000),
-});
+}).refine((c) => c.clockOut === null ||
+  Date.parse(c.clockOut) - Date.parse(c.clockIn) <= MAX_RECORD_MS,
+{ message: "clockOut must be within 24 hours after clockIn",
+  path: ["clockOut"] });
 export type AttendanceCorrection = z.infer<typeof AttendanceCorrection>;
 
 export const AttendanceQuery = z.object({
