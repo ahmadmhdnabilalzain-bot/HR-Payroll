@@ -1,16 +1,11 @@
-import { useLocale } from "../../i18n/LocaleProvider";
-import s from "./Explain.module.css";
+import { PageFoot } from "../../ui/templates/PageFoot";
 
 /**
- * Provenance, said once per page and quietly: "Fictional demo data.
- * Rules as we read them." Source statuses for each rule live only in
- * the explain panel. A stand-in until the shared templates carry one.
+ * Provenance, said once per page and quietly: the templates' own
+ * sources line ("Fictional demo data. Rules as we read them."), for a
+ * page that is not built on a template. Source statuses for each rule
+ * live only in the explain panel.
  */
 export function Footnote(p: { className?: string | undefined }) {
-  const { t } = useLocale();
-  return (
-    <p className={`${s.footnote} ${p.className ?? ""}`}>
-      {t("explain.footnote")}
-    </p>
-  );
+  return <PageFoot className={p.className} />;
 }

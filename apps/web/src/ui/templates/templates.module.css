@@ -1159,14 +1159,15 @@ li + li.actRow > .row {
   line-height: 16px;
 }
 
-/* Print: the report alone, black on white, no controls. */
+/* Print: the report alone, black on white, no controls; only while a
+ * report is on the page, so every other page prints as it is. */
 @media print {
-  :global(body) * {
+  :global(body):has(.report) * {
     visibility: hidden;
   }
 
-  .report,
-  .report * {
+  :global(body):has(.report) .report,
+  :global(body):has(.report) .report * {
     visibility: visible;
   }
 
@@ -1283,13 +1284,14 @@ li + li.actRow > .row {
   line-height: 18px;
 }
 
+/* Print the letter alone, only while a letter is on the page. */
 @media print {
-  :global(body) * {
+  :global(body):has(.paper) * {
     visibility: hidden;
   }
 
-  .paper,
-  .paper * {
+  :global(body):has(.paper) .paper,
+  :global(body):has(.paper) .paper * {
     visibility: visible;
   }
 

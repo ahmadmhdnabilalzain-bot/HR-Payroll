@@ -6,10 +6,12 @@ import s from "./templates.module.css";
  * here, never in body copy, letters or anything a third party gets.
  * `extra` goes before it (a row count, a scope).
  */
-export function PageFoot(p: { extra?: string | undefined }) {
+export function PageFoot(p: { extra?: string | undefined;
+  className?: string | undefined }) {
   const { t } = useLocale();
   return (
-    <footer className={s.foot}>
+    <footer className={`${s.foot} ${p.className ?? ""}`}
+      data-page-foot="">
       {p.extra !== undefined && <span>{p.extra}</span>}
       <span>{t("tpl.sources")}</span>
     </footer>

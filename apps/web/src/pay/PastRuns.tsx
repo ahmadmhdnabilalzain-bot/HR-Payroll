@@ -10,16 +10,12 @@ import type { PastRunView } from "./types";
 
 const LIST = hrefOf("pay-run", "runs");
 
-/** "+AED 2,000.00" or "−AED 1,180.64"; the sign outside <Money/>. */
+/** "+AED 2,000.00" or "−AED 1,180.64", signed by <Money signed>. */
 export function Change(p: { value: bigint; size?: "sm" | "lg" }) {
   if (p.value === 0n) return <span className={s.muted}>No change</span>;
   return (
     <span className={s.change} data-sign={p.value < 0n ? "down" : "up"}>
-      <span aria-hidden="true">{p.value > 0n ? "+" : "\u2212"}</span>
-      <span className="visually-hidden">{p.value > 0n ? "up " : "down "}
-      </span>
-      <Money value={fils(p.value < 0n ? -p.value : p.value)}
-        size={p.size ?? "sm"} />
+      <Money value={fils(p.value)} size={p.size ?? "sm"} signed />
     </span>
   );
 }

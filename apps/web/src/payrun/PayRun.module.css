@@ -1,41 +1,14 @@
 /*
- * Pay run: one job per step, on the shared 1200 px container. Teal is
- * for actions only; red stops pay, amber is a check, green is done.
+ * Pay run: one job per step, on the shared 1200 px container. Ink is
+ * for actions; red stops pay, amber is a check, green is done.
  * Figures are right-aligned and tabular.
  */
 .page {
   max-inline-size: var(--container);
   margin-inline: auto;
-  padding: var(--space-5) var(--page-pad) var(--space-7);
+  /* The title sits at the templates' y: 40 under the bar. */
+  padding: 40px var(--page-pad) var(--space-7);
   font-size: var(--text-md);
-}
-
-.header {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.crumbs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.sep {
-  color: var(--color-text-faint);
-}
-
-.title {
-  font-size: var(--text-3xl);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.sub {
-  color: var(--color-text-muted);
 }
 
 /* The stepper: one element; the ring slides, the line fills. */
@@ -1055,12 +1028,9 @@ a.navNext:active,
 /* Phone: own composition. A one-line stepper; lists as rows. */
 @media (max-width: 760px) {
   .page {
+    padding-block-start: var(--space-4);
     padding-block-end: calc(var(--space-8) + 40px +
       env(safe-area-inset-bottom));
-  }
-
-  .title {
-    font-size: var(--text-xl);
   }
 
   .stepper {

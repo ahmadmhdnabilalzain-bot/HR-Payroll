@@ -107,7 +107,7 @@ export function FixStep() {
           <RollMoney value={h.sifTotalFils} size="lg" />
           {flow !== null && (
             <span key={flow.n} className={s.flowChip} aria-hidden="true">
-              +<Money value={flow.amount} size="sm" tween={false} />
+              <Money value={flow.amount} size="sm" signed tween={false} />
             </span>
           )}
         </span>

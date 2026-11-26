@@ -5,7 +5,6 @@ import type { ArOf } from "../types";
 
 export const explain: ArOf<typeof en> = {
   open: "طريقة الحساب: {title}",
-  footnote: "بيانات تجريبية وهمية. القواعد كما نفهمها.",
   limit: "الحد",
   limitOf: "من",
   close: "إغلاق",

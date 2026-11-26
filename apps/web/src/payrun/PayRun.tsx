@@ -3,6 +3,7 @@ import { useRunApproval } from "../demo/actions";
 import { reducedMotion } from "../demo/motion";
 import { hrefOf, navigate } from "../demo/route";
 import { Footnote } from "../components/explain";
+import { PageHead } from "../ui/templates";
 import { useDemo } from "../demo/state";
 import { formatDayMonth, formatMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -81,19 +82,10 @@ function RunSteps(p: ViewProps) {
   const nextLocked = step === "approve";
   return (
     <div className={s.page}>
-      <header className={s.header}>
-        <nav aria-label={t("shell.breadcrumb")} className={s.crumbs}>
-          <span>{data.companyName[lang]}</span>
-          <span aria-hidden="true" className={s.sep}>/</span>
-          <span aria-current="page">{t("shell.navPayRun")}</span>
-        </nav>
-        <h1 className={s.title}>
-          {t("payrun.title", { month: formatMonth(h.runMonth, lang) })}
-        </h1>
-        <p className={s.sub}>
-          {t("payrun.sub", { date: formatDayMonth(cal.payday, lang) })}
-        </p>
-      </header>
+      <PageHead crumbs={[{ label: data.companyName[lang],
+        href: hrefOf("home") }]}
+        title={t("payrun.title", { month: formatMonth(h.runMonth, lang) })}
+        lede={t("payrun.sub", { date: formatDayMonth(cal.payday, lang) })} />
       <Stepper step={toward} go={go} />
       <div key={step} className={s.swap} data-leaving={leaving}
         data-dir={dir}>
