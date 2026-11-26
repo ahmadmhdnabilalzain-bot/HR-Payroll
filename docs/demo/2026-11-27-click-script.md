@@ -1,0 +1,365 @@
+# Click script: first meeting with the bank (Fri 27 Nov 2026, 15:00 Dubai)
+
+For the owner, who presents from the laptop on the big screen. Twenty
+minutes of clicks, then questions. Attendees: the bank's HR Manager,
+General Manager (GM) and IT Manager. They open the same link on their own
+iPhones (Safari).
+
+Every figure below was read from the demo itself on 26 Nov 2026 (build of
+branch claude/quirky-wozniak-b7xkvr). If a figure on screen differs, trust
+the screen and say "this is the sample bank's figure".
+
+Never say "compliant", "certified", "guaranteed" or "approved by" any
+authority. Say "as we read the law" and "we will confirm".
+
+## Before the meeting (10 minutes, not part of the 20)
+
+1. Open the demo link in Chrome or Safari on the laptop. Press reload once
+   so the story starts fresh. Check the top left says "Mubinflow demo:
+   fictional data".
+2. Make sure the theme is light (the sun and moon button, top right).
+3. Zoom the browser to 110% or 125% if the room is large (Cmd and +).
+4. Keep the offline file (mubinflow-demo.html) on the laptop desktop. It
+   opens by double click with no internet. If the network fails, use it.
+5. Have the link or a QR code ready to show for the phones.
+6. Open this script and the two other notes on paper or a second screen:
+   2026-11-27-it-manager-note.md and 2026-11-27-discovery-questions.md.
+
+## What to tell them about the phones (say this once, at the start)
+
+"Open the link on your phone. Your phone has its own copy of the demo, so
+tap anything you like. Nothing you do reaches my screen and nothing is
+saved. To change who you are, tap the round initials at the top right."
+
+## Timing
+
+| Step | What | Clock |
+|---|---|---|
+| 1 | Home as HR: the sentence, "Why this number" | 0:00 to 2:30 |
+| 2 | Enter the two bank details | 2:30 to 5:00 |
+| 3 | Switch to the GM and sign off | 5:00 to 6:30 |
+| 4 | The salary file | 6:30 to 8:00 |
+| 5 | The leaver's gratuity, explained | 8:00 to 11:00 |
+| 6 | Employee asks for leave, manager decides | 11:00 to 14:00 |
+| 7 | IT manager view | 14:00 to 17:30 |
+| 8 | Menu panels and Cmd K | 17:30 to 20:00 |
+| 9 | Questions and answers | 20:00 on |
+
+---
+
+## Step 1. Home as HR (0:00 to 2:30)
+
+**Open with one question (30 seconds).** "Before I show anything: what was
+the last thing that went wrong in Keka?" Listen. Write it down. If it
+matches a step below, say "I will show you that in a minute".
+
+**Click.** Nothing yet. The demo opens on Home, viewing as HR manager
+(Fatima Al Ketbi). Then click "Why this number" under the big figure.
+
+**They see.** One sentence at the top: "2 bank details hold October pay",
+with one black button, "Enter bank details". Under it the net pay figure,
+the date line "Tuesday, 27 October · Zarqan Demo Bank", five steps
+(Inputs close, Bank details, Approve, Salary file, Payday) and the list
+"Before approval: 2 block approval · 6 to review". "Why this number" opens
+a side panel that adds the figure up.
+
+**Say.** "Home answers one question: can October be paid, and what is my
+next step. Every number can be opened to see how it was worked out."
+
+**The numbers.**
+- Net pay AED 933,730.94 to 31 people, paid on 30 Oct.
+- Gross AED 938,680.94 less deductions AED 4,950.00.
+- In the salary file AED 908,430.94 (30 people); held out AED 25,300.00
+  (1 person with no bank account on file).
+- Pension for the 14 UAE nationals is not included and says so on screen.
+- The demo's "today" is 27 October 2026, payroll week. Zarqan Demo Bank
+  is invented.
+
+**If it goes wrong.** If the page is blank or half drawn, press reload. If
+the side panel does not close, press Esc or click outside it.
+
+## Step 2. Enter the two bank details (2:30 to 5:00)
+
+**Click.**
+1. "Enter bank details". A box opens under "Bank details missing" for
+   Priya Nair.
+2. "Fill from bank letter" (it types the IBAN from the sample bank
+   letter), then "Save and check".
+3. On the next item, "Bank account number has a typo" for Juma Al Zaabi,
+   click "Enter IBAN", then "Fill from bank letter", then "Save and
+   check".
+
+Optional, if the HR Manager is engaged: before step 3's "Fill from bank
+letter", type the IBAN with one digit wrong and press "Save and check". It
+is refused in plain words. Then use "Fill from bank letter".
+
+**They see.** After Priya: a message "Priya Nair: IBAN saved. Salary file
+checked again: 31 people, AED 933,730.94.", the sentence becomes "1 bank
+detail holds October pay" and "held out of the salary file" changes to
+"everyone in the salary file". After Juma: the sentence becomes "October
+pay is ready for approval", the Bank details step shows Done and Approve
+shows Now, and "2 block approval" disappears.
+
+**Say.** "The system will not let October be signed off while one person
+cannot be paid, or while an account number has a typo the bank would
+bounce. It catches it before payday, not after."
+
+**The numbers.**
+- Priya Nair's AED 25,300.00 moves into the salary file: the file goes
+  from AED 908,430.94 to AED 933,730.94.
+- Juma Al Zaabi's IBAN on file ends ...0072; the bank letter says ...0027
+  (two digits swapped). His pay was already counted; the typo would have
+  made the bank return it.
+- Every change has "Undo" for a few seconds.
+
+**If it goes wrong.** If "Save and check" says the IBAN does not check
+out, click "Fill from bank letter" again and save. If you saved the wrong
+person, click "Undo" in the message at the bottom. Worst case, reload: the
+story restarts at step 1 (about 30 seconds to catch up).
+
+## Step 3. Switch to the General Manager and sign off (5:00 to 6:30)
+
+**Click.**
+1. Top right, "Viewing as HR manager". Choose "General manager, Khalid Al
+   Nuaimi".
+2. Click "Approve October pay".
+
+**They see.** As the GM, Home reads "October pay waits for your approval".
+After the click it reads "October salary file is next", with the button
+"Open the salary file". The steps show Approve as Done.
+
+**Say.** "One person prepares the pay run and a different person signs it
+off. HR cannot sign off their own run. The GM sees the same figures and
+what is still open, with no spreadsheet in between."
+
+**The numbers.** Prepared by Fatima Al Ketbi (HR manager), signed off by
+Khalid Al Nuaimi (General manager), AED 933,730.94 for 31 people. The pay
+run page records the sign-off with name, role and date.
+
+**If it goes wrong.** If "Approve October pay" is missing, a bank detail
+is still open: switch back to HR manager and finish step 2. If the role
+menu does not open, press Esc and click "Viewing as" again.
+
+## Step 4. The salary file (6:30 to 8:00)
+
+**Click.** "Open the salary file". Then "Download salary file".
+
+**They see.** A page that reads "Salary file for 31 people, AED
+933,730.94, to Zarqan Demo Bank, dated 27 October 2026", "Held out:
+Nobody", "What the file check found: No problems found in the file", and
+the file line by line (name, account, days, fixed pay, variable pay). The
+download is a .SIF file.
+
+**Say.** "This is the wage protection salary file you upload to your bank.
+We check the layout and every account before it leaves. Your bank checks it
+again when you upload it. We do not send money; you upload as today."
+
+**The numbers.** 63 lines: 31 salary lines, 31 allowance lines and 1
+control line. Total AED 933,730.94. The file name follows the SIF pattern
+(employer number, date and time).
+
+**If it goes wrong.** If "Download salary file" is greyed out, the run is
+not signed off yet: go back to step 3. If the browser blocks the download,
+skip it and point at the line-by-line table on screen. Do not open the
+file in Excel in the meeting.
+
+**Ask (one line).** "Which bank receives your salary file today, and does
+it ask for its own format?" (Discovery question 3.)
+
+## Step 5. The leaver's gratuity, explained (8:00 to 11:00)
+
+**Click.**
+1. Top bar "Pay". In the panel, under "Owed and leaving", click "Final
+   settlements".
+2. Click "James Whitfield".
+3. Click the gratuity figure, AED 173,928.08.
+
+**They see.** A statement: gratuity AED 173,928.08, unused leave AED
+17,774.19, notice pay, deductions and other dues marked "Not worked out:
+to add by hand before paying", total so far AED 191,702.27, pay by 29
+October. The side panel shows each step in plain words, then "What went
+in" and "Rules used", each rule with its source.
+
+**Say.** "Every figure shows its working and the article of the law it
+comes from. Where the law is silent, it says 'our working rule'. Where we
+rely on a secondary source, it says so. You can check it by hand."
+
+**The numbers (read them off the panel).**
+- Service 10 March 2019 to 15 October 2026: 7 years and 220 days.
+- A day's basic wage: AED 28,500.00 / 30 = AED 950.00.
+- First 5 years at 21 days a year: 105 days = AED 99,750.00.
+- The 2 years and 220 days after that at 30 days a year: 78.08 days =
+  AED 74,178.08.
+- Together 183.08 days, rounded once to the fils: AED 173,928.08.
+- Limit of two years' basic wage (AED 684,000.00): not reached.
+- Unused annual leave 18.71 days at AED 950.00 = AED 17,774.19, paid with
+  the gratuity, not part of it.
+- Sources named: Federal Decree-Law 33 of 2021, Article 51.
+
+**Say, carefully.** "How does Keka work out gratuity for you today: how
+many days a year, and on a 30-day or 365-day basis?" Do not say Keka is
+wrong. Let them compare.
+
+**If it goes wrong.** If "Final settlements" is not in the panel, press
+Cmd K, type "settlement" and press Return. If the side panel is long,
+scroll inside it; Esc closes it.
+
+## Step 6. Employee asks for leave, manager decides (11:00 to 14:00)
+
+Do this on the laptop. Invite the HR Manager to do the same on their
+phone at the same time (round initials, top right, then "Employee").
+Their phone does not talk to the laptop: each device has its own copy.
+
+**Click.**
+1. "Viewing as", then "Employee, Jose Reyes".
+2. "Request leave". Leave the defaults (Annual leave, 16 Nov to 17 Nov,
+   Travel). Click "Send request".
+3. "Viewing as", then "Team manager, Arjun Menon".
+4. On Jose Reyes's row, click "Approve".
+5. "Viewing as", then "Employee" again, to show the result.
+
+**They see.** The employee's Home: "Your October pay arrives on 30 Oct.",
+net pay AED 12,450.00, "Annual leave left 22.5 days left". The form shows
+"2 working days · Goes to Arjun Menon, Operations manager" before sending.
+After sending: "Sent to Arjun Menon" and 20.5 days left. The manager's
+Home: "2 leave requests wait for you." with Jose Reyes (16 to 17 Nov) and
+Rafiq Hossain (16 to 20 Nov), plus "Team today". After the decision:
+"Jose Reyes's time off is booked". The employee then sees "Booked".
+
+**Say.** "The employee sees the balance and who decides before sending.
+The manager sees who else asked for the same days. Nobody decides their
+own request."
+
+**The numbers.** 22.5 days left before, 20.5 after (waiting days count).
+Two people in the same team asked for 16 and 17 November.
+
+**If it goes wrong.** If "Request leave" says the dates overlap, change the
+first day to 23 November. If the request does not appear for Arjun
+Menon, you are probably viewing as someone else: check "Viewing as". On a
+phone, Safari can reload a tab left in the background, which resets the
+demo; that is expected.
+
+## Step 7. IT manager view (14:00 to 17:30)
+
+**Click.**
+1. "Viewing as", then "IT manager, Vikram Rao".
+2. On Home, under "Audit trail", click "Check the chain".
+3. Top bar "Setup", then "Roles". Then "Setup", then "Segregation of
+   duties".
+4. Top bar "Reports", then "Audit trail". Click "Edit one entry", then
+   "Check the chain", then "Restore the entry".
+5. "Setup", then "Data import". Then "Setup", then "Data location and
+   export".
+
+If time is short, do 1, 2, 4 and the data location page only.
+
+**They see.**
+- IT Home: "One connection is failing." Connections (to the finance
+  system working; to the IT service desk failing), "2 API keys, read
+  only", the last access review, "Data import 4 of 12 rows ready", "Audit
+  trail 58 entries in the chain". After the check: "All 58 entries match.
+  Checked just now."
+- The IT manager's bar is Home, People, Reports, Setup. No pay figures:
+  IT sees no one's salary.
+- Roles: 11 roles in plain words, for example "HR manager: prepares the
+  pay run and the salary file; cannot approve it" and "IT administrator:
+  runs access and connections; sees no salaries".
+- Segregation of duties: four checks, each "Holds".
+- Audit trail after "Edit one entry": "Chain broken at entry 11: its
+  fingerprint no longer matches".
+- Data import: a 12-row sample file: 4 ready, 3 to review, 5 to fix (it
+  catches a duplicate employee number and Juma Al Zaabi's IBAN).
+- Data location: "Demo only. Data region of this site: Frankfurt,
+  Germany", and "Nothing here says the product holds a certification...".
+
+**Say.** "Every action is written once, linked to the one before it. If
+anyone changes an old entry, the check shows exactly where. In the real
+system the database itself refuses edits. Where your data would live is
+something we agree with you in writing before anything real is loaded."
+
+**The numbers.** 58 entries; 12 users; last access review 30 Sep 2026,
+12 users checked, 1 role narrowed; second sign-in step on for 9 of 12
+users. Hand the IT Manager the IT note now.
+
+**If it goes wrong.** If "Check the chain" says broken on the Home card,
+you edited an entry earlier: open Reports, Audit trail, click "Restore the
+entry". If a page says "outside your view", that is the IT role working
+as designed: switch to HR manager.
+
+## Step 8. Menu panels and Cmd K (17:30 to 20:00)
+
+**Click.**
+1. "Viewing as", then "HR manager".
+2. Top bar "People": a panel opens with short groups. Esc. Then "Time",
+   then "Pay", the same way.
+3. Press Cmd and K together (Ctrl and K on Windows). Type "James". Press
+   Esc. Type "leave" to show areas and decisions together. Esc.
+
+**They see.** Six words in the top bar that never grow: Home, People,
+Time, Pay, Reports, Setup. Each opens a panel of groups (for Pay: This
+month, Changes, Owed and leaving), with small counts of things waiting.
+Cmd K lists people, areas and actions, for example "Decide: Leave request,
+Rafiq Hossain". On the phones: a bottom bar (Home, People, Time, Pay,
+More) and a search field at the top.
+
+**Say.** "A short menu, and every feature behind it, two clicks at most.
+If you know what you want, type it."
+
+**The fact.** Counts are things waiting for someone, not totals. Some
+areas in the panels are demo screens with no live backend yet; if asked
+about one, say which (see the list below) or "I will confirm after the
+meeting".
+
+**If it goes wrong.** If Cmd K does nothing, click the search field in
+the top bar (or press /). If a panel does not close, press Esc.
+
+## Step 9. Questions and answers (20:00 on)
+
+- Turn to the discovery questions (2026-11-27-discovery-questions.md).
+  Start with the three marked "ask first".
+- IT questions: the IT note has prepared answers for SSO, hosting region,
+  backups, penetration test, Arabic and support.
+- Pension for UAE nationals: use the prepared answer at the end of the
+  discovery questions. Do not guess a rate.
+- Price, contract and support hours: say only what you have decided. If
+  not decided: "I will send it in writing next week."
+- Close: agree the next step (for example a sample of their Keka exports
+  and their regulator's requirements for the IT review).
+
+---
+
+## Demo versus the real system: say these honestly
+
+Say the first four out loud during the demo; keep the rest for questions.
+
+1. **Browser only, fictional data.** The demo runs in your browser.
+   Zarqan Demo Bank, every person, salary, IBAN and Emirates ID is
+   invented. There is no server and no database behind it.
+2. **Resets on reload.** Nothing is saved. A reload starts the story
+   again. Each phone has its own copy; phones and the laptop are not
+   connected. Safari may reload a tab left in the background.
+3. **Frankfurt only for the demo.** The page is served from Frankfurt,
+   Germany, which is fine for invented data only. Where a live account's
+   data would live is not decided and would be agreed in writing first.
+4. **The bank-detail check.** In the real system the server refuses a
+   whole pay run while any payslip has a missing or mistyped IBAN: never a
+   partial run. The demo shows the same check in the browser.
+5. **Audit chain.** The demo works out the fingerprints in the browser.
+   In the real system the chain is in the database, which refuses edits
+   and deletions.
+6. **Import.** The import screen checks a 12-row sample file. A tool that
+   moves data out of Keka is not built yet.
+7. **Pension for UAE nationals** is not computed until the fund is
+   confirmed (see the discovery questions).
+8. **Not built yet:** native iPhone and Android apps (the demo is a
+   mobile-friendly website), Arabic screens reviewed by a native speaker
+   (Arabic is hidden), single sign-on set up for a client, accounting
+   connectors, an AI assistant.
+9. **Some screens are demo scenes only.** Several panel areas (for example
+   pay elements, pay groups and traffic fines) were drawn from demo data
+   and have no real backend yet. The core of this script (pay run, bank
+   check, salary file, gratuity, leave, roles, audit) is built in the
+   real system.
+10. **Rules.** Figures follow UAE mainland rules as we read them. Public
+    holidays are not in the demo data. We have not been reviewed by any
+    authority.
