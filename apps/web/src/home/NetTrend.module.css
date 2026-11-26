@@ -79,6 +79,28 @@
   background: var(--color-surface);
 }
 
+.tag {
+  position: absolute;
+  inset-block-end: calc(100% + 6px);
+  inset-inline-start: 50%;
+  padding: 1px 6px;
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  white-space: nowrap;
+  translate: -50% 0;
+}
+
+.tag[data-end="true"] {
+  inset-block: calc(100% + 6px) auto;
+  inset-inline-start: auto;
+  inset-inline-end: -4px;
+  translate: none;
+}
+
+[dir="rtl"] .tag:not([data-end="true"]) {
+  translate: 50% 0;
+}
+
 .months {
   position: absolute;
   inset-inline: 0;

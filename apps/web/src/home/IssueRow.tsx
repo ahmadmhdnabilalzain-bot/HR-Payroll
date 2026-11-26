@@ -67,7 +67,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
       {canAct && !editing && (
         <div className={s.actions}>
           {i.fixKind === "enter-iban" ? (
-            <button type="button" className={`${b.btn} ${b.primary}`}
+            <button type="button" className={`${b.btn} ${b.secondary}`}
               onClick={() => setEditing(true)}>{t("home.enterIban")}</button>
           ) : step !== undefined ? (
             <button type="button" className={`${b.btn} ${b.secondary}`}

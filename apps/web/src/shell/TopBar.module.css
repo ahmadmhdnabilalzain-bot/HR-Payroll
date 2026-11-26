@@ -216,6 +216,7 @@ a.navItem:hover {
 }
 
 .dot {
+  display: none;
   position: absolute;
   inset-block-start: 4px;
   inset-inline-start: 22px;
@@ -371,6 +372,10 @@ a.navItem:hover {
 
   .roleBtn {
     position: relative;
+  }
+
+  .dot {
+    display: block;
   }
 
   .roleBtn :global([data-size]) {

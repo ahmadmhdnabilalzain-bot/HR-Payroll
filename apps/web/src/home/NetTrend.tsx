@@ -14,7 +14,7 @@ import s from "./NetTrend.module.css";
 const W = 400;
 const H = 80;
 const PAD_X = 10;
-const PAD_Y = 12;
+const PAD_Y = 28;
 /** People named beside the change: the biggest movers by net. */
 const DRIVERS = 3;
 
@@ -101,6 +101,12 @@ export function NetTrend() {
                 {r.label}{r.paid ? "" : `, ${t("home.trendPrepared")}`}
                 {": "}<Money value={r.net} tween={false} />
               </span>
+              {i >= runs.length - 2 && (
+                <span className={s.tag} aria-hidden="true"
+                  data-end={i === runs.length - 1}>
+                  <Money value={r.net} size="sm" tween={false} />
+                </span>
+              )}
             </li>
           ))}
         </ol>

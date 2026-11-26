@@ -56,7 +56,7 @@ export const shell = {
   keyOpen: "open",
   keyClose: "close",
   breadcrumb: "Location",
-  panelWaiting: "Waiting for a decision",
+  panelWaiting: "Waiting",
   panelNothing: "Nothing is waiting here.",
   panelAreas: "Go to",
   groupTabs: "In this group",

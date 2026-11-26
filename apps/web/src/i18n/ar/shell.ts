@@ -58,7 +58,7 @@ export const shell: ArOf<typeof en> = {
   keyOpen: "فتح",
   keyClose: "إغلاق",
   breadcrumb: "الموقع",
-  panelWaiting: "بانتظار قرار",
+  panelWaiting: "بانتظار",
   panelNothing: "لا شيء بانتظار قرار هنا.",
   panelAreas: "انتقل إلى",
   groupTabs: "في هذه المجموعة",

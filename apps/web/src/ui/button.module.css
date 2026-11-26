@@ -12,6 +12,7 @@
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
+  text-decoration: none;
   touch-action: manipulation;
   transition: background-color var(--dur-fast) ease,
     border-color var(--dur-fast) ease, color var(--dur-fast) ease,

@@ -7,6 +7,7 @@ import { countOf, panelOf, routeOf } from "../nav/registry";
 import { isDecision, shortOf } from "../nav/short";
 import type { Area, NavCtx, SectionId } from "../nav/types";
 import { Icon } from "../ui/Icon";
+import { pickGroup } from "./groupTabs";
 import s from "./SectionPanel.module.css";
 
 /** Arrow keys move between every link in the panel. */
@@ -85,7 +86,10 @@ export function SectionPanel(p: { section: SectionId; label: string;
                 {waiting.map(({ a, n }, i) => (
                   <li key={a.id} style={{ "--i": i } as CSSProperties}>
                     <a className={s.action} data-area=""
-                      href={hrefOfArea(a, c)} onClick={p.onClose}>
+                      href={hrefOfArea(a, c)} onClick={() => {
+                        pickGroup(a.section, a.group);
+                        p.onClose();
+                      }}>
                       <span className={s.count} data-stop={a.stopsPay ===
                         true}>{n}</span>
                       <span className={s.what}>{shortOf(a, lang)}</span>
@@ -111,7 +115,10 @@ export function SectionPanel(p: { section: SectionId; label: string;
                   <li key={group.id}
                     style={{ "--i": i + waiting.length } as CSSProperties}>
                     <a className={s.group} data-area=""
-                      href={hrefOfArea(first, c)} onClick={p.onClose}>
+                      href={hrefOfArea(first, c)} onClick={() => {
+                        pickGroup(group.section, group.id);
+                        p.onClose();
+                      }}>
                       <span className={s.groupName}>
                         {areas.length === 1 ? shortOf(first, lang)
                           : group.label[lang]}
