@@ -1,4 +1,6 @@
+import { mayDecide } from "../demo/approvals";
 import { hrefOf } from "../demo/route";
+import { canSeePay } from "../demo/time-off";
 import type { ClaimRow, CrewRequest } from "../demo/data/time-types";
 import { useDemo } from "../demo/state";
 import { dayText, type Tone } from "../people/words";
@@ -92,13 +94,16 @@ const timeOf = (c: ClaimRow): string => c.nightMinutes > 0
 /** T30, Overtime to decide, with what each claim adds to pay (LF). */
 export function Overtime() {
   const t = useTimeData();
-  const { state } = useDemo();
+  const { data, state } = useDemo();
   const who = useWho();
   const rows = claimsFor(t, who);
+  const pay = rows.every((c) => canSeePay(data, state, c.employeeId));
   const ph = (c: ClaimRow): Phase => phaseOf(c, state);
   return (
     <FilterList title="Overtime to decide"
-      lede="Claims for time past the shift. Each shows what it adds to pay."
+      lede={pay ? "Claims for time past the shift. Each shows what it " +
+        "adds to pay." : "Claims for time past the shift. What a claim " +
+        "adds to pay is worked out by HR; a manager decides the time."}
       rows={rows} rowKey={(c) => c.id}
       searchText={(c) => who.name(c.employeeId)}
       rowHref={(c) => hrefOf("time-off", "overtime", c.id)}
@@ -121,9 +126,11 @@ export function Overtime() {
         { key: "n", label: "Person", render: (c) => who.name(c.employeeId) },
         { key: "d", label: "Day", render: (c) => dayText(c.date, who.lang) },
         { key: "t", label: "Time", end: true, render: (c) => timeOf(c) },
-        { key: "v", label: "Adds to pay", end: true, render: (c) =>
-          ph(c) === "declined" ? "None" : <Money value={c.value} size="sm" />
-        },
+        // What a claim adds to pay is a colleague's pay figure: only
+        // those who see that person's pay see it.
+        ...(pay ? [{ key: "v", label: "Adds to pay", end: true,
+          render: (c: ClaimRow) => ph(c) === "declined" ? "None"
+            : <Money value={c.value} size="sm" /> }] : []),
         { key: "s", label: "Status", render: (c) => {
           const [word, tone] = waitWord(ph(c), who,
             who.approverOf(c.employeeId), c.employeeId);
@@ -137,7 +144,7 @@ export function Overtime() {
 /** One claim: the figures, who decides, and the decision. */
 export function OvertimeRecord(q: { id: string }) {
   const t = useTimeData();
-  const { state } = useDemo();
+  const { data, state } = useDemo();
   const who = useWho();
   const c = claimsFor(t, who).find((x) => x.id === q.id);
   if (c === undefined) return <Outside />;
@@ -146,6 +153,7 @@ export function OvertimeRecord(q: { id: string }) {
   const [word, tone] = waitWord(phase, who, decider, c.employeeId);
   const made = state.timeDecided[c.id];
   const mine = claimsFor(t, who).filter((x) => x.employeeId === c.employeeId);
+  const pay = canSeePay(data, state, c.employeeId);
   return (
     <RecordTabs title={`${who.name(c.employeeId)}, ${dayText(c.date,
       who.lang)}`} lede={`${who.jobOf(c.employeeId)}.`}
@@ -162,9 +170,9 @@ export function OvertimeRecord(q: { id: string }) {
       allowed={who.canDecide(c.employeeId)} />}
     stats={[
       { label: "Overtime", value: hm(c.minutes) },
-      { label: phase === "paid" ? "Added to October pay"
+      ...(pay ? [{ label: phase === "paid" ? "Added to October pay"
         : "Adds to pay (estimate)", value: phase === "declined" ? "None"
-        : <Money value={c.value} size="lg" /> },
+        : <Money value={c.value} size="lg" /> }] : []),
       { label: "Day", value: dayText(c.date, who.lang) },
     ]}
     tabs={[
@@ -191,8 +199,8 @@ export function OvertimeRecord(q: { id: string }) {
               <a href={hrefOf("time-off", "overtime", x.id)}>
                 {dayText(x.date, who.lang)}</a>
               <span>{timeOf(x)}</span>
-              <span className={s.num}><Money value={x.value} size="sm" />
-              </span>
+              {pay && <span className={s.num}>
+                <Money value={x.value} size="sm" /></span>}
             </li>
           ))}
         </ul>) },
@@ -208,6 +216,8 @@ const crewFor = (t: { crew: CrewRequest[] }, who: Who): CrewRequest[] =>
 export function Crew() {
   const t = useTimeData();
   const { state } = useDemo();
+  // A crew's estimate is the sum of colleagues' pay: HR and the GM only.
+  const pay = state.role === "hr" || state.role === "gm";
   const who = useWho();
   return (
     <FilterList title="Crew overtime"
@@ -226,8 +236,9 @@ export function Crew() {
         { key: "d", label: "Day", render: (c) => dayText(c.date, who.lang) },
         { key: "p", label: "People", end: true, render: (c) =>
           plural(c.people.length, "person", "people") },
-        { key: "v", label: "Estimate", end: true, render: (c) =>
-          <Money value={c.estimate} size="sm" /> },
+        ...(pay ? [{ key: "v", label: "Estimate", end: true,
+          render: (c: CrewRequest) =>
+            <Money value={c.estimate} size="sm" /> }] : []),
         { key: "s", label: "Status", render: (c) => {
           const [word, tone] = waitWord(crewPhase(c, state), who,
             who.approverOf(c.requestedBy), c.requestedBy);
@@ -240,7 +251,7 @@ export function Crew() {
 
 export function CrewRecord(q: { id: string }) {
   const t = useTimeData();
-  const { state } = useDemo();
+  const { data, state } = useDemo();
   const who = useWho();
   const c = crewFor(t, who).find((x) => x.id === q.id);
   if (c === undefined) return <Outside />;
@@ -255,12 +266,14 @@ export function CrewRecord(q: { id: string }) {
       back={{ label: "Crew overtime", href: hrefOf("time-off", "overtime",
         "crew") }}
       actions={<Buttons id={c.id} text="The request" phase={phase}
-        allowed={who.canDecide(c.requestedBy)} />}
+        allowed={data.crewApprovals().some((a) => a.id === c.id &&
+          mayDecide(data, state.role, a))} />}
       stats={[
         { label: "People", value: String(c.people.length) },
         { label: "Each", value: hm(c.minutesEach) },
-        { label: "Estimate for November", value: <Money
-          value={c.estimate} size="lg" /> },
+        ...(state.role === "hr" || state.role === "gm"
+          ? [{ label: "Estimate for November", value: <Money
+            value={c.estimate} size="lg" /> }] : []),
       ]}
       tabs={[
         { id: "request", label: "Request", render: () => (

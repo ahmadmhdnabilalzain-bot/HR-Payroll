@@ -96,9 +96,12 @@ describe("WPE IT dashboard (X24)", () => {
     expect(d.checks).toBe(d.rows.filter((r) => r.state === "check").length);
   }));
 
-  it("checks the chain and has no banned word", () => each((c) => {
+  it("never says the chain is OK before it is checked", () => each((c) => {
     const d = itDashboard(c);
-    expect(d.rows.find((r) => r.id === "chain")!.state).toBe("ok");
+    const chain = d.rows.find((r) => r.id === "chain")!;
+    expect(chain.state).toBe("check");
+    expect(chain.text).toMatch(/Not checked yet/);
+    expect(chain.text).not.toMatch(/none changed/);
     const t = asText(d);
     expect(t).not.toMatch(BANNED_WORDS);
     expect(t).not.toMatch(/\b\d{4}-\d{2}-\d{2}\b/);

@@ -1,6 +1,7 @@
 import { useDemo } from "../demo/state";
 import { formatMoney } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { useMaskText } from "../ui/mask";
 import { useToast } from "../ui/Toast";
 
 /**
@@ -12,12 +13,13 @@ export function useSaveIban(): (employeeId: string, value: string) => void {
   const { lang, t } = useLocale();
   const { source, data, state, dispatch } = useDemo();
   const toast = useToast();
+  const mask = useMaskText();
   return (id, value) => {
     const name = data.employee(id).name[lang];
     const next = source.at({ ...state.ibans, [id]: value }).headline();
     dispatch({ type: "iban", employeeId: id, value });
     toast.show(t("home.doneIban", { name, count: next.sifPeople,
-      amount: formatMoney(next.sifTotalFils, lang) }),
+      amount: mask(formatMoney(next.sifTotalFils, lang)) }),
     () => dispatch({ type: "unset-iban", employeeId: id }));
   };
 }

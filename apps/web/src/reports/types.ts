@@ -1,5 +1,6 @@
 import type { Fils } from "@payroll/engine";
 import type { Explanation } from "../components/explain/types";
+import type { AuditAddition } from "../demo/audit-state";
 
 /**
  * What the new report screens read: plain data worked out once from
@@ -100,6 +101,11 @@ export interface ReportsSource {
   variance(month: string, against: string): VarianceView;
   audit: AuditView[];
   verifyAudit(tamperSeq: number | null): AuditCheck;
+  /** The trail with the demo's own entries chained on at its end. */
+  auditWith(added: readonly AuditAddition[]): {
+    rows: AuditView[];
+    verify(tamperSeq: number | null): AuditCheck;
+  };
   departments: DeptHeads[];
   joiners: string[];
   leavers: string[];

@@ -1,12 +1,11 @@
 import { fils } from "@payroll/engine";
+import { Explainable } from "../../components/explain";
+import type { Explanation } from "../../components/explain/types";
+import { openApprovals } from "../../demo/approvals";
+import { isBlocking, openIssues, runApprovalId } from "../../demo/derive";
+import { figures } from "../../demo/figures";
 import { useLiveExplain } from "../../demo/live-explain-load";
 import { useRunDetail } from "../../demo/useRunDetail";
-import {
-  actionable,
-  openIssues,
-  pendingApprovals,
-  runApprovalId,
-} from "../../demo/derive";
 import { useDemo } from "../../demo/state";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
@@ -20,34 +19,14 @@ import { useMoreSource } from "./load";
 import type { MoreSource } from "./source";
 
 type Item = MoreSource["brief"]["items"][number];
-
-/** What the demo has done to a row since it was written. */
-function useNext(): (i: Item) => { next: string; count: number | null } {
-  const { data, state } = useDemo();
-  const runId = runApprovalId(data);
-  const verdict = runId === null ? undefined : state.decided[runId];
-  const open = openIssues(data, state).length;
-  return (i) => {
-    if (i.live === "issues-open") {
-      return { count: open, next: open === 0 ? "Nothing left to fix."
-        : i.next };
-    }
-    if (i.live === "approvals-waiting") {
-      if (verdict === "approve") return { count: i.count,
-        next: "Signed off. The salary file can be made." };
-      if (verdict === "decline") return { count: i.count,
-        next: "Declined. The run goes back to be corrected." };
-    }
-    return { count: i.count, next: i.next };
-  };
-}
+import { briefRows } from "./rows";
 
 /**
  * The brief on one screen: what changed this week, what needs a
  * decision and what is at risk, each as short points with a figure.
  * Live figures (sign-off, what stops pay, held pay) follow the demo.
  */
-function useColumns(items: Item[]): Column[] {
+function useColumns(items: Item[], waitingWhy?: Explanation): Column[] {
   const { data, state } = useDemo();
   const src = useReportsSource();
   const words = useIssueWords();
@@ -56,7 +35,7 @@ function useColumns(items: Item[]): Column[] {
   const sep = src.months.at(-2)!;
   const b = beforeApproval(data, state);
   const w = words(b);
-  const waiting = pendingApprovals(data, state).length;
+  const waiting = openApprovals(data, state).length;
   const get = (id: string): Item | undefined =>
     items.find((i) => i.id === id);
   const n = (id: string): number => get(id)?.count ?? 0;
@@ -77,7 +56,10 @@ function useColumns(items: Item[]): Column[] {
     { id: "decide", title: "Needs a decision", points: [
       { key: "run", text: "October pay run", state: run,
         meta: run.meta },
-      { key: "waiting", figure: <Count n={waiting} />,
+      { key: "waiting", figure: waitingWhy === undefined
+        ? <Count n={waiting} /> : (
+          <Explainable explanation={waitingWhy}>
+            <Count n={waiting} /></Explainable>),
         text: "Requests waiting in the decisions inbox" },
       { key: "probation", figure: <Count n={n("probation")} />,
         text: n("probation") === 1 ? "Probation to decide by its end date"
@@ -109,34 +91,28 @@ export function OwnerBriefScreen() {
   const { scope } = useRunDetail();
   const { data, state } = useDemo();
   const m = useTableMoney();
-  const now = useNext();
   const phrase = useIssuePhrase();
-  const columns = useColumns(brief.items);
   const crumbs = useReportCrumbs();
-  const list = pendingApprovals(data, state);
+  const list = openApprovals(data, state);
   const waitingWhy = live.waitingExplain(data, list, scope);
-  const issuesWhy = live.issuesExplain(data, openIssues(data, state), scope);
-  const why = brief.items.map((i) => i.id === "issues" ? issuesWhy
+  const issuesWhy = live.issuesExplain(data,
+    openIssues(data, state).filter(isBlocking), scope);
+  const columns = useColumns(brief.items, waitingWhy);
+  const why = brief.items.map((i) => i.live === "issues-open" ? issuesWhy
     : briefExplain[i.id]);
-  const rows = brief.items.map((i) => {
-    const n = now(i);
-    // Held pay follows the IBANs entered, as the pay run does.
-    const figure = i.live === "issues-open"
-      ? phrase(beforeApproval(data, state))
-      : i.id === "held" ? (data.headline().heldNetFils === 0n ? "None"
-        : m(data.headline().heldNetFils))
-      : i.amount !== null ? m(i.amount)
-        : n.count !== null ? String(n.count) : "";
-    return [`${i.area}: ${i.item}`, `${i.text} ${n.next}`, figure];
-  });
+  const runId = runApprovalId(data);
+  // The live rows come from the shared figures; what stops pay reads
+  // as everywhere else ("2 stop pay, 3 to check").
+  const rows = briefRows(brief, { fig: figures(data, state),
+    verdict: runId === null ? undefined : state.decided[runId],
+    dues: state }, m).map((r, i) => brief.items[i]?.live === "issues-open"
+    ? [r[0]!, r[1]!, phrase(beforeApproval(data, state))] : r);
   return (
     <ReportPage title="Owner brief" period={brief.title} crumbs={crumbs}
       chart={<Summary label="This week in brief" columns={columns} />}
       explain={(r, c) => c === 2 ? why[r] : undefined}
       columns={[{ label: "Item" }, { label: "What it is, and what next" },
         { label: "Figure", end: true }]}
-      rows={[...rows, ...brief.dates.map((d) =>
-        [`Dates: ${d.label}`, d.text, ""])]}
-      csvName="owner-brief-2026-10-27.csv" note={brief.note} />
+      rows={rows} csvName="owner-brief-2026-10-27.csv" note={brief.note} />
   );
 }

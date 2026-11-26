@@ -1,5 +1,7 @@
 import type { Fils } from "@payroll/engine";
+import { settlementTotal } from "../demo/figures";
 import { hrefOf } from "../demo/route";
+import { useDemo } from "../demo/state";
 import { Money } from "../ui/Money";
 import { FilterList } from "../ui/templates";
 import { usePay } from "./load";
@@ -44,10 +46,11 @@ type Item = { key: string; name: string; what: string; when: string;
  */
 export function OffCycle() {
   const pay = usePay();
+  const { state } = useDemo();
   const items: Item[] = [
     ...pay.settlements.map((x) => ({ key: `fs-${x.employeeId}`,
       name: x.name, what: "Final settlement", when: `Pay by ${x.due}`,
-      amount: x.total, outside: true,
+      amount: settlementTotal(x.total, state, x.employeeId), outside: true,
       href: hrefOf("pay-run", "settlements", x.employeeId) })),
     ...pay.loans.filter((l) => l.kind === "advance").map((l) => ({
       key: l.ref, name: l.name, what: `Salary advance ${l.ref}`,

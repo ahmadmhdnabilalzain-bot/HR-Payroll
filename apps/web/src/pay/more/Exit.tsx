@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { settlementTotal } from "../../demo/figures";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { itemsNow } from "../../people/moves/view";
@@ -84,7 +85,7 @@ function Flags(p: { flow: Flow }) {
 function Flow(p: { flow: Flow }) {
   const f = p.flow;
   const pay = usePay();
-  const { data } = useDemo();
+  const { data, state } = useDemo();
   const settlement = pay.settlements.find((x) => x.employeeId ===
     f.employeeId);
   const l = data.moves.leavers().find((x) => x.employeeId === f.employeeId);
@@ -101,8 +102,9 @@ function Flow(p: { flow: Flow }) {
       stats={[
         { label: "Last day", value: f.lastDay },
         { label: "Pay by", value: f.payBy },
-        { label: "Worked out so far", value: settlement === undefined
-          ? "Not worked out" : <Money value={settlement.total} size="lg" /> },
+        { label: "Total so far", value: settlement === undefined
+          ? "Not worked out" : <Money value={settlementTotal(
+            settlement.total, state, f.employeeId)} size="lg" /> },
       ]}
       tabs={[
         { id: "steps", label: "Steps", render: () => l === undefined

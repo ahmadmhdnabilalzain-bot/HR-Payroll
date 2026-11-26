@@ -1,6 +1,7 @@
 import { fils, type Fils } from "@payroll/engine";
 import type { DemoData, DepartmentRow } from "../../demo/data/types";
-import { isBlocking, pendingApprovals } from "../../demo/derive";
+import { openApprovals } from "../../demo/approvals";
+import { figures } from "../../demo/figures";
 import type { DemoState } from "../../demo/state";
 import type { MonthRow, ReportsSource } from "../types";
 
@@ -37,7 +38,7 @@ export interface TileModel {
 }
 
 /**
- * What Fix counts before approval, worked out exactly as Fix does:
+ * What Fix counts before sign-off, read from the shared figures():
  * what stops pay is every bank problem still in the data (an IBAN that
  * passes takes it out); what to check is every other problem not yet
  * marked reviewed. Home, Fix and the dashboards say the same numbers.
@@ -48,12 +49,8 @@ export interface BeforeApproval {
 }
 
 export function beforeApproval(d: DemoData, s: DemoState): BeforeApproval {
-  const issues = d.issues().filter((i) => i.kind === "issue");
-  return {
-    stops: issues.filter(isBlocking).length,
-    checks: issues.filter((i) => !isBlocking(i) &&
-      s.resolved[i.id] === undefined).length,
-  };
+  const fig = figures(d, s);
+  return { stops: fig.blocking, checks: fig.toReview };
 }
 
 const short = (m: MonthRow): string => m.label.slice(0, 3);
@@ -131,7 +128,7 @@ export function hrTiles(src: ReportsSource, d: DemoData, s: DemoState,
 
 /** Decisions still open for anyone (the approvals inbox). */
 export const waitingCount = (d: DemoData, s: DemoState): number =>
-  pendingApprovals(d, s).length;
+  openApprovals(d, s).length;
 
 /** Departments, largest cost first. */
 export function byCost(d: DemoData): DepartmentRow[] {

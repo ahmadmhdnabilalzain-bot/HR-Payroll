@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { isBlocking, openIssues } from "../demo/derive";
+import { openIssues } from "../demo/derive";
+import { figures } from "../demo/figures";
 import {
   reducedMotion,
   useFlip,
   useTweenedNumber,
 } from "../demo/motion";
 import { useDemo } from "../demo/state";
+import { formatMonthName } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { IssueRow } from "./IssueRow";
 import s from "./IssueList.module.css";
@@ -20,7 +22,7 @@ const FIRST = 3;
  * leaves the list (its neighbours slide up) and the toast offers undo.
  */
 export function IssueList() {
-  const { t } = useLocale();
+  const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const [all, setAll] = useState(false);
   const open = openIssues(data, state);
@@ -32,9 +34,9 @@ export function IssueList() {
   const more = open.length - shown.length;
   const box = useRef<HTMLOListElement>(null);
   useFlip(box, [shown.map((i) => i.id).join()]);
-  const blocking = useTweenedNumber(open.filter(isBlocking).length);
-  const review = useTweenedNumber(open.filter((i) => !isBlocking(i))
-    .length);
+  const fig = figures(data, state);
+  const blocking = useTweenedNumber(fig.blocking);
+  const review = useTweenedNumber(fig.toReview);
   const counts = [blocking > 0 ? t("home.blockCount", { count: blocking })
     : "", review > 0 ? t("home.reviewCount", { count: review }) : ""]
     .filter(Boolean).join(" · ");
@@ -47,13 +49,17 @@ export function IssueList() {
     <section className={s.panel} aria-labelledby="issues-title">
       <header className={s.head}>
         <h2 id="issues-title" className={s.title}>
-          {t("home.blockersTitle")}
+          {fig.signedOff ? t("home.signedOffTitle")
+            : t("home.blockersTitle")}
         </h2>
         <span className={`${s.count} tabular`} data-zero={open.length === 0}>
           {open.length === 0 ? t("home.noIssues") : counts}
         </span>
       </header>
-      {state.role === "gm" && <p className={s.sub}>{t("home.gmNote")}</p>}
+      {fig.signedOff ? (
+        <p className={s.sub}>{t("home.signedOffNote", { month:
+          formatMonthName(data.headline().runMonth, lang) })}</p>
+      ) : state.role === "gm" && <p className={s.sub}>{t("home.gmNote")}</p>}
       {open.length === 0 ? (
         <p className={s.clear}>{t("home.allClear")}</p>
       ) : (

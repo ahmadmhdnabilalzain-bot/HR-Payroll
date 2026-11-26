@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FixKind, Issue } from "../demo/data/types";
+import { useMaskText } from "../ui/mask";
 import { useDemo, type Resolution } from "../demo/state";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -45,6 +46,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
   const save = useSaveIban();
   const saveIban = (value: string): void => save(i.employeeId ?? "", value);
   const step = ONE_TAP[i.fixKind];
+  const mask = useMaskText();
   const canAct = state.role === "hr" && i.employeeId !== null;
   return (
     <li className={s.row} data-flip={i.id} ref={row} tabIndex={-1}
@@ -58,7 +60,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null }) {
         <p className={s.titleRow}>
           <span className={s.name}>{i.title[lang]}</span>
         </p>
-        <p className={s.reason}>{i.reason[lang]}</p>
+        <p className={s.reason}>{mask(i.reason[lang])}</p>
         {canAct && editing && (
           <IbanForm employeeId={i.employeeId ?? ""} name={name}
             onCancel={() => setEditing(false)} onSave={saveIban} />

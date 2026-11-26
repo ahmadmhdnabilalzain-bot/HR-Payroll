@@ -11,6 +11,7 @@ import {
   headline,
   isDemoLabelKey,
   issuesOf,
+  overtimePreApprovals,
   payCalendar,
   PENSION_NOT_COMPUTED,
   sifSummary,
@@ -80,6 +81,12 @@ export function adapt(c: DemoCompany): DemoData {
     makerId: a.makerEmployeeId, checkerId: a.checkerEmployeeId }));
   const h = headline(c);
   const run = payRunApproval(c);
+  const people = adaptPeople(c);
+  const crew: Approval[] = overtimePreApprovals(c).map((p) => ({
+    id: p.id, kind: "overtime", employeeId: p.requestedBy,
+    title: both(`Crew overtime for ${p.people.length} people, ` +
+      p.display.date), requestedOn: c.asOf, amountFils: p.estimate,
+    makerId: p.requestedBy, checkerId: people.approverOf(p.requestedBy) }));
   return {
     companyName: { en: c.company.name, ar: c.company.nameAr },
     arReviewed: DEMO_AR_REVIEWED,
@@ -91,7 +98,8 @@ export function adapt(c: DemoCompany): DemoData {
       deductionsFils: h.deductions,
       employerCostFils: c.payRun.totals.employerCost,
       sifTotalFils: h.sifTotal, heldNetFils: h.heldNet,
-      headcount: h.payslips, sifPeople: sifSummary(c).employees,
+      headcount: h.payslips, activeToday: h.activeToday,
+      sifPeople: sifSummary(c).employees,
       issuesOpen: h.issuesOpen, needsConfirmation: h.needsConfirmation,
       approvalsPending: h.pendingApprovals }),
     departments: () => costByDepartment(c).map((d) => ({
@@ -104,6 +112,7 @@ export function adapt(c: DemoCompany): DemoData {
       i.code === "IBAN_CHECKSUM" && i.employeeId !== null)
       .map((i) => i.employeeId ?? ""))],
     approvalsInbox: () => approvals,
+    crewApprovals: () => crew,
     employee: (id) => toEmployee(c, id),
     employees: () => c.employees.map((e) => toEmployee(c, e.id)),
     documents: () => documents(c).map((d) => ({ ...d,
@@ -117,7 +126,7 @@ export function adapt(c: DemoCompany): DemoData {
       pension: both(PENSION_NOT_COMPUTED.en, PENSION_NOT_COMPUTED.ar) }),
     runPeople: () => ({ makerId: run.makerEmployeeId,
       checkerId: run.checkerEmployeeId }),
-    people: adaptPeople(c),
+    people,
     papers: adaptPapers(c),
     team: adaptTeam(c),
     talent: adaptTalent(c),

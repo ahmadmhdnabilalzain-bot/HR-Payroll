@@ -7,7 +7,7 @@ import type { DemoData } from "../../demo/data/types";
 import { approvalBlockedBy, runApprovalId } from "../../demo/derive";
 import { hrefOf } from "../../demo/route";
 import type { DemoState, Section } from "../../demo/state";
-import { allApprovals } from "../../demo/time-off";
+import { approvalItems } from "../../demo/approvals";
 import { areasFor, routeOf } from "../../nav/registry";
 import type { AreaRoute, NavCtx } from "../../nav/types";
 
@@ -61,8 +61,9 @@ export function targetHref(target: string, c: NavCtx): string | null {
   const [head = "", ...rest] = target.split("/");
   const staff = c.state.role === "manager" || c.state.role === "employee";
   if (head === "approvals") {
-    const a = allApprovals(c.data, c.state).find((x) => x.id === rest[0]);
+    const a = approvalItems(c.data, c.state).find((x) => x.id === rest[0]);
     if (a?.kind === "pay-run") return areaHref(c, "pay.approve");
+    if (a?.kind === "overtime") return areaHref(c, "time.crew");
     if (a?.kind === "leave") {
       return areaHref(c, "time.requests") ?? areaHref(c, "requests.waiting");
     }

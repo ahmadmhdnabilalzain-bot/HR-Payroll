@@ -3,6 +3,7 @@ import { useTweenedBigint } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { formatMoney, moneyParts } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { amountsHidden } from "./mask";
 import s from "./Money.module.css";
 
 type Size = "hero" | "lg" | "md" | "sm";
@@ -23,7 +24,7 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
   const shown = useTweenedBigint(p.value);
   const v = p.tween === false ? p.value : fils(shown);
   const size = p.size ?? "md";
-  if (state.hideAmounts) {
+  if (amountsHidden(state)) {
     return (
       <span className={`${s.money} ${s[size]} ${s.masked}`} dir="ltr">
         <span className="visually-hidden">{t("shell.amountsHidden")}</span>

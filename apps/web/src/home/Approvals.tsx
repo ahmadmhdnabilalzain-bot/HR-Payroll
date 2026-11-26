@@ -1,7 +1,12 @@
 import { useRef } from "react";
 import { useRunApproval } from "../demo/actions";
 import type { Approval, ApprovalKind } from "../demo/data/types";
-import { pendingApprovals, personOf } from "../demo/derive";
+import {
+  approvalsShown,
+  decideAction,
+  mayDecide,
+  undoAction,
+} from "../demo/approvals";
 import { useFlip } from "../demo/motion";
 import { useDemo, type Verdict } from "../demo/state";
 import { formatDayMonth, formatList } from "../i18n/format";
@@ -15,7 +20,7 @@ import { Avatar } from "../ui/Avatar";
 
 const KIND: Record<ApprovalKind, MessageKey> = {
   leave: "home.kindLeave", expense: "home.kindExpense",
-  "pay-run": "home.kindPayRun",
+  "pay-run": "home.kindPayRun", overtime: "home.kindOvertime",
 };
 
 /**
@@ -26,7 +31,7 @@ const KIND: Record<ApprovalKind, MessageKey> = {
 export function Approvals() {
   const { t } = useLocale();
   const { data, state } = useDemo();
-  const list = pendingApprovals(data, state);
+  const list = approvalsShown(data, state);
   const box = useRef<HTMLUListElement>(null);
   useFlip(box, [list.map((a) => a.id).join(), state.role]);
   return (
@@ -54,15 +59,15 @@ function ApprovalRow(p: { a: Approval }) {
   const toast = useToast();
   const a = p.a;
   const isRun = a.kind === "pay-run";
-  const mine = a.checkerId === personOf(data, state.role);
+  const mine = mayDecide(data, state.role, a);
   const who = data.employee(a.employeeId ?? a.makerId).name[lang];
   const checker = data.employee(a.checkerId).name[lang];
   const blocked = isRun && !run.canDecide;
   const decide = (verdict: Verdict) => (): void => {
     if (isRun) run.decide(verdict);
-    else dispatch({ type: "decide", id: a.id, verdict });
+    else dispatch(decideAction(data, state.role, a, verdict));
     toast.show(t("home.decided", { title: `${t(KIND[a.kind])} · ${who}` }),
-      () => dispatch({ type: "undecide", id: a.id }));
+      () => dispatch(undoAction(a)));
   };
   const why = isRun && blocked && run.blockedBy.length > 0
     ? t("home.approveWaits", { names: formatList(run.blockedBy.map((id) =>

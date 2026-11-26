@@ -1,8 +1,7 @@
 import { Suspense, type MouseEvent, type ReactNode } from "react";
 import { Explainable } from "../components/explain";
 import type { Explanation } from "../components/explain/types";
-import { pendingApprovals } from "../demo/derive";
-import { useRunApproval } from "../demo/actions";
+import { approvalsShown, isSent } from "../demo/approvals";
 import { useLiveExplain } from "../demo/live-explain-load";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
@@ -80,9 +79,7 @@ function soonDocs<T extends { daysLeft: number }>(docs: readonly T[]): T[] {
 /** What waits for a decision, as the inbox below lists it. */
 function useOpen() {
   const { data, state } = useDemo();
-  const run = useRunApproval();
-  return pendingApprovals(data, state).filter((a) =>
-    a.kind !== "pay-run" || run.blockedBy.length === 0);
+  return approvalsShown(data, state).filter((a) => isSent(data, state, a));
 }
 
 /**

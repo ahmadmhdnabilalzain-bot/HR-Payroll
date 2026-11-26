@@ -121,6 +121,12 @@ import {
   type PaySlice,
 } from "../pay/pay-state";
 import {
+  AUDIT_INITIAL,
+  reduceAudit,
+  type AuditAction,
+  type AuditSlice,
+} from "./audit-state";
+import {
   HOLD_INITIAL,
   reduceHolds,
   type HoldAction,
@@ -157,7 +163,7 @@ export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
-    PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
+    AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
     AuditorSlice, FinishSlice, EsignSlice {
   role: Role;
   hideAmounts: boolean;
@@ -202,6 +208,7 @@ export type Action =
   | PriorAction
   | HoldAction
   | MoreAction
+  | AuditAction
   | VerifyAction
   | RuleChangeAction
   | PlanningAction
@@ -222,6 +229,7 @@ export const INITIAL: DemoState = {
   ...CONNECT_INITIAL, ...PRIOR_INITIAL,
   ...HOLD_INITIAL,
   ...MORE_INITIAL,
+  ...AUDIT_INITIAL,
   ...PRIVACY_INITIAL,
   ...VERIFY_INITIAL,
   ...RULE_CHANGE_INITIAL,
@@ -342,7 +350,9 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "pay-withdraw":
     case "pay-restore":
     case "fine-decide":
-    case "fine-undo": return reducePay(s, a);
+    case "fine-undo":
+    case "dues-set":
+    case "dues-undo": return reducePay(s, a);
     case "connect-edit":
     case "connect-undo": return reduceConnect(s, a);
     case "privacy-edit":
@@ -357,6 +367,9 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "prior-undo": return reducePrior(s, a);
     case "salary-hold":
     case "salary-release": return reduceHolds(s, a);
+    case "audit-append":
+    case "audit-check":
+    case "audit-tamper": return reduceAudit(s, a);
     case "rule-change-step":
     case "rule-change-undo": return reduceRuleChange(s, a);
     case "esign": return reduceEsign(s, a);
@@ -388,6 +401,11 @@ export function DemoProvider(p: { source: DemoSource;
   return (
     <DemoContext.Provider value={value}>{p.children}</DemoContext.Provider>
   );
+}
+
+/** The store, or null outside the provider (shared templates). */
+export function useOptionalDemo(): Demo | null {
+  return useContext(DemoContext);
 }
 
 export function useDemo(): Demo {

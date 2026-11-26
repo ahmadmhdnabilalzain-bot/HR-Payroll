@@ -3,6 +3,7 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import { Avatar } from "../Avatar";
 import { StatusPill, type StatusTone } from "./StatusPill";
 import { PageFoot } from "./PageFoot";
+import { maskNode, useMaskText } from "../mask";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -61,6 +62,7 @@ export function RecordTabs(p: {
   avatar?: { id: string; name: string } | undefined;
 }) {
   const { t } = useLocale();
+  const mask = useMaskText();
   const [own, setOwn] = useState(p.tabs[0]?.id ?? "");
   const at = p.tab ?? own;
   const current = p.tabs.find((x) => x.id === at) ?? p.tabs[0];
@@ -88,7 +90,7 @@ export function RecordTabs(p: {
             {figures.map((x) => (
               <div key={x.label}>
                 <dt>{x.label}</dt>
-                <dd>{x.value}</dd>
+                <dd>{maskNode(mask, x.value)}</dd>
               </div>
             ))}
           </dl>
@@ -154,12 +156,13 @@ function Tabbed(p: { tabs: RecordTab[]; current: RecordTab | undefined;
 
 /** A two-column key-value grid (13 px labels, 15 px values). */
 export function KeyValues(p: { items: { label: string; value: ReactNode }[] }) {
+  const mask = useMaskText();
   return (
     <dl className={s.kv}>
       {p.items.map((x) => (
         <div key={x.label}>
           <dt>{x.label}</dt>
-          <dd>{x.value}</dd>
+          <dd>{maskNode(mask, x.value)}</dd>
         </div>
       ))}
     </dl>

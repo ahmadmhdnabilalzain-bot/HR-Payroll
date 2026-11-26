@@ -1,6 +1,7 @@
 import { calculatePayslip, DEFAULT_PAYROLL_PACKS } from "@payroll/engine";
 import { describe, expect, it } from "vitest";
 import {
+  appendAuditEvents,
   AS_OF,
   AUDIT_CHAIN_NOTE,
   auditEvents,
@@ -65,6 +66,19 @@ describe("hash chain", () => {
     const r = verifyAuditChain(removed);
     expect(r.ok).toBe(false);
     expect(r.brokenAt).toBe(6);
+  });
+
+  it("entries made in the demo chain on at the end", () => {
+    const ev = auditEvents(c);
+    const more = appendAuditEvents(ev, [{ at: "2026-10-27T10:00",
+      actorId: "emp-030", action: "access.api-key-revoked",
+      area: "access", subject: { kind: "api-key", id: "k1",
+        label: "Key" }, summary: "Key revoked." }]);
+    expect(more).toHaveLength(ev.length + 1);
+    expect(more.slice(0, ev.length)).toEqual(ev);
+    expect(more.at(-1)!.prevHash).toBe(ev.at(-1)!.hash);
+    expect(verifyAuditChain(more)).toEqual({ ok: true, brokenAt: null,
+      checked: ev.length + 1 });
   });
 
   it("says what the demo chain is and is not", () => {

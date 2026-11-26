@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useRoute } from "../../demo/route";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { useGroupTabs } from "../../shell/GroupTabs";
+import { useMaskText } from "../mask";
 import s from "./templates.module.css";
 
 export interface Crumb {
@@ -30,6 +31,7 @@ export function PageHead(p: { title: string; lede?: string | undefined;
   id?: string }) {
   const { t } = useLocale();
   const underTabs = useGroupTabs(useRoute()) !== null;
+  const mask = useMaskText();
   const trail = p.crumbs ?? (p.back === undefined ? [] : [p.back]);
   return (
     <header className={s.head} data-tabs={underTabs}>
@@ -59,7 +61,7 @@ export function PageHead(p: { title: string; lede?: string | undefined;
         )}
       </div>
       {p.lede !== undefined && p.lede !== "" && (
-        <p className={s.lede}>{p.lede}</p>
+        <p className={s.lede}>{mask(p.lede)}</p>
       )}
       {p.meta !== undefined && <div className={s.meta}>{p.meta}</div>}
     </header>

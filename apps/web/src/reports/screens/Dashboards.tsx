@@ -1,5 +1,6 @@
 import { useRunApproval } from "../../demo/actions";
-import { isBlocking, pendingApprovals } from "../../demo/derive";
+import { decisionsFor, openApprovals } from "../../demo/approvals";
+import { isBlocking, openIssues } from "../../demo/derive";
 import { useLiveExplain } from "../../demo/live-explain-load";
 import { useDemo } from "../../demo/state";
 import { useRunDetail } from "../../demo/useRunDetail";
@@ -8,21 +9,19 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import { ReportPage, type Cell } from "../../ui/templates";
 import { HBars, SplitBar } from "../dash/Bars";
 import {
-  beforeApproval,
   byCost,
   execTiles,
   hrTiles,
   topSlices,
   trendBars,
-  waitingCount,
 } from "../dash/model";
-import { Panel, useIssuePhrase, useIssueWords } from "../dash/Panel";
+import { Panel, useIssueWords } from "../dash/Panel";
 import { Tiles } from "../dash/Tiles";
 import { TrendChart } from "../dash/TrendChart";
 import s from "../dash/dash.module.css";
-import { hours, percent, plural, share, useMoney, useReportCrumbs }
-  from "../fmt";
+import { plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
+import { execDashboardRows, hrDashboardRows } from "./dashboard-rows";
 
 const COLUMNS = [{ label: "Measure" }, { label: "Now", end: true },
   { label: "Compared with", end: true }, { label: "What it tells you" }];
@@ -47,44 +46,20 @@ export function DashboardHr() {
   const { lang } = useLocale();
   const run = useRunDetail();
   const words = useIssueWords();
-  const phrase = useIssuePhrase();
   const last = src.months.at(-1)!;
-  const sum = (k: "start" | "joined" | "departed" | "now"): number =>
-    src.heads[k];
   const docs = data.documents();
   const soon = docs.filter((d) => d.daysLeft >= 0 && d.daysLeft <= 30);
-  const gone = docs.filter((d) => d.daysLeft < 0);
-  const b = beforeApproval(data, state);
-  const waiting = waitingCount(data, state);
   const nat = run.nationalities;
-  const list = pendingApprovals(data, state);
-  const stopsWhy = live.issuesExplain(data, data.issues().filter((i) =>
-    i.kind === "issue" && isBlocking(i)), run.scope);
-  const why = [stopsWhy, src.explain["headcount:now"], undefined, undefined,
+  const list = openApprovals(data, state);
+  const stopsWhy = live.issuesExplain(data,
+    openIssues(data, state).filter(isBlocking), run.scope);
+  // By row of hrDashboardRows: the shared figures, one source.
+  const why = [stopsWhy, src.explain["headcount:now"],
+    run.explain["run:people"], undefined, undefined,
     src.explain["turnover:total"], live.docsExplain(data, soon,
       "Papers expiring in 30 days", "ends in the next 30 days", run.scope),
     live.waitingExplain(data, list, run.scope)];
-  const rows = [
-    ["Before sign-off", phrase(b), "-",
-      "What stops pay holds the whole run; checks do not"],
-    ["People on the payroll", String(sum("now")),
-      `${sum("start")} on 1 January`, "Employed on the report date"],
-    ["Joined this year", String(sum("joined")), "-",
-      src.joiners.join(", ") || "Nobody"],
-    ["Left this year", String(sum("departed")), "-",
-      src.leavers.join(", ") || "Nobody"],
-    ["Turnover this year", sum("departed") === 0 ? "None"
-      : share(sum("departed"), (sum("start") + sum("now")) / 2), "-",
-    "People who left, against the average headcount"],
-    ["Papers expiring in 30 days", String(soon.length),
-      `${gone.length} already expired`, "Visas, Emirates IDs and " +
-        "passports to renew"],
-    ["Waiting for a decision", String(waiting), "-",
-      "Requests in the decisions inbox"],
-    [`Unpaid leave in ${last.label}`, plural(last.unpaidDays, "day",
-      "days"), `${plural(last.sickDays, "sick day", "sick days")}`,
-    "Working days taken in the run month"],
-  ];
+  const rows = hrDashboardRows(src, data, state);
   const board = (
     <div className={s.board}>
       <Tiles label="Key figures" tiles={hrTiles(src, data, state, words)} />
@@ -135,13 +110,12 @@ export function DashboardExec() {
   const runWord = useRunWord();
   const now = src.months.at(-1)!;
   const before = src.months.at(-2)!;
-  const head = data.headline();
   const depts = byCost(data);
   const top = depts[0];
   const v = src.variance(now.month, before.month);
   const main = v.drivers[0];
-  const list = pendingApprovals(data, state);
-  const waiting = list.length;
+  const list = decisionsFor(data, state);
+  // By row of execDashboardRows.
   const why = [[src.explain[`trend:${now.month}`],
     src.explain[`trend:${before.month}`]],
   [main === undefined ? undefined : v.driverExplain[main.key]],
@@ -151,29 +125,8 @@ export function DashboardExec() {
   [run.explain["run:held"]],
   [live.waitingExplain(data, list, run.scope)],
   [top === undefined ? undefined : run.explain[`dept-cost:${top.id}`]]];
-  const rows: Cell[][] = [
-    ["Gross pay", { fils: now.gross }, { fils: before.gross },
-      `${signed(v.grossChange)} (${percent(v.grossChange,
-        before.gross)}) on ${before.label}`],
-    ["Biggest cause of the change", main === undefined ? "-"
-      : { fils: main.amount, signed: true }, main?.label ?? "-",
-    main === undefined ? "Nothing moved" : main.people.join(", ")],
-    ["People paid", String(now.headcount), String(before.headcount),
-      "Includes the leaver's part month"],
-    ["Overtime this month", { fils: now.overtimeAmount },
-      { fils: before.overtimeAmount }, `${hours(now.overtimeMinutes)} hours ` +
-        `across ${plural(now.overtimePeople, "person", "people")}`],
-    head.heldNetFils === 0n
-      ? ["Held out of the salary file", "None", "-",
-        "Everyone's pay is in the salary file"]
-      : ["Held out of the salary file", { fils: head.heldNetFils }, "-",
-        "Net pay with no valid bank account yet"],
-    ["Waiting for your decision", String(waiting), "-",
-      "Open Home to decide"],
-    ["Biggest department", top === undefined ? "-"
-      : { fils: top.costFils },
-      top === undefined ? "-" : top.name.en, "Gross cost for the month"],
-  ];
+  const rows = execDashboardRows(src, data, state,
+    (f) => signed(f as never));
   const board = (
     <div className={s.board}>
       <Tiles label="Key figures"

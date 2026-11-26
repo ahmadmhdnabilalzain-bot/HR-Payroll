@@ -168,6 +168,16 @@ export function allApprovals(d: DemoData, s: DemoState): Approval[] {
   return [...sessionApprovals(d, s), ...d.approvalsInbox()];
 }
 
+/** Other people's booked or waiting leave on any of the same days,
+ * among those the viewer may see: what an approver weighs. */
+export function overlapsOf(rows: RequestRow[], r: RequestRow,
+  visible: ReadonlySet<string>): RequestRow[] {
+  return rows.filter((x) => x.id !== r.id &&
+    x.employeeId !== r.employeeId && visible.has(x.employeeId) &&
+    (x.state === "booked" || x.state === "waiting") &&
+    x.startDate <= r.endDate && r.startDate <= x.endDate);
+}
+
 /** Who is off on a date (booked, or waiting when asked for). */
 export function offOn(rows: RequestRow[], date: string): RequestRow[] {
   return rows.filter((r) => (r.state === "booked" ||

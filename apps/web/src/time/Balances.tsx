@@ -19,12 +19,13 @@ export function Balances() {
     annualNow(data, state, id)?.availableDays ?? null;
   return (
     <FilterList title="Leave balances"
-      lede="Annual leave left today, and sick and unpaid days used this year."
+      lede={"Annual leave left today, and sick and unpaid days used " +
+        "this year, for everyone active today (a leaver is not listed)."}
       rows={ids} rowKey={(id) => id}
       searchText={(id) => `${who.name(id)} ${who.jobOf(id)}`}
       rowHref={(id) => hrefOf("people", id)}
       segments={[
-        { id: "all", label: "Everyone", match: () => true },
+        { id: "all", label: "Active today", match: () => true },
         { id: "low", label: "Under 5 days left", match: (id) =>
           (left(id) ?? 99) < 5 },
       ]}

@@ -26,7 +26,7 @@ export const home: ArOf<typeof en> = {
   heldOut: "محجوز خارج ملف الرواتب",
   makeUp: "أكتوبر مقارنة بسبتمبر",
   vsLast: "مقارنة بـ{month}",
-  stripHeadcount: "على كشف الرواتب",
+  stripHeadcount: "على كشف رواتب {month}",
   stripOnLeave: "في إجازة اليوم",
   stripDocs: "مستندات تنتهي صلاحيتها",
   stripApprovals: "موافقات معلّقة",
@@ -65,6 +65,9 @@ export const home: ArOf<typeof en> = {
   stepDone: "تم",
   stepNow: "الآن",
   blockersTitle: "قبل التوقيع",
+  signedOffTitle: "تم الاعتماد",
+  signedOffNote: "تم اعتماد رواتب {month}. " +
+    "ما بقي للمراجعة مدرج أدناه للدورة التالية.",
   openIssues: {
     zero: "لا بنود مفتوحة",
     one: "بند مفتوح واحد",
@@ -136,6 +139,7 @@ export const home: ArOf<typeof en> = {
   kindLeave: "إجازة",
   kindExpense: "مصروف",
   kindPayRun: "دورة الرواتب",
+  kindOvertime: "العمل الإضافي للفريق",
   expiriesTitle: "مستندات تنتهي صلاحيتها",
   expiriesSub: "خلال 60 يومًا",
   daysLeft: {

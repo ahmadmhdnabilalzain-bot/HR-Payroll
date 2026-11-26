@@ -1,5 +1,6 @@
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
+import { personFor } from "../../demo/time-off";
 import b from "../../ui/button.module.css";
 import { useToast } from "../../ui/Toast";
 import { FilterList, KeyValues, RecordTabs } from "../../ui/templates";
@@ -15,10 +16,24 @@ const hookHref = (...r: string[]): string =>
 
 /** S30: keys other software uses to read data. Always masked. */
 export function Keys(p: { d: AccessData }) {
-  const { state, dispatch } = useDemo();
+  const { data, state, dispatch } = useDemo();
   const actor = useActor();
   const toast = useToast();
   const revoked = (id: string): boolean => state.keysRevoked[id] !== undefined;
+  /** Revoke and restore both write to the audit trail (append only:
+   * an undo adds a "restored" entry, it never removes one). */
+  const log = (k: { id: string; name: string }, on: boolean): void =>
+    dispatch({ type: "audit-append", entry: {
+      action: on ? "access.api-key-revoked" : "access.api-key-restored",
+      area: "access", actorId: personFor(data, state.role),
+      on: data.payCalendar().asOf,
+      subject: { kind: "api-key", id: k.id, label: k.name },
+      summary: `${actor.name} ${on ? "revoked" : "restored"} the API ` +
+        `key "${k.name}".` } });
+  const restore = (k: { id: string; name: string }): void => {
+    dispatch({ type: "key-restore", id: k.id });
+    log(k, false);
+  };
   return (
     <FilterList title="API keys"
       lede="Keys let other software read data. Each one is read only and is
@@ -44,16 +59,16 @@ export function Keys(p: { d: AccessData }) {
                 onClick={() => {
                   dispatch({ type: "key-revoke", id: k.id,
                     stamp: actor.stamp() });
-                  toast.show(`${k.name} revoked.`, () => dispatch(
-                    { type: "key-restore", id: k.id }));
+                  log(k, true);
+                  toast.show(`${k.name} revoked. Written to the audit ` +
+                    "trail.", () => restore(k));
                 }}>Revoke</button>
             </span>
           ) : (
             <span className={s.itemEnd}>
               <Status tone="none">Revoked by {r.by}, {r.on}</Status>
               <button type="button" className={BTNQ}
-                onClick={() => dispatch({ type: "key-restore",
-                  id: k.id })}>Undo</button>
+                onClick={() => restore(k)}>Undo</button>
             </span>
           );
         } }]}

@@ -1,5 +1,6 @@
 import { fils } from "@payroll/engine";
 import { Explainable } from "../../components/explain";
+import { figures } from "../../demo/figures";
 import { useDemo } from "../../demo/state";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
@@ -10,6 +11,7 @@ import { useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import { useTableMoney } from "./nb";
 import { useMoreSource } from "./load";
+import { boardRows } from "./rows";
 
 /** X26: the period's figures for a board; each repeats its own report. */
 export function BoardPackScreen() {
@@ -67,9 +69,9 @@ export function BoardPackScreen() {
       explain={(r, c) => c === 2 ? boardExplain[r] : undefined}
       columns={[{ label: "Measure" }, { label: "Note" },
         { label: "Figure", end: true }]}
-      rows={board.rows.map((r) => [`${r.topic}: ${r.measure}`, r.note,
-        r.measure === "Problems before sign-off" ? phrase(b)
-          : r.amount !== null ? m(r.amount) : (r.text ?? "")])}
+      rows={boardRows(board, figures(data, state), m).map((x, i) =>
+        board.rows[i]?.live === "issues-open"
+          ? [x[0]!, x[1]!, phrase(b)] : x)}
       csvName="board-pack-2026-10.csv" note={board.note} />
   );
 }

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { contractProblems } from "../../src/components/explain/types";
 import { buildDemoData } from "../../src/demo/data/adapter";
-import { pendingApprovals, personOf } from "../../src/demo/derive";
+import { approvalsShown } from "../../src/demo/approvals";
+import { personOf } from "../../src/demo/derive";
 import { INITIAL, reduce, type DemoState } from "../../src/demo/state";
 import {
   allApprovals,
@@ -149,7 +150,7 @@ describe("time off", () => {
     expect(waiting?.pendingHalves).toBe((before?.pendingHalves ?? 0) + 10);
     expect(waiting?.availableDays).toBe((before?.availableDays ?? 0) - 5);
     s = reduce({ ...s, role: "manager" }, { type: "role", role: "manager" });
-    expect(pendingApprovals(d, s)[0]?.id).toBe("ap-new-1");
+    expect(approvalsShown(d, s)[0]?.id).toBe("ap-new-1");
     s = reduce(s, { type: "decide", id: "ap-new-1", verdict: "approve" });
     const row = requestRows(d, s).find((r) => r.id === "lr-new-1");
     expect(row?.state).toBe("booked");

@@ -6,6 +6,7 @@ import { formatNumber } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { toCsv as csvOf, type Cell } from "../../lib/csv";
 import { downloadText } from "../../lib/download";
+import { amountsHidden, maskMoney, useMaskText } from "../mask";
 import { Money } from "../Money";
 import { MoreMenu } from "./Menu";
 import { PageFoot } from "./PageFoot";
@@ -30,12 +31,13 @@ const isMoney = (c: Cell): c is Exclude<Cell, string | number> =>
 /** One cell on screen: money through <Money/>, the rest as text. */
 export function CellView(p: { c: Cell }) {
   const { lang } = useLocale();
+  const mask = useMaskText();
   if (typeof p.c === "number") {
     return <span className="tabular">{formatNumber(p.c, lang)}</span>;
   }
   if (typeof p.c === "string") {
     return p.c === "" || p.c === "-"
-      ? <span className={s.none}>{"–"}</span> : <>{p.c}</>;
+      ? <span className={s.none}>{"–"}</span> : <>{mask(p.c)}</>;
   }
   return <Money value={p.c.fils} size="sm" tween={false}
     signed={p.c.signed === true} />;
@@ -75,14 +77,20 @@ export function ReportPage(p: {
   /** Under the table, before the sources line (a count, a scope). */
   foot?: string;
   id?: string;
+  /** One more action before the menu (e.g. run a check). */
+  actions?: ReactNode;
 }) {
   const { t } = useLocale();
   const { state } = useDemo();
+  const masked = amountsHidden(state);
   const money = [...p.rows, p.total ?? []].some((r) => r.some(isMoney));
-  const hidden = state.hideAmounts && money;
+  const hidden = masked && money;
+  // Amounts written inside text cells are masked in the file too.
+  const text = (r: Cell[]): Cell[] => masked ? r.map((c) =>
+    typeof c === "string" ? maskMoney(c) : c) : r;
   const download = (): void => downloadText(p.csvName,
-    toCsv(p.columns, p.total === undefined ? p.rows
-      : [...p.rows, p.total]), "text/csv;charset=utf-8");
+    toCsv(p.columns, (p.total === undefined ? p.rows
+      : [...p.rows, p.total]).map(text)), "text/csv;charset=utf-8");
   const end = (j: number): boolean => p.columns[j]?.end === true;
   const hinted = p.figure?.explanation !== undefined ||
     p.explain !== undefined;
@@ -93,9 +101,10 @@ export function ReportPage(p: {
       aria-labelledby={p.id ?? "report-title"}>
       <PageHead id={p.id ?? "report-title"} title={p.title}
         lede={p.period} meta={p.meta} crumbs={p.crumbs} actions={(
-          <MoreMenu items={[{ label: t("tpl.csv"), onSelect: download,
-            disabled: hidden, hint: t("tpl.hiddenCsv") },
-          { label: t("tpl.print"), onSelect: () => print() }]} />
+          <>{p.actions}<MoreMenu items={[{ label: t("tpl.csv"),
+            onSelect: download, disabled: hidden,
+            hint: t("tpl.hiddenCsv") },
+          { label: t("tpl.print"), onSelect: () => print() }]} /></>
         )} />
       {p.figure !== undefined && (
         <div className={s.figure}>
@@ -148,7 +157,8 @@ export function ReportPage(p: {
           </tfoot>
         )}
       </table>
-      {note !== "" && <p className={s.note}>{note}</p>}
+      {note !== "" && (
+        <p className={s.note}>{masked ? maskMoney(note) : note}</p>)}
       <PageFoot extra={p.foot} />
     </article>
   );

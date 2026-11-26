@@ -1,5 +1,4 @@
-import { useState, type ReactNode } from "react";
-import type { ChainCheck } from "../demo/data/home-types";
+import type { ReactNode } from "react";
 import { useDemo } from "../demo/state";
 import { formatDayMonth, formatLongDay, formatNumber } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -77,8 +76,9 @@ function Tile(p: { id: string; label: string; figure: string;
  */
 export function ItHome() {
   const { lang, t } = useLocale();
-  const { data, state } = useDemo();
-  const [chain, setChain] = useState<ChainCheck | null>(null);
+  const { data, state, dispatch } = useDemo();
+  // The same check as the Audit trail page and the IT dashboard.
+  const chain = state.auditCheck;
   const o = data.home.it();
   const c = { data, state };
   const failing = o.hooks.filter((h) => h.status === "failing");
@@ -142,9 +142,12 @@ export function ItHome() {
         <div className={it.chainText}>
           <h2 id="it-chain" className={it.label}>{W.chainTitle}</h2>
           <p className={it.figure}>
-            <span className="tabular">{formatNumber(o.auditCount, lang)}</span>
+            <span className="tabular">
+              {formatNumber(o.auditCount + state.auditAdded.length, lang)}
+            </span>
             <span className={it.unit}>
-              {t("inbox.itAuditBig", { count: o.auditCount })
+              {t("inbox.itAuditBig", { count: o.auditCount +
+              state.auditAdded.length })
                 .replace(/^\S+\s/, "")}</span>
           </p>
           <p className={it.state} data-tone={chainState.tone} role="status">
@@ -153,7 +156,8 @@ export function ItHome() {
         </div>
         <button type="button"
           className={`${b.btn} ${b.primary} ${b.large} ${it.check}`}
-          onClick={() => setChain(o.verifyChain())}>
+          onClick={() => dispatch({ type: "audit-check",
+            result: o.verifyChain(state.auditAdded, state.auditTampered) })}>
           {chain === null ? t("inbox.itCheck") : t("inbox.itCheckAgain")}
         </button>
       </section>

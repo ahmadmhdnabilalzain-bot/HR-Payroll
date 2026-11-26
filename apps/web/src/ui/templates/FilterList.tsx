@@ -5,6 +5,7 @@ import { Avatar } from "../Avatar";
 import b from "../button.module.css";
 import { PageFoot } from "./PageFoot";
 import { lastRecord, saveView, savedView } from "./listMotion";
+import { maskNode, useMaskText } from "../mask";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -216,17 +217,18 @@ type RowProps<T> = Pick<Parameters<typeof FilterList<T>>[0],
 
 function Row<T>(q: { p: RowProps<T>; r: T }) {
   const { p, r } = q;
+  const mask = useMaskText();
   const href = p.rowHref?.(r);
   const who = p.avatar?.(r);
   const cells = p.columns.map((c, i) => i > 0 ? (
     <span key={c.key} className={s.cell} data-end={c.end === true}>
       <span className={s.cellLabel}>{c.label}</span>
-      {c.render(r)}
+      {maskNode(mask, c.render(r))}
     </span>
   ) : (
     <span key={c.key} className={s.cellMain} data-row-main="">
       {who !== undefined && <Avatar id={who.id} name={who.name} />}
-      <span className={s.cellText}>{c.render(r)}</span>
+      <span className={s.cellText}>{maskNode(mask, c.render(r))}</span>
     </span>
   ));
   const row = href === undefined ? <div className={s.row}>{cells}</div>

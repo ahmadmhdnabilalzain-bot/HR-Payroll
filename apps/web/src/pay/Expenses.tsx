@@ -1,5 +1,6 @@
 import { useSwitchRole } from "../demo/actions";
 import type { Approval } from "../demo/data/types";
+import { decideAction, mayDecide, undoAction } from "../demo/approvals";
 import { personOf } from "../demo/derive";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
@@ -29,12 +30,43 @@ function useApproval(x: ExpenseView): Approval | undefined {
 }
 
 function useClaimState(x: ExpenseView): [string, Tone] {
-  const { state } = useDemo();
+  const { data, state } = useDemo();
   const a = useApproval(x);
   if (a === undefined) return ["Agreed earlier", "done"];
   const v = state.decided[a.id];
-  return v === undefined ? ["Waiting", "check"] : v === "approve"
+  return v === undefined ? [`Waiting for ${data.employee(a.checkerId)
+    .name.en}`, "check"] : v === "approve"
     ? ["Agreed", "done"] : ["Declined", "neutral"];
+}
+
+/** Agree or decline, for the one who decides, on the list itself (a
+ * linked row cannot hold buttons): the first claim waiting for them. */
+function ListDecision(p: { rows: ExpenseView[] }) {
+  const { data, state, dispatch } = useDemo();
+  const toast = useToast();
+  const waiting = p.rows.flatMap((x) => {
+    if (x.settled) return [];
+    const a = data.approvalsInbox().find((y) => y.kind === "expense" &&
+      y.employeeId === x.employeeId);
+    return a !== undefined && state.decided[a.id] === undefined &&
+      mayDecide(data, state.role, a) ? [{ x, a }] : [];
+  });
+  const first = waiting[0];
+  if (first === undefined) return null;
+  const decide = (v: "approve" | "decline") => (): void => {
+    dispatch(decideAction(data, state.role, first.a, v));
+    toast.show(`${first.x.name}: claim ${v === "approve" ? "agreed"
+      : "declined"}`, () => dispatch(undoAction(first.a)));
+  };
+  return (
+    <>
+      <button type="button" className={`${b.btn} ${b.quiet}`}
+        onClick={decide("decline")}>Decline</button>
+      <button type="button" className={`${b.btn} ${b.primary}`}
+        onClick={decide("approve")}>{`Agree claim, ${first.x.name}`}
+      </button>
+    </>
+  );
 }
 
 function ClaimStatus(p: { x: ExpenseView }) {
@@ -69,8 +101,10 @@ export function Expenses() {
   const pay = usePay();
   return (
     <FilterList title="Expense claims"
-      lede={"Claims with their receipts. The person's manager decides; " +
-        "an agreed claim is repaid with the next pay run."}
+      lede={"Claims with their receipts. The person's manager decides, " +
+        "or the General manager above the claim limit; an agreed claim " +
+        "is repaid with the next pay run."}
+      actions={<ListDecision rows={pay.expenses} />}
       rows={pay.expenses} rowKey={(x) => x.id}
       searchText={(x) => `${x.name} ${x.title}`}
       rowHref={(x) => hrefOf("pay-run", "expenses", x.id)}

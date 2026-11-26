@@ -393,6 +393,29 @@ export function auditEvents(c: DemoCompany): AuditEvent[] {
   return out;
 }
 
+/** What an action in the demo adds to the trail (no seq or hashes). */
+export type AuditDraft = Omit<AuditEvent, "id" | "seq" | "prevHash" |
+  "hash">;
+
+/**
+ * The trail with entries made during the demo added at its end, each
+ * chained to the one before (append only: nothing earlier changes, and
+ * the chain check still passes at the new length).
+ */
+export function appendAuditEvents(events: readonly AuditEvent[],
+  drafts: readonly AuditDraft[]): AuditEvent[] {
+  let prev = events.at(-1)?.hash ?? GENESIS;
+  const added = drafts.map((d, i): AuditEvent => {
+    const seq = events.length + i + 1;
+    const base = { ...d, id: `aud-${String(seq).padStart(4, "0")}`, seq,
+      prevHash: prev };
+    const e = { ...base, hash: hashOf(base) };
+    prev = e.hash;
+    return e;
+  });
+  return [...events, ...added];
+}
+
 /** Walks the chain; `brokenAt` is the 1-based position of the first bad one. */
 export function verifyAuditChain(events: readonly AuditEvent[]):
   { ok: boolean; brokenAt: number | null; checked: number } {
@@ -434,9 +457,15 @@ function whoOf(c: DemoCompany, id: string | null): string {
 /** The audit screen's rows, newest last, with optional filters. */
 export function auditRows(c: DemoCompany, filter: { area?: AuditArea;
   actorId?: string } = {}): AuditRow[] {
-  return auditEvents(c).filter((e) => (filter.area === undefined ||
-    e.area === filter.area) && (filter.actorId === undefined ||
-    e.actorId === filter.actorId)).map((e) => ({ id: e.id,
+  return auditRowsOf(c, auditEvents(c).filter((e) =>
+    (filter.area === undefined || e.area === filter.area) &&
+    (filter.actorId === undefined || e.actorId === filter.actorId)));
+}
+
+/** Rows for any run of events (the trail plus the demo's entries). */
+export function auditRowsOf(c: DemoCompany, events: readonly AuditEvent[])
+  : AuditRow[] {
+  return events.map((e) => ({ id: e.id,
     when: `${reportDate(e.at)}, ${e.at.slice(11, 16)}`,
     who: whoOf(c, e.actorId), area: e.area, action: e.action,
     summary: e.summary, subjectLabel: e.subject.label,

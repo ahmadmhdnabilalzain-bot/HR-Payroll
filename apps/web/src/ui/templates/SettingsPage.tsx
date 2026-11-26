@@ -3,6 +3,7 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../button.module.css";
 import { Icon } from "../Icon";
 import { PageFoot } from "./PageFoot";
+import { maskNode, useMaskText } from "../mask";
 import { PageHead } from "./PageHead";
 import { Sheet } from "./Sheet";
 import s from "./templates.module.css";
@@ -48,6 +49,7 @@ export function SettingsPage(p: {
   onSave?(key: string, value: string): string | null;
 }) {
   const { t } = useLocale();
+  const mask = useMaskText();
   const [edit, setEdit] = useState<Setting | null>(null);
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -62,15 +64,17 @@ export function SettingsPage(p: {
             {g.items.map((x) => (
               <li key={x.key} className={`${s.groupedRow} ${s.setRow}`}>
                 <span className={s.rowText}>
-                  <span>{x.label}</span>
+                  <span>{maskNode(mask, x.label)}</span>
                   {x.list !== undefined && x.list.length > 0 && (
                     <ul className={s.rowList}>
                       {x.list.map((v) => <li key={v}>{v}</li>)}
                     </ul>
                   )}
-                  {x.help !== undefined && <small>{x.help}</small>}
+                  {x.help !== undefined && (
+                    <small>{maskNode(mask, x.help)}</small>)}
                 </span>
-                <span className={s.rowValue}>{x.value}</span>
+                <span className={s.rowValue}>
+                  {maskNode(mask, x.value)}</span>
                 <span className={s.rowAct}>
                   {x.editable === true && p.onSave !== undefined ? (
                     <button type="button"

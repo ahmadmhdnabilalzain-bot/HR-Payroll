@@ -3,6 +3,7 @@ import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { formatMoney, formatSignedMoney, MINUS } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { amountsHidden } from "../ui/mask";
 import type { Crumb } from "../ui/templates";
 
 const MASK = "AED ••••••";
@@ -45,10 +46,9 @@ export interface Money {
 export function useMoney(): Money {
   const { lang } = useLocale();
   const { state } = useDemo();
-  const m = (f: Fils): string => state.hideAmounts ? MASK
-    : formatMoney(f, lang);
-  return { m, signed: (f) => state.hideAmounts ? MASK
-    : formatSignedMoney(f, lang) };
+  const hide = amountsHidden(state);
+  const m = (f: Fils): string => hide ? MASK : formatMoney(f, lang);
+  return { m, signed: (f) => hide ? MASK : formatSignedMoney(f, lang) };
 }
 
 /** "+AED 5.00 (+0.1%)"; tiny moves say "no real change". */

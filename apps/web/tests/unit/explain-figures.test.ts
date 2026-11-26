@@ -1,3 +1,4 @@
+import { openApprovals } from "../../src/demo/approvals";
 import { describe, expect, it } from "vitest";
 import {
   contractProblems,
@@ -10,7 +11,6 @@ import { buildRunSource } from "../../src/demo/data/run-detail";
 import {
   actionable,
   openIssues,
-  pendingApprovals,
 } from "../../src/demo/derive";
 import * as live from "../../src/demo/live-explain";
 import { INITIAL, type DemoState } from "../../src/demo/state";
@@ -143,7 +143,7 @@ describe.each(STATES)("pay run figures, %s", (_name, ibans) => {
 
   it("live-counts", () => {
     const state: DemoState = { ...INITIAL, role: "gm", ibans };
-    const list = pendingApprovals(data, state);
+    const list = openApprovals(data, state);
     holds(live.waitingExplain(data, list, d.scope), list.length,
       "waiting");
     holds(live.issuesExplain(data, data.issues().filter(actionable),

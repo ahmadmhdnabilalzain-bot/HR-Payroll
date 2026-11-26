@@ -1,4 +1,5 @@
-import { isBlocking, openIssues, pendingApprovals, personOf }
+import { decisionsFor } from "../demo/approvals";
+import { isBlocking, openIssues, personOf }
   from "../demo/derive";
 import { useRunApproval } from "../demo/actions";
 import { useDemo } from "../demo/state";
@@ -37,7 +38,7 @@ export function WaitingList() {
   // The pay run waits for the viewer only once nothing holds it back
   // (until then it is not sent: the same rule as the strip's card).
   const held = useRunApproval().blockedBy.length > 0;
-  const decide: Row[] = pendingApprovals(data, state)
+  const decide: Row[] = decisionsFor(data, state)
     .filter((a) => a.checkerId === me && !(held && a.kind === "pay-run"))
     .map((a) => {
       const id = a.employeeId ?? a.makerId;

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { ExplainLink } from "../components/explain";
 import type { Issue } from "../demo/data/types";
 import { confirmations, isBlocking } from "../demo/derive";
+import { beforeApproval } from "../reports/dash/model";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { IbanForm } from "../home/IbanForm";
@@ -115,8 +116,10 @@ export function FixStep() {
   const heldBox = useRef<HTMLSpanElement>(null);
   const noneHeld = shown.held === 0n;
   useEffect(() => shortFade(heldBox.current), [noneHeld]);
-  const open = checks.filter((i) => state.resolved[i.id] === undefined)
-    .length;
+  // The counts every surface shows: one source for "N stop pay, N to
+  // check" (Home, the dashboards, the brief and this step).
+  const count = beforeApproval(data, state);
+  const open = count.checks;
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>{t("payrun.fixTitle")}</h2>
@@ -141,8 +144,8 @@ export function FixStep() {
         <h3 id="tofix-title" className={s.groupTitle}>
           {t("payrun.fixListTitle")}
           <span className={s.groupCount}>
-            {blockers.length === 0 ? t("payrun.fixNoStops")
-              : t("payrun.fixStops", { count: blockers.length })},{" "}
+            {count.stops === 0 ? t("payrun.fixNoStops")
+              : t("payrun.fixStops", { count: count.stops })},{" "}
             {open === 0 ? t("payrun.fixNoChecks")
               : t("payrun.fixChecks", { count: open })}
           </span>

@@ -40,8 +40,19 @@ export interface FineDecision {
   on: string;
 }
 
+/** Other dues HR adds to a final settlement by hand (notice pay, a
+ * deduction agreed, a bonus owed): an amount and its reason. */
+export interface OtherDues {
+  amount: Fils;
+  reason: string;
+  /** Employee id of the person who added them. */
+  by: string;
+}
+
 export interface PaySlice {
   payRequests: PayRequest[];
+  /** Leaver's employee id to the other dues added to the settlement. */
+  otherDues: Record<string, OtherDues>;
   /** Counter for ids: made in the reducer, so StrictMode stays sound. */
   nextPay: number;
   fineDecisions: Record<string, FineDecision>;
@@ -52,10 +63,13 @@ export type PayAction =
   | { type: "pay-withdraw"; id: string }
   | { type: "pay-restore"; id: string }
   | { type: "fine-decide"; id: string; decision: FineDecision }
-  | { type: "fine-undo"; id: string };
+  | { type: "fine-undo"; id: string }
+  | { type: "dues-set"; employeeId: string; dues: OtherDues }
+  /** Undo puts back what was there before (none, or the old dues). */
+  | { type: "dues-undo"; employeeId: string; previous: OtherDues | null };
 
 export const PAY_INITIAL: PaySlice = { payRequests: [], nextPay: 1,
-  fineDecisions: {} };
+  fineDecisions: {}, otherDues: {} };
 
 export function reducePay<S extends PaySlice>(s: S, a: PayAction): S {
   switch (a.type) {
@@ -75,6 +89,14 @@ export function reducePay<S extends PaySlice>(s: S, a: PayAction): S {
     case "fine-undo": {
       const { [a.id]: _gone, ...rest } = s.fineDecisions;
       return { ...s, fineDecisions: rest };
+    }
+    case "dues-set":
+      return { ...s, otherDues: { ...s.otherDues,
+        [a.employeeId]: a.dues } };
+    case "dues-undo": {
+      const { [a.employeeId]: _gone, ...rest } = s.otherDues;
+      return { ...s, otherDues: a.previous === null ? rest
+        : { ...rest, [a.employeeId]: a.previous } };
     }
   }
 }
