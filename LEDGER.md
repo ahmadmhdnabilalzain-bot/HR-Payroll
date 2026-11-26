@@ -680,3 +680,17 @@ The owner can overrule any of these. Full list with reasons:
   the harness (Opus) line, as Plans 3 and 6 recorded.
 - Owner confirmed the client is mainland: every figure says "UAE
   mainland rules"; the free-zone wording is dropped.
+- Owner ruling (2026-11-26): domain purchase and trademark work are
+  parked ("too early"); the product will not have a separate website.
+  Do not raise either again until the owner does. Focus is the app
+  itself (the client demo first). The name Mubinflow and the logo kit
+  stand as working choices.
+- Owner rule (2026-11-26): **no design goes onto the live site before the
+  owner has seen previews in chat and approved them.** Previews are sent
+  as screenshots via SendUserFile; the hosted site only changes after a
+  yes. Correction logged: applying a Render Blueprint change triggers a
+  deploy by itself even with `autoDeployTrigger: off`; at 09:07 UTC the
+  site briefly served the unfinished groundwork web app (noindex, no real
+  data) before it was put back to the placeholder. So: any Blueprint
+  change that points the site at apps/web happens only after approval,
+  and `trigger_deploy` is not needed for it (the sync itself deploys).
