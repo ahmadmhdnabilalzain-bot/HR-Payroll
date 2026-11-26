@@ -23,6 +23,8 @@ export interface SetupErpSource {
   sync: SyncRow[];
   posting: PostingPreview;
   csv: string;
+  /** The same file with the debit and credit cells blanked. */
+  csvMasked: string;
   cards: TeamsCard[];
 }
 
@@ -31,5 +33,8 @@ export function buildSetupErpSource(): SetupErpSource {
   const posting = postingPreview(c);
   return { pages: erpPages(c), mapping: accountMapping(),
     centres: costCentres(c), sync: employeeSync(c), posting,
-    csv: postingCsv(posting), cards: teamsCards(c) };
+    csv: postingCsv(posting), csvMasked: postingCsv({ ...posting,
+      lines: posting.lines.map((l) => ({ ...l, cells: l.cells.map(
+        (v, i) => (i === 6 || i === 7) && v !== "" ? "masked" : v) })) }),
+    cards: teamsCards(c) };
 }

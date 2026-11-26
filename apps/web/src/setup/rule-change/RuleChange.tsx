@@ -6,6 +6,7 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import { useCellMoney } from "../../pay/gate/cell-money";
 import b from "../../ui/button.module.css";
 import { Money } from "../../ui/Money";
+import { amountsHidden, maskMoney } from "../../ui/mask";
 import { KeyValues, ReportPage } from "../../ui/templates";
 import { useToast } from "../../ui/Toast";
 import { actorOf } from "../rules/actor";
@@ -17,8 +18,6 @@ import {
   type RuleChangeStep,
   type RuleChangeVerdict,
 } from "./state";
-
-const MASK = /AED [\d,.]+/g;
 
 const VERDICT: Record<RuleChangeVerdict, string> = {
   plan: "Planned for the next run",
@@ -55,7 +54,7 @@ export function RuleChange() {
     (stage.kind === "waiting-gm" && state.role === "gm");
   const canUndo = last !== undefined && last.role === state.role;
   const hide = (t: string): string =>
-    state.hideAmounts ? t.replace(MASK, "AED ••••••") : t;
+    amountsHidden(state) ? maskMoney(t) : t;
 
   const decide = (verdict: RuleChangeVerdict): void => {
     const step: RuleChangeStep = { changeId: ch.id, verdict,

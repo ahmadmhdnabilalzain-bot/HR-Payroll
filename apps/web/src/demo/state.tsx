@@ -1,8 +1,10 @@
 import {
   createContext,
   useContext,
+  useCallback,
   useMemo,
   useReducer,
+  useRef,
   type ReactNode,
 } from "react";
 import type { DemoData, DemoSource } from "./data/types";
@@ -132,6 +134,7 @@ import {
   type AuditAction,
   type AuditSlice,
 } from "./audit-state";
+import { auditFor } from "./audit-actions";
 import {
   HOLD_INITIAL,
   reduceHolds,
@@ -402,11 +405,25 @@ const DemoContext = createContext<Demo | null>(null);
 /** Demo state lives in memory only: a reload starts the story again. */
 export function DemoProvider(p: { source: DemoSource;
   children: ReactNode }) {
-  const [state, dispatch] = useReducer(reduce, INITIAL);
+  const [state, rawDispatch] = useReducer(reduce, INITIAL);
   const data = useMemo(() => p.source.at(state.ibans),
     [p.source, state.ibans]);
+  const latest = useRef({ state, data });
+  latest.current = { state, data };
+  /** Every action that matters also adds one entry to the audit trail
+   * (audit-actions.ts), once it changed something. */
+  const dispatch = useCallback((a: Action): void => {
+    const { state: s, data: d } = latest.current;
+    const next = reduce(s, a);
+    rawDispatch(a);
+    const entry = next === s ? null : auditFor(a, s, d);
+    if (entry === null) return;
+    const ap: Action = { type: "audit-append", entry };
+    rawDispatch(ap);
+    latest.current = { state: reduce(next, ap), data: d };
+  }, []);
   const value = useMemo(() => ({ source: p.source, data, state,
-    dispatch }), [p.source, data, state]);
+    dispatch }), [p.source, data, state, dispatch]);
   return (
     <DemoContext.Provider value={value}>{p.children}</DemoContext.Provider>
   );
