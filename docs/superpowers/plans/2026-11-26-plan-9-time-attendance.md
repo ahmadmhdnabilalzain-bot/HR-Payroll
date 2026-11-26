@@ -348,7 +348,13 @@ Law task: fresh per-task review.
     8. Flags: `OVERTIME_DAILY_CAP_EXCEEDED` when overtime >
        `overtimeMaxMinutesPerDay` (detail `minutes`; rule
        `timeOvertimeMaxMinutesPerDay`; overtime is never cut);
-       `MISSED_CLOCK_OUT` when `openRecord` (no rule).
+       `MISSED_CLOCK_OUT` when `openRecord` (no rule). A closed
+       interval longer than 24 hours or outside -1440..2880 is left out
+       of `worked` and gives `LONG_RECORD` (detail `start`, `end`,
+       `minutes`) plus `MISSED_CLOCK_OUT`; it never throws, so a draft
+       timesheet stays readable (review I2). Fractional minutes throw
+       `INVALID_INTERVAL` or `INVALID_SHIFT` (review M7). Minutes
+       assume a fixed UTC+4 day of 1440 minutes (review M8).
     9. Trace: one line per minute field, ids `time.scheduled`,
        `time.worked`, `time.late`, `time.early`, `time.overtime`,
        `time.overtimeNight`, `time.restDayWork`; `rules` carry the

@@ -20,20 +20,37 @@ function bad(code: string, message: string, value: string): never {
   throw new EngineError(code, message, { value });
 }
 
+const whole = (...xs: number[]) => xs.every((x) => Number.isSafeInteger(x));
+
 function validate(day: DayInput): void {
   parseIsoDate(day.date, "date");
   const s = day.shift;
-  if (s !== null && (s.end <= s.start || s.end - s.start > 1440 ||
+  if (s !== null && (!whole(s.start, s.end, s.breakMinutes) ||
+    s.end <= s.start || s.end - s.start > 1440 ||
     s.breakMinutes < 0 || s.breakMinutes > s.end - s.start)) {
-    bad("INVALID_SHIFT", "shift needs end > start, at most 1440 minutes" +
-      " and a break within it", `${s.start}-${s.end}/${s.breakMinutes}`);
+    bad("INVALID_SHIFT", "shift needs whole minutes, end > start, at" +
+      " most 1440 minutes and a break within it",
+    `${s.start}-${s.end}/${s.breakMinutes}`);
   }
   for (const w of day.worked) {
-    if (w.end <= w.start || w.start < -1440 || w.end > 2880) {
-      bad("INVALID_INTERVAL", "interval needs end > start within" +
-        " -1440..2880", `${w.start}-${w.end}`);
+    if (!whole(w.start, w.end) || w.end <= w.start) {
+      bad("INVALID_INTERVAL", "interval needs whole minutes and" +
+        " end > start", `${w.start}-${w.end}`);
     }
   }
+}
+
+/** Longer than 24 hours, or outside -1440..2880 (engine bound). */
+const isLong = (w: Interval) =>
+  w.end - w.start > 1440 || w.start < -1440 || w.end > 2880;
+
+/** Overlong records are left out and treated as a missed clock-out. */
+function longFlags(day: DayInput): TimeFlag[] {
+  return day.worked.filter(isLong).map((w) => ({
+    code: "LONG_RECORD", dates: [day.date], rule: null,
+    detail: { start: String(w.start), end: String(w.end),
+      minutes: String(w.end - w.start) },
+  }));
 }
 
 const isHalf = (day: DayInput) => day.leave === "am" || day.leave === "pm";
@@ -134,15 +151,16 @@ function flagsOf(day: DayInput, p: TimeParams, worked: number,
       detail: { minutes: String(ot) },
       rule: p.overtimeMaxMinutesPerDay.rule });
   }
-  if (day.openRecord) {
+  const long = longFlags(day);
+  if (day.openRecord || long.length > 0) {
     flags.push({ code: "MISSED_CLOCK_OUT", dates, detail: {}, rule: null });
   }
-  return flags;
+  return [...flags, ...long];
 }
 
 export function computeDaySheet(day: DayInput, p: TimeParams): DaySheet {
   validate(day);
-  const merged = mergeIntervals(day.worked);
+  const merged = mergeIntervals(day.worked.filter((w) => !isLong(w)));
   const clocked = totalMinutes(merged);
   const scheduledMinutes = scheduledOf(day);
   const workedMinutes = workedOf(day, merged, clocked);

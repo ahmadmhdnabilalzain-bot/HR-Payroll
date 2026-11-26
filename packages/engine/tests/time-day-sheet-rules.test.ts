@@ -114,3 +114,46 @@ describe("rostered break (review C1)", () => {
     }), { numRuns: 300 });
   });
 });
+
+const codes = (s: ReturnType<typeof sheet>) => s.flags.map((f) => f.code);
+
+describe("overlong records (review I2)", () => {
+  it("record_over_24_hours_is_a_missed_clock_out", () => {
+    const s = sheet({ worked: ivs([[540, 2880]]) });
+    expect([s.workedMinutes, s.overtimeMinutes]).toEqual([0, 0]);
+    expect(codes(s)).toEqual(["MISSED_CLOCK_OUT", "LONG_RECORD"]);
+    const f = s.flags.find((x) => x.code === "LONG_RECORD")!;
+    expect(f.detail).toEqual({ start: "540", end: "2880",
+      minutes: "2340" });
+  });
+  it("record_past_two_days_never_throws", () => {
+    const s = sheet({ worked: ivs([[600, 700], [540, 3500]]) });
+    expect(s.workedMinutes).toBe(100);
+    expect(codes(s)).toContain("LONG_RECORD");
+  });
+  it("exactly_24_hours_is_kept", () => {
+    const s = sheet({ worked: ivs([[540, 1980]]) });
+    expect(s.workedMinutes).toBe(1440);
+    expect(codes(s)).not.toContain("LONG_RECORD");
+  });
+  it("open_and_long_flag_missed_clock_out_once", () => {
+    const s = sheet({ openRecord: true, worked: ivs([[0, 2000]]) });
+    expect(codes(s).filter((c) => c === "MISSED_CLOCK_OUT").length)
+      .toBe(1);
+  });
+});
+
+describe("whole minutes only (review M7)", () => {
+  it("fractional_interval_refused", () => {
+    expect(() => sheet({ worked: ivs([[540.5, 1100]]) }))
+      .toThrow(expect.objectContaining({ code: "INVALID_INTERVAL" }));
+  });
+  it("fractional_or_negative_shift_refused", () => {
+    expect(() => sheet({ shift: shift(540, 1080.5, 60) }))
+      .toThrow(expect.objectContaining({ code: "INVALID_SHIFT" }));
+    expect(() => sheet({ shift: shift(540, 1080, -1) }))
+      .toThrow(expect.objectContaining({ code: "INVALID_SHIFT" }));
+    expect(() => sheet({ shift: shift(540, 1080, 0.5) }))
+      .toThrow(expect.objectContaining({ code: "INVALID_SHIFT" }));
+  });
+});

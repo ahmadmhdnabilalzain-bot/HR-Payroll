@@ -14,7 +14,12 @@ export interface DayInput {
   date: string;
   kind: "work" | "rest" | "holiday";
   shift: ShiftSlot | null;
-  /** Closed intervals only; an open record sets `openRecord`. */
+  /**
+   * Closed intervals only, minutes from 00:00 Dubai (fixed UTC+4, no
+   * daylight saving); an open record sets `openRecord`. An interval
+   * over 24 hours is left out and flagged `LONG_RECORD` plus
+   * `MISSED_CLOCK_OUT`, never thrown.
+   */
   worked: Interval[];
   openRecord: boolean;
   ramadan: boolean;

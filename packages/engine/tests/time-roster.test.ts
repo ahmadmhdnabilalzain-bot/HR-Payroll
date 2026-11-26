@@ -129,6 +129,8 @@ describe("checkRoster", () => {
   it("invalid_slot_refused", () => {
     expect(() => flagsOf(days("2026-03-02", [slot(540, 600, 120)])))
       .toThrow(expect.objectContaining({ code: "INVALID_SHIFT" }));
+    expect(() => flagsOf(days("2026-03-02", [slot(540, 600.5, 0)])))
+      .toThrow(expect.objectContaining({ code: "INVALID_SHIFT" }));
   });
   it("empty_roster_no_flags", () => {
     expect(flagsOf([])).toEqual([]);
