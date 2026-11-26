@@ -1,0 +1,170 @@
+/* S09 rule-change preview: the blocks below the report. Tokens only;
+ * logical properties; colour only on the stage dot, with its word. */
+.more {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-5);
+  max-inline-size: var(--container);
+  margin-inline: auto;
+  margin-block-start: calc(-1 * var(--space-5));
+  padding: 0 var(--page-pad) var(--space-8);
+}
+
+.panel {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  min-inline-size: 0;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.panel p {
+  margin: 0;
+}
+
+.flag {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  font-weight: 600;
+}
+
+.link {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+}
+
+.link:focus-visible,
+.person:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.person {
+  min-block-size: 44px;
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.person[aria-pressed="true"] {
+  background: var(--color-surface-2);
+  border-color: var(--color-text-muted);
+}
+
+.subject {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.subject span {
+  color: var(--color-text-muted);
+}
+
+.letter {
+  padding: var(--space-4);
+  border-radius: var(--radius-control);
+  box-shadow: inset 0 0 0 1px var(--color-divider);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.stage {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.stage::before {
+  content: "";
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-warning);
+}
+
+.stage[data-tone="done"]::before {
+  background: var(--color-success);
+}
+
+.stage[data-tone="held"]::before {
+  background: var(--color-text-faint);
+}
+
+.steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+  min-block-size: 48px;
+  align-items: center;
+  box-shadow: inset 0 1px 0 var(--color-divider);
+}
+
+.steps small {
+  display: block;
+  color: var(--color-text-muted);
+}
+
+.when {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+@media (max-width: 1100px) {
+  .more {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .more {
+    padding-block-end: calc(var(--space-8) + 56px +
+      env(safe-area-inset-bottom));
+  }
+}
