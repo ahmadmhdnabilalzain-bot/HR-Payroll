@@ -7,7 +7,7 @@ on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`. Task 1 (the engine
 
 ## Status
 
-In progress. Tasks 2 to 6 done.
+In progress. Tasks 2 to 7 done.
 
 | Task | Commit message |
 |---|---|
@@ -16,6 +16,7 @@ In progress. Tasks 2 to 6 done.
 | 4 | `feat(api): offers with approval` |
 | 5 | `feat(api): offer to hire and onboarding` |
 | 6 | `feat(api): exit flow and final settlement` |
+| 7 | `feat(api): exit hooks, access revocation, close` |
 
 ## Gate
 
@@ -92,6 +93,19 @@ setting was changed.
     it), so Plan 3's "not entered" note never applies here.
 16. **Contract exit tests** are in a new `contract/tests/exits.test.ts`
     (not `schemas.test.ts`), to keep merges with other plans clean.
+17. **Revocation touches more Plan 3 files than the plan names.**
+    `revoked_at IS NULL` is applied in the tenant guard
+    (`auth/guard.ts`), `membershipsOf` (`auth/accounts.ts`: login
+    response and `GET /v1/me`), `listUsers`, and the owner count and
+    target lookup of `changeUserRole` (`routes/users.ts`). Accept-invite
+    lives in `routes/users.ts` (not `routes/auth.ts`): an existing
+    revoked `(company, user)` membership is restored (role, employee
+    link, `revoked_at` and `revoked_by` cleared) instead of failing on
+    the primary key; an unrevoked one is still 409 `ALREADY_MEMBER`.
+18. **Access result storage.** The two access runs (`in-app`,
+    `external`) are rows of `exit_hook_runs` with a partial unique
+    index (one per exit and kind); `beforeLastDay` is derived from the
+    stored time, so a repeat call returns exactly the first answer.
 6. **Leak test.** HR fixtures live in `tests/helpers/leak-hr.ts` and
    `seed-hr.ts` (`seedHr` runs after Plan 3's pay run and SIF, so the
    HR records never change those fixtures).
@@ -166,6 +180,23 @@ setting was changed.
 21. **Exit checklist people:** the manager task goes to the login linked
     to the leaver's manager, the employee task to the leaver's own
     login; each falls back to role hr.
+22. **Revoke on a closed or withdrawn exit** returns the stored result
+    if one exists, else 409 `EXIT_NOT_APPROVED`.
+23. **Last owner:** every unrevoked owner row is locked (as
+    `changeUserRole` does) before counting, so two revocations of two
+    owner-leavers at once leave one owner (real PostgreSQL test:
+    200 and 409).
+24. **Close accepts a refused settlement** (HR has seen the engine's
+    answer); documents can still be generated on a closed exit.
+26. **Revocation closes old invites.** Revoking marks this company's
+    unused invites as used when they are linked to the leaver's
+    employee record or sent to the email of a login being revoked
+    (also for "no-login" leavers). Without this, an invite issued
+    before the exit (a duplicate, or one linked to the employee) could
+    restore access after it; only a new invite can (test
+    `old_invite_cannot_restore_after_revoke`, seen red first).
+25. **Documents** run once per distinct kind per call, in the order
+    stored; a repeated call adds new runs (the history is kept).
 10. **Duplicates** (candidate email, application, scorecard) are found
     with `INSERT ... ON CONFLICT DO NOTHING RETURNING`, so a unique
     violation never aborts the request's one transaction.
@@ -179,6 +210,10 @@ setting was changed.
 - Task 3: `approvals`, `requisitions` and `applications` tests were
   written first and seen red (20 failing); the contract schemas came
   just before them.
+- Task 7: `revocation` and `exit-hooks` tests were written first and
+  seen red (19 failing). The two real-PostgreSQL races
+  (`pg-concurrency-hr.ts`) were written after the code and never seen
+  red against older code.
 - Task 6: `exit-settlement` (pure) and `exits` tests were written
   first and seen red (15 failing); `settlement.ts` was written first,
   then the rest, as planned.

@@ -21,10 +21,12 @@ const HR_ROUTE_IDS = [
   // Task 6: exits and the final settlement
   "createExit", "listExits", "getExit", "decideExit",
   "computeExitSettlement", "withdrawExit",
+  // Task 7: exit hooks and closing
+  "generateExitDocuments", "revokeExitAccess", "closeExit",
 ];
 
 /** Plan 8 routes that need an MFA session (Ruling 16). */
-const HR_MFA: string[] = ["decideOffer"];
+const HR_MFA: string[] = ["decideOffer", "revokeExitAccess"];
 
 describe("HR_ROUTES", () => {
   it("ids are exactly the planned list, in order", () => {

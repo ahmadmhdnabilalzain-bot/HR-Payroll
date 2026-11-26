@@ -145,16 +145,16 @@ export async function cancelTasksWhere(tx: Db, deps: HandlerDeps,
     rows.map((r) => r.id), why);
 }
 
-/** The user's role in this company, or null when not a member. */
+/** The user's role here; null when not a member or revoked. */
 export async function memberRole(tx: Db, companyId: string,
   userId: string): Promise<Role | null> {
   const [r] = await tx.query<{ role: Role }>(
-    "SELECT role FROM memberships WHERE company_id = $1 AND user_id = $2",
-    [companyId, userId]);
+    `SELECT role FROM memberships WHERE company_id = $1 AND user_id = $2
+     AND revoked_at IS NULL`, [companyId, userId]);
   return r?.role ?? null;
 }
 
-/** A membership of this company exists for the user. */
+/** An unrevoked membership of this company exists for the user. */
 export async function isActiveMember(tx: Db, companyId: string,
   userId: string): Promise<boolean> {
   return await memberRole(tx, companyId, userId) !== null;

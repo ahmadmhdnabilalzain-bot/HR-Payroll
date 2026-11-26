@@ -105,8 +105,9 @@ export async function hrFlow(hit: Hitter, f: HrFlowCtx): Promise<void> {
 
 /** The employee resigns; owner2 approves; settlement; a withdrawal. */
 export async function exits(hit: Hitter, f: HrFlowCtx): Promise<string> {
+  // Notice given early enough that the last day has passed.
   const x = await hit("createExit", f.emp, f.c, {}, { kind: "resignation",
-    noticeGivenDate: "2026-03-01", reason: "Moving" });
+    noticeGivenDate: "2026-01-15", reason: "Moving" });
   const id = x.body.id as string;
   await hit("listExits", f.emp, f.c);
   await hit("getExit", f.emp, f.c, { id });
@@ -117,7 +118,24 @@ export async function exits(hit: Hitter, f: HrFlowCtx): Promise<string> {
     f.otherEmployeeId, kind: "probation-employer-termination",
     noticeGivenDate: "2026-04-10" });
   await hit("withdrawExit", f.owner, f.c, { id: y.body.id });
+  await hooks(hit, f, id);
   return id;
+}
+
+/** Documents, revocation, a blocked close, then the close. */
+async function hooks(hit: Hitter, f: HrFlowCtx, id: string) {
+  await hit("generateExitDocuments", f.owner, f.c, { id },
+    { kinds: ["experience-certificate", "settlement-statement"],
+      lang: "en" });
+  await hit("revokeExitAccess", f.owner, f.c, { id });
+  await hit("closeExit", f.owner, f.c, { id });
+  const t = await hit("listTasks", f.owner, f.c, {}, undefined,
+    { query: `?flowType=exit&flowId=${id}` });
+  for (const task of t.body.items) {
+    await hit("updateTask", f.owner, f.c, { id: task.id },
+      { status: "done" });
+  }
+  await hit("closeExit", f.owner, f.c, { id });
 }
 
 /** Hire, templates and terms; returns the new employee's id. */

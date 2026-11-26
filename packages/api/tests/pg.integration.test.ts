@@ -5,6 +5,7 @@ import { ADMIN_URL, closeAll, freshPgPair } from "./helpers/pg-env";
 import { tenancyCases } from "./helpers/tenancy-cases";
 import { COMPANY_A, seedTwoCompanies } from "./helpers/test-db";
 import { pgConcurrencyCases } from "./helpers/pg-concurrency";
+import { pgHrConcurrencyCases } from "./helpers/pg-concurrency-hr";
 
 describe.skipIf(!ADMIN_URL)("real PostgreSQL, non-superuser runtime", () => {
   afterAll(closeAll);
@@ -43,5 +44,6 @@ describe.skipIf(!ADMIN_URL)("real PostgreSQL, non-superuser runtime", () => {
 
   describe("concurrency", () => {
     pgConcurrencyCases(() => freshPgPair(10));
+    pgHrConcurrencyCases(() => freshPgPair(10));
   });
 });

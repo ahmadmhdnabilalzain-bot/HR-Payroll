@@ -35,7 +35,8 @@ async function listUsers(ctx: ReqCtx) {
     `SELECT m.user_id, u.email, u.display_name, m.role, m.employee_id,
        u.mfa_enrolled
      FROM memberships m JOIN users u ON u.id = m.user_id
-     WHERE m.company_id = $1 ORDER BY u.email`, [companyId]);
+     WHERE m.company_id = $1 AND m.revoked_at IS NULL
+     ORDER BY u.email`, [companyId]);
   return { items: rows.map((r) => ({ userId: r.user_id, email: r.email,
     displayName: r.display_name, role: r.role, employeeId: r.employee_id,
     mfaEnrolled: r.mfa_enrolled })) };
@@ -102,15 +103,29 @@ async function userFor(tx: Db, ctx: ReqCtx<AcceptInviteRequest>,
   return id;
 }
 
+/**
+ * A new membership, or a revoked one restored (Plan 8: a rehire's new
+ * invite sets the role and employee link and clears the revocation).
+ */
+async function joinCompany(tx: Db, m: { companyId: string;
+  userId: string; role: Role; employeeId: string | null; at: string }) {
+  const [old] = await tx.query<{ revoked_at: string | null }>(
+    `SELECT revoked_at FROM memberships WHERE company_id = $1
+     AND user_id = $2 FOR UPDATE`, [m.companyId, m.userId]);
+  if (old === undefined) return insertMembership(tx, m);
+  if (old.revoked_at === null) throw new ApiError("ALREADY_MEMBER");
+  await tx.query(
+    `UPDATE memberships SET role = $3, employee_id = $4, revoked_at = NULL,
+       revoked_by = NULL WHERE company_id = $1 AND user_id = $2`,
+    [m.companyId, m.userId, m.role, m.employeeId]);
+}
+
 async function acceptIn(tx: Db, ctx: ReqCtx<AcceptInviteRequest>,
   companyId: string, verifiedId: string | null): Promise<string> {
   const at = ctx.deps.now().toISOString();
   const inv = await openInvite(tx, ctx.deps, ctx.body.setupToken);
   const userId = await userFor(tx, ctx, inv.email, verifiedId);
-  const member = await tx.query("SELECT 1 FROM memberships WHERE " +
-    "company_id = $1 AND user_id = $2", [companyId, userId]);
-  if (member.length > 0) throw new ApiError("ALREADY_MEMBER");
-  await insertMembership(tx, { companyId, userId, role: inv.role,
+  await joinCompany(tx, { companyId, userId, role: inv.role,
     employeeId: inv.employee_id, at });
   await tx.query("UPDATE invites SET used_at = $2 WHERE id = $1",
     [inv.id, at]);
@@ -153,10 +168,11 @@ async function changeRole(tx: Db, ctx: ReqCtx<RoleChange, unknown,
   // once queue here, so the second sees one owner left.
   const owners = await tx.query<{ user_id: string }>(
     `SELECT user_id FROM memberships WHERE company_id = $1
-     AND role = 'owner' ORDER BY user_id FOR UPDATE`, [companyId]);
+     AND role = 'owner' AND revoked_at IS NULL ORDER BY user_id
+     FOR UPDATE`, [companyId]);
   const [m] = await tx.query<{ role: Role }>(
     `SELECT role FROM memberships WHERE company_id = $1 AND user_id = $2
-     FOR UPDATE`, [companyId, target]);
+     AND revoked_at IS NULL FOR UPDATE`, [companyId, target]);
   if (m === undefined) throw new ApiError("NOT_FOUND");
   const to = ctx.body.role;
   if (m.role === "owner" && to !== "owner" && owners.length <= 1) {

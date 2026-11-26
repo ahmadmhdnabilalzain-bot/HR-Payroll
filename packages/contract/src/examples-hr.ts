@@ -99,7 +99,7 @@ const offer = {
   salary: [{ code: "basic", label: "Basic salary", labelAr: null,
     amount: "1234.00", sifBucket: "fixed" }],
   probationMonths: 3, probationEndDate: "2026-06-30",
-  contractNoticeDays: 30, termsTrace, expiresOn: "2026-03-15",
+  contractNoticeDays: 45, termsTrace, expiresOn: "2026-03-15",
   status: "approved", createdBy: IDS.user, decidedBy: IDS.user,
   decidedAt: AT, respondedOn: null, employeeId: null, createdAt: AT,
 };
@@ -114,7 +114,7 @@ const template = {
 const terms = {
   employeeId: IDS.employee, probationMonths: 3,
   probationEndDate: "2026-06-30", employerNoticeDeadline: "2026-06-16",
-  contractNoticeDays: 30, trace: termsTrace, updatedAt: AT,
+  contractNoticeDays: 45, trace: termsTrace, updatedAt: AT,
 };
 
 const hireResult = {
@@ -174,4 +174,6 @@ export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   HireResult: hireResult,
   Exit: exit,
   ExitList: { items: [exit] },
+  AccessResult: { inApp: "revoked", external: "not-configured",
+    beforeLastDay: true, at: AT },
 };

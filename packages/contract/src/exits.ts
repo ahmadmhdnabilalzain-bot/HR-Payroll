@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Settlement } from "./payroll";
-import { Id, IsoDate, listOf, Timestamp } from "./primitives";
+import { Id, IsoDate, Lang, listOf, Timestamp } from "./primitives";
 import { TraceLine } from "./trace";
 
 /** The engine's seven exit kinds (literal copy; a test compares). */
@@ -79,6 +79,23 @@ export const ExitDocument = z.object({
   documentRef: z.string().nullable(),
   at: Timestamp,
 });
+
+/** Ids only go to the document port; it reads what it needs later. */
+export const DocumentsRequest = z.object({
+  kinds: z.array(DocumentKind).min(1).max(2),
+  lang: Lang,
+});
+export type DocumentsRequest = z.infer<typeof DocumentsRequest>;
+
+/** In-app membership revoke plus the external port (Ruling 19). */
+export const AccessResult = z.object({
+  inApp: z.enum(["revoked", "no-login"]),
+  external: z.enum(["revoked", "not-configured", "failed"]),
+  /** Revoked before the last working date (Dubai). */
+  beforeLastDay: z.boolean(),
+  at: Timestamp,
+});
+export type AccessResult = z.infer<typeof AccessResult>;
 
 export const Exit = z.object({
   id: Id,

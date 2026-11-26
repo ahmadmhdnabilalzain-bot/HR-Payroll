@@ -1,5 +1,12 @@
-import { Exit, ExitCreate, ExitList, ExitQuery, SettlementInputs } from
-  "./exits";
+import {
+  AccessResult,
+  DocumentsRequest,
+  Exit,
+  ExitCreate,
+  ExitList,
+  ExitQuery,
+  SettlementInputs,
+} from "./exits";
 import { Decision } from "./hiring";
 import { IdParams } from "./primitives";
 import { ALL_ROLES, PAYROLL, ten, type RouteDef } from "./route-def";
@@ -22,4 +29,16 @@ export const EXIT_ROUTES: readonly RouteDef[] = [
     response: Exit }),
   ten(ALL_ROLES, { id: "withdrawExit", method: "POST",
     path: "/v1/exits/{id}/withdraw", ...one, response: Exit }),
+];
+
+/** Plan 8 Task 7: document and access-revocation hooks, closing. */
+export const EXIT_HOOK_ROUTES: readonly RouteDef[] = [
+  ten(PAYROLL, { id: "generateExitDocuments", method: "POST",
+    path: "/v1/exits/{id}/documents", ...one, body: DocumentsRequest,
+    response: Exit }),
+  ten(PAYROLL, { id: "revokeExitAccess", method: "POST",
+    path: "/v1/exits/{id}/revoke-access", ...one, response: AccessResult,
+    mfa: true }),
+  ten(PAYROLL, { id: "closeExit", method: "POST",
+    path: "/v1/exits/{id}/close", ...one, response: Exit }),
 ];

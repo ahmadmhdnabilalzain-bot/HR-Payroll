@@ -45,7 +45,8 @@ export async function userOfEmployee(tx: Db, companyId: string,
   if (employeeId === null) return null;
   const [r] = await tx.query<{ user_id: string }>(
     `SELECT user_id FROM memberships WHERE company_id = $1
-     AND employee_id = $2 ORDER BY created_at LIMIT 1`,
+     AND employee_id = $2 AND revoked_at IS NULL
+     ORDER BY created_at LIMIT 1`,
     [companyId, employeeId]);
   return r?.user_id ?? null;
 }

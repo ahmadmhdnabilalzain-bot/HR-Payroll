@@ -6,9 +6,17 @@ import { keyringFromKey } from "../../src/crypto/keyring";
 import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
 import {
+  notConfiguredAccess,
+  type AccessPort,
+} from "../../src/ports/access";
+import {
   notConnectedCalendar,
   type CalendarPort,
 } from "../../src/ports/calendar";
+import {
+  notConfiguredDocuments,
+  type DocumentPort,
+} from "../../src/ports/documents";
 import { createTestDb } from "./test-db";
 
 export const TEST_KEK = new Uint8Array(32).fill(7);
@@ -27,6 +35,8 @@ export interface AppOpts {
   start?: string;
   db?: Db;
   calendar?: CalendarPort;
+  documents?: DocumentPort;
+  access?: AccessPort;
 }
 
 export async function makeApp(opts: AppOpts = {}) {
@@ -48,6 +58,8 @@ export async function makeApp(opts: AppOpts = {}) {
     log: (line) => logs.push(line),
     passwordCost: { N: 1024 },
     calendar: opts.calendar ?? notConnectedCalendar,
+    documents: opts.documents ?? notConfiguredDocuments,
+    access: opts.access ?? notConfiguredAccess,
   };
   return { app: createApp(deps), deps, clock, logs };
 }

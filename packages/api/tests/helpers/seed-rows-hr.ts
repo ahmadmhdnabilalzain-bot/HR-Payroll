@@ -80,6 +80,11 @@ export async function seedHrRows(admin: Db, c: string, user: string,
      VALUES ($1, $2, $3, 'resignation', 'requested', '2026-03-01', 1,
        '2026-03-02', '2026-03-16', false, '{}', '[]', $4, $5)`,
     [rowId(c, "7c"), c, emp, user, AT]);
+  await admin.query(
+    `INSERT INTO exit_hook_runs (id, company_id, exit_id, hook, kind,
+       status, at) VALUES ($1, $2, $3, 'documents',
+       'experience-certificate', 'not-configured', $4)`,
+    [rowId(c, "7d"), c, rowId(c, "7c"), AT]);
 }
 
 async function seedOnboarding(admin: Db, c: string, user: string,

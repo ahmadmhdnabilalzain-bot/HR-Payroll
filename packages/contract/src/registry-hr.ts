@@ -21,7 +21,8 @@ export const HR_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
     "TemplatePut", "EmploymentTerms", "TermsPut", "HireRequest",
     "HireResult", "ChecklistTemplateList"]),
   ...pick(exits, ["ExitCreate", "SettlementInputs", "ExitSettlement",
-    "ExitDocument", "Exit", "ExitList"]),
+    "ExitDocument", "Exit", "ExitList", "DocumentsRequest",
+    "AccessResult"]),
 };
 
 function pick(

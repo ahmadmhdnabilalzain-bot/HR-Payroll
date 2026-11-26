@@ -1,5 +1,5 @@
 import { IdParams } from "./primitives";
-import { EXIT_ROUTES } from "./routes-exits";
+import { EXIT_HOOK_ROUTES, EXIT_ROUTES } from "./routes-exits";
 import { HIRING_ROUTES } from "./routes-hiring";
 import { OFFER_ROUTES } from "./routes-offers";
 import { ONBOARDING_ROUTES } from "./routes-onboarding";
@@ -41,4 +41,5 @@ export const HR_ROUTES: readonly RouteDef[] = [
   ...OFFER_ROUTES,
   ...ONBOARDING_ROUTES,
   ...EXIT_ROUTES,
+  ...EXIT_HOOK_ROUTES,
 ];
