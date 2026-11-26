@@ -29,27 +29,6 @@ test("anomaly checks: findings link to people, marks are undoable",
       .toBeVisible();
   });
 
-test("cost of hire: engine figures, labelled estimates, the budget",
-  async ({ page }) => {
-    await page.goto("/#/reports/cost-of-hire");
-    await expect(page.getByRole("heading", { level: 1,
-      name: "Cost of hire" })).toBeVisible();
-    await expect(page.getByText("A full month, gross")).toBeVisible();
-    await expect(page.getByText("Demo estimate, not a quote.").first())
-      .toBeVisible();
-    await expect(page.getByRole("cell", { name: "Not computed" }).first())
-      .toBeVisible();
-    await expect(page.getByText(/2027 budget/).first()).toBeVisible();
-    await page.getByLabel("Employee type").selectOption("national");
-    await expect(page.getByText(/Pension: Not computed/)).toBeVisible();
-    await page.getByLabel("Start date").fill("2026-10-01");
-    await expect(page.getByRole("alert")).toContainText("must be after");
-    await page.getByLabel("Start date").fill("2027-03-15");
-    await expect(page.getByText("Part month")).toBeVisible();
-    const bad = await new AxeBuilder({ page }).analyze();
-    expect(bad.violations).toEqual([]);
-  });
-
 test("report templates open a report; my view is saved and removed",
   async ({ page }) => {
     await page.goto("/#/reports/templates");
@@ -81,7 +60,7 @@ test("the checks turn away the IT manager and show no amounts",
   async ({ page }) => {
     await page.goto("/");
     await asRole(page, "IT manager");
-    for (const h of ["anomalies", "cost-of-hire", "templates"]) {
+    for (const h of ["anomalies", "templates"]) {
       await page.evaluate((x) => { location.hash = `#/reports/${x}`; }, h);
       await expect(page.getByRole("heading", { level: 1 }))
         .toContainText("outside your view");

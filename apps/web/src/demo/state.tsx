@@ -75,6 +75,12 @@ import {
   type ChecksSlice,
 } from "./checks-state";
 import {
+  HIRING_INITIAL,
+  reduceHiring,
+  type HiringAction,
+  type HiringSlice,
+} from "./hiring-state";
+import {
   reduceSafety,
   SAFETY_INITIAL,
   type SafetyAction,
@@ -179,7 +185,7 @@ export interface DemoState
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     EidSlice, FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
     AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
-    AuditorSlice, FinishSlice, EsignSlice, ChecksSlice {
+    AuditorSlice, FinishSlice, EsignSlice, ChecksSlice, HiringSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -229,6 +235,7 @@ export type Action =
   | RuleChangeAction
   | PlanningAction
   | ChecksAction
+  | HiringAction
   | AuditorAction
   | FinishAction
   | EsignAction
@@ -252,6 +259,7 @@ export const INITIAL: DemoState = {
   ...RULE_CHANGE_INITIAL,
   ...PLANNING_INITIAL,
   ...CHECKS_INITIAL,
+  ...HIRING_INITIAL,
   ...AUDITOR_INITIAL,
   ...FINISH_INITIAL,
   ...ESIGN_INITIAL,
@@ -345,6 +353,18 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "check-unmark":
     case "view-save":
     case "view-remove": return reduceChecks(s, a);
+    case "hiring-raise":
+    case "hiring-raise-undo":
+    case "hiring-step":
+    case "hiring-step-undo":
+    case "hiring-message":
+    case "hiring-message-undo":
+    case "hiring-edit":
+    case "hiring-edit-undo":
+    case "budget-ask":
+    case "budget-ask-undo":
+    case "budget-decide":
+    case "budget-undecide": return reduceHiring(s, a);
     case "more-hire":
     case "more-hire-withdraw":
     case "more-hire-restore":

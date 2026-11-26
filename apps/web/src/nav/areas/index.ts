@@ -5,6 +5,7 @@ import { AREAS as CHECKS } from "./checks";
 import { AREAS as COST } from "./cost";
 import { AREAS as ERP } from "./erp";
 import { AREAS as EXIT_FILES } from "./exit-files";
+import { AREAS as HIRING } from "./hiring";
 import { AREAS as HOME_ME } from "./home-me";
 import { AREAS as PAY } from "./pay";
 import { AREAS as PAYROLL_EXTRAS } from "./payroll-extras";
@@ -61,4 +62,5 @@ export const ALL_AREAS: readonly Area[] = [
   ...AUDIT_ROOM,
   ...TIME_FINISH,
   ...CHECKS,
+  ...HIRING,
 ];

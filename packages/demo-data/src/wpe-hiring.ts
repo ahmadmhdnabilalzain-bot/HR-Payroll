@@ -194,6 +194,8 @@ export interface PositionBudget {
   ownerName: string;
   requisitionId: string | null;
   requestId: string | null;
+  /** The live offer this seat takes, in the requisition's order. */
+  offerId: string | null;
   startIso: string;
   start: DisplayDate;
   cost: PositionCost;
@@ -284,7 +286,8 @@ export function hiringBudget(c: DemoCompany): PositionBudget[] {
       grade: r.grade, steps: s.steps,
       gradeText: stepText(r.grade, s.steps),
       ownerId: r.hiringManagerId, ownerName: r.hiringManagerName,
-      requisitionId: r.id, requestId: s.requestId, startIso,
+      requisitionId: r.id, requestId: s.requestId,
+      offerId: r.id === "req-001" ? null : offer?.id ?? null, startIso,
       start: shortDateOf(startIso), cost, committed, offered, left, status,
       budgetState: s.signedOn === null ? "waiting" : "signed-off",
       signedOff: s.signedOn === null ? null : { id: gm.id,

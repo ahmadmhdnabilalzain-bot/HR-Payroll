@@ -11,6 +11,7 @@ import { FilterList, Sheet } from "../../ui/templates";
 import { dayText } from "../words";
 import { Dot } from "./Dot";
 import { Interviews } from "./Interviews";
+import { requestHref, requestOfRequisition } from "../hiring/model";
 import { nextStage, stageNow, STAGE_WORD, stepWho, useActor,
   type Tone } from "./view";
 import s from "./moves.module.css";
@@ -48,6 +49,8 @@ export function Board() {
   const step = chosen === null ? undefined
     : state.moveSteps[`stage:${chosen.id}`];
   const after = chosen === null ? null : nextStage(at(chosen));
+  const position = chosen === null ? null
+    : requestOfRequisition(data, state, chosen.requisitionId);
   const seg = (id: string, label: string, f: (x: CandidateStage) => boolean) =>
     ({ id, label, match: (c: HiringCandidate) => f(at(c)) });
   return (
@@ -111,6 +114,14 @@ export function Board() {
               , through {chosen.source.toLowerCase()}.
             </p>
             <p>{chosen.note}</p>
+            {position !== null && (
+              <p className={s.quiet}>
+                Position: <a className={s.tapLink}
+                  href={requestHref(position.id)}>{`${position.title}, ` +
+                  `${position.number}: job description, criteria and ` +
+                  "timeline"}</a>
+              </p>
+            )}
             <Interviews list={chosen.interviews} />
             {step !== undefined && (
               <p className={s.quiet}>

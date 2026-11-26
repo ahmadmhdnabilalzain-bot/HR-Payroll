@@ -41,6 +41,8 @@ describe("boundaries", () => {
       "src/demo/data/payroll-extras.ts",
       "src/demo/data/files-types.ts",
       "src/demo/data/files.ts",
+      "src/demo/data/hiring-types.ts",
+      "src/demo/data/hiring.ts",
       "src/demo/data/papers.ts",
       "src/demo/data/people.ts",
       "src/demo/data/run-detail.ts",

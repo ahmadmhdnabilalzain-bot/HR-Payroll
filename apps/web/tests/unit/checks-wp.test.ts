@@ -89,7 +89,8 @@ describe("the scripted headline is untouched by the checks", () => {
 });
 
 describe("the three rows", () => {
-  const ids = ["reports.anomalies", "people.cost-of-hire",
+  // P20 "Cost of hire" is now the Hiring budget (hiring.test.ts).
+  const ids = ["reports.anomalies", "people.hiring-budget",
     "reports.templates"];
   it("are live for HR and the General manager only", () => {
     const rows = ALL_AREAS.filter((a) => ids.includes(a.id));
