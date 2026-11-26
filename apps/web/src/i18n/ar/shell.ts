@@ -62,4 +62,5 @@ export const shell: ArOf<typeof en> = {
   panelNothing: "لا شيء بانتظار قرار هنا.",
   panelAreas: "انتقل إلى",
   groupTabs: "في هذه المجموعة",
+  phoneTools: "الإشعارات والعرض",
 };

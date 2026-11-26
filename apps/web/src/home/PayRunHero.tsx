@@ -39,23 +39,25 @@ export function PayRunHero() {
       <div className={s.top}>
         <div className={s.lead}>
           <StatusSentence />
-          <p className={s.figure}>
-            <Explainable explanation={net}>
-              <Money value={h.netTotalFils} size="hero" countUp />
-            </Explainable>
-          </p>
-          <p className={s.line}>
-            <span>{t("home.netTo", { count: h.headcount })}</span>
-            <span className={s.dot} aria-hidden="true" />
-            <span>{t("home.paysOn", { date: formatDayMonth(cal.payday,
-              lang) })}</span>
-            <ExplainLink explanation={net} className={s.why}>
-              <Icon name="info" size={16} />
-              {t("home.whyNumber")}
-            </ExplainLink>
-          </p>
-          <ReadyBar total={h.headcount} file={h.sifTotalFils}
-            held={h.heldNetFils} />
+          <div className={s.netCard}>
+            <p className={s.figure}>
+              <Explainable explanation={net}>
+                <Money value={h.netTotalFils} size="hero" countUp />
+              </Explainable>
+            </p>
+            <p className={s.line}>
+              <span>{t("home.netTo", { count: h.headcount })}</span>
+              <span className={s.dot} aria-hidden="true" />
+              <span>{t("home.paysOn", { date: formatDayMonth(cal.payday,
+                lang) })}</span>
+              <ExplainLink explanation={net} className={s.why}>
+                <Icon name="info" size={16} />
+                {t("home.whyNumber")}
+              </ExplainLink>
+            </p>
+            <ReadyBar total={h.headcount} file={h.sifTotalFils}
+              held={h.heldNetFils} />
+          </div>
           {editing !== null ? (
             <CardIban issue={editing} onDone={() => setEditing(null)} />
           ) : (

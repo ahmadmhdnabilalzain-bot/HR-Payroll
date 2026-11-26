@@ -246,3 +246,59 @@
   white-space: nowrap;
   pointer-events: none;
 }
+
+.netCard {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/*
+ * Phone: Home gets its own first screen. The sentence, then the one
+ * action with "Step 2 of 5", then net pay as a card of its own with
+ * a 56 pt figure; the chart and its people follow below.
+ */
+@media (max-width: 760px) {
+  .hero {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .lead > header {
+    order: 0;
+  }
+
+  .act,
+  .cardIban {
+    order: 1;
+    margin-block: var(--space-4) var(--space-5);
+  }
+
+  .act {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .netCard {
+    --text-hero: 56px;
+    order: 2;
+    padding: var(--space-5) var(--space-4) var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  .netCard .figure {
+    margin-block-start: 0;
+  }
+
+  .caveat {
+    order: 3;
+    margin-block-start: var(--space-3);
+  }
+
+  .top > :last-child {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+}

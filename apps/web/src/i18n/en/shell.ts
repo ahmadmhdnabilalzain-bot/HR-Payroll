@@ -60,4 +60,5 @@ export const shell = {
   panelNothing: "Nothing is waiting here.",
   panelAreas: "Go to",
   groupTabs: "In this group",
+  phoneTools: "Notifications and display",
 } satisfies EnNamespace;

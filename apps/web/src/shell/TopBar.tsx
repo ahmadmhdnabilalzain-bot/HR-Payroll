@@ -50,9 +50,11 @@ export function TopBar(p: { route: Route; onSearch(): void }) {
             <span className="visually-hidden">{t("shell.searchHint")}</span>
             <kbd className={s.kbd} aria-hidden="true">⌘K</kbd>
           </button>
-          <NotificationsButton className={s.iconBtn ?? ""} />
-          <AmountsToggle />
-          <ThemeToggle />
+          <span className={s.deskTools}>
+            <NotificationsButton className={s.iconBtn ?? ""} />
+            <AmountsToggle />
+            <ThemeToggle />
+          </span>
           {showArabic(data.arReviewed, location.search) && <LangToggle />}
           <RoleMenu />
         </div>

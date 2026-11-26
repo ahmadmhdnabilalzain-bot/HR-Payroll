@@ -14,27 +14,47 @@ import s from "./inbox.module.css";
  * it read; "Mark all as read" has an undo.
  */
 export function NotificationsButton(p: { className: string }) {
-  const { t } = useLocale();
-  const { data, state, dispatch } = useDemo();
-  const toast = useToast();
   const [open, setOpen] = useState(false);
-  const notes = inboxNotes(data, state);
-  const unread = notes.filter((n) => n.unread).map((n) => n.id);
-  const label = unread.length === 0 ? t("inbox.notes")
-    : t("inbox.notesUnread", { count: unread.length });
+  const { label, unread } = useUnread();
   return (
     <>
       <button type="button" className={`${p.className} ${s.bell}`}
         aria-label={label} title={label} aria-haspopup="dialog"
         onClick={() => setOpen(true)}>
         <Icon name="bell" size={18} />
-        {unread.length > 0 && (
+        {unread > 0 && (
           <span className={`${s.badge} tabular`} aria-hidden="true">
-            {unread.length}
+            {unread}
           </span>
         )}
       </button>
-      <Sheet open={open} title={t("inbox.notes")}
+      <NotificationsSheet open={open} onClose={() => setOpen(false)} />
+    </>
+  );
+}
+
+/** The bell's name and the unread count (the phone menu shows both). */
+export function useUnread(): { label: string; unread: number } {
+  const { t } = useLocale();
+  const { data, state } = useDemo();
+  const n = inboxNotes(data, state).filter((x) => x.unread).length;
+  return { unread: n, label: n === 0 ? t("inbox.notes")
+    : t("inbox.notesUnread", { count: n }) };
+}
+
+/** The notifications sheet, opened by the bell or the phone menu. */
+export function NotificationsSheet(p: { open: boolean; onClose(): void }) {
+  const { t } = useLocale();
+  const { data, state, dispatch } = useDemo();
+  const toast = useToast();
+  const setOpen = (v: boolean): void => {
+    if (!v) p.onClose();
+  };
+  const notes = inboxNotes(data, state);
+  const unread = notes.filter((n) => n.unread).map((n) => n.id);
+  return (
+    <>
+      <Sheet open={p.open} title={t("inbox.notes")}
         onClose={() => setOpen(false)}>
         {notes.length === 0 ? <p className={s.empty}>{t("inbox.notesEmpty")}</p>
           : (

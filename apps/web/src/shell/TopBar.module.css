@@ -207,6 +207,36 @@ a.navItem:hover {
   position: relative;
 }
 
+.deskTools {
+  display: contents;
+}
+
+.phoneOnly {
+  display: none;
+}
+
+.dot {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-start: 22px;
+  inline-size: 9px;
+  block-size: 9px;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.menuCount {
+  min-inline-size: 22px;
+  padding-inline: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  text-align: center;
+}
+
 .roleBtn {
   display: inline-flex;
   align-items: center;
@@ -291,7 +321,7 @@ a.navItem:hover {
 }
 
 .menuItem > svg {
-  color: var(--color-accent);
+  color: var(--color-text-muted);
 }
 
 .menuText {
@@ -327,8 +357,26 @@ a.navItem:hover {
   }
 
   .roleText,
-  .roleBtn > svg {
+  .roleBtn > svg,
+  .deskTools {
     display: none;
+  }
+
+  .phoneOnly {
+    display: grid;
+    margin-block-end: var(--space-1);
+    padding-block-end: var(--space-1);
+    border-block-end: 1px solid var(--color-hairline);
+  }
+
+  .roleBtn {
+    position: relative;
+  }
+
+  .roleBtn :global([data-size]) {
+    inline-size: 32px;
+    block-size: 32px;
+    font-size: 12px;
   }
 
   .tools {
@@ -372,9 +420,8 @@ a.navItem:hover {
     justify-content: space-around;
     padding: var(--space-1);
     border-radius: 32px;
-    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
-    box-shadow: var(--shadow-pop);
-    backdrop-filter: blur(20px);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-pop), 0 0 0 1px var(--color-hairline);
   }
 
   .tab {
@@ -393,7 +440,8 @@ a.navItem:hover {
   }
 
   .tab[aria-current="page"] {
-    color: var(--color-accent);
+    background: var(--color-button-secondary);
+    color: var(--color-text);
   }
 }
 
