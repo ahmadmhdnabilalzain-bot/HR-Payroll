@@ -150,6 +150,20 @@ export async function enrolOnly(app: Hono, clock: Clock, token: string,
   return code;
 }
 
+/** Bytes that sniff as a PDF and carry `marker` in clear. */
+export function fakePdf(marker: string): Uint8Array {
+  return new TextEncoder().encode(`%PDF-1.4\n% ${marker}\n%%EOF\n`);
+}
+
+/** POST /v1/files; throws unless 201. Returns the FileRef. */
+export async function upload(app: Hono, token: string, companyId: string,
+  name: string, bytes: Uint8Array): Promise<Record<string, any>> {
+  const r = await call(app, token, companyId, "POST", "/v1/files",
+    { name, contentBase64: Buffer.from(bytes).toString("base64") });
+  if (r.status !== 201) throw new Error(`upload ${r.status} ${r.text}`);
+  return r.body;
+}
+
 export function login(app: Hono, email: string, password: string,
   totp?: string): Promise<Res> {
   const body: Record<string, string> = { email, password };

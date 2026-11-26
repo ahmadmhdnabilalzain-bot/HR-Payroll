@@ -1,7 +1,9 @@
 import { DOCUMENT_ROUTES } from "@payroll/contract";
 import { PLAN6_PENDING } from "./plan6-pending";
 
-const SERVED: readonly string[] = [];
+const SERVED: readonly string[] = [
+  "fileUpload",
+];
 
 /**
  * Plan 7 route ids not yet served while the plan is built task by

@@ -20,6 +20,9 @@ export interface CompanyKey {
   decrypt(aad: string, cipher: string): string;
   /** Keyed fingerprint (HMAC-SHA256 under a key derived from the DEK). */
   mac(label: string, data: string): string;
+  /** File bytes: `0x01 | iv(12) | tag(16) | ct`, same key and AAD rule. */
+  encryptBytes(aad: string, plain: Uint8Array): Uint8Array;
+  decryptBytes(aad: string, cipher: Uint8Array): Uint8Array;
 }
 
 export interface Keyring {
@@ -65,6 +68,31 @@ function open(key: Uint8Array, kid: string, aad: string,
     d.final()]);
 }
 
+const BYTES_V1 = 0x01;
+
+function sealBytes(key: Uint8Array, aad: string, plain: Uint8Array,
+  iv: Uint8Array): Uint8Array {
+  const c = createCipheriv("aes-256-gcm", key, iv);
+  c.setAAD(Buffer.from(aad, "utf8"));
+  const ct = Buffer.concat([c.update(plain), c.final()]);
+  return new Uint8Array(Buffer.concat([Buffer.from([BYTES_V1]), iv,
+    c.getAuthTag(), ct]));
+}
+
+function openBytes(key: Uint8Array, aad: string,
+  cipher: Uint8Array): Uint8Array {
+  if (cipher.length < 1 + IV_LEN + TAG_LEN || cipher[0] !== BYTES_V1) {
+    throw new Error("unknown byte cipher format");
+  }
+  const b = Buffer.from(cipher.buffer, cipher.byteOffset, cipher.length);
+  const d = createDecipheriv("aes-256-gcm", key,
+    b.subarray(1, 1 + IV_LEN), { authTagLength: TAG_LEN });
+  d.setAAD(Buffer.from(aad, "utf8"));
+  d.setAuthTag(b.subarray(1 + IV_LEN, 1 + IV_LEN + TAG_LEN));
+  return new Uint8Array(Buffer.concat([
+    d.update(b.subarray(1 + IV_LEN + TAG_LEN)), d.final()]));
+}
+
 function companyOf(aad: string): string {
   const id = aad.split(":")[0] ?? "";
   if (!UUID.test(id)) throw new Error("AAD must start with a company id");
@@ -99,6 +127,9 @@ export function keyringFromKey(kek: Uint8Array, random: Random): Keyring {
         open(dek, kid, own(aad), cipher).toString("utf8"),
       mac: (label, data) => createHmac("sha256", macKey)
         .update(`${label}:${data}`, "utf8").digest("hex"),
+      encryptBytes: (aad, plain) => sealBytes(dek, own(aad), plain,
+        random(IV_LEN)),
+      decryptBytes: (aad, cipher) => openBytes(dek, own(aad), cipher),
     };
   };
   return {

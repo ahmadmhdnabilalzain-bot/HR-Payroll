@@ -1,5 +1,6 @@
 import { routeById } from "@payroll/contract";
 import { base32Decode, totpCode } from "../../src/auth/totp";
+import { documentFlow } from "./api-flow-documents";
 import { salaryOf } from "./seed";
 import { call, makeApp, PASSWORD, type Res } from "./test-app";
 
@@ -71,6 +72,7 @@ export async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
   await leave(hit, owner, e.body.token, c, emp);
   await attendance(hit, owner, e.body.token, c);
   await payroll(hit, owner, owner2, e.body.token, c);
+  await documentFlow(hit, { owner, emp: e.body.token, c, id: emp });
   await hit("listAuditEvents", owner, c, {}, undefined,
     { query: "?limit=10" });
   await hit("verifyAuditChain", owner, c);

@@ -3,12 +3,16 @@ import { dirname, join } from "node:path";
 import { CodedError } from "../coded-error";
 import type { BlobStore } from "./blob";
 
-/** `<companyId>/receipts/<receiptId>`, nothing else (no `..`, no `/`). */
-const KEY = /^[0-9a-f-]{36}\/receipts\/[0-9a-f-]{36}$/;
+/**
+ * `<companyId>/receipts/<id>` or `<companyId>/files/<id>`, nothing
+ * else (no `..`, no extra `/`).
+ */
+const KEY = /^[0-9a-f-]{36}\/(receipts|files)\/[0-9a-f-]{36}$/;
 
 function pathOf(dir: string, key: string): string {
   if (!KEY.test(key)) {
-    throw new CodedError("BLOB_KEY_INVALID", "blob key is not a receipt key");
+    throw new CodedError("BLOB_KEY_INVALID",
+      "blob key is not a receipt or file key");
   }
   return join(dir, key);
 }

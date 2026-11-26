@@ -11,6 +11,7 @@ import {
 import type { Db } from "../db/db";
 import { UUID, withTenant, type TenantCtx } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
+import { contentDisposition } from "../files/names";
 import { routeBodyLimit } from "./body-limit";
 import { ApiError, asError } from "./errors";
 import { validate, type Validated } from "./validate";
@@ -62,8 +63,9 @@ export class FileReply {
 }
 
 /**
- * Raw bytes (a receipt download): always an attachment under a
- * generated name, never sniffed by the browser, never cached.
+ * Raw bytes (a receipt or file download): always an attachment, never
+ * sniffed by the browser, never cached, sandboxed if opened. The name
+ * is only ever written through `contentDisposition`.
  */
 export class BinaryReply {
   constructor(readonly bytes: Uint8Array, readonly contentType: string,
@@ -107,8 +109,9 @@ function respond(c: Context<Env>, def: RouteDef, out: unknown) {
 
 function binary(c: Context<Env>, out: BinaryReply) {
   c.header("Content-Type", out.contentType);
-  c.header("Content-Disposition", `attachment; filename="${out.fileName}"`);
+  c.header("Content-Disposition", contentDisposition(out.fileName));
   c.header("X-Content-Type-Options", "nosniff");
+  c.header("Content-Security-Policy", "sandbox");
   c.header("Cache-Control", "no-store");
   return c.body(out.bytes as Uint8Array<ArrayBuffer>, 200);
 }
