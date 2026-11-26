@@ -1,7 +1,7 @@
 import { fils } from "@payroll/engine";
 import { Explainable } from "../../components/explain";
 import type { Explanation } from "../../components/explain/types";
-import { openApprovals } from "../../demo/approvals";
+import { waitingList } from "../../demo/approvals";
 import { isBlocking, openIssues, runApprovalId } from "../../demo/derive";
 import { figures } from "../../demo/figures";
 import { useLiveExplain } from "../../demo/live-explain-load";
@@ -35,7 +35,7 @@ function useColumns(items: Item[], waitingWhy?: Explanation): Column[] {
   const sep = src.months.at(-2)!;
   const b = beforeApproval(data, state);
   const w = words(b);
-  const waiting = openApprovals(data, state).length;
+  const waiting = waitingList(data, state).length;
   const get = (id: string): Item | undefined =>
     items.find((i) => i.id === id);
   const n = (id: string): number => get(id)?.count ?? 0;
@@ -94,7 +94,7 @@ export function OwnerBriefScreen() {
   const m = useTableMoney();
   const phrase = useIssuePhrase();
   const crumbs = useReportCrumbs();
-  const list = openApprovals(data, state);
+  const list = waitingList(data, state);
   const waitingWhy = live.waitingExplain(data, list, scope);
   const issuesWhy = live.issuesExplain(data,
     openIssues(data, state).filter(isBlocking), scope);

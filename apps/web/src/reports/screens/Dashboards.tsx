@@ -1,5 +1,5 @@
 import { useRunApproval } from "../../demo/actions";
-import { decisionsFor, openApprovals } from "../../demo/approvals";
+import { decisionsFor, waitingList } from "../../demo/approvals";
 import { isBlocking, openIssues } from "../../demo/derive";
 import { useLiveExplain } from "../../demo/live-explain-load";
 import { useDemo } from "../../demo/state";
@@ -52,7 +52,7 @@ export function DashboardHr() {
   const docs = data.documents();
   const soon = docs.filter((d) => d.daysLeft >= 0 && d.daysLeft <= 30);
   const nat = run.nationalities;
-  const list = openApprovals(data, state);
+  const list = waitingList(data, state);
   const stopsWhy = live.issuesExplain(data,
     openIssues(data, state).filter(isBlocking), run.scope);
   // By row of hrDashboardRows: the shared figures, one source.

@@ -73,3 +73,16 @@ export function approvalsShown(d: DemoData, s: DemoState): Approval[] {
     (s.role === "hr" || a.makerId === me));
   return [...mine, ...rest];
 }
+
+/**
+ * What the viewer sees waiting for a decision: the one list and the
+ * one count behind every "Waiting for a decision" figure (Home, the
+ * dashboards, the owner brief). A pay run still held back by open
+ * problems is not counted: it has not reached its checker.
+ */
+export function waitingList(d: DemoData, s: DemoState): Approval[] {
+  return approvalsShown(d, s).filter((a) => isSent(d, s, a));
+}
+
+export const waitingCount = (d: DemoData, s: DemoState): number =>
+  waitingList(d, s).length;

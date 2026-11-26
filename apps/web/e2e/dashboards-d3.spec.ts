@@ -82,8 +82,9 @@ test("owner-brief-and-dashboards-follow-the-story", async ({ page },
     .getByText("AED 25,300.00")).toHaveCount(0);
   await page.evaluate(() => { location.hash = "#/reports/dashboard-exec"; });
   const tiles = page.getByRole("list", { name: "Key figures" });
-  await expect(tiles.getByText("nothing stops pay, 6 to check"))
+  await expect(tiles.getByText("nothing stops pay", { exact: true }))
     .toBeVisible();
+  await expect(tiles.getByText("to check", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: /October signed off/ }))
     .toBeVisible();
 });

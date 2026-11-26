@@ -27,10 +27,11 @@ export function useIssueWords(): IssueWords {
   const { t } = useLocale();
   const checks = (n: number): string => n === 0
     ? t("payrun.fixNoChecks") : t("payrun.fixChecks", { count: n });
-  // Nothing stops pay: no unit after the 0, and Fix's whole phrase
-  // under it ("nothing stops pay, 6 to check").
+  // Nothing stops pay: the figure is the checks left ("6 to check")
+  // and the line under it says so ("nothing stops pay").
   return (b) => b.stops === 0
-    ? { unit: "", sub: `${t("payrun.fixNoStops")}, ${checks(b.checks)}` }
+    ? { unit: b.checks === 0 ? "" : checks(b.checks).replace(/^\S+\s/, ""),
+      sub: t("payrun.fixNoStops") }
     : { unit: t("payrun.fixStops", { count: b.stops })
       .replace(/^\S+\s/, ""), sub: checks(b.checks) };
 }

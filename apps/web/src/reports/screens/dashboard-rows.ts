@@ -1,5 +1,5 @@
 import type { DemoData } from "../../demo/data/types";
-import { decisionsFor, openApprovals } from "../../demo/approvals";
+import { decisionsFor, waitingCount } from "../../demo/approvals";
 import { figures } from "../../demo/figures";
 import type { DemoState } from "../../demo/state";
 import { formatDate, formatMonthName } from "../../i18n/format";
@@ -17,7 +17,7 @@ export function hrDashboardRows(src: ReportsSource, data: DemoData,
   const docs = data.documents();
   const soon = docs.filter((d) => d.daysLeft >= 0 && d.daysLeft <= 30);
   const gone = docs.filter((d) => d.daysLeft < 0);
-  const waiting = openApprovals(data, state).length;
+  const waiting = waitingCount(data, state);
   const asOf = formatDate(data.payCalendar().asOf, "en");
   return [
     ["Problems that stop pay", String(fig.blocking),

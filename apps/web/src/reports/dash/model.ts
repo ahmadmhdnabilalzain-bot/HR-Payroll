@@ -1,6 +1,6 @@
 import { fils, type Fils } from "@payroll/engine";
 import type { DemoData, DepartmentRow } from "../../demo/data/types";
-import { openApprovals } from "../../demo/approvals";
+import { waitingCount } from "../../demo/approvals";
 import { figures } from "../../demo/figures";
 import type { DemoState } from "../../demo/state";
 import type { MonthRow, ReportsSource } from "../types";
@@ -85,9 +85,13 @@ export type IssueWords = (b: BeforeApproval) => { unit: string;
 function issuesTile(b: BeforeApproval, w: IssueWords): TileModel {
   const whole = b.stops + b.checks;
   const { unit, sub } = w(b);
+  // Nothing stops pay: the figure is what is left to check, so the
+  // big number and the line under it never disagree ("6 to check").
+  const calm = b.stops === 0;
   return { id: "before-approval", label: "Before sign-off",
-    figure: { kind: "count", n: b.stops, unit }, change: null, sub,
-    meter: { part: b.stops, whole: Math.max(whole, 1) },
+    figure: { kind: "count", n: calm ? b.checks : b.stops, unit },
+    change: null, sub,
+    ...(calm ? {} : { meter: { part: b.stops, whole: Math.max(whole, 1) } }),
     href: "#/pay-run/fix" };
 }
 
@@ -126,9 +130,7 @@ export function hrTiles(src: ReportsSource, d: DemoData, s: DemoState,
   ];
 }
 
-/** Decisions still open for anyone (the approvals inbox). */
-export const waitingCount = (d: DemoData, s: DemoState): number =>
-  openApprovals(d, s).length;
+export { waitingCount };
 
 /** Departments, largest cost first. */
 export function byCost(d: DemoData): DepartmentRow[] {

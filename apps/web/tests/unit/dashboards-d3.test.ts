@@ -53,8 +53,12 @@ describe("dashboard tiles agree with their selectors", () => {
     expect(b.stops + b.checks).toBe(openIssues(d, s).length);
     for (const ts of [execTiles(src, d, s, words), hrTiles(src, d, s,
       words)]) {
-      expect(count(tile(ts, "before-approval"))).toBe(b.stops);
-      expect(tile(ts, "before-approval").sub).toBe(`${b.checks} to check`);
+      const t = tile(ts, "before-approval");
+      // Nothing stops pay: the big figure is the checks left, never a
+      // 0 over "6 to check".
+      expect(count(t)).toBe(b.stops === 0 ? b.checks : b.stops);
+      expect(t.sub).toBe(b.stops === 0 ? "nothing stops pay"
+        : `${b.checks} to check`);
     }
   });
 

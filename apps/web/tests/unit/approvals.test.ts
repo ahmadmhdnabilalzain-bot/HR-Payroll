@@ -3,11 +3,16 @@ import {
   approvalsShown,
   decideAction,
   decisionsFor,
+  isSent,
   mayDecide,
   undoAction,
+  waitingCount,
+  waitingList,
 } from "../../src/demo/approvals";
 import { buildDemoSource } from "../../src/demo/data/adapter";
 import { approvalBlockedBy } from "../../src/demo/derive";
+import { hrDashboardRows } from "../../src/reports/screens/dashboard-rows";
+import { buildReportsSource } from "../../src/reports/source";
 import { INITIAL, reduce, type DemoState, type Role }
   from "../../src/demo/state";
 
@@ -53,5 +58,29 @@ describe("one approvals source with each role's decide rights", () => {
     expect(kinds(s1)).toEqual(["expense"]);
     const s2 = reduce(s1, undoAction(crew));
     expect(kinds(s2)).toEqual(["expense", "overtime"]);
+  });
+});
+
+describe("waiting for a decision has one source", () => {
+  it("Home, the HR dashboard and the list agree, per role", () => {
+    const rep = buildReportsSource();
+    for (const role of ["hr", "gm"] as const) {
+      const st = as(role);
+      const d = src.at(st.ibans);
+      const n = waitingCount(d, st);
+      expect(waitingList(d, st)).toHaveLength(n);
+      expect(n, role).toBe(approvalsShown(d, st)
+        .filter((a) => isSent(d, st, a)).length);
+      const row = hrDashboardRows(rep, d, st)
+        .find((r) => r[0] === "Waiting for a decision");
+      expect(row?.[1], role).toBe(String(n));
+    }
+  });
+
+  it("a pay run still held back is not counted", () => {
+    const d = src.at({});
+    expect(waitingCount(d, as("hr"))).toBe(4);
+    const d2 = src.at(fixed.ibans);
+    expect(waitingCount(d2, as("hr", fixed))).toBe(5);
   });
 });
