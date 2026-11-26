@@ -77,6 +77,5 @@ export function useFlip(ref: RefObject<HTMLElement | null>,
       }
     }
     last.current = next;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }

@@ -1,0 +1,113 @@
+.panel {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--color-divider-strong);
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.note {
+  margin-block-start: 2px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+}
+
+.seg button {
+  min-block-size: 28px;
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast)
+    ease, box-shadow var(--dur-fast) ease;
+}
+
+.seg button[aria-pressed="true"] {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 12%,
+    transparent);
+}
+
+.rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) 140px;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
+  background: var(--color-bg);
+}
+
+.name {
+  color: var(--color-text);
+  font-size: var(--text-md);
+}
+
+.bar {
+  block-size: 6px;
+  border-radius: 2px;
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  block-size: 100%;
+  background: var(--color-bar-3);
+  transform-origin: 0 50%;
+  transition: transform var(--dur-slow) var(--ease-in-out);
+}
+
+[dir="rtl"] .fill {
+  transform-origin: 100% 50%;
+}
+
+.row:first-child .fill {
+  background: var(--color-accent);
+}
+
+.value {
+  text-align: end;
+}
+
+@media (max-width: 560px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

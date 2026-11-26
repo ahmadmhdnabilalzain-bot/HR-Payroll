@@ -133,6 +133,27 @@
   color: var(--color-text-muted);
 }
 
+.equation .part {
+  padding-block: var(--space-2);
+  border-block-end: 0;
+  font-size: var(--text-sm);
+}
+
+.equation .total + .part {
+  margin-block-start: var(--space-2);
+  border-block-start: 1px dashed var(--color-divider-strong);
+  padding-block-start: var(--space-3);
+}
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
 .equation .total {
   border-block-end: 0;
   font-weight: 500;
@@ -179,6 +200,15 @@
 }
 
 @media (max-width: 560px) {
+  .people {
+    display: grid;
+    gap: 2px;
+  }
+
+  .people .dot {
+    display: none;
+  }
+
   .hero {
     padding: var(--space-5) var(--space-4);
   }

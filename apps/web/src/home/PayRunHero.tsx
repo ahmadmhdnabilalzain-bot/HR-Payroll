@@ -1,9 +1,4 @@
-import { fils } from "@payroll/engine";
-import {
-  deductionsOf,
-  openIssueCount,
-  waitingApprovals,
-} from "../demo/derive";
+import { openIssueCount, pendingApprovals } from "../demo/derive";
 import { useTweenedNumber } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { formatDayMonth, formatMonth } from "../i18n/format";
@@ -20,8 +15,11 @@ export function PayRunHero() {
   const { data, state, dispatch } = useDemo();
   const h = data.headline();
   const cal = data.payCalendar();
+  const people = data.runPeople();
+  const maker = data.employee(people.makerId).name[lang];
+  const checker = data.employee(people.checkerId).name[lang];
   const issues = useTweenedNumber(openIssueCount(data, state));
-  const waiting = useTweenedNumber(waitingApprovals(data, state).length);
+  const waiting = useTweenedNumber(pendingApprovals(data, state).length);
   return (
     <section className={s.hero} aria-labelledby="run-title">
       <div className={s.top}>
@@ -46,6 +44,11 @@ export function PayRunHero() {
             {t("home.netTo", { count: h.headcount })}
             <span className={s.dot} aria-hidden="true" />
             {t("home.paysOn", { date: formatDayMonth(cal.payday, lang) })}
+          </p>
+          <p className={s.people}>
+            {t("home.preparedBy", { name: maker })}
+            <span className={s.dot} aria-hidden="true" />
+            {t("home.checker", { name: checker })}
           </p>
           <ul className={s.status}>
             <li data-tone={issues > 0 ? "warn" : "ok"}>
@@ -72,12 +75,20 @@ export function PayRunHero() {
             <dt>{t("home.deductions")}</dt>
             <dd className={s.minus}>
               <span aria-hidden="true">−</span>
-              <Money value={fils(deductionsOf(data))} />
+              <Money value={h.deductionsFils} />
             </dd>
           </div>
           <div className={s.total}>
             <dt>{t("home.net")}</dt>
             <dd><Money value={h.netTotalFils} /></dd>
+          </div>
+          <div className={s.part}>
+            <dt>{t("home.inSif")}</dt>
+            <dd><Money value={h.sifTotalFils} size="sm" /></dd>
+          </div>
+          <div className={s.part}>
+            <dt>{t("home.held")}</dt>
+            <dd><Money value={h.heldNetFils} size="sm" /></dd>
           </div>
         </dl>
       </div>

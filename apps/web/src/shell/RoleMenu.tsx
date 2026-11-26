@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { PERSONA } from "../demo/flags";
+import { personOf } from "../demo/derive";
 import { useDemo, type Role } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
@@ -35,15 +35,15 @@ export function RoleMenu() {
   }, [open]);
   const roleLabel = (r: Role): string =>
     r === "hr" ? t("shell.roleHr") : t("shell.roleGm");
-  const me = data.employee(PERSONA[state.role]);
+  const me = data.employee(personOf(data, state.role));
   return (
     <div className={s.role} ref={box}>
       <button type="button" className={s.roleBtn} aria-haspopup="menu"
-        aria-expanded={open} onClick={() => setOpen(!open)}
-        aria-label={`${t("shell.viewingAs")}: ${roleLabel(state.role)}`}>
+        aria-expanded={open} onClick={() => setOpen(!open)}>
         <span className={s.avatar} aria-hidden="true">
           {initials(me.name.en)}
         </span>
+        <span className="visually-hidden">{t("shell.viewingAs")}</span>
         <span className={s.roleText}>{roleLabel(state.role)}</span>
         <Icon name="chevronDown" size={14} />
       </button>
@@ -52,7 +52,7 @@ export function RoleMenu() {
           aria-label={t("shell.viewingAs")}>
           <p className={s.menuHead}>{t("shell.viewingAs")}</p>
           {ROLES.map((r) => {
-            const who = data.employee(PERSONA[r]);
+            const who = data.employee(personOf(data, r));
             return (
               <button key={r} type="button" role="menuitemradio"
                 aria-checked={state.role === r} className={s.menuItem}

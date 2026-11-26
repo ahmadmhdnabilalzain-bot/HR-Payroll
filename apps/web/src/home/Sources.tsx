@@ -14,7 +14,7 @@ export function Sources() {
       <ul className={s.sourcesList}>
         <li>{b.ruleSet[lang]}</li>
         <li>{b.pension[lang]}</li>
-        <li>{b.engine[lang]}</li>
+        <li>{t("home.basisEngine")}</li>
       </ul>
     </div>
   );

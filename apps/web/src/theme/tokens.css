@@ -12,6 +12,7 @@
   --color-divider: #e3e3df;
   --color-divider-strong: #cfd0cc;
   --color-text: #15171a;
+  --color-brand: #10151c;
   --color-text-muted: #5b6068;
   --color-text-faint: #6d727a;
   --color-accent: #0d5c63;
@@ -82,6 +83,7 @@
   --color-divider: #25282d;
   --color-divider-strong: #33373d;
   --color-text: #ecedee;
+  --color-brand: #f4f6f8;
   --color-text-muted: #a2a7ae;
   --color-text-faint: #8d939b;
   --color-accent: #5fb8bf;

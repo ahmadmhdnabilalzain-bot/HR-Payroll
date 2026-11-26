@@ -71,8 +71,20 @@
   color: var(--color-warning);
 }
 
-.icon[data-tone="info"] {
+.icon[data-tone="info"],
+.icon[data-tone="needs-confirmation"] {
   color: var(--color-info);
+}
+
+.confirm {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-start: var(--space-5);
+}
+
+.confirmTitle {
+  font-size: var(--text-md);
+  font-weight: 500;
 }
 
 .icon[data-tone="ok"] {
@@ -114,7 +126,8 @@
   color: var(--color-warning);
 }
 
-.sev[data-tone="info"] {
+.sev[data-tone="info"],
+.sev[data-tone="needs-confirmation"] {
   color: var(--color-info);
 }
 

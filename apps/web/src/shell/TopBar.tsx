@@ -1,12 +1,13 @@
-import { PRODUCT_NAME, WORDMARK } from "../brand";
+import { PRODUCT_NAME } from "../brand";
 import { BUILT, hrefOf } from "../demo/route";
 import { useDemo, type Section } from "../demo/state";
-import { SHOW_ARABIC } from "../demo/flags";
+import { showArabic } from "../demo/flags";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useTheme } from "../theme/ThemeProvider";
 import { Icon, type IconName } from "../ui/Icon";
 import { RoleMenu } from "./RoleMenu";
+import { Wordmark } from "./Wordmark";
 import s from "./TopBar.module.css";
 
 const NAV: [Section, MessageKey, IconName][] = [
@@ -26,35 +27,29 @@ export function Ribbon() {
   );
 }
 
-export function Wordmark() {
-  return (
-    <span className={s.wordmark} dir="ltr" lang="en">
-      <span className={s.wmStrong}>{WORDMARK.strong}</span>
-      <span className={s.wmLight}>{WORDMARK.light}</span>
-    </span>
-  );
-}
-
 export function TopBar(p: { section: Section; onSearch(): void }) {
-  const { t } = useLocale();
+  const { lang, t } = useLocale();
+  const { data } = useDemo();
   return (
     <header className={s.bar}>
+      <Ribbon />
       <div className={s.inner}>
         <a className={s.brand} href={hrefOf("home")}>
-          <Wordmark />
+          <Wordmark label={PRODUCT_NAME[lang]} />
         </a>
         <Nav section={p.section} />
         <div className={s.tools}>
           <button type="button" className={s.search} onClick={p.onSearch}
-            aria-label={t("shell.searchHint")} aria-keyshortcuts="Control+K
-              Meta+K /">
+            title={t("shell.searchHint")}
+            aria-keyshortcuts="Control+K Meta+K /">
             <Icon name="search" />
             <span className={s.searchText}>{t("shell.search")}</span>
+            <span className="visually-hidden">{t("shell.searchHint")}</span>
             <kbd className={s.kbd} aria-hidden="true">⌘K</kbd>
           </button>
           <AmountsToggle />
           <ThemeToggle />
-          {SHOW_ARABIC && <LangToggle />}
+          {showArabic(data.arReviewed, location.search) && <LangToggle />}
           <RoleMenu />
         </div>
       </div>
@@ -121,9 +116,14 @@ function LangToggle() {
   const next = lang === "en" ? "ar" : "en";
   return (
     <button type="button" className={s.langBtn} lang={next}
-      aria-label={t("common.language")}
+      title={t("common.language")}
       onClick={() => setLang(next)}>
-      {next === "ar" ? t("common.arabic") : t("common.english")}
+      <span className={s.langLong}>
+        {next === "ar" ? t("common.arabic") : t("common.english")}
+      </span>
+      <span className={s.langShort} aria-hidden="true">
+        {next === "ar" ? "ع" : "EN"}
+      </span>
     </button>
   );
 }

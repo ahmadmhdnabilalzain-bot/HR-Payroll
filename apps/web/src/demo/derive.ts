@@ -37,7 +37,16 @@ export function personOf(d: DemoData, role: Role): string {
 export function waitingApprovals(d: DemoData, s: DemoState): Approval[] {
   const me = personOf(d, s.role);
   return d.approvalsInbox().filter((a) =>
-    a.checkerId === me && !s.decided.includes(a.id));
+    a.checkerId === me && s.decided[a.id] === undefined);
+}
+
+/** Everything still undecided, the current role's own first. */
+export function pendingApprovals(d: DemoData, s: DemoState): Approval[] {
+  const me = personOf(d, s.role);
+  const open = d.approvalsInbox().filter((a) =>
+    s.decided[a.id] === undefined);
+  return [...open.filter((a) => a.checkerId === me),
+    ...open.filter((a) => a.checkerId !== me)];
 }
 
 export function runApprovalId(d: DemoData): string | null {
@@ -62,7 +71,8 @@ export interface Step {
 export function steps(d: DemoData, s: DemoState): Step[] {
   const c = d.payCalendar();
   const run = runApprovalId(d);
-  const now: StepId = run !== null && s.decided.includes(run) ? "sif"
+  const now: StepId = run !== null && s.decided[run] === "approve"
+    ? "sif"
     : openIssueCount(d, s) === 0 ? "approve" : "review";
   const order: [StepId, string][] = [["inputs", c.cutOff],
     ["review", c.asOf], ["approve", c.approveBy], ["sif", c.sifDue],

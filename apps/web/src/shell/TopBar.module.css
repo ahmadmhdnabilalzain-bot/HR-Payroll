@@ -15,9 +15,8 @@
   position: sticky;
   inset-block-start: 0;
   z-index: 20;
-  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  background: var(--color-bg);
   border-block-end: 1px solid var(--color-divider);
-  backdrop-filter: saturate(1.2) blur(8px);
 }
 
 .inner {
@@ -33,24 +32,15 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  color: var(--color-text);
+  padding-block: 4px;
   text-decoration: none;
   border-radius: var(--radius-control);
 }
 
-.wordmark {
-  font-size: 18px;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.wmStrong {
-  font-weight: 600;
-}
-
-.wmLight {
-  font-weight: 300;
-  color: var(--color-text-muted);
+.brand :global(.wordmark) {
+  display: block;
+  inline-size: auto;
+  color: var(--color-brand);
 }
 
 .nav {
@@ -149,6 +139,10 @@ a.navItem:hover {
   padding-inline: var(--space-2);
   font-size: var(--text-md);
   font-weight: 500;
+}
+
+.langShort {
+  display: none;
 }
 
 .iconBtn:hover,
@@ -311,8 +305,29 @@ a.navItem:hover {
     padding-inline: var(--space-4);
   }
 
-  .roleText {
+  .roleText,
+  .roleBtn > svg {
     display: none;
+  }
+
+  .tools {
+    gap: var(--space-1);
+  }
+
+  .brand :global(.wordmark) {
+    block-size: 15px;
+  }
+
+  .langLong {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .langShort {
+    display: inline;
   }
 
   .nav {

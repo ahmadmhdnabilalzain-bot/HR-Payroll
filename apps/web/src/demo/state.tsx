@@ -12,14 +12,16 @@ export type Section = "home" | "pay-run" | "people" | "time-off" |
   "reports";
 
 /** How an issue was settled; the label shown names the choice. */
+export type Verdict = "approve" | "decline";
+
 export type Resolution = "iban" | "reviewed" | "renewal";
 
 export interface DemoState {
   role: Role;
   hideAmounts: boolean;
   resolved: Record<string, Resolution>;
-  /** Approval ids that have a recorded decision, in order. */
-  decided: string[];
+  /** Approval id to the decision recorded for it. */
+  decided: Record<string, Verdict>;
   /** Issue id to open and focus (from the palette). */
   focusIssue: string | null;
   sourcesOpen: boolean;
@@ -30,13 +32,13 @@ export type Action =
   | { type: "toggle-amounts" }
   | { type: "resolve"; id: string; how: Resolution }
   | { type: "reopen"; id: string }
-  | { type: "decide"; id: string }
+  | { type: "decide"; id: string; verdict: Verdict }
   | { type: "undecide"; id: string }
   | { type: "focus-issue"; id: string | null }
   | { type: "sources"; open: boolean };
 
 export const INITIAL: DemoState = {
-  role: "hr", hideAmounts: false, resolved: {}, decided: [],
+  role: "hr", hideAmounts: false, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false,
 };
 
@@ -50,10 +52,12 @@ export function reduce(s: DemoState, a: Action): DemoState {
       const { [a.id]: _gone, ...rest } = s.resolved;
       return { ...s, resolved: rest };
     }
-    case "decide": return s.decided.includes(a.id) ? s
-      : { ...s, decided: [...s.decided, a.id] };
-    case "undecide":
-      return { ...s, decided: s.decided.filter((x) => x !== a.id) };
+    case "decide":
+      return { ...s, decided: { ...s.decided, [a.id]: a.verdict } };
+    case "undecide": {
+      const { [a.id]: _gone, ...rest } = s.decided;
+      return { ...s, decided: rest };
+    }
     case "focus-issue": return { ...s, focusIssue: a.id };
     case "sources": return { ...s, sourcesOpen: a.open };
   }
