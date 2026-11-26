@@ -47,6 +47,29 @@ export async function loadPolicy(tx: Db, companyId: string,
 }
 
 /**
+ * The type's `paid` flag decides Plan 3's pay-run deduction and the
+ * policy's payroll kind decides Plan 9's pay inputs, so they must
+ * agree: "unpaid" exactly when the type is unpaid (review N7).
+ */
+export function assertKindMatchesPaid(kind: LeavePolicy["payrollKind"],
+  paid: boolean): void {
+  if ((kind === "unpaid") === paid) {
+    throw new ApiError("LEAVE_POLICY_INVALID", "the payroll kind must be " +
+      "unpaid exactly when the leave type is unpaid",
+    { fields: ["payrollKind", "paid"] });
+  }
+}
+
+/** A change of `paid` must still agree with a stored policy. */
+export async function assertPaidChange(tx: Db, companyId: string,
+  leaveTypeId: string, paid: boolean): Promise<void> {
+  const [r] = await tx.query<{ payroll_kind: LeavePolicy["payrollKind"] }>(
+    "SELECT payroll_kind FROM leave_policies WHERE company_id = $1 " +
+    "AND leave_type_id = $2", [companyId, leaveTypeId]);
+  if (r !== undefined) assertKindMatchesPaid(r.payroll_kind, paid);
+}
+
+/**
  * Carry-over needs a type that keeps a balance (422
  * LEAVE_POLICY_INVALID). Existing requests are never rewritten.
  */
@@ -54,6 +77,7 @@ export async function putPolicy(tx: Db, companyId: string,
   leaveTypeId: string, b: LeavePolicyPut, at: string)
   : Promise<LeavePolicy> {
   const type = await loadLeaveType(tx, companyId, leaveTypeId);
+  assertKindMatchesPaid(b.payrollKind, type.paid);
   if (b.carryOverMaxDays !== null && type.annual_days === null) {
     throw new ApiError("LEAVE_POLICY_INVALID", "carry-over needs a type " +
       "that keeps a balance", { fields: ["body.carryOverMaxDays"] });

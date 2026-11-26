@@ -119,6 +119,25 @@ describe("leave policies", () => {
     expect(after.length).toBe(before.length);
   });
 
+  it("paid_flag_and_payroll_kind_agree", async () => {
+    const paid = await newType("Type P9", 30);
+    const a = await as(s.hr, "PUT", `/v1/leave-types/${paid}/policy`,
+      policy({ payrollKind: "unpaid" }));
+    expect(a.status).toBe(422);
+    expect(a.body.error.code).toBe("LEAVE_POLICY_INVALID");
+    const unpaid = await newType("Type U9", null, false);
+    const b = await as(s.hr, "PUT", `/v1/leave-types/${unpaid}/policy`,
+      policy({ payrollKind: "sick" }));
+    expect(b.status).toBe(422);
+    const ok = await as(s.hr, "PUT", `/v1/leave-types/${unpaid}/policy`,
+      policy({ payrollKind: "unpaid" }));
+    expect(ok.status, ok.text).toBe(200);
+    const flip = await as(s.hr, "PATCH", `/v1/leave-types/${unpaid}`,
+      { paid: true });
+    expect(flip.status).toBe(422);
+    expect(flip.body.error.code).toBe("LEAVE_POLICY_INVALID");
+  });
+
   it("carry_over_on_no_balance_type", async () => {
     const id = await newType("Type N", null);
     const r = await as(s.hr, "PUT", `/v1/leave-types/${id}/policy`,

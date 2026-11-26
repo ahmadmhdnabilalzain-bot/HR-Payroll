@@ -26,13 +26,14 @@ export async function recordConsent(tx: Db, companyId: string,
 }
 
 /**
- * Erasure at withdrawal (PDPL Art 15): the employee's closed pauses
+ * Erasure at withdrawal (PDPL Art 15): the employee's pauses
  * and every tracking sample. Returns the number of sample rows.
  */
 export async function eraseOnWithdraw(tx: Db, companyId: string,
   employeeId: string): Promise<number> {
+  // Open pauses too: they are tracking data as well (review N6).
   await tx.query("DELETE FROM wfh_pauses WHERE company_id = $1 AND " +
-    "employee_id = $2 AND ended_at IS NOT NULL", [companyId, employeeId]);
+    "employee_id = $2", [companyId, employeeId]);
   return eraseSamples(tx, companyId, employeeId);
 }
 

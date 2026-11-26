@@ -42,7 +42,8 @@ function decided(s: Sheet, manual: ManualItem[]) {
     const minutes = Math.min(want.approvedMinutes, d.overtimeMinutes);
     const night = Math.min(want.approvedNightMinutes,
       d.overtimeNightMinutes, minutes);
-    const restBad = want.restDayWork?.approved === true && d.kind === "work";
+    const restBad = want.restDayWork?.approved === true &&
+      (d.kind === "work" || d.restDayWorkMinutes === 0);
     if (minutes < want.approvedMinutes ||
       night < want.approvedNightMinutes || restBad) {
       manual.push(item(d.date, "DECISION_CLIPPED", "The decision was " +
@@ -59,6 +60,7 @@ function arrays(s: Sheet, leave: PayInputSource["leaveDates"]) {
   const manual: ManualItem[] = [];
   const overtime = decided(s, manual);
   const restDayWork = s.days.filter((d) => d.kind !== "work" &&
+    d.restDayWorkMinutes > 0 &&
     d.decision?.restDayWork?.approved === true).map((d) => ({ date: d.date,
     kind: d.kind === "holiday" ? "holiday" as const : "rest-day" as const,
     compensation: d.decision!.restDayWork!.compensation }));

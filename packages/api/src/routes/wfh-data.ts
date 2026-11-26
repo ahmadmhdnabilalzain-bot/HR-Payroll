@@ -12,6 +12,7 @@ import { audit, co, selfEmployee } from "../time/ctx";
 import { dubaiDate } from "../time/dubai";
 import { assertRange } from "../time/range";
 import { ingestActivity, ingestLocation } from "../wfh/ingest";
+import { lockEmployee } from "../wfh/pause";
 import { purgeExpiredWfh, wfhCutoff } from "../wfh/retention";
 import {
   locationsIn,
@@ -22,8 +23,15 @@ import {
 
 type Range = { from: string; to: string };
 
-/** Retention runs at the start of every /v1/wfh/ handler (Ruling 20). */
+/**
+ * Retention runs at the start of every /v1/wfh/ handler (Ruling 20).
+ * The caller's employee row is locked first, the same order as every
+ * consent, upload and pause path, so two requests of one employee
+ * never deadlock on purged rows (review N5).
+ */
 export const purged = (h: Handler): Handler => async (ctx) => {
+  const emp = ctx.tenant!.employeeId;
+  if (emp !== null) await lockEmployee(ctx.tx, co(ctx), emp);
   await purgeExpiredWfh(ctx.tx, ctx.deps.now(), co(ctx), ctx.user!.id);
   return h(ctx);
 };

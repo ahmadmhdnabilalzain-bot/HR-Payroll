@@ -3,13 +3,42 @@ import { seedCompany } from "./seed";
 import { asUser, seedTime } from "./seed-time";
 import { enableWfh, minutes, nextMinute } from "./seed-wfh";
 import { call, makeApp, signup } from "./test-app";
-import type { DbPair } from "./test-db";
+import { purgeAllCompanies } from "../../src/db/wfh-purge-all";
+import {
+  COMPANY_A,
+  COMPANY_B,
+  seedTwoCompanies,
+  type DbPair,
+} from "./test-db";
+import type { Db } from "../../src/db/db";
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Tracking on, consent given, a remote record clocked in. */
+async function wfhSetup(db: Db, admin: Db) {
+  const app = await makeApp({ db });
+  // Seed helpers extend sessions through deps.db: give them admin.
+  const ctx = { ...app, deps: { ...app.deps, db: admin } };
+  const s = await seedCompany(ctx, `wr${Math.random().toString(36)
+    .slice(2, 7)}`);
+  await seedTime(ctx, s);
+  await enableWfh(ctx, s);
+  const as = asUser(ctx, s);
+  await as(s.employee, "POST", "/v1/wfh/consent", { noticeVersion: 1,
+    decision: "granted" });
+  const rec = (await as(s.employee, "POST", "/v1/attendance/clock-in",
+    { method: "web", workLocation: "remote" })).body;
+  const first = nextMinute(new Date(Date.parse(rec.clockIn)));
+  ctx.clock.now = new Date(first.getTime() + 239 * 60_000);
+  return { s, as, rec, first };
+}
 
 const statuses = (rs: { status: number }[]) =>
   rs.map((r) => r.status).sort((a, b) => a - b);
 
 /** Plan 9 races that pglite cannot show (it serialises). */
-export function pgTimeConcurrencyCases(open: () => Promise<DbPair>): void {
+export function pgTimeConcurrencyCases(
+  open: () => Promise<DbPair & { owner: Db }>): void {
   it("two prepares of one timesheet at once: one row", async () => {
     const { db, admin } = await open();
     const ctx = await makeApp({ db });
@@ -28,31 +57,91 @@ export function pgTimeConcurrencyCases(open: () => Promise<DbPair>): void {
     expect(Number(n[0]!.n)).toBe(1);
   });
 
-  it("withdraw with erase during an upload leaves no rows", async () => {
+  // Review N4: a fixed order, not a timing guess. A third session holds
+  // an uncommitted row with the upload's first key, so the upload is
+  // stuck on its first insert; withdraw-and-erase runs meanwhile.
+  // Without the shared employee lock the upload, having already read
+  // consent, commits its rows after the erase (red).
+  it("withdraw with erase during a stuck upload leaves no rows",
+    async () => {
+      const { db, admin } = await open();
+      const w = await wfhSetup(db, admin);
+      let release!: () => void;
+      const gate = new Promise<void>((r) => { release = r; });
+      let held!: () => void;
+      const holding = new Promise<void>((r) => { held = r; });
+      const blocker = admin.transaction(async (tx) => {
+        await tx.query(
+          `INSERT INTO wfh_activity_minutes (company_id, employee_id,
+             attendance_id, at, active, category)
+           VALUES ($1, $2, $3, $4, true, NULL)`,
+          [w.s.companyId, w.s.emp.report, w.rec.id,
+            w.first.toISOString()]);
+        held();
+        await gate;
+        throw new Error("rollback");
+      }).catch(() => undefined);
+      await holding;
+      const up = w.as(w.s.employee, "POST", "/v1/wfh/activity", {
+        attendanceId: w.rec.id, minutes: minutes(w.first, 240) });
+      await sleep(300);
+      const wd = w.as(w.s.employee, "POST", "/v1/wfh/consent/withdraw",
+        { erase: true });
+      await sleep(300);
+      release();
+      await blocker;
+      const [u, x] = await Promise.all([up, wd]);
+      expect([200, 422]).toContain(u.status);
+      expect(x.status, x.text).toBe(200);
+      const n = await admin.query("SELECT 1 FROM wfh_activity_minutes");
+      expect(n.length).toBe(0);
+    });
+
+  // Review N5: a /v1/wfh/ request takes the employee lock before its
+  // purge, so it never holds purged rows while waiting for the lock.
+  it("wfh requests lock the employee before purging", async () => {
     const { db, admin } = await open();
-    const app = await makeApp({ db });
-    // Seed helpers extend sessions through deps.db: give them admin.
-    const ctx = { ...app, deps: { ...app.deps, db: admin } };
-    const s = await seedCompany(ctx, "wrace");
-    await seedTime(ctx, s);
-    await enableWfh(ctx, s);
-    const as = asUser(ctx, s);
-    await as(s.employee, "POST", "/v1/wfh/consent", { noticeVersion: 1,
-      decision: "granted" });
-    const rec = (await as(s.employee, "POST", "/v1/attendance/clock-in",
-      { method: "web", workLocation: "remote" })).body;
-    const first = nextMinute(new Date(Date.parse(rec.clockIn)));
-    ctx.clock.now = new Date(first.getTime() + 239 * 60_000);
-    const [up, wd] = await Promise.all([
-      as(s.employee, "POST", "/v1/wfh/activity", { attendanceId: rec.id,
-        minutes: minutes(first, 240) }),
-      new Promise((r) => setTimeout(r, 20)).then(() => as(s.employee,
-        "POST", "/v1/wfh/consent/withdraw", { erase: true }))]);
-    expect([200, 422]).toContain(up.status);
-    expect(wd.status, wd.text).toBe(200);
-    const n = await admin.query("SELECT 1 FROM wfh_activity_minutes");
-    expect(n.length).toBe(0);
+    const w = await wfhSetup(db, admin);
+    await admin.query(
+      `INSERT INTO wfh_activity_minutes (company_id, employee_id,
+         attendance_id, at, active, category)
+       VALUES ($1, $2, $3, '2020-01-01T00:00:00Z', true, NULL)`,
+      [w.s.companyId, w.s.emp.report, w.rec.id]);
+    let free = false;
+    let req!: ReturnType<typeof w.as>;
+    await admin.transaction(async (tx) => {
+      await tx.query("SELECT 1 FROM employees WHERE id = $1 FOR UPDATE",
+        [w.s.emp.report]);
+      req = w.as(w.s.employee, "GET", "/v1/wfh/me/status");
+      await sleep(300);
+      // The expired row is neither deleted nor locked by the request.
+      free = (await tx.query(`SELECT 1 FROM wfh_activity_minutes
+        WHERE at < '2021-01-01' FOR UPDATE NOWAIT`)).length === 1;
+    });
+    const r = await req;
+    expect(free).toBe(true);
+    expect(r.status, r.text).toBe(200);
   });
+
+  it("purge-wfh as the deployed roles purges every company (N3)",
+    async () => {
+      const { db, admin, owner } = await open();
+      await seedTwoCompanies(admin);
+      for (const c of [COMPANY_A, COMPANY_B]) {
+        await admin.query(`UPDATE wfh_settings SET retention_days = 30
+          WHERE company_id = $1`, [c]);
+      }
+      const n = await purgeAllCompanies(owner, db,
+        { now: () => new Date("2026-06-01T00:00:00Z") });
+      expect(n).toBeGreaterThanOrEqual(2);
+      const left = await admin.query("SELECT 1 FROM wfh_activity_minutes");
+      expect(left).toEqual([]);
+      const forced = await admin.query<{ f: boolean }>(`SELECT
+        relforcerowsecurity AS f FROM pg_class WHERE relname = 'companies'
+        AND relnamespace = (SELECT oid FROM pg_namespace
+          WHERE nspname = current_schema())`);
+      expect(forced[0]?.f).toBe(true);
+    });
 
   it("two carry-over runs at once store one set of rows", async () => {
     const { db, admin } = await open();

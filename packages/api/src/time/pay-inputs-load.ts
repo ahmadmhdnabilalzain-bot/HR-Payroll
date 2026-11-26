@@ -28,10 +28,16 @@ async function halvesOf(tx: Db, companyId: string, ids: string[],
   const kinds = await leaveTypeKinds(tx, companyId);
   const m = await leaveMap(tx, companyId, ids, from, to);
   const out = new Map<string, Map<string, number>>();
+  // Each share of a date counts with its own type (review N2).
   for (const [emp, days] of m) {
-    out.set(emp, new Map([...days].filter(([, l]) =>
-      kinds.get(l.leaveTypeId)?.payrollKind === kind)
-      .map(([d, l]) => [d, l.halves])));
+    const halves = new Map<string, number>();
+    for (const [d, l] of days) {
+      const n = l.parts.filter((p) =>
+        kinds.get(p.leaveTypeId)?.payrollKind === kind)
+        .reduce((a, p) => a + (p.part === "full" ? 2 : 1), 0);
+      if (n > 0) halves.set(d, n);
+    }
+    out.set(emp, halves);
   }
   return out;
 }
