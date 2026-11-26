@@ -30,10 +30,12 @@ describe("boundaries", () => {
 
   it("demo-data-only-in-adapter", () => {
     // adapter.ts, plus the pay run's lazy detail chunk beside it, plus
-    // people.ts (People and Time off), which only adapter.ts imports.
+    // people.ts (People and Time off), which only adapter.ts imports, plus
+    // reports/source.ts (WP7's lazy chunk).
     expect(filesImporting(/^@payroll\/demo-data/))
       .toEqual(["src/demo/data/adapter.ts", "src/demo/data/people.ts",
-        "src/demo/data/run-detail.ts", "src/demo/data/run-explain.ts"]);
+        "src/demo/data/run-detail.ts", "src/demo/data/run-explain.ts",
+        "src/reports/source.ts"]);
   });
 
   it("money-wire-only-in-contract", () => {

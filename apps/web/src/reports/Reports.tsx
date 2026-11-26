@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, type ComponentType } from "react";
 import { useRunApproval } from "../demo/actions";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
@@ -20,16 +20,46 @@ import {
   type ReportId,
   type Table,
 } from "./defs";
+import { Catalogue } from "./Catalogue";
+import { Guard } from "./Guard";
+import { Audit } from "./screens/Audit";
+import { DashboardExec, DashboardHr } from "./screens/Dashboards";
+import { Headcount } from "./screens/Headcount";
+import { Leave } from "./screens/Leave";
+import { Overtime } from "./screens/Overtime";
+import { Trend } from "./screens/Trend";
+import { Variance } from "./screens/Variance";
 import s from "./Reports.module.css";
+
+/** The newer reports, each on its own template page (WP7). */
+const SCREENS: Record<string, { view: ComponentType<ViewProps>;
+  gmOnly?: boolean }> = {
+  trend: { view: Trend }, variance: { view: Variance },
+  overtime: { view: Overtime }, headcount: { view: Headcount },
+  leave: { view: Leave }, audit: { view: Audit },
+  "dashboard-hr": { view: DashboardHr },
+  "dashboard-exec": { view: DashboardExec, gmOnly: true },
+};
 
 /** Reports: a short list; each opens at once, downloads and prints. */
 export function Reports(p: ViewProps) {
   const { t } = useLocale();
   const id = REPORTS.find((x) => x === p.rest[0]);
+  const screen = SCREENS[p.rest[0] ?? ""];
+  const loading = <p className={s.loading}>{t("reports.loading")}</p>;
+  if (screen !== undefined) {
+    return (
+      <Suspense fallback={loading}>
+        <Guard gmOnly={screen.gmOnly === true}>
+          <screen.view rest={p.rest} />
+        </Guard>
+      </Suspense>
+    );
+  }
   return (
     <div className={s.page}>
-      <Suspense fallback={<p className={s.loading}>{t("reports.loading")}</p>}>
-        {id === undefined ? <List /> : <Report id={id} />}
+      <Suspense fallback={loading}>
+        {id === undefined ? <Catalogue /> : <Report id={id} />}
       </Suspense>
     </div>
   );
@@ -58,32 +88,6 @@ function Crumbs(p: { title?: string }) {
           <span aria-current="page">{p.title}</span>
         </>}
     </nav>
-  );
-}
-
-function List() {
-  const { t } = useLocale();
-  return (
-    <>
-      <header className={s.header}>
-        <Crumbs />
-        <h1 className={s.title}>{t("reports.title")}</h1>
-        <p className={s.sub}>{t("reports.sub")}</p>
-      </header>
-      <ul className={s.list}>
-        {REPORTS.map((id, i) => (
-          <li key={id} style={{ "--i": i } as object}>
-            <a href={hrefOf("reports", id)} className={s.item}>
-              <span className={s.itemText}>
-                <span className={s.itemTitle}>{t(TITLE[id])}</span>
-                <span className={s.itemBlurb}>{t(BLURB[id])}</span>
-              </span>
-              <Icon name="chevronEnd" size={20} />
-            </a>
-          </li>
-        ))}
-      </ul>
-    </>
   );
 }
 

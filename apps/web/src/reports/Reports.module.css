@@ -296,3 +296,12 @@
     padding: 0;
   }
 }
+
+.group {
+  margin-block: var(--space-6) var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
