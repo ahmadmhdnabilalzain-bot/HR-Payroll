@@ -25,6 +25,7 @@ export const ERROR_STATUS = {
   ALREADY_MEMBER: 409,
   MFA_ALREADY_ENROLLED: 409,
   MFA_NOT_STARTED: 409,
+  LAST_OWNER: 409,
   EMPLOYEE_NUMBER_TAKEN: 409,
   LEAVE_OVERLAP: 409,
   LEAVE_NOT_PENDING: 409,
@@ -63,14 +64,26 @@ export const ERROR_CODES = Object.keys(ERROR_STATUS) as [
 
 export const ErrorCodeSchema = z.enum(ERROR_CODES);
 
+const Strings = z.union([z.string(), z.array(z.string())]);
+
+/**
+ * Error detail: strings, string lists, or lists of flat objects of
+ * strings and string lists (e.g. `problems` of a PAY_RUN_PROBLEMS
+ * body: `[{ employeeId, code, missing: ["basic"] }]`). Never values a
+ * caller may not see (salary amounts, IBANs, ids of protected data).
+ */
+export const ErrorDetail = z.record(
+  z.string(),
+  z.union([Strings, z.array(z.record(z.string(), Strings))]),
+);
+export type ErrorDetail = z.infer<typeof ErrorDetail>;
+
 export const ApiErrorBody = z.object({
   error: z.object({
     code: ErrorCodeSchema,
     message: z.string(),
     requestId: z.string(),
-    detail: z
-      .record(z.string(), z.union([z.string(), z.array(z.string())]))
-      .optional(),
+    detail: ErrorDetail.optional(),
   }),
 });
 export type ApiErrorBody = z.infer<typeof ApiErrorBody>;

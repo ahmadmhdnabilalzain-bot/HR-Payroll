@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  ApiErrorBody,
+  AuditData,
+  PAY_TRACE_RESULT,
+  PAY_TRACE_RESULT_EXAMPLE,
+  PayRun,
+  RoleChange,
   AuditEvent,
   EXAMPLES,
   ERROR_CODES,
@@ -105,6 +111,42 @@ describe("AuditEvent.action", () => {
     "rejects %s", (a) => {
       expect(action.safeParse(a).success).toBe(false);
     });
+});
+
+describe("additions after Task 1", () => {
+  it("error detail carries pay-run problems as objects", () => {
+    const body = { error: { code: "PAY_RUN_PROBLEMS", message: "m",
+      requestId: "r", detail: { problems: [{ employeeId: "e1",
+        code: "ENTERED_AMOUNTS_REQUIRED", missing: ["basic"] }] } } };
+    expect(ApiErrorBody.safeParse(body).success).toBe(true);
+  });
+  it("audit data carries a nested period", () => {
+    expect(AuditData.safeParse({ period: { year: 2026, month: 3 },
+      employeeCount: 2 }).success).toBe(true);
+    expect(AuditData.safeParse({ deep: { a: { b: 1 } } }).success)
+      .toBe(false);
+  });
+  it("PayRun has a nullable sifFileId", () => {
+    const run = EXAMPLES.PayRun as Record<string, unknown>;
+    expect(run).toHaveProperty("sifFileId", null);
+    const { sifFileId: _, ...without } = run;
+    expect(PayRun.safeParse(without).success).toBe(false);
+  });
+  it("pay trace results are integer fils strings", () => {
+    expect(PAY_TRACE_RESULT.safeParse("777777").success).toBe(true);
+    expect(PAY_TRACE_RESULT.safeParse("7777.77").success).toBe(false);
+    expect(PAY_TRACE_RESULT_EXAMPLE).toEqual({ amount: "7777.77",
+      result: "777777" });
+    const slip = EXAMPLES.Payslip as { trace: { id: string;
+      result: string }[] };
+    for (const l of slip.trace.filter((t) => t.id.startsWith("pay."))) {
+      expect(PAY_TRACE_RESULT.safeParse(l.result).success).toBe(true);
+    }
+  });
+  it("RoleChange accepts a role only", () => {
+    expect(RoleChange.safeParse({ role: "hr" }).success).toBe(true);
+    expect(RoleChange.safeParse({ role: "boss" }).success).toBe(false);
+  });
 });
 
 describe("errors", () => {

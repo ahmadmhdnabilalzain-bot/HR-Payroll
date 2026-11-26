@@ -1,9 +1,10 @@
 import { Company, CompanyUpdate, SignupRequest } from "./company";
 import { CompanyUserList } from "./lists";
-import { Health, NoContent } from "./primitives";
+import { Health, IdParams, NoContent } from "./primitives";
 import { ALL_ROLES, OWNER, pub, ten, usr, type RouteDef } from "./route-def";
 import {
   AcceptInviteRequest,
+  CompanyUser,
   InviteRequest,
   InviteResponse,
   LoginRequest,
@@ -11,6 +12,7 @@ import {
   Me,
   MfaConfirmRequest,
   MfaEnrolResponse,
+  RoleChange,
 } from "./user";
 
 export const ACCOUNT_ROUTES: readonly RouteDef[] = [
@@ -36,6 +38,9 @@ export const ACCOUNT_ROUTES: readonly RouteDef[] = [
     path: "/v1/company", body: CompanyUpdate, response: Company }),
   ten(OWNER, { id: "listUsers", method: "GET", path: "/v1/users",
     response: CompanyUserList }),
+  ten(OWNER, { id: "changeUserRole", method: "PATCH",
+    path: "/v1/users/{id}", params: IdParams, body: RoleChange,
+    response: CompanyUser, mfa: true }),
   ten(OWNER, { id: "inviteUser", method: "POST",
     path: "/v1/users/invite", body: InviteRequest,
     response: InviteResponse, status: 201 }),

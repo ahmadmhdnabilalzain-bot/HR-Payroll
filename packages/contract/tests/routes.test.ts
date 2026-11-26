@@ -6,8 +6,8 @@ function paramNames(path: string): string[] {
 }
 
 describe("ROUTES", () => {
-  it("has 49 routes", () => {
-    expect(ROUTES.length).toBe(49);
+  it("has 50 routes", () => {
+    expect(ROUTES.length).toBe(50);
   });
   it("ids are unique", () => {
     const ids = ROUTES.map((r) => r.id);
@@ -32,7 +32,8 @@ describe("ROUTES", () => {
       expect(r.auth, r.id).toBe("tenant");
     }
     expect(ROUTES.filter((x) => x.mfa).map((x) => x.id).sort()).toEqual(
-      ["approvePayRun", "downloadSifFile", "getEmployeeBank"]);
+      ["approvePayRun", "changeUserRole", "downloadSifFile",
+        "getEmployeeBank"]);
   });
   it("public routes are exactly the four", () => {
     const pub = ROUTES.filter((r) => r.auth === "public")
@@ -65,7 +66,8 @@ describe("ROUTES", () => {
   it("owner-only routes are the four", () => {
     const owner = ROUTES.filter((r) => r.roles.length === 1)
       .map((r) => r.id).sort();
-    expect(owner).toEqual(["approvePayRun", "inviteUser", "listUsers",
+    expect(owner).toEqual(["approvePayRun", "changeUserRole", "inviteUser",
+      "listUsers",
       "updateCompany"]);
   });
   it("only the SIF download is text/plain", () => {

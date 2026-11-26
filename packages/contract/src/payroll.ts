@@ -61,6 +61,8 @@ export const PayRun = z.object({
   employeeCount: z.number().int().min(0),
   gross: Money,
   notComputed: z.array(z.string()),
+  /** The run's SIF file once generated (one per run), else null. */
+  sifFileId: Id.nullable(),
 });
 export type PayRun = z.infer<typeof PayRun>;
 

@@ -21,6 +21,20 @@ export const TraceRule = z.object({
 });
 export type TraceRule = z.infer<typeof TraceRule>;
 
+/**
+ * Wire encoding of `TraceLine.result` (and money `inputs`) on payslip
+ * `pay.*` lines and settlement lines: the amount in integer fils as a
+ * decimal string, no separators, no sign, as the engine writes it
+ * (`String(fils)`). AED 7,777.77 is `"777777"`. The payslip line's
+ * `amount` carries the same value as `Money` ("7777.77"). Clients
+ * format `result` with `Number(result) / 100` only for display.
+ */
+export const PAY_TRACE_RESULT = z.string().regex(/^(0|[1-9]\d*)$/);
+export const PAY_TRACE_RESULT_EXAMPLE = {
+  amount: "7777.77",
+  result: "777777",
+} as const;
+
 /** Same fields as the engine's `TraceLine`. */
 export const TraceLine = z.object({
   id: z.string(),

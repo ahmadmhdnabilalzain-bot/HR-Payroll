@@ -3,9 +3,16 @@ import { Id, Timestamp } from "./primitives";
 
 const Hash = z.string().regex(/^[0-9a-f]{64}$/);
 
+const Scalar = z.union([z.string(), z.number(), z.boolean()]);
+
+/**
+ * Audit data: scalars, string lists, or one level of nested object of
+ * scalars (e.g. `period: { year: 2026, month: 3 }`). Field names and
+ * counts only, never salary amounts, IBANs or personal ids.
+ */
 export const AuditData = z.record(
   z.string(),
-  z.union([z.string(), z.number(), z.boolean(), z.array(z.string())]),
+  z.union([Scalar, z.array(z.string()), z.record(z.string(), Scalar)]),
 );
 export type AuditData = z.infer<typeof AuditData>;
 

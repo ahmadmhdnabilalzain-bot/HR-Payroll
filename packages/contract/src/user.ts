@@ -71,6 +71,10 @@ export const MfaConfirmRequest = z.object({
 });
 export type MfaConfirmRequest = z.infer<typeof MfaConfirmRequest>;
 
+/** `PATCH /v1/users/{id}` (id is the user id): owner only, MFA. */
+export const RoleChange = z.object({ role: Role });
+export type RoleChange = z.infer<typeof RoleChange>;
+
 /** A member of the company, as `GET /v1/users` lists it. */
 export const CompanyUser = z.object({
   userId: Id,
