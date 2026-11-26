@@ -43,8 +43,10 @@ export const EmiratisationSettingsPut = z.object({
 }).superRefine((v, ctx) => {
   for (const [k, x] of Object.entries(v.overrides)) {
     if (!overridable(k)) {
+      // The API answers this one as 422 OVERRIDE_NOT_ALLOWED.
       ctx.addIssue({ code: "custom", path: ["overrides", k],
-        message: "this key cannot be overridden" });
+        message: "this key cannot be overridden",
+        params: { apiCode: "OVERRIDE_NOT_ALLOWED" } });
     } else if (!OVERRIDE_VALUE[k]!.safeParse(x).success) {
       ctx.addIssue({ code: "custom", path: ["overrides", k],
         message: "value has the wrong form" });

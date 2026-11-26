@@ -42,7 +42,7 @@ After the merge: api 330 tests pass; contract 98 pass; web 102 of 103
 | 5 | `feat(api): company library and receipts` | done |
 | 6 | `feat(api): letter templates and merge` | done |
 | 7 | `feat(api): letters rendered to PDF` | done |
-| 8 | `feat(api): Emiratisation report, handover` | |
+| 8 | `feat(api): Emiratisation report, handover` | done |
 
 Task 2 (engine pack and tracker) was already merged and is used as is.
 
@@ -246,6 +246,35 @@ Task 2 (engine pack and tracker) was already merged and is used as is.
 13. **`letters/sample.ts` is a shell** like `main.ts`, so Plan 3's
     "no env read outside main.ts and deps.ts" test lists it.
 14. `main.ts` closes the renderer on SIGTERM and SIGINT.
+
+### Task 8 (Emiratisation, conformance, handover)
+
+1. **Unknown override keys answer 422 `OVERRIDE_NOT_ALLOWED`** as the
+   plan's test says, although the contract schema refuses them: the
+   contract's issue carries `params.apiCode`, and the API's error
+   mapping turns a validation error whose every issue names one listed
+   code (`REFINE_CODES`, only this one) into that code. A wrong value
+   shape (for example `"HALF_EVEN"`) stays 400 `VALIDATION_FAILED`.
+   The handler checks the keys again against the engine's list.
+2. **Headcount in the test is 59**, not 60: the seeded company has four
+   employees (the plan assumed five); 40 skilled, required 4.
+3. **Flag changes audit `{ settingsChanged: [...] }`** with the flag
+   names (closed set), like the settings routes.
+4. **The engine's `disclaimer` and `fineNote` pass through verbatim**;
+   only `fineExposure` is converted to a money string.
+5. **Conformance:** the whole-API flow calls all 35 Plan 7 routes
+   (`helpers/api-flow-documents.ts`), `PLAN7_PENDING` is asserted
+   empty, and the three downloads are checked for their stored type
+   and an attachment disposition.
+6. **`HANDOVER.md` and `LEDGER.md`** got short additions only (one
+   adoption row plus two amending rows in section 3; layout rows,
+   limits and the plan status in the handover), to keep merges with
+   parallel plans small.
+7. **`deploy/serve.ts`** (ops kit) did not compile after the Plan 6
+   merge (`systemDeps` gained the blob store); it now passes the blob
+   store and the letter renderer, so `pnpm ops:typecheck` passes.
+8. A long Plan 3 function (`keyringFromKey`) grew past 30 lines with
+   the byte methods; the company key builder is now its own function.
 
 Visual check (`pnpm letters:sample`, `pdftoppm`, English and Arabic
 salary certificates): Arabic letters join; dates read `2019-01-01` and

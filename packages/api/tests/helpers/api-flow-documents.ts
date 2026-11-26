@@ -94,11 +94,22 @@ async function letters(hit: Hitter, f: DocFlow): Promise<void> {
   await hit("letterAcknowledge", f.emp, c, { id });
 }
 
-/** One call to every Plan 7 route served so far, in a working order. */
+async function emiratisation(hit: Hitter, f: DocFlow): Promise<void> {
+  const { owner, c } = f;
+  await hit("employeeEmiratisationPut", owner, c, { id: f.id }, {
+    skilled: true, workPermitValid: true, paidViaWps: true,
+    gpssaRegistered: null });
+  await hit("emiratisationSettingsPut", owner, c, {}, {
+    sectorInScope: true, overrides: { largeRequiredRounding: "DOWN" } });
+  await hit("emiratisationReport", owner, c);
+}
+
+/** One call to every Plan 7 route, in a working order. */
 export async function documentFlow(hit: Hitter, f: DocFlow)
   : Promise<void> {
   await vault(hit, f);
   await library(hit, f);
   await templates(hit, f);
   await letters(hit, f);
+  await emiratisation(hit, f);
 }

@@ -105,6 +105,27 @@ function subkey(kek: Uint8Array, info: string): Uint8Array {
     `payroll:${info}`, 32));
 }
 
+/** One company's key: every AAD must start with that company's id. */
+function keyOf(dek: Uint8Array, kid: string, companyId: string,
+  random: Random): CompanyKey {
+  const macKey = subkey(dek, "company-mac");
+  const own = (aad: string) => {
+    if (companyOf(aad) !== companyId) throw new Error("AAD company");
+    return aad;
+  };
+  return {
+    encrypt: (aad, plain) => seal(dek, kid, own(aad),
+      Buffer.from(plain, "utf8"), random(IV_LEN)),
+    decrypt: (aad, cipher) =>
+      open(dek, kid, own(aad), cipher).toString("utf8"),
+    mac: (label, data) => createHmac("sha256", macKey)
+      .update(`${label}:${data}`, "utf8").digest("hex"),
+    encryptBytes: (aad, plain) => sealBytes(dek, own(aad), plain,
+      random(IV_LEN)),
+    decryptBytes: (aad, cipher) => openBytes(dek, own(aad), cipher),
+  };
+}
+
 export function keyringFromKey(kek: Uint8Array, random: Random): Keyring {
   if (kek.length !== 32) throw new Error("master key must be 32 bytes");
   const kid = createHash("sha256").update(kek).digest("hex").slice(0, 8);
@@ -113,25 +134,8 @@ export function keyringFromKey(kek: Uint8Array, random: Random): Keyring {
   const dekAad = (aad: string) => `${companyOf(aad)}:dek`;
   const unwrap = (wrapped: string, aad: string) =>
     open(wrapKey, kid, dekAad(aad), wrapped);
-  const companyKey = (wrapped: string, companyId: string): CompanyKey => {
-    const dek = unwrap(wrapped, companyId);
-    const macKey = subkey(dek, "company-mac");
-    const own = (aad: string) => {
-      if (companyOf(aad) !== companyId) throw new Error("AAD company");
-      return aad;
-    };
-    return {
-      encrypt: (aad, plain) => seal(dek, kid, own(aad),
-        Buffer.from(plain, "utf8"), random(IV_LEN)),
-      decrypt: (aad, cipher) =>
-        open(dek, kid, own(aad), cipher).toString("utf8"),
-      mac: (label, data) => createHmac("sha256", macKey)
-        .update(`${label}:${data}`, "utf8").digest("hex"),
-      encryptBytes: (aad, plain) => sealBytes(dek, own(aad), plain,
-        random(IV_LEN)),
-      decryptBytes: (aad, cipher) => openBytes(dek, own(aad), cipher),
-    };
-  };
+  const companyKey = (wrapped: string, companyId: string): CompanyKey =>
+    keyOf(unwrap(wrapped, companyId), kid, companyId, random);
   return {
     wrapNewDek: (companyId) => ({ dekWrapped: seal(wrapKey, kid,
       dekAad(companyId), random(32), random(IV_LEN)) }),

@@ -7,6 +7,7 @@ import {
 import { registerFileRoutes } from "./routes/files";
 import { registerLetterTemplateRoutes } from "./routes/letter-templates";
 import { letterRetention } from "./letters/letters";
+import { registerEmiratisationRoutes } from "./routes/emiratisation";
 import { registerLetterRoutes } from "./routes/letters";
 import { registerLibraryRoutes } from "./routes/library";
 
@@ -18,4 +19,5 @@ export function registerDocumentApp(app: App, deps: AppDeps): void {
   registerLibraryRoutes(app, deps);
   registerLetterTemplateRoutes(app, deps);
   registerLetterRoutes(app, deps);
+  registerEmiratisationRoutes(app, deps);
 }

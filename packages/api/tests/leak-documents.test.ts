@@ -37,6 +37,7 @@ const ID_KIND: Record<string, Kind> = {
   libraryReceipts: "library", letterFields: null,
   letterTemplatesList: null, letterTemplateGet: "template",
   lettersList: null, letterGet: "letter", letterDownload: "letter",
+  emiratisationReport: null,
 };
 
 /** A salary as a letter prints it ("1,111.11"). */

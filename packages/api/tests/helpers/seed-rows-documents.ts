@@ -30,6 +30,12 @@ export async function seedDocumentRows(admin: Db, c: string, emp: string,
   await seedTemplateRows(admin, c, user);
   await seedLetterRows(admin, c, emp, user);
   await admin.query(
+    `INSERT INTO emiratisation_flags (company_id, employee_id, skilled,
+       updated_at) VALUES ($1, $2, true, $3)`, [c, emp, AT]);
+  await admin.query(
+    `INSERT INTO emiratisation_settings (company_id, overrides,
+       updated_at) VALUES ($1, '{}', $2)`, [c, AT]);
+  await admin.query(
     `INSERT INTO document_settings (company_id, lead_days, retention,
        updated_at) VALUES ($1, '{}', '{}', $2)`, [c, AT]);
 }

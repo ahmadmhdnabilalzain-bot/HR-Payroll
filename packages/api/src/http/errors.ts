@@ -67,10 +67,23 @@ export function asError(err: unknown): Error {
   return err instanceof Error ? err : new ApiError("INTERNAL");
 }
 
+/** Contract refinements that name their own API code. */
+const REFINE_CODES: readonly ErrorCode[] = ["OVERRIDE_NOT_ALLOWED"];
+
+/** The code every issue names through `params.apiCode`, if one. */
+function refineCode(err: ZodError): ErrorCode | null {
+  const codes = new Set(err.issues.map((i) =>
+    (i as { params?: { apiCode?: unknown } }).params?.apiCode));
+  const [only] = [...codes];
+  return codes.size === 1 && REFINE_CODES.includes(only as ErrorCode)
+    ? only as ErrorCode : null;
+}
+
 function classify(err: unknown): ApiError {
   if (err instanceof ApiError) return err;
   if (err instanceof ZodError) {
-    return new ApiError("VALIDATION_FAILED", undefined, zodDetail(err));
+    return new ApiError(refineCode(err) ?? "VALIDATION_FAILED", undefined,
+      zodDetail(err));
   }
   if (err instanceof EngineError) {
     return new ApiError("ENGINE_REFUSED", undefined,

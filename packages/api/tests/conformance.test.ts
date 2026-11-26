@@ -1,11 +1,12 @@
 import {
   ApiErrorBody,
+  DOCUMENT_ROUTES,
   ERROR_CODES,
   ROUTES,
 } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { recorder, runFlow, type Hit } from "./helpers/api-flow";
-import { isPending } from "./helpers/plan7-pending";
+import { isPending, PLAN7_PENDING } from "./helpers/plan7-pending";
 import { makeApp } from "./helpers/test-app";
 
 type Ctx = Awaited<ReturnType<typeof makeApp>>;
@@ -43,6 +44,21 @@ describe("whole-API conformance", () => {
           .toBe(true);
       }
     });
+
+  it("every Plan 7 route is served (none pending)", () => {
+    expect([...PLAN7_PENDING]).toEqual([]);
+  });
+
+  it("Plan 7 downloads send their stored type as an attachment", () => {
+    const types = ["application/pdf", "image/png", "image/jpeg"];
+    for (const r of DOCUMENT_ROUTES.filter((x) =>
+      x.contentType === "binary")) {
+      const ok = hits.find((h) => h.id === r.id && h.res.status === 200);
+      expect(types, r.id).toContain(ok!.res.headers.get("content-type"));
+      expect(ok!.res.headers.get("content-disposition"), r.id)
+        .toMatch(/^attachment;/);
+    }
+  });
 
   it("every error body parses and carries a known code", () => {
     const errors = hits.filter((h) => h.res.status >= 400);

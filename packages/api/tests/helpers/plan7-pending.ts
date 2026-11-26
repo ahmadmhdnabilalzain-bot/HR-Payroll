@@ -12,7 +12,8 @@ const SERVED: readonly string[] = [
   "letterTemplateCreate", "letterTemplateGet", "letterTemplateVersionAdd",
   "letterTemplatePublish", "letterTemplateNativeReview", "letterPreview",
   "letterIssue", "lettersList", "letterGet", "letterDownload",
-  "letterAcknowledge",
+  "letterAcknowledge", "emiratisationReport", "emiratisationSettingsPut",
+  "employeeEmiratisationPut",
 ];
 
 /**
