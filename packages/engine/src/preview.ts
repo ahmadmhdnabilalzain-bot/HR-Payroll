@@ -30,8 +30,12 @@ function copyPack(pack: RulePack): RulePack {
   return { ...pack, params };
 }
 
-/** Deep copy of the packs with exactly one parameter replaced. */
-function applyChange(
+/**
+ * Deep copy of the packs with exactly one parameter replaced; the
+ * changed param has status "hypothetical". Shared by the settlement
+ * and payslip previews.
+ */
+export function applyRuleChange(
   packs: readonly RulePack[],
   change: RuleChange,
 ): RulePack[] {
@@ -61,7 +65,7 @@ export function previewRuleChange(
   packs: readonly RulePack[],
   change: RuleChange,
 ): RulePreview {
-  const changed = applyChange(packs, change);
+  const changed = applyRuleChange(packs, change);
   const before = calculateSettlement(input, packs);
   const after = calculateSettlement(input, changed);
   return {

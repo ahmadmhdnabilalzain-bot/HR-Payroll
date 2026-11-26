@@ -34,7 +34,8 @@ const ARTICLES: Record<string, RuleSource> = {
   DL57_ART4: { url: LEG + "2254", note: DL57 + "Article 4(1)" },
   DL57_ART5: { url: LEG + "2254", note: DL57 + "Article 5(2)" },
   DL57_ART10: { url: LEG + "2254", note: DL57 + "Article 10(2)" },
-  DL57_ART11: { url: LEG + "2254", note: DL57 + "Article 11(3)" },
+  DL57_ART11: { url: LEG + "2254", note: DL57 + "Article 11(3)-(4)" },
+  DL57_ART12: { url: LEG + "2254", note: DL57 + "Article 12" },
   L7_ART1: { url: LEG + "1111", note: L7 + "Article 1(d)" + L7_CAVEAT },
   L7_ART2: { url: LEG + "1111", note: L7 + "Article 2" + L7_CAVEAT },
   L7_ART10: { url: LEG + "1111", note: L7 + "Article 10" + L7_CAVEAT },
@@ -64,6 +65,11 @@ export const SOURCES: Record<string, RuleSource> = deepFreeze({
   X0PA_EOSB_CALC: {
     url: "https://x0pa.com/calculators/end-of-service-gratuity/",
     note: "Secondary vendor calculator",
+  },
+  MR340_2026_SUMMARY: {
+    url: UAE_GOV_BASE + "payment-of-wages",
+    note: "Ministerial Resolution 340 of 2026 as summarised by u.ae and " +
+      "secondary sources; resolution text not read",
   },
   RESEARCH_EMIRATISATION: {
     url: "",
