@@ -8,7 +8,7 @@ import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
-import { initials } from "../people/words";
+import { Avatar } from "../ui/Avatar";
 import { ChangeNote, CountChange, monthName, SignedMoney } from "./Change";
 import { ExplainHint } from "./ExplainHint";
 import { RollMoney } from "./Roll";
@@ -115,7 +115,7 @@ function PersonLine(p: { p: PersonRow; i: number; typo: boolean;
   return (
     <li className={`${s.row} ${s.faceRow}`}
       style={{ "--i": Math.min(p.i, 8) } as object}>
-      <span className={s.face} aria-hidden="true">{initials(r.name)}</span>
+      <Avatar id={r.id} name={r.name} />
       <span className={s.rowMain}>
         <span className={s.name}>{r.name}</span>
         <span className={s.reason}>

@@ -162,7 +162,7 @@ a.what:hover {
 }
 
 /*
- * The bell's unread mark: a teal dot, not a red count (red is only for
+ * The bell's unread mark: an ink dot, not a red count (red is only for
  * what stops pay). The number is in the button's label.
  */
 .bell {

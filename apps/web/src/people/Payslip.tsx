@@ -66,7 +66,7 @@ export function Payslip(q: { id: string }) {
   const month = formatMonth(data.headline().runMonth, lang);
   const allowed = canSeePay(data, state, q.id);
   return (
-    <div className={`${p.page} ${s.page}`}>
+    <div className={p.page}>
       <header className={p.header}>
         <nav aria-label={t("shell.breadcrumb")} className={p.crumbs}>
           {state.role !== "employee" && (

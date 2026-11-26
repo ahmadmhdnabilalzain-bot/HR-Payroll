@@ -52,10 +52,10 @@ export function buildExpenses(): DemoExpenseClaim[] {
     { id: "exp-001", employeeId: "emp-013",
       titleKey: "expense.entertainment", date: "2026-10-15",
       amount: fils(42500n), vat: fils(2024n), status: "approved",
-      receipt: "receipt-001.png (DEMO)" },
+      receipt: "receipt-001.png" },
     { id: "exp-002", employeeId: "emp-011", titleKey: "expense.travel",
       date: "2026-10-27", amount: fils(118000n), vat: fils(5619n),
-      status: "pending", receipt: "receipt-002.png (DEMO)" },
+      status: "pending", receipt: "receipt-002.png" },
   ];
 }
 

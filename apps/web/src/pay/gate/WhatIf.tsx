@@ -145,7 +145,7 @@ export function WhatIf() {
             after={r.run.after.inFile} /> },
         ]} />
         <p className={s.muted}>Worked out by the same engine as the pay run,
-          on UAE mainland rules as we read them.</p>
+          on the same rules.</p>
       </section>
     </div>
   );

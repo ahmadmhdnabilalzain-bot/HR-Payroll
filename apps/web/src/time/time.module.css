@@ -182,7 +182,7 @@
   background: var(--color-surface-2);
 }
 
-/* Calendar bars are neutral: teal is for actions only (DEMO.md). */
+/* Calendar bars are neutral: colour is for state only (DEMO.md). */
 .legend [data-tone="shift"]::before,
 .grid td[data-tone="shift"] {
   background: color-mix(in srgb, var(--color-text-muted) 30%,
