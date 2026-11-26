@@ -96,8 +96,13 @@ describe("wfh settings and notice", () => {
     }
     const g = await as(s.employee, "GET", S);
     expect(g.body.neverCollected).toEqual([...NEVER_COLLECTED]);
-    // Every table, not only wfh_ ones (review M2b, M2c). `job_title`
-    // is the employee's job, not a window title.
+    // Every table, not only wfh_ ones (review M2b, M2c). Allowed by
+    // table and column: an employee's job title, an expense claim's
+    // title and deadline, a receipt's MIME type. None is a window
+    // title, page content or capture.
+    const innocent = new Set(["employees.job_title",
+      "expense_policies.claim_window_days", "receipts.content_type",
+      "expense_claims.title"]);
     const cols = await ctx.deps.db.query<{ table_name: string;
       column_name: string }>(`SELECT table_name, column_name
       FROM information_schema.columns
@@ -106,7 +111,7 @@ describe("wfh settings and notice", () => {
     const banned = new RegExp("screen|keystroke|key_log|url|title|content|" +
       "host|domain|window|image|capture|clip|typed|keys");
     for (const c of cols) {
-      if (c.column_name === "job_title") continue;
+      if (innocent.has(`${c.table_name}.${c.column_name}`)) continue;
       expect(c.column_name, c.table_name).not.toMatch(banned);
     }
   });

@@ -27,12 +27,14 @@ export const PEOPLE_ROUTES: readonly RouteDef[] = [
   ten(PAYROLL, { id: "updateEmployee", method: "PATCH",
     path: "/v1/employees/{id}", ...one, body: EmployeeUpdate,
     response: EmployeeView }),
+  // Changing pay or where it goes needs an MFA session; nobody but an
+  // owner may change their own (SOD_VIOLATION).
   ten(PAYROLL, { id: "putEmployeeSalary", method: "PUT",
     path: "/v1/employees/{id}/salary", ...one, body: SalaryUpdate,
-    response: EmployeeView }),
+    response: EmployeeView, mfa: true }),
   ten(PAYROLL, { id: "putEmployeeBank", method: "PUT",
     path: "/v1/employees/{id}/bank", ...one, body: BankDetails,
-    response: EmployeeView }),
+    response: EmployeeView, mfa: true }),
   ten(PAYROLL, { id: "getEmployeeBank", method: "GET",
     path: "/v1/employees/{id}/bank", ...one, response: BankDetails,
     mfa: true }),

@@ -269,3 +269,25 @@ names were built earlier).
 - A unique-index race on a duplicate open pause would give 500 (the
   employee row lock covers the normal path), as Plan 3 noted for its
   own unique indexes.
+
+## Review fixes (after `.superpowers/sdd/plan9/api-review.md`)
+
+| Item | Commit | Fix |
+|---|---|---|
+| C1 | `bf3c383` | Consent decisions, withdrawals and uploads take the employee row lock first; a real-PostgreSQL race test (240-minute upload against "withdraw and erase") was red with 240 rows left, green with 0 |
+| I1 | `6005cc6` | Submit voids decisions that no longer fit the frozen day; approve refuses `OVERTIME_DECISION_INVALID`; reject and reopen void every decision (`voided_at`, no deletes); `buildPayInputs` clips to the day and drops rest-day work on a work day with a `DECISION_CLIPPED` item |
+| I3 | `f1624b6` | `LeaveOnDate.parts` keeps each half with its own type; the timesheet day shows `leave.parts`; pay inputs treat each half separately |
+| I4 | `37d09a8` | `WfhExport.minutes` holds every stored minute from the cutoff on |
+| I5 | `e38c490` | Tests for the 24-hour clock-out bound, SoD by submitter, consent time and clock-out boundary, the manager summary scope, the pay-input import graph (side-effect imports too) and a forbidden-column check over every table; each was shown to fail under its mutation (M8, M5b, M14, M10, M17, M9, M2b, M2c) |
+| Minors | `8907545` | M1 real `now` for timesheet WFH totals; M2 paused minutes honour the cutoff; M3 an hr correction closes an open pause and the purge removes open pauses older than the cutoff; M8 future-day corrections refused; M14 clock-math tests in `clock-math.test.ts` |
+| I2 + merge | (merge commit) | `carry-over.ts` passes the time params and stores `excess_halves`; `CarryOverResult` rows show `excessDays` and the engine's `UNUSED_LEAVE_NOT_CARRIED` flags |
+
+Minors not done (need a ruling or are larger): M4 (scheduling the
+purge: handover now says operations should run it daily), M5 (raising
+retention extends old data), M6 (auditing summary and timesheet WFH
+views), M7 (swap peer limited to the same department), M8 rest (open
+records and cross-midnight records in the overlap check), M9 (lock
+checks on clock-out, roster and swap approval), M10 (refuse approving
+a stale sheet), M11 (fixed on main by the Plan 3 review: nobody
+decides their own leave), M12 (handover now says the geofence is
+evidence, not enforcement), M13 (pending leave lowers carry-over).

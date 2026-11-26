@@ -68,6 +68,8 @@ CREATE TABLE leave_carryovers (
   leave_type_id uuid NOT NULL,
   to_year integer NOT NULL,
   halves integer NOT NULL CHECK (halves >= 0),
+  -- Above the cap: kept for HR (cash or agreement), never dropped.
+  excess_halves integer NOT NULL DEFAULT 0 CHECK (excess_halves >= 0),
   expires_on date,
   created_at timestamptz NOT NULL,
   UNIQUE (company_id, employee_id, leave_type_id, to_year),

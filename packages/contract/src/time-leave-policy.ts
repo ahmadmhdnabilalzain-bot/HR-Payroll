@@ -84,7 +84,9 @@ export const CarryOverResult = z.object({
   fromYear: z.number().int(),
   toYear: z.number().int(),
   rows: z.array(z.object({ employeeId: Id, leaveTypeId: Id,
-    days: HalfDays, expiresOn: IsoDate.nullable() })),
+    days: HalfDays, expiresOn: IsoDate.nullable(),
+    /** Above the cap: not carried, kept for HR to settle. */
+    excessDays: HalfDays, flags: z.array(TimeFlagView) })),
   alreadyRun: z.boolean(),
 });
 export type CarryOverResult = z.infer<typeof CarryOverResult>;

@@ -1,9 +1,4 @@
-import type {
-  CompanyUpdate,
-  InviteRequest,
-  LoginRequest,
-  LoginResponse,
-} from "../contract";
+import type { CompanyUpdate, LoginRequest, LoginResponse } from "../contract";
 import {
   later,
   makeToken,
@@ -18,7 +13,6 @@ import { DEMO_PASSWORD, DEMO_TOTP } from "./options";
 import { record } from "./state";
 
 const DEMO_SECRET = "JBSWY3DPEHPK3PXP";
-const INVITE_MS = 72 * 3600 * 1000;
 
 const wrong = (): MockFail =>
   new MockFail("INVALID_CREDENTIALS", "email, password or code is wrong");
@@ -47,30 +41,35 @@ function updateCompany(c: Ctx, body: CompanyUpdate) {
   return next;
 }
 
-function inviteUser(c: Ctx, body: InviteRequest) {
-  const taken = c.s.users.some((u) =>
-    u.email.toLowerCase() === body.email.toLowerCase());
-  if (taken) throw new MockFail("ALREADY_MEMBER", "already a member");
-  record(c.s, signedIn(c), { at: c.now, action: "user.invited",
-    entityType: "user", entityId: null,
-    data: { email: body.email, role: body.role } });
-  return { setupToken: `mock-invite-${c.s.audit.length}`,
-    expiresAt: later(c.now, INVITE_MS) };
+/** The api re-checks the password before any MFA change. */
+function reauthenticate(password: string): void {
+  if (password !== DEMO_PASSWORD) throw wrong();
 }
 
-function mfaEnrol(c: Ctx) {
+/**
+ * MFA enrolment goes to the api's security log, not the audit chain,
+ * so the mock appends no audit event for it.
+ */
+function mfaEnrol(c: Ctx, body: { password: string }) {
   const u = signedIn(c);
   if (u.mfaEnrolled) {
     throw new MockFail("MFA_ALREADY_ENROLLED", "already enrolled");
   }
+  reauthenticate(body.password);
   c.s.pendingMfa.add(u.id);
   const label = encodeURIComponent(`Demo:${u.email}`);
   return { secret: DEMO_SECRET, otpauthUrl: `otpauth://totp/${label}` +
-    `?secret=${DEMO_SECRET}&issuer=Demo` };
+    `?secret=${DEMO_SECRET}&issuer=Demo&algorithm=SHA1&digits=6` +
+    "&period=30" };
 }
 
-function mfaConfirm(c: Ctx, body: { code: string }) {
+/** Does not upgrade this session: sign in with a code for that. */
+function mfaConfirm(c: Ctx, body: { code: string; password: string }) {
   const u = signedIn(c);
+  reauthenticate(body.password);
+  if (u.mfaEnrolled) {
+    throw new MockFail("MFA_ALREADY_ENROLLED", "already enrolled");
+  }
   if (!c.s.pendingMfa.has(u.id)) {
     throw new MockFail("MFA_NOT_STARTED", "enrolment not started");
   }
@@ -79,21 +78,17 @@ function mfaConfirm(c: Ctx, body: { code: string }) {
   }
   c.s.pendingMfa.delete(u.id);
   u.mfaEnrolled = true;
-  record(c.s, u, { at: c.now, action: "user.mfa-enrolled",
-    entityType: "user", entityId: u.id, data: {} });
   return meOf(c);
 }
+
+type MfaBody = { code: string; password: string };
 
 export const AUTH_HANDLERS = {
   login: (c, r) => login(c, r.body as LoginRequest),
   logout: () => null,
   me: (c) => meOf(c),
-  mfaEnrol: (c) => mfaEnrol(c),
-  mfaConfirm: (c, r) => mfaConfirm(c, r.body as { code: string }),
+  mfaEnrol: (c, r) => mfaEnrol(c, r.body as MfaBody),
+  mfaConfirm: (c, r) => mfaConfirm(c, r.body as MfaBody),
   getCompany: (c) => c.s.company,
   updateCompany: (c, r) => updateCompany(c, r.body as CompanyUpdate),
-  listUsers: (c) => ({ items: c.s.users.map((u) => ({ userId: u.id,
-    email: u.email, displayName: u.displayName, role: u.role,
-    employeeId: u.employeeId, mfaEnrolled: u.mfaEnrolled })) }),
-  inviteUser: (c, r) => inviteUser(c, r.body as InviteRequest),
 } satisfies Record<string, Handler>;

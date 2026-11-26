@@ -18,7 +18,14 @@ export interface RouteDef {
   headers?: z.ZodObject;
   response: z.ZodType;
   status: 200 | 201 | 204;
-  contentType?: "text/plain";
+  /**
+   * text/plain: a text attachment. text/csv-optional: JSON, or CSV
+   * when the query has `format=csv`. binary: raw bytes with the stored
+   * content type, always as an attachment.
+   */
+  contentType?: "text/plain" | "text/csv-optional" | "binary";
+  /** Request body limit in bytes when above the default 1 MiB. */
+  bodyLimit?: number;
 }
 
 type Spec = Omit<RouteDef, "auth" | "roles" | "mfa" | "status"> & {

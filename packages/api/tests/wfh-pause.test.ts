@@ -65,7 +65,8 @@ describe("wfh pause", () => {
     const rec = await as(s.employee, "POST", "/v1/attendance/clock-in",
       { method: "web", workLocation: "remote" });
     await as(s.employee, "POST", `${ME}/pause`);
-    const out = new Date(ctx.clock.now.getTime() + 60_000).toISOString();
+    ctx.clock.advance(2 * 60_000);
+    const out = new Date(ctx.clock.now.getTime() - 60_000).toISOString();
     const put = await as(s.hr, "PUT", `/v1/attendance/${rec.body.id}`, {
       clockIn: rec.body.clockIn, clockOut: out, note: "closed by hr" });
     expect(put.status, put.text).toBe(200);

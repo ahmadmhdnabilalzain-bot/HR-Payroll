@@ -14,7 +14,12 @@ export interface DayInput {
   date: string;
   kind: "work" | "rest" | "holiday";
   shift: ShiftSlot | null;
-  /** Closed intervals only; an open record sets `openRecord`. */
+  /**
+   * Closed intervals only, minutes from 00:00 Dubai (fixed UTC+4, no
+   * daylight saving); an open record sets `openRecord`. An interval
+   * over 24 hours is left out and flagged `LONG_RECORD` plus
+   * `MISSED_CLOCK_OUT`, never thrown.
+   */
   worked: Interval[];
   openRecord: boolean;
   ramadan: boolean;
@@ -90,6 +95,7 @@ export interface LeaveAccrualPolicy {
 export interface BalanceInput {
   accruedHalves: number;
   carriedHalves: number;
+  /** Company policy, not law (unsourced); counsel to confirm. */
   carriedExpiresOn: string | null;
   adjustmentHalves: number;
   taken: { date: string; halves: number }[];
@@ -102,6 +108,15 @@ export interface BalanceResult {
   carriedUsedHalves: number;
   expiredHalves: number;
   availableHalves: number;
+  /** `CARRIED_LEAVE_EXPIRED` when carried halves expired (unsourced). */
+  flags: TimeFlag[];
+}
+
+export interface CarryOverResult {
+  carriedHalves: number;
+  /** Above the cap: kept for HR (cash or agreement), never dropped. */
+  excessHalves: number;
+  flags: TimeFlag[];
 }
 
 export type LeavePayrollKind = "annual" | "sick" | "maternity" |

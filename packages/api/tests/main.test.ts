@@ -20,7 +20,7 @@ describe("loadConfig", () => {
   });
   it("defaults the port and the migration URL", () => {
     const c = loadConfig({ DATABASE_URL: "postgres://runtime@h/db",
-      PAYROLL_MASTER_KEY: KEY });
+      PAYROLL_MASTER_KEY: KEY, RECEIPTS_DIR: "/var/lib/payroll/receipts" });
     expect(c.port).toBe(8787);
     expect(c.migrateUrl).toBe("postgres://runtime@h/db");
     expect(c.masterKey.length).toBe(32);
@@ -28,8 +28,13 @@ describe("loadConfig", () => {
   it("reads MIGRATE_DATABASE_URL and PORT", () => {
     const c = loadConfig({ DATABASE_URL: "postgres://runtime@h/db",
       MIGRATE_DATABASE_URL: "postgres://owner@h/db",
-      PAYROLL_MASTER_KEY: KEY, PORT: "9000" });
+      PAYROLL_MASTER_KEY: KEY, PORT: "9000", RECEIPTS_DIR: "/r" });
     expect(c.migrateUrl).toBe("postgres://owner@h/db");
     expect(c.port).toBe(9000);
+    expect(c.receiptsDir).toBe("/r");
+  });
+  it("needs a receipts directory", () => {
+    expect(() => loadConfig({ DATABASE_URL: "postgres://runtime@h/db",
+      PAYROLL_MASTER_KEY: KEY })).toThrow("RECEIPTS_DIR is required");
   });
 });

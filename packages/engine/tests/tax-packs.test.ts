@@ -40,7 +40,7 @@ const VAT_ROWS: Row[] = [
 
 const CT_ROWS: Row[] = [
   ["zeroBandUpperFils", 37500000, S, "FTA_CT_SB_BULLETIN"],
-  ["zeroBandRateBps", 0, S, "FTA_CT_SB_BULLETIN"],
+  ["zeroBandRateBps", 0, S, "RESEARCH_CT_ZERO_RATE"],
   ["mainRateBps", 900, S, "FTA_CT_SB_BULLETIN"],
   ["taxRounding", "HALF_UP", C, EC],
   ["sbrRevenueThresholdFils", 300000000, S, "FTA_CT_SBR_TOPIC"],
@@ -201,5 +201,15 @@ describe("tax source ids", () => {
       "(unofficial translation)");
     expect(sourceOf("FTA_NEWS_2026_10_25").url).toBe("https://tax.gov.ae");
     expect(sourceOf("MD66_2026").note).toContain("unsigned");
+    expect(sourceOf("MOF_EINV_GUIDELINES").note)
+      .toContain("link serves V2.1");
+  });
+  it("the 0% band cites the note that shows 0%", () => {
+    const s = sourceOf("RESEARCH_CT_ZERO_RATE");
+    expect(s.url).toBe("");
+    expect(s.note).toContain(
+      "docs/research/2026-11-25-vat-corporate-tax-einvoicing.md");
+    expect(s.note).toContain("0% on taxable income up to AED 375,000");
+    expect(s.note).toContain("cut off");
   });
 });

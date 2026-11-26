@@ -1,3 +1,4 @@
+import type { WirePayRunCreate } from "../contract";
 import type { MockOptions } from "./options";
 import { nextEvent, type AuditInput } from "./audit";
 import { buildSeed } from "./seed";
@@ -6,6 +7,8 @@ import { KIND, uid, type MockSeed, type MockUser } from "./seed-types";
 export interface MockState extends MockSeed {
   /** Idempotency key to the body hash and the run it created. */
   idempotency: Map<string, { hash: string; runId: string }>;
+  /** Each run's entries, to recompute its input hash at approval. */
+  runEntries: Map<string, WirePayRunCreate["entries"]>;
   /** Users who started MFA enrolment. */
   pendingMfa: Set<string>;
   counter: number;
@@ -19,6 +22,7 @@ export function createState(o: MockOptions): MockState {
     ...s,
     users: s.users.map((u) => ({ ...u })),
     idempotency: new Map(),
+    runEntries: new Map(),
     pendingMfa: new Set(),
     counter: 100000,
   };

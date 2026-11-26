@@ -79,4 +79,22 @@ describe("buildOpenApi", () => {
     expect(JSON.stringify(op.responses["401"])).toContain(
       "#/components/schemas/ApiErrorBody");
   });
+  it("the receipt download lists the three receipt types", () => {
+    const op = (doc.paths["/v1/receipts/{id}/content"] as
+      Record<string, Op>).get!;
+    expect(Object.keys(op.responses["200"]?.content ?? {}).sort())
+      .toEqual(["application/pdf", "image/jpeg", "image/png"]);
+  });
+  it("csv-optional reports list JSON and CSV", () => {
+    const op = (doc.paths["/v1/expense-reports/summary"] as
+      Record<string, Op>).get!;
+    expect(Object.keys(op.responses["200"]?.content ?? {}).sort())
+      .toEqual(["application/json", "text/csv"]);
+  });
+  it("tenant operations list 413, 415 and 429 errors", () => {
+    const op = (doc.paths["/v1/receipts"] as Record<string, Op>).post!;
+    for (const code of ["413", "415", "429"]) {
+      expect(op.responses, code).toHaveProperty(code);
+    }
+  });
 });

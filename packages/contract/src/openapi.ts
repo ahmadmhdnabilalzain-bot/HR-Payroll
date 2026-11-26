@@ -51,16 +51,33 @@ function errorStatuses(r: RouteDef): string[] {
   if (r.auth === "public") return ["400", "401", "409", "410", "423",
     "500"];
   if (r.auth === "user") return ["400", "401", "403", "409", "500"];
-  return ["400", "401", "403", "404", "409", "410", "422", "500"];
+  return ["400", "401", "403", "404", "409", "410", "413", "415", "422",
+    "429", "500"];
+}
+
+const BINARY = { type: "string", format: "binary" };
+const RECEIPT_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+
+/** The success body's media types and schemas. */
+function successContent(r: RouteDef): Json {
+  if (r.contentType === "binary") {
+    return Object.fromEntries(RECEIPT_TYPES.map((t) =>
+      [t, { schema: BINARY }]));
+  }
+  const json = { schema: schemaOrRef(r.response, "output") };
+  if (r.contentType === "text/csv-optional") {
+    return { "application/json": json,
+      "text/csv": { schema: { type: "string" } } };
+  }
+  return { [r.contentType ?? "application/json"]: json };
 }
 
 function responsesOf(r: RouteDef): Json {
   const out: Json = {};
   if (r.status === 204) out["204"] = { description: "No content" };
   else {
-    const type = r.contentType ?? "application/json";
-    out[String(r.status)] = { description: "Success", content: {
-      [type]: { schema: schemaOrRef(r.response, "output") } } };
+    out[String(r.status)] = { description: "Success",
+      content: successContent(r) };
   }
   const error = { $ref: "#/components/schemas/ApiErrorBody" };
   for (const s of errorStatuses(r)) {

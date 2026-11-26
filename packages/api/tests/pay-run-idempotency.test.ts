@@ -1,6 +1,12 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { withTenant } from "../src/db/tenant";
-import { march, postRun, seedCompany, type Seeded } from "./helpers/seed";
+import {
+  march,
+  postRun,
+  salaryOf,
+  seedCompany,
+  type Seeded,
+} from "./helpers/seed";
 import { call, makeApp } from "./helpers/test-app";
 
 describe("pay-run idempotency (Review Focus 2)", () => {
@@ -20,6 +26,16 @@ describe("pay-run idempotency (Review Focus 2)", () => {
     expect([a.status, b.status].sort()).toEqual([200, 201]);
     expect(a.body.id).toBe(b.body.id);
     expect((await count())[0]?.n).toBe(1n);
+  });
+
+  it("idempotent_replay_after_change", async () => {
+    const first = await postRun(ctx, s.hr, s, "k-1", march);
+    await call(ctx.app, s.owner.token, s.companyId, "PUT",
+      `/v1/employees/${s.emp.report}/salary`, salaryOf("2500.00"));
+    const again = await postRun(ctx, s.hr, s, "k-1", march);
+    expect(again.status).toBe(200);
+    expect(again.body.id).toBe(first.body.id);
+    expect(again.body.inputHash).toBe(first.body.inputHash);
   });
 
   it("refuses key reuse with another body and a second run", async () => {

@@ -50,6 +50,34 @@ describe("keyring (AES-256-GCM)", () => {
     expect(() => ring.decryptGlobal("users:mfa_secret:u1", c))
       .toThrow(/another master key/);
   });
+  it("refuses a cipher with a short or cut tag", () => {
+    const c = ring.encrypt(dekA, aad(A), "secret");
+    const [v, kid, body] = c.split(".");
+    const packed = Buffer.from(body!, "base64url");
+    // 12-byte IV, then only 4 bytes of tag and no cipher text.
+    const short = `${v}.${kid}.${packed.subarray(0, 16)
+      .toString("base64url")}`;
+    expect(() => ring.decrypt(dekA, aad(A), short)).toThrow(/too short/);
+    const iv = packed.subarray(0, 12);
+    const fourByteTag = Buffer.concat([iv, packed.subarray(12, 16),
+      packed.subarray(28)]);
+    expect(() => ring.decrypt(dekA, aad(A),
+      `${v}.${kid}.${fourByteTag.toString("base64url")}`)).toThrow();
+  });
+  it("a company key unwraps once and keeps the same rules", () => {
+    const k = ring.companyKey(dekA, A);
+    const c = k.encrypt(aad(A), "7777.77");
+    expect(ring.decrypt(dekA, aad(A), c)).toBe("7777.77");
+    expect(k.decrypt(aad(A), ring.encrypt(dekA, aad(A), "x"))).toBe("x");
+    expect(() => k.encrypt(aad(B), "x")).toThrow(/company/);
+  });
+  it("company MACs are stable per company and differ across them", () => {
+    const a1 = ring.companyKey(dekA, A).mac("iban", "AE07");
+    expect(ring.companyKey(dekA, A).mac("iban", "AE07")).toBe(a1);
+    expect(a1).toMatch(/^[0-9a-f]{64}$/);
+    expect(ring.companyKey(dekB, B).mac("iban", "AE07")).not.toBe(a1);
+    expect(ring.companyKey(dekA, A).mac("labour", "AE07")).not.toBe(a1);
+  });
   it("refuses a key that is not 32 bytes", () => {
     expect(() => keyringFromKey(new Uint8Array(16), (n) => randomBytes(n)))
       .toThrow(/32 bytes/);

@@ -10,11 +10,33 @@ import type { App } from "../../src/http/context";
 
 export { IBAN_SENTINEL, SALARY_SENTINEL };
 
-/** The viewers' own values: never the sentinels. */
-export const MANAGER_PAY = "1111.11";
-export const EMPLOYEE_PAY = "2222.22";
-const MANAGER_IBAN = "AE110000000000000000011";
-const EMPLOYEE_IBAN = "AE220000000000000000022";
+export type Target = "manager" | "report" | "report2" | "outsider";
+
+/**
+ * A distinct value per employee and field, so a leak shows whose data
+ * leaked. No value is a substring of another, of "1500.00" or of an
+ * id. `fils` and `gross` are the derived forms (trace result, payslip
+ * gross with housing 1500.00).
+ */
+export const SENTINELS: Record<Target, { salary: string; fils: string;
+  gross: string; iban: string; labour: string; eid: string }> = {
+  manager: { salary: "1111.11", fils: "111111", gross: "2611.11",
+    iban: "AE110000000000000000011", labour: "77000000000001",
+    eid: "784199000000111" },
+  report: { salary: "2222.22", fils: "222222", gross: "3722.22",
+    iban: "AE220000000000000000022", labour: "77000000000002",
+    eid: "784199000000222" },
+  report2: { salary: SALARY_SENTINEL, fils: "777777", gross: "9277.77",
+    iban: IBAN_SENTINEL, labour: "77000000000003",
+    eid: "784199000000333" },
+  outsider: { salary: "6666.66", fils: "666666", gross: "8166.66",
+    iban: "AE440000000000000000044", labour: "77000000000004",
+    eid: "784199000000444" },
+};
+
+/** The viewers' own pay (manager and employee users). */
+export const MANAGER_PAY = SENTINELS.manager.salary;
+export const EMPLOYEE_PAY = SENTINELS.report.salary;
 const ROUTING = "803320101";
 
 export interface SeedUser {
@@ -30,7 +52,7 @@ export interface Seeded {
   manager: SeedUser;
   employee: SeedUser;
   /** Employee records: the manager's and employee user's own, the
-   * manager's second report and an outsider (both carry sentinels). */
+   * manager's second report and an outsider (see SENTINELS). */
   emp: { manager: string; report: string; report2: string;
     outsider: string };
 }
@@ -54,22 +76,24 @@ async function must(p: Promise<{ status: number; text: string; body: any }>,
 }
 
 async function employee(ctx: Ctx, own: SeedUser, companyId: string,
-  n: number, managerId: string | null, pay: string, iban: string) {
+  n: number, managerId: string | null, t: Target) {
+  const v = SENTINELS[t];
   const body: Record<string, unknown> = { number: `E-${n}`,
     fullName: `Person ${n}`, jobTitle: "Clerk", nationality: "IN",
     workerClass: "expat-full-time", joiningDate: "2019-01-01",
-    labourPersonId: `000000000000${String(n).padStart(2, "0")}` };
+    labourPersonId: v.labour, emiratesIdNumber: v.eid };
   if (managerId !== null) body.managerId = managerId;
   const e = await must(call(ctx.app, own.token, companyId, "POST",
     "/v1/employees", body), 201);
   await must(call(ctx.app, own.token, companyId, "PUT",
-    `/v1/employees/${e.id}/salary`, salaryOf(pay)), 200);
+    `/v1/employees/${e.id}/salary`, salaryOf(v.salary)), 200);
   await must(call(ctx.app, own.token, companyId, "PUT",
-    `/v1/employees/${e.id}/bank`, { routingCode: ROUTING, iban }), 200);
+    `/v1/employees/${e.id}/bank`, { routingCode: ROUTING, iban: v.iban }),
+  200);
   return e.id as string;
 }
 
-async function member(ctx: Ctx, own: SeedUser, companyId: string,
+export async function member(ctx: Ctx, own: SeedUser, companyId: string,
   email: string, role: string, employeeId?: string): Promise<SeedUser> {
   const body: Record<string, string> = { email, role };
   if (employeeId !== undefined) body.employeeId = employeeId;
@@ -104,14 +128,10 @@ export async function seedCompany(ctx: Ctx, name: string): Promise<Seeded> {
   const ownerMfa = await enableMfa(ctx.app, ctx.clock, a);
   const owner = { token: ownerMfa.token, userId: a.userId, email: a.email };
   const c = a.companyId;
-  const m = await employee(ctx, owner, c, 1, null, MANAGER_PAY,
-    MANAGER_IBAN);
-  const report = await employee(ctx, owner, c, 2, m, EMPLOYEE_PAY,
-    EMPLOYEE_IBAN);
-  const report2 = await employee(ctx, owner, c, 3, m, SALARY_SENTINEL,
-    IBAN_SENTINEL);
-  const outsider = await employee(ctx, owner, c, 4, null, SALARY_SENTINEL,
-    IBAN_SENTINEL);
+  const m = await employee(ctx, owner, c, 1, null, "manager");
+  const report = await employee(ctx, owner, c, 2, m, "report");
+  const report2 = await employee(ctx, owner, c, 3, m, "report2");
+  const outsider = await employee(ctx, owner, c, 4, null, "outsider");
   return {
     companyId: c, owner,
     hr: await member(ctx, owner, c, `hr.${name}@example.com`, "hr"),

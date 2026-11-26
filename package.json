@@ -15,8 +15,11 @@
     "lines": "node scripts/check-line-length.mjs",
     "lines:test": "node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test",
-    "check": "pnpm lines && pnpm lines:test && pnpm typecheck && pnpm test"
+    "test": "pnpm -r --workspace-concurrency=2 --if-present test",
+    "lines:ops": "node scripts/check-ops-line-length.mjs",
+    "ops:test": "node --test deploy/*.test.mjs",
+    "ops:typecheck": "pnpm --filter @payroll/api exec tsc --noEmit -p ../../deploy/tsconfig.json",
+    "check": "pnpm lines && pnpm lines:ops && pnpm lines:test && pnpm ops:test && pnpm typecheck && pnpm ops:typecheck && pnpm test"
   },
   "devDependencies": {
     "fast-check": "4.11.0",

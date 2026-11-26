@@ -3,8 +3,12 @@ import type { App as Hono } from "../../src/http/context";
 import { createApp } from "../../src/app";
 import { base32Decode, totpCode } from "../../src/auth/totp";
 import { keyringFromKey } from "../../src/crypto/keyring";
+import type { SubjectHandler } from "../../src/approvals/subjects";
 import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
+import type { ReceiptReader } from "../../src/receipts/reader";
+import { nullReceiptReader } from "../../src/receipts/reader";
+import { memoryBlobStore, type BlobStore } from "../../src/storage/blob";
 import { createTestDb } from "./test-db";
 
 export const TEST_KEK = new Uint8Array(32).fill(7);
@@ -19,7 +23,18 @@ export function sequentialId(n: number): string {
   return `00000000-0000-4000-8000-${n.toString(16).padStart(12, "0")}`;
 }
 
-export async function makeApp(opts: { start?: string; db?: Db } = {}) {
+export interface MakeAppOpts {
+  start?: string;
+  db?: Db;
+  /** Approval subject handlers (default: the app's own). */
+  subjects?: SubjectHandler[];
+  /** Receipt reader (default: the null reader). */
+  reader?: ReceiptReader;
+  /** Blob store (default: a fresh memory store). */
+  blobs?: BlobStore;
+}
+
+export async function makeApp(opts: MakeAppOpts = {}) {
   const clock: Clock = {
     now: new Date(opts.start ?? "2026-03-01T08:00:00.000Z"),
     advance(ms) {
@@ -37,8 +52,12 @@ export async function makeApp(opts: { start?: string; db?: Db } = {}) {
     keyring: keyringFromKey(TEST_KEK, rand),
     log: (line) => logs.push(line),
     passwordCost: { N: 1024 },
+    blobs: opts.blobs ?? memoryBlobStore(),
+    receiptReader: opts.reader ?? nullReceiptReader,
   };
-  return { app: createApp(deps), deps, clock, logs };
+  const app = createApp(deps, opts.subjects === undefined ? {}
+    : { subjects: opts.subjects });
+  return { app, deps, clock, logs };
 }
 
 export interface Res {
@@ -57,6 +76,15 @@ async function toRes(r: Response): Promise<Res> {
     body = text;
   }
   return { status: r.status, body, text, headers: r.headers };
+}
+
+/** A GET whose body is read as bytes (binary downloads). */
+export async function callBytes(app: Hono, token: string,
+  companyId: string, path: string) {
+  const r = await app.request(path, { headers: {
+    authorization: `Bearer ${token}`, "x-company-id": companyId } });
+  return { status: r.status, headers: r.headers,
+    bytes: new Uint8Array(await r.arrayBuffer()) };
 }
 
 export async function call(

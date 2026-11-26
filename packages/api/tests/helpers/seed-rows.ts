@@ -1,5 +1,6 @@
 import type { Db } from "../../src/db/db";
 import { seedTimeRows } from "./seed-rows-time";
+import { seedExpenseRows } from "./seed-rows-expenses";
 
 const AT = "2026-03-01T08:00:00.000Z";
 const H0 = "0".repeat(64);
@@ -107,6 +108,7 @@ async function seedOne(admin: Db, s: SeedCompany): Promise<void> {
   await admin.query(
     "INSERT INTO audit_heads (company_id, seq, hash) VALUES ($1, 1, $2)",
     [c, H0]);
+  await seedExpenseRows(admin, c, rowId(c, "f1"), s.userId);
 }
 
 /**

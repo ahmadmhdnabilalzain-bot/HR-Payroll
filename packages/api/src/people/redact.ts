@@ -65,5 +65,6 @@ export function toEmployeeView(r: EmployeeRow, v: Viewer,
       ibanLast4: r.bank.ibanLast4 } : null,
     labourPersonId: ids ? r.labourPersonId : null,
     emiratesIdNumber: ids ? r.emiratesIdNumber : null,
+    ...(r.unreadable.length > 0 ? { unreadable: [...r.unreadable] } : {}),
   };
 }

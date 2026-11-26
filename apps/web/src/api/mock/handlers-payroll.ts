@@ -12,6 +12,7 @@ import { param, signedIn, type Ctx, type Handler } from "./context";
 import { MockFail, notFound } from "./fail";
 import { computeRun } from "./pay";
 import { canonical, sha256 } from "./sha256";
+import { snapshotHash } from "./snapshot";
 import { newId, record, replace } from "./state";
 
 export function findRun(c: Ctx, id: string): AppPayRun {
@@ -20,10 +21,20 @@ export function findRun(c: Ctx, id: string): AppPayRun {
   return run;
 }
 
-function audit(c: Ctx, action: string, run: AppPayRun): void {
+/** The api's pay-run audit: `period`, plus extra data on create. */
+function audit(
+  c: Ctx, action: string, run: AppPayRun,
+  extra: Record<string, string | number> = {},
+): void {
+  const period = { year: run.period.year, month: run.period.month };
   record(c.s, signedIn(c), { at: c.now, action, entityType: "pay-run",
-    entityId: run.id, data: { year: run.period.year,
-      month: run.period.month } });
+    entityId: run.id, data: { period, ...extra } });
+}
+
+function inputHash(c: Ctx, run: AppPayRun): string {
+  return snapshotHash({ period: run.period,
+    entries: c.s.runEntries.get(run.id) ?? [], employees: c.s.employees,
+    leave: c.s.leave, leaveTypes: c.s.leaveTypes });
 }
 
 function replayed(c: Ctx, key: string, hash: string): AppPayRun | null {
@@ -54,15 +65,20 @@ function create(c: Ctx, r: WireRequest): AppPayRun {
   const id = newId(c.s, "run");
   const slips = drafts.map((d) => ({ ...d, id: newId(c.s, "payslip"),
     payRunId: id }));
-  const run: AppPayRun = { id, period, status: "draft",
+  c.s.runEntries.set(id, wire.entries);
+  const draft: AppPayRun = { id, period, status: "draft",
     createdBy: signedIn(c).id, approvedBy: null, createdAt: c.now,
-    approvedAt: null, inputHash: hash, employeeCount: slips.length,
+    approvedAt: null, inputHash: "", employeeCount: slips.length,
     gross: slips.reduce((t: Fils, s) => add(t, s.gross), fils(0n)),
-    notComputed: [...NOT_COMPUTED_PAY] };
+    notComputed: [...NOT_COMPUTED_PAY], sifFileId: null,
+    reimbursementTotal: fils(0n), claimCount: 0, pendingClaimCount: 0,
+    reimbursementNote: null };
+  const run = { ...draft, inputHash: inputHash(c, draft) };
   c.s.runs = [...c.s.runs, run];
   c.s.payslips = [...c.s.payslips, ...slips];
   c.s.idempotency.set(key, { hash, runId: id });
-  audit(c, "payroll.run-created", run);
+  audit(c, "pay-run.created", run, { employeeCount: run.employeeCount,
+    inputHash: run.inputHash });
   return run;
 }
 
@@ -75,10 +91,14 @@ function approve(c: Ctx, id: string): AppPayRun {
   if (run.createdBy === u.id) {
     throw new MockFail("SOD_VIOLATION", "the creator cannot approve");
   }
+  if (inputHash(c, run) !== run.inputHash) {
+    throw new MockFail("RUN_INPUTS_CHANGED",
+      "salaries or unpaid leave changed since the draft");
+  }
   const next: AppPayRun = { ...run, status: "approved", approvedBy: u.id,
     approvedAt: c.now };
   c.s.runs = replace(c.s.runs, next);
-  audit(c, "payroll.run-approved", next);
+  audit(c, "pay-run.approved", next);
   return next;
 }
 
@@ -89,7 +109,7 @@ function voidRun(c: Ctx, id: string): AppPayRun {
   }
   const next: AppPayRun = { ...run, status: "void" };
   c.s.runs = replace(c.s.runs, next);
-  audit(c, "payroll.run-voided", next);
+  audit(c, "pay-run.voided", next);
   return next;
 }
 

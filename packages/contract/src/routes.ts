@@ -1,5 +1,6 @@
 import type { RouteDef } from "./route-def";
 import { ACCOUNT_ROUTES } from "./routes-account";
+import { EXPENSE_ROUTES } from "./routes-expenses";
 import { PAY_ROUTES } from "./routes-pay";
 import { PEOPLE_ROUTES } from "./routes-people";
 import { LEAVE_ATTENDANCE_ROUTES, TIME_ROUTES } from "./routes-time";
@@ -14,6 +15,7 @@ export const ROUTES: readonly RouteDef[] = [
   ...LEAVE_ATTENDANCE_ROUTES,
   ...PAY_ROUTES,
   ...TIME_ROUTES,
+  ...EXPENSE_ROUTES,
 ];
 
 export function routeById(id: string): RouteDef {

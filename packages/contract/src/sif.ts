@@ -25,6 +25,11 @@ export const SifFile = z.object({
   errorCount: z.number().int().min(0),
   warningCount: z.number().int().min(0),
   statement: z.literal(SIF_STATEMENT),
+  /**
+   * Employees whose live bank details or labour id differ from the
+   * approved run's. The file always uses the approved values.
+   */
+  bankChangedSinceApproval: z.array(Id).optional(),
 });
 export type SifFile = z.infer<typeof SifFile>;
 

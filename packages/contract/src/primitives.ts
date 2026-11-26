@@ -8,6 +8,8 @@ export const IsoDate = z.iso.date();
 export const Timestamp = z.iso.datetime();
 /** AED on the wire: two decimals, never negative, never a float. */
 export const Money = z.string().regex(/^\d{1,9}\.\d{2}$/);
+/** The largest amount `Money` carries, in fils (999,999,999.99 AED). */
+export const MONEY_MAX_FILS = 99_999_999_999n;
 /** Labour person id (WPS), 14 digits zero-padded. */
 export const PersonId = z.string().regex(/^\d{14}$/);
 /** Bank routing code (WPS), 9 digits. */
@@ -22,6 +24,19 @@ export const Period = z.object({
 });
 export const Email = z.email().max(254);
 export const Name = z.string().trim().min(1).max(200);
+
+/**
+ * No C0 or C1 control characters (NUL included) and no bidi embedding,
+ * override or isolate characters: free text that is stored, shown or
+ * exported (file names, notes, descriptions, reader suggestions).
+ */
+export const SAFE_TEXT = new RegExp("^[^\\u0000-\\u001f\\u007f-\\u009f" +
+  "\\u202a-\\u202e\\u2066-\\u2069]*$");
+
+/** Trimmed free text of `min` to `max` characters, SAFE_TEXT only. */
+export function text(min: number, max: number) {
+  return z.string().trim().min(min).max(max).regex(SAFE_TEXT);
+}
 
 /** Every list response: `{ items }`, so fields can be added later. */
 export function listOf<T extends z.ZodType>(item: T) {

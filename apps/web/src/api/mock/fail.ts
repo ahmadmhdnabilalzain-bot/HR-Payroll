@@ -1,5 +1,5 @@
 import type { ErrorCode, PayRunProblem } from "../contract";
-import { encodeProblems, type ErrorDetail } from "../errors";
+import type { ErrorDetail } from "../errors";
 
 /** A refusal inside the mock; becomes the server's error body. */
 export class MockFail extends Error {
@@ -15,7 +15,7 @@ export class MockFail extends Error {
 
   static problems(ps: readonly PayRunProblem[]): MockFail {
     return new MockFail("PAY_RUN_PROBLEMS",
-      "some employees need more details", { problems: encodeProblems(ps) });
+      "some employees need more details", { problems: [...ps] });
   }
 }
 

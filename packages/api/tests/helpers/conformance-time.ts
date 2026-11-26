@@ -97,11 +97,12 @@ async function correctionFlow(f: TimeFlowCtx) {
   const ask = (d: string) => hit("createCorrectionRequest", emp, c, {}, {
     date: d, clockIn: `${d}T05:00:00.000Z`, clockOut: `${d}T13:00:00.000Z`,
     reason: "Forgot to clock in" });
-  const a = await ask("2026-03-02");
+  // Past days (the conformance clock is 2026-03-01).
+  const a = await ask("2026-02-23");
   await hit("approveCorrectionRequest", owner, c, { id: a.body.id });
-  const b = await ask("2026-03-03");
+  const b = await ask("2026-02-24");
   await hit("rejectCorrectionRequest", owner, c, { id: b.body.id }, {});
-  const d = await ask("2026-03-04");
+  const d = await ask("2026-02-25");
   await hit("cancelCorrectionRequest", emp, c, { id: d.body.id });
   await hit("listCorrectionRequests", emp, c);
 }

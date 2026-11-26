@@ -208,3 +208,90 @@ hand, and each one matched the real arithmetic.
   rate on a working basis is open.
 - `ER1_2022_ART15` cites 15(2). The note quotes it as READ in its
   section 13, not in section 1 next to the other hours articles.
+
+## Review fixes (law and correctness review, READY AFTER FIXES)
+
+Merged `origin/claude/quirky-wozniak-b7xkvr` (`435896e`) first. Each
+fix was written test-first, with the engine typecheck, the engine
+tests, `pnpm lines` and `pnpm lines:test` green before each commit.
+Engine tests: 584, all passing.
+
+- `90b96c2` C1 (Critical): only the part of the rostered break that
+  is not already an unclocked gap inside the shift is assumed, with
+  `max(0, clocked - assumed)`. The review case (540-780 and 840-1140
+  on a 540-1080 shift with a 60-minute break) gives worked 540 and
+  overtime 60. A property checks that worked and overtime never fall
+  as clocked time rises. Plan rule 3 is amended. M6 (half-day
+  overtime) is documented, not changed. Halving the break would make
+  the plan's `half_day_am_leave_halves_schedule` show 210 worked
+  minutes for a fully worked afternoon, an understatement the approver
+  cannot raise, whereas an overstatement stays a candidate the
+  approver reduces.
+- `63c7583` I1: on a shift day, overtime is
+  `max(0, worked - min(scheduled, limit))`, where the limit includes
+  the Ramadan reduction. Night minutes come from the worked time
+  outside the shift, or from all worked time when the limit binds. M5:
+  with no shift, night is `min(overtime, night minutes worked)`. M2:
+  the Ramadan overtime trace says "reading ... not stated in ER
+  15(2)". Plan rules 6 and 7 and Ruling 4 are amended.
+- `04a1e3c` I2 (engine side): a closed interval longer than 24 hours,
+  or outside -1440..2880, is left out of worked time. It is flagged
+  `LONG_RECORD` and `MISSED_CLOCK_OUT` and never throws. M7:
+  fractional minutes throw `INVALID_INTERVAL` or `INVALID_SHIFT`, in
+  both the day sheet and the roster check. M8: the fixed UTC+4,
+  no-DST assumption is stated in the pack, in `Interval` and in
+  `DayInput`.
+- `60bdc53` I4: `carryOverHalves(remaining, cap, p)` returns
+  `{ carriedHalves, excessHalves, flags }`. Any excess raises
+  `UNUSED_LEAVE_NOT_CARRIED` with rule `timeCarryOverMaxShareBps`; its
+  note says ER 19(1) offers cash as the alternative and that
+  forfeiture is unsourced. `balanceHalves` adds `flags` with
+  `CARRIED_LEAVE_EXPIRED` (company policy, not law; unsourced).
+  Halves must be whole (`INVALID_HALVES`). The plan's Tasks 2 and 7
+  are amended.
+- `9382f23` M3: `MONTHLY_BELOW_FIRST_YEAR_RATE` now runs on the
+  calendar basis only. This supersedes Decision 11 above.
+- `e981beb` I5: `tests/time-boundaries.test.ts` pins every surviving
+  mutant: the 21-day window, the exact limits of each `>` check, both
+  expiry boundaries, the floor roundings, worked never below zero,
+  and sick days over 90. `balance_identity` is replaced by a property
+  checked against an independent model of expiry. I re-ran all 13
+  mutations listed (the review counts 12 survivors and lists 13) on a
+  copy of the engine. Each now fails a test; the unmutated copy
+  passes.
+- `6c3420b` M1: the Art 19(5) official text is added to the labour
+  law note as "search excerpt, not read in full" and quoted at the
+  pack param. The day-laborer exclusion is not modelled.
+
+These supersede the matching Concerns above: the Art 19(5) quote and
+Decision 11 are settled, and `INVALID_INTERVAL` no longer fires for a
+long record.
+
+Plan corrections from the review: rule 3, rules 6 and 7, rule 8
+(`LONG_RECORD`), Ruling 4, and the Task 2 interfaces and test lines
+for `balanceHalves`, `carryOverHalves` and the monthly-rate warning.
+The Task 7 carry-over run now stores the excess. These are rule
+changes the review asked for, not arithmetic errors.
+
+### Needed in the contract and API build (not engine)
+
+- I2: the clock-out route should refuse with 422 a clock-out more
+  than 24 hours after clock-in, pointing to a correction.
+  `buildDayInputs` must never throw: it should pass a record longer
+  than the tracked-hours bound as `openRecord: true` without its
+  interval. The engine also tolerates such an interval and flags it.
+- I3: the shift template schema must refuse `breakMinutes >= span`
+  and `start == end`. The engine still throws `INVALID_SHIFT` for a
+  break longer than its span, an impossible shape that the contract
+  must stop first.
+- Task 7: store `excessHalves` and show `UNUSED_LEAVE_NOT_CARRIED` to
+  HR. Show `CARRIED_LEAVE_EXPIRED` beside any expiry setting, labelled
+  "company policy, not law; counsel to confirm".
+
+### Not fixed (left for counsel or a later task)
+
+- M4 (no day-level Art 18 flag for a day worked straight through),
+  M9 (duplicate pack values across `ae-payroll` and `ae-time`, no
+  consistency test), M10 (holidays inside calendar-basis leave,
+  `periodHourFlags` needing 20 days of lead-in), M11 (source note
+  ranges kept from Plan 5). The coordinator did not ask for these.

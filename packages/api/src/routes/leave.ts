@@ -23,11 +23,14 @@ import {
   toLeaveRequest,
   type RequestRow,
 } from "../leave/requests";
+import { sealerFor } from "../people/employees";
 import { inScope, viewerScope } from "../people/redact";
 import { dubaiDate } from "../time/dubai";
 
 type IdCtx<B = unknown, Q = unknown> = ReqCtx<B, Q, { id: string }>;
 const co = (ctx: ReqCtx) => ctx.tenant!.companyId;
+const sealer = (ctx: ReqCtx) =>
+  sealerFor(ctx.tx, ctx.deps, co(ctx), "leave_requests");
 
 async function audit(ctx: ReqCtx, action: string, entityType: string,
   id: string, data: AuditData = {}) {
@@ -78,14 +81,17 @@ async function listRequests(ctx: ReqCtx<unknown, { employeeId?: string;
      ORDER BY r.start_date, r.id`,
     [co(ctx), q.employeeId ?? null, q.status ?? null, q.year ?? null]);
   const scope = viewerScope(ctx.tenant!);
+  const s = await sealer(ctx);
   return { items: rows.filter((r) => inScope(scope,
-    { id: r.employee_id, managerId: r.manager_id })).map(toLeaveRequest) };
+    { id: r.employee_id, managerId: r.manager_id }))
+    .map((r) => toLeaveRequest(r, s)) };
 }
 
 async function createReq(ctx: ReqCtx<LeaveRequestCreate>) {
+  const s = await sealer(ctx);
   const { row: r, plan } = await createRequest(ctx.tx, ctx.tenant!,
     ctx.user!.id, { id: ctx.deps.newId(), at: ctx.deps.now().toISOString(),
-      today: dubaiDate(ctx.deps.now()) }, ctx.body);
+      today: dubaiDate(ctx.deps.now()) }, ctx.body, s);
   await audit(ctx, "leave.requested", "leave-request", r.id,
     { employeeId: r.employee_id, leaveTypeId: r.leave_type_id,
       days: r.half_units / 2 });
@@ -93,16 +99,18 @@ async function createReq(ctx: ReqCtx<LeaveRequestCreate>) {
     await audit(ctx, "leave.blackout-overridden", "leave-request", r.id,
       { requestId: r.id });
   }
-  return { ...toLeaveRequest(r), warnings: plan.warnings };
+  return { ...toLeaveRequest(r, s), warnings: plan.warnings };
 }
 
 function decider(to: "approved" | "rejected") {
   return async (ctx: IdCtx<LeaveDecision>) => {
+    const s = await sealer(ctx);
     const r = await decide(ctx.tx, ctx.tenant!, ctx.user!.id, ctx.params.id,
-      to, { at: ctx.deps.now().toISOString(), note: ctx.body.note ?? null });
+      to, { at: ctx.deps.now().toISOString(), note: ctx.body.note ?? null },
+      s);
     await audit(ctx, `leave.${to}`, "leave-request", r.id,
       { employeeId: r.employee_id });
-    return toLeaveRequest(r);
+    return toLeaveRequest(r, s);
   };
 }
 
@@ -125,6 +133,9 @@ async function balances(ctx: IdCtx<unknown, { year?: number }>) {
 
 async function adjust(ctx: ReqCtx<LeaveAdjustmentCreate>) {
   const b = ctx.body;
+  if (b.employeeId === ctx.tenant!.employeeId) {
+    throw new ApiError("SOD_VIOLATION");
+  }
   await employeeRef(ctx.tx, co(ctx), b.employeeId);
   await loadLeaveType(ctx.tx, co(ctx), b.leaveTypeId);
   const id = ctx.deps.newId();
@@ -152,7 +163,7 @@ export function registerLeaveRoutes(app: App, deps: AppDeps): void {
     const r = await cancel(ctx.tx, ctx.tenant!, ctx.params.id);
     await audit(ctx, "leave.cancelled", "leave-request", r.id,
       { employeeId: r.employee_id });
-    return toLeaveRequest(r);
+    return toLeaveRequest(r, await sealer(ctx));
   });
   register(app, deps, "approveLeaveRequest", decider("approved"));
   register(app, deps, "rejectLeaveRequest", decider("rejected"));

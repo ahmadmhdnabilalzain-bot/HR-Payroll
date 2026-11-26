@@ -16,6 +16,7 @@ import { assertRuntimeRole } from "./db/role-check";
 import { systemDeps } from "./deps";
 import type { Db } from "./db/db";
 import { purgeAllCompanies } from "./db/wfh-purge-all";
+import { fsBlobStore } from "./storage/fs-blob";
 
 async function runMigrations(cfg: Config): Promise<void> {
   const owner = await openPg(cfg.migrateUrl, { max: 1 });
@@ -48,7 +49,8 @@ async function main(argv: string[]): Promise<void> {
   const db = await openPg(cfg.databaseUrl);
   await assertRuntimeRole(db);
   if (argv[2] === "purge-wfh") return purgeWfh(cfg, db);
-  const app = createApp(systemDeps(db, cfg.masterKey));
+  const blobs = fsBlobStore(cfg.receiptsDir);
+  const app = createApp(systemDeps(db, cfg.masterKey, blobs));
   serve({ fetch: app.fetch, port: cfg.port });
   process.stdout.write(`${JSON.stringify({ event: "listening",
     port: cfg.port })}\n`);

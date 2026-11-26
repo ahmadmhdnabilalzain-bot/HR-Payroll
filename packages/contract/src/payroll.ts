@@ -16,11 +16,17 @@ export const NOT_COMPUTED_PAY = [
 ] as const;
 
 /**
- * Listed in a computed settlement's notComputed when the entry gave no
- * serviceUnpaidLeaveDays (the gratuity then assumes none).
+ * No longer emitted: a leaver without serviceUnpaidLeaveDays is now
+ * refused (SETTLEMENT_INPUT_REQUIRED). Kept so imports keep compiling.
+ * @deprecated
  */
 export const SERVICE_UNPAID_LEAVE_NOT_ENTERED =
   "unpaid leave over service (not entered)";
+
+/** Shown on payslips, runs and payouts that carry reimbursements. */
+export const REIMBURSEMENT_WPS_NOTE = "Reimbursements are not in the " +
+  "WPS salary file. Pay them by separate transfer. Whether they must " +
+  "go through WPS is not sourced.";
 
 export const PayRunEntry = z.object({
   employeeId: Id,
@@ -37,19 +43,23 @@ export const PayRunEntry = z.object({
     }))
     .max(30)
     .optional(),
-  unusedLeaveDays: z.number().int().min(0).optional(),
+  /** Input sanity limit (not a statutory value): 100 years of days. */
+  unusedLeaveDays: z.number().int().min(0).max(36600).optional(),
   /**
    * Leavers only: unpaid leave days over the whole service, passed to
-   * the gratuity calculation. Omitted means 0 and the settlement lists
-   * SERVICE_UNPAID_LEAVE_NOT_ENTERED under notComputed.
+   * the gratuity calculation. Required for a leaver in the period (as
+   * is unusedLeaveDays): omitted gives SETTLEMENT_INPUT_REQUIRED with
+   * missing ["serviceUnpaidLeaveDays"]. Enter 0 when there was none.
    */
-  serviceUnpaidLeaveDays: z.number().int().min(0).optional(),
+  serviceUnpaidLeaveDays: z.number().int().min(0).max(36600).optional(),
 });
 export type PayRunEntry = z.infer<typeof PayRunEntry>;
 
 export const PayRunCreate = z.object({
   period: Period,
   entries: z.array(PayRunEntry).max(1000),
+  /** Approved claims HR keeps out of this run (they stay approved). */
+  excludeClaimIds: z.array(Id).max(500).optional(),
 });
 export type PayRunCreate = z.infer<typeof PayRunCreate>;
 
@@ -76,6 +86,22 @@ export const PayRun = z.object({
   notComputed: z.array(z.string()),
   /** The run's SIF file once generated (one per run), else null. */
   sifFileId: Id.nullable(),
+  /** Approved expense claims paid with this run (outside gross). */
+  reimbursementTotal: Money,
+  claimCount: z.number().int().min(0),
+  /** Submitted, undecided claims of in-scope employees at creation. */
+  pendingClaimCount: z.number().int().min(0),
+  /** REIMBURSEMENT_WPS_NOTE when the run pays claims, else null. */
+  reimbursementNote: z.literal(REIMBURSEMENT_WPS_NOTE).nullable(),
+  /**
+   * For the approver: employees who are new, or whose salary, bank
+   * details or labour id changed, since the last approved run (field
+   * names only). Absent from older servers.
+   */
+  changedSinceLastRun: z.array(z.object({
+    employeeId: Id,
+    fields: z.array(z.enum(["new", "salary", "bank", "labourPersonId"])),
+  })).optional(),
 });
 export type PayRun = z.infer<typeof PayRun>;
 
@@ -123,6 +149,15 @@ export const Settlement = z.discriminatedUnion("status", [
 ]);
 export type Settlement = z.infer<typeof Settlement>;
 
+/** One approved expense claim: outside gross, inside net. */
+export const ReimbursementLine = z.object({
+  claimId: Id,
+  label: z.string(),
+  amount: Money,
+  traceId: z.string(),
+});
+export type ReimbursementLine = z.infer<typeof ReimbursementLine>;
+
 export const Payslip = z.object({
   id: Id,
   payRunId: Id,
@@ -135,5 +170,10 @@ export const Payslip = z.object({
   notComputed: z.array(z.string()),
   settlement: Settlement.nullable(),
   trace: z.array(TraceLine),
+  /** Never in `lines`, `gross` or the SIF. net = salaryNet + total. */
+  reimbursements: z.array(ReimbursementLine),
+  reimbursementTotal: Money,
+  salaryNet: Money,
+  reimbursementNote: z.literal(REIMBURSEMENT_WPS_NOTE).nullable(),
 });
 export type Payslip = z.infer<typeof Payslip>;

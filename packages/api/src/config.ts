@@ -5,6 +5,8 @@ export interface Config {
   migrateUrl: string;
   masterKey: Uint8Array;
   port: number;
+  /** Directory for encrypted receipt files (local-disk blob store). */
+  receiptsDir: string;
 }
 
 const KEY_MESSAGE = "PAYROLL_MASTER_KEY must be 32 bytes base64";
@@ -28,6 +30,10 @@ export function loadConfig(env: Record<string, string | undefined>)
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error("PORT must be a whole number from 1 to 65535");
   }
+  const receiptsDir = env.RECEIPTS_DIR;
+  if (receiptsDir === undefined || receiptsDir === "") {
+    throw new Error("RECEIPTS_DIR is required");
+  }
   return { databaseUrl, migrateUrl: env.MIGRATE_DATABASE_URL ?? databaseUrl,
-    masterKey: key, port };
+    masterKey: key, port, receiptsDir };
 }

@@ -42,6 +42,12 @@ describe("leave carry-over", () => {
     expect([a!.body.alreadyRun, b!.body.alreadyRun].sort())
       .toEqual([false, true]);
     expect(a!.body.rows).toEqual(b!.body.rows);
+    // The excess above the cap is kept and shown, never dropped (I2).
+    const mine = a!.body.rows.find((r: { employeeId: string }) =>
+      r.employeeId === s.emp.report);
+    expect(mine).toMatchObject({ days: 5, excessDays: 13 });
+    expect(mine.flags.map((f: { code: string }) => f.code))
+      .toEqual(["UNUSED_LEAVE_NOT_CARRIED"]);
     const n = await ctx.deps.db.query("SELECT 1 FROM leave_carryovers");
     expect(n.length).toBe(4);
   });
