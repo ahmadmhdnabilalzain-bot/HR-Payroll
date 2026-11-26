@@ -1,7 +1,6 @@
 import { fils, type Fils } from "@payroll/engine";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { ExplainLink, Explainable } from "../components/explain";
-import { reducedMotion } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
@@ -10,7 +9,7 @@ import { Icon } from "../ui/Icon";
 import { NetTrend } from "./NetTrend";
 import { useRunApproval } from "../demo/actions";
 import type { Issue } from "../demo/data/types";
-import { ROLL_END_MS, RollDigits } from "../ui/RollDigits";
+import { RollDigits } from "../ui/RollDigits";
 import { CardIban } from "./CardIban";
 import { StatusAction, StatusSentence } from "./StatusLead";
 import { StepTracker } from "./StepTracker";
@@ -33,6 +32,10 @@ export function PayRunHero() {
   const cal = data.payCalendar();
   const net = run.explain["run:net"];
   const [editing, setEditing] = useState<Issue | null>(null);
+  // While bank details hold the run, the action slot keeps the bank
+  // form's height, so opening, saving and closing it never moves the
+  // tiles below.
+  const reserve = useRunApproval().blockedBy.length > 0;
   return (
     <section className={s.hero} aria-labelledby="run-title" data-card="">
       <div className={s.top}>
@@ -57,14 +60,16 @@ export function PayRunHero() {
             <ReadyBar total={h.headcount} file={h.sifTotalFils}
               held={h.heldNetFils} />
           </div>
-          {editing !== null ? (
-            <CardIban issue={editing} onDone={() => setEditing(null)} />
-          ) : (
-            <div className={s.act}>
-              <StatusAction onIban={setEditing} />
-              <StepTracker />
-            </div>
-          )}
+          <div className={s.slot} data-reserve={reserve}>
+            {editing !== null ? (
+              <CardIban issue={editing} onDone={() => setEditing(null)} />
+            ) : (
+              <div className={s.act}>
+                <StatusAction onIban={setEditing} />
+                <StepTracker />
+              </div>
+            )}
+          </div>
           <p className={s.caveat}>{h.netNote[lang]}</p>
         </div>
         <Suspense fallback={<div className={nt.placeholder} />}>
@@ -119,28 +124,16 @@ function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
 }
 
 /**
- * What is held out of the salary file. When the last IBAN passes, the
- * amount rolls down to zero first (the money visibly moves into the
- * file), and only then does the line say everyone is in the file.
+ * What is held out of the salary file. When the last IBAN passes it
+ * goes straight to "None" with a short cross-fade (no roll through
+ * 0.00), in a line of the same height, so nothing below moves.
  */
 function HeldOut(p: { value: Fils }) {
   const { t } = useLocale();
-  // Derived during render (React's "previous value" pattern), so the
-  // amount stays mounted and rolls from its last value to zero.
-  const [prev, setPrev] = useState(p.value);
-  const [rolling, setRolling] = useState(false);
-  if (prev !== p.value) {
-    setPrev(p.value);
-    if (prev > 0n && p.value === 0n && !reducedMotion()) setRolling(true);
-  }
-  useEffect(() => {
-    if (!rolling) return undefined;
-    const h = setTimeout(() => setRolling(false), ROLL_END_MS + 60);
-    return () => clearTimeout(h);
-  }, [rolling]);
-  const zero = p.value === 0n && !rolling;
+  const zero = p.value === 0n;
   return (
-    <span className={s.held} data-zero={zero}>
+    <span key={zero ? "none" : "amount"} className={s.held}
+      data-zero={zero}>
       {zero ? t("home.heldNone")
         : <RollDigits value={fils(p.value)} size="lg" />}
     </span>

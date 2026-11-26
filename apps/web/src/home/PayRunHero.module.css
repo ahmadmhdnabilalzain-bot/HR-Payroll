@@ -90,12 +90,31 @@
   background: var(--color-danger);
 }
 
+/* The action, or the bank form in its place. While bank details hold
+ * the run the slot keeps the form's height (measured by CardIban,
+ * 168 px until then), so the tiles below never move. */
+.slot {
+  display: grid;
+  align-content: start;
+  margin-block: var(--space-5) var(--space-3);
+}
+
+.slot[data-reserve="true"] {
+  min-block-size: var(--slot-h, 168px);
+}
+
 .act {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3) var(--space-5);
-  margin-block: var(--space-5) var(--space-3);
+  animation: fade-in 200ms var(--ease-out);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .line {
@@ -206,7 +225,11 @@
   font-size: var(--text-xs);
 }
 
+/* One line height for an amount and for "None". */
 .totals dd {
+  display: flex;
+  align-items: flex-end;
+  min-block-size: 30px;
   margin: 0;
 }
 
@@ -215,14 +238,13 @@
 }
 
 .totals .held[data-zero="true"] {
-  display: inline-block;
-  padding-block: 4px;
+  animation: fade-in 160ms var(--ease-out);
   color: var(--color-text-muted);
   font-size: var(--text-md);
+  line-height: 24px;
 }
 
 .cardIban {
-  margin-block: var(--space-4) var(--space-2);
   overflow: hidden;
 }
 
@@ -230,12 +252,10 @@
   position: relative;
 }
 
-/* The amount in flight from the form to the file total. */
+/* The amount in flight from the form to the file total (a clone in
+ * ui/flight's fixed layer, so it takes no space here). */
 .flyer {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  z-index: 5;
+  display: inline-block;
   padding: 4px var(--space-3);
   border-radius: var(--radius-pill);
   background: var(--color-accent);
@@ -268,8 +288,7 @@
     order: 0;
   }
 
-  .act,
-  .cardIban {
+  .slot {
     order: 1;
     margin-block: var(--space-4) var(--space-5);
   }

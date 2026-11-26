@@ -8,12 +8,9 @@ import s from "./RollDigits.module.css";
 
 const STRIP = "0123456789";
 
-/** The roll (RollDigits.module.css) and its widest stagger. */
-const ROLL_DIGIT_MS = 700;
+/** The stagger between columns (the roll is 700 ms, in the CSS). */
 const STAGGER_MS = 30;
 const MAX_STAGGER = 8;
-/** When the slowest column of a roll has landed. */
-export const ROLL_END_MS = ROLL_DIGIT_MS + MAX_STAGGER * STAGGER_MS;
 
 /**
  * An amount whose digits roll like an odometer when it changes: each
