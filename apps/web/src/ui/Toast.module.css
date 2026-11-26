@@ -69,3 +69,11 @@
     inset-block-end: calc(76px + env(safe-area-inset-bottom));
   }
 }
+
+/* Touch screens: the Undo target is at least 44 by 44 px. */
+@media (pointer: coarse) {
+  .undo {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+}
