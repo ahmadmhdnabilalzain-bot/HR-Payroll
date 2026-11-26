@@ -1,4 +1,5 @@
 import { openApprovals } from "../../src/demo/approvals";
+import { figures } from "../../src/demo/figures";
 import { describe, expect, it } from "vitest";
 import {
   contractProblems,
@@ -122,6 +123,16 @@ describe.each(STATES)("pay run figures, %s", (_name, ibans) => {
     holds(d.explain["run:file"], d.file.total, "salary file");
     holds(d.explain["run:held"], h.heldNetFils, "held out");
     expect(d.totals.net).toBe(h.netTotalFils);
+  });
+
+  it("hr-dashboard-headcount-rows-open-their-own-figure", () => {
+    // The HR dashboard pairs "Active on 27 Oct" with headcount:now and
+    // "On the October payroll" with run:people: each working must give
+    // the figure the shared figures() puts in that row.
+    const fig = figures(data, { ...INITIAL, ibans });
+    holds(buildReportsSource().explain["headcount:now"], fig.activeToday,
+      "active today");
+    holds(d.explain["run:people"], fig.onPayroll, "on the payroll");
   });
 
   it("cost-by-department-and-nationality", () => {

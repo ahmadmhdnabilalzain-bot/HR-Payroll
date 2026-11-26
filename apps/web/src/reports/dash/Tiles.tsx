@@ -1,3 +1,5 @@
+import { Explainable } from "../../components/explain";
+import type { Explanation } from "../../components/explain/types";
 import { formatNumber, MINUS } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Money } from "../../ui/Money";
@@ -61,12 +63,18 @@ function Meter(p: { part: number; whole: number }) {
   );
 }
 
-function Body(p: { t: TileModel }) {
+function Body(p: { t: TileModel; why?: Explanation | undefined }) {
   const t = p.t;
   return (
     <>
       <span className={s.tileLabel}>{t.label}</span>
-      <FigureView f={t.figure} />
+      {/* A linked tile is already a link: its working stays on the
+          page it opens, never a button inside the link. */}
+      {p.why === undefined || t.href !== undefined
+        ? <FigureView f={t.figure} /> : (
+          <Explainable explanation={p.why}>
+            <FigureView f={t.figure} />
+          </Explainable>)}
       {t.sub !== undefined && <span className={s.tileSub}>{t.sub}</span>}
       <ChangeView c={t.change} />
       <span className={s.tileArt}>
@@ -85,7 +93,9 @@ function Body(p: { t: TileModel }) {
  * figure, the change against last month, and a sparkline (or a meter
  * where there is no history). A tile with a destination is a link.
  */
-export function Tiles(p: { tiles: TileModel[]; label: string }) {
+export function Tiles(p: { tiles: TileModel[]; label: string;
+  /** The working behind a tile's figure, by tile id. */
+  explain?: Readonly<Record<string, Explanation | undefined>> }) {
   return (
     <ul className={s.tiles} aria-label={p.label}>
       {p.tiles.map((t, i) => (
@@ -93,7 +103,7 @@ export function Tiles(p: { tiles: TileModel[]; label: string }) {
           data-money={t.figure.kind === "money"}
           style={{ "--i": i } as object}>
           {t.href === undefined ? <div className={s.tileIn}>
-            <Body t={t} /></div> : (
+            <Body t={t} why={p.explain?.[t.id]} /></div> : (
             <a className={s.tileIn} href={t.href}><Body t={t} /></a>
           )}
         </li>

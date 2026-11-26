@@ -82,6 +82,7 @@ test("why-this-number-executive-dashboard", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1,
     name: "Executive dashboard" })).toBeVisible();
   await clean(page);
+  await why(page, /worked out: Net pay, whole run/, /Salary file and held/);
   await why(page, /worked out: Gross pay, Oct 2026/, /October/);
   await why(page, /worked out: Department cost/, /Gross cost/);
   await page.evaluate(() => { location.hash = "#/reports/board-pack"; });
@@ -121,4 +122,24 @@ test("why-this-number-review-totals-and-past-runs", async ({ page }) => {
   await why(page, /worked out: Gross pay, September 2026/, /by department/);
   await why(page, /worked out: Net pay against the month before/,
     /Change/);
+});
+
+test("why-this-number-masks-amounts-when-hidden", async ({ page }, info) => {
+  test.skip(info.project.name === "phone", "the toggle is in a menu there");
+  await page.goto("/#/reports/variance");
+  await expect(page.getByRole("heading", { level: 1,
+    name: "Variance against last month" })).toBeVisible();
+  await page.getByRole("button", { name: /Hide amounts/i }).first().click();
+  for (const title of [/worked out: Change in gross pay/,
+    /worked out: Leaver/]) {
+    await page.getByRole("button", { name: title }).first().click();
+    const panel = page.getByRole("dialog");
+    await expect(panel).toContainText("How it is worked out");
+    // Amounts written as text are masked like every <Money/>.
+    const text = await panel.innerText();
+    expect(text).not.toMatch(/AED\s?[+−-]?\d/);
+    expect(text).not.toMatch(/\d{1,3}(,\d{3})+\.\d{2}/);
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+  }
 });

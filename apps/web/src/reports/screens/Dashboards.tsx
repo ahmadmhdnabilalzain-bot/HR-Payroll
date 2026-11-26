@@ -135,7 +135,10 @@ export function DashboardExec() {
   const board = (
     <div className={s.board}>
       <Tiles label="Key figures"
-        tiles={execTiles(src, data, state, words)} />
+        tiles={execTiles(src, data, state, words)}
+        explain={{ net: run.explain["run:net"],
+          gross: run.explain["run:gross"],
+          paid: run.explain["run:people"] }} />
       <div className={s.panels}>
         <Panel id="dash-trend" wide title="Gross pay by month"
           note={`${src.months[0]!.label.slice(0, 3)} to ` +

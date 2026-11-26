@@ -402,7 +402,9 @@ are in `docs/demo/copy-audit.md`.
   importing the package, loaded as a lazy chunk so the engine's
   gratuity code stays out of the entry chunk.
 - **Money:** integer fils; tweens step in whole per mille (bigint).
-- **Motion:** CSS and small hand-written code (no GSAP or Motion).
+- **Motion:** CSS and small hand-written code (`ui/flight.ts`,
+  `listMotion.ts`, `RollDigits`), with GSAP for number rolls and chart
+  and org-chart entrances (`demo/motion.ts`); no Motion library.
   150 to 250 ms ease-out, numbers ease on change only, FLIP reorder,
   rows stagger 90 ms when revealed, crossfade on theme and role
   switches. `prefers-reduced-motion` turns all of it off.
@@ -411,7 +413,8 @@ are in `docs/demo/copy-audit.md`.
 
 ## Decisions: People and Time off (Claude's calls)
 
-- **Roles:** the switcher has four views. HR manager and General
+- **Roles:** the switcher has five views (the IT manager is described
+  under WP10 below). HR manager and General
   manager see everyone and everyone's pay. Team manager is Arjun Menon
   and sees himself and the people whose time off he decides. Employee
   is Jose Reyes and sees only himself. People opens straight on his
