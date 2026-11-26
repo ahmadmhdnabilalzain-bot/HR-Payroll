@@ -1,7 +1,10 @@
 import { fils } from "@payroll/engine";
 import { Explainable } from "../../components/explain";
 import { figures } from "../../demo/figures";
+import { isBlocking, openIssues } from "../../demo/derive";
+import { useLiveExplain } from "../../demo/live-explain-load";
 import { useDemo } from "../../demo/state";
+import { useRunDetail } from "../../demo/useRunDetail";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
 import { beforeApproval } from "../dash/model";
@@ -19,6 +22,11 @@ export function BoardPackScreen() {
   const src = useReportsSource();
   const { data, state } = useDemo();
   const m = useTableMoney();
+  const live = useLiveExplain();
+  const { scope } = useRunDetail();
+  // The live row's working follows the state, as its figure does.
+  const issuesWhy = live.issuesExplain(data,
+    openIssues(data, state).filter(isBlocking), scope);
   const words = useIssueWords();
   const phrase = useIssuePhrase();
   const run = useRunState();
@@ -66,7 +74,8 @@ export function BoardPackScreen() {
     <ReportPage title="Board report" period={board.period}
       crumbs={useReportCrumbs()}
       chart={<Summary label="The period in brief" columns={columns} />}
-      explain={(r, c) => c === 2 ? boardExplain[r] : undefined}
+      explain={(r, c) => c !== 2 ? undefined
+        : board.rows[r]?.live === "issues-open" ? issuesWhy : boardExplain[r]}
       columns={[{ label: "Measure" }, { label: "Note" },
         { label: "Figure", end: true }]}
       rows={boardRows(board, figures(data, state), m).map((x, i) =>

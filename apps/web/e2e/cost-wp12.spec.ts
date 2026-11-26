@@ -20,6 +20,8 @@ test("gratuity-provision-to-explain-to-liability-to-employer-cost",
       name: /How this is worked out: Gratuity provision/ }).first().click();
     await expect(page.getByRole("dialog")).toContainText("as we read");
     await page.keyboard.press("Escape");
+    // Axe reads colours mid-slide otherwise: let the panel leave first.
+    await expect(page.getByRole("dialog")).toHaveCount(0);
     const bad = await new AxeBuilder({ page }).analyze();
     expect(bad.violations).toEqual([]);
     await page.goto("/#/reports/gratuity-liability");

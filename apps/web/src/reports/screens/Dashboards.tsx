@@ -9,13 +9,14 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import { ReportPage, type Cell } from "../../ui/templates";
 import { HBars, SplitBar } from "../dash/Bars";
 import {
+  beforeApproval,
   byCost,
   execTiles,
   hrTiles,
   topSlices,
   trendBars,
 } from "../dash/model";
-import { Panel, useIssueWords } from "../dash/Panel";
+import { Panel, useIssuePhrase, useIssueWords } from "../dash/Panel";
 import { Tiles } from "../dash/Tiles";
 import { TrendChart } from "../dash/TrendChart";
 import s from "../dash/dash.module.css";
@@ -46,6 +47,7 @@ export function DashboardHr() {
   const { lang } = useLocale();
   const run = useRunDetail();
   const words = useIssueWords();
+  const phrase = useIssuePhrase();
   const last = src.months.at(-1)!;
   const docs = data.documents();
   const soon = docs.filter((d) => d.daysLeft >= 0 && d.daysLeft <= 30);
@@ -59,7 +61,10 @@ export function DashboardHr() {
     src.explain["turnover:total"], live.docsExplain(data, soon,
       "Papers expiring in 30 days", "ends in the next 30 days", run.scope),
     live.waitingExplain(data, list, run.scope)];
-  const rows = hrDashboardRows(src, data, state);
+  // The shared rows, with what stops pay in Fix's own words.
+  const rows = hrDashboardRows(src, data, state).map((r, i) => i !== 0 ? r
+    : ["Before sign-off", phrase(beforeApproval(data, state)), "-",
+      "What stops pay holds the whole run; checks do not"]);
   const board = (
     <div className={s.board}>
       <Tiles label="Key figures" tiles={hrTiles(src, data, state, words)} />

@@ -88,7 +88,8 @@ function useColumns(items: Item[], waitingWhy?: Explanation): Column[] {
 export function OwnerBriefScreen() {
   const { brief, briefExplain } = useMoreSource();
   const live = useLiveExplain();
-  const { scope } = useRunDetail();
+  const detail = useRunDetail();
+  const { scope } = detail;
   const { data, state } = useDemo();
   const m = useTableMoney();
   const phrase = useIssuePhrase();
@@ -98,8 +99,13 @@ export function OwnerBriefScreen() {
   const issuesWhy = live.issuesExplain(data,
     openIssues(data, state).filter(isBlocking), scope);
   const columns = useColumns(brief.items, waitingWhy);
+  // A live row's working must follow the state: held pay from the
+  // run as it stands; a settlement with dues added has no working yet.
   const why = brief.items.map((i) => i.live === "issues-open" ? issuesWhy
-    : briefExplain[i.id]);
+    : i.live === "held" ? detail.explain["run:held"]
+      : i.live === "settlement" && i.subjectId !== null &&
+        state.otherDues[i.subjectId] !== undefined ? undefined
+        : briefExplain[i.id]);
   const runId = runApprovalId(data);
   // The live rows come from the shared figures; what stops pay reads
   // as everywhere else ("2 stop pay, 3 to check").

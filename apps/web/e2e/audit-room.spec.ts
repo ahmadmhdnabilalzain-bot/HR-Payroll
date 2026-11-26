@@ -30,7 +30,9 @@ test("auditor access, the auditor's view and the logged views", async ({
   await expect(page.getByText("Active").first()).toBeVisible();
   await expect(page.getByText("27 Nov 2026").first()).toBeVisible();
   await go(page, "#/setup/access/review");
-  await expect(page.getByText(/Hana Rostami/)).toBeVisible();
+  // The name is in the table and in the confirming toast: read the row.
+  await expect(page.getByRole("main").getByText(/Hana Rostami/).first())
+    .toBeVisible();
   await expect(page.getByText(/Auditor, read only \(ends 27 Nov 2026\)/))
     .toBeVisible();
   await roleAs(page, "General manager");

@@ -70,8 +70,8 @@ test("owner-brief-and-dashboards-follow-the-story", async ({ page },
   await page.evaluate(() => { location.hash = "#/pay-run/approve"; });
   await page.getByRole("button", { name: "View as General Manager" })
     .click();
-  await page.getByRole("button", { name: "Approve pay run" }).click();
-  await expect(page.getByText("Approval recorded")).toBeVisible();
+  await page.getByRole("button", { name: "Sign off pay run" }).click();
+  await expect(page.getByText("Sign-off recorded")).toBeVisible();
   await page.evaluate(() => { location.hash = "#/reports/owner-brief"; });
   await expect(sum.getByText("Signed off", { exact: true })).toBeVisible();
   await expect(sum.getByText("nothing stops pay, 6 to check"))

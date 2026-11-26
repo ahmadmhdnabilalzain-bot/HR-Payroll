@@ -11,6 +11,7 @@ import { reducedMotion } from "../../demo/motion";
 import type { MessageKey } from "../../i18n/t";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../../ui/Icon";
+import { useMaskText } from "../../ui/mask";
 import { Money } from "../../ui/Money";
 import type { Fils } from "@payroll/engine";
 import type {
@@ -50,6 +51,19 @@ function Limit(p: { used: Fils; cap: Fils }) {
       </span>
     </span>
   );
+}
+
+/** Every string in an explanation through the masker, ids and
+ * statuses aside; money values stay values. */
+function maskStrings<T>(v: T, mask: (t: string) => string): T {
+  if (typeof v === "string") return mask(v) as T;
+  if (Array.isArray(v)) return v.map((x) => maskStrings(x, mask)) as T;
+  if (v !== null && typeof v === "object") {
+    return Object.fromEntries(Object.entries(v).map(([k, x]) =>
+      [k, k === "id" || k === "status" || k === "kind" ? x
+        : maskStrings(x, mask)])) as T;
+  }
+  return v;
 }
 
 /** Fired on window whenever an explanation opens (first-time hints). */
@@ -188,7 +202,9 @@ const FOCUSABLE = "button, [href], input, [tabindex]:not([tabindex='-1'])";
 export function ExplainPanel(p: { explanation: Explanation;
   origin?: DOMRect | null; onClose(): void }) {
   const { t, dir } = useLocale();
-  const e = p.explanation;
+  // Amounts written as text follow hide-amounts (and IT sees none),
+  // as every other text on screen does; <Money/> masks itself.
+  const e = maskStrings(p.explanation, useMaskText());
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
   const result = useRef<HTMLSpanElement>(null);

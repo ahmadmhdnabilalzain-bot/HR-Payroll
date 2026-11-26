@@ -57,6 +57,40 @@ pnpm --filter @payroll/web build:offline
 - **Group tabs** (`shell/GroupTabs.tsx`): on an area's own page, the
   other areas of its group are tabs under the bar (not on records,
   not on the pay run's own steps).
+- **Panels** (`reports/dash`): a dashboard is tiles (`Tiles`, a
+  figure, its change against last month and a sparkline), then
+  `Panel`s (one titled block with a quiet note: `TrendChart` from
+  zero with September and October marked, `HBars`, `SplitBar`), then
+  the details table. The owner brief and the board report open with
+  `Summary` (three columns: what changed, needs a decision, at risk).
+- **Home hero** (`home/PayRunHero.tsx`): one sentence, the net figure
+  rolling from the last true total (`RollDigits`, never a count-up),
+  its make-up, the step tracker and four cards (`PeopleStrip`: UAE
+  nationals, who is off this week, documents expiring, who waits),
+  each a link with its own picture. IT, the manager and the employee
+  have their own Home.
+- **Bank moment** (`ui/flight.ts`): one flight helper for the demo.
+  When an IBAN passes, the held amount leaves its row as a clone in a
+  fixed layer (420 ms on a spring, then a 160 ms fade) and lands on
+  the salary-file total, which then rolls; Home and the Fix step use
+  the same call. Reduced motion: no travel, a 120 ms fade.
+- **Sign-off** (`ui/SignStamp.tsx`): one stamp for every signature
+  (name, role, when, a check seal), shared by the pay run's Approve
+  step and the e-signature sheet (which adds the drawn or typed
+  signature, the reference and the fingerprint as extra lines). A
+  fresh signature lands (1.06 to 1 over 240 ms, a ring settles out);
+  a declined one is dashed and has no seal.
+- **List to record** (`ui/templates/listMotion.ts`): opening a row
+  sends its face and name into the record's head (a view transition,
+  280 ms); Back returns to the same row, scroll, search and filter.
+  Without the API, or with reduced motion, a 120 ms dissolve.
+- **Decisions on a row** (`ui/templates/RowDecision.tsx`): a list's
+  `rowActions` show Agree / Decline only to the person who may decide
+  (the record's own rule); everyone else reads who it waits for; the
+  decider gets a quiet Undo. The toast carries the same undo.
+- **Command palette** (Cmd+K and /, `shell/commands.ts`): areas, people
+  and actions (enter bank details, sign off the run, decide a
+  request, open a payslip), each offered only where the role may.
 - **Phone:** its own Home, four tabs at the bottom (Home and the next
   three words, "More" holds the rest) and one overflow menu on the
   role avatar for notifications, hide amounts and the theme. Sheets
@@ -100,19 +134,38 @@ returns:
   `sources`. Add new actions here (append only; do not rename).
 
 **Shared rules** (`src/demo/derive.ts`, `src/demo/actions.ts`):
-`openIssues`, `confirmations`, `notes`, `pendingApprovals`,
-`personOf(role)`, `approvalBlockedBy`, `steps`, `runPhase` ("bank-
-details" | "approve" | "declined" | "file"), and `useRunApproval()`.
+`openIssues`, `confirmations`, `notes`, `personOf(role)`,
+`approvalBlockedBy`, `steps`, `runPhase` ("bank-details" | "approve" |
+"declined" | "file"), and `useRunApproval()`.
+
+**One source for live figures and approvals.** `figures(data, state)`
+(`src/demo/figures.ts`) gives held net pay, what stops pay, what is
+left to check, people on the run month's payroll and people active on
+the report date; Home, the pay run, the dashboards, the owner brief
+and the board report read it, and `beforeApproval()` in
+`reports/dash/model.ts` (the "N stop pay, N to check" phrase, Fix's
+own count included) is built on it. Approvals come from
+`src/demo/approvals.ts`: `openApprovals` (all undecided),
+`decisionsFor` (this role's own, sent), `approvalsShown` (a role's
+list) and `mayDecide` (the checker, never the maker).
+`tests/unit/figures.test.ts` holds every surface to the same figure
+before and after both IBANs are fixed.
 The pay run's Approve on Home and on the Pay run page must both use
 `useRunApproval()`: it is disabled while any payslip has no bank
 account or an IBAN that fails its check digits (the real API refuses
 a whole run; the bank would reject a mistyped one; never a partial
 run), and `blockedBy` names who holds it back.
 
-**Explain any figure** with `<Explainable explanation={...}>` from
+**Explain any figure** ("why this number") with
+`<Explainable explanation={...}>` from
 `src/components/explain` and `useRunDetail()` (`src/demo/
 useRunDetail.ts`, a lazy chunk: wrap its user in `<Suspense>` with
-the plain figure as fallback, as the Home net figure does).
+the plain figure as fallback, as the Home net figure does). On a
+report, pass `figure.explanation` and `explain(row, col)` to
+`ReportPage` (the total row is row `rows.length`); the page's one
+note then says once that dotted figures open their working. A sum's
+parts must add up to its result (`sumExplain`, checked by
+`tests/unit/explain-figures.test.ts` against the figure on screen).
 
 Role switches go through `useSwitchRole()`
 (a quiet crossfade).
@@ -282,7 +335,9 @@ total|change, value }[], label }`), `columns: { label, end? }[]`,
 `rows: Cell[][]` (a `Cell` is text, a number, or `{ fils, signed? }`,
 drawn through `<Money/>` and written to CSV as a plain number),
 `total?` (bold under a 2 px rule), `bars?`, `note?`, `meta?`,
-`crumbs?`, `foot?` (before the sources line), `csvName`.
+`crumbs?`, `foot?` (before the sources line), `explain?(row, col)`
+(a cell's working), `csvName`. Amounts written in `note` are masked
+with the rest when amounts are hidden or the viewer is IT.
 
 ```tsx
 <ReportPage title="Loans report" period="October 2026"
@@ -312,11 +367,20 @@ Props: `company`, `title`, `label`, `reference?`, `date?`, `sign?`,
 letter's own text never carries a caveat.
 
 **SF** (step flow) is the Pay run stepper; reuse it through WP6. The
-pay run's head is `PageHead` at the templates' y.
+pay run has its own head (the month, the run's state and its one
+action in a sticky bar, `payrun/RunBar.tsx`); exactly one step is
+current (Fix while bank details hold the file, then Approve, then
+Pay), and the open step keeps its ring.
 
 **3. Words.** Never "compliant", "approved", "certified" or
-"guaranteed" on screen (tests enforce it). Source statuses stay inside
-the explain panel. Severity words: "Stops pay" and "Check".
+"guaranteed" on screen (tests enforce it). The verb is "sign off", the
+noun "sign-off", the past "Signed off". The product is MubinFlow. A
+figure not worked out reads "Not computed". No provenance in body
+copy ("in this demo", "demo date", "sample"): the date is "the report
+date", and the one footnote says the data is fictional. No "engine"
+or "fils" on screen. Source statuses stay inside the explain panel.
+Severity words: "Stops pay" and "Check". The rules and their findings
+are in `docs/demo/copy-audit.md`.
 
 ## Decisions (Claude's calls)
 
