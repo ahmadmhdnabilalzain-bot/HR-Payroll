@@ -186,7 +186,8 @@ function shiftOf(el: Element | null, zoom: number): { x: number;
  * while the copy is away and comes back as it lands (the page under
  * the scrim keeps its contrast). Reduced motion: a 120 ms fade only.
  * Web Animations, so a capture can seek it and the global
- * reduced-motion CSS rule cannot cut it.
+ * reduced-motion CSS rule cannot cut it. Phone: no copy; the figure
+ * rises with the sheet.
  */
 function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   layer: HTMLElement | null, panel: HTMLElement | null): void {
@@ -195,7 +196,10 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
       { duration: FADE_MS, easing: "linear" });
     return;
   }
-  if (src === null || el === null) return;
+  // Phone (lighter): the sheet rises with the figure already in its
+  // header; a copy crossing the rising sheet would cut through its
+  // title.
+  if (src === null || el === null || phone()) return;
   // Measure the figure where it lands, not mid-flight: an effect run
   // twice (React's development check) must not fly from itself.
   for (const a of el.getAnimations()) a.cancel();
@@ -207,7 +211,7 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   const zoom = Number(getComputedStyle(document.documentElement)
     .getPropertyValue("zoom")) || 1;
   const shift = shiftOf(panel, zoom);
-  const end = { left: now.left - shift.x, top: now.top - shift.y };
+  const end = { x: now.x - shift.x, y: now.y - shift.y };
   const k = Math.min(2.4, Math.max(0.35, origin.height / now.height));
   const wrap = document.createElement("div");
   wrap.setAttribute("aria-hidden", "true");
@@ -215,7 +219,7 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   wrap.className = s.result ?? "";
   wrap.dir = getComputedStyle(el).direction;
   Object.assign(wrap.style, {
-    position: "fixed", left: "0px", top: "0px", margin: "0",
+    position: "fixed", inset: "0 auto auto 0", margin: "0",
     zIndex: "60", pointerEvents: "none", whiteSpace: "nowrap",
     transformOrigin: "0 0", willChange: "transform",
     color: getComputedStyle(el).color,
@@ -223,12 +227,12 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   wrap.appendChild(el.cloneNode(true));
   document.body.appendChild(wrap);
   // Leave from the source's start corner, scaled to its height.
-  const sx = (dirOf(el) === "rtl" ? origin.right - now.width * k
-    : origin.left) / zoom;
+  const sx = (dirOf(el) === "rtl" ? origin.x + origin.width -
+    now.width * k : origin.x) / zoom;
   const sy = (origin.top + (origin.height - now.height * k) / 2) / zoom;
   const travel = wrap.animate([
     { transform: `translate(${sx}px, ${sy}px) scale(${k})` },
-    { transform: `translate(${end.left / zoom}px, ${end.top / zoom}px)` },
+    { transform: `translate(${end.x / zoom}px, ${end.y / zoom}px)` },
   ], { duration: FLIGHT_MS, easing: SPRING, fill: "forwards" });
   // The header figure stays hidden until the copy lands on it.
   el.animate([{ opacity: 0 }, { opacity: 0 }],
