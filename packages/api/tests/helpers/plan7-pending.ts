@@ -6,6 +6,9 @@ const SERVED: readonly string[] = [
   "employeeDocumentGet", "employeeDocumentVersionAdd",
   "employeeDocumentVerify", "employeeDocumentDownload", "documentAlerts",
   "documentSettingsGet", "documentSettingsPut", "documentRetentionDue",
+  "libraryList", "libraryCreate", "libraryGet", "libraryVersionAdd",
+  "libraryAudiencePut", "libraryDownload", "libraryAcknowledge",
+  "libraryReceipts",
 ];
 
 /**

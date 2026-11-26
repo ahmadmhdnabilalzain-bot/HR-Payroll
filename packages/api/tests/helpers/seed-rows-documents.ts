@@ -26,7 +26,33 @@ export async function seedDocumentRows(admin: Db, c: string, emp: string,
        version, file_id, uploaded_by, uploaded_at)
      VALUES ($1, $2, $3, 1, $4, $5, $6)`,
     [rowId(c, "d3"), c, doc, file, user, AT]);
+  await seedLibraryRows(admin, c, emp, user);
   await admin.query(
     `INSERT INTO document_settings (company_id, lead_days, retention,
        updated_at) VALUES ($1, '{}', '{}', $2)`, [c, AT]);
+}
+
+async function seedLibraryRows(admin: Db, c: string, emp: string,
+  user: string): Promise<void> {
+  const file = rowId(c, "d4");
+  await admin.query(
+    `INSERT INTO files (id, company_id, name, mime, size, sha256, blob_key,
+       uploaded_by, uploaded_at) VALUES ($1, $2, 'l.pdf',
+       'application/pdf', 1, $3, $4, $5, $6)`,
+    [file, c, "0".repeat(64), `${c}/files/${file}`, user, AT]);
+  const lib = rowId(c, "d5");
+  await admin.query(
+    `INSERT INTO library_documents (id, company_id, title, category,
+       audience, created_by, created_at)
+     VALUES ($1, $2, 'Policy', 'policy', '{}', $3, $4)`, [lib, c, user, AT]);
+  const ver = rowId(c, "d6");
+  await admin.query(
+    `INSERT INTO library_versions (id, company_id, document_id, version,
+       file_id, requires_ack, published_by, published_at)
+     VALUES ($1, $2, $3, 1, $4, true, $5, $6)`,
+    [ver, c, lib, file, user, AT]);
+  await admin.query(
+    `INSERT INTO library_receipts (company_id, version_id, user_id,
+       employee_id, viewed_at) VALUES ($1, $2, $3, $4, $5)`,
+    [c, ver, user, emp, AT]);
 }

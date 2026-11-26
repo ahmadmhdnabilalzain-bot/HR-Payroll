@@ -7,7 +7,7 @@ import {
   seedDocuments,
   type SeededDoc,
 } from "./helpers/seed-documents";
-import { makeApp } from "./helpers/test-app";
+import { call, fakePdf, makeApp, upload } from "./helpers/test-app";
 
 /**
  * Plan 7's GET routes for every role and every record: the status the
@@ -22,16 +22,23 @@ const OWN: Record<Role, Target | null> = { owner: null, hr: null,
   manager: "manager", employee: "report" };
 const REPORTS: Target[] = ["report", "report2"];
 
-type Kind = "employee" | "document" | "download" | null;
+type Kind = "employee" | "document" | "download" | "library" | null;
 const ID_KIND: Record<string, Kind> = {
   employeeDocumentsList: "employee", employeeDocumentGet: "document",
   employeeDocumentDownload: "download", documentAlerts: null,
   documentSettingsGet: null, documentRetentionDue: null,
+  libraryList: null, libraryGet: "library", libraryDownload: "library",
+  libraryReceipts: "library",
 };
+
+/** In a library file shared with the employee's record only. */
+const LIB_MARKER = "LIBSECRET-7";
 
 function forbidden(role: Role): string[] {
   if (role === "owner" || role === "hr") return [];
-  return TARGETS.filter((t) => t !== OWN[role]).map((t) => DOC_NUMBERS[t]);
+  const lib = role === "manager" ? [LIB_MARKER] : [];
+  return [...lib, ...TARGETS.filter((t) => t !== OWN[role])
+    .map((t) => DOC_NUMBERS[t])];
 }
 
 /** May `role` open this record at all (else 404)? */
@@ -47,12 +54,21 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
   let ctx: Awaited<ReturnType<typeof makeApp>>;
   let s: Seeded;
   let docs: Record<Target, SeededDoc>;
+  let lib: string;
   beforeAll(async () => {
     ctx = await makeApp({ start: "2026-11-26T08:00:00.000Z" });
     s = await seedCompany(ctx, "leakdoc");
     docs = await seedDocuments(ctx, s);
+    const f = await upload(ctx.app, s.hr.token, s.companyId, "l.pdf",
+      fakePdf(LIB_MARKER));
+    lib = (await call(ctx.app, s.hr.token, s.companyId, "POST",
+      "/v1/library", { title: "Handbook", category: "handbook",
+        fileId: f.id, requiresAck: false, audience: { allStaff: false,
+          departmentIds: [], employeeIds: [s.emp.report], roles: [] } }))
+      .body.id;
   });
   const pathOf = (r: RouteDef, t: Target | null): string => {
+    if (ID_KIND[r.id] === "library") return r.path.replace("{id}", lib);
     if (t === null) return r.path;
     const d = docs[t];
     return r.path.replace("{id}", ID_KIND[r.id] === "employee"
@@ -60,6 +76,7 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
   };
   const expected = (r: RouteDef, role: Role, t: Target | null) =>
     !r.roles.includes(role) ? 403
+    : ID_KIND[r.id] === "library" && role === "manager" ? 404
     : t !== null && !opens(role, t, ID_KIND[r.id] ?? null) ? 404 : 200;
 
   it("every served GET route has a fixture", () => {
@@ -68,7 +85,8 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
 
   for (const r of routes) {
     it(r.id, async () => {
-      const targets = ID_KIND[r.id] === null ? [null] : TARGETS;
+      const k = ID_KIND[r.id];
+      const targets = k === null || k === "library" ? [null] : TARGETS;
       for (const role of ROLES) {
         for (const t of targets) {
           const res = await ctx.app.request(pathOf(r, t), { headers: {

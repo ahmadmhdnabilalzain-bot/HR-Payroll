@@ -39,7 +39,7 @@ After the merge: api 330 tests pass; contract 98 pass; web 102 of 103
 | 1 | `feat(contract): documents, letters and Emiratisation schemas` | done |
 | 3 | `feat(api): encrypted file storage and upload` | done |
 | 4 | `feat(api): employee documents and expiry alerts` | done |
-| 5 | `feat(api): company library and receipts` | |
+| 5 | `feat(api): company library and receipts` | done |
 | 6 | `feat(api): letter templates and merge` | |
 | 7 | `feat(api): letters rendered to PDF` | |
 | 8 | `feat(api): Emiratisation report, handover` | |
@@ -140,6 +140,27 @@ Task 2 (engine pack and tracker) was already merged and is used as is.
    are read as latin1 text, so file markers are checked too.
 7. **Settings audit** writes `{ settingsChanged: [...] }` (Task 3,
    item 4), e.g. `["leadDays.emirates-id", "leadDays.passport"]`.
+
+### Task 5 (library)
+
+1. **`inAudience` takes `role: Role | null`**: an employee with no
+   user in the company (common: not every employee signs in) can still
+   be in a receipts report through `allStaff`, an employee id or a
+   department, never through a role.
+2. **Receipts report rows** are employees employed today (joined on or
+   before today and no last working date before today), with their
+   linked user's role, and their receipt for the current version
+   matched by employee id.
+3. **Receipt times are set once in the database** too (trigger), and an
+   acknowledgement requires a view time; the runtime role may update
+   only `viewed_at` and `acknowledged_at` on receipts and `audience` on
+   documents. Version adds use the same advisory lock as Task 4.
+4. **Audit data:** `library.created` carries `{ documentId, version,
+   allStaff, departmentCount, employeeCount, roles }`;
+   `library.downloaded` and `library.acknowledged` carry `{
+   documentId, version }`.
+5. The leak suite covers the library routes with a file marker the
+   manager (outside the audience) must never receive.
 
 ## Decisions
 

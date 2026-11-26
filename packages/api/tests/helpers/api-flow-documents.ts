@@ -40,8 +40,28 @@ async function vault(hit: Hitter, f: DocFlow): Promise<void> {
   await hit("documentRetentionDue", owner, c);
 }
 
+async function library(hit: Hitter, f: DocFlow): Promise<void> {
+  const { owner, c } = f;
+  const d = await hit("libraryCreate", owner, c, {}, { title: "Policy",
+    category: "policy", fileId: await file(hit, owner, c),
+    requiresAck: true, audience: { allStaff: true, departmentIds: [],
+      employeeIds: [], roles: [] } });
+  const id = d.body.id as string;
+  await hit("libraryList", f.emp, c);
+  await hit("libraryGet", f.emp, c, { id });
+  const v = await hit("libraryVersionAdd", owner, c, { id },
+    { fileId: await file(hit, owner, c), requiresAck: true });
+  await hit("libraryDownload", f.emp, c, { id });
+  await hit("libraryAcknowledge", f.emp, c, { id },
+    { versionId: v.body.current.id });
+  await hit("libraryReceipts", owner, c, { id });
+  await hit("libraryAudiencePut", owner, c, { id }, { allStaff: false,
+    departmentIds: [], employeeIds: [f.id], roles: [] });
+}
+
 /** One call to every Plan 7 route served so far, in a working order. */
 export async function documentFlow(hit: Hitter, f: DocFlow)
   : Promise<void> {
   await vault(hit, f);
+  await library(hit, f);
 }
