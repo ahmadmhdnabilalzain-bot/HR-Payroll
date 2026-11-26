@@ -39,6 +39,21 @@
   --color-bar-3: #a3a7ad;
   --color-bar-4: #d5d7da;
   --color-shadow: #15171a;
+  /* One cool grey family (under 4 degrees of chroma): secondary
+   * surfaces, secondary and meta text (700 is 4.5:1 on 100), hairlines,
+   * the comparison series in charts, secondary buttons, disabled. */
+  --color-grey-100: #f1f2f4;
+  --color-grey-200: #e4e6e9;
+  --color-grey-300: #c9ccd1;
+  --color-grey-500: #868c95;
+  --color-grey-700: #5b6068;
+  --color-surface-secondary: var(--color-grey-100);
+  --color-hairline: var(--color-grey-200);
+  --color-chart-compare: var(--color-grey-500);
+  --color-button-secondary: var(--color-grey-200);
+  --color-button-secondary-hover: var(--color-grey-300);
+  --color-disabled-bg: var(--color-grey-200);
+  --color-disabled-text: var(--color-grey-500);
   --color-avatar-1: #ecebe7;
   --color-avatar-2: #e4e6e9;
   --color-avatar-3: #ebe6df;
@@ -126,6 +141,18 @@
   --color-bar-3: #6b717a;
   --color-bar-4: #3a3e44;
   --color-shadow: #000000;
+  --color-grey-100: #1f2124;
+  --color-grey-200: #2a2d31;
+  --color-grey-300: #3d4147;
+  --color-grey-500: #7f858e;
+  --color-grey-700: #a8adb4;
+  --color-surface-secondary: var(--color-grey-100);
+  --color-hairline: var(--color-grey-200);
+  --color-chart-compare: var(--color-grey-500);
+  --color-button-secondary: var(--color-grey-200);
+  --color-button-secondary-hover: var(--color-grey-300);
+  --color-disabled-bg: var(--color-grey-200);
+  --color-disabled-text: var(--color-grey-500);
   --color-avatar-1: #2e2e30;
   --color-avatar-2: #2a2e33;
   --color-avatar-3: #35312c;

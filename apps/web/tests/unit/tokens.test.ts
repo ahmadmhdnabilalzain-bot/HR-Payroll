@@ -52,13 +52,20 @@ function check(t: Tokens): string[] {
   need("accent", "surface", 3);
   need("bar-1", "surface", 3);
   for (let i = 1; i <= 8; i += 1) need("text", `avatar-${i}`, 4.5);
+  need("grey-700", "surface", 4.5);
+  need("grey-700", "bg", 4.5);
+  need("grey-700", "grey-100", 4.5);
+  need("text", "grey-200", 4.5);
+  need("text", "grey-300", 4.5);
+  need("grey-500", "surface", 3);
   return fails;
 }
 
 /** Ink only (owner's choice C): no accent hue left in the tokens. */
 function hueless(t: Tokens): string[] {
   const keys = ["accent", "accent-hover", "accent-soft", "focus", "trace",
-    "info", "bar-1", "bar-2", "bar-3", "bar-4"];
+    "info", "bar-1", "bar-2", "bar-3", "bar-4", "grey-100", "grey-200",
+    "grey-300", "grey-500", "grey-700"];
   return keys.filter((k) => {
     const v = t[`--color-${k}`] ?? "#000000";
     const ch = [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16));
