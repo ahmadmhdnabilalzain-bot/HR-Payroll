@@ -19,7 +19,7 @@ Sources
   performance, letters and dashboards (appendix B).
 - Live demo, signed in as HR manager and as system administrator, pages
   loaded read-only with Playwright (GET only, no form submitted):
-  204 HR-area pages visited, 173 rendered, 31 timed out; the source
+  204 HR-area pages visited, 173 rendered, 31 failed to load; the source
   tree, not the crawl, is the basis of the inventory.
   Screenshots: `/tmp/claude-0/-home-user-HR-Payroll/55600167-2f81-585b-`
   `8597-bc047d967ec5/scratchpad/manar/inventory/`.
@@ -45,8 +45,10 @@ Honest notes on status
   "hours to add": a demo scene from demo data, with no real backend.
 - Overtime appears twice in Manar (Time and attendance, and Payroll).
   It has one home here, Time > Overtime, and shows on the pay run as a
-  line. Manar's "2 more" under Employees expands to Reporting and
-  Configuration (from `apps.ts`); both are covered.
+  line. Manar's sidebar shows 7 of the 9 Employees areas; its "2 more"
+  are Accommodation and Labour crews (from `apps.ts`), rows P50 and
+  P49. The "2 more" on the All apps card is Reporting and
+  Configuration; both are covered too.
 
 ## 1. The top bar: six words that never grow
 
@@ -74,11 +76,11 @@ person-record tab as its only route: every person-level item also has an all-
 staff list in a panel.
 
 The trade-off, decided: today People and Pay run open in one click. With panels
-they take two (word, then "Everyone" or "This month"). To keep the two most used
-screens at one click, the first area of each panel is also the word's own link:
-click "Pay" to open the panel, or press Return on the focused word, or click it
-a second time, to go straight to the current pay run. On the phone, the tab
-opens the section page, whose top is the current run or the list (section 5).
+they take two (word, then "Everyone" or "This month"). We accept that. The word
+only opens the panel, by click or Return; the first area is focused, so the
+keyboard path is Pay, Return. Home keeps a one-click link to the current pay
+run, and Cmd K reaches any area or person in two. On the phone, the tab opens
+the section page (section 5).
 
 Per role, the bar keeps a fixed count; words a role cannot use are not shown,
 and the count never changes during a session.
@@ -87,7 +89,7 @@ and the count never changes during a session.
 |---|---|---|
 | HR manager, payroll officer | Home People Time Pay Reports Setup | 6 |
 | GM, owner | Home People Time Pay Reports Setup (read) | 6 |
-| IT manager | Home People Reports Setup | 4 |
+| IT manager | Home People Time Reports Setup | 5 |
 | Line manager, employee | Home Pay Time Requests Me | 5 |
 
 ## 2. The section panels
@@ -102,10 +104,13 @@ The count rule: a count is the number of things waiting for someone in that area
 (requests to decide, documents expiring in 30 days, people in the held state).
 It is not a total of records, except "Everyone". Zero shows no count. Counts are
 neutral grey; red is used only for things that stop pay (a held IBAN), so a
-panel has at most one coloured run. Areas not yet built still show, in secondary
-text, with "In the full system" instead of a count; they open one shared card
-that says what the area does and that the real system has it (or that it is
-planned). No dead links, nothing hidden.
+panel has at most one coloured run. Areas not yet in the demo still show, in
+secondary text, with a label instead of a count: "In the full system" only where
+the real backend is built (status B), and "Planned" where it is not (H and N).
+Both open one shared card that says what the area does and that the real system
+has it (or that it is planned). No dead links, nothing hidden. A row marked H
+that is built tonight is a demo scene with no real backend behind it; the
+presenter says so if asked, and the map keeps the H.
 
 **People**
 
@@ -113,7 +118,8 @@ planned). No dead links, nothing hidden.
   edit details; Organisation chart; Positions and headcount; Staff across the
   group; Multi-entity, cost centres.
 - Hiring: Hiring: requisitions; Hiring: candidates board; Offers and offer
-  letters; Vacancies; Cost-of-hire preview; AI resume screening.
+  letters; Vacancies; Cost-of-hire preview; AI resume screening; Referral and
+  agency ledger.
 - Joining and leaving: Joiner checklists; Leaver checklists, exit; Exit
   interviews; Transfers and re-joins; Probation ending, evaluate.
 - Requests and letters: Staff requests (HR queue); Raise a request for someone;
@@ -121,7 +127,8 @@ planned). No dead links, nothing hidden.
   help desk tickets; Policy versions, acknowledge.
 - Documents and visas: Document expiry (all staff); Document upload, versions;
   Visas and government cases; Compliance calendar, due dates; ILOE insurance
-  tracking; Electronic signatures.
+  tracking; Electronic signatures; Document intake, provenance; Sector packs,
+  licence gates.
 - Compliance and safety: UAE compliance overview; Pension (GPSSA) register;
   Emiratisation and Nafis; Health insurance; Disciplinary records; Health and
   safety incidents; Labour crews and documents; Accommodation (camps).
@@ -134,31 +141,30 @@ planned). No dead links, nothing hidden.
 **Time**
 
 - Leave: Leave requests (HR queue); Leave calendar; Record leave for someone;
-  Leave encashment, donation; Leave liability and tickets; Holidays, comp-off,
-  grants.
+  Leave balances; Leave encashment, donation; Leave liability and tickets;
+  Holidays, comp-off, grants.
 - Attendance: Attendance today; Attendance corrections; Phone clock-in
   (geofence); Device punches, unmatched; Timesheets, time booking; Work-from-
   home tracking; Face or QR check-in, kiosk.
 - Rosters: Shifts and rosters; Roster planning; Attendance against shifts;
   Leave-safe roster, OT cost.
 - Overtime: Overtime to approve; Crew overtime pre-approval.
-- Inside: Leave balances (in the person).
 
 **Pay**
 
 - This month: Pay run: review, fix, approve; Payslip; What-if replay (owner
   view); Payslips of a run (list); Past pay runs; Bank advice file; Off-cycle
-  and bonus runs; Salary hold.
+  and bonus runs; Pre-pay gate with causes.
 - Changes: Pay corrections; Salary revisions, arrears; Deductions ledger;
-  Expense claims; Traffic fines to decide; Prior-employment pay data; Sales
-  commission statements.
+  Expense claims; Traffic fines to decide; Prior-employment pay data; Salary
+  hold; Sales commission statements.
 - Owed and leaving: Loans and advances; Final settlements; Gratuity provision;
   One exit flow, legal flags.
 - Not in scope yet: Multi-currency payroll; Pay-structure sandbox; Pay from
   evidence (KPI pay); AI anomaly checks; DIFC DEWS, other GCC pensions; Saudi
-  payroll (Mudad, GOSI); Earned wage access, cards.
+  payroll (Mudad, GOSI); Earned wage access, cards; Direct WPS submission.
 - Inside: Fix a held IBAN inline (in Pay run); Maker and checker approval (in
-  Pay run); Explain any figure (trace) (in any figure); Pre-pay gate (Fix step)
+  Pay run); Explain any figure (trace) (in any figure); Fix step: what stops pay
   (in Pay run); WPS salary file (SIF) (in Pay run); Pension in the run (GPSSA)
   (in Pay run); Settlement statement (in Final settlements).
 
@@ -170,11 +176,12 @@ planned). No dead links, nothing hidden.
 - People and dashboards: Headcount by nationality; Documents expiring report; HR
   analytics (turnover...); Executive dashboard; IT dashboard (access, jobs);
   Owner brief (weekly pack); Board pack.
-- Finance links: Elements and element variance; Payroll journal; Recharges
-  between companies.
+- More reports: Elements and element variance; Payroll journal; Recharges
+  between companies; Report templates library; Cost and budget view.
 - Analysis and trail: Analysis builder; Audit trail (hash-chained); Approval
   report, status, matrix; Inspection pack, auditor room; Ask for a report in
-  words; Payroll forecast, plan vs actual.
+  words; Payroll forecast, plan vs actual; Public accuracy scoreboard; Error-
+  remedy record.
 
 **Setup**
 
@@ -184,14 +191,16 @@ planned). No dead links, nothing hidden.
 - Time rules: Leave policies; Overtime policy and rates; Holidays and Ramadan
   hours; Attendance devices and feeds; Rule packs, law updates.
 - Pay rules: Pay elements; Pay groups; Pay calendar; WPS settings; Payroll
-  exemptions.
+  exemptions; Rule-change preview, notice.
 - Access and approvals: Users, roles, permissions; Approval rules and limits;
   Segregation of duties; Single sign-on and MFA; Access reviews; Auditor access;
   Privacy office, retention.
 - Connections: API keys; Webhooks; WhatsApp approvals; Email-in to records;
-  Calendar feeds; Accounting sync (Xero...); Slack and Teams.
+  Calendar feeds; Accounting sync (Xero...); Slack and Teams; ERP integration
+  (SAP...).
 - Data and company: Data import, Keka cut-over; Parallel run compare; Data
-  export, backup, health; Companies, numbering; Arabic screens (switch).
+  export, backup, health; Companies, numbering; Arabic screens (switch); Bureau
+  console (accountants).
 
 Home has no panel. Its content is the decision list (pay run state, approvals,
 requests waiting, expiring documents, to-do, notices) and links into the other
@@ -232,13 +241,13 @@ Counts are over all inventory rows.
 
 | Code | Archetype | Rows | In gap | Build once | Per row |
 |---|---|---|---|---|---|
-| LF | List with filters | 60 | 47 | 1.5 h | 0.5 h |
+| LF | List with filters | 64 | 48 | 1.5 h | 0.5 h |
 | RT | Record page with tabs | 8 | 5 | 1.5 h | 1 h |
-| FA | Form with approval | 39 | 23 | 2 h | 1 h |
-| CA | Calendar | 9 | 4 | 1.5 h | 1 h |
-| RP | Report | 41 | 24 | 1 h | 0.5 h |
-| ST | Settings form | 30 | 23 | 1 h | 0.5 h |
-| SF | Step flow | 8 | 2 | exists | 2 h |
+| FA | Form with approval | 41 | 28 | 2 h | 1 h |
+| CA | Calendar | 9 | 5 | 1.5 h | 1 h |
+| RP | Report | 46 | 29 | 1 h | 0.5 h |
+| ST | Settings form | 31 | 23 | 1 h | 0.5 h |
+| SF | Step flow | 9 | 2 | exists | 2 h |
 
 - LF: search, segmented filter (All / Needs attention / ...), fixed
   48px rows, row opens a record or a side sheet. Covers lists, queues,
@@ -266,15 +275,15 @@ Mubinflow   Home  [People]  Time  Pay  Reports  Setup    [Cmd K] (HA)
 | Overview        Requisitions      Leavers        1  Letters      2 |
 | Org chart       Offers         1  Probation      1  Profile chg. 1 |
 | Positions       Vacancies         Transfers         Travel         |
-| Across group    Cost of hire  ..  Exit interv.  ..  Policies    .. |
+| Across group    Cost of hire  pl  Exit interv.  pl  Policies    pl |
 |                                                                    |
 | DOCUMENTS, VISAS    COMPLIANCE, SAFETY     GROWTH                  |
 | Expiring        5   UAE overview           Appraisals        3     |
 | Visa cases      2   Pension (GPSSA)        Goals and KPIs          |
 | Due dates       3   Emiratisation, Nafis   Training         ..     |
-| ILOE            ..  Disciplinary           Surveys          ..     |
+| ILOE            pl  Disciplinary           Surveys          ..     |
 |                                                                    |
-| ".." = In the full system (opens what it does). Cmd K: type a name |
+| ".." In the full system   "pl" Planned        Cmd K: type a name   |
 +--------------------------------------------------------------------+
 ```
 
@@ -324,23 +333,23 @@ desktop can never disagree.
 
 | Measure | Rows |
 |---|---|
-| Inventory rows (screens only) | 195 |
-| From Manar / market / both | 54 / 50 / 91 |
-| Status: live in demo | 28 |
-| Status: backend built, no screen | 75 |
+| Inventory rows (screens only) | 208 |
+| From Manar / market / both | 54 / 63 / 91 |
+| Status: live in demo | 27 |
+| Status: backend built, no screen | 77 |
 | Status: hours to add | 69 |
-| Status: not built | 23 |
-| Tier T1 tomorrow | 36 |
-| Tier T2 generic screen | 79 |
-| Tier T3 later | 80 |
-| Live today | 28 (14%) |
-| Needed for 80% | 156 |
-| Gap to build | 128 rows, 96 builder-hours |
-| All buildable rows | 144 rows, 114 builder-hours |
+| Status: not built | 35 |
+| Tier T1 tomorrow | 35 |
+| Tier T2 generic screen | 81 |
+| Tier T3 later | 92 |
+| Live today | 27 (13%) |
+| Needed for 80% | 167 |
+| Gap to build | 140 rows, 105 builder-hours |
+| All buildable rows | 146 rows, 115 builder-hours |
 
-The 23 "not built" rows (AI assistant, Saudi payroll, accounting sync and so on)
-cannot be made live tomorrow, so 80% means building 128 of the 144 buildable
-rows. Only 16 buildable rows can be left out; they are listed after the gap.
+The 35 "not built" rows (AI assistant, Saudi payroll, accounting sync and so on)
+cannot be made live tomorrow, so 80% means building 140 of the 146 buildable
+rows. Only 6 buildable rows can be left out; they are listed after the gap.
 Hours assume the templates from WP1 exist: about half an hour for a list, report
 or settings screen, an hour for a form, record or calendar, two for a step flow.
 They are rough.
@@ -365,160 +374,178 @@ package in section 7.
 | 11 | P43 | UAE compliance overview | RP | 0.5 | 3 | HR+GM | WP4 |
 | 12 | P44 | Pension (GPSSA) register | LF | 0.5 | 3 | HR | WP4 |
 | 13 | P45 | Emiratisation and Nafis | RP | 0.5 | 3 | HR+GM | WP4 |
-| 14 | R33 | Gratuity provision | RP | 0.5 | 3 | GM | WP6 |
-| 15 | S21 | Approval rules and limits | ST | 0.5 | 3 | GM+IT | WP9 |
-| 16 | S22 | Segregation of duties | ST | 0.5 | 3 | IT | WP9 |
-| 17 | S23 | Single sign-on and MFA | ST | 0.5 | 3 | IT | WP9 |
-| 18 | S30 | API keys | LF | 0.5 | 3 | IT | WP9 |
-| 19 | T06 | Leave liability and tickets | RP | 0.5 | 3 | HR+GM | WP5 |
-| 20 | X05 | Variance against last month | RP | 0.5 | 3 | GM | WP7 |
-| 21 | X07 | Gratuity liability report | RP | 0.5 | 3 | GM | WP7 |
-| 22 | X23 | Executive dashboard | RP | 0.5 | 3 | GM | WP7 |
-| 23 | X24 | IT dashboard (access, jobs) | RP | 0.5 | 3 | IT | WP7 |
-| 24 | X25 | Owner brief (weekly pack) | RP | 0.5 | 3 | GM | WP7 |
-| 25 | P15 | Leaver checklists, exit | RT | 1 | 3 | HR | WP3 |
-| 26 | P16 | End employment, resignation | FA | 1 | 3 | HR | WP3 |
-| 27 | P19 | Probation ending, evaluate | FA | 1 | 3 | HR | WP3 |
-| 28 | R21 | Salary revisions, arrears | FA | 1 | 3 | HR+GM | WP6 |
-| 29 | R30 | Loans and advances | FA | 1 | 3 | HR | WP6 |
-| 30 | S37 | Data import, Keka cut-over | SF | 2 | 3 | IT | WP9 |
-| 31 | E05 | My documents, update | LF | 0.5 | 2 | HR | WP10 |
-| 32 | E10 | My team today | LF | 0.5 | 2 | HR | WP10 |
-| 33 | H07 | To-do list (tasks) | LF | 0.5 | 2 | HR | WP10 |
-| 34 | H08 | Notifications | LF | 0.5 | 2 | HR+GM+IT | WP10 |
-| 35 | H09 | Notice board, announcements | LF | 0.5 | 2 | HR | WP10 |
-| 36 | H10 | Leave cover for approvals | ST | 0.5 | 2 | HR+GM | WP10 |
-| 37 | P06 | Positions and headcount | LF | 0.5 | 2 | HR+GM | WP2 |
-| 38 | P07 | Staff across the group | LF | 0.5 | 2 | GM | WP2 |
-| 39 | P10 | Hiring: requisitions | LF | 0.5 | 2 | HR | WP3 |
-| 40 | P11 | Hiring: candidates board | LF | 0.5 | 2 | HR | WP3 |
-| 41 | P36 | Travel and air tickets | LF | 0.5 | 2 | HR | WP4 |
-| 42 | P47 | Disciplinary records | LF | 0.5 | 2 | HR | WP4 |
-| 43 | P60 | Appraisals and cycles | LF | 0.5 | 2 | HR | WP2 |
-| 44 | P61 | Goals and KPIs | LF | 0.5 | 2 | HR+GM | WP2 |
-| 45 | R10 | Payslips of a run (list) | LF | 0.5 | 2 | HR | WP6 |
-| 46 | R11 | Past pay runs | LF | 0.5 | 2 | HR+GM | WP6 |
-| 47 | R12 | Bank advice file | RP | 0.5 | 2 | HR | WP6 |
-| 48 | R22 | Deductions ledger | LF | 0.5 | 2 | HR | WP6 |
-| 49 | S10 | Leave policies | ST | 0.5 | 2 | HR | WP8 |
-| 50 | S11 | Overtime policy and rates | ST | 0.5 | 2 | HR | WP8 |
-| 51 | S12 | Holidays and Ramadan hours | ST | 0.5 | 2 | HR | WP8 |
-| 52 | S13 | Pay elements | ST | 0.5 | 2 | HR | WP8 |
-| 53 | S14 | Pay groups | ST | 0.5 | 2 | HR | WP8 |
-| 54 | S16 | WPS settings | ST | 0.5 | 2 | HR+IT | WP8 |
-| 55 | S31 | Webhooks | LF | 0.5 | 2 | IT | WP9 |
-| 56 | S32 | WhatsApp approvals | ST | 0.5 | 2 | HR+IT | WP9 |
-| 57 | T10 | Attendance today | LF | 0.5 | 2 | HR | WP5 |
-| 58 | T22 | Attendance against shifts | RP | 0.5 | 2 | HR | WP5 |
-| 59 | X04 | Employer cost and costing | RP | 0.5 | 2 | GM | WP7 |
-| 60 | X10 | Leave report | RP | 0.5 | 2 | HR | WP7 |
-| 61 | X22 | HR analytics (turnover...) | RP | 0.5 | 2 | HR+GM | WP7 |
-| 62 | E06 | My profile, change, dependants | FA | 1 | 2 | HR | WP10 |
-| 63 | E07 | My requests and letters | FA | 1 | 2 | HR | WP10 |
-| 64 | E08 | My expenses | FA | 1 | 2 | HR | WP10 |
-| 65 | E09 | My time card, correct, clock | FA | 1 | 2 | HR | WP10 |
-| 66 | E11 | Team probation and appraisal | FA | 1 | 2 | HR | WP10 |
-| 67 | P04 | New employee, edit details | FA | 1 | 2 | HR | WP2 |
-| 68 | P12 | Offers and offer letters | FA | 1 | 2 | HR | WP3 |
-| 69 | P14 | Joiner checklists | RT | 1 | 2 | HR | WP3 |
-| 70 | P18 | Transfers and re-joins | FA | 1 | 2 | HR | WP3 |
-| 71 | P31 | Raise a request for someone | FA | 1 | 2 | HR | WP4 |
-| 72 | P32 | Profile change requests | FA | 1 | 2 | HR | WP4 |
-| 73 | P41 | Document upload, versions | RT | 1 | 2 | HR+IT | WP4 |
-| 74 | P51 | Compliance calendar, due dates | CA | 1 | 2 | HR | WP4 |
-| 75 | R20 | Pay corrections | FA | 1 | 2 | HR | WP6 |
-| 76 | R23 | Expense claims | FA | 1 | 2 | HR+GM | WP6 |
-| 77 | R32 | Settlement statement | RT | 1 | 2 | HR | WP6 |
-| 78 | T03 | Record leave for someone | FA | 1 | 2 | HR | WP5 |
-| 79 | T05 | Leave encashment, donation | FA | 1 | 2 | HR | WP5 |
-| 80 | T07 | Holidays, comp-off, grants | CA | 1 | 2 | HR | WP5 |
-| 81 | T11 | Attendance corrections | FA | 1 | 2 | HR | WP5 |
-| 82 | T12 | Phone clock-in (geofence) | FA | 1 | 2 | HR+IT | WP5 |
-| 83 | T20 | Shifts and rosters | CA | 1 | 2 | HR | WP5 |
-| 84 | T21 | Roster planning | CA | 1 | 2 | HR | WP5 |
-| 85 | P05 | Organisation chart | RP | 2 | 2 | HR+GM | WP2 |
-| 86 | X11 | Loans report | RP | 0.5 | 1 | HR | WP7 |
-| 87 | T31 | Crew overtime pre-approval | FA | 1 | 1 | HR | WP5 |
-| 88 | P46 | Health insurance | LF | 0.5 | 2 | HR | WP4 |
-| 89 | P62 | Department performance | RP | 0.5 | 2 | GM | WP2 |
-| 90 | S19 | Rule packs, law updates | LF | 0.5 | 2 | HR | WP8 |
-| 91 | S24 | Access reviews | LF | 0.5 | 2 | IT | WP9 |
-| 92 | S39 | Data export, backup, health | LF | 0.5 | 2 | IT | WP9 |
-| 93 | X08 | Payroll journal | RP | 0.5 | 2 | GM | WP7 |
-| 94 | X32 | Approval report, status, matrix | RP | 0.5 | 2 | IT | WP7 |
-| 95 | R34 | One exit flow, legal flags | SF | 2 | 2 | HR | WP6 |
-| 96 | S38 | Parallel run compare | RP | 2 | 2 | HR | WP9 |
-| 97 | X30 | Analysis builder | RP | 2 | 2 | GM+IT | WP7 |
-| 98 | E13 | My KPIs | LF | 0.5 | 1 | HR | WP10 |
-| 99 | H12 | Help and training videos | RP | 0.5 | 1 | HR | WP10 |
-| 100 | P08 | Multi-entity, cost centres | LF | 0.5 | 1 | GM | WP2 |
-| 101 | P13 | Vacancies | LF | 0.5 | 1 | HR | WP3 |
-| 102 | P35 | Electronic signatures | LF | 0.5 | 1 | IT | WP4 |
-| 103 | P37 | HR help desk tickets | LF | 0.5 | 1 | HR | WP4 |
-| 104 | P48 | Health and safety incidents | LF | 0.5 | 1 | HR | WP4 |
-| 105 | P49 | Labour crews and documents | LF | 0.5 | 1 | HR | WP4 |
-| 106 | P50 | Accommodation (camps) | LF | 0.5 | 1 | HR | WP4 |
-| 107 | P52 | ILOE insurance tracking | LF | 0.5 | 1 | HR | WP4 |
-| 108 | P53 | Policy versions, acknowledge | LF | 0.5 | 1 | HR | WP4 |
-| 109 | P63 | Skills | LF | 0.5 | 1 | HR | WP2 |
-| 110 | P64 | Training and learning | LF | 0.5 | 1 | HR | WP2 |
-| 111 | P65 | Engagement surveys | LF | 0.5 | 1 | HR | WP2 |
-| 112 | P66 | Sales commission statements | RP | 0.5 | 1 | GM | WP6 |
-| 113 | R24 | Traffic fines to decide | LF | 0.5 | 1 | HR | WP6 |
-| 114 | S01 | Jobs and grades | ST | 0.5 | 1 | HR | WP8 |
-| 115 | S02 | Document types | ST | 0.5 | 1 | HR | WP8 |
-| 116 | S03 | Letter templates | ST | 0.5 | 1 | HR | WP8 |
-| 117 | S04 | Checklist templates | ST | 0.5 | 1 | HR | WP8 |
-| 118 | S05 | Request approval levels | ST | 0.5 | 1 | HR | WP8 |
-| 119 | S06 | KPI library and periods | ST | 0.5 | 1 | HR | WP8 |
-| 120 | S07 | Trades | ST | 0.5 | 1 | HR | WP8 |
-| 121 | S08 | Custom fields | ST | 0.5 | 1 | IT | WP8 |
-| 122 | S17 | Payroll exemptions | ST | 0.5 | 1 | HR | WP8 |
-| 123 | S18 | Attendance devices and feeds | LF | 0.5 | 1 | IT | WP8 |
-| 124 | S33 | Email-in to records | ST | 0.5 | 1 | IT | WP9 |
-| 125 | S34 | Calendar feeds | ST | 0.5 | 1 | IT | WP9 |
-| 126 | S40 | Companies, numbering | ST | 0.5 | 1 | IT | WP9 |
-| 127 | T13 | Device punches, unmatched | LF | 0.5 | 1 | IT | WP5 |
-| 128 | T14 | Timesheets, time booking | LF | 0.5 | 1 | HR | WP5 |
+| 14 | R15 | Pre-pay gate with causes | RP | 0.5 | 3 | GM | WP6 |
+| 15 | R33 | Gratuity provision | RP | 0.5 | 3 | GM | WP6 |
+| 16 | S21 | Approval rules and limits | ST | 0.5 | 3 | GM+IT | WP9 |
+| 17 | S22 | Segregation of duties | ST | 0.5 | 3 | IT | WP9 |
+| 18 | S23 | Single sign-on and MFA | ST | 0.5 | 3 | IT | WP9 |
+| 19 | S30 | API keys | LF | 0.5 | 3 | IT | WP9 |
+| 20 | T06 | Leave liability and tickets | RP | 0.5 | 3 | HR+GM | WP5 |
+| 21 | X05 | Variance against last month | RP | 0.5 | 3 | GM | WP7 |
+| 22 | X07 | Gratuity liability report | RP | 0.5 | 3 | GM | WP7 |
+| 23 | X23 | Executive dashboard | RP | 0.5 | 3 | GM | WP7 |
+| 24 | X24 | IT dashboard (access, jobs) | RP | 0.5 | 3 | IT | WP7 |
+| 25 | X25 | Owner brief (weekly pack) | RP | 0.5 | 3 | GM | WP7 |
+| 26 | P15 | Leaver checklists, exit | RT | 1 | 3 | HR | WP3 |
+| 27 | P16 | End employment, resignation | FA | 1 | 3 | HR | WP3 |
+| 28 | P19 | Probation ending, evaluate | FA | 1 | 3 | HR | WP3 |
+| 29 | R21 | Salary revisions, arrears | FA | 1 | 3 | HR+GM | WP6 |
+| 30 | R30 | Loans and advances | FA | 1 | 3 | HR | WP6 |
+| 31 | S37 | Data import, Keka cut-over | SF | 2 | 3 | IT | WP9 |
+| 32 | E02 | My payslips (past months) | LF | 0.5 | 2 | HR | WP10 |
+| 33 | E05 | My documents, update | LF | 0.5 | 2 | HR | WP10 |
+| 34 | E10 | My team today | LF | 0.5 | 2 | HR | WP10 |
+| 35 | H07 | To-do list (tasks) | LF | 0.5 | 2 | HR | WP10 |
+| 36 | H08 | Notifications | LF | 0.5 | 2 | HR+GM+IT | WP10 |
+| 37 | H09 | Notice board, announcements | LF | 0.5 | 2 | HR | WP10 |
+| 38 | H10 | Leave cover for approvals | ST | 0.5 | 2 | HR+GM | WP10 |
+| 39 | P06 | Positions and headcount | LF | 0.5 | 2 | HR+GM | WP2 |
+| 40 | P07 | Staff across the group | LF | 0.5 | 2 | GM | WP2 |
+| 41 | P10 | Hiring: requisitions | LF | 0.5 | 2 | HR | WP3 |
+| 42 | P11 | Hiring: candidates board | LF | 0.5 | 2 | HR | WP3 |
+| 43 | P36 | Travel and air tickets | LF | 0.5 | 2 | HR | WP4 |
+| 44 | P47 | Disciplinary records | LF | 0.5 | 2 | HR | WP4 |
+| 45 | P60 | Appraisals and cycles | LF | 0.5 | 2 | HR | WP2 |
+| 46 | P61 | Goals and KPIs | LF | 0.5 | 2 | HR+GM | WP2 |
+| 47 | R10 | Payslips of a run (list) | LF | 0.5 | 2 | HR | WP6 |
+| 48 | R11 | Past pay runs | LF | 0.5 | 2 | HR+GM | WP6 |
+| 49 | R12 | Bank advice file | RP | 0.5 | 2 | HR | WP6 |
+| 50 | R22 | Deductions ledger | LF | 0.5 | 2 | HR | WP6 |
+| 51 | S10 | Leave policies | ST | 0.5 | 2 | HR | WP8 |
+| 52 | S11 | Overtime policy and rates | ST | 0.5 | 2 | HR | WP8 |
+| 53 | S12 | Holidays and Ramadan hours | ST | 0.5 | 2 | HR | WP8 |
+| 54 | S13 | Pay elements | ST | 0.5 | 2 | HR | WP8 |
+| 55 | S14 | Pay groups | ST | 0.5 | 2 | HR | WP8 |
+| 56 | S16 | WPS settings | ST | 0.5 | 2 | HR+IT | WP8 |
+| 57 | S31 | Webhooks | LF | 0.5 | 2 | IT | WP9 |
+| 58 | S32 | WhatsApp approvals | ST | 0.5 | 2 | HR+IT | WP9 |
+| 59 | T10 | Attendance today | LF | 0.5 | 2 | HR | WP5 |
+| 60 | T22 | Attendance against shifts | RP | 0.5 | 2 | HR | WP5 |
+| 61 | X04 | Employer cost and costing | RP | 0.5 | 2 | GM | WP7 |
+| 62 | X10 | Leave report | RP | 0.5 | 2 | HR | WP7 |
+| 63 | X22 | HR analytics (turnover...) | RP | 0.5 | 2 | HR+GM | WP7 |
+| 64 | E06 | My profile, change, dependants | FA | 1 | 2 | HR | WP10 |
+| 65 | E07 | My requests and letters | FA | 1 | 2 | HR | WP10 |
+| 66 | E08 | My expenses | FA | 1 | 2 | HR | WP10 |
+| 67 | E09 | My time card, correct, clock | FA | 1 | 2 | HR | WP10 |
+| 68 | E11 | Team probation and appraisal | FA | 1 | 2 | HR | WP10 |
+| 69 | P04 | New employee, edit details | FA | 1 | 2 | HR | WP2 |
+| 70 | P12 | Offers and offer letters | FA | 1 | 2 | HR | WP3 |
+| 71 | P14 | Joiner checklists | RT | 1 | 2 | HR | WP3 |
+| 72 | P18 | Transfers and re-joins | FA | 1 | 2 | HR | WP3 |
+| 73 | P31 | Raise a request for someone | FA | 1 | 2 | HR | WP4 |
+| 74 | P32 | Profile change requests | FA | 1 | 2 | HR | WP4 |
+| 75 | P41 | Document upload, versions | RT | 1 | 2 | HR+IT | WP4 |
+| 76 | P51 | Compliance calendar, due dates | CA | 1 | 2 | HR | WP4 |
+| 77 | R20 | Pay corrections | FA | 1 | 2 | HR | WP6 |
+| 78 | R23 | Expense claims | FA | 1 | 2 | HR+GM | WP6 |
+| 79 | R32 | Settlement statement | RT | 1 | 2 | HR | WP6 |
+| 80 | T03 | Record leave for someone | FA | 1 | 2 | HR | WP5 |
+| 81 | T05 | Leave encashment, donation | FA | 1 | 2 | HR | WP5 |
+| 82 | T07 | Holidays, comp-off, grants | CA | 1 | 2 | HR | WP5 |
+| 83 | T11 | Attendance corrections | FA | 1 | 2 | HR | WP5 |
+| 84 | T12 | Phone clock-in (geofence) | FA | 1 | 2 | HR+IT | WP5 |
+| 85 | T20 | Shifts and rosters | CA | 1 | 2 | HR | WP5 |
+| 86 | T21 | Roster planning | CA | 1 | 2 | HR | WP5 |
+| 87 | P05 | Organisation chart | RP | 2 | 2 | HR+GM | WP2 |
+| 88 | X11 | Loans report | RP | 0.5 | 1 | HR | WP7 |
+| 89 | T31 | Crew overtime pre-approval | FA | 1 | 1 | HR | WP5 |
+| 90 | P46 | Health insurance | LF | 0.5 | 2 | HR | WP4 |
+| 91 | P62 | Department performance | RP | 0.5 | 2 | GM | WP2 |
+| 92 | S19 | Rule packs, law updates | LF | 0.5 | 2 | HR | WP8 |
+| 93 | S24 | Access reviews | LF | 0.5 | 2 | IT | WP9 |
+| 94 | S39 | Data export, backup, health | LF | 0.5 | 2 | IT | WP9 |
+| 95 | X08 | Payroll journal | RP | 0.5 | 2 | GM | WP7 |
+| 96 | X32 | Approval report, status, matrix | RP | 0.5 | 2 | IT | WP7 |
+| 97 | R34 | One exit flow, legal flags | SF | 2 | 2 | HR | WP6 |
+| 98 | S38 | Parallel run compare | RP | 2 | 2 | HR | WP9 |
+| 99 | X30 | Analysis builder | RP | 2 | 2 | GM+IT | WP7 |
+| 100 | E13 | My KPIs | LF | 0.5 | 1 | HR | WP10 |
+| 101 | H12 | Help and training videos | RP | 0.5 | 1 | HR | WP10 |
+| 102 | P08 | Multi-entity, cost centres | LF | 0.5 | 1 | GM | WP2 |
+| 103 | P13 | Vacancies | LF | 0.5 | 1 | HR | WP3 |
+| 104 | P35 | Electronic signatures | LF | 0.5 | 1 | IT | WP4 |
+| 105 | P37 | HR help desk tickets | LF | 0.5 | 1 | HR | WP4 |
+| 106 | P48 | Health and safety incidents | LF | 0.5 | 1 | HR | WP4 |
+| 107 | P49 | Labour crews and documents | LF | 0.5 | 1 | HR | WP4 |
+| 108 | P50 | Accommodation (camps) | LF | 0.5 | 1 | HR | WP4 |
+| 109 | P52 | ILOE insurance tracking | LF | 0.5 | 1 | HR | WP4 |
+| 110 | P53 | Policy versions, acknowledge | LF | 0.5 | 1 | HR | WP4 |
+| 111 | P63 | Skills | LF | 0.5 | 1 | HR | WP2 |
+| 112 | P64 | Training and learning | LF | 0.5 | 1 | HR | WP2 |
+| 113 | P65 | Engagement surveys | LF | 0.5 | 1 | HR | WP2 |
+| 114 | P66 | Sales commission statements | RP | 0.5 | 1 | GM | WP6 |
+| 115 | R24 | Traffic fines to decide | LF | 0.5 | 1 | HR | WP6 |
+| 116 | S01 | Jobs and grades | ST | 0.5 | 1 | HR | WP8 |
+| 117 | S02 | Document types | ST | 0.5 | 1 | HR | WP8 |
+| 118 | S03 | Letter templates | ST | 0.5 | 1 | HR | WP8 |
+| 119 | S04 | Checklist templates | ST | 0.5 | 1 | HR | WP8 |
+| 120 | S05 | Request approval levels | ST | 0.5 | 1 | HR | WP8 |
+| 121 | S06 | KPI library and periods | ST | 0.5 | 1 | HR | WP8 |
+| 122 | S07 | Trades | ST | 0.5 | 1 | HR | WP8 |
+| 123 | S08 | Custom fields | ST | 0.5 | 1 | IT | WP8 |
+| 124 | S17 | Payroll exemptions | ST | 0.5 | 1 | HR | WP8 |
+| 125 | S18 | Attendance devices and feeds | LF | 0.5 | 1 | IT | WP8 |
+| 126 | S33 | Email-in to records | ST | 0.5 | 1 | IT | WP9 |
+| 127 | S34 | Calendar feeds | ST | 0.5 | 1 | IT | WP9 |
+| 128 | S40 | Companies, numbering | ST | 0.5 | 1 | IT | WP9 |
+| 129 | T13 | Device punches, unmatched | LF | 0.5 | 1 | IT | WP5 |
+| 130 | T14 | Timesheets, time booking | LF | 0.5 | 1 | HR | WP5 |
+| 131 | T15 | Work-from-home tracking | RP | 0.5 | 1 | HR+IT | WP5 |
+| 132 | X06 | Elements and element variance | RP | 0.5 | 1 | HR | WP7 |
+| 133 | X09 | Recharges between companies | RP | 0.5 | 1 | GM | WP7 |
+| 134 | X26 | Board pack | RP | 0.5 | 1 | GM | WP7 |
+| 135 | E12 | My calendar | CA | 1 | 1 | HR | WP10 |
+| 136 | E14 | Report a safety incident | FA | 1 | 1 | HR | WP10 |
+| 137 | E15 | Request access | FA | 1 | 1 | IT | WP10 |
+| 138 | H11 | Approval splits and resets | FA | 1 | 1 | IT | WP10 |
+| 139 | P17 | Exit interviews | FA | 1 | 1 | HR | WP3 |
+| 140 | R14 | Salary hold | FA | 1 | 1 | HR | WP6 |
 
 Buildable rows left out of the 80% (lowest value):
 
-T15 Work-from-home tracking, X06 Elements and element variance, X09 Recharges
-between companies, X26 Board pack, E12 My calendar, E14 Report a safety
-incident, E15 Request access, H11 Approval splits and resets, P17 Exit
-interviews, R14 Salary hold, R25 Prior-employment pay data, S15 Pay calendar,
-H13 Team chat and intranet, H14 Meetings with transcript, R13 Off-cycle and
-bonus runs, T23 Leave-safe roster, OT cost.
+R25 Prior-employment pay data, S15 Pay calendar, H13 Team chat and intranet, H14
+Meetings with transcript, R13 Off-cycle and bonus runs, T23 Leave-safe roster,
+OT cost.
 
 ## 7. Work packages for parallel builders
 
-WP1 must land first; the other nine start once it is merged. Each package owns
-one folder under `apps/web/src/` and one registry file `nav/areas/<package>.ts`;
-WP1's registry index imports the nine files by a fixed list, so no two packages
-edit the same file. Demo data is added by the data agent in `packages/demo-
-data/src/<package>.ts` before the builder starts, where the table says so.
+WP1 must land first. Each other package owns one folder under `apps/web/src/`
+and four files of its own, which WP1's indexes import by a fixed list, so no two
+packages edit the same file: `nav/areas/<wp>.ts` (its areas, routes and count
+selectors), `i18n/en/<wp>.ts` and `i18n/ar/<wp>.ts` (its strings, as their own
+namespace), `person/tabs/<wp>.ts` (the person-record tabs it adds), and
+`demo/data/<wp>.ts` (its selectors over demo data, read directly, not added to
+`useDemo()`). Section pages route by the registry, so nobody edits
+`people/People.tsx`, `people/Profile.tsx` or the existing `i18n/en/people.ts`;
+WP1 converts those to read the registries. Demo data is added by the data agent
+in `packages/demo-data/src/<wp>.ts` before the builder starts.
 
-- **WP1 Shell and templates (one builder, about 5 h, first).** The
+- **WP1 Shell and templates (one builder, about 10 h; it publishes
+  the registry type and template props in the first hour so the nine
+  can start against them, and lands LF, RP and ST first, which cover
+  most gap rows, then FA, CA and RT).** The
   registry (`nav/registry.ts`: id, label, section, group, status,
   count selector, route, archetype), the bar and panels
   (`shell/TopBar.tsx`, a new `shell/SectionPanel.tsx`), the phone bar,
   Cmd K reading the same registry (`shell/CommandPalette.tsx`), the
   "In the full system" card, routes in `demo/route.ts` (add `setup`,
-  `reports`; keep `pay-run` and `time-off`), `views.tsx`, and the six
+  `requests` and `me`; `reports` exists; keep `pay-run` and
+  `time-off`), the four registry indexes above, `views.tsx`, and the six
   new templates under `ui/templates/`, plus Cmd K results that are
   actions (H06).
 
 | WP | Scope | Gap rows | h |
 |---|---|---|---|
 | WP2 | People: Team and Growth | 12 | 9.5 |
-| WP3 | People: Hiring, joining and leaving | 9 | 7.5 |
+| WP3 | People: Hiring, joining and leaving | 10 | 8.5 |
 | WP4 | People: Requests, documents, compliance | 20 | 13.5 |
-| WP5 | Time: leave, attendance, rosters, overtime | 15 | 11.5 |
-| WP6 | Pay: this month, changes, owed and leaving | 15 | 15.5 |
-| WP7 | Reports and dashboards | 13 | 9.5 |
+| WP5 | Time: leave, attendance, rosters, overtime | 16 | 12 |
+| WP6 | Pay: this month, changes, owed and leaving | 17 | 17 |
+| WP7 | Reports and dashboards | 16 | 11 |
 | WP8 | Setup: rules | 17 | 8.5 |
 | WP9 | Setup: access, connections, data | 14 | 11.5 |
-| WP10 | Home and the employee bar | 13 | 9 |
+| WP10 | Home and the employee bar | 18 | 13.5 |
 
 - WP2: folder `people/team, people/growth`; new demo data first: org tree,
   positions, appraisals, goals.
@@ -532,16 +559,16 @@ data/src/<package>.ts` before the builder starts, where the table says so.
   runs.
 - WP7: folder `reports/`; new demo data first: audit events, monthly history for
   variance.
-- WP8: folder `setup/rules`; new demo data first: none: reads the engine's packs
-  and leave types.
+- WP8: folder `setup/rules`; new demo data first: grades, pay elements, pay
+  groups, templates, devices.
 - WP9: folder `setup/access`; new demo data first: users, roles, keys, webhooks,
   import sample.
 - WP10: folder `home/inbox, me/`; new demo data first: tasks, notices,
   notifications.
 
-Every package except WP8 needs new demo data first, so the data agent should
-start now, in package order WP6, WP4, WP3, WP5, WP2, WP7, WP9, WP10. WP6 also
-touches the pay run (`payrun/`), which it then owns; nobody else edits it.
+Every package needs new demo data first, so the data agent should start now, in
+package order WP6, WP4, WP3, WP5, WP2, WP8, WP7, WP9, WP10. WP6 also touches the
+pay run (`payrun/`), which it then owns; nobody else edits it.
 
 ## 8. Inventory: Manar One HR and payroll plus the market list
 
@@ -549,9 +576,11 @@ One row per area. Src: M Manar One, K market list, B both. Also: P person
 record, R pay run, H Home, E employee bar, A Cmd K action (every row is in Cmd K
 anyway). St: L live in demo, B backend built but no screen, H hours to add (demo
 scene from demo data), N not built. T: tier. Ar: archetype (section 4). h:
-builder-hours to make it live. Depth: Home is 0; every row under People, Time,
+builder-hours to make it live. Depth: Home is 0; every area under People, Time,
 Pay, Reports and Setup is 2 clicks (word, area); Home rows are 1; employee-bar
-rows are 2 in that bar.
+rows are 2 in that bar. The rows listed as "Inside" in section 2 open in their
+host, so they are 3 clicks by the panel and 2 by Cmd K. Rows added here that
+were missing from earlier drafts: the market items in appendix C.
 
 ### Home
 
@@ -574,6 +603,7 @@ rows are 2 in that bar.
 | H13 | Team chat and intranet | K | A | H | 3 | LF | 2 |
 | H14 | Meetings with transcript | K | A | H | 3 | LF | 2 |
 | H15 | AI assistant, cited policy Q&A | K | A | N | 3 | LF | 3 |
+| H16 | Agent actions you confirm | K | A | N | 3 | FA | 3 |
 
 ### People
 
@@ -600,6 +630,7 @@ rows are 2 in that bar.
 | P13 | Vacancies | M | - | H | 3 | LF | 0.5 |
 | P20 | Cost-of-hire preview | K | A | N | 3 | FA | 2 |
 | P21 | AI resume screening | K | - | N | 3 | LF | 3 |
+| P22 | Referral and agency ledger | K | - | N | 3 | LF | 2 |
 
 **Joining and leaving**
 
@@ -635,6 +666,8 @@ rows are 2 in that bar.
 | P51 | Compliance calendar, due dates | K | H | H | 2 | CA | 1 |
 | P52 | ILOE insurance tracking | K | P | H | 3 | LF | 0.5 |
 | P35 | Electronic signatures | M | P | H | 3 | LF | 0.5 |
+| P54 | Document intake, provenance | K | P | N | 3 | FA | 3 |
+| P55 | Sector packs, licence gates | K | P | N | 3 | LF | 3 |
 
 **Compliance and safety**
 
@@ -715,7 +748,7 @@ rows are 2 in that bar.
 | R03 | Maker and checker approval | B | H | L | 1 | FA | - |
 | R04 | Explain any figure (trace) | K | P,E | L | 1 | RT | - |
 | R05 | Payslip | B | P,E | L | 1 | RT | - |
-| R06 | Pre-pay gate (Fix step) | K | H | L | 1 | SF | - |
+| R06 | Fix step: what stops pay | K | H | L | 1 | SF | - |
 | R07 | WPS salary file (SIF) | B | - | L | 1 | SF | - |
 | R08 | Pension in the run (GPSSA) | B | P | L | 1 | SF | - |
 | R09 | What-if replay (owner view) | K | P,A | B | 1 | FA | 3 |
@@ -723,7 +756,7 @@ rows are 2 in that bar.
 | R11 | Past pay runs | M | - | B | 2 | LF | 0.5 |
 | R12 | Bank advice file | K | - | B | 2 | RP | 0.5 |
 | R13 | Off-cycle and bonus runs | K | - | H | 3 | SF | 2 |
-| R14 | Salary hold | K | P | H | 3 | FA | 1 |
+| R15 | Pre-pay gate with causes | K | H | B | 2 | RP | 0.5 |
 
 **Changes**
 
@@ -735,6 +768,7 @@ rows are 2 in that bar.
 | R23 | Expense claims | B | P,E | B | 2 | FA | 1 |
 | R24 | Traffic fines to decide | M | P | H | 3 | LF | 0.5 |
 | R25 | Prior-employment pay data | K | P | H | 3 | FA | 1 |
+| R14 | Salary hold | K | P | H | 3 | FA | 1 |
 | P66 | Sales commission statements | B | P,R | H | 3 | RP | 0.5 |
 
 **Owed and leaving**
@@ -758,6 +792,7 @@ rows are 2 in that bar.
 | R44 | DIFC DEWS, other GCC pensions | K | - | N | 3 | ST | 3 |
 | R45 | Saudi payroll (Mudad, GOSI) | K | - | N | 3 | SF | 3 |
 | R46 | Earned wage access, cards | K | P | N | 3 | LF | 3 |
+| R47 | Direct WPS submission | K | - | N | 3 | SF | 3 |
 
 ### Reports
 
@@ -786,13 +821,15 @@ rows are 2 in that bar.
 | X25 | Owner brief (weekly pack) | K | H | B | 2 | RP | 0.5 |
 | X26 | Board pack | M | - | H | 3 | RP | 0.5 |
 
-**Finance links**
+**More reports**
 
 | ID | Feature | Src | Also | St | T | Ar | h |
 |---|---|---|---|---|---|---|---|
 | X06 | Elements and element variance | M | - | H | 3 | RP | 0.5 |
 | X08 | Payroll journal | B | R | H | 3 | RP | 0.5 |
 | X09 | Recharges between companies | M | - | H | 3 | RP | 0.5 |
+| X12 | Report templates library | K | - | N | 3 | RP | 2 |
+| X13 | Cost and budget view | K | - | N | 3 | RP | 3 |
 
 **Analysis and trail**
 
@@ -804,6 +841,8 @@ rows are 2 in that bar.
 | X33 | Inspection pack, auditor room | K | - | N | 3 | RP | 3 |
 | X34 | Ask for a report in words | K | A | N | 3 | RP | 3 |
 | X35 | Payroll forecast, plan vs actual | K | - | N | 3 | RP | 3 |
+| X36 | Public accuracy scoreboard | K | - | N | 3 | RP | 2 |
+| X37 | Error-remedy record | K | - | N | 3 | LF | 2 |
 
 ### Setup
 
@@ -839,6 +878,7 @@ rows are 2 in that bar.
 | S15 | Pay calendar | M | - | H | 3 | CA | 1 |
 | S16 | WPS settings | B | - | B | 2 | ST | 0.5 |
 | S17 | Payroll exemptions | M | - | H | 3 | ST | 0.5 |
+| S09 | Rule-change preview, notice | K | - | N | 3 | RP | 3 |
 
 **Access and approvals**
 
@@ -863,6 +903,7 @@ rows are 2 in that bar.
 | S34 | Calendar feeds | K | E | B | 3 | ST | 0.5 |
 | S35 | Accounting sync (Xero...) | K | R | N | 3 | ST | 3 |
 | S36 | Slack and Teams | K | - | N | 3 | ST | 3 |
+| S43 | ERP integration (SAP...) | K | - | N | 3 | ST | 3 |
 
 **Data and company**
 
@@ -873,6 +914,7 @@ rows are 2 in that bar.
 | S39 | Data export, backup, health | M | - | H | 3 | LF | 0.5 |
 | S40 | Companies, numbering | M | - | H | 3 | ST | 0.5 |
 | S41 | Arabic screens (switch) | K | - | N | 3 | ST | 3 |
+| S42 | Bureau console (accountants) | K | - | N | 3 | LF | 3 |
 
 ### Me
 
@@ -881,7 +923,7 @@ rows are 2 in that bar.
 | ID | Feature | Src | Also | St | T | Ar | h |
 |---|---|---|---|---|---|---|---|
 | E01 | My overview | M | - | L | 1 | RP | - |
-| E02 | My payslips | B | - | L | 1 | LF | - |
+| E02 | My payslips (past months) | B | - | B | 2 | LF | 0.5 |
 | E03 | My leave and request | B | - | L | 1 | FA | - |
 | E04 | My team's leave (manager) | M | - | L | 1 | CA | - |
 | E05 | My documents, update | B | - | B | 2 | LF | 0.5 |
@@ -1180,3 +1222,50 @@ X23 X24 X26.
 **/documents** (1): Emailed PDF batches. Rows: S39.
 
 `/batches`
+
+## Appendix C. The market list, row by row
+
+Each row of the combined competitor list (sections A to H) and each unique item
+UQ1 to UQ38, with the inventory row that covers it. "out" means outside HR and
+payroll (section 9 or 10).
+
+- **A. Core HR**: employee database P02 P03; org chart P05; documents with
+  expiry P40 P41; self-service E01 to E16; onboarding and offboarding P14 P15;
+  resignation, exit interviews P16 P17; letters with e-signing P33 P35; approval
+  workflows S21; custom fields S08; roles, audit S20 X31; SSO and MFA S23;
+  multi-entity P08; announcements H09; help desk P37; pulse surveys P65.
+- **B. Leave and time**: leave policies S10; holidays, comp-off T07; encashment
+  T05; team calendar T02; web, mobile, GPS attendance T12; biometric devices T13
+  S18; face, kiosk and QR check-in T16; IP rules, regularisation, hourly
+  permissions T11; overtime T30 S11; shifts and rosters T20 T21; timesheets T14;
+  Ramadan and holidays S12.
+- **C. Payroll**: calculation R01; components and formulas S13; revisions,
+  arrears, unpaid leave R21 R20; prior employment R25; bonus and off-cycle R13;
+  salary hold R14; run approval and reversal R03; loans R30; leave salary,
+  tickets, encashment as pay T05 T06; leave advance and sick payout T05; ticket
+  tracking P36 T06; payslips R05 E02; payroll groups S14; report templates X12;
+  multi-currency R40; analytics and forecast X35; anomaly checks R43; parallel
+  run S38.
+- **D. UAE compliance**: WPS file R07; bank advice R12; direct WPS submission
+  R47; gratuity and liability R31 X07 R33; final settlement R31; GPSSA and GCC
+  schemes P44 R44; DIFC DEWS R44; Emiratisation P45; visa and ID lifecycle P42;
+  WPS compliance reports X03; law updates S19; Saudi payroll R45; ILOE P52;
+  compliance calendar P51; UAE hosting out (not a screen).
+- **E. Reporting and integrations**: reports and builder X01 to X30; journal and
+  accounting sync X08 S35; accounting tools S35; ERP S43; API and webhooks S30
+  S31; Slack and Teams S36.
+- **F. Talent**: ATS, offers, interviews P10 to P12; resume screening P21;
+  performance P60 P61; compensation planning P67; learning P64; workforce
+  planning P68.
+- **G. AI and service**: policy Q&A and assistant H15; AI reports X34; service
+  model (success managers, migration team) out.
+- **H. Adjacent**: expenses R23; task manager H07; intranet and chat H13;
+  project billing, payables, cards, payouts out (Plan 16).
+- **UQ1 to UQ13**: UQ1 R04; UQ2 H15; UQ3 E16; UQ4 X36; UQ5 S09; UQ6 R09 P20; UQ7
+  P51; UQ8 X13; UQ9 R06 R15; UQ10 R42; UQ11 R41 S14; UQ12 R34; UQ13 T06.
+- **UQ14 to UQ26**: UQ14 X33 S25; UQ15 P34; UQ16 X37; UQ17 S26; UQ18 S21 S22;
+  UQ19 X25; UQ20 P45; UQ21 S32; UQ22 S33; UQ23 S42; UQ24 H16; UQ25 P54; UQ26
+  X34.
+- **UQ27 to UQ38**: UQ27 P12 P20 P22; UQ28 P53 P47; UQ29 P55 P50; UQ30 T23; UQ31
+  R46 P36; UQ32 and UQ33 out (Plan 15); UQ34 P41 P33; UQ35 and UQ36 out (Plan
+  12); UQ37 H14; UQ38 T15.
