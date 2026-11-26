@@ -3,7 +3,7 @@
 Date: 2026-11-26. Branch `worktree-agent-aa6e9c5f918a01216` (not
 pushed), based on `claude/quirky-wozniak-b7xkvr` at `5697439`.
 
-## Status
+## Status (Tasks 1 to 4; superseded by "Tasks 5 to 8" below)
 
 Tasks 1 to 4 done. Each task's planned tests were written first and
 run red, then green; `tests/errors.test.ts` (error mapping and the
@@ -146,7 +146,7 @@ Items marked **(superseded)** changed later; see "Tasks 5 to 8" below.
     `pay-run.created` and `leave-type.created` failed the first.
     A contract test parses every action name the plan lists.
 
-## Hand-off notes for Tasks 5 to 8
+## Hand-off notes for Tasks 5 to 8 (written after Task 4; all were handled, see below)
 
 - A missing `Idempotency-Key` currently fails route validation with
   400 `VALIDATION_FAILED`; Task 7 must check the header in the handler
@@ -165,7 +165,7 @@ Items marked **(superseded)** changed later; see "Tasks 5 to 8" below.
   pglite serialises, so a `deps.db.query` inside `withTenant` would
   wait on itself.
 
-## Concerns for the reviewer
+## Concerns for the reviewer (after Task 4; see the later Concerns)
 
 - Real PostgreSQL: `SET LOCAL ROLE payroll_app` needs the connecting
   role to be a member of `payroll_app` (or a superuser). pglite runs as
@@ -210,19 +210,25 @@ with the security review of Tasks 2 to 4 fixed first.
 | `75cbcde` | feat(api): leave and attendance (Task 6) |
 | `f1a8f63` | feat(contract): pay-run codes and the settlement note constant |
 | `c4b5e5a` | feat(api): pay runs and traced payslips (Task 7) |
-| (last) | feat(api): SIF files, conformance, handover (Task 8) |
+| `05fd215` | feat(api): SIF files, conformance, handover (Task 8) |
+| `afb5911` | fix(api): repeated codes in a pay-run entry; enrolment check on lock |
+| (final) | test(api): whole-API flow on real PostgreSQL; report |
 
 ### Tests
 
-`pnpm check` passes: contract 81, engine 154, wps 153, api 178 passed
-and 17 skipped (the real-PostgreSQL suite). With `DATABASE_URL` set to a
+`pnpm check` passes: contract 81, engine 154, wps 153, api 179 passed
+and 18 skipped (the real-PostgreSQL suite). With `DATABASE_URL` set to a
 throwaway PostgreSQL 16.15 superuser, the real-PostgreSQL suite passes
-17 of 17, run as the non-superuser runtime role. `pnpm api:dev` was run
+18 of 18, run as the non-superuser runtime role, including the whole-API
+flow (one successful call to each of the 50 routes, no 5xx). `pnpm api:dev` was run
 against that server: health and signup worked, and startup refused a
 superuser and a table-owner runtime role.
 
-Test order, honestly: the compute tests (Task 7) and the Task 5, 6 and
-8 tests were written first and seen red. The Task 7 route tests
+Test order, honestly: the compute tests (Task 7) and the Task 5 and 6
+tests were written first and seen red. Task 8's `sif.test.ts` and
+`main.test.ts` were written first but first run after their code;
+`audit-routes.test.ts` and `conformance.test.ts` came after their code.
+The repeated-code pay-run test (`afb5911`) was seen red. The Task 7 route tests
 (`pay-runs`, `pay-run-idempotency`), the contract edits in `786d295`,
 the `.sql` line check and the real-PostgreSQL race tests were written
 after their code. The race tests were never seen red against the old
@@ -384,3 +390,15 @@ All are in `packages/contract`. Breaking ones are marked.
   advance the head.
 - The throwaway PostgreSQL in `/tmp/pgplan3` is stopped at the end of
   this run.
+
+### Later additions
+
+- Limit for the web app: `PATCH /v1/employees/{id}` cannot clear an
+  optional field (for example `lastWorkingDate` or `labourPersonId`):
+  an omitted field keeps its value and the schema has no null. A
+  later additive change can accept `null` to clear.
+- `LEDGER.md` section 3 adopts Plan 3 rulings 1 to 25 in one row by
+  reference to the plan, not one row each; the changes are separate
+  rows and section 10. Ruling 3 says a five-method `Db`; the code has
+  four (`query`, `exec`, `transaction`, `close`).
+- The throwaway PostgreSQL server in `/tmp/pgplan3` was stopped.

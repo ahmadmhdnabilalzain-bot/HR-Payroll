@@ -1,3 +1,4 @@
+import { ROUTES } from "@payroll/contract";
 import { afterAll, describe, expect, it } from "vitest";
 import { assertRuntimeRole } from "../src/db/role-check";
 import { withTenant } from "../src/db/tenant";
@@ -5,6 +6,8 @@ import { ADMIN_URL, closeAll, freshPgPair } from "./helpers/pg-env";
 import { tenancyCases } from "./helpers/tenancy-cases";
 import { COMPANY_A, seedTwoCompanies } from "./helpers/test-db";
 import { pgConcurrencyCases } from "./helpers/pg-concurrency";
+import { recorder, runFlow, type Hit } from "./helpers/api-flow";
+import { makeApp } from "./helpers/test-app";
 
 describe.skipIf(!ADMIN_URL)("real PostgreSQL, non-superuser runtime", () => {
   afterAll(closeAll);
@@ -39,6 +42,21 @@ describe.skipIf(!ADMIN_URL)("real PostgreSQL, non-superuser runtime", () => {
       await expect(reset).rejects.toThrow(hidden);
       await expect(db.query("TRUNCATE audit_events"))
         .rejects.toThrow(/permission denied|must be owner|does not exist/);
+    });
+
+  it("every route works as the runtime role (whole-API flow)",
+    async () => {
+      const { db } = await freshPgPair(4);
+      const ctx = await makeApp({ db });
+      const hits: Hit[] = [];
+      await runFlow(ctx, recorder(ctx, hits));
+      for (const r of ROUTES) {
+        const ok = hits.find((h) => h.id === r.id && h.res.status < 300);
+        expect(ok, `${r.id}: ${hits.filter((h) => h.id === r.id)
+          .map((h) => h.res.text).join(" | ")}`).toBeDefined();
+      }
+      const server = hits.filter((h) => h.res.status >= 500);
+      expect(server.map((h) => h.id)).toEqual([]);
     });
 
   describe("concurrency", () => {
