@@ -591,3 +591,27 @@ The owner can overrule any of these. Full list with reasons:
   frustrated" with it. The demo is built to win that comparison: a Keka
   deep dive (real screens plus mined public review pain points, mapped
   to demo scenes) is running; the demo storyline follows the pain list.
+
+## 16. Demo sprint (2026-11-26)
+
+- Meeting: **Fri 2026-11-27, 15:00 Dubai time**. Client: a small bank in
+  Abu Dhabi, about 30 staff, currently on Keka and frustrated ("it cannot
+  do the job properly", wants unspecified extra features and "a smarter
+  system"). Attendees: the owner, the client's HR Manager, General
+  Manager and IT Manager. The client is not named in the repo.
+- Advisor plan (Fable 5.2): the demo runs entirely in the browser on the
+  bank dataset (pure `@payroll/demo-data` with the real engine), served
+  from the free static site; four scenes each working end to end (Home
+  decisions; Pay run with real problems caught; Explain any number;
+  Employee payslip and leave request landing in the manager's inbox).
+  Seeded database and hosted API move to after the meeting. All backend
+  plan work paused at clean commits (resume steps in each build report).
+  One restrained screen first for the owner's yes/no before more scenes.
+- Honesty rules for the demo: no simulated AI assistant, no pre-pay gate
+  or other unmerged features; no compliance/approval claims; mainland
+  rules labelled (free-zone status unconfirmed); Emiratisation = headcount
+  by nationality only; pension for UAE nationals in Abu Dhabi = "not
+  computed" (an Abu Dhabi pension fund may apply instead of the federal
+  fund; unconfirmed); Arabic hidden unless reviewed.
+- Done tonight before pausing: C-1 crash fix (idle-in-transaction
+  timeout killed the API process) cherry-picked to main (c668f64).
