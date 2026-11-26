@@ -255,7 +255,7 @@
   }
 
   .act {
-    min-block-size: 36px;
+    min-block-size: 44px;
     padding-inline: var(--space-3);
     font-size: var(--text-sm);
   }
@@ -274,5 +274,12 @@
   .dot,
   .thin > span {
     transition: none;
+  }
+}
+
+/* Touch screens: the step button is at least 44 px high. */
+@media (pointer: coarse) {
+  .act {
+    min-block-size: 44px;
   }
 }

@@ -179,8 +179,9 @@ export function OvertimeRecord(q: { id: string }) {
       { id: "claim", label: "Claim", render: () => (
         <>
           <KeyValues items={[
-            { label: "Person", value: <a href={hrefOf("people",
-              c.employeeId)}>{who.name(c.employeeId)}</a> },
+            { label: "Person", value: <a className={s.tapLink}
+              href={hrefOf("people", c.employeeId)}>
+              {who.name(c.employeeId)}</a> },
             { label: "Day", value: dayText(c.date, who.lang) },
             { label: "Time", value: timeOf(c) },
             { label: "Decided by", value: `${who.name(decider)}, ` +
@@ -294,7 +295,8 @@ export function CrewRecord(q: { id: string }) {
           <ul className={s.dayList} aria-label="People">
             {c.people.map((id) => (
               <li key={id} className={s.dayRow}>
-                <a href={hrefOf("people", id)}>{who.name(id)}</a>
+                <a className={s.tapLink}
+                  href={hrefOf("people", id)}>{who.name(id)}</a>
                 <span>{who.jobOf(id)}</span>
                 <span className={s.num}>{hm(c.minutesEach)}</span>
               </li>

@@ -99,3 +99,11 @@
   border-radius: 50%;
   background: var(--color-text-faint);
 }
+
+/* Phones: the last line clears the fixed bottom bar. */
+@media (max-width: 760px) {
+  .wrap {
+    padding-block-end: calc(var(--space-8) + 56px +
+      env(safe-area-inset-bottom));
+  }
+}

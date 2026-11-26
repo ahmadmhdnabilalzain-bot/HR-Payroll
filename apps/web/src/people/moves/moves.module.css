@@ -180,3 +180,12 @@
   margin-inline: auto;
   padding: var(--space-5) var(--page-pad) var(--space-8);
 }
+
+/* Touch: a plain link in running content gets a 44 px tap area. */
+@media (pointer: coarse) {
+  .tapLink {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+  }
+}
