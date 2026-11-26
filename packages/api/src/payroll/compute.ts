@@ -1,4 +1,5 @@
 import {
+  MONEY_MAX_FILS,
   NOT_COMPUTED_PAY,
   type PayRunEntry,
   type PayRunProblem,
@@ -32,6 +33,9 @@ export interface SnapshotEmployee {
   salaryVersion: number;
   components: SnapshotComponent[];
   unpaidLeaveDays: number;
+  /** As approved: the SIF is built from these, never from live rows. */
+  bank: { routingCode: string; iban: string } | null;
+  labourPersonId: string | null;
 }
 
 export interface RunSnapshot {
@@ -86,7 +90,8 @@ const repeated = (cs: string[]) =>
 /**
  * Unknown override codes, one-off codes that clash with a component and
  * codes given twice are VALIDATION_FAILED; partial months need every
- * component entered; leavers need unusedLeaveDays.
+ * component entered; leavers need unusedLeaveDays and
+ * serviceUnpaidLeaveDays (both HR-entered; neither is ever assumed).
  */
 function entryProblems(e: SnapshotEmployee, x: PayRunEntry, p: Period)
   : Problem[] {
@@ -106,9 +111,13 @@ function entryProblems(e: SnapshotEmployee, x: PayRunEntry, p: Period)
     out.push(problem(e.employeeId, "ENTERED_AMOUNTS_REQUIRED",
       codes.filter((c) => !over.has(c))));
   }
-  if (isLeaver(e, p) && x.unusedLeaveDays === undefined) {
+  const settlementMissing = [
+    ...(x.unusedLeaveDays === undefined ? ["unusedLeaveDays"] : []),
+    ...(x.serviceUnpaidLeaveDays === undefined
+      ? ["serviceUnpaidLeaveDays"] : [])];
+  if (isLeaver(e, p) && settlementMissing.length > 0) {
     out.push(problem(e.employeeId, "SETTLEMENT_INPUT_REQUIRED",
-      ["unusedLeaveDays"]));
+      settlementMissing));
   }
   return out;
 }
@@ -145,7 +154,8 @@ function payslipOf(e: SnapshotEmployee, x: PayRunEntry, p: Period)
   const basic = e.components.find((c) => c.code === "basic")!.amount;
   const settlement = isLeaver(e, p) ? settle({
     joiningDate: e.joiningDate, lastWorkingDate: e.lastWorkingDate!,
-    workerClass: e.workerClass }, basic, x, x.unusedLeaveDays!) : null;
+    workerClass: e.workerClass }, basic, x.serviceUnpaidLeaveDays!,
+    x.unusedLeaveDays!) : null;
   return { employeeId: e.employeeId, employeeName: e.name, period: p,
     lines, gross, net: gross, notComputed: [...NOT_COMPUTED_PAY],
     settlement, trace: lines.map((l) => traceOf(l, e.salaryVersion)) };
@@ -177,10 +187,41 @@ export function computePayRun(s: RunSnapshot): { problems: Problem[];
     if (e.components.length === 0) {
       problems.push(problem(e.employeeId, "SALARY_MISSING", ["salary"]));
     } else problems.push(...entryProblems(e, x, s.period));
+    const wps = [...(e.bank === null ? ["bank"] : []),
+      ...(e.labourPersonId === null ? ["labourPersonId"] : [])];
+    if (wps.length > 0) {
+      problems.push(problem(e.employeeId, "EMPLOYEE_BANK_MISSING", wps));
+    }
   }
   if (problems.length > 0) return { problems, payslips: [], gross: fils(0n) };
   const payslips = paid.map((e) => payslipOf(e,
     entries.get(e.employeeId) ?? { employeeId: e.employeeId }, s.period));
-  return { problems, payslips,
-    gross: fils(payslips.reduce((n, p) => n + p.gross, 0n)) };
+  const gross = fils(payslips.reduce((n, p) => n + p.gross, 0n));
+  problems.push(...capProblems(payslips, gross));
+  if (problems.length > 0) return { problems, payslips: [], gross: fils(0n) };
+  return { problems, payslips, gross };
+}
+
+/**
+ * Amounts the wire format cannot carry (above 999,999,999.99 AED): a
+ * payslip gross, a settlement total, or the run gross (reported on the
+ * last employee).
+ */
+function capProblems(ps: ComputedPayslip[], gross: Fils): Problem[] {
+  const out: Problem[] = [];
+  for (const p of ps) {
+    const s = p.settlement;
+    const over = [
+      ...(p.gross > MONEY_MAX_FILS ? ["gross"] : []),
+      ...(s?.status === "computed" && s.total > MONEY_MAX_FILS
+        ? ["settlement"] : [])];
+    if (over.length > 0) {
+      out.push(problem(p.employeeId, "VALIDATION_FAILED", over));
+    }
+  }
+  const last = ps.at(-1);
+  if (out.length === 0 && gross > MONEY_MAX_FILS && last !== undefined) {
+    out.push(problem(last.employeeId, "VALIDATION_FAILED", ["runGross"]));
+  }
+  return out;
 }

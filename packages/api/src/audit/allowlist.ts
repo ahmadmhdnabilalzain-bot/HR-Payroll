@@ -42,6 +42,7 @@ const CHECKS: Record<string, Check> = {
   count: isInt,
   days: isInt,
   year: isInt,
+  month: isInt,
   employeeCount: isInt,
   errorCount: isInt,
   warningCount: isInt,

@@ -1,9 +1,16 @@
 import { defineConfig } from "vitest/config";
 
-/** pglite (WASM PostgreSQL) is slow to start under a parallel run. */
+/**
+ * pglite (WASM PostgreSQL) is slow to start and memory-hungry under a
+ * parallel run: long timeouts and at most three workers.
+ */
 export default defineConfig({
   test: {
-    testTimeout: 30_000,
-    hookTimeout: 30_000,
+    testTimeout: 60_000,
+    hookTimeout: 60_000,
+    maxWorkers: 3,
+    // Starts a throwaway PostgreSQL for the real-PG suite when one is
+    // installed (see tests/global-pg.ts); skipped otherwise.
+    globalSetup: ["./tests/global-pg.ts"],
   },
 });

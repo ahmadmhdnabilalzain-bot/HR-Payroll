@@ -5,6 +5,7 @@ import type {
 import type { Db } from "../db/db";
 import type { Tenant } from "../auth/guard";
 import { ApiError } from "../http/errors";
+import type { Sealer } from "../people/employees";
 import { inScope, viewerScope } from "../people/redact";
 import { balanceFor, loadLeaveType } from "./balances";
 import { leaveDays } from "./days";
@@ -17,16 +18,29 @@ export interface RequestRow {
   end_date: string;
   days: number;
   status: LeaveRequest["status"];
-  reason: string | null;
+  reason_enc: string | null;
   decided_by: string | null;
+  created_by: string;
   decided_at: string | null;
 }
 
-export const toLeaveRequest = (r: RequestRow): LeaveRequest => ({
-  id: r.id, employeeId: r.employee_id, leaveTypeId: r.leave_type_id,
-  startDate: r.start_date, endDate: r.end_date, days: r.days,
-  status: r.status, reason: r.reason, decidedBy: r.decided_by,
-  decidedAt: r.decided_at });
+/**
+ * The reason is sealed with the company key (it can be health data)
+ * and shown only to callers who may see the request: the person,
+ * their manager (the approver) and owner or hr.
+ */
+export function toLeaveRequest(r: RequestRow, s: Sealer): LeaveRequest {
+  let reason: string | null = null;
+  try {
+    reason = s.open("reason_enc", r.id, r.reason_enc);
+  } catch {
+    reason = null;
+  }
+  return { id: r.id, employeeId: r.employee_id,
+    leaveTypeId: r.leave_type_id, startDate: r.start_date,
+    endDate: r.end_date, days: r.days, status: r.status, reason,
+    decidedBy: r.decided_by, decidedAt: r.decided_at };
+}
 
 /** The employee's id and manager, for scope checks; 404 when absent. */
 export async function employeeRef(tx: Db, companyId: string, id: string) {
@@ -80,7 +94,7 @@ async function checkDates(tx: Db, companyId: string, employeeId: string,
 }
 
 export async function createRequest(tx: Db, t: Tenant, userId: string,
-  ids: { id: string; at: string }, b: LeaveRequestCreate) {
+  ids: { id: string; at: string }, b: LeaveRequestCreate, s: Sealer) {
   const employeeId = await subject(tx, t, b);
   const type = await loadLeaveType(tx, t.companyId, b.leaveTypeId);
   const days = await checkDates(tx, t.companyId, employeeId, b);
@@ -91,36 +105,61 @@ export async function createRequest(tx: Db, t: Tenant, userId: string,
   }
   await tx.query(
     `INSERT INTO leave_requests (id, company_id, employee_id, leave_type_id,
-       start_date, end_date, days, status, reason, created_by, created_at)
+       start_date, end_date, days, status, reason_enc, created_by,
+       created_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10)`,
     [ids.id, t.companyId, employeeId, type.id, b.startDate, b.endDate,
-      days, b.reason ?? null, userId, ids.at]);
+      days, s.seal("reason_enc", ids.id, b.reason ?? null), userId,
+      ids.at]);
   return loadRequest(tx, t.companyId, ids.id);
 }
 
-/** Approve or reject: pending only; a manager only for direct reports
- * and never their own request. */
+/**
+ * Approve or reject: pending only; a manager only for direct reports;
+ * nobody decides their own request or one they filed. Approval
+ * rechecks the balance (never below zero).
+ */
 export async function decide(tx: Db, t: Tenant, userId: string, id: string,
-  to: "approved" | "rejected", d: { at: string; note: string | null }) {
+  to: "approved" | "rejected", d: { at: string; note: string | null },
+  s: Sealer) {
   const r = await loadRequest(tx, t.companyId, id, true);
+  // Lock the employee row: a pay run being created or approved holds
+  // it shared, so a leave decision cannot slip past its snapshot.
+  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
+    "id = $2 FOR UPDATE", [t.companyId, r.employee_id]);
   const ref = await employeeRef(tx, t.companyId, r.employee_id);
-  if (t.role === "manager") {
-    if (r.employee_id === t.employeeId) throw new ApiError("SOD_VIOLATION");
-    if (t.employeeId === null || ref.managerId !== t.employeeId) {
-      throw new ApiError("NOT_FOUND");
-    }
+  if (t.role === "manager" &&
+    r.employee_id !== t.employeeId && ref.managerId !== t.employeeId) {
+    throw new ApiError("NOT_FOUND");
+  }
+  if (r.employee_id === t.employeeId || r.created_by === userId) {
+    throw new ApiError("SOD_VIOLATION");
   }
   if (r.status !== "pending") throw new ApiError("LEAVE_NOT_PENDING");
+  if (to === "approved") await recheckBalance(tx, t.companyId, r);
   await tx.query(
     `UPDATE leave_requests SET status = $3, decided_by = $4,
-       decided_at = $5, decision_note = $6 WHERE company_id = $1 AND id = $2`,
-    [t.companyId, id, to, userId, d.at, d.note]);
+       decided_at = $5, decision_note_enc = $6
+     WHERE company_id = $1 AND id = $2`,
+    [t.companyId, id, to, userId, d.at,
+      s.seal("decision_note_enc", id, d.note)]);
   return loadRequest(tx, t.companyId, id);
 }
 
 /** Own pending request, or (owner/hr) any request not yet cancelled. */
+/** The balance after approval may not go below zero. */
+async function recheckBalance(tx: Db, companyId: string, r: RequestRow) {
+  const type = await loadLeaveType(tx, companyId, r.leave_type_id);
+  if (type.annual_days === null) return;
+  const bal = await balanceFor(tx, companyId, r.employee_id, type.id,
+    Number(r.start_date.slice(0, 4)));
+  if (bal.remainingDays < 0) throw new ApiError("INSUFFICIENT_BALANCE");
+}
+
 export async function cancel(tx: Db, t: Tenant, id: string) {
   const r = await loadRequest(tx, t.companyId, id, true);
+  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
+    "id = $2 FOR UPDATE", [t.companyId, r.employee_id]);
   const own = r.employee_id === t.employeeId;
   const payroll = t.role === "owner" || t.role === "hr";
   if (!own && !payroll) {

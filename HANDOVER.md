@@ -56,6 +56,14 @@ source-cited, with an open API and Arabic from the start.
   (`apps/web`: contract adapter, mock API, typed Arabic and English text)
   is merged; no screens yet.
 - All 17 plans are written (`docs/superpowers/plans/`).
+- **Plan 3 (backend) is built and merged** into
+  `claude/quirky-wozniak-b7xkvr` (merge `08ec440`); the fixes for the
+  money review (Task 7) and the data-protection review (Tasks 5 and 6)
+  are on the worktree branch, not yet merged. `packages/contract` (zod schemas, 50
+  routes, error codes, OpenAPI) and `packages/api` (Hono over
+  PostgreSQL with row-level security, sealed salary and bank fields,
+  hash-chained audit log, pay runs, payslips and SIF files).
+  Build report: `docs/superpowers/plans/plan-3-build-report-1.md`.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -92,8 +100,14 @@ to `DATABASE_URL`), `PAYROLL_MASTER_KEY` (32 bytes, base64) and `PORT`
 (default 8787). It refuses to start with a bad key or an unsafe runtime
 role. Checked on 2026-11-26 against a throwaway PostgreSQL 16 (health,
 signup, the superuser and table-owner refusals). The real-PostgreSQL
-test suite runs when `DATABASE_URL` points at a superuser (it creates
-`plan3_owner` and `plan3_runtime` and a schema per case):
+test suite (it creates `plan3_owner` and `plan3_runtime` and a schema
+per case) runs inside `pnpm check` whenever a PostgreSQL server binary
+is installed under `/usr/lib/postgresql/<version>/bin`: a Vitest global
+setup (`packages/api/tests/global-pg.ts`) starts a throwaway cluster in
+a temp dir on a free port (as the `postgres` user when run as root),
+points `DATABASE_URL` at it, and stops and deletes it afterwards. With
+no binary it prints one line and skips. `PAYROLL_TEST_PG=0` turns it
+off; an existing superuser URL can be given instead:
 
 ```bash
 DATABASE_URL=postgres://postgres@127.0.0.1:55433/postgres \
@@ -163,7 +177,7 @@ engine refuses to run without an explicit value.
 
 | Area | Files |
 |---|---|
-| Database, migrations, tenancy | `src/db/`, `migrations/001` to `008` |
+| Database, migrations, tenancy | `src/db/`, `migrations/001` to `013` |
 | HTTP plumbing (one transaction per request) | `src/app.ts`, `src/http/` |
 | Sign-in, sessions, TOTP, guards | `src/auth/` |
 | Field encryption | `src/crypto/keyring.ts` |
@@ -184,6 +198,10 @@ engine refuses to run without an explicit value.
   (an invite can be accepted by whoever holds the token), anyone can
   lock an account for 15 minutes with five wrong passwords, no rate
   limiting, no pay-run corrections. Real payroll waits for the owner.
+  The pay-run `input_hash` is an unkeyed hash over salary amounts and
+  `pay_runs.gross` is in clear (make the hash an HMAC before real
+  data). No warning yet when a leaver gets both a leave-encashment
+  one-off and a settlement.
 
 - The gratuity pack applies to leavers on or after 2022-02-02 (Decree-Law 33
   of 2021). Earlier leavers throw `NO_PACK_FOR_DATE` (old law not modelled).
