@@ -20,8 +20,8 @@ const monthName = (ym: string): string => {
 };
 
 /**
- * S15: the pay month as a calendar. The dates are the demo's sample
- * dates; the salary due date is the rule's (secondary source).
+ * S15: the pay month as a calendar. The salary due date is the
+ * rule's (secondary source).
  */
 export function PayCalendar() {
   const { lang } = useLocale();
@@ -45,8 +45,8 @@ export function PayCalendar() {
   ];
   return (
     <MonthCalendar title="Pay calendar"
-      lede={`The dates of the ${monthName(run)} pay run. The dates ` +
-        "are samples. The due date is the rule's, from a secondary source."}
+      lede={`The dates of the ${monthName(run)} pay run. The due date ` +
+        "is the rule's, from a secondary source."}
       month={month} monthLabel={monthName(month)}
       rows={steps.map((x) => ({ id: x.id,
         label: `${x.label}, ${formatDayMonth(x.on, lang)}` }))}

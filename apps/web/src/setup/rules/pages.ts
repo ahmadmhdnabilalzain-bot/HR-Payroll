@@ -32,9 +32,9 @@ export function leavePage(d: DemoData): PageSpec {
           why: LAW_MIN } };
     }
     return { key: `type:${t.id}`, label: t.name.en,
-      value: t.paid ? "Paid, in steps (see sick leave below)"
-        : "Not paid",
-      help: t.paid ? "Days used are counted; there is no yearly balance."
+      value: t.paid ? "Paid, in steps" : "Not paid",
+      help: t.paid ? "Days used are counted, with no yearly balance. " +
+        "The steps are under Sick leave."
         : "Days used are counted and taken out of the month's pay." };
   });
   return { title: "Leave policies",

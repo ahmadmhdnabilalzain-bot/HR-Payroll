@@ -40,22 +40,23 @@ export function Calendar() {
     .sort((a, b) => a.start.localeCompare(b.start));
   return (
     <div className={c.calWrap}>
-    <MonthCalendar title="Compliance calendar"
-      lede="Pay dates, document expiries and the booked
-        steps of visa cases."
-      month={month} monthLabel={`${MONTHS[Number(m) - 1] ?? ""} ${y ?? ""}`}
-      rows={[{ id: "pay", label: "Pay dates" },
-        { id: "docs", label: "Documents expire" },
-        { id: "cases", label: "Case steps" }]}
-      events={events} onMonth={(step) => setMonth(shift(month, step))} />
-    <div className={`${c.page} ${c.tight}`}>
-      {inMonth.length === 0 ? <p className={c.empty}>
-        Nothing is due this month.</p> : (
-        <History items={inMonth.map((e) => ({ text: e.label,
-          when: p.when(e.start), tone: e.tone === "booked" ? "ok"
-            : e.tone === "waiting" ? "warn" : "info" }))} />
-      )}
-    </div>
+      <MonthCalendar title="Compliance calendar"
+        lede="Pay dates, document expiries and the booked steps of visa
+          cases."
+        month={month}
+        monthLabel={`${MONTHS[Number(m) - 1] ?? ""} ${y ?? ""}`}
+        rows={[{ id: "pay", label: "Pay dates" },
+          { id: "docs", label: "Documents expire" },
+          { id: "cases", label: "Case steps" }]}
+        events={events} agenda={false}
+        onMonth={(step) => setMonth(shift(month, step))}>
+        {inMonth.length === 0 ? <p className={c.empty}>
+          Nothing is due this month.</p> : (
+          <History items={inMonth.map((e) => ({ text: e.label,
+            when: p.when(e.start), tone: e.tone === "booked" ? "ok"
+              : e.tone === "waiting" ? "warn" : "info" }))} />
+        )}
+      </MonthCalendar>
     </div>
   );
 }
