@@ -84,6 +84,20 @@ check and are masked. Labour and employer ids start with 99. E-mails
 end in `.test`. Arabic labels are NEEDS NATIVE REVIEW
 (`DEMO_AR_REVIEWED = false`, so the UI can hide them).
 
+## Work packages (one file each, `src/<package>.ts`)
+
+- **WP6 Pay (`pay.ts`).** `pastRuns` (June to September 2026, each
+  payslip from the engine, as paid), `payTrend` (June to October, net
+  and change), `runChanges(c, month)` (who changed and why),
+  `salaryRevisions` (basic only; the late one's arrears are the
+  engine's back pay), `loans` (an active loan cut by the deduction
+  limit, a closed one repaid June to August, an advance starting in
+  November; balances from the engine), `payCorrections` (July unpaid
+  days recorded in error, September overtime not paid: the engine's
+  difference, to pay in November), `trafficFines` (to decide; recovery
+  not computed), `finalSettlements`, and read-only `payGroups` and
+  `payElements`. Every record has display strings (no raw dates).
+
 ## Tests
 
 `pnpm exec vitest run --maxWorkers=1 --testTimeout=60000`: lines sum
