@@ -1,24 +1,29 @@
 import type { Fils } from "@payroll/engine";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { reducedMotion } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { formatMoney, moneyParts } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { amountsHidden } from "./mask";
+import { RollFace } from "./Rolling";
 import s from "./Money.module.css";
 
 type Size = "hero" | "lg" | "md" | "sm";
 
-const FADE_MS = 200;
-
 const MASK = "•".repeat(6);
+
+/** Hide amounts as one gesture, ms. */
+const HIDE_MS = 180;
 
 /**
  * Every amount on screen goes through here: one formatter
  * (formatMoney / moneyParts), tabular figures, left-to-right inside
- * Arabic, the fils set smaller, faded in when the value changes, and
- * masked when amounts are hidden. Screen readers get the plain text.
- * A changed figure crossfades (old out, new in), never counts up.
+ * Arabic, the fils set smaller, and masked when amounts are hidden.
+ * Screen readers get the plain text (a headline figure says its new
+ * value politely, the final value only). A changed figure rolls only
+ * the digits that changed (ui/Rolling, ui/roll.ts); it never counts
+ * up and never reads as an amount in between. While amounts are
+ * hidden the mask is drawn and no digit is ever animated.
  */
 export function Money(p: { value: Fils; size?: Size; tween?: boolean;
   /** A change: "+" on a rise (a fall always reads "−AED"). */
@@ -26,27 +31,26 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
   const { lang, t } = useLocale();
   const { state } = useDemo();
   const v = p.value;
-  const box = useRef<HTMLSpanElement>(null);
-  const was = useRef(p.value);
-  const [ghost, setGhost] = useState<Fils | null>(null);
-  // A changed figure crossfades: the old amount fades out, the new one
-  // fades in. Only the two true amounts are ever shown, never one in
-  // between. Reduced motion: instant.
-  useLayoutEffect(() => {
-    if (was.current === p.value) return undefined;
-    const old = was.current;
-    was.current = p.value;
-    if (p.tween === false || reducedMotion()) return undefined;
-    box.current?.animate([{ opacity: 0 }, { opacity: 1 }],
-      { duration: FADE_MS, easing: "ease-out" });
-    setGhost(old);
-    const h = setTimeout(() => setGhost(null), FADE_MS);
-    return () => clearTimeout(h);
-  }, [p.value, p.tween]);
   const size = p.size ?? "md";
-  if (amountsHidden(state)) {
+  const hidden = amountsHidden(state);
+  const box = useRef<HTMLSpanElement>(null);
+  const was = useRef(hidden);
+  // Hide amounts as one gesture: whichever face arrives (the dots, or
+  // the digits coming back) comes in out of a blur over 180 ms. The
+  // real digits are gone from the first frame of hiding: they are
+  // never what fades.
+  useLayoutEffect(() => {
+    if (was.current === hidden) return;
+    was.current = hidden;
+    if (reducedMotion()) return;
+    box.current?.animate([{ opacity: 0, filter: "blur(0.14em)" },
+      { opacity: 1, filter: "blur(0)" }],
+    { duration: HIDE_MS, easing: "cubic-bezier(0.2, 0, 0, 1)" });
+  }, [hidden]);
+  if (hidden) {
     return (
-      <span className={`${s.money} ${s[size]} ${s.masked}`} dir="ltr">
+      <span className={`${s.money} ${s[size]} ${s.masked}`} dir="ltr"
+        ref={box}>
         <span className="visually-hidden">{t("shell.amountsHidden")}</span>
         <span className={s.cur} aria-hidden="true">AED</span>
         <span aria-hidden="true">{MASK}</span>
@@ -55,30 +59,16 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
   }
   const plus = p.signed === true;
   const m = moneyParts(v, plus);
+  const live = p.tween !== false && (size === "hero" || size === "lg");
   return (
-    <span className={`${s.money} ${s[size]}`} dir="ltr">
-      <span className="visually-hidden">
+    <span className={`${s.money} ${s[size]}`} dir="ltr" key="shown"
+      ref={box}>
+      <span className="visually-hidden"
+        {...(live ? { "aria-live": "polite" as const } : {})}>
         {formatMoney(p.value, lang, { plus })}</span>
-      <span aria-hidden="true" className={s.lead}>
-        {m.sign !== "" && <span className={s.sign}>{m.sign}</span>}
-        <span className={s.cur}>{m.currency}</span>
-      </span>
-      <span className={s.stack} aria-hidden="true">
-        <span ref={box} className={s.settled}>
-          {m.whole}<span className={s.frac}>.{m.frac}</span>
-        </span>
-        {ghost !== null && <Ghost value={ghost} />}
-      </span>
-    </span>
-  );
-}
-
-/** The old amount, fading out over the new one in the same place. */
-function Ghost(p: { value: Fils }) {
-  const o = moneyParts(p.value);
-  return (
-    <span className={s.ghost}>
-      {o.whole}<span className={s.frac}>.{o.frac}</span>
+      <RollFace value={v} animate={p.tween !== false} face={{
+        sign: m.sign, cur: m.currency, digits: `${m.whole}.${m.frac}`,
+        fracAt: m.whole.length }} />
     </span>
   );
 }

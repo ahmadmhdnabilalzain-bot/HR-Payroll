@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useDemo } from "../../demo/state";
 import { MINUS } from "../../i18n/format";
+import { useChartMotion } from "../../ui/chartMotion";
 import { compact } from "../../ui/templates";
 import type { MonthRow } from "../types";
 import { useBoxWidth } from "./TrendChart";
@@ -25,6 +26,7 @@ export function ChangeBars(p: { months: MonthRow[]; label: string }) {
   const { state } = useDemo();
   const box = useRef<HTMLDivElement>(null);
   const w = useBoxWidth(box);
+  const svg = useRef<SVGSVGElement>(null);
   const hide = state.hideAmounts;
   const rows = p.months.slice(1).map((m, i) => ({ key: m.month,
     label: m.label.slice(0, 3),
@@ -42,10 +44,14 @@ export function ChangeBars(p: { months: MonthRow[]; label: string }) {
   const per = plot / Math.max(maxUp + maxDown, 1);
   const slot = (w - 8) / Math.max(rows.length, 1);
   const bar = Math.max(10, Math.min(44, slot * 0.58));
+  // Each bar grows out of the zero line (up or down), on the tiles'
+  // 600 ms timeline, and tweens when the months change.
+  useChartMotion(svg, rows.map((r) => `${r.key}${r.change}`).join(),
+    w > 0, { duration: 600 });
   return (
     <div className={s.trendBox} ref={box}>
       {w > 0 && (
-        <svg width={w} height={H} role="img" direction="ltr"
+        <svg ref={svg} width={w} height={H} role="img" direction="ltr"
           aria-label={p.label} className={s.svg}>
           <line x1={0} x2={w} y1={zero} y2={zero} className={s.axisZero} />
           <text x={0} y={12} className={s.tick}>
@@ -58,11 +64,14 @@ export function ChangeBars(p: { months: MonthRow[]; label: string }) {
             const focus = i === rows.length - 1;
             return (
               <g key={r.key}>
-                <rect x={x} y={neg ? zero : zero - h} width={bar}
+                <rect data-mark="" data-key={r.key}
+                  data-origin={neg ? "50% 0%" : "50% 100%"}
+                  x={x} y={neg ? zero : zero - h} width={bar}
                   height={h} rx={3}
                   className={focus ? s.barInk : s.barLight} />
                 {(focus || slot >= 56) && (
-                  <text x={x + bar / 2} y={neg ? zero + h + 14 : zero - h - 6}
+                  <text data-label="" x={x + bar / 2}
+                    y={neg ? zero + h + 14 : zero - h - 6}
                     textAnchor="middle"
                     className={focus ? s.valueInk : s.value}>
                     {hide ? HIDDEN : signedCompact(r.change).replace("-",

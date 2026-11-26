@@ -1,6 +1,6 @@
-import { gsap } from "gsap";
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { useDemo } from "../../demo/state";
+import { useChartMotion } from "../../ui/chartMotion";
 import { compact } from "../../ui/templates";
 import s from "./dash.module.css";
 
@@ -55,8 +55,10 @@ export interface TrendBar {
  * Payroll by month as bars from zero, with a visible axis (AED ticks)
  * and every month named. The marked months (last paid, this run) carry
  * a word and their figure; the run in focus is ink, the month before
- * dark grey, the rest light grey. Bars rise in once with GSAP; under
- * reduced motion they are simply there. Figures follow hide-amounts.
+ * dark grey, the rest light grey. Bars grow from zero once in view
+ * (600 ms, the tiles' timeline) and tween on a data change
+ * (ui/chartMotion); under reduced motion they are simply there.
+ * Figures follow hide-amounts.
  */
 export function TrendChart(p: { bars: TrendBar[]; label: string;
   height?: number }) {
@@ -77,20 +79,8 @@ export function TrendChart(p: { bars: TrendBar[]; label: string;
   const y = (v: number): number => top + plot - (v / scaleMax) * plot;
   const slot = slotOf(w, p.bars.length);
   const bar = Math.max(10, Math.min(48, slot * 0.58));
-  const key = p.bars.map((b) => b.key).join();
-  useLayoutEffect(() => {
-    const el = svg.current;
-    if (el === null || w === 0) return undefined;
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.from(el.querySelectorAll("[data-bar]"), { scaleY: 0,
-        transformOrigin: "50% 100%", duration: 0.6, ease: "power3.out",
-        stagger: 0.04, delay: 0.1 });
-      gsap.from(el.querySelectorAll("[data-flag]"), { opacity: 0,
-        y: 4, duration: 0.3, delay: 0.55, stagger: 0.06 });
-    });
-    return () => mm.revert();
-  }, [key, w > 0]);
+  useChartMotion(svg, p.bars.map((b) => `${b.key}${b.value}`).join(),
+    w > 0, { duration: 600 });
   const marked = p.bars.filter((b) => b.mark !== undefined).reverse();
   return (
     <div className={s.trendBox} ref={box}>
@@ -125,10 +115,11 @@ export function TrendChart(p: { bars: TrendBar[]; label: string;
               : b.mark !== undefined ? s.barDark : s.barLight;
             return (
               <g key={b.key}>
-                <rect data-bar="" x={x} y={y(0) - bh} width={bar}
+                <rect data-mark="" data-key={b.key} x={x} y={y(0) - bh}
+                  width={bar}
                   height={bh} rx={4} className={cls} />
                 {b.mark !== undefined && (!narrow || b.focus === true) && (
-                  <text data-flag="" x={x + bar / 2} y={y(v) - 10}
+                  <text data-label="" x={x + bar / 2} y={y(v) - 10}
                     textAnchor="middle" className={b.focus === true
                       ? s.valueInk : s.value}>
                     {hide ? HIDDEN : compact(b.value)}</text>

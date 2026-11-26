@@ -6,7 +6,7 @@ import { useLiveExplain } from "../demo/live-explain-load";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { offOn, requestRows } from "../demo/time-off";
-import { useTweenedNumber } from "../demo/motion";
+import { Count } from "../ui/Count";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -91,7 +91,6 @@ function Card(p: { href: string; label: string; value: number;
   why?: Explanation | undefined;
   /** Said instead of a 0 when there is nothing to count. */
   none?: string | undefined }) {
-  const n = useTweenedNumber(p.value);
   return (
     <li>
       <div className={s.card}>
@@ -101,7 +100,7 @@ function Card(p: { href: string; label: string; value: number;
             : (
               <span className={`${s.value} tabular`}>
                 <Explainable explanation={p.why} className={s.why}>
-                  {n}
+                  <Count value={p.value} />
                 </Explainable>
               </span>
             )}

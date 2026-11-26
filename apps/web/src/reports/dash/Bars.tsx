@@ -1,26 +1,16 @@
 import type { Fils } from "@payroll/engine";
-import { gsap } from "gsap";
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
 import { formatNumber } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { useChartMotion } from "../../ui/chartMotion";
 import { Money } from "../../ui/Money";
 import type { Slice } from "./model";
 import s from "./dash.module.css";
 
-/** Grow the marks in once along one axis, unless motion is reduced. */
-function useGrow(sel: string, key: string) {
+/** Grow the marks in once in view; tween them when the rows change. */
+function useGrow(key: string) {
   const ref = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (el === null) return undefined;
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.from(el.querySelectorAll(sel), { scaleX: 0,
-        transformOrigin: "0% 50%", duration: 0.6, ease: "power3.out",
-        stagger: 0.04, delay: 0.15 });
-    });
-    return () => mm.revert();
-  }, [sel, key]);
+  useChartMotion(ref, key);
   return ref;
 }
 
@@ -44,7 +34,8 @@ const size = (v: HBar["value"]): number =>
 export function HBars(p: { rows: HBar[]; label: string }) {
   const { lang } = useLocale();
   const max = p.rows.reduce((m, r) => Math.max(m, size(r.value)), 0);
-  const ref = useGrow("[data-hbar]", p.rows.map((r) => r.key).join());
+  const ref = useGrow(p.rows.map((r) => `${r.key}${size(r.value)}`)
+    .join());
   return (
     <div ref={ref}>
       <ul className={s.hbars} aria-label={p.label}>
@@ -57,7 +48,8 @@ export function HBars(p: { rows: HBar[]; label: string }) {
               )}
             </span>
             <span className={s.hbarTrack} aria-hidden="true">
-              <span data-hbar="" className={s.hbarFill}
+              <span data-mark="" data-key={r.key} data-grow="x"
+                className={s.hbarFill}
                 data-first={i === 0}
                 style={{ inlineSize: `${max === 0 ? 0
                   : (size(r.value) / max * 100).toFixed(1)}%` }} />
@@ -83,12 +75,13 @@ export function SplitBar(p: { slices: Slice[]; label: string;
   unit: [string, string] }) {
   const { lang } = useLocale();
   const total = p.slices.reduce((n, x) => n + x.count, 0);
-  const ref = useGrow("[data-split]", p.slices.map((x) => x.label).join());
+  const ref = useGrow(p.slices.map((x) => `${x.label}${x.count}`).join());
   const pct = (n: number): string => total === 0 ? "0%"
     : `${Math.round(n * 100 / total)}%`;
   return (
     <div ref={ref} className={s.split}>
-      <div className={s.splitBar} aria-hidden="true" data-split="">
+      <div className={s.splitBar} aria-hidden="true" data-mark=""
+        data-key="split" data-grow="x">
         {p.slices.map((x, i) => (
           <span key={x.label} className={`${s.splitPart} ${s.tone}`}
             data-tone={Math.min(i, 5)}

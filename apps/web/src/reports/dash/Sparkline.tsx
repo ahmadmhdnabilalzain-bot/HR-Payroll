@@ -1,5 +1,5 @@
-import { gsap } from "gsap";
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
+import { useChartMotion } from "../../ui/chartMotion";
 import s from "./dash.module.css";
 
 const W = 240;
@@ -27,7 +27,8 @@ export function sparkScale(series: number[], compare?: number) {
 /**
  * A tile's sparkline: the year so far as one ink line, last month's
  * level as a dashed grey line, and a dot on this month. The line draws
- * in once (GSAP); under reduced motion it is simply there.
+ * in once in view, then the level and the dot fade in (ui/chartMotion);
+ * under reduced motion it is simply there.
  */
 export function Sparkline(p: { series: number[]; compare?: number }) {
   const ref = useRef<SVGSVGElement>(null);
@@ -35,31 +36,19 @@ export function Sparkline(p: { series: number[]; compare?: number }) {
   const d = pts.map((q, i) => `${i === 0 ? "M" : "L"}${q.x.toFixed(1)} ` +
     `${q.y.toFixed(1)}`).join(" ");
   const end = pts.at(-1);
-  useLayoutEffect(() => {
-    const svg = ref.current;
-    if (svg === null) return undefined;
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.fromTo(svg.querySelector("[data-line]"), { strokeDashoffset: 1 },
-        { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut",
-          delay: 0.15 });
-      gsap.from(svg.querySelectorAll("[data-fade]"), { opacity: 0,
-        duration: 0.3, delay: 0.85 });
-    });
-    return () => mm.revert();
-  }, []);
+  useChartMotion(ref, d);
   return (
     <svg ref={ref} className={s.spark} viewBox={`0 0 ${W} ${H}`}
       aria-hidden="true" focusable="false">
       {p.compare !== undefined && (
         <line x1={0} x2={W} y1={y(p.compare)} y2={y(p.compare)}
-          className={s.sparkCompare} data-fade="" />
+          className={s.sparkCompare} data-label="" />
       )}
       <path d={d} pathLength={1} className={s.sparkLine}
-        data-line="" />
+        data-line="" data-key="line" />
       {end !== undefined && (
         <path d={`M${end.x} ${end.y} L${end.x} ${end.y}`}
-          className={s.sparkDot} data-fade="" />
+          className={s.sparkDot} data-label="" />
       )}
     </svg>
   );

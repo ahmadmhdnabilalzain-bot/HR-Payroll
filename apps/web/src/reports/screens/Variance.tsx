@@ -47,12 +47,12 @@ export function Variance(props: { rest: string[] }) {
         next={at < keys.length - 1 ? keys[at + 1]! : null} />}
       figure={{ label: `Change in gross, ${percent(v.grossChange,
         v.grossBefore)}`, value: (
-        <Money value={v.grossChange} signed tween={false} />),
+        <Money value={v.grossChange} signed />),
       explanation: v.explanation }}
       explain={(r, c) => c !== 2 ? undefined
         : r < v.drivers.length ? v.driverExplain[v.drivers[r]!.key]
           : v.explanation}
-      chart={<Waterfall key={v.month} label={`Gross pay, ${
+      chart={<Waterfall label={`Gross pay, ${
         v.againstLabel} to ${v.monthLabel}, by cause`} steps={[
         { label: `${short(v.againstLabel)} gross`, kind: "total",
           value: v.grossBefore },
