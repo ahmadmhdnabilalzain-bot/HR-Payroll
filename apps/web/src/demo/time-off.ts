@@ -147,7 +147,13 @@ export function sessionApprovals(d: DemoData, s: DemoState): Approval[] {
         ar: `Expense claim: ${c.kind}` }, requestedOn: c.requestedOn,
     amountFils: c.amount, makerId: c.employeeId,
     checkerId: c.checkerId }));
-  return [...claims, ...sessionLeave(d, s)];
+  const grants: Approval[] = s.grants.filter((g) => !g.withdrawn)
+    .map((g) => ({ id: g.approvalId, kind: "leave", employeeId:
+      g.employeeId, title: { en: `Leave grant: ${g.days} ` +
+        `${g.days === 1 ? "day" : "days"}`, ar: `Leave grant: ${g.days} ` +
+        `${g.days === 1 ? "day" : "days"}` }, requestedOn: g.requestedOn,
+    amountFils: null, makerId: g.makerId, checkerId: g.checkerId }));
+  return [...claims, ...grants, ...sessionLeave(d, s)];
 }
 
 function sessionLeave(d: DemoData, s: DemoState): Approval[] {

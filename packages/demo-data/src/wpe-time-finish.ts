@@ -238,8 +238,8 @@ export const INCIDENT_SEVERITY: readonly { value: Severity; label: string;
 ];
 
 export const INCIDENT_REPORT_NOTE = "HR reads every report and records " +
-  "what was done. HR may change the severity. Nothing is sent to any " +
-  "authority from this page. If someone is in danger, call for help first.";
+  "what was done. Nothing is sent to any authority from this page. " +
+  "If someone is in danger, call for help first.";
 
 export function incidentPlaces(): { id: string; label: string }[] {
   return [HQ, KHALIDIYA, AL_AIN].map((id) => ({ id,

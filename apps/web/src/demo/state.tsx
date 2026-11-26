@@ -79,6 +79,12 @@ import {
   type PriorSlice,
 } from "../pay/more/state";
 import {
+  FINISH_INITIAL,
+  reduceFinish,
+  type FinishAction,
+  type FinishSlice,
+} from "./finish-state";
+import {
   MORE_INITIAL,
   reduceMore,
   type MoreAction,
@@ -114,7 +120,7 @@ export type Resolution = "reviewed" | "renewal";
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
-    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice {
+    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice, FinishSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -157,6 +163,7 @@ export type Action =
   | PriorAction
   | HoldAction
   | MoreAction
+  | FinishAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -171,6 +178,7 @@ export const INITIAL: DemoState = {
   ...CONNECT_INITIAL, ...PRIOR_INITIAL,
   ...HOLD_INITIAL,
   ...MORE_INITIAL,
+  ...FINISH_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -260,6 +268,12 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "more-cover":
     case "more-cover-withdraw":
     case "more-cover-restore": return reduceMore(s, a);
+    case "finish-grant":
+    case "finish-grant-withdraw":
+    case "finish-grant-restore":
+    case "finish-incident":
+    case "finish-incident-withdraw":
+    case "finish-incident-restore": return reduceFinish(s, a);
     case "pay-request":
     case "pay-withdraw":
     case "pay-restore":
