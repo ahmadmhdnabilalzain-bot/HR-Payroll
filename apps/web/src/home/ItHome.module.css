@@ -187,7 +187,8 @@ a.tileHead:focus-visible {
     gap: var(--space-3);
   }
 
-  .tile:first-child {
+  .tile:first-child,
+  .tile:last-child {
     grid-column: 1 / -1;
   }
 
