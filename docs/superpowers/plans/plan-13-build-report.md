@@ -665,3 +665,4 @@ Important, 9 Minor). One commit per item, test first.
 - M4: `liveKey` also needs the service user's unrevoked membership (a revoked one gives 401); tested.
 - M5: the dispatcher drops a delivery whose recipient no longer has an unrevoked membership (`skipped`, new reason `not-a-member`, no email fallback); tested with notices queued before the revocation.
 - M3: a wrong TOTP at the SSO callback is counted toward the lockout like a password sign-in (committed, then 401); five lock the account; tested.
+- M1: the address guard judges NAT64 (`64:ff9b::/96`) and 6to4 (`2002::/16`) by their embedded IPv4, refuses IPv4-compatible `::/96` (dotted or hex), NAT64 local-use `64:ff9b:1::/48`, site-local `fec0::/10`, Teredo `2001::/32` and `192.88.99.0/24`, and `checkWebhookUrl` drops a trailing dot before its name checks; tested.

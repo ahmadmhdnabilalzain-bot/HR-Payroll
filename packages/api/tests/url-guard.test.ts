@@ -22,6 +22,19 @@ describe("webhook URL guard", () => {
     expect(isPublicAddress("93.184.216.34")).toBe(true);
     expect(isPublicAddress("2606:4700::1111")).toBe(true);
   });
+  it("M1: embedded IPv4, NAT64, 6to4, Teredo, site-local, trailing dot",
+    () => {
+      for (const ip of ["64:ff9b::a9fe:a9fe", "64:ff9b::10.0.0.1",
+        "64:ff9b:1::1", "2002:a00:1::1", "2002:c0a8:101::1",
+        "::10.0.0.1", "::a00:1", "fec0::1", "2001::1", "2001:0:1::1",
+        "192.88.99.1"]) {
+        expect(isPublicAddress(ip), ip).toBe(false);
+      }
+      expect(isPublicAddress("64:ff9b::5db8:d822")).toBe(true);
+      expect(isPublicAddress("2002:5db8:d822::1")).toBe(true);
+      expect(checkWebhookUrl("https://localhost./x").ok).toBe(false);
+      expect(checkWebhookUrl("https://db.internal./x").ok).toBe(false);
+    });
 });
 
 describe("webhookSignature", () => {
