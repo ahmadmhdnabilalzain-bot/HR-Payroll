@@ -49,6 +49,7 @@ them apart is deliberate.
 | 2026-11-25 | "All my decisions and instructions and future plan goes to the ledger." |
 | 2026-11-25 | "Let more agents work in parallel if possible." Run independent work in parallel; builders that edit the same repository still run one at a time, with reviews and research alongside. |
 | 2026-11-25 | "Don't ask me technical stuff. Do what I write." Claude decides technical questions, records each as a ruling, and does not stop to ask. |
+| 2026-11-26 | "You can run 10 agents at a time. I am fine with that." Up to 10 agents run concurrently; agents that edit code work in separate git worktrees or on separate files. |
 | 2026-11-25 | Use Firecrawl by default for external data and research tasks when suitable. (Not saved to memory: no memory tool in this session.) |
 | 2026-11-25 | "We are doing HR and payroll. Not a full ERP." Scope fence recorded in the advisor's proof. |
 
