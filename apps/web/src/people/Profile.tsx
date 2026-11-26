@@ -24,12 +24,12 @@ import {
   dayText,
   daysText,
   expiryWord,
-  initials,
   statusLong,
   statusTone,
 } from "./words";
 import p from "./page.module.css";
 import s from "./Profile.module.css";
+import { Avatar } from "../ui/Avatar";
 
 function years(from: string, to: string): number {
   const [fy, fm, fd] = from.split("-").map(Number);
@@ -65,9 +65,7 @@ export function Profile(q: { id: string }) {
           </nav>
         )}
         <div className={s.who}>
-          <span className={p.avatar} data-size="lg" aria-hidden="true">
-            {initials(x.name.en)}
-          </span>
+          <Avatar id={x.id} name={x.name.en} size="lg" />
           <div className={s.whoText}>
             <h1 className={p.title}>{x.name[lang]}</h1>
             <p className={s.sub}>

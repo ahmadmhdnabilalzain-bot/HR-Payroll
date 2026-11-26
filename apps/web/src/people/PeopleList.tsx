@@ -8,9 +8,10 @@ import { Icon } from "../ui/Icon";
 import { attentionIds } from "./attention";
 import { filterPeople, shortBranch } from "./filter";
 import { Picker } from "./Picker";
-import { initials, statusLong, statusTone, statusWord } from "./words";
+import { statusLong, statusTone, statusWord } from "./words";
 import p from "./page.module.css";
 import s from "./PeopleList.module.css";
+import { Avatar } from "../ui/Avatar";
 
 /** Rows past this one appear together: a stagger, not a parade. */
 const STAGGER_ROWS = 6;
@@ -126,9 +127,7 @@ function Row(q: { x: Person; i: number; flagged: boolean }) {
   return (
     <li className={s.row} style={delay(q.i)}>
       <a className={s.link} href={hrefOf("people", x.id)}>
-        <span className={p.avatar} aria-hidden="true">
-          {initials(x.name.en)}
-        </span>
+        <Avatar id={x.id} name={x.name.en} />
         <span className={s.who}>
           <span className={s.name}>{x.name[lang]}</span>
           <span className={`${s.number} tabular`}>{x.number}</span>

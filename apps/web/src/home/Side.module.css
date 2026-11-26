@@ -124,3 +124,13 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
+
+/* The face sits at the top of an approval row, beside its first line. */
+.row > [data-tone] {
+  align-self: flex-start;
+  margin-block-start: var(--space-4);
+}
+
+.row > [data-tone] + .main {
+  flex: 1 1 200px;
+}

@@ -61,6 +61,16 @@
   --color-avatar-5: #e8e3dc;
   --color-avatar-6: #dde0e3;
   --color-avatar-7: #e6e2d9;
+  /* Preview only (?avatars=colour): a restrained colour set for the
+   * owner to compare with the neutral tints; ink text on every one. */
+  --color-avatar-c1: #f3dcdc;
+  --color-avatar-c2: #f3e2cb;
+  --color-avatar-c3: #ede6c2;
+  --color-avatar-c4: #d8e8d6;
+  --color-avatar-c5: #d6e2f0;
+  --color-avatar-c6: #e1dcf2;
+  --color-avatar-c7: #eedbe8;
+  --color-avatar-c8: #e0e5d3;
   --color-avatar-8: #e2e2e2;
 
   --space-1: 4px;
@@ -160,6 +170,14 @@
   --color-avatar-5: #38332d;
   --color-avatar-6: #2b2f33;
   --color-avatar-7: #343029;
+  --color-avatar-c1: #4a2f31;
+  --color-avatar-c2: #4a3a28;
+  --color-avatar-c3: #45402a;
+  --color-avatar-c4: #2f4232;
+  --color-avatar-c5: #2c3a4a;
+  --color-avatar-c6: #3a3450;
+  --color-avatar-c7: #47324a;
+  --color-avatar-c8: #3a4130;
   --color-avatar-8: #333335;
   color-scheme: dark;
 }

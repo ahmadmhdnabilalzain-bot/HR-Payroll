@@ -22,6 +22,14 @@ export function toneOf(id: string): number {
 }
 
 /**
+ * The owner compares two sets: neutral tints (the default) and a
+ * restrained colour set, shown with `?avatars=colour` in the address.
+ */
+const PALETTE = typeof location !== "undefined" &&
+  new URLSearchParams(location.search).get("avatars") === "colour"
+  ? "colour" : "neutral";
+
+/**
  * A face for a person: initials on a neutral grey or warm-grey tint
  * (tokens --color-avatar-1 to 8, ink text, light and dark). Decorative:
  * the name always sits beside it, so it is hidden from screen readers.
@@ -32,6 +40,7 @@ export function Avatar(p: { id: string; name: string;
   return (
     <span className={`${s.avatar} ${p.className ?? ""}`}
       data-size={p.size ?? "md"} data-tone={toneOf(p.id)}
+      data-palette={PALETTE}
       aria-hidden="true">
       {initialsOf(p.name)}
     </span>

@@ -40,3 +40,27 @@
 .avatar[data-tone="6"] { background: var(--color-avatar-6); }
 .avatar[data-tone="7"] { background: var(--color-avatar-7); }
 .avatar[data-tone="8"] { background: var(--color-avatar-8); }
+.avatar[data-palette="colour"][data-tone="1"] {
+  background: var(--color-avatar-c1);
+}
+.avatar[data-palette="colour"][data-tone="2"] {
+  background: var(--color-avatar-c2);
+}
+.avatar[data-palette="colour"][data-tone="3"] {
+  background: var(--color-avatar-c3);
+}
+.avatar[data-palette="colour"][data-tone="4"] {
+  background: var(--color-avatar-c4);
+}
+.avatar[data-palette="colour"][data-tone="5"] {
+  background: var(--color-avatar-c5);
+}
+.avatar[data-palette="colour"][data-tone="6"] {
+  background: var(--color-avatar-c6);
+}
+.avatar[data-palette="colour"][data-tone="7"] {
+  background: var(--color-avatar-c7);
+}
+.avatar[data-palette="colour"][data-tone="8"] {
+  background: var(--color-avatar-c8);
+}

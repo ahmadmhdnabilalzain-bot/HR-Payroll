@@ -51,7 +51,10 @@ function check(t: Tokens): string[] {
   need("border", "surface", 3);
   need("accent", "surface", 3);
   need("bar-1", "surface", 3);
-  for (let i = 1; i <= 8; i += 1) need("text", `avatar-${i}`, 4.5);
+  for (let i = 1; i <= 8; i += 1) {
+    need("text", `avatar-${i}`, 4.5);
+    need("text", `avatar-c${i}`, 4.5);
+  }
   need("grey-700", "surface", 4.5);
   need("grey-700", "bg", 4.5);
   need("grey-700", "grey-100", 4.5);

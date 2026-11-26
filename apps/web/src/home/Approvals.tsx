@@ -11,6 +11,7 @@ import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { useToast } from "../ui/Toast";
 import s from "./Side.module.css";
+import { Avatar } from "../ui/Avatar";
 
 const KIND: Record<ApprovalKind, MessageKey> = {
   leave: "home.kindLeave", expense: "home.kindExpense",
@@ -75,6 +76,8 @@ function ApprovalRow(p: { a: Approval }) {
       data.employee(id).name[lang]), lang) }) : undefined;
   return (
     <li className={s.row} data-flip={a.id} id={`approval-${a.id}`}>
+      <Avatar id={a.employeeId ?? a.makerId} name={data.employee(
+        a.employeeId ?? a.makerId).name.en} />
       <div className={s.main}>
         <span className={s.kind}>{t(KIND[a.kind])}</span>
         <span className={s.what}>{isRun ? t("home.preparedBy",
