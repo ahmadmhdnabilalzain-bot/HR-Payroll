@@ -6,6 +6,7 @@ import {
   PAY_TRACE_RESULT_EXAMPLE,
   PayRun,
   PayRunEntry,
+  SERVICE_UNPAID_LEAVE_NOT_ENTERED,
   LeaveRequestQuery,
   RoleChange,
   AuditEvent,
@@ -158,6 +159,12 @@ describe("additions after Task 1", () => {
   });
   it("INVITE_NOT_FOUND is an API code", () => {
     expect(ERROR_STATUS.INVITE_NOT_FOUND).toBe(404);
+  });
+  it("pay-run codes and the settlement note exist", () => {
+    expect(ERROR_STATUS.RUN_INPUTS_CHANGED).toBe(409);
+    expect(ERROR_STATUS.SALARY_MISSING).toBe(422);
+    expect(SERVICE_UNPAID_LEAVE_NOT_ENTERED).toBe(
+      "unpaid leave over service (not entered)");
   });
   it("RoleChange accepts a role only", () => {
     expect(RoleChange.safeParse({ role: "hr" }).success).toBe(true);
