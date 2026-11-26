@@ -1,0 +1,48 @@
+{
+  "id": "february-join-leave",
+  "title": "Joins 10 and leaves 20 February 2026",
+  "input": {
+    "year": 2026,
+    "month": 2,
+    "employee": {
+      "workerClass": "expat-full-time",
+      "joiningDate": "2026-02-10",
+      "leavingDate": "2026-02-20",
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": null
+    },
+    "absences": [],
+    "sickDaysUsedBefore": 0,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [],
+    "loans": []
+  },
+  "expected": {
+    "gross": "589286",
+    "totalDeductions": "0",
+    "net": "589286",
+    "employerCost": "0"
+  },
+  "sourceIds": [
+    "ENGINE_CONVENTION"
+  ],
+  "status": "convention"
+}

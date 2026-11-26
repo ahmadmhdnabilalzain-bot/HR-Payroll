@@ -1,0 +1,61 @@
+{
+  "id": "unpaid-three-days",
+  "title": "Three unpaid days, 2 to 4 June",
+  "input": {
+    "year": 2026,
+    "month": 6,
+    "employee": {
+      "workerClass": "expat-full-time",
+      "joiningDate": "2020-03-01",
+      "leavingDate": null,
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": null
+    },
+    "absences": [
+      {
+        "date": "2026-06-02",
+        "kind": "unpaid"
+      },
+      {
+        "date": "2026-06-03",
+        "kind": "unpaid"
+      },
+      {
+        "date": "2026-06-04",
+        "kind": "unpaid"
+      }
+    ],
+    "sickDaysUsedBefore": 0,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [],
+    "loans": []
+  },
+  "expected": {
+    "gross": "1350000",
+    "totalDeductions": "0",
+    "net": "1350000",
+    "employerCost": "0"
+  },
+  "sourceIds": [
+    "ENGINE_CONVENTION"
+  ],
+  "status": "convention"
+}

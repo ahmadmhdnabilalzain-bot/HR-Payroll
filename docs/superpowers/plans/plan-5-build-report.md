@@ -20,3 +20,8 @@ Built test-first, one commit per task, `pnpm check` green before each.
 - Task 7 `payroll-payslip payroll-props`: FAIL, `Cannot find module
   '../src/payroll/not-computed'` and `'../src/payroll/payslip'` (Test
   Files 2 failed, no tests ran).
+- Task 8 `payroll-explain payroll-cases`: FAIL, `Cannot find module
+  '../src/cases/payroll-runner'` and `'../src/explain/payroll-catalog'`
+  (Test Files 2 failed, no tests ran). After the code, one test of my own
+  failed (`expected 28 to be greater than 30`, a wrong threshold in the
+  test); it now asserts the emitted ids equal the catalog keys.
