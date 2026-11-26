@@ -51,6 +51,15 @@ describe("demo selectors", () => {
       verdict: "decline" }))).toBe("approve");
   });
 
+  it("approving-with-open-issues-keeps-review-open", () => {
+    const run = runApprovalId(d) ?? "";
+    const s = reduce(INITIAL, { type: "decide", id: run,
+      verdict: "approve" });
+    const review = steps(d, s).find((x) => x.id === "review");
+    expect(review?.state).toBe("open");
+    expect(now(s)).toBe("sif");
+  });
+
   it("maker-and-checker-differ", () => {
     const p = d.runPeople();
     expect(p.makerId).not.toBe(p.checkerId);

@@ -54,7 +54,8 @@ export function runApprovalId(d: DemoData): string | null {
 }
 
 export type StepId = "inputs" | "review" | "approve" | "sif" | "pay";
-export type StepState = "done" | "now" | "next";
+/** "open": passed in time but issues are still open (never hidden). */
+export type StepState = "done" | "now" | "next" | "open";
 
 export interface Step {
   id: StepId;
@@ -78,6 +79,8 @@ export function steps(d: DemoData, s: DemoState): Step[] {
     ["review", c.asOf], ["approve", c.approveBy], ["sif", c.sifDue],
     ["pay", c.payday]];
   const at = order.findIndex(([id]) => id === now);
+  const open = openIssueCount(d, s) > 0;
   return order.map(([id, date], i) => ({ id, date,
-    state: i < at ? "done" : i === at ? "now" : "next" }));
+    state: i === at ? "now" : i > at ? "next"
+      : id === "review" && open ? "open" : "done" }));
 }

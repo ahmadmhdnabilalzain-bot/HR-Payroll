@@ -487,6 +487,15 @@ the images and compose stack were tested locally. Known gaps: no rate
 limiting, the API image runs TypeScript through tsx (no compile step),
 backups are not encrypted or copied off the host.
 
+## Client demo (branch `demo-web`, 2026-11-26)
+
+`apps/web` is now the browser-only client demo on `@payroll/demo-data`
+(see `apps/web/DEMO.md`). Scene 1 (Home) is built and verified: light
+and dark, English and Arabic RTL (behind `?ar=1` until the Arabic is
+reviewed), desktop and phone, axe clean. Scenes 2 to 4 (pay run end
+to end, explain-why drawer, employee view) wait for the owner's
+go-ahead on scene 1. `src/api` groundwork is kept but not mounted.
+
 ## Next step
 
 Keep building in parallel (the owner allows up to 10 agents): merge each

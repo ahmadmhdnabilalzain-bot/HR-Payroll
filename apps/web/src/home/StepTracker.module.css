@@ -114,6 +114,19 @@
   font-weight: 500;
 }
 
+.step[data-state="open"] .node {
+  border-color: var(--color-warning);
+  background: var(--color-bg);
+}
+
+.step[data-state="open"] .tag {
+  color: var(--color-warning);
+}
+
+.step[data-state="open"] .label {
+  color: var(--color-text);
+}
+
 .step[data-state="done"] .tag {
   color: var(--color-text-muted);
   font-weight: 400;

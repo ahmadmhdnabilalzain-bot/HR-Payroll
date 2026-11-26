@@ -52,7 +52,7 @@ function ApprovalRow(p: { a: Approval }) {
   const who = data.employee(a.employeeId ?? a.makerId).name[lang];
   const decide = (verdict: Verdict) => (): void => {
     dispatch({ type: "decide", id: a.id, verdict });
-    toast.show(t("home.decided", { title: a.title[lang] }),
+    toast.show(t("home.decided", { title: `${t(KIND[a.kind])} · ${who}` }),
       () => dispatch({ type: "undecide", id: a.id }));
   };
   return (

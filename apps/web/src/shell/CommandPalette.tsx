@@ -62,7 +62,9 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
   const pick = (c: Command | undefined): void => {
     if (c === undefined) return;
     p.onClose();
-    c.run();
+    // After the dialog has closed and handed focus back, so a command
+    // that moves focus (open issue, decide) keeps it.
+    requestAnimationFrame(() => requestAnimationFrame(() => c.run()));
   };
   const onKey = (e: React.KeyboardEvent): void => {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
