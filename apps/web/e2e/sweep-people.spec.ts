@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 const roleAs = async (page: Page, name: string): Promise<void> => {
@@ -47,3 +48,80 @@ test("cover: a manager asks, HR agrees", async ({ page }) => {
   await page.getByRole("button", { name: /^In place/ }).click();
   await expect(page.locator("span[data-tone=ok]")).toHaveText("In place");
 });
+
+test("expenses: an employee sends a claim, the manager decides it", async ({
+  page }) => {
+  await page.goto("/#/home");
+  await roleAs(page, "Employee");
+  await page.goto("/#/me/expenses");
+  await page.getByRole("button", { name: "New claim" }).click();
+  await page.getByLabel("What it is for").selectOption("Taxi and parking");
+  await page.getByLabel("Amount (AED)").fill("85.50");
+  await page.getByRole("button", { name: "Send claim" }).click();
+  await expect(page.getByText("Waiting for Arjun Menon")).toBeVisible();
+  await roleAs(page, "Team manager");
+  await page.goto("/#/me/expenses");
+  await expect(page.getByText("Claims waiting for you")).toBeVisible();
+  await page.getByRole("button", { name: /^Agree: Jose/ }).click();
+  await roleAs(page, "Employee");
+  await page.goto("/#/me/expenses");
+  await expect(page.getByText("Agreed", { exact: true })).toBeVisible();
+});
+
+test("expenses: a bad amount is refused in plain words", async ({ page }) => {
+  await page.goto("/#/home");
+  await roleAs(page, "Employee");
+  await page.goto("/#/me/expenses");
+  await page.getByRole("button", { name: "New claim" }).click();
+  await page.getByLabel("What it is for").selectOption("Travel");
+  await page.getByLabel("Amount (AED)").fill("abc");
+  await page.getByRole("button", { name: "Send claim" }).click();
+  await expect(page.getByRole("alert")).toContainText("as a number");
+});
+
+test("time card: ask for a correction, the manager agrees", async ({
+  page }) => {
+  await page.goto("/#/home");
+  await roleAs(page, "Employee");
+  await page.goto("/#/me/timecard");
+  await page.getByRole("button", { name: /^Correct:/ })
+    .first().click();
+  await page.getByLabel("Reason").fill("The reader was down");
+  await page.getByRole("button", { name: "Send correction" }).click();
+  await expect(page.getByText("Waiting for Arjun Menon")).toBeVisible();
+  await roleAs(page, "Team manager");
+  await page.goto("/#/me/timecard");
+  await page.getByRole("button", { name: /^Agree: Jose/ }).click();
+  await expect(page.getByText("Agreed").first()).toBeVisible();
+});
+
+test("kpis and team reviews open for a manager", async ({ page }) => {
+  await page.goto("/#/home");
+  await roleAs(page, "Team manager");
+  await page.goto("/#/me/kpis");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("My KPIs");
+  await page.goto("/#/me/team-reviews");
+  await expect(page.getByText("No one in your team is on probation."))
+    .toBeVisible();
+});
+
+const PAGES: [string, string, string][] = [
+  ["people/more/new", "HR manager", "New employee"],
+  ["people/more/cover", "HR manager", "Approval cover"],
+  ["me/expenses", "Employee", "My expenses"],
+  ["me/timecard", "Employee", "My time card"],
+  ["me/kpis", "Employee", "My KPIs"],
+  ["me/team-reviews", "Team manager", "Team probation and appraisal"],
+];
+
+for (const [hash, role, title] of PAGES) {
+  test(`axe clean: ${title}`, async ({ page }) => {
+    await page.goto("/#/home");
+    await roleAs(page, role);
+    await page.goto(`/#/${hash}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await page.waitForTimeout(400);
+    const r = await new AxeBuilder({ page }).analyze();
+    expect(r.violations.map((v) => v.id)).toEqual([]);
+  });
+}

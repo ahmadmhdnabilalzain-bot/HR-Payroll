@@ -3,6 +3,7 @@ import { personFor } from "../../demo/time-off";
 import type { Area, NavCtx } from "../types";
 
 const HR_GM = ["hr", "gm"] as const;
+const STAFF = ["manager", "employee"] as const;
 const more = (...rest: string[]) =>
   ({ section: "people" as const, rest: ["more", ...rest] });
 const mine = (page: string) =>
@@ -24,6 +25,22 @@ function coversWaiting(c: NavCtx): number {
   const me = personFor(c.data, c.state.role);
   return c.state.covers.filter((x) => !x.withdrawn && x.checkerId === me &&
     c.state.decided[x.approvalId] === undefined).length;
+}
+
+/** Expense claims waiting for the viewer's decision. */
+function claimsWaiting(c: NavCtx): number {
+  const me = personFor(c.data, c.state.role);
+  return c.state.claims.filter((x) => !x.withdrawn && x.checkerId === me &&
+    x.employeeId !== me && c.state.decided[x.approvalId] === undefined)
+    .length;
+}
+
+/** Time card corrections waiting for the viewer's decision. */
+function fixesWaiting(c: NavCtx): number {
+  const me = personFor(c.data, c.state.role);
+  return c.state.timeFixes.filter((x) => !x.withdrawn &&
+    x.checkerId === me && c.state.decided[x.approvalId] === undefined)
+    .length;
 }
 
 /**
@@ -48,4 +65,21 @@ export const AREAS: readonly Area[] = [
     archetype: "LF", roles: ["manager"], route: mine("cover"),
     keywords: "H10 leave cover delegate deputy away holiday approver " +
       "stand in who decides" },
+  { id: "me.expenses", section: "me", group: "mine",
+    label: { en: "My expenses", ar: "مصروفاتي" }, status: "live",
+    archetype: "FA", roles: STAFF, route: mine("expenses"),
+    count: claimsWaiting, keywords: "E08 expense claim receipt reimburse taxi meal travel" },
+  { id: "time.my-card", section: "time", group: "attendance",
+    label: { en: "My time card", ar: "بطاقة دوامي" }, status: "live",
+    archetype: "FA", roles: [...STAFF, ...HR_GM], route: mine("timecard"),
+    count: fixesWaiting,
+    keywords: "E09 my time card clock in out correct attendance late" },
+  { id: "me.kpis", section: "me", group: "mine",
+    label: { en: "My KPIs", ar: "مؤشراتي" }, status: "live",
+    archetype: "LF", roles: STAFF, route: mine("kpis"),
+    keywords: "E13 my kpis goals targets objectives progress" },
+  { id: "me.team-reviews", section: "me", group: "mine",
+    label: { en: "Team reviews", ar: "تقييمات الفريق" }, status: "live",
+    archetype: "FA", roles: ["manager"], route: mine("team-reviews"),
+    keywords: "E11 team probation appraisal evaluate review rating" },
 ];
