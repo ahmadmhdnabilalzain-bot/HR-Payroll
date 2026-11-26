@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { useSwitchRole } from "../demo/actions";
+import { useRunApproval, useSwitchRole } from "../demo/actions";
+import { formatMonthName } from "../i18n/format";
 import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import type { MessageKey } from "../i18n/t";
@@ -56,6 +57,7 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
   const { data, state, dispatch } = useDemo();
   const { resolved, setPref } = useTheme();
   const switchRole = useSwitchRole();
+  const run = useRunApproval();
   const [query, setQuery] = useState("");
   const [at, setAt] = useState(0);
   const listId = useId();
@@ -65,9 +67,12 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
     toggleLang: () => setLang(lang === "en" ? "ar" : "en"), switchRole,
     sections: NAV_ITEMS.filter(([id]) => VIEWS[id] !== undefined)
       .map(([id, key, icon]) => [id, t(key), icon]),
-    peopleShown: VIEWS.people !== undefined }),
+    peopleShown: VIEWS.people !== undefined,
+    payRunShown: VIEWS["pay-run"] !== undefined,
+    timeOffShown: VIEWS["time-off"] !== undefined, run,
+    month: formatMonthName(data.headline().runMonth, lang) }),
   [data, state, dispatch, t, lang, p.arabicShown, resolved, setPref,
-    setLang, switchRole]);
+    setLang, switchRole, run]);
   const shown = all.filter((c) => matches(c, query));
   const pick = (c: Command | undefined): void => {
     if (c === undefined) return;

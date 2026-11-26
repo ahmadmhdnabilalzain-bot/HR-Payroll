@@ -19,6 +19,15 @@ export const home: ArOf<typeof en> = {
   statusDeclined: "أُعيدت رواتب {month} إلى الموارد البشرية مع القرار.",
   primaryIban: "إدخال البيانات البنكية",
   primaryApprove: "اعتماد رواتب {month}",
+  primaryOpenRun: "الانتقال إلى الاعتماد",
+  primaryOpenPay: "فتح ملف الرواتب",
+  whyNumber: "لماذا هذا الرقم",
+  vsLast: "مقارنة بـ{month}",
+  stripHeadcount: "على كشف الرواتب",
+  stripOnLeave: "في إجازة اليوم",
+  stripDocs: "مستندات تنتهي صلاحيتها",
+  stripApprovals: "موافقات معلّقة",
+  stripDocsSub: "خلال 30 يومًا",
   approveWaits: "الاعتماد بانتظار البيانات البنكية لـ {names}: رقم " +
     "آيبان ناقص أو خاطئ. لا تُصرف دورة الرواتب جزئيًا.",
   netTo: {

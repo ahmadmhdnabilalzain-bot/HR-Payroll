@@ -1,5 +1,5 @@
-.page {
-  max-inline-size: 820px;
+.page > * {
+  max-inline-size: calc((var(--container) - 2 * var(--page-pad)) * 8 / 12);
 }
 
 .slip {

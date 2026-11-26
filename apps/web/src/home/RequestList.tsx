@@ -38,10 +38,8 @@ export function RequestList(p: { title: string; rows: RequestRow[];
             const verdict = (v: "approve" | "decline") => (): void => {
               dispatch({ type: "decide", id: r.approvalId ?? "",
                 verdict: v });
-              toast.show(t("timeoff.decidedToast", {
-                name: nameOf(r.employeeId),
-                verdict: v === "approve" ? t("timeoff.verdictBooked")
-                  : t("timeoff.verdictDeclined") }),
+              toast.show(t(v === "approve" ? "timeoff.bookedToast"
+                : "timeoff.declinedToast", { name: nameOf(r.employeeId) }),
               () => dispatch({ type: "undecide", id: r.approvalId ?? "" }));
             };
             return (

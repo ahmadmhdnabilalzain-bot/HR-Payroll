@@ -11,6 +11,15 @@ export const home = {
   statusDeclined: "{month} pay went back to HR with a decision.",
   primaryIban: "Enter bank details",
   primaryApprove: "Approve {month} pay",
+  primaryOpenRun: "Go to approval",
+  primaryOpenPay: "Open the salary file",
+  whyNumber: "Why this number",
+  vsLast: "vs {month}",
+  stripHeadcount: "On the payroll",
+  stripOnLeave: "On leave today",
+  stripDocs: "Documents expiring",
+  stripApprovals: "Approvals waiting",
+  stripDocsSub: "within 30 days",
   approveWaits: "Approve waits for bank details for {names}: a " +
     "missing or mistyped IBAN. A pay run is never paid in part.",
   netTo: { one: "Net pay to {count} person", other: "Net pay to {count} " +
