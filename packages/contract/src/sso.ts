@@ -44,6 +44,9 @@ export const SsoSettingsBody = z.object({
 });
 export type SsoSettingsBody = z.infer<typeof SsoSettingsBody>;
 
+const enforceNeeds = (b: SsoSettingsBody) => !b.enforceSso ||
+  b.googleHostedDomains.length > 0 || b.microsoftTenantIds.length > 0;
+
 const jitNeeds = (b: SsoSettingsBody) => !b.jitEmployees ||
   (b.allowedDomains.length > 0 && (b.googleHostedDomains.length > 0 ||
     b.microsoftTenantIds.length > 0));
@@ -62,5 +65,7 @@ export type SsoSettings = z.infer<typeof SsoSettings>;
 export const SsoSettingsUpdate = SsoSettingsBody.extend({
   expectedVersion: z.number().int().min(0),
 }).refine(jitNeeds, { path: ["jitEmployees"], message: "just-in-time " +
-  "accounts need an allowed domain and a hosted domain or tenant" });
+  "accounts need an allowed domain and a hosted domain or tenant" })
+  .refine(enforceNeeds, { path: ["enforceSso"], message: "enforcing " +
+    "single sign-on needs a hosted domain or tenant" });
 export type SsoSettingsUpdate = z.infer<typeof SsoSettingsUpdate>;

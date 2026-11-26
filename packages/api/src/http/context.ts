@@ -235,8 +235,7 @@ async function inTenant(c: Context<Env>, def: RouteDef, deps: AppDeps,
       c.set("companyId", tenant.companyId);
       checkRole(def, tenant);
       checkMfa(def, auth);
-      await checkSsoEnforced(tx, companyId, tenant.role,
-        auth.session.authMethod);
+      await checkSsoEnforced(tx, companyId, tenant.role, auth.session);
       const v = await validate(c, def);
       return handler({ ...base(c, deps, v), ...auth, tenant, tx,
         enter: NO_ENTER });

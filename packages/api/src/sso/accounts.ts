@@ -6,7 +6,13 @@ import type { Db } from "../db/db";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import { openInvite } from "../routes/users";
-import { inviteEmailOk, jitEligible, type Identity } from "./identity";
+import {
+  inviteEmailOk,
+  jitEligible,
+  orgAccepted,
+  orgOf,
+  type Identity,
+} from "./identity";
 import { ssoBody } from "./settings";
 
 const NO_TENANT = { companyId: null, userId: null };
@@ -42,14 +48,33 @@ async function newUser(tx: Db, ctx: ReqCtx, id: Identity, email: string)
   return userId;
 }
 
+/**
+ * Review I3: in a company that enforces SSO, a non-owner may link only
+ * an identity from the company's own hosted domains or tenants (else
+ * 403 SSO_IDENTITY_NOT_ALLOWED). Decision: every such company of the
+ * user must accept it; owners are exempt as for enforcement itself.
+ */
+async function checkLinkAllowed(ctx: ReqCtx, p: SsoProvider, id: Identity,
+  companies: { company_id: string; role: string }[]): Promise<void> {
+  for (const c of companies.filter((x) => x.role !== "owner")) {
+    const s = await ctx.enter({ companyId: c.company_id, userId: null },
+      (tx) => ssoBody(tx, c.company_id));
+    if (s.body.enforceSso && !orgAccepted(s.body, `sso:${p}`, orgOf(id))) {
+      throw new ApiError("SSO_IDENTITY_NOT_ALLOWED");
+    }
+  }
+}
+
 /** Links to the user who started it (bearer checked by the caller). */
 export async function linkIdentity(ctx: ReqCtx, p: SsoProvider,
   id: Identity, userId: string): Promise<string> {
+  // Unrevoked memberships only (no-tenant policy, migration 806).
+  const companies = await ctx.enter({ companyId: null, userId }, (tx) =>
+    tx.query<{ company_id: string; role: string }>("SELECT company_id, " +
+      "role FROM memberships WHERE user_id = $1", [userId]));
+  await checkLinkAllowed(ctx, p, id, companies);
   await ctx.enter({ companyId: null, userId }, (tx) =>
     addIdentity(tx, ctx, p, id, userId));
-  const companies = await ctx.enter({ companyId: null, userId }, (tx) =>
-    tx.query<{ company_id: string }>("SELECT company_id FROM memberships " +
-      "WHERE user_id = $1", [userId]));
   for (const c of companies) {
     await ctx.enter({ companyId: c.company_id, userId }, (tx) =>
       emitEvent({ tx, deps: ctx.deps, companyId: c.company_id },

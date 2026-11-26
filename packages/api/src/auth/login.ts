@@ -137,8 +137,9 @@ export async function verifyCredentials(enter: Enter, deps: HandlerDeps,
 
 /** Session, user and memberships. `tx` must have app.user_id set. */
 export async function signedIn(tx: Db, deps: HandlerDeps, userId: string,
-  mfa: boolean, authMethod = "password"): Promise<LoginResponse> {
-  const s = await createSession(tx, deps, userId, mfa, authMethod);
+  mfa: boolean, authMethod = "password", ssoOrg: string | null = null)
+  : Promise<LoginResponse> {
+  const s = await createSession(tx, deps, userId, mfa, authMethod, ssoOrg);
   const user = await userById(tx, userId);
   return { token: s.token, expiresAt: s.expiresAt, user: toUser(user!),
     memberships: await membershipsOf(tx, userId) };

@@ -49,6 +49,27 @@ export function identityFromClaims(p: SsoProvider,
     hostedDomain: null, tenantId: tid, displayName: name };
 }
 
+/** The organisation an identity proves: Google `hd` or Entra `tid`. */
+export const orgOf = (id: Identity): string | null =>
+  id.hostedDomain !== null ? `hd:${id.hostedDomain}`
+    : id.tenantId !== null ? `tid:${id.tenantId}` : null;
+
+/**
+ * Pure (review I3): does an SSO session from `org` satisfy a company
+ * that enforces SSO? Only its own hosted domains or tenants count.
+ */
+export function orgAccepted(s: SsoSettingsBody, provider: string,
+  org: string | null | undefined): boolean {
+  if (org === null || org === undefined) return false;
+  if (provider === "sso:google" && org.startsWith("hd:")) {
+    return s.googleHostedDomains.includes(org.slice(3));
+  }
+  if (provider === "sso:microsoft" && org.startsWith("tid:")) {
+    return s.microsoftTenantIds.includes(org.slice(4));
+  }
+  return false;
+}
+
 const domainOf = (email: string) => email.slice(email.lastIndexOf("@") + 1);
 
 /** Pure: the one case where sign-in may create an account (Ruling 23). */

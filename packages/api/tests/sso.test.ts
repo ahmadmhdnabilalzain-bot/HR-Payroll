@@ -175,6 +175,52 @@ describe("SSO with OpenID Connect", () => {
       "/v1/employees")).status).toBe(200);
   });
 
+  it("I3: enforcement needs the company's own domain or tenant",
+    async () => {
+      const ctx = await makeApp();
+      const s = await seedCompany(ctx, "ssoi3");
+      await setSso(ctx, s, { jitEmployees: false, enforceSso: true,
+        microsoftTenantIds: [TID] });
+      // A personal Gmail (no hd) cannot be linked while enforced.
+      const gmail = await sso(ctx, "google", { sub: "g-p", email:
+        "someone@gmail.com", email_verified: true }, { link: s.hr.token });
+      expect(gmail.status).toBe(403);
+      expect(gmail.body.error.code).toBe("SSO_IDENTITY_NOT_ALLOWED");
+      const other = "22222222-2222-4222-8222-222222222222";
+      const foreign = await sso(ctx, "microsoft", { tid: other,
+        oid: "33333333-3333-4333-8333-333333333333", email: "h@x.test" },
+      { link: s.hr.token });
+      expect(foreign.body.error.code).toBe("SSO_IDENTITY_NOT_ALLOWED");
+      // The company's own tenant links and satisfies enforcement.
+      const own = await sso(ctx, "microsoft", { tid: TID,
+        oid: "44444444-4444-4444-8444-444444444444", email: "h@acme.test" },
+      { link: s.hr.token });
+      expect(own.status, own.text).toBe(200);
+      expect((await call(ctx.app, own.body.token, s.companyId, "GET",
+        "/v1/employees")).status).toBe(200);
+      // An identity linked before enforcement, from a personal account,
+      // does not satisfy it.
+      await setSso(ctx, s, { jitEmployees: false, enforceSso: false });
+      const early = await sso(ctx, "google", { sub: "g-q", email:
+        "me@gmail.com", email_verified: true }, { link: s.manager.token });
+      expect(early.status, early.text).toBe(200);
+      await setSso(ctx, s, { jitEmployees: false, enforceSso: true });
+      const signIn = await sso(ctx, "google", { sub: "g-q", email:
+        "me@gmail.com", email_verified: true });
+      expect(signIn.status, signIn.text).toBe(200);
+      const r = await call(ctx.app, signIn.body.token, s.companyId, "GET",
+        "/v1/employees");
+      expect(r.body.error.code).toBe("SSO_REQUIRED");
+      // Enforcement cannot be turned on with no domain or tenant.
+      const cur = await call(ctx.app, s.owner.token, s.companyId, "GET",
+        "/v1/sso-settings");
+      const bad = await call(ctx.app, s.owner.token, s.companyId, "PUT",
+        "/v1/sso-settings", { allowedDomains: [], googleHostedDomains: [],
+          microsoftTenantIds: [], jitEmployees: false, enforceSso: true,
+          expectedVersion: cur.body.version });
+      expect(bad.status).toBe(400);
+    });
+
   it("sso_not_configured and settings need owner MFA", async () => {
     const ctx = await makeApp({ channels: fakeChannels({ oidc: false }) });
     const r = await call(ctx.app, null, null, "POST",

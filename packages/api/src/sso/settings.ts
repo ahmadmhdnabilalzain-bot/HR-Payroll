@@ -8,6 +8,7 @@ import { channelAudit } from "../channels/audit";
 import type { Db } from "../db/db";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
+import { orgAccepted } from "./identity";
 
 const DEFAULTS: SsoSettingsBody = { allowedDomains: [],
   googleHostedDomains: [], microsoftTenantIds: [], jitEmployees: false,
@@ -55,14 +56,19 @@ export async function putSsoSettings(ctx: ReqCtx<SsoSettingsUpdate>)
 }
 
 /**
- * Tenant routes: with `enforceSso` on, a password session of anyone
- * but an owner gets 403 SSO_REQUIRED (owners keep a break-glass
- * password, Ruling 25). API key sessions are not affected.
+ * Tenant routes: with `enforceSso` on, anyone but an owner (owners keep
+ * a break-glass password, Ruling 25) needs an SSO session from one of
+ * the company's own hosted domains or tenants (review I3): a password
+ * session, or one from a personal or foreign account, gets 403
+ * SSO_REQUIRED. API key requests never reach this check.
  */
 export async function checkSsoEnforced(tx: Db, companyId: string,
-  role: string, authMethod: string | undefined): Promise<void> {
-  if (role === "owner" || (authMethod ?? "password") !== "password") return;
-  if ((await ssoBody(tx, companyId)).body.enforceSso) {
+  role: string, session: { authMethod?: string; ssoOrg?: string | null })
+  : Promise<void> {
+  if (role === "owner") return;
+  const s = (await ssoBody(tx, companyId)).body;
+  if (!s.enforceSso) return;
+  if (!orgAccepted(s, session.authMethod ?? "password", session.ssoOrg)) {
     throw new ApiError("SSO_REQUIRED");
   }
 }

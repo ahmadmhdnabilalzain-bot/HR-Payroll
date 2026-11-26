@@ -11,7 +11,7 @@ import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import { inviteAccept, linkIdentity, loginUser } from "./accounts";
 import { IdTokenError, ISSUER_OK, verifyIdToken } from "./id-token";
-import { identityFromClaims, type Identity } from "./identity";
+import { identityFromClaims, orgOf, type Identity } from "./identity";
 import { consumeState, createState } from "./states";
 
 type P = { provider: SsoProvider };
@@ -85,7 +85,7 @@ async function bearerUser(ctx: ReqCtx): Promise<string | null> {
 }
 
 async function session(ctx: ReqCtx<SsoCallbackRequest>, userId: string,
-  p: SsoProvider): Promise<LoginResponse> {
+  p: SsoProvider, org: string | null): Promise<LoginResponse> {
   return ctx.enter({ companyId: null, userId }, async (tx) => {
     const u = (await userById(tx, userId))!;
     // A locked or service account gets the same answer as no link.
@@ -98,7 +98,7 @@ async function session(ctx: ReqCtx<SsoCallbackRequest>, userId: string,
         ctx.body.totp);
       if (!mfa) throw new ApiError("INVALID_CREDENTIALS");
     }
-    return signedIn(tx, ctx.deps, userId, mfa, `sso:${p}`);
+    return signedIn(tx, ctx.deps, userId, mfa, `sso:${p}`, org);
   });
 }
 
@@ -121,5 +121,5 @@ export async function ssoCallback(ctx: ReqCtx<SsoCallbackRequest, unknown,
   } else {
     userId = await loginUser(ctx, p, id);
   }
-  return session(ctx, userId, p);
+  return session(ctx, userId, p, orgOf(id));
 }

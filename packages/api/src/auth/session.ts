@@ -16,6 +16,8 @@ export interface Session {
   via?: Via;
   /** "password", "sso:<provider>" or "api-key" (Tasks 7 and 9). */
   authMethod?: string;
+  /** SSO only: "hd:<domain>" or "tid:<tenant>" (review I3). */
+  ssoOrg?: string | null;
 }
 
 /** 32 random bytes, base64url. Only the SHA-256 is ever stored. */
@@ -31,15 +33,16 @@ export async function createSession(
   userId: string,
   mfa: boolean,
   authMethod = "password",
+  ssoOrg: string | null = null,
 ): Promise<{ token: string; expiresAt: string }> {
   const token = newSecret(deps);
   const now = deps.now();
   const expiresAt = new Date(now.getTime() + SESSION_MS).toISOString();
   await tx.query(
     `INSERT INTO sessions (token_hash, user_id, mfa, expires_at, created_at,
-       auth_method) VALUES ($1, $2, $3, $4, $5, $6)`,
+       auth_method, sso_org) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [tokenHash(token), userId, mfa, expiresAt, now.toISOString(),
-      authMethod]);
+      authMethod, ssoOrg]);
   return { token, expiresAt };
 }
 
@@ -50,13 +53,14 @@ export async function findSession(
   now: Date,
 ): Promise<Session | null> {
   const [row] = await tx.query<{ user_id: string; mfa: boolean;
-    expires_at: string; auth_method: string }>(
-    `SELECT user_id, mfa, expires_at, auth_method FROM sessions
+    expires_at: string; auth_method: string; sso_org: string | null }>(
+    `SELECT user_id, mfa, expires_at, auth_method, sso_org FROM sessions
      WHERE token_hash = $1 AND expires_at > $2`,
     [tokenHash(token), now.toISOString()]);
   if (row === undefined) return null;
   return { tokenHash: tokenHash(token), userId: row.user_id, mfa: row.mfa,
-    expiresAt: row.expires_at, authMethod: row.auth_method };
+    expiresAt: row.expires_at, authMethod: row.auth_method,
+    ssoOrg: row.sso_org };
 }
 
 /** Logout: the row is expired, not deleted (the app role cannot delete). */

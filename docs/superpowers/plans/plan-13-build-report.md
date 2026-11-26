@@ -630,3 +630,16 @@ Important, 9 Minor). One commit per item, test first.
   scenario (M withdrawn, H's tap on M's button decides nothing, no new
   buttons to M), across companies, and on real PostgreSQL from a
   tenant transaction. The STOP test now opts B in after A's tap.
+- I3 (any linked identity met enforcement): migration `1311` adds
+  `sessions.sso_org` (`hd:<domain>` or `tid:<tenant>`, from the ID
+  token). With `enforceSso` on, a non-owner needs an SSO session whose
+  provider and organisation are in the company's `googleHostedDomains`
+  or `microsoftTenantIds`; password, personal and foreign-tenant
+  sessions get `SSO_REQUIRED`. Enforcement cannot be turned on with no
+  hosted domain or tenant (400). Linking: in every company of the user
+  that enforces SSO and where they are not an owner, the identity must
+  be accepted, else 403 `SSO_IDENTITY_NOT_ALLOWED` (new code, web
+  texts added). Old sessions have `sso_org` null and do not satisfy an
+  enforced company. Tests: personal Gmail and foreign tenant refused
+  at link, own tenant accepted, a personal identity linked before
+  enforcement cannot sign in past it, enforcement with no domain 400.
