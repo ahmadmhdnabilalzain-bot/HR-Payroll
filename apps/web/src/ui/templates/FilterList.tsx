@@ -6,7 +6,7 @@ import { useGlide } from "../glide";
 import b from "../button.module.css";
 import { PageFoot } from "./PageFoot";
 import { lastRecord, saveView, savedView } from "./listMotion";
-import { useEntrance, useListFlip } from "./listEnter";
+import { useEntrance, useListFlip, useSwapIn } from "./listEnter";
 import { maskNode, useMaskText } from "../mask";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
@@ -171,9 +171,7 @@ export function FilterList<T>(p: {
                   aria-pressed={seg === x.id}
                   onClick={() => setSeg(x.id)}>
                   {x.label}
-                  <span className="tabular">
-                    {p.rows.filter(x.match).length}
-                  </span>
+                  <Count n={p.rows.filter(x.match).length} />
                 </button>
               ))}
             </div>
@@ -223,6 +221,14 @@ export function FilterList<T>(p: {
       <PageFoot />
     </div>
   );
+}
+
+/** A segment's count: on a change the new number rises in whole (never
+ * a number in between). */
+function Count(p: { n: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useSwapIn(ref, p.n);
+  return <span className="tabular" ref={ref}>{p.n}</span>;
 }
 
 type RowProps<T> = Pick<Parameters<typeof FilterList<T>>[0],
