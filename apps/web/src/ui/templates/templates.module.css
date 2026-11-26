@@ -86,6 +86,8 @@
 
 .segments {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-inline-size: 100%;
   align-items: center;
   padding: 2px;
   border-radius: var(--radius-control);
