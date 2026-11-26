@@ -12,8 +12,7 @@ export type Section = "home" | "pay-run" | "people" | "time-off" |
   "reports";
 
 /** How an issue was settled; the label shown names the choice. */
-export type Resolution = "iban" | "deduction" | "hours" | "cap" |
-  "change" | "renewal";
+export type Resolution = "iban" | "reviewed" | "renewal";
 
 export interface DemoState {
   role: Role;

@@ -1,11 +1,10 @@
 import type { Fils } from "@payroll/engine";
 
 /**
- * The selector interface the demo codes against. It mirrors what the
- * coordinator specified for `@payroll/demo-data`; the "requested"
- * block lists what scene 1 needs beyond it (asked for, stubbed).
- * Text written for people comes in both languages; Arabic is
- * NEEDS NATIVE REVIEW.
+ * What the screens read: a thin view over `@payroll/demo-data`, built
+ * in adapter.ts (the only file that imports the package). Text for
+ * people comes in both languages; the package's Arabic is NEEDS
+ * NATIVE REVIEW (`arReviewed`).
  */
 export interface Localized {
   en: string;
@@ -17,39 +16,40 @@ export interface Headline {
   runMonth: string;
   netTotalFils: Fils;
   grossTotalFils: Fils;
+  deductionsFils: Fils;
   employerCostFils: Fils;
+  sifTotalFils: Fils;
+  heldNetFils: Fils;
+  /** People on this run's payroll. */
   headcount: number;
   issuesOpen: number;
+  needsConfirmation: number;
   approvalsPending: number;
 }
 
 export interface DepartmentRow {
+  id: string;
   name: Localized;
   headcount: number;
   costFils: Fils;
 }
 
-export type Severity = "error" | "warning" | "info";
+export type Severity = "error" | "warning" | "info" |
+  "needs-confirmation";
 
-/** What the person can do about an issue; drives the inline action. */
-export type IssueKind = "missing-iban" | "overtime-limit" |
-  "salary-change" | "unpaid-leave" | "document-expiring" |
-  "pension-not-computed";
+/** The real next step the package allows; never a one-click vanish. */
+export type FixKind = "enter-iban" | "review" | "renew-document" |
+  "confirm-pension";
 
 export interface Issue {
   id: string;
-  employeeId: string;
-  kind: IssueKind;
+  code: string;
+  employeeId: string | null;
   severity: Severity;
+  fixKind: FixKind;
+  count: number;
   plainReason: Localized;
   suggestedFix: Localized;
-}
-
-export interface PayslipLine {
-  id: string;
-  label: Localized;
-  amountFils: Fils;
-  kind: "earning" | "deduction";
 }
 
 export interface Employee {
@@ -57,55 +57,20 @@ export interface Employee {
   name: Localized;
   department: Localized;
   role: Localized;
-  nationality: "AE" | "other";
 }
 
-export interface Payslip {
-  employee: Employee;
-  lines: PayslipLine[];
-  netFils: Fils;
-  trace: string[];
-}
-
-export interface Explanation {
-  inputs: { label: Localized; value: string }[];
-  ruleId: string;
-  sourceStatus: Localized;
-  steps: Localized[];
-  resultFils: Fils;
-}
-
-export type LeaveStatus = "pending" | "decided";
-
-export interface LeaveRequest {
-  id: string;
-  employeeId: string;
-  type: Localized;
-  startDate: string;
-  endDate: string;
-  days: number;
-  status: LeaveStatus;
-}
-
-export type ApprovalKind = "leave" | "overtime" | "expense" |
-  "salary-change";
+export type ApprovalKind = "leave" | "pay-run" | "expense";
 
 export interface Approval {
   id: string;
   kind: ApprovalKind;
-  employeeId: string;
+  employeeId: string | null;
   title: Localized;
   requestedOn: string;
   amountFils: Fils | null;
+  makerId: string;
+  checkerId: string;
 }
-
-export interface SifSummary {
-  recordCount: number;
-  totalFils: Fils;
-  findings: { code: string; severity: Severity; text: Localized }[];
-}
-
-/* ---- Requested from the data package (stubbed until it lands) ---- */
 
 export interface DocumentExpiry {
   id: string;
@@ -115,7 +80,7 @@ export interface DocumentExpiry {
   daysLeft: number;
 }
 
-/** Dates of the pay month; shown labelled as sample dates. */
+/** Dates of the pay month; sample dates, labelled so on screen. */
 export interface PayCalendar {
   asOf: string;
   cutOff: string;
@@ -128,22 +93,25 @@ export interface PayCalendar {
 export interface Basis {
   ruleSet: Localized;
   pension: Localized;
-  engine: Localized;
+}
+
+/** The maker and checker of this pay run (never the same person). */
+export interface RunPeople {
+  makerId: string;
+  checkerId: string;
 }
 
 export interface DemoData {
   companyName: Localized;
+  /** False until a native speaker has read the package's Arabic. */
+  arReviewed: boolean;
   headline(): Headline;
   departments(): DepartmentRow[];
   issues(): Issue[];
-  payslip(employeeId: string): Payslip;
-  explain(employeeId: string, lineId: string): Explanation;
-  leaveRequests(): LeaveRequest[];
   approvalsInbox(): Approval[];
-  sifSummary(): SifSummary;
   employee(employeeId: string): Employee;
-  employees(): Employee[];
   documents(): DocumentExpiry[];
   payCalendar(): PayCalendar;
   basis(): Basis;
+  runPeople(): RunPeople;
 }

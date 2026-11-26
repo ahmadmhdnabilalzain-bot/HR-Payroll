@@ -1,9 +1,12 @@
 /**
- * Show the Arabic switch. The Arabic strings are NEEDS NATIVE REVIEW;
- * set this to false to hide Arabic from a showing until a native
- * speaker has read them.
+ * Arabic is hidden while its text is unreviewed (the data package
+ * says so with `arReviewed`; the app's own Arabic is NEEDS NATIVE
+ * REVIEW too). `?ar=1` in the address shows it anyway, for review and
+ * screenshots; `?ar=0` always hides it.
  */
-export const SHOW_ARABIC = true;
-
-/** Demo personas: the data ids of the people behind each role. */
-export const PERSONA = { hr: "e27", gm: "e01" } as const;
+export function showArabic(arReviewed: boolean, search: string): boolean {
+  const v = new URLSearchParams(search).get("ar");
+  if (v === "1") return true;
+  if (v === "0") return false;
+  return arReviewed;
+}

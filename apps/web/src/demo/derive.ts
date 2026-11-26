@@ -1,18 +1,25 @@
 import type { Approval, DemoData, Issue, Severity } from "./data/types";
-import type { DemoState } from "./state";
+import type { DemoState, Role } from "./state";
 
-const RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2 };
+const RANK: Record<Severity, number> = { error: 0, warning: 1, info: 2,
+  "needs-confirmation": 3 };
 
-/** Issues a person can act on (notes are shown but never "open"). */
-export const actionable = (i: Issue): boolean => i.severity !== "info";
+/** Issues a person can act on now; confirmations wait on others. */
+export const actionable = (i: Issue): boolean =>
+  i.severity !== "needs-confirmation";
 
-/** Open first (most serious first), then notes, then resolved. */
-export function orderedIssues(d: DemoData, s: DemoState): Issue[] {
-  const group = (i: Issue): number => s.resolved[i.id] !== undefined ? 2
-    : actionable(i) ? 0 : 1;
-  return d.issues().map((i, n) => ({ i, n })).sort((a, b) =>
-    group(a.i) - group(b.i) || RANK[a.i.severity] - RANK[b.i.severity] ||
-    a.n - b.n).map(({ i }) => i);
+/** Open first (most serious first), then resolved, in a stable order. */
+export function openThenResolved(d: DemoData, s: DemoState): Issue[] {
+  const group = (i: Issue): number => s.resolved[i.id] !== undefined
+    ? 1 : 0;
+  return d.issues().filter(actionable).map((i, n) => ({ i, n }))
+    .sort((a, b) => group(a.i) - group(b.i) ||
+      RANK[a.i.severity] - RANK[b.i.severity] || a.n - b.n)
+    .map(({ i }) => i);
+}
+
+export function confirmations(d: DemoData): Issue[] {
+  return d.issues().filter((i) => !actionable(i));
 }
 
 export function openIssueCount(d: DemoData, s: DemoState): number {
@@ -20,8 +27,21 @@ export function openIssueCount(d: DemoData, s: DemoState): number {
     actionable(i) && s.resolved[i.id] === undefined).length;
 }
 
+/** The person behind a role: HR prepared the run, the GM checks it. */
+export function personOf(d: DemoData, role: Role): string {
+  const p = d.runPeople();
+  return role === "hr" ? p.makerId : p.checkerId;
+}
+
+/** What waits for the current role's decision. */
 export function waitingApprovals(d: DemoData, s: DemoState): Approval[] {
-  return d.approvalsInbox().filter((a) => !s.decided.includes(a.id));
+  const me = personOf(d, s.role);
+  return d.approvalsInbox().filter((a) =>
+    a.checkerId === me && !s.decided.includes(a.id));
+}
+
+export function runApprovalId(d: DemoData): string | null {
+  return d.approvalsInbox().find((a) => a.kind === "pay-run")?.id ?? null;
 }
 
 export type StepId = "inputs" | "review" | "approve" | "sif" | "pay";
@@ -34,24 +54,20 @@ export interface Step {
 }
 
 /**
- * The pay run's progress. Inputs close on the cut-off; review is the
- * current step while actionable issues are open; then approval is.
- * Progress, not a gate: nothing here stops a person acting.
+ * The pay run's progress. Inputs closed on the cut-off; review is
+ * current while actionable issues are open, then approval is; once
+ * the checker records a decision, the salary file is. Progress only:
+ * nothing here stops a person acting.
  */
 export function steps(d: DemoData, s: DemoState): Step[] {
   const c = d.payCalendar();
-  const reviewDone = openIssueCount(d, s) === 0;
-  const now: StepId = reviewDone ? "approve" : "review";
+  const run = runApprovalId(d);
+  const now: StepId = run !== null && s.decided.includes(run) ? "sif"
+    : openIssueCount(d, s) === 0 ? "approve" : "review";
   const order: [StepId, string][] = [["inputs", c.cutOff],
     ["review", c.asOf], ["approve", c.approveBy], ["sif", c.sifDue],
     ["pay", c.payday]];
   const at = order.findIndex(([id]) => id === now);
   return order.map(([id, date], i) => ({ id, date,
     state: i < at ? "done" : i === at ? "now" : "next" }));
-}
-
-/** Gross minus net: what the run deducts, from the selector totals. */
-export function deductionsOf(d: DemoData): bigint {
-  const h = d.headline();
-  return h.grossTotalFils - h.netTotalFils;
 }

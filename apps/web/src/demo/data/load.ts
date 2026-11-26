@@ -1,12 +1,11 @@
 import type { DemoData } from "./types";
 
 /**
- * The one place the demo data comes from. Loaded as its own chunk so
- * the engine's rule packs stay out of the entry chunk
- * (tests/unit/bundle.test.ts). When `@payroll/demo-data` lands, this
- * import switches to an adapter over the package (TEMP: stub).
+ * The one place the demo data comes from. The package runs the engine
+ * (gratuity included), so it loads as its own chunk and the entry
+ * chunk stays free of rule-pack code (tests/unit/bundle.test.ts).
  */
 export async function loadDemoData(): Promise<DemoData> {
-  const m = await import("./stub");
-  return m.stub;
+  const m = await import("./adapter");
+  return m.buildDemoData();
 }
