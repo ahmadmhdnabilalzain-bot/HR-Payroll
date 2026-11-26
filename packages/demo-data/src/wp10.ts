@@ -439,8 +439,8 @@ function notesOf(c: DemoCompany, role: HomeRole): NoteIn[] {
         false, "timesheet", ts.month, "me/time");
     }
     add(PAY_CALENDAR.cutOff, "info", "October salary date",
-      `Payday is planned for ${shortDateText(PAY_CALENDAR.payday)} ` +
-      "(sample date).", true, "pay-calendar", "payday", "me/payslips");
+      `Payday is planned for ${shortDateText(PAY_CALENDAR.payday)}.`,
+      true, "pay-calendar", "payday", "me/payslips");
     const cy = appraisalCycleViews(c).find((x) => x.status === "open")!;
     const mine = appraisalViews(c, { cycleId: cy.id, employeeId: me })[0];
     if (mine !== undefined) {
@@ -518,7 +518,7 @@ function noticesOf(c: DemoCompany): HomeNotice[] {
   return [
     n("notice-001", hr, "2026-10-15", PAY_CALENDAR.payday, true, "pay",
       "October salary date and cut-off", "Payday for October is planned " +
-      `for ${shortDateText(PAY_CALENDAR.payday)} (sample date). Changes ` +
+      `for ${shortDateText(PAY_CALENDAR.payday)}. Changes ` +
       `sent after ${shortDateText(PAY_CALENDAR.cutOff)} go to the ` +
       "November pay run."),
     n("notice-002", hr, cy.opensOn.iso, cy.closesOn.iso, true, "growth",
@@ -537,7 +537,7 @@ function noticesOf(c: DemoCompany): HomeNotice[] {
       `${plural(years, "year", "years")}. Thank you for your work.`),
     n("notice-005", hr, "2026-10-22", "2026-11-04", false, "safety",
       "Fire drill at the head office", "Fire drill on 4 Nov 2026 at " +
-      "10:00 (sample). Use the stairs and meet at the car park.", [HQ]),
+      "10:00. Use the stairs and meet at the car park.", [HQ]),
     n("notice-006", gm, "2026-10-20", "2026-12-03", false, "holiday",
       "UAE National Day holiday", "The dates follow the official " +
       "announcement. Sample planning dates: 2 and 3 Dec 2026."),

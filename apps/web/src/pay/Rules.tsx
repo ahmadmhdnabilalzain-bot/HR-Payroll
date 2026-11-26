@@ -16,7 +16,7 @@ export function PayGroups() {
           ...(g.names.length > 6
             ? { help: `And ${g.names.length - 6} more` } : {}) },
         { key: `${g.id}-day`, label: "Payday",
-          value: g.payday.replace(/\s*\(sample\)/, "") },
+          value: g.payday },
       ] }))}
       log={[]} />
   );

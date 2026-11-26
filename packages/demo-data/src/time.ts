@@ -174,7 +174,7 @@ export function punches(c: DemoCompany): Punch[] {
     const e = c.employees.find((x) => x.id === d.employeeId)!;
     const source = e.jobKey === "relationship-manager"
       ? "Phone, inside the office area" : e.location === "hq-abu-dhabi"
-        ? "Head office reader (demo)" : "Branch reader (demo)";
+        ? "Head office reader" : "Branch reader";
     return { employeeId: e.id, name: e.fullName, date: d.date,
       in: hhmm(minutesOf(d.clockIn!)), out: hhmm(minutesOf(d.clockOut!)),
       source };
@@ -191,9 +191,9 @@ export function unmatchedPunches(_c: DemoCompany): UnmatchedPunch[] {
     time: string, reason: string): UnmatchedPunch => ({ id, badge,
     reader, date, time, reason, status: "to-match",
     display: { when: `${displayDate(date)}, ${time}` } });
-  return [u("pu-1", "DEMO-BADGE-0042", "Al Ain branch reader (demo)",
+  return [u("pu-1", "DEMO-BADGE-0042", "Al Ain branch reader",
     "2026-10-27", "07:58", "This badge is not assigned to anyone."),
-  u("pu-2", "DEMO-BADGE-0020", "Head office reader (demo)", "2026-10-26",
+  u("pu-2", "DEMO-BADGE-0020", "Head office reader", "2026-10-26",
     "17:04", "An out punch with no in punch that day.")];
 }
 

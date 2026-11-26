@@ -172,8 +172,7 @@ export function payViewOf(c: DemoCompany): PayView {
     expenses: c.expenses.map((x) => ({ id: x.id, employeeId: x.employeeId,
       // Provenance stays out of the body copy (the sources line).
       name: nameOf(c, x.employeeId), title: (isDemoLabelKey(x.titleKey)
-        ? demoLabel(x.titleKey, "en") : x.titleKey)
-        .replace(/\s*\(demo receipt\)/, ""),
+        ? demoLabel(x.titleKey, "en") : x.titleKey),
       date: displayDate(x.date), amount: x.amount, vat: x.vat,
       receipt: x.receipt, settled: x.status !== "pending" })),
     deductions: deductionsOf(c),
