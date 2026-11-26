@@ -10,6 +10,7 @@ import type { FinishData } from "./finish-types";
 import type { MoreData } from "./more-types";
 import type { VerifyData } from "./verify-types";
 import type { ChecksData } from "./checks-types";
+import type { HiringData } from "./hiring-types";
 import type { EsignData } from "./esign-types";
 import type { TalentData } from "./talent-types";
 import type { TeamData } from "./team-types";
@@ -177,8 +178,10 @@ export interface DemoData {
   finish: FinishData;
   /** Electronic signing (esign-types.ts). */
   esign: EsignData;
-  /** Anomaly checks, cost of hire, report templates. */
+  /** Anomaly checks and report templates. */
   checks: ChecksData;
+  /** Hiring budget (positions) and hiring requests. */
+  hiring: HiringData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };

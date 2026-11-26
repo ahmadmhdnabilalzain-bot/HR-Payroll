@@ -7,6 +7,7 @@ import { Exit } from "./exit/Exit";
 import { Files } from "./files/Files";
 import { Papers } from "./papers/Papers";
 import { Growth } from "./growth/Growth";
+import { Hiring } from "./hiring/Hiring";
 import { Moves } from "./moves/Moves";
 import { Requests } from "./requests/Requests";
 import { More } from "./more/More";
@@ -40,6 +41,7 @@ export function People(p: ViewProps) {
   if (id === "esign") return <Esign rest={p.rest.slice(1)} />;
   if (id === "files") return <Files rest={p.rest.slice(1)} />;
   if (id === "moves") return <Moves rest={p.rest} />;
+  if (id === "hiring") return <Hiring rest={p.rest.slice(1)} />;
   if (id === "requests") return <Requests rest={p.rest} />;
   if (id === "more") return <More rest={p.rest.slice(1)} />;
   const who = id ?? (state.role === "employee" ? me : undefined);

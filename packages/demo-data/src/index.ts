@@ -58,3 +58,4 @@ export * from "./wpe-commission";
 export * from "./wpe-checks";
 export * from "./wpe-sandbox";
 export * from "./wpe-referrals";
+export * from "./wpe-hiring";

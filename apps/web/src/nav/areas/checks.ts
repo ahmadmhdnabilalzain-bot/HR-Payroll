@@ -1,6 +1,6 @@
 import type { Area, AreaRoute } from "../types";
 
-/** R43 anomaly checks, P20 cost of hire, X12 report templates. */
+/** R43 anomaly checks, X12 report templates (P20 is hiring.ts). */
 const HR_GM = ["hr", "gm"] as const;
 const rep = (id: string): AreaRoute => ({ section: "reports", rest: [id] });
 
@@ -13,11 +13,6 @@ export const AREAS: readonly Area[] = [
       .length,
     keywords: "R43 anomaly checks unusual swing duplicate iban new " +
       "payee overtime bank details salary change rules" },
-  { id: "people.cost-of-hire", section: "people", group: "hiring",
-    label: { en: "Cost of hire", ar: "تكلفة التعيين" },
-    status: "live", archetype: "FA", roles: HR_GM, route: rep("cost-of-hire"),
-    keywords: "P20 cost of hire preview new hire budget first year " +
-      "salary allowances start date" },
   { id: "reports.templates", section: "reports", group: "analysis",
     label: { en: "Report templates", ar: "قوالب التقارير" },
     status: "live", archetype: "RP", roles: HR_GM, route: rep("templates"),

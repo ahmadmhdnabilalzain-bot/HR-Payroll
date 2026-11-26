@@ -20,6 +20,7 @@ import {
 } from "@payroll/demo-data";
 import { adaptChecks } from "./checks";
 import { adaptFiles } from "./files";
+import { adaptHiring } from "./hiring";
 import { adaptFinish } from "./finish";
 import { adaptPapers } from "./papers";
 import { adaptMore } from "./more";
@@ -141,6 +142,7 @@ export function adapt(c: DemoCompany): DemoData {
     finish: adaptFinish(c),
     esign: adaptEsign(c),
     checks: adaptChecks(c),
+    hiring: adaptHiring(c, people.personas().managerId),
   };
 }
 

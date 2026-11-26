@@ -631,6 +631,26 @@ are in `docs/demo/copy-audit.md`.
   Pro sizes (WebKit is not installed). Steps become a vertical list,
   tables become rows, touch targets are at least 44 px.
 
+## Hiring budget and hiring requests (Claude's calls)
+
+- "Cost of hire" (P20) is now **Hiring budget** (`#/people/hiring/
+  budget`, HR and GM): one row per seat the position list has, each
+  budgeted by the GM as a grade and a step; month and first year are
+  payslips worked out over twelve months; committed (holder, accepted
+  offer) and offered (sent or draft offer) come off it as "Left". HR
+  asks for a change; the GM signs it off or declines it; the GM adds a
+  position as his own sign-off. The search still finds "cost of hire".
+- **Hiring requests** (`#/people/hiring/requests`, HR, GM, a manager
+  for their own team; "Request a hire" under the manager's Requests):
+  raise, HR reviews or asks for changes, the GM signs off, declines or
+  puts on hold; withdraw and undo throughout. A signed-off request is
+  an open position with a timeline (posted, shortlist, interviews,
+  offer, start) counted from the sign-off. Messages live on the request
+  (no email); tasks and notes reach Home for the right role. Requests
+  tied to a requisition share the Requisitions overlay (`req:<id>`).
+- State: `demo/hiring-state.ts`; overlays: `people/hiring/model.ts`;
+  data: `packages/demo-data/src/wpe-hiring.ts`.
+
 ## Checks
 
 `pnpm --filter @payroll/web test` and `pnpm --filter @payroll/web

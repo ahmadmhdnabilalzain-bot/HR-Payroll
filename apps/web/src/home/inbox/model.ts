@@ -9,6 +9,7 @@ import { hrefOf } from "../../demo/route";
 import type { DemoState, Section } from "../../demo/state";
 import { approvalItems } from "../../demo/approvals";
 import { areasFor, routeOf } from "../../nav/registry";
+import { hiringNotes, hiringTasks } from "../../people/hiring/model";
 import type { AreaRoute, NavCtx } from "../../nav/types";
 
 /**
@@ -98,7 +99,18 @@ export function inboxTasks(d: DemoData, s: DemoState): InboxTask[] {
     return { ...t, done, doneHere, tone: done ? "done" : TONE[t.urgency],
       href: targetHref(t.target, c) };
   });
-  return [...rows.filter((t) => !t.done), ...rows.filter((t) => t.done)];
+  // Hiring tasks open the request itself and close when it moves on.
+  const hiring = hiringTasks(d, s).map((t): InboxTask => {
+    const doneHere = s.tasksDone.includes(t.id);
+    return { ...t, done: doneHere, doneHere, tone: doneHere ? "done"
+      : TONE[t.urgency] };
+  });
+  // Overdue first, then hiring (a person waits on it), then the rest.
+  const open = rows.filter((t) => !t.done);
+  const late = open.filter((t) => t.urgency === "overdue");
+  return [...late, ...hiring.filter((t) => !t.done),
+    ...open.filter((t) => t.urgency !== "overdue"),
+    ...rows.filter((t) => t.done), ...hiring.filter((t) => t.done)];
 }
 
 /**
@@ -110,12 +122,17 @@ export function inboxNotes(d: DemoData, s: DemoState): InboxNote[] {
   const c = { data: d, state: s };
   const run = runApprovalId(d);
   const held = approvalBlockedBy(d, s).length > 0;
-  return d.home.notifications(s.role).filter((n) => !(held &&
+  const hiring = hiringNotes(d, s).map((n): InboxNote => ({ ...n,
+    unread: !s.notesRead.includes(n.id) }));
+  const data = d.home.notifications(s.role).filter((n) => !(held &&
     n.source.kind === "approval" && n.source.id === run)).map((n) => ({
     ...n, href: targetHref(n.target, c),
     unread: !n.read && !s.notesRead.includes(n.id) &&
       !(n.source.kind === "approval" &&
         s.decided[n.source.id] !== undefined) }));
+  // Newest first; a sort that keeps the data's own order on a tie.
+  return [...data, ...hiring].sort((a, b) =>
+    b.createdOn.iso.localeCompare(a.createdOn.iso));
 }
 
 export const unreadCount = (d: DemoData, s: DemoState): number =>

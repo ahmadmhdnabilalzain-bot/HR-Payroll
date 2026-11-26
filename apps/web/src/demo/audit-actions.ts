@@ -107,6 +107,18 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
     case "ref-unmark": return make("people.referral-mark-undone",
       "people", { kind: "referral", id: a.rowId, label: a.label },
       `${who} took back the payable mark on ${a.label}.`);
+    case "hiring-raise":
+    case "hiring-raise-undo":
+    case "hiring-step":
+    case "hiring-step-undo":
+    case "hiring-message":
+    case "hiring-message-undo":
+    case "hiring-edit":
+    case "hiring-edit-undo":
+    case "budget-ask":
+    case "budget-ask-undo":
+    case "budget-decide":
+    case "budget-undecide": return hiring(a, s, d, make, who);
     default: return null;
   }
 }
@@ -120,6 +132,108 @@ function sandboxWhat(d: SandboxDraftSpec): string {
   return d.kind === "housing-raise" ? `housing allowance for ${who}`
     : d.kind === "new-allowance" ? `a new allowance for ${who}`
       : "overtime rates";
+}
+
+type HiringAct = Extract<Action, { type: `hiring-${string}` |
+  `budget-${string}` }>;
+
+const STEP_CODE: Record<string, [string, string]> = {
+  "with-hr": ["sent-again", "sent again"],
+  "with-gm": ["sent-for-sign-off", "sent for sign-off"],
+  open: ["signed-off", "signed off"], changes: ["changes-asked",
+    "asked for changes to"], declined: ["declined", "declined"],
+  "on-hold": ["put-on-hold", "put on hold"],
+  withdrawn: ["withdrawn", "withdrew"], filled: ["filled", "marked filled"],
+};
+
+/** Hiring requests and budgets: one line each, never an amount. */
+function hiring(a: HiringAct, s: DemoState, d: DemoData, make: Make,
+  who: string): AuditAddition {
+  const reqTitle = (id: string): string =>
+    d.hiring.requests().find((r) => r.id === id)?.title ??
+    d.hiring.jobTitle(s.hiringNew.find((x) => x.id === id)?.jobKey ?? "");
+  const req = (id: string) => ({ kind: "hiring-request", id,
+    label: `Hiring request, ${reqTitle(id)}` });
+  const askOf = (id: string) => s.budgetAsks.find((x) => x.id === id);
+  const budTitle = (budgetId: string | null, jobKey = ""): string =>
+    d.hiring.budget().find((b) => b.id === budgetId)?.title ??
+    d.hiring.jobTitle(jobKey);
+  const askTitle = (id: string): string => {
+    const x = askOf(id);
+    const seed = d.hiring.budgetAsks().find((y) => y.id === id);
+    return budTitle(x?.budgetId ?? seed?.budgetId ?? null, x?.jobKey);
+  };
+  const bud = (id: string, title: string) => ({ kind: "budget", id,
+    label: `Hiring budget, ${title}` });
+  switch (a.type) {
+    case "hiring-raise": {
+      const id = `hreq-new-${s.nextHiring}`;
+      const t = d.hiring.jobTitle(a.draft.jobKey);
+      return make("people.hiring-request-raised", "people",
+        { kind: "hiring-request", id, label: `Hiring request, ${t}` },
+        `${who} raised a hiring request for ${t}.`);
+    }
+    case "hiring-raise-undo": return make("people.hiring-request-undone",
+      "people", req(a.id), `${who} took back the hiring request for ` +
+      `${reqTitle(a.id)}.`);
+    case "hiring-step": {
+      const [code, verb] = a.step.from === "on-hold" &&
+        a.step.to !== "withdrawn" ? ["resumed", "resumed"]
+        : STEP_CODE[a.step.to] ?? ["changed", "changed"];
+      return make(`people.hiring-${code}`, "people", req(a.step.requestId),
+        `${who} ${verb} the hiring request for ` +
+        `${reqTitle(a.step.requestId)}.`);
+    }
+    case "hiring-step-undo": {
+      const st = s.hiringSteps.find((x) => x.id === a.id);
+      const id = st?.requestId ?? "";
+      return make("people.hiring-step-undone", "people", req(id),
+        `${who} undid a step on the hiring request for ${reqTitle(id)}.`);
+    }
+    case "hiring-message": return make("people.hiring-message", "people",
+      req(a.message.requestId), `${who} wrote in the hiring request for ` +
+      `${reqTitle(a.message.requestId)}.`);
+    case "hiring-message-undo": {
+      const id = s.hiringMessages.find((x) => x.id === a.id)?.requestId
+        ?? "";
+      return make("people.hiring-message-removed", "people", req(id),
+        `${who} took back a message on the hiring request for ` +
+        `${reqTitle(id)}.`);
+    }
+    case "hiring-edit": return make("people.hiring-request-edited",
+      "people", req(a.edit.requestId), `${who} edited the hiring request ` +
+      `for ${reqTitle(a.edit.requestId)}.`);
+    case "hiring-edit-undo": {
+      const id = s.hiringEdits.find((x) => x.id === a.id)?.requestId ?? "";
+      return make("people.hiring-edit-undone", "people", req(id),
+        `${who} undid an edit to the hiring request for ${reqTitle(id)}.`);
+    }
+    case "budget-ask": {
+      const t = budTitle(a.ask.budgetId, a.ask.jobKey);
+      const id = `bask-new-${s.nextHiring}`;
+      return a.ask.kind === "add"
+        ? make("people.budget-position-added", "people", bud(id, t),
+          `${who} added and signed off a budgeted position for ${t}.`)
+        : a.ask.role === "gm" ? make("people.budget-changed", "people",
+          bud(id, t), `${who} changed and signed off the hiring budget ` +
+          `for ${t}.`)
+          : make("people.budget-change-asked", "people", bud(id, t),
+            `${who} asked to change the hiring budget for ${t}.`);
+    }
+    case "budget-ask-undo": return make("people.budget-ask-undone",
+      "people", bud(a.id, askTitle(a.id)), `${who} took back a hiring ` +
+      `budget change for ${askTitle(a.id)}.`);
+    case "budget-decide": {
+      const ok = a.decision.verdict === "signed-off";
+      return make(`people.budget-${ok ? "signed-off" : "declined"}`,
+        "people", bud(a.decision.askId, askTitle(a.decision.askId)),
+        `${who} ${ok ? "signed off" : "declined"} a hiring budget change ` +
+        `for ${askTitle(a.decision.askId)}.`);
+    }
+    case "budget-undecide": return make("people.budget-decision-undone",
+      "people", bud(a.askId, askTitle(a.askId)), `${who} took back the ` +
+      `decision on a hiring budget change for ${askTitle(a.askId)}.`);
+  }
 }
 
 type Make = (action: string, area: AuditAddition["area"],

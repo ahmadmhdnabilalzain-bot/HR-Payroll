@@ -7,6 +7,7 @@ import b from "../../ui/button.module.css";
 import { useToast } from "../../ui/Toast";
 import { FilterList, KeyValues, Sheet } from "../../ui/templates";
 import { Dot } from "./Dot";
+import { requestHref, requestOfRequisition } from "../hiring/model";
 import { reqNow, REQ_WORD, stepWho, useActor, type ReqNow,
   type Tone } from "./view";
 import s from "./moves.module.css";
@@ -89,6 +90,11 @@ export function Requisitions() {
             <div className={s.panelActions}>
               <a className={`${b.btn} ${b.secondary}`}
                 href={hrefOf("people", "moves", "board")}>See candidates</a>
+              {requestOfRequisition(data, state, r.id) !== null && (
+                <a className={`${b.btn} ${b.secondary}`}
+                  href={requestHref(requestOfRequisition(data, state,
+                    r.id)!.id)}>Open the request</a>
+              )}
               {step !== undefined ? (
                 <button type="button" className={`${b.btn} ${b.quiet}`}
                   onClick={() => dispatch({ type: "move-undo",

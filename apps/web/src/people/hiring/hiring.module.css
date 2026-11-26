@@ -1,0 +1,275 @@
+/* Hiring budget and hiring requests: ink, paper and grey only. Status
+ * is a word beside a dot (Dot.tsx); type comes from the scale. */
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.quiet {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  max-inline-size: 72ch;
+}
+
+.nameLink {
+  min-block-size: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  text-align: start;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+
+@media (min-width: 761px) {
+  .figures {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.figures dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.figures dd {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.actions > * {
+  min-block-size: 44px;
+}
+
+/* Forms: one column on phones, two from tablet. */
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4) var(--space-5);
+}
+
+@media (min-width: 761px) {
+  .form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.section {
+  grid-column: 1 / -1;
+  margin: var(--space-4) 0 0;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.field input,
+.field select,
+.field textarea {
+  min-block-size: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: 400;
+}
+
+.field textarea {
+  min-block-size: 132px;
+  resize: vertical;
+}
+
+.field small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+/* Phones: inputs at 16 px or more, so the page does not zoom. */
+@media (max-width: 760px) {
+  .field input,
+  .field select,
+  .field textarea {
+    font-size: var(--text-lg);
+  }
+}
+
+.problems {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+
+.plain {
+  margin: 0;
+  white-space: pre-wrap;
+  max-inline-size: 72ch;
+  font-size: var(--text-md);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  max-inline-size: 72ch;
+}
+
+/* Timeline and thread rows. */
+.rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+@media (min-width: 761px) {
+  .row {
+    grid-template-columns: minmax(0, 14rem) minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+}
+
+.rowHead {
+  font-weight: 500;
+}
+
+.rowEnd {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.message {
+  display: grid;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.who {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.compose {
+  display: grid;
+  gap: var(--space-2);
+  max-inline-size: 72ch;
+}
+
+.stages {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-2);
+}
+
+.tableWrap {
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table caption {
+  padding-block-end: var(--space-2);
+  color: var(--color-text-muted);
+  text-align: start;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table [data-end="true"] {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.total th,
+.total td {
+  font-weight: 600;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .nameLink:hover,
+  .link:hover {
+    text-decoration-color: currentcolor;
+    transition: text-decoration-color var(--dur-base, 200ms)
+      var(--ease-out);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nameLink,
+  .link {
+    transition: none;
+  }
+}
