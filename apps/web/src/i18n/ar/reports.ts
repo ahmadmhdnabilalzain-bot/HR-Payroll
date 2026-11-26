@@ -13,7 +13,7 @@ export const reports: ArOf<typeof en> = {
   foot: "{count} صف. {scope}. بيانات وهمية.",
   summaryTitle: "ملخص الرواتب",
   summaryBlurb: "مجاميع هذا الشهر بجانب الشهر الماضي.",
-  summaryNote: "المجاميع حاصل جمع القسائم بالفلس. {scope}.",
+  summaryNote: "المجاميع حاصل جمع القسائم تمامًا. {scope}.",
   deptTitle: "التكلفة حسب القسم",
   deptBlurb: "إجمالي الرواتب الشهرية وعدد الموظفين لكل قسم.",
   deptNote: "التكلفة هي إجمالي الرواتب الشهرية من هذه الدورة.",
@@ -50,6 +50,6 @@ export const reports: ArOf<typeof en> = {
   colMonth: "الشهر",
   colTotal: "المجموع",
   colDated: "التاريخ",
-  fileDraft: "مسودة بانتظار الاعتماد",
+  fileDraft: "مسودة بانتظار التوقيع",
   fileReady: "جاهز للرفع",
 };

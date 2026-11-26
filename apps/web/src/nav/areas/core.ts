@@ -42,7 +42,7 @@ export const CORE_AREAS: readonly Area[] = [
     count: (c) => approvalBlockedBy(c.data, c.state).length, stopsPay: true,
     keywords: "payroll run review fix approve salary" },
   { id: "pay.approve", section: "pay", group: "month",
-    label: { en: "Sign-off", ar: "الاعتماد" }, status: "live",
+    label: { en: "Sign-off", ar: "التوقيع" }, status: "live",
     archetype: "SF", roles: HR_GM,
     route: { section: "pay-run", rest: ["approve"] },
     count: (c) => {

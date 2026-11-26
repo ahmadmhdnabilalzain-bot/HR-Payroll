@@ -44,7 +44,7 @@ export const DEMO_LABELS_AR: Record<DemoLabelKey, string> = {
   "reason.personal": "شؤون شخصية",
   "status.approved": "معتمد", "status.pending": "قيد الانتظار",
   "status.rejected": "مرفوض",
-  "status.awaiting-approval": "بانتظار الاعتماد",
+  "status.awaiting-approval": "بانتظار التوقيع",
   "case.probation": "موظف جديد تحت التجربة",
   "case.leaver": "يغادر هذا الشهر",
   "case.unpaid-leave": "إجازة بدون راتب هذا الشهر",
@@ -60,11 +60,11 @@ export const DEMO_LABELS_AR: Record<DemoLabelKey, string> = {
   "expiry.expired": "منتهية", "expiry.expiring-30": "تنتهي خلال 30 يومًا",
   "expiry.expiring-90": "تنتهي خلال 90 يومًا", "expiry.valid": "سارية",
   "approval.pay-run": "مسير رواتب أكتوبر: أعده مدير الموارد البشرية " +
-    "ويعتمده المدير العام",
+    "ويوقّع عليه المدير العام",
   "approval.leave": "طلب إجازة",
   "expense.entertainment": "غداء عمل مع عميل (إيصال تجريبي)",
   "expense.travel": "سيارات أجرة ومواقف لزيارة العملاء (إيصال تجريبي)",
-  "issues.title": "ما اكتُشف قبل الاعتماد",
+  "issues.title": "ما اكتُشف قبل التوقيع",
   "pension.title": "بحاجة إلى تأكيد",
   "nationality.label": "بيانات نموذجية، نظام البنوك بانتظار التأكيد",
 };

@@ -38,6 +38,6 @@ export const D = {
   note: "Why the new version", noteHelp: "For example: renewed passport.",
   remove: "Remove this version", open: "Open", onFile: "On file",
   inBrowser: "Kept in this browser tab only.",
-  before: "On file before the demo", expires: "Expires",
+  before: "On file earlier", expires: "Expires",
   number: "Number (masked)", by: "Added by",
 };

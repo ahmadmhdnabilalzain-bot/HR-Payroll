@@ -23,7 +23,7 @@ export function DashboardHr() {
     ["Open items that stop pay", String(stops), "-", "Fix these " +
       "before the run can be signed off"],
     ["People on the payroll", String(sum("now")),
-      `${sum("start")} on 1 January`, "Employed on the demo date"],
+      `${sum("start")} on 1 January`, "Employed on the report date"],
     ["Joined this year", String(sum("joined")), "-",
       src.joiners.join(", ") || "Nobody"],
     ["Left this year", String(sum("departed")), "-",
@@ -41,7 +41,7 @@ export function DashboardHr() {
     "Working days taken in the run month"],
   ];
   return (
-    <ReportPage title="HR dashboard" period={`As of the demo date, ` +
+    <ReportPage title="HR dashboard" period={`As of the report date, ` +
       `${last.label} run`}
     figure={{ label: "Open items that stop pay", value: String(stops) }}
     columns={COLUMNS} rows={rows} csvName="hr-dashboard-2026-10.csv"

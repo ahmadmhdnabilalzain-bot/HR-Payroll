@@ -57,7 +57,7 @@ export const X = {
     agreed: "Agreed",
     declined: "Declined",
     withdrawn: "Taken back",
-    paidBefore: "Agreed before the demo",
+    paidBefore: "Agreed earlier",
     paidLater: "Repaid with the next pay run",
     when: "Date",
     status: "Status",

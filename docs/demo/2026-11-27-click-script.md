@@ -259,18 +259,18 @@ If time is short, do 1, 2, 4 and the data location page only.
   only", the last access review, "Data import 4 of 12 rows ready", "Audit
   trail 58 entries in the chain". After the check: "All 58 entries match.
   Checked just now."
-- The IT manager's bar is Home, People, Reports, Setup. No pay figures:
-  IT sees no one's salary.
+- The IT manager's bar is Home, People, Reports, Setup. No pay figures in the menus. (The audit trail may still show
+  amounts: not yet checked.)
 - Roles: 11 roles in plain words, for example "HR manager: prepares the
-  pay run and the salary file; cannot approve it" and "IT administrator:
-  runs access and connections; sees no salaries".
+  pay run and the salary file; cannot sign it off" and "IT administrator:
+  runs access and connections".
 - Segregation of duties: four checks, each "Holds".
 - Audit trail after "Edit one entry": "Chain broken at entry 11: its
   fingerprint no longer matches".
 - Data import: a 12-row sample file: 4 ready, 3 to review, 5 to fix (it
   catches a duplicate employee number and Juma Al Zaabi's IBAN).
-- Data location: "Demo only. Data region of this site: Frankfurt,
-  Germany", and "Nothing here says the product holds a certification...".
+- Data location: "The demo is hosted in Frankfurt; the hosting
+  region for a live service is not decided", and "Nothing here says the product holds a certification...".
 
 **Say.** "Every action is written once, linked to the one before it. If
 anyone changes an old entry, the check shows exactly where. In the real
@@ -338,8 +338,8 @@ Say the first four out loud during the demo; keep the rest for questions.
 2. **Resets on reload.** Nothing is saved. A reload starts the story
    again. Each phone has its own copy; phones and the laptop are not
    connected. Safari may reload a tab left in the background.
-3. **Frankfurt only for the demo.** The page is served from Frankfurt,
-   Germany, which is fine for invented data only. Where a live account's
+3. **Frankfurt only for the demo.** The demo is hosted in Frankfurt,
+   which is fine for invented data only. Where a live account's
    data would live is not decided and would be agreed in writing first.
 4. **The bank-detail check.** In the real system the server refuses a
    whole pay run while any payslip has a missing or mistyped IBAN: never a

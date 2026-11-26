@@ -100,11 +100,11 @@ function personExplain(c: DemoCompany, id: string, amount: Fils)
     result: { label: "Provision", value: money(amount) },
     inputs: [{ label: "Joined", value: text(shortDateText(e.joiningDate)),
       from: "Employee record" },
-    { label: "Counted to", value: text(asOf), from: "The demo day" },
+    { label: "Counted to", value: text(asOf), from: "The report date" },
     { label: "Basic salary, monthly", value: money(e.basicMonthly),
       from: "October pay run" },
     { label: "Unpaid leave days", value: text("0"),
-      from: "Counted as 0 in this sample" }],
+      from: "Counted as 0" }],
     rules: rulesOf([years, t1, t2, cap, total]), steps,
     notComputed: ["Leave pay, notice pay and other dues are not in the " +
       "provision.", "This is an estimate of what would be owed if the " +

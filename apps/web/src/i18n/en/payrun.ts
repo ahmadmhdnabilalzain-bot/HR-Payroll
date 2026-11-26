@@ -38,7 +38,7 @@ export const payrun = {
   showChanged: "Show only changes",
   hint: "Tap a figure with a dotted line to see how it is worked out.",
   hintOk: "Got it",
-  payLocked: "Pay opens once the General Manager signs off the run.",
+  payLocked: "Pay opens once the General manager signs off the run.",
   footLine: "Based on UAE mainland rules, as we read them.",
   everyone: "Everyone on this run",
   colName: "Name",
@@ -57,7 +57,7 @@ export const payrun = {
     "next step.",
   toFixTitle: "Stops pay",
   toFixSub: "A payslip without a bank account holds the whole run. The " +
-    "General Manager cannot sign off until it is fixed.",
+    "General manager cannot sign off until it is fixed.",
   checksTitle: "Check",
   checksSub: "These do not stop the run. Mark each one once it is " +
     "looked at.",
@@ -103,8 +103,8 @@ export const payrun = {
   stepNav: "Previous and next step",
   ibanTypo: "In the file: IBAN typo",
   goFix: "Go to Fix",
-  onlyGm: "Only {name}, the General Manager, can sign off this run.",
-  viewAsGm: "View as General Manager",
+  onlyGm: "Only {name}, the General manager, can sign off this run.",
+  viewAsGm: "View as General manager",
   openChecks: { one: "{count} check is not marked reviewed yet.",
     other: "{count} checks are not marked reviewed yet." },
   allChecked: "Every check is marked reviewed.",
@@ -114,7 +114,7 @@ export const payrun = {
     "Protection System.",
   fileHeadline: "Salary file for {count} people, {amount}, to {bank}, " +
     "dated {date}",
-  draft: "Draft: the file is final once the General Manager signs off.",
+  draft: "Draft: the file is final once the General manager signs off.",
   ready: "Ready to upload to {bank}.",
   download: "Download salary file",
   fileName: "File name",

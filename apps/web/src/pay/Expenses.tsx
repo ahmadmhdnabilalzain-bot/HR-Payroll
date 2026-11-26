@@ -25,7 +25,7 @@ function useApproval(x: ExpenseView): Approval | undefined {
 function useClaimState(x: ExpenseView): [string, Tone] {
   const { state } = useDemo();
   const a = useApproval(x);
-  if (a === undefined) return ["Agreed before the demo", "done"];
+  if (a === undefined) return ["Agreed earlier", "done"];
   const v = state.decided[a.id];
   return v === undefined ? ["Waiting", "check"] : v === "approve"
     ? ["Agreed", "done"] : ["Declined", "neutral"];
@@ -113,7 +113,7 @@ function ClaimPage(p: { x: ExpenseView }) {
               {a.checkerId === data.runPeople().checkerId && (
                 <button type="button" className={`${b.btn} ${b.secondary}`}
                   onClick={() => switchRole("gm")}>
-                  View as General Manager</button>
+                  View as General manager</button>
               )}
             </div>
           )}

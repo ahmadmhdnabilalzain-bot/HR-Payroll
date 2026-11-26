@@ -327,7 +327,7 @@ function reqSpecs(es: readonly DemoEmployee[]): ReqSpec[] {
       location: "hq-abu-dhabi", grade: 5, openings: 2, status: "open",
       reason: "growth", positions: [newPositionId(1), newPositionId(2)],
       openedOn: "2026-09-07", published: true,
-      note: "Two new seats for the 2027 lending plan (sample)." },
+      note: "Two new seats for the 2027 lending plan." },
     { id: "req-004", jobKey: "systems-engineer", dept: "dept-it",
       location: "hq-abu-dhabi", grade: 5, openings: 1, status: "on-hold",
       reason: "growth", positions: [newPositionId(3)],

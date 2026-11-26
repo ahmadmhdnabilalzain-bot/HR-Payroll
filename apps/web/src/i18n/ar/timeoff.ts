@@ -46,7 +46,7 @@ export const timeoff: ArOf<typeof en> = {
   withdrawn: "مسحوبة",
   withdraw: "سحب الطلب",
   withdrew: "سُحب الطلب",
-  approve: "موافقة",
+  approve: "حجز",
   decline: "رفض",
   bookedToast: "حُجزت إجازة {name}",
   declinedToast: "رُفض طلب {name}",

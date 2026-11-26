@@ -119,7 +119,7 @@ function emailIn(c: DemoCompany): ConnectPage {
       { title: "Address", items: [
         item("em:address", "Receiving address",
           `hr@inbox.${DEMO_EMAIL_DOMAIN}`,
-          "A sample address on a .test domain. It does not exist."),
+          "An example address on a .test domain. It does not exist."),
         item("em:switch", "Email in", "Off",
           "Off until a real address is set up for the company.", ON_OFF),
         item("em:senders", "Who may send", "Company only",
@@ -173,7 +173,7 @@ function calendar(c: DemoCompany): ConnectPage {
           "Anyone with the address can read it, so keep it secret. Turn " +
           "a feed off to stop it, then on again for a new address."),
         item("cal:asof", "Built on", shortDateText(AS_OF),
-          "Counts are as of the demo day."),
+          "Counts are as of the date above."),
       ] },
     ] };
 }

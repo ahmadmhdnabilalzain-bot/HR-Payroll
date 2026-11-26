@@ -34,11 +34,11 @@ export const FIX: Record<string, Fix> = {
   PENSION_NOT_COMPUTED: { kind: "confirm-pension", fix: { en: "Confirm " +
     "the fund and the rate with the pension fund. Pension lines are " +
     "then added to these payslips.", ar: "أكد الصندوق والمعدل مع صندوق " +
-    "المعاشات ثم أضف بنود المعاش قبل الاعتماد." } },
+    "المعاشات ثم أضف بنود المعاش قبل التوقيع." } },
   SETTLEMENT_PARTIAL: { kind: "review", fix: { en: "Add notice pay and " +
     "any deductions before the settlement is paid.", ar: "أدخل بدل " +
     "الإنذار وأي خصومات يدويًا قبل صرف التسوية." } },
 };
 
 export const GENERIC: Fix = { kind: "review", fix: { en: "Review " +
-  "before sign-off.", ar: "راجع قبل الاعتماد." } };
+  "before sign-off.", ar: "راجع قبل التوقيع." } };

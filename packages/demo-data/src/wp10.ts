@@ -137,8 +137,8 @@ function approvalTasks(c: DemoCompany): HomeTask[] {
         `${maker.fullName} on ${shortDateText(a.requestedOn)}. ` +
         `${a.amountNote ?? ""}`.trim(), PAY_CALENDAR.approveBy),
       mkTask({ assignee: maker.id, kind: "approval", id: a.id,
-        title: "Send the October pay run to the General Manager",
-        detail: "Waiting for the General Manager's decision",
+        title: "Send the October pay run to the General manager",
+        detail: "Waiting for the General manager's decision",
         due: PAY_CALENDAR.approveBy, target: `approvals/${a.id}`,
         done: a.requestedOn })];
     }

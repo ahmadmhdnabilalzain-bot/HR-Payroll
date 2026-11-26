@@ -571,8 +571,8 @@ export function importSample(c: DemoCompany): ImportSample {
     summaryText: `${summary.rows} rows read: ${summary.ready} ready, ` +
       `${summary.warnings} to review, ${summary.errors} to fix. ` +
       `Checked ${reportDate(AS_OF)}.`,
-    note: "Sample file made for the demo: nothing is imported, and every " +
-      "name, number and IBAN in it is invented." };
+    note: "Nothing is imported. Every name, number and IBAN in " +
+      "this file is invented." };
 }
 
 /* ---------------------------------------------------------------- *

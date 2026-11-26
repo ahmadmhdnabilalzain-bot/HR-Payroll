@@ -24,7 +24,7 @@ import { departmentText, jobTitleText, shortDateText } from "./wp3";
 
 export const GRATUITY_BASIS = "As if each person left on " +
   `${shortDateText(AS_OF)}, with basic salary as in the October pay run. ` +
-  "Unpaid leave is counted as 0 days in this sample. Labour Law " +
+  "Unpaid leave is counted as 0 days. Labour Law " +
   "gratuity only: leave pay, notice pay and other dues are not in it.";
 
 export interface GratuityProvisionRow {

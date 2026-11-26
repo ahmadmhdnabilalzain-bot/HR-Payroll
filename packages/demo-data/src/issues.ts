@@ -51,8 +51,6 @@ export interface DemoIssue {
   sourceStatus: "secondary" | "convention" | null;
 }
 
-const AR_TBD = "";
-
 type Make = Pick<DemoIssue, "code" | "source" | "employeeId" |
   "subjectId" | "title"> & { en: string; kind?: IssueKind;
   severity?: IssueSeverity; count?: number; date?: DisplayDate | null;
@@ -64,7 +62,7 @@ function issue(x: Make): DemoIssue {
   return { code: x.code, kind: x.kind ?? "issue",
     severity: x.severity ?? "warning", source: x.source,
     employeeId: x.employeeId, subjectId: x.subjectId, count: x.count ?? 1,
-    title: x.title, plainReason: { en: x.en, ar: x.ar ?? AR_TBD },
+    title: x.title, plainReason: { en: x.en, ar: x.ar ?? x.en },
     suggestedFix: f.fix, fixKind: f.kind, date: x.date ?? null,
     sif: x.sif ?? null, raisedAs: x.raisedAs ?? null,
     sourceStatus: x.sourceStatus ?? null };
@@ -164,7 +162,7 @@ function sifFindings(c: DemoCompany): DemoIssue[] {
       return issue({ ...at, code: f.code,
         title: "Bank account number has a typo",
         en: `${possessive(nameOf(c, employeeId))} IBAN does not add up: ` +
-          "one digit is probably mistyped, so the bank would reject " +
+          "one digit is probably mistyped, so the bank would return " +
           "this payment." });
     }
     return issue({ ...at, code: f.code, title: "Salary file check",

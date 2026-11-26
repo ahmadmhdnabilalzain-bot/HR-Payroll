@@ -45,8 +45,8 @@ export type CoverStatus = "covered" | "card-pending" | "ended";
 export const INSURER = "Zarqan Demo Insurance";
 export const COVER_RENEWAL = "2026-12-31";
 export const INSURANCE_BASIS = "A register of who is covered. It holds no " +
-  "premiums and no quotes. Card numbers are masked, and the sample " +
-  "cards stand in until the insurer's list is loaded.";
+  "premiums and no quotes. Card numbers are masked. The cards " +
+  "stand in until the insurer's list is loaded.";
 
 export interface InsuranceCoverRow {
   id: string;

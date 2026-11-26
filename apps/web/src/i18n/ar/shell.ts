@@ -49,7 +49,7 @@ export const shell: ArOf<typeof en> = {
   actSources: "عرض مصدر الأرقام",
   actIssue: "فتح البند: {name}",
   actApproval: "اتخاذ قرار: {title}",
-  actApprove: "اعتماد رواتب {month}",
+  actApprove: "التوقيع على رواتب {month}",
   actIban: "إدخال البيانات البنكية لـ {name}",
   actPayslip: "قسيمة الراتب: {name}",
   actStep: "دورة الرواتب: {step}",

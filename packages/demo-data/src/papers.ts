@@ -112,8 +112,8 @@ const stage = (label: string, date: string | null, done: boolean)
   ? `${label}: not booked` : `${label}: ${displayDate(date)}${done
     ? "" : " (booked)"}` });
 
-const FEES = "Government fees are not shown: the demo has no fee " +
-  "schedule.";
+const FEES = "Government fees are not shown: no fee " +
+  "schedule is loaded.";
 
 /** Visa and Emirates ID cases, tied to the documents near expiry. */
 export function visaCases(c: DemoCompany): VisaCase[] {
