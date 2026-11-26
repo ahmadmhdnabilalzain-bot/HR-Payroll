@@ -20,8 +20,9 @@
     opacity var(--dur-fast) ease;
 }
 
+/* Pressed: a 0.98 dip over --dur-fast, back on release. */
 .btn:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .btn:disabled {

@@ -325,6 +325,13 @@
   font-size: var(--text-sm);
   font-weight: 500;
   white-space: nowrap;
+  transition: color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.segments button:active,
+.tabs button:active {
+  transform: scale(0.98);
 }
 
 .segments button[aria-pressed="true"] {
@@ -733,6 +740,8 @@ li + li.actRow > .row {
   font-size: var(--text-md);
   font-weight: 500;
   white-space: nowrap;
+  transition: color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
 }
 
 .tabs button[aria-selected="true"] {

@@ -1,9 +1,11 @@
+import { useRef } from "react";
 import type { Route } from "../demo/route";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { routeOf } from "../nav/registry";
 import { shortOf } from "../nav/short";
+import { useGlide } from "../ui/glide";
 import { tabsAt } from "./groupTabs";
 import s from "./GroupTabs.module.css";
 
@@ -31,15 +33,24 @@ export function useGroupTabs(route: Route)
  * a record under it) and only when the group has more than one area.
  */
 export function GroupTabs(p: { route: Route }) {
-  const { lang, t } = useLocale();
-  const { data, state } = useDemo();
-  const c = { data, state };
+  const { t } = useLocale();
   const found = useGroupTabs(p.route);
   if (found === null) return null;
-  const { at, tabs: sibs } = found;
+  return <Tabs found={found} label={t("shell.groupTabs")} />;
+}
+
+/** The row itself: its chosen pill glides (ui/glide.ts). */
+function Tabs(p: { found: NonNullable<ReturnType<typeof tabsAt>>;
+  label: string }) {
+  const { lang } = useLocale();
+  const { data, state } = useDemo();
+  const c = { data, state };
+  const row = useRef<HTMLUListElement>(null);
+  useGlide(row, "pill");
+  const { at, tabs: sibs } = p.found;
   return (
-    <nav className={s.wrap} aria-label={t("shell.groupTabs")}>
-      <ul className={s.tabs}>
+    <nav className={s.wrap} aria-label={p.label} data-vt="tabs">
+      <ul className={s.tabs} ref={row}>
         {sibs.map((a) => {
           const r = routeOf(a, c);
           return (

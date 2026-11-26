@@ -36,7 +36,7 @@ export function useRoute(): Route {
     // else renders and goes to the top (ui/templates/listMotion.ts).
     const on = (e: HashChangeEvent): void => {
       changeRoute(e.oldURL, () => flushSync(() =>
-        setRoute(parseHash(location.hash))));
+        setRoute(parseHash(location.hash))), e.isTrusted);
     };
     addEventListener("hashchange", on);
     return () => removeEventListener("hashchange", on);
