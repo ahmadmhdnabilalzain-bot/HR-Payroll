@@ -9,7 +9,7 @@ import type {
 import type { DemoData } from "../../demo/data/types";
 import { liveSigns, type EsignEvent } from "../../demo/esign-state";
 import type { NewHire } from "../../demo/more-state";
-import type { DemoState } from "../../demo/state";
+import type { Action, DemoState } from "../../demo/state";
 import { personFor } from "../../demo/time-off";
 import { offerNow } from "../moves/view";
 import { letterRows } from "../papers/model";
@@ -91,6 +91,10 @@ function screenMarks(d: DemoData, s: S, doc: EsignDoc): EsignMark[] {
   if (doc.host.area === "letters") {
     const l = letterRows(d, s).find((x) => x.id === doc.host.sourceId);
     return l?.status === "issued" ? [at(1)] : [];
+  }
+  if (doc.kind === "policy-ack") {
+    const m = s.safetyMarks[`ack:${doc.host.sourceId}:${doc.subjectId}`];
+    return m === undefined ? [] : [at(1)];
   }
   if (doc.host.area === "offers") {
     const o = d.moves.offers().find((x) => x.id === doc.host.sourceId);
@@ -176,4 +180,30 @@ export function trailOf(d: DemoData, s: S, row: EsignRow): TrailLine[] {
     who: `${e.name}, ${e.title}`,
     when: `${d.esign.date(e.on).display}, ${e.time}` }));
   return [...seeded, ...log];
+}
+
+/** The policy screen's own mark for an acknowledgement paper. */
+export const ackKey = (row: EsignRow): string =>
+  `ack:${row.doc.host.sourceId}:${row.doc.subjectId}`;
+
+/**
+ * What an undo takes back on the paper's own screen: the letter's
+ * issue and the policy's read mark (only if the entry was a signature,
+ * since a refusal made no step there), and the offer's answer.
+ */
+export function undoSteps(row: EsignRow, by: string, signed: boolean)
+  : Action[] {
+  const h = row.doc.host;
+  const out: Action[] = [];
+  if (h.area === "letters" && signed) {
+    out.push({ type: "paper-undo", id: h.sourceId });
+  }
+  if (row.doc.kind === "policy-ack" && signed) {
+    out.push({ type: "safety-unmark", key: ackKey(row) });
+  }
+  if (h.area === "offers" && row.doc.signers.some((x) =>
+    x.party === "candidate" && x.personId === by)) {
+    out.push({ type: "move-undo", key: `offer:${h.sourceId}` });
+  }
+  return out;
 }

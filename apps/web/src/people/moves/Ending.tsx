@@ -25,7 +25,7 @@ export function EndingDetails(p: { end: EmploymentEndView }) {
       { label: "Accepted by", value: `${e.acceptedBy.name}, ` +
         `${by?.role.en ?? ""}, ${e.acceptedBy.on.display}` },
       { label: "Reason given", value: e.reason }]} />
-    <SignBlock docId={`resign:${e.employeeId}`} />
+    <SignBlock docId={`resign:${e.employeeId}`} level={2} />
     </>
   );
 }

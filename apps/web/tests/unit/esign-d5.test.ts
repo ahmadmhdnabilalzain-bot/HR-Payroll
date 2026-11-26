@@ -17,6 +17,7 @@ import {
   fingerprintOf,
   packCount,
   packKeyOf,
+  undoSteps,
   waitingFor,
 } from "../../src/people/esign/model";
 
@@ -183,4 +184,29 @@ describe("every paper has a screen that carries the sign option", () => {
         expect(readWeb(file!)).toMatch(/signTab|SignBlock|SignLink|PackLine/);
       }
     });
+});
+
+describe("bridges to the papers' own screens", () => {
+  const me = d.esign.employeeId;
+  const pol = esignRows(d, INITIAL).find((r) => r.doc.kind ===
+    "policy-ack" && r.doc.subjectId === me &&
+    r.progress.word === "Awaiting signature")!;
+  it("a read mark on the Policies screen reads as the signature", () => {
+    const s = reduce(INITIAL, { type: "safety-mark",
+      key: `ack:${pol.doc.host.sourceId}:${me}`,
+      mark: { status: "read", by: "emp-028", role: "hr", on } });
+    expect(esignRows(d, s).find((r) => r.doc.id === pol.doc.id)!
+      .progress.word).toBe("Signed");
+  });
+  it("undoing a signed acknowledgement takes the read mark back", () => {
+    expect(undoSteps(pol, me, true)).toEqual([{ type: "safety-unmark",
+      key: `ack:${pol.doc.host.sourceId}:${me}` }]);
+  });
+  it("undoing a refused letter leaves the letter's steps alone", () => {
+    const lt = esignRows(d, INITIAL).find((r) =>
+      r.doc.id === "letter:lt-2")!;
+    expect(undoSteps(lt, "emp-001", false)).toEqual([]);
+    expect(undoSteps(lt, "emp-001", true)).toEqual([{ type: "paper-undo",
+      id: "lt-2" }]);
+  });
 });

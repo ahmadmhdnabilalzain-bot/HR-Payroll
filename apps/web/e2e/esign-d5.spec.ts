@@ -94,3 +94,38 @@ test("the employee's Documents to sign and the To sign count on Home",
       name: "Documents to sign" })).toBeVisible();
     await clean(page);
   });
+
+test("the sign option on host screens, lists and every sheet state",
+  async ({ page }) => {
+    await page.goto("/#/people/papers/letters/lt-2");
+    await page.getByRole("tab", { name: "E-signature" }).click();
+    await expect(page.getByText("Awaiting signature").first())
+      .toBeVisible();
+    await clean(page);
+    await page.getByRole("button", {
+      name: "Sign document electronically: Salary certificate" }).click();
+    await expect(page.getByRole("dialog").getByRole("status"))
+      .toContainText("Only the people listed");
+    await clean(page);
+    await page.keyboard.press("Escape");
+    for (const path of ["profiles", "links"]) {
+      await page.goto(`/#/people/esign/${path}`);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await clean(page);
+    }
+    await roleAs(page, "Employee");
+    await page.goto("/#/me/profile");
+    await page.getByRole("tab", { name: "E-signature" }).click();
+    await page.getByRole("button", {
+      name: "Sign document electronically: Bank details form" }).click();
+    const sheet = page.getByRole("dialog");
+    await sheet.getByLabel("Draw my signature").check();
+    await sheet.getByRole("button", { name: "Sign", exact: true }).click();
+    await expect(sheet.getByRole("alert")).toContainText("Draw your");
+    await clean(page);
+    await sheet.getByRole("button", { name: "Decline" }).click();
+    await sheet.getByLabel("Reason").fill("Wrong account");
+    await clean(page);
+    await sheet.getByRole("button", { name: "Decline to sign" }).click();
+    await expect(page.getByText("Declined").first()).toBeVisible();
+  });

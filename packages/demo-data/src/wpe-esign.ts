@@ -545,7 +545,7 @@ export function joiningPack(c: DemoCompany, j: Joiner,
     one("employment-contract", [...head(c, "Employment contract",
       ref("EC"), on), `Employee: ${j.name}`, `Position: ${j.title}`,
     `Start date: ${dateOf(j.startOn).display}`,
-    "Unlimited term, under UAE labour law, as the offer letter sets out."],
+    "Pay, hours and leave as the offer letter sets out."],
     [company(c, 2, gm)]),
     one("confidentiality", [...head(c, "Confidentiality agreement",
       ref("CA"), on), `I, ${j.name}, will keep customer and company ` +

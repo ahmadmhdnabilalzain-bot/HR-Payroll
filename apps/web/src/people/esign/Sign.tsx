@@ -15,6 +15,8 @@ import {
   fingerprintOf,
   groupHex,
   lastReminder,
+  ackKey,
+  undoSteps,
   type EsignRow,
 } from "./model";
 import { PackLine } from "./PackLine";
@@ -111,7 +113,7 @@ function Signers(p: { row: EsignRow; fingerprint: string;
  * electronically" (secondary: the screen keeps its own primary).
  */
 export function SignBlock(p: { docId: string; as?: Signer;
-  heading?: boolean }) {
+  heading?: boolean; level?: 2 | 3 }) {
   const { data, state, dispatch } = useDemo();
   const { world, rows } = useEsign();
   const me = useSigner();
@@ -131,8 +133,9 @@ export function SignBlock(p: { docId: string; as?: Signer;
   return (
     <section className={s.block} aria-label={`E-signature: ${row.doc.title}`}>
       <div className={s.blockHead}>
-        {p.heading !== false && (
-          <h3 className={s.blockTitle}>{row.doc.title}</h3>)}
+        {p.heading !== false && (p.level === 2
+          ? <h2 className={s.blockTitle}>{row.doc.title}</h2>
+          : <h3 className={s.blockTitle}>{row.doc.title}</h3>)}
         <Word word={row.progress.word} />
       </div>
       <Signers row={row} fingerprint={fp} styleOf={styleOf} />
@@ -167,19 +170,17 @@ export function SignBlock(p: { docId: string; as?: Signer;
 
 /** Takes back a signature, and the step it made on its own screen. */
 export function useUndo() {
-  const { data, dispatch } = useDemo();
+  const { data, state, dispatch } = useDemo();
   const toast = useToast();
-  return (row: EsignRow, seq: number, who: Signer): void => {
+  return (row: EsignRow, seq: number, who: Signer,
+    verdict?: "signed" | "declined"): void => {
     dispatch({ type: "esign", entry: { kind: "undo", target: seq,
       docId: row.doc.id, by: who.by, name: who.name, title: who.title,
       role: who.role, on: data.esign.asOf } });
-    if (row.doc.host.area === "letters") {
-      dispatch({ type: "paper-undo", id: row.doc.host.sourceId });
-    }
-    if (row.doc.host.area === "offers" && row.doc.signers.some((x) =>
-      x.party === "candidate" && x.personId === who.by)) {
-      dispatch({ type: "move-undo", key: `offer:${row.doc.host.sourceId}` });
-    }
+    const was = state.esignLog.find((e) => e.seq === seq);
+    const signed = (verdict ?? (was?.kind === "sign" ? was.verdict
+      : "declined")) === "signed";
+    undoSteps(row, who.by, signed).forEach(dispatch);
     toast.show(E.undone);
   };
 }
@@ -249,6 +250,10 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
       fingerprint: p.fingerprint, by: who.by, name: who.name,
       title: who.title, role: who.role, on: data.esign.asOf } });
     const h = row.doc.host;
+    if (row.doc.kind === "policy-ack" && verdict === "signed") {
+      dispatch({ type: "safety-mark", key: ackKey(row), mark: {
+        status: "read", by: who.by, role: who.role, on: data.esign.asOf } });
+    }
     if (h.area === "letters" && verdict === "signed") {
       dispatch({ type: "paper-step", id: h.sourceId,
         step: stepBy(data, state, "issued") });
@@ -260,7 +265,7 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
     }
     const seq = state.nextEsign;
     toast.show(verdict === "signed" ? E.signedToast(row.doc.title)
-      : E.declinedToast(row.doc.title), () => undo(row, seq, who));
+      : E.declinedToast(row.doc.title), () => undo(row, seq, who, verdict));
     p.onClose();
   };
   const submit = (): void => {
@@ -393,7 +398,7 @@ function SignTabBody(p: { docIds: string[] }) {
     <div className={s.page}>
       <p className={s.note}>{data.esign.note}</p>
       {shown.length === 0 ? <p className={s.note}>{E.noneHere}</p>
-        : shown.map((id) => <SignBlock key={id} docId={id} />)}
+        : shown.map((id) => <SignBlock key={id} docId={id} level={2} />)}
     </div>
   );
 }
