@@ -9,7 +9,8 @@ export interface TenantCtx {
 /** Tables without company_id and without RLS. Everything else has both. */
 export const GLOBAL_TABLES = ["schema_migrations", "users", "sessions"];
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function settingFor(name: string, id: string | null): string {
   if (id === null) return "";

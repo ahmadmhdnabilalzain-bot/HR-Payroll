@@ -14,7 +14,8 @@ export const AuditEvent = z.object({
   seq: z.number().int().min(1),
   at: Timestamp,
   actorUserId: Id.nullable(),
-  action: z.string().regex(/^[a-z]+(\.[a-z-]+)+$/),
+  /** `entity.verb` segments; hyphens join words ("pay-run.created"). */
+  action: z.string().regex(/^[a-z]+(-[a-z]+)*(\.[a-z]+(-[a-z]+)*)+$/),
   entityType: z.string(),
   entityId: Id.nullable(),
   data: AuditData,

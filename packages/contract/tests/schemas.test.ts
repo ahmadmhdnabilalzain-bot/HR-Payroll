@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  AuditEvent,
   EXAMPLES,
   ERROR_CODES,
   ERROR_STATUS,
@@ -85,6 +86,25 @@ describe("Settlement", () => {
     expect(Settlement.safeParse({ ...computed, includedInSif: true })
       .success).toBe(false);
   });
+});
+
+describe("AuditEvent.action", () => {
+  const PLAN_ACTIONS = ["company.created", "company.updated",
+    "user.invited", "invite.accepted", "employee.created",
+    "employee.updated", "employee.salary.updated", "employee.bank.updated",
+    "employee.bank.revealed", "department.created", "department.updated",
+    "leave-type.created", "leave-type.updated", "leave.requested",
+    "leave.approved", "leave.rejected", "leave.cancelled", "leave.adjusted",
+    "attendance.corrected", "pay-run.created", "pay-run.approved",
+    "pay-run.voided", "sif.generated", "sif.downloaded"];
+  const action = AuditEvent.shape.action;
+  it.each(PLAN_ACTIONS)("accepts %s", (a) => {
+    expect(action.safeParse(a).success).toBe(true);
+  });
+  it.each(["company", "Company.created", "-x.y", "x-.y", "x..y"])(
+    "rejects %s", (a) => {
+      expect(action.safeParse(a).success).toBe(false);
+    });
 });
 
 describe("errors", () => {
