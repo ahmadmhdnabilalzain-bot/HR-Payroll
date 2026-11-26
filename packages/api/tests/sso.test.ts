@@ -272,6 +272,23 @@ describe("SSO with OpenID Connect", () => {
       expect(again.body.error.code).toBe("SSO_NOT_LINKED");
     });
 
+  it("M3: wrong TOTP codes at the SSO callback lock the account",
+    async () => {
+      const ctx = await makeApp();
+      const a = await signup(ctx.app, "ssom3");
+      const m = await enableMfa(ctx.app, ctx.clock, a);
+      expect((await sso(ctx, "google", google("g-m3", a.email),
+        { link: m.token })).status).toBe(200);
+      for (let i = 0; i < 5; i++) {
+        const r = await sso(ctx, "google", google("g-m3", a.email),
+          { totp: "000000" });
+        expect(r.status).toBe(401);
+      }
+      const [u] = await db(ctx, "SELECT locked_until FROM users WHERE " +
+        "id = $1", [a.userId]);
+      expect(u!.locked_until).not.toBeNull();
+    });
+
   it("sso_not_configured and settings need owner MFA", async () => {
     const ctx = await makeApp({ channels: fakeChannels({ oidc: false }) });
     const r = await call(ctx.app, null, null, "POST",

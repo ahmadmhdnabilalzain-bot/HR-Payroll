@@ -43,7 +43,7 @@ export async function lockUser(tx: Db, by: { email?: string; id?: string })
   return row ?? null;
 }
 
-async function recordFailure(tx: Db, deps: HandlerDeps, id: string) {
+export async function recordFailure(tx: Db, deps: HandlerDeps, id: string) {
   const until = new Date(deps.now().getTime() + LOCK_MS).toISOString();
   await tx.query(
     `UPDATE users SET

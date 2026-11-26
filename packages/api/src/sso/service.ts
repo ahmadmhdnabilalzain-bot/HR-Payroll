@@ -4,7 +4,7 @@ import type {
   SsoStartRequest,
 } from "@payroll/contract";
 import { userById } from "../auth/accounts";
-import { consumeTotp, signedIn } from "../auth/login";
+import { consumeTotp, recordFailure, signedIn } from "../auth/login";
 import { findSession } from "../auth/session";
 import type { SsoProvider } from "../channels/ports";
 import type { ReqCtx } from "../http/context";
@@ -86,7 +86,7 @@ async function bearerUser(ctx: ReqCtx): Promise<string | null> {
 
 async function session(ctx: ReqCtx<SsoCallbackRequest>, userId: string,
   p: SsoProvider, org: string | null): Promise<LoginResponse> {
-  return ctx.enter({ companyId: null, userId }, async (tx) => {
+  const out = await ctx.enter({ companyId: null, userId }, async (tx) => {
     const u = (await userById(tx, userId))!;
     // A locked or service account gets the same answer as no link.
     const locked = u.locked_until !== null &&
@@ -96,10 +96,16 @@ async function session(ctx: ReqCtx<SsoCallbackRequest>, userId: string,
     if (ctx.body.totp !== undefined) {
       mfa = u.mfa_enrolled && await consumeTotp(tx, ctx.deps, u,
         ctx.body.totp);
-      if (!mfa) throw new ApiError("INVALID_CREDENTIALS");
+      // Review M3: counted toward the lockout, committed before the 401.
+      if (!mfa) {
+        await recordFailure(tx, ctx.deps, u.id);
+        return null;
+      }
     }
     return signedIn(tx, ctx.deps, userId, mfa, `sso:${p}`, org);
   });
+  if (out === null) throw new ApiError("INVALID_CREDENTIALS");
+  return out;
 }
 
 /** POST /v1/auth/sso/{provider}/callback (public). */
