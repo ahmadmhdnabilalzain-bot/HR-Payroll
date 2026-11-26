@@ -202,3 +202,19 @@
   font-weight: 600;
   letter-spacing: -0.02em;
 }
+
+.tight {
+  padding-block-start: 0;
+  margin-block-start: calc(var(--space-6) * -1);
+}
+
+/* On a phone the month grid is replaced by the list below it. */
+@media (max-width: 600px) {
+  .calWrap [class*="calScroll"] {
+    display: none;
+  }
+
+  .tight {
+    margin-block-start: calc(var(--space-8) * -1);
+  }
+}

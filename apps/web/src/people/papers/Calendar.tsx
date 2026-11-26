@@ -39,7 +39,7 @@ export function Calendar() {
   const inMonth = events.filter((e) => e.start.startsWith(month))
     .sort((a, b) => a.start.localeCompare(b.start));
   return (
-    <>
+    <div className={c.calWrap}>
     <MonthCalendar title="Compliance calendar"
       lede="Pay dates (sample dates), document expiries and the booked
         steps of visa cases."
@@ -48,7 +48,7 @@ export function Calendar() {
         { id: "docs", label: "Documents expire" },
         { id: "cases", label: "Case steps" }]}
       events={events} onMonth={(step) => setMonth(shift(month, step))} />
-    <div className={c.page}>
+    <div className={`${c.page} ${c.tight}`}>
       {inMonth.length === 0 ? <p className={c.empty}>
         Nothing is due this month.</p> : (
         <History items={inMonth.map((e) => ({ text: e.label,
@@ -56,6 +56,6 @@ export function Calendar() {
             : e.tone === "waiting" ? "warn" : "info" }))} />
       )}
     </div>
-    </>
+    </div>
   );
 }
