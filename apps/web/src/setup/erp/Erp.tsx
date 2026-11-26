@@ -63,7 +63,7 @@ export function Erp(p: { page: string }) {
     const nextId = state.nextConnect;
     dispatch({ type: "connect-edit", edit: { key, value: pick, what,
       who: actor.who, role: actor.role, on: actor.on } });
-    toast.show(`${what}. Nothing is connected in this demo.`, () =>
+    toast.show(`${what}. Nothing is connected.`, () =>
       dispatch({ type: "connect-undo", id: nextId }));
     return null;
   };

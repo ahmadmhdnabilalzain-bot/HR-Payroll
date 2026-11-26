@@ -82,7 +82,6 @@ describe("hash chain", () => {
   });
 
   it("says what the demo chain is and is not", () => {
-    expect(AUDIT_CHAIN_NOTE).toMatch(/demo/i);
     expect(AUDIT_CHAIN_NOTE).toMatch(/not .*(certif|proof|legal)/i);
   });
 });

@@ -18,7 +18,7 @@ import {
 
 /** Our own working rule for every total: whole fils, no rounding. */
 export const SUM_RULE: ExplainRule = {
-  text: "A total adds each part as it was worked out, in whole fils. " +
+  text: "A total adds each part as it was worked out, exactly. " +
     "Nothing is rounded at the total.",
   status: "convention", statusLabel: null,
   citation: "Our own working, as we apply it",
@@ -26,7 +26,7 @@ export const SUM_RULE: ExplainRule = {
 
 /** Our own working rule for a count of people or items. */
 export const COUNT_RULE: ExplainRule = {
-  text: "Each person or item is counted once, on the demo date.",
+  text: "Each person or item is counted once, on the report date.",
   status: "convention", statusLabel: null,
   citation: "Our own working, as we apply it",
 };
@@ -85,7 +85,7 @@ export function sumSteps(parts: Part[], totalText: string,
 export function sumExplain(spec: SumSpec): Explanation {
   // Nothing to add still shows as a working: "None", then 0.
   const s = spec.parts.length > 0 ? spec : { ...spec, parts: [{
-    text: spec.emptyText ?? "None on the demo date",
+    text: spec.emptyText ?? "None on the report date",
     value: spec.countText !== undefined ? count(0, spec.countText(0))
       : money(fils(0n)) }] };
   const total = totalOf(s.parts, s.countText);

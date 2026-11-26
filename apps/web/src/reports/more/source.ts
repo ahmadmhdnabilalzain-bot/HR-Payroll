@@ -91,7 +91,7 @@ function explains(c: DemoCompany, brief: OwnerBrief, board: BoardPack)
     parts: byDepartment(c, (s) => s.payslip.gross), scope });
   const net = sumExplain({ id: "more:net", title: "October net pay",
     subject: "Whole pay run", summary: "Gross pay less everything taken " +
-      "from pay, payslip by payslip in whole fils.", resultLabel: "Net pay",
+      "from pay, payslip by payslip, exactly.", resultLabel: "Net pay",
     parts: [{ text: "Gross pay", value: money(h.gross) },
       { text: "Less deductions", value: money(h.deductions), less: true }],
     notComputed: ["Pension for UAE nationals is not computed."], scope });
@@ -124,7 +124,7 @@ function explains(c: DemoCompany, brief: OwnerBrief, board: BoardPack)
       e.leavingDate !== null), (e) => `${e.fullName}, last day ` +
       shortDateText(e.leavingDate!)),
     probation: counted(c, "more:probation", "Still on probation",
-      "Everyone whose probation ends after the demo date.",
+      "Everyone whose probation ends after the report date.",
       c.employees.filter((e) => e.leavingDate === null &&
         e.probationEndDate !== null && e.probationEndDate > brief.asOf),
       (e) => `${e.fullName}, ends ${shortDateText(e.probationEndDate!)}`),
@@ -144,7 +144,7 @@ function explains(c: DemoCompany, brief: OwnerBrief, board: BoardPack)
   if (settle !== undefined) {
     briefExplain["settlement"] = sumExplain({ id: "more:settlement",
       title: "Final settlement", subject: name(settle.employeeId),
-      summary: "The gratuity and the unused leave pay the engine worked " +
+      summary: "The gratuity and the unused leave pay the payroll worked " +
         "out. The gratuity's own working opens on the pay run.",
       resultLabel: "Worked out so far",
       parts: [{ text: "End-of-service gratuity",
@@ -160,7 +160,7 @@ function explains(c: DemoCompany, brief: OwnerBrief, board: BoardPack)
   const loansExplain = sumExplain({ id: "loans:outstanding",
     title: "Loans and advances outstanding", subject: "Whole company",
     summary: "The balance still owed on each loan and advance not yet " +
-      "repaid, from the engine's payslips.", resultLabel: "Still owed",
+      "repaid, from the payslips.", resultLabel: "Still owed",
     parts: open.map((l) => ({ text: `${l.display.name}, ${l.ref}`,
       value: money(l.balance) })), scope });
   const loanExplain: Record<string, Explanation> = {};
@@ -205,7 +205,7 @@ function explains(c: DemoCompany, brief: OwnerBrief, board: BoardPack)
       "Active employees", "Everyone with no last working day recorded.",
       active, (e) => e.fullName),
     "UAE nationals": counted(c, "more:nationals", "UAE nationals",
-      "Everyone employed on the demo date who is a UAE national.",
+      "Everyone employed on the report date who is a UAE national.",
       c.employees.filter((e) => e.nationality === "AE" &&
         e.joiningDate <= brief.asOf && (e.leavingDate === null ||
           e.leavingDate >= brief.asOf)), (e) => e.fullName),
@@ -217,7 +217,7 @@ function explains(c: DemoCompany, brief: OwnerBrief, board: BoardPack)
     "Gross plus employer cost we can work out": sumExplain({
       id: "more:employer", title: "Gross plus employer cost, partial",
       subject: ec.period, summary: "Gross pay plus the employer costs the " +
-        "engine works out. It is partial.", resultLabel: "Partial total",
+        "payroll works out. It is partial.", resultLabel: "Partial total",
       parts: [{ text: "Gross pay", value: money(ec.gross) },
         { text: "Employer cost worked out",
           value: money(ec.employerComputed) }],

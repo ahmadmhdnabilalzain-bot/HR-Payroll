@@ -23,8 +23,8 @@ export const reports = {
   docTitle: "Documents expiring",
   docBlurb: "Residence visas and Emirates IDs, soonest first.",
   docNote: "Tracked here: residence visas and Emirates IDs that have an " +
-    "expiry date on file. Passports and contracts are not tracked in " +
-    "this demo. Days left are counted from the demo's today. Emirates " +
+    "expiry date on file. Passports and contracts are not tracked " +
+    "yet. Days left are counted from the report date. Emirates " +
     "ID numbers stay masked in this list and in the CSV.",
   filesTitle: "Salary file register",
   filesBlurb: "Every salary file made, with its people, amount and date.",

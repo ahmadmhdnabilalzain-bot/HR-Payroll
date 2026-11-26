@@ -125,7 +125,7 @@ export interface AuditEvent {
 
 export const AUDIT_CHAIN_NOTE = "Each entry's fingerprint " +
   "(SHA-256) is worked out from the entry and the one before it when " +
-  "the demo loads, so a changed or removed entry shows up when the " +
+  "the page loads, so a changed or removed entry shows up when the " +
   "chain is checked. It shows the idea; it is not a legal proof, and " +
   "a real system would keep the chain on a server.";
 

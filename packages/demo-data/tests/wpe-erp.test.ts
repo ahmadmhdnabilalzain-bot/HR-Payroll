@@ -23,7 +23,7 @@ describe("WPE ERP, ledger and Teams (S43, S35, S36)", () => {
       expect(pages.map((p) => p.id)).toEqual(["erp", "gl", "teams"]);
       for (const p of pages) {
         expect(p.notice).toMatch(/Nothing is connected/);
-        expect(p.testResult).toMatch(/not available in the demo/);
+        expect(p.testResult).toMatch(/not available yet/);
         const items = p.groups.flatMap((g) => g.items);
         expect(new Set(items.map((i) => i.key)).size).toBe(items.length);
         for (const i of items) {

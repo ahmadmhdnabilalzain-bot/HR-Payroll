@@ -13,14 +13,14 @@ import type { DemoCompany } from "./types";
  * by any authority and claims no legal validity.
  */
 
-export const VERIFY_NOTE = "Demo check. It looks up letters issued in " +
-  "this demo only. It shows who issued the letter, when and for whom, and " +
+export const VERIFY_NOTE = "It looks up letters issued from " +
+  "here only. It shows who issued the letter, when and for whom, and " +
   "never a pay figure. It is not a check by any authority and carries no " +
   "legal weight.";
 
 export const INTAKE_NOTE = "A scanned document you drop here stays in this " +
-  "browser tab only. Nothing is sent anywhere, the demo does not read the " +
-  "text of a scan, and a reload clears it.";
+  "browser tab only. Nothing is sent anywhere, the text of a scan is " +
+  "not read, and a reload clears it.";
 
 const ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 

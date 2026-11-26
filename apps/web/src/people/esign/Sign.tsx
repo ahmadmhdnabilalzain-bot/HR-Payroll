@@ -4,6 +4,7 @@ import { undoable } from "../../demo/esign-state";
 import { hrefOf } from "../../demo/route";
 import { useDemo, type Role } from "../../demo/state";
 import b from "../../ui/button.module.css";
+import { SignStamp } from "../../ui/SignStamp";
 import { Sheet, type RecordTab } from "../../ui/templates";
 import t from "../../ui/templates/templates.module.css";
 import { useToast } from "../../ui/Toast";
@@ -56,15 +57,17 @@ export function Word(p: { word: EsignRow["progress"]["word"] }) {
   return <span className={s.word} data-word={p.word}>{p.word}</span>;
 }
 
-/** The signed stamp: signer, role, date and time, reference, hash. */
+/** The signed stamp: the shared SignStamp (signer, role, date and
+ * time), with the signature itself, the reference and the hash. */
 export function Stamp(p: { mark: EsignMark; fingerprint: string;
   style?: string | undefined }) {
   const m = p.mark;
+  const signed = m.verdict === "signed";
   return (
-    <div className={s.stamp} data-verdict={m.verdict}>
-      <span className={s.stampHead}>{m.verdict === "signed" ? E.signed
-        : E.declined}</span>
-      {m.verdict === "signed" && (m.path !== null ? (
+    <SignStamp className={s.stamp} label={signed ? E.signed : E.declined}
+      name={m.name} role={m.role} seal={signed} declined={!signed}
+      when={`${m.on.display}, ${m.time} · ${E.method(m.method)}`}>
+      {signed && (m.path !== null ? (
         <svg className={s.drawn} viewBox="0 0 300 120" role="img"
           aria-label={`${E.method("drawn")}: ${m.name}`}>
           <path d={m.path} fill="none" stroke="currentColor"
@@ -72,13 +75,12 @@ export function Stamp(p: { mark: EsignMark; fingerprint: string;
             strokeLinejoin="round" />
         </svg>) : (
         <span className={s.script} data-style={p.style}>{m.typed}</span>))}
-      <span>{m.name}, {m.role}</span>
-      <span>{m.on.display}, {m.time} · {E.method(m.method)}</span>
-      {m.reason !== null && <span>{E.reason}: {m.reason}</span>}
+      {m.reason !== null && (
+        <span className={s.line}>{E.reason}: {m.reason}</span>)}
       <span className={s.muted}>{E.reference} {m.ref}</span>
       <span className={s.muted}>{E.fingerprint}{" "}
         <span className={s.hex}>{groupHex(p.fingerprint)}</span></span>
-    </div>
+    </SignStamp>
   );
 }
 

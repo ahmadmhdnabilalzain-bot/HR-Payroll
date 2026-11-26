@@ -13,6 +13,11 @@
   transform-origin: 30% 50%;
 }
 
+.stamp[data-declined="true"] {
+  border-style: dashed;
+  border-color: var(--color-text-muted);
+}
+
 .stamp[data-seal="false"] {
   grid-template-columns: minmax(0, 1fr);
   padding-inline-start: var(--space-4);

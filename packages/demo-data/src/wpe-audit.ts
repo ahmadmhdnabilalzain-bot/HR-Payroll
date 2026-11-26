@@ -293,9 +293,9 @@ const REMEDY: Record<string, { what: string; job: string;
       "not paid." },
 };
 
-export const REMEDY_NOTE = "Who found each error and when are sample " +
-  "entries for this demo; the audit trail does not record them. The " +
-  "amounts are worked out by the pay engine.";
+export const REMEDY_NOTE = "Who found each error and when are written " +
+  "by hand; the audit trail does not record them. The amounts are " +
+  "worked out by the payroll.";
 
 export function errorRemedies(c: DemoCompany): ErrorRemedy[] {
   const byJob = (job: string) => c.employees.find((e) =>

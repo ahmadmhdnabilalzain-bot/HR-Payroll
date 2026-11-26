@@ -38,7 +38,7 @@ export const V = {
   file: "Document", source: "Source", receivedBy: "Taken in by",
   received: "Received", filedTo: "Filed to", from: "From",
   expires: "Expires",
-  segAll: "All", segNew: "Added in the demo", segOpen: "Not filed yet",
+  segAll: "All", segNew: "Added here", segOpen: "Not filed yet",
   expiryTitle: "Document expiry list",
   expiryLede: "Every dated paper on file, including scans taken in here. " +
     "Soonest first.",
@@ -55,8 +55,8 @@ export const V = {
   needPerson: "Choose the person it belongs to.",
   taken: "Document taken in and filed.",
   undone: "Document taken out again.",
-  hereNote: "The file is kept in this browser tab only. The demo does " +
-    "not read the text of a scan, and no legal validity is claimed.",
+  hereNote: "The file is kept in this browser tab only. This page " +
+    "does not read the text of a scan, and no legal validity is claimed.",
 };
 
 export const STATUS_TONE: Record<"valid" | "withdrawn", Tone> = {

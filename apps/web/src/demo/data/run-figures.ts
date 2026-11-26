@@ -53,7 +53,7 @@ export function figureExplains(c: DemoCompany): Record<string, Explanation> {
   put(sumExplain({ id: "run:gross", title: "Gross pay, whole run",
     subject: "Whole pay run",
     summary: "Every payslip's gross pay, added up by department. Each " +
-      "payslip is worked out by the engine line by line.",
+      "payslip is worked out by the payroll line by line.",
     resultLabel: "Gross pay", parts: byDept((s) => s.payslip.gross),
     inputs: [{ label: "Payslips", value: count(slips.length,
       String(slips.length)), from: RUN }],
@@ -128,7 +128,7 @@ export function figureExplains(c: DemoCompany): Record<string, Explanation> {
     const name = REGION.of(r.nationality) ?? r.nationality;
     put(sumExplain({ id: `nationality:${name}`, title: "Headcount by " +
       "nationality", subject: name,
-      summary: `Everyone employed on the demo date whose nationality ` +
+      summary: `Everyone employed on the report date whose nationality ` +
         `is ${name}, counted once each.`,
       resultLabel: "People", countText: people,
       parts: active.filter((e) => e.nationality === r.nationality)
@@ -138,7 +138,7 @@ export function figureExplains(c: DemoCompany): Record<string, Explanation> {
   }
   put(sumExplain({ id: "nationality:total", title: "Headcount by " +
     "nationality", subject: "Whole company",
-    summary: "Each nationality's headcount on the demo date, added up.",
+    summary: "Each nationality's headcount on the report date, added up.",
     resultLabel: "People", countText: people,
     parts: n.byNationality.map((r) => ({ text: REGION.of(r.nationality) ??
       r.nationality, value: count(r.count, people(r.count)) })),

@@ -115,12 +115,12 @@ export function Location(p: { d: AccessData }) {
       text: `The ${d.sample.rows.length}-row file the import screen checks.`,
       tone: "ok", download: { name: d.sample.fileName,
         body: () => d.sample.text } },
-    { id: "backup", topic: "Backup", text: "Not part of the demo: nothing " +
+    { id: "backup", topic: "Backup", text: "Not set up yet: nothing " +
       "is saved, and a reload starts the story again.", tone: "none" },
   ];
   return (
     <FilterList title="Data location and export"
-      lede={`The demo is hosted in ${L.region}; the hosting region ` +
+      lede={`This copy is hosted in ${L.region}; the hosting region ` +
         "for a live service is not decided."}
       rows={facts} rowKey={(f) => f.id}
       columns={[{ key: "t", label: "Topic", render: (f) => f.topic },

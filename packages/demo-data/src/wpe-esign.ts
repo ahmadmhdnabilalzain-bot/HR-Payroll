@@ -23,8 +23,8 @@ import { policies } from "./wpe-safety";
  * This is a demo of the signing workflow and claims no legal validity.
  */
 
-export const ESIGN_NOTE = "This is a demo of the signing workflow; no " +
-  "legal validity is claimed for these signatures.";
+export const ESIGN_NOTE = "Signed here, no legal validity is claimed " +
+  "for these signatures.";
 
 export const ESIGN_CONSENT = "I confirm I have read this document and " +
   "agree to sign it electronically.";
@@ -415,7 +415,7 @@ function exitDocs(c: DemoCompany): EsignDoc[] {
       `End of service gratuity: ${s.display.gratuity}`,
       `Unused leave pay: ${s.display.leavePay}`,
       `Total received: ${s.display.total}`,
-      "Items not computed in this demo are listed with the settlement."],
+      "Items not computed are listed with the settlement."],
       signers: [employee(c, 1, x.employeeId), company(c, 2, hr)] });
     return [accept, receipt];
   });

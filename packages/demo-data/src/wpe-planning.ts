@@ -278,8 +278,8 @@ export interface WorkforcePlan {
 }
 
 export const WORKFORCE_BASIS = `The ${PLAN_YEAR} payroll budget is an ` +
-  "estimate (sample): twelve months of gross pay for each seat, from the " +
-  "engine. A filled seat is its holder's pay for a full month. A seat " +
+  "estimate: twelve months of gross pay for each seat, from the " +
+  "payroll. A filled seat is its holder's pay for a full month. A seat " +
   "being backfilled is the leaver's pay package. A new seat is the " +
   "accepted offer for it. A seat with no accepted offer is not priced, " +
   "and a seat on hold is left out until it is confirmed. Pay increases " +
@@ -411,13 +411,13 @@ export interface CostBudget {
 }
 
 export const BUDGET_BASIS = "The 2026 budget is the January payroll, " +
-  "kept for twelve months (sample): what the year's starting staff cost " +
-  "in the engine. Growth seats opened during the year are not in it, so " +
-  "they show as over budget. January to October are the engine's own " +
+  "kept for twelve months: what the year's starting staff cost " +
+  "in the payroll. Growth seats opened during the year are not in it, so " +
+  "they show as over budget. January to October are the payroll's own " +
   "runs, worked out again from today's pay and joining dates.";
 
 export const FORECAST_NOTE = "November and December are estimates. They " +
-  "work the engine out again for everyone employed in the month: the " +
+  "work the payroll out again for everyone employed in the month: the " +
   "leaver is out, the October hire has a full month, accepted offers " +
   "start on their joining dates, and October's back pay, overtime and " +
   "unpaid leave do not repeat. No overtime or unpaid leave is assumed, " +

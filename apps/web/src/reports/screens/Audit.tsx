@@ -15,7 +15,7 @@ const GROUPS: [string, string[]][] = [["Pay", ["Pay"]],
 const LEDE = "Each action is written down as an entry linked to the " +
   "one before it by a fingerprint (SHA-256), so an edited or removed " +
   "entry shows up when the chain is checked: the check detects a " +
-  "change, it does not prevent one. In this demo the check runs in " +
+  "change, it does not prevent one. The check runs in " +
   "your browser; it is not a legal proof.";
 
 function statusText(c: AuditCheck | null, tampered: boolean): string {

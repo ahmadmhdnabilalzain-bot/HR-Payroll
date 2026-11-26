@@ -50,7 +50,7 @@ function Decide(p: { v: PrivacyView; id: string; who: string }) {
     v.dispatch({ type: "dsr-decide", id: p.id,
       decision: { outcome, ...v.stamp() } });
     toast.show(`${OUTCOME[outcome]}: ${p.who}. Nothing was sent or ` +
-      "deleted in this demo.", () => v.dispatch({ type: "dsr-undo",
+      "deleted.", () => v.dispatch({ type: "dsr-undo",
       id: p.id }));
   };
   if (d !== undefined) {

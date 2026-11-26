@@ -26,7 +26,7 @@ export function Run() {
     : due === 0 ? "No leaver record is past its period today. Shorten a " +
       "period on the Privacy and retention page to see rows here."
       : `${due} ${due === 1 ? "record" : "records"} would be removed. ` +
-        "Nothing is deleted in this demo.";
+        "Nothing is deleted.";
   const action = signed !== null ? (v.canEdit && (
     <button type="button" className={`${b.btn} ${b.secondary} ${s.tap}`}
       onClick={() => v.dispatch({ type: "retention-unsign" })}>

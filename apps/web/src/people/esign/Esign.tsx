@@ -1,6 +1,6 @@
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
-import { FilterList } from "../../ui/templates";
+import { FilterList, PageHead } from "../../ui/templates";
 import t from "../../ui/templates/templates.module.css";
 import { Outside } from "../team/common";
 import { packCount, waitingFor } from "./model";
@@ -95,9 +95,8 @@ function Links() {
 function LinkHelp() {
   return (
     <div className={`${t.page} ${s.page}`}>
-      <h1 className={s.title}>A signing link</h1>
-      <p className={s.lede}>Open the link HR passed on to you. It shows
-        the papers waiting for your signature.</p>
+      <PageHead title="A signing link" lede={"Open the link HR passed on " +
+        "to you. It shows the papers waiting for your signature."} />
     </div>
   );
 }

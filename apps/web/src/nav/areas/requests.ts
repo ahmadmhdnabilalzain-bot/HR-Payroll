@@ -58,7 +58,7 @@ export const AREAS: readonly Area[] = [
     status: "live", archetype: "LF", roles: HR_GM, route: req("access"),
     count: access, keywords: "E15 role request give access queue" },
   { id: "setup.splits", section: "setup", group: "access",
-    label: { en: "Approval resets", ar: "التقسيم وإعادة الضبط" },
+    label: { en: "Sign-off resets", ar: "التقسيم وإعادة الضبط" },
     status: "live", archetype: "FA", roles: HR_GM, route: req("splits"),
     keywords: "H11 approval split reset second checker send back" },
   { id: "setup.help", section: "setup", group: "data",

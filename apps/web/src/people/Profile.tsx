@@ -35,7 +35,7 @@ import {
 import p from "./page.module.css";
 import s from "./Profile.module.css";
 import { Avatar } from "../ui/Avatar";
-import { MoreMenu } from "../ui/templates";
+import { MoreMenu, PageHead } from "../ui/templates";
 import { useToast } from "../ui/Toast";
 
 function years(from: string, to: string): number {
@@ -63,33 +63,22 @@ export function Profile(q: { id: string }) {
   const backKey: MessageKey = state.role === "manager" ? "people.backTeam"
     : "people.back";
   return (
-    <div className={p.page}>
+    <div className={`${p.page} ${s.page}`}>
       <header className={s.header}>
-        {state.role !== "employee" && (
-          <nav aria-label={t("shell.breadcrumb")} className={p.crumbs}>
-            <a href={hrefOf("people")}>{t(backKey)}</a>
-            <span aria-hidden="true" className={p.sep}>/</span>
-            <span aria-current="page">{x.name[lang]}</span>
-          </nav>
-        )}
-        <div className={s.who} data-record-head="">
-          <Avatar id={x.id} name={x.name.en} size="lg" />
-          <div className={s.whoText}>
-            <h1 className={p.title}>{x.name[lang]}</h1>
-            <p className={s.sub}>
-              {x.role[lang]} · {x.department[lang]} ·{" "}
-              {shortBranch(x.branch[lang])}
-              {me && <> · {t("people.you")}</>}
-            </p>
-            {x.status !== "active" && (
-              <p className={s.sub}>
-                <span className={p.status} data-tone={statusTone(x)}>
-                  {statusLong(x, t, lang)}
-                </span>
-              </p>
-            )}
-          </div>
-          <Actions person={x} />
+        <div data-record-head="">
+          <PageHead title={x.name[lang]}
+            crumbs={state.role === "employee" ? undefined
+              : [{ label: t(backKey), href: hrefOf("people") }]}
+            face={<Avatar id={x.id} name={x.name.en} size="lg"
+              className={s.face} />}
+            lede={`${x.role[lang]} · ${x.department[lang]} · ` +
+              `${shortBranch(x.branch[lang])}` +
+              (me ? ` · ${t("people.you")}` : "")}
+            badge={x.status === "active" ? undefined : (
+              <span className={p.status} data-tone={statusTone(x)}>
+                {statusLong(x, t, lang)}
+              </span>)}
+            actions={<Actions person={x} />} />
         </div>
         <Summary person={x} />
       </header>

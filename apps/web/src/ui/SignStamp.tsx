@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { reducedMotion } from "../demo/motion";
 import { Icon } from "./Icon";
 import s from "./SignStamp.module.css";
@@ -13,12 +13,14 @@ export const STAMP_MS = 240;
  * a fade over 240 ms, with a faint ring that settles out behind it.
  * Without `fresh` (a page opened later) it is simply there. `seal`
  * (default on) draws the check seal; off where a timeline already
- * marks the step. Reduced
- * motion: never animated. Decorative motion only: the text is plain.
+ * marks the step. `declined` draws it dashed and muted, with no seal.
+ * `children` add lines under the date (a drawn signature, a reference,
+ * a fingerprint). Reduced motion: never animated. Decorative motion
+ * only: the text is plain.
  */
 export function SignStamp(p: { label: string; name: string; role: string;
-  when: string; fresh?: boolean; seal?: boolean;
-  className?: string | undefined }) {
+  when: string; fresh?: boolean; seal?: boolean; declined?: boolean;
+  className?: string | undefined; children?: ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = box.current;
@@ -36,7 +38,8 @@ export function SignStamp(p: { label: string; name: string; role: string;
   }, [p.fresh]);
   return (
     <div ref={box} className={`${s.stamp} ${p.className ?? ""}`}
-      data-fresh={p.fresh === true} data-seal={p.seal !== false}>
+      data-fresh={p.fresh === true} data-seal={p.seal !== false}
+      data-declined={p.declined === true}>
       <span className={s.ring} aria-hidden="true" />
       {p.seal !== false && (
         <span className={s.seal} aria-hidden="true">
@@ -48,6 +51,7 @@ export function SignStamp(p: { label: string; name: string; role: string;
         <span className={s.name}>{p.name}</span>
         <span className={s.meta}>{p.role}</span>
         <span className={s.meta}>{p.when}</span>
+        {p.children}
       </span>
     </div>
   );

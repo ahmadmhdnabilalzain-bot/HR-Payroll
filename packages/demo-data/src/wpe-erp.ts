@@ -42,10 +42,10 @@ export interface ErpPage {
 
 const ON_OFF = ["On", "Off"] as const;
 
-const NOTICE = "Nothing is connected in this demo, which runs in your " +
-  "browser. Nothing below is sent to anyone.";
+const NOTICE = "Nothing is connected. Nothing below is sent " +
+  "to anyone.";
 
-export const TEST_RESULT = "Test connection: not available in the demo. " +
+export const TEST_RESULT = "Test connection: not available yet. " +
   "No request was made.";
 
 const item = (key: string, label: string, value: string, help: string,
@@ -260,7 +260,7 @@ export function teamsCards(c: DemoCompany, limit = 3): TeamsCard[] {
         `${nameOf(c, a.checkerEmployeeId)}. Sent ${displayDate(
           a.requestedOn)}.`,
       amount: a.amount === null ? null : formatAed(a.amount),
-      buttons: ["Open in Mubinflow", "Decide later"] };
+      buttons: ["Open in MubinFlow", "Decide later"] };
   });
 }
 
@@ -355,10 +355,10 @@ function teams(c: DemoCompany): ErpPage {
       { title: "What would be sent", items: [
         item("teams:what", "Requests waiting for a decision", "Off",
           "A card for each request that waits for a decision: pay run, " +
-          "leave and expenses. The decision is made in Mubinflow, never " +
+          "leave and expenses. The decision is made in MubinFlow, never " +
           "in Teams.", ON_OFF),
         item("teams:first", "First card", first?.title ?? "None",
-          "Built from a real request in this demo. Preview below."),
+          "Built from a real request. Preview below."),
       ] },
     ] };
 }

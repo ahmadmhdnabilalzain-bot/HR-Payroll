@@ -84,7 +84,7 @@ export function RuleChange() {
       ? `${r.deciders.gm.name} (General manager) decides next.`
       : stage.kind === "planned"
         ? `The rule pack keeps 25% and 50% until the ${ch.nextRun} run. ` +
-          "Nothing is applied in this demo."
+          "Nothing is applied."
         : "The rule pack in force is unchanged.";
 
   return (
@@ -101,7 +101,7 @@ export function RuleChange() {
         rows={rows} csvName="rule-change-preview-hypothetical-2026-11.csv"
         note={`${ch.basisText} ${r.unchanged} people have no overtime in ` +
           "October, so their pay stays the same. UAE nationals were " +
-          "checked through the engine's overtime step; their pension " +
+          "checked through the overtime step; their pension " +
           "stays not computed. Employer cost moves by " +
           `${signed(r.totals.employerCostDifference)}.`} />
       <div className={s.more}>
@@ -180,7 +180,7 @@ export function RuleChange() {
               <p className={s.muted}>
                 {stage.kind === "planned"
                   ? `Ready to send to ${r.rows.length} people with the ` +
-                    `${ch.nextRun} payslips. Nothing is sent in this demo.`
+                    `${ch.nextRun} payslips. Nothing is sent.`
                   : "Not sent. It goes out only once the General manager " +
                     "plans the change."}</p>
             </>

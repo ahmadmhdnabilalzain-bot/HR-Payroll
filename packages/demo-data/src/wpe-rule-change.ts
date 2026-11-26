@@ -108,12 +108,12 @@ export function ruleChange(): RuleChange {
     packName: "Monthly pay", hypothetical: true,
     title: "Overtime uplift: day 25% to 30%, night 50% to 60%",
     label: HYPO, values: [...RULE_CHANGE_VALUES],
-    sourceText: "No source. A what-if written for this demo to show how " +
-      "a rule change is checked before it applies. The rule pack in " +
+    sourceText: "No source. A what-if written to show how " +
+      "a rule change is checked before it applies. The rule set in " +
       "force keeps 25% and 50%.",
     proposedOn: dateOf(AS_OF), effectiveFrom: dateOf(EFFECTIVE),
     nextRun: "November 2026",
-    basisText: "October 2026 hours and pay, re-run by the engine with " +
+    basisText: "October 2026 hours and pay, re-run by the payroll with " +
       "the changed values. November's own hours will differ, so this " +
       "is an estimate of the next run." };
 }

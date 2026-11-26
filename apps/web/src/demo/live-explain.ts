@@ -60,7 +60,7 @@ export function onLeaveExplain(d: DemoData, rows: RequestRow[],
   return sumExplain({ id: "live:on-leave", title: "On leave today",
     subject: "Whole company",
     summary: "Everyone with leave booked or waiting that covers the " +
-      "demo date, counted once each.", resultLabel: "On leave",
+      "report date, counted once each.", resultLabel: "On leave",
     countText: people, parts: rows.map((r) => one(
       `${name(d, r.employeeId)}, ${formatDayMonth(r.startDate, "en")} to ` +
       formatDayMonth(r.endDate, "en"))), rules: [COUNT_RULE], scope });

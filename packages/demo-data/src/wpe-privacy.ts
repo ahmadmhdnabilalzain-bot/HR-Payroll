@@ -25,7 +25,7 @@ export const PRIVACY_NOTICE = "This page lists what the company keeps " +
   "and the requests it has logged. It does not say the company meets " +
   "any law. The retention periods and the days to answer a request " +
   "are the company's own choices, shown as samples to confirm with " +
-  "counsel. Nothing is deleted in this demo.";
+  "counsel. Nothing is deleted.";
 
 /** Days allowed to answer a request: a company choice, not a rule. */
 export const RESPONSE_DAYS_DEFAULT = 30;

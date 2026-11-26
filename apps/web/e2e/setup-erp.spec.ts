@@ -27,13 +27,13 @@ test("erp-ledger-teams-say-nothing-is-connected", async ({ page }) => {
   await page.evaluate(() => { location.hash = "#/setup/erp/erp"; });
   await expect(page.getByRole("heading", { level: 1,
     name: "ERP connection" })).toBeVisible();
-  await expect(page.getByText(/Nothing is connected in this demo/))
+  await expect(page.getByText(/Nothing is connected\./))
     .toBeVisible();
   await expect(page.getByRole("region", { name: "Employee sync preview" }))
     .toContainText("Cost centre");
   await page.getByRole("button", { name: "Test connection" }).click();
   await expect(page.getByText(/Test connection: not available/)).toContainText(
-    "not available in the demo");
+    "not available yet");
   await page.getByRole("button", { name: "Edit" }).first().click();
   await page.getByRole("textbox").fill("on");
   await page.getByRole("button", { name: "Save" }).click();

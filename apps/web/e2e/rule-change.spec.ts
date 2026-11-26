@@ -26,7 +26,7 @@ test("rule-change-preview-hr-then-gm", async ({ page }) => {
   await page.getByRole("button", { name: "Plan for the next run" }).click();
   await expect(page.getByText("Planned for the next run").first())
     .toBeVisible();
-  await expect(page.getByText(/Nothing is sent in this demo/)).toBeVisible();
+  await expect(page.getByText(/Nothing is sent\./)).toBeVisible();
   await page.getByRole("button", { name: "Undo my decision" }).click();
   await expect(page.getByText("Waiting for the General manager"))
     .toBeVisible();

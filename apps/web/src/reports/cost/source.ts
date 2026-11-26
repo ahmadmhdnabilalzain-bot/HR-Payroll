@@ -169,7 +169,7 @@ function deptExplains(c: DemoCompany, g: GratuityProvision)
 function costExplain(c: DemoCompany, k: EmployerCost): Explanation {
   return sumExplain({ id: "employer-cost:total",
     title: "Employer cost, partial", subject: k.period,
-    summary: "October gross pay plus the employer costs the engine works " +
+    summary: "October gross pay plus the employer costs the payroll works " +
       "out, by department. It is partial: what is not worked out is " +
       "listed below.", resultLabel: "Gross plus employer cost",
     parts: k.byDepartment.filter((d) => d.headcount > 0).map((d) => ({

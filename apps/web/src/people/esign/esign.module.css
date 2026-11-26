@@ -106,25 +106,16 @@
   overflow-wrap: anywhere;
 }
 
+/* The shared SignStamp, full width in the signers list; the extra
+ * lines (signature, reference, fingerprint) sit at body size. */
 .stamp {
   display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-  border: 1.5px solid var(--color-text);
-  border-radius: var(--radius-control);
+  max-inline-size: 100%;
   font-size: var(--text-sm);
 }
 
-.stamp[data-verdict="declined"] {
-  border-style: dashed;
-  border-color: var(--color-text-muted);
-}
-
-.stampHead {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.line {
+  font-size: var(--text-sm);
 }
 
 .script {

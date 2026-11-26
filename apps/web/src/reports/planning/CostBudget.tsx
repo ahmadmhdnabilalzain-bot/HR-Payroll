@@ -41,9 +41,8 @@ export function CostBudgetScreen(p: ViewProps) {
       x.kind === "actual" ? "Actual" : "Estimate", m(x.budget), m(x.amount),
       overUnder(x.difference as Fils, m)]);
     return (
-      <>
-        <div className={s.wrap}>{nav}</div>
         <ReportPage title={`Cost and budget: ${one.departmentText}`}
+          meta={nav}
           period="January to December 2026, by month"
           figure={{ label: "Year end, estimate",
             value: <Money value={one.yearEnd} size="lg" tween={false} /> }}
@@ -53,7 +52,6 @@ export function CostBudgetScreen(p: ViewProps) {
             { label: "Over or under", end: true }]}
           rows={rows} note={note}
           csvName={`cost-budget-${one.departmentId}-2026.csv`} />
-      </>
     );
   }
   const rows = [...b.rows, b.total].map((r) => {
@@ -64,9 +62,8 @@ export function CostBudgetScreen(p: ViewProps) {
       m(r.yearEnd) + " (estimate)", overUnder(end, m)];
   });
   return (
-    <>
-      <div className={s.wrap}>{nav}</div>
       <ReportPage title="Cost and budget" period="2026, by department"
+        meta={nav}
         figure={{ label: "Actual pay, January to October",
           value: <Money value={b.total.actualToDate} size="lg"
             tween={false} /> }}
@@ -78,6 +75,5 @@ export function CostBudgetScreen(p: ViewProps) {
           { label: "Year end", end: true },
           { label: "Year end against budget", end: true }]}
         rows={rows} note={note} csvName="cost-budget-2026.csv" />
-    </>
   );
 }

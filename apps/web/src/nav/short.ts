@@ -77,7 +77,7 @@ const SHORT: Record<string, { en: string; ar: string }> = {
   "setup.company": { en: "Company", ar: "الشركة" },
   "setup.users": { en: "Users", ar: "المستخدمون" },
   "setup.who": { en: "Permissions", ar: "الصلاحيات" },
-  "setup.rules": { en: "Approval rules", ar: "قواعد الاعتماد" },
+  "setup.rules": { en: "Sign-off rules", ar: "قواعد الاعتماد" },
   "setup.separation": { en: "Duties", ar: "فصل المهام" },
   "setup.signin": { en: "Sign-in", ar: "الدخول" },
   "setup.review": { en: "Access review", ar: "مراجعة الصلاحيات" },

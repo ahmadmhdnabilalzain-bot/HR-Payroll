@@ -5,7 +5,14 @@
   gap: var(--space-5);
   max-inline-size: var(--container);
   margin-inline: auto;
-  padding: var(--space-5) var(--page-pad) var(--space-8);
+  /* As the template's page: the title at the same y everywhere. */
+  padding: 40px var(--page-pad) var(--space-8);
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-block-start: var(--space-4);
+  }
 }
 
 .panel {

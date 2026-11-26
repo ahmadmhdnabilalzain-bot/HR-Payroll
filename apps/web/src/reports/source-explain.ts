@@ -35,7 +35,7 @@ import type { DeptHeads, LeavePerson } from "./types";
 const HISTORY = "Pay run history";
 
 const HISTORY_RULE: ExplainRule = {
-  text: "January to September are worked out again by the same engine " +
+  text: "January to September are worked out again by the same calculation " +
     "from today's pay and joining dates; October is the run as it " +
     "stands.", status: "convention", statusLabel: null,
   citation: "Our own working, as we apply it",
@@ -80,7 +80,7 @@ export function historyExplains(c: DemoCompany, dept: DeptName,
   const name = (id: string): string => employeeById(c, id).fullName;
   for (const m of h) {
     const label = reportMonth(m.month);
-    const state = m.status === "paid" ? "as paid" : "waiting for approval";
+    const state = m.status === "paid" ? "as paid" : "waiting for sign-off";
     put(sumExplain({ id: `trend:${m.month}`, title: `Gross pay, ${label}`,
       subject: `${label} run, ${state}`,
       summary: `Every payslip's gross pay in ${label}, added up by ` +
@@ -196,7 +196,7 @@ export function headsExplains(c: DemoCompany, heads: DeptHeads[],
       value: count(d[k], people(d[k])) }));
   const now = sumExplain({ id: "headcount:now",
     title: "People on the payroll", subject: "Whole company",
-    summary: "Everyone employed on the demo date, counted by department.",
+    summary: "Everyone employed on the report date, counted by department.",
     resultLabel: "People", countText: people, parts: parts("now"),
     rules: [COUNT_RULE], scope });
   const avg = (total.start + total.now) / 2;
@@ -235,7 +235,7 @@ export function leaveExplain(c: DemoCompany, all: LeavePerson[],
   order: string[]): Explanation {
   return sumExplain({ id: "leave:annual-left",
     title: "Annual leave left", subject: "Whole company",
-    summary: "Each person's annual leave balance on the demo date, " +
+    summary: "Each person's annual leave balance on the report date, " +
       "added up by department. Days are working days.",
     resultLabel: "Annual leave left", countText: days,
     parts: order.map((d) => all.filter((p) => p.department === d))

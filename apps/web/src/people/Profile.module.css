@@ -1,3 +1,21 @@
+/* The page as the templates' page: the title at the same y. */
+div.page {
+  padding-block-start: 40px;
+}
+
+/* The large face hangs around the title's line, so the title itself
+ * sits at the same y as every other page's. */
+.face {
+  margin-block: calc((var(--text-title-lh) - 64px) / 2);
+}
+
+@media (max-width: 760px) {
+  /* The face's negative margin is 4 px larger on a phone's title. */
+  div.page {
+    padding-block-start: calc(var(--space-4) + 4px);
+  }
+}
+
 .header {
   display: grid;
   gap: var(--space-5);
