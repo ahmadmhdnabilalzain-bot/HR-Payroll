@@ -31,7 +31,7 @@ test("dark-theme", async ({ page }) => {
   await expect(page.locator("html[data-theme=dark]")).toHaveCount(1);
   await expect.poll(() => page.evaluate(() =>
     getComputedStyle(document.body).backgroundColor))
-    .toBe("rgb(14, 15, 17)");
+    .toBe("rgb(11, 11, 12)");
 });
 
 test("palette-runs-an-action", async ({ page }) => {

@@ -33,8 +33,7 @@ export function StatusLead() {
     : run.phase === "approve"
       ? (run.isChecker ? t("home.statusApproveYou", { month })
         : t("home.statusApprove", { month, name: checker }))
-      : t("home.statusBank", { month, count: held.length,
-        name: nameOf(held[0] ?? ""), names: names(held) });
+      : t("home.statusBank", { month, count: held.length });
   const firstHeld = openIssues(data, state).find(isBlocking);
   return (
     <header className={s.lead}>

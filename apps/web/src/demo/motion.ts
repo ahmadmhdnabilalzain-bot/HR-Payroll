@@ -1,3 +1,4 @@
+import { gsap } from "gsap";
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
 /** Durations in ms; the CSS tokens carry the same values. */
@@ -10,14 +11,16 @@ export function reducedMotion(): boolean {
     matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-const easeOutCubic = (p: number): number => 1 - (1 - p) ** 3;
+/** Totals roll over this long (GSAP power3.out), per the motion spec. */
+export const ROLL_MS = 600;
 
 /**
- * A bigint that eases to its target over `ms` when the target changes.
- * The first render shows the target as is: no count-up on load. The
- * steps are integer (per mille of the gap), so no float reaches money.
+ * A bigint that rolls to its target when the target changes (GSAP,
+ * power3.out). The first render shows the target as is unless `start`
+ * asks for the opening count-up. The steps are integer (per mille of
+ * the gap), so no float reaches money; tabular figures hold the width.
  */
-export function useTweenedBigint(target: bigint, ms: number = DUR.slow,
+export function useTweenedBigint(target: bigint, ms: number = ROLL_MS,
   start?: bigint): bigint {
   const first = start !== undefined && !reducedMotion() ? start : target;
   const [shown, setShown] = useState(first);
@@ -30,19 +33,17 @@ export function useTweenedBigint(target: bigint, ms: number = DUR.slow,
       setShown(target);
       return undefined;
     }
-    let raf = 0;
-    let t0 = -1;
-    const tick = (now: number): void => {
-      if (t0 < 0) t0 = now;
-      const p = Math.min(1, (now - t0) / ms);
-      const k = BigInt(Math.round(easeOutCubic(p) * 1000));
-      const v = start + ((target - start) * k) / 1000n;
-      from.current = v;
-      setShown(v);
-      if (p < 1) raf = requestAnimationFrame(tick);
+    const proxy = { p: 0 };
+    const tween = gsap.to(proxy, { p: 1, duration: ms / 1000,
+      ease: "power3.out", onUpdate: () => {
+        const k = BigInt(Math.round(proxy.p * 1000));
+        const v = start + ((target - start) * k) / 1000n;
+        from.current = v;
+        setShown(v);
+      } });
+    return () => {
+      tween.kill();
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
   }, [target, ms]);
   return shown;
 }

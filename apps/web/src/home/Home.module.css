@@ -36,3 +36,9 @@
       calc(var(--space-8) + 40px + env(safe-area-inset-bottom));
   }
 }
+
+.side {
+  display: grid;
+  gap: var(--space-6);
+  min-inline-size: 0;
+}

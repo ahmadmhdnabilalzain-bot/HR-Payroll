@@ -26,10 +26,7 @@ export function StepTracker() {
   const fill = list.length > 1 ? at / (list.length - 1) : 0;
   return (
     <div className={s.wrap}>
-      <div className={s.head}>
-        <h3 className={s.title}>{t("home.progress")}</h3>
-        <span className={s.sample}>{t("home.sampleDates")}</span>
-      </div>
+      <h3 className="visually-hidden">{t("home.progress")}</h3>
       <ol className={s.steps} style={{ "--fill": fill } as object}>
         <li className={s.track} aria-hidden="true">
           <span className={s.trackFill} />

@@ -20,7 +20,7 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
   countUp?: boolean }) {
   const { lang, t } = useLocale();
   const { state } = useDemo();
-  const shown = useTweenedBigint(p.value, p.countUp === true ? 800 : 250,
+  const shown = useTweenedBigint(p.value, p.countUp === true ? 800 : 600,
     p.countUp === true ? 0n : undefined);
   const v = p.tween === false ? p.value : fils(shown);
   const size = p.size ?? "md";

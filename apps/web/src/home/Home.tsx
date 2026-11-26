@@ -4,6 +4,7 @@ import { Departments } from "./Departments";
 import { EmployeeHome } from "./EmployeeHome";
 import { Expiries } from "./Expiries";
 import { IssueList } from "./IssueList";
+import { MakeUp } from "./MakeUp";
 import { ManagerHome } from "./ManagerHome";
 import { PayRunHero } from "./PayRunHero";
 import { PeopleStrip } from "./PeopleStrip";
@@ -25,15 +26,18 @@ export function Home() {
   return (
     <div className={s.page}>
       <StatusLead />
-      <PeopleStrip />
       <PayRunHero />
+      <PeopleStrip />
       <div className={s.grid}>
         <IssueList />
         <Approvals />
       </div>
       <div className={s.below}>
-        <Setup />
-        <Expiries />
+        <MakeUp />
+        <div className={s.side}>
+          <Setup />
+          <Expiries />
+        </div>
       </div>
       <Departments />
     </div>
