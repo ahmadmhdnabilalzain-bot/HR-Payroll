@@ -21,7 +21,7 @@ export const AREAS: readonly Area[] = [
     "S20 who can do what matrix permissions approve"),
   area("setup.rules", "access", "Approval rules", "ST",
     ["access", "rules"], "S21 approval rules limits expense maker checker"),
-  area("setup.separation", "access", "Segregation of duties", "ST",
+  area("setup.separation", "access", "Duties kept apart", "ST",
     ["access", "separation"], "S22 sod conflict four eyes"),
   area("setup.signin", "access", "Sign-in", "ST",
     ["access", "sign-in"], "S23 sign-in second step sso mfa two factor " +

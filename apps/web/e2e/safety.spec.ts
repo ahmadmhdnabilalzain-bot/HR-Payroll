@@ -9,7 +9,7 @@ const clean = async (page: import("@playwright/test").Page) => {
 test("insurance-incidents-iloe-policies-flow", async ({ page }, info) => {
   await page.goto("/#/s/people");
   for (const name of ["Health insurance", "Safety incidents",
-    "ILOE insurance", "Policy versions"]) {
+    "ILOE insurance", "Policies"]) {
     await expect(page.getByRole("link", { name }).first()).toBeVisible();
   }
 

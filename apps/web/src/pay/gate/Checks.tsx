@@ -37,7 +37,7 @@ export function Checks() {
   const stop = checks.find((c) => !c.pass);
   const stops = checks.filter((c) => !c.pass).length;
   return (
-    <FilterList title="Pre-pay checks"
+    <FilterList title="Checks before pay"
       lede={stops === 0 ? "Every check passes. October can go to the " +
         "General manager." : `${stops} of ${checks.length} checks stop ` +
         "pay. Open a check to put it right; this page follows at once."}

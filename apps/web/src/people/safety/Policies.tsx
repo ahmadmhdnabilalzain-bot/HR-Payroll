@@ -16,7 +16,7 @@ function readCount(pol: PolicyView, sf: Safety): number {
     sf.marks[`ack:${pol.id}:${a.employeeId}`] !== undefined).length;
 }
 
-/** P53, Policy versions: version, date, owner and who has read it. */
+/** P53, Policies: version, date, owner and who has read it. */
 export function Policies(p: { rest: string[] }) {
   const sf = useSafety();
   const rows = sf.data.safety.policies();

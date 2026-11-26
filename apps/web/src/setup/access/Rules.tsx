@@ -21,7 +21,7 @@ const permLabel = (d: AccessData, id: string): string =>
 export function Separation(p: { d: AccessData }) {
   const { d } = p;
   return (
-    <SettingsPage title="Segregation of duties"
+    <SettingsPage title="Duties kept apart"
       lede={`Checked on today's ${d.users.length} users and their roles.
         Each line names two actions that one person should not hold.`}
       groups={[{ title: "Checks", items: d.checks.map((c) => ({

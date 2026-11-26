@@ -33,7 +33,7 @@ export const AREAS: readonly Area[] = [
       "june july august " +
       "september variance" },
   { id: "pay.offcycle", section: "pay", group: "month",
-    label: { en: "Off-cycle", ar: "مدفوعات خارج الدورة" },
+    label: { en: "Extra pay run", ar: "مدفوعات خارج الدورة" },
     status: "live", archetype: "LF", roles: HR_GM, route: pay("off-cycle"),
     keywords: "off cycle outside run settlement advance bonus" },
   { id: "pay.corrections", section: "pay", group: "changes",
