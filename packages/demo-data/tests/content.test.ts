@@ -1,6 +1,17 @@
 import { ibanChecksumOk } from "@payroll/wps";
 import { describe, expect, it } from "vitest";
 import {
+  ACCESS_FACTS,
+  ACCESS_PERMISSIONS,
+  ACCESS_ROLES,
+  accessApiKeys,
+  accessWebhooks,
+  APPROVAL_RULES,
+  AUDIT_CHAIN_NOTE,
+  auditEvents,
+  DATA_LOCATION,
+  segregationChecks,
+  verifyAuditChain,
   approvalsInbox,
   buildDemoCompany,
   documents,
@@ -151,6 +162,20 @@ describe("problems from the engine, the SIF check and demo checks",
       [i.plainReason.en, i.suggestedFix.en]),
     ...Object.values(DEMO_LABELS.en)].join("\n");
     expect(text).not.toMatch(/\bcompliant\b|approved by|certif/i);
+  });
+
+  it("audit log and Setup text say signed off, never approved", () => {
+    const audit = auditEvents(c).flatMap((e) => [e.action, e.summary,
+      e.subject.label]);
+    const setup = [ACCESS_FACTS, ACCESS_ROLES, ACCESS_PERMISSIONS,
+      APPROVAL_RULES, accessWebhooks(c), accessApiKeys(c),
+      segregationChecks(c), DATA_LOCATION];
+    const text = [...audit, AUDIT_CHAIN_NOTE, JSON.stringify(setup,
+      (_k, v: unknown) => typeof v === "bigint" ? String(v) : v)]
+      .join("\n");
+    expect(text).not.toMatch(/\bapproved\b|\bcertified\b/i);
+    expect(audit.some((t) => /signed off/.test(t))).toBe(true);
+    expect(verifyAuditChain(auditEvents(c)).ok).toBe(true);
   });
 });
 

@@ -389,7 +389,7 @@ export interface AccessWebhook {
 const HOOKS: Record<string, { url: string; events: string[];
   tail: string }> = {
   "hook-001": { url: "https://hooks.finance.zarqan-demo.test/payroll",
-    events: ["payrun.approved"], tail: "5e2b" },
+    events: ["payrun.signed-off"], tail: "5e2b" },
   "hook-002": { url: "https://servicedesk.zarqan-demo.test/starters",
     events: ["employee.created"], tail: "d84c" },
 };

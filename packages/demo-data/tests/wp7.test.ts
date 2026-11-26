@@ -1,4 +1,4 @@
-import { fils } from "@payroll/engine";
+import { calculatePayslip, DEFAULT_PAYROLL_PACKS } from "@payroll/engine";
 import { describe, expect, it } from "vitest";
 import {
   AS_OF,
@@ -20,7 +20,8 @@ import {
   verifyAuditChain,
   HISTORY_OVERTIME,
   HISTORY_SICK,
-  slipOf,
+  pastPayslipInput,
+  payslipWithoutPension,
   type DemoCompany,
 } from "../src/index";
 
@@ -105,15 +106,15 @@ describe("audit events agree with the existing data", () => {
     const ev = auditEvents(c);
     for (const r of c.leaveRequests) {
       const e = ev.filter((x) => x.subject.id === r.id);
-      const decided = e.filter((x) => x.action === "leave.approved" ||
-        x.action === "leave.rejected");
+      const decided = e.filter((x) => x.action === "leave.signed-off" ||
+        x.action === "leave.declined");
       if (r.status === "pending") {
         expect(decided).toEqual([]);
         expect(e.some((x) => x.action === "leave.requested")).toBe(true);
       } else {
         expect(decided).toHaveLength(1);
         expect(decided[0]!.action).toBe(r.status === "approved"
-          ? "leave.approved" : "leave.rejected");
+          ? "leave.signed-off" : "leave.declined");
         // Nobody decides their own request.
         expect(decided[0]!.actorId).not.toBe(r.employeeId);
       }
@@ -128,15 +129,15 @@ describe("audit events agree with the existing data", () => {
     expect(sub.actorId).toBe(ap.makerEmployeeId);
     expect(sub.summary).toContain(employeeById(c,
       ap.checkerEmployeeId).fullName);
-    expect(ev.some((e) => e.action === "payrun.approved" &&
+    expect(ev.some((e) => e.action === "payrun.signed-off" &&
       e.subject.id === c.payRun.id)).toBe(false);
     const sif = ev.find((e) => e.action === "wps.file-created")!;
     expect(sif.summary).toContain(c.sif.fileName);
     expect(sif.summary).toContain(String(c.sif.recordCount));
   });
 
-  it("earlier runs were approved by the GM, never by their maker", () => {
-    const ev = auditEvents(c).filter((e) => e.action === "payrun.approved");
+  it("earlier runs were signed off by the GM, never by their maker", () => {
+    const ev = auditEvents(c).filter((e) => e.action === "payrun.signed-off");
     expect(ev).toHaveLength(9);
     for (const e of ev) {
       expect(e.actorId).toBe("emp-001");
@@ -213,11 +214,15 @@ describe("monthly history", () => {
       const h = payrollHistory(x);
       for (const month of [1, 4]) {
         const m = h[month - 1]!;
+        // The month as paid (pastPayslipInput), run afresh.
         const fresh = x.employees.filter((e) =>
           e.joiningDate <= `2026-${String(month).padStart(2, "0")}-01`)
-          .map((e) => slipOf(e, { year: 2026, month, basic: fils(
-            e.basicMonthly - (e.cases.includes("back-pay")
-              ? BACK_PAY_RAISE : 0n)) }, "x").payslip);
+          .map((e) => {
+            const input = pastPayslipInput(e, month);
+            return (e.workerClass === "uae-national"
+              ? payslipWithoutPension(input)
+              : calculatePayslip(input, DEFAULT_PAYROLL_PACKS)).value;
+          });
         expect(m.gross).toBe(fresh.reduce((n, p) => n + p.gross, 0n));
         expect(m.net).toBe(fresh.reduce((n, p) => n + p.net, 0n));
       }
@@ -310,7 +315,13 @@ describe("monthly history", () => {
         const e = employeeById(x, id);
         const month = Number(from.slice(5, 7));
         const line = h[month - 1]!.lines.find((l) => l.employeeId === id)!;
-        const fresh = slipOf(e, { year: 2026, month }, "x").payslip.gross;
+        // The same month as paid, without the sick days.
+        const input = pastPayslipInput(e, month);
+        const well = { ...input, absences: input.absences.filter((a) =>
+          a.kind !== "sick") };
+        const fresh = (e.workerClass === "uae-national"
+          ? payslipWithoutPension(well)
+          : calculatePayslip(well, DEFAULT_PAYROLL_PACKS)).value.gross;
         const probation = e.probationEndDate !== null &&
           e.probationEndDate >= from;
         if (probation) expect(line.gross < fresh).toBe(true);

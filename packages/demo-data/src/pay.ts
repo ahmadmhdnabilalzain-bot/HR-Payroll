@@ -18,7 +18,7 @@ import {
   type PayslipInput,
   type TraceLine,
 } from "@payroll/engine";
-import { SETTLEMENT_DUE_DAYS } from "./calendar";
+import { SETTLEMENT_DUE_DAYS, workingDaysBetween } from "./calendar";
 import { displayDate, type DisplayDate } from "./display";
 import type { FakeIdentifier } from "./fake-ids";
 import { payslipInput } from "./pay-inputs";
@@ -57,6 +57,33 @@ const WRONG_UNPAID = { employeeId: "emp-020",
 const MISSED_OT = { employeeId: "emp-018",
   entry: { date: "2026-09-17", minutes: 180, nightMinutes: 0 } };
 
+export interface Overtime { date: string; minutes: number;
+  nightMinutes: number }
+
+/**
+ * Overtime worked before October (the one place for it: pastRuns and
+ * payrollHistory both read it).
+ */
+export const HISTORY_OVERTIME: Record<string, Overtime[]> = {
+  "emp-017": [
+    { date: "2026-03-10", minutes: 90, nightMinutes: 0 },
+    { date: "2026-06-16", minutes: 120, nightMinutes: 0 },
+    { date: "2026-08-11", minutes: 60, nightMinutes: 0 }],
+  "emp-030": [{ date: "2026-07-14", minutes: 60, nightMinutes: 60 }],
+};
+
+/**
+ * Paid sick days before October, [employee, first day, last day].
+ * They go through the engine too; sick pay is full pay here, so gross
+ * does not move. None overlaps an approved request in the leave data.
+ */
+export const HISTORY_SICK: readonly [string, string, string][] = [
+  ["emp-007", "2026-02-17", "2026-02-18"],
+  ["emp-020", "2026-05-12", "2026-05-12"],
+  ["emp-025", "2026-06-23", "2026-06-24"],
+  ["emp-006", "2026-08-04", "2026-08-04"],
+];
+
 /** The basic actually paid in a month (revisions apply once entered). */
 function paidBasic(e: DemoEmployee, m: number): Fils {
   const end = monthEnd(m);
@@ -73,15 +100,27 @@ function oldLoan(e: DemoEmployee, m: number): LoanInstalment[] {
     consentOnFile: true }];
 }
 
-/** The input as paid: LN-2041 starts in October, so not before. */
-function pastInput(e: DemoEmployee, m: number): PayslipInput {
+/**
+ * A month before October as it was paid: revisions once entered,
+ * history overtime and sick days, the July recording error, the old
+ * loan; LN-2041 starts in October, so not before. The one input both
+ * pastRuns and payrollHistory use.
+ */
+export function pastPayslipInput(e: DemoEmployee, m: number)
+  : PayslipInput {
+  const key = `2026-${String(m).padStart(2, "0")}`;
   const base = payslipInput(e, { year: 2026, month: m,
     basic: paidBasic(e, m) });
   const wrong = e.id === WRONG_UNPAID.employeeId && m === 7
     ? WRONG_UNPAID.dates.map((date) => ({ date, kind: "unpaid" as const }))
     : [];
-  return { ...base, absences: [...base.absences, ...wrong],
-    loans: oldLoan(e, m) };
+  const sick = HISTORY_SICK.filter(([id]) => id === e.id)
+    .flatMap(([, from, to]) => workingDaysBetween(from, to))
+    .filter((d) => d.startsWith(key))
+    .map((date) => ({ date, kind: "sick" as const }));
+  return { ...base, absences: [...base.absences, ...wrong, ...sick],
+    overtime: [...base.overtime, ...(HISTORY_OVERTIME[e.id] ?? [])
+      .filter((o) => o.date.startsWith(key))], loans: oldLoan(e, m) };
 }
 
 export interface PastPayslip { id: string; employeeId: string;
@@ -112,6 +151,21 @@ const totals = (ps: { payslip: Payslip }[]): MonthTotals => ({
   deductions: fils(ps.reduce((n, s) => n + s.payslip.totalDeductions, 0n)),
   net: fils(ps.reduce((n, s) => n + s.payslip.net, 0n)) });
 
+const SLIPS = new WeakMap<DemoCompany, Map<number, PastPayslip[]>>();
+
+/** One month before October (1 to 9), every payslip from the engine. */
+export function pastMonthSlips(c: DemoCompany, m: number): PastPayslip[] {
+  const byMonth = SLIPS.get(c) ?? new Map<number, PastPayslip[]>();
+  SLIPS.set(c, byMonth);
+  const hit = byMonth.get(m);
+  if (hit !== undefined) return hit;
+  const ps = c.employees.filter((e) => employedIn(e, 2026, m))
+    .map((e) => compute(e, pastPayslipInput(e, m),
+      `ps-2026-${String(m).padStart(2, "0")}-${e.id}`));
+  byMonth.set(m, ps);
+  return ps;
+}
+
 const CACHE = new WeakMap<DemoCompany, PastRun[]>();
 
 /** June to September 2026, as paid (the engine, month by month). */
@@ -119,9 +173,7 @@ export function pastRuns(c: DemoCompany): PastRun[] {
   const hit = CACHE.get(c);
   if (hit !== undefined) return hit;
   const runs = [6, 7, 8, 9].map((m): PastRun => {
-    const ps = c.employees.filter((e) => employedIn(e, 2026, m))
-      .map((e) => compute(e, pastInput(e, m),
-        `ps-2026-${String(m).padStart(2, "0")}-${e.id}`));
+    const ps = pastMonthSlips(c, m);
     const t = totals(ps);
     const paid = addDays(monthEnd(m), -1);
     return { id: `run-2026-${String(m).padStart(2, "0")}`, year: 2026,
