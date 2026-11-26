@@ -97,7 +97,7 @@ export function lineLabel(l: PayslipLineView, t: T): string {
   return key === undefined ? l.engineLabel : t(key);
 }
 
-export type Tone = "neutral" | "ok" | "warn" | "danger" | "info";
+export type Tone = "neutral" | "ok" | "done" | "warn" | "danger" | "info";
 
 export function expiryWord(d: DocumentView, t: T): [string, Tone] {
   switch (d.state) {
@@ -135,8 +135,13 @@ export function initials(name: string): string {
 
 /** A day count that may be fractional (a leaver's 18.71 days). */
 export function dayCountText(days: number, t: T, lang: Lang): string {
-  if (Number.isInteger(days * 2)) return daysText(days * 2, t, lang);
-  const n = new Intl.NumberFormat(LOCALE[lang], {
-    maximumFractionDigits: 2 }).format(days);
-  return t("people.days", { count: days, n });
+  return t("people.days", dayCountVars(days, lang));
+}
+
+/** dayVars for a count in days (whole, half, or a leaver's 18.71). */
+export function dayCountVars(days: number, lang: Lang)
+  : { count: number; n: string } {
+  if (Number.isInteger(days * 2)) return dayVars(days * 2, lang);
+  return { count: days, n: new Intl.NumberFormat(LOCALE[lang], {
+    maximumFractionDigits: 2 }).format(days) };
 }
