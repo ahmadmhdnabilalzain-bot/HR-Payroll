@@ -5,6 +5,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import type { ViewProps } from "../views";
 import { Papers } from "./papers/Papers";
 import { Growth } from "./growth/Growth";
+import { Moves } from "./moves/Moves";
 import { Payslip } from "./Payslip";
 import { PeopleList } from "./PeopleList";
 import { Profile } from "./Profile";
@@ -24,6 +25,7 @@ export function People(p: ViewProps) {
   if (id === "papers") return <Papers rest={p.rest} />;
   if (id === "team") return <Team rest={p.rest.slice(1)} />;
   if (id === "growth") return <Growth rest={p.rest.slice(1)} />;
+  if (id === "moves") return <Moves rest={p.rest} />;
   const who = id ?? (state.role === "employee" ? me : undefined);
   if (who === undefined) return <PeopleList />;
   if (data.people.person(who) === null) {

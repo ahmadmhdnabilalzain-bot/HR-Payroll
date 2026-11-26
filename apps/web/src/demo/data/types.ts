@@ -1,5 +1,6 @@
 import type { Fils } from "@payroll/engine";
 import type { PapersData } from "./papers-types";
+import type { MovesData } from "./moves-types";
 import type { PeopleData } from "./people-types";
 import type { TeamData } from "./team-types";
 
@@ -140,6 +141,8 @@ export interface DemoData {
   papers: PapersData;
   /** Team and growth (team-types.ts). */
   team: TeamData;
+  /** Hiring, joining and leaving (moves-types.ts). */
+  moves: MovesData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };
