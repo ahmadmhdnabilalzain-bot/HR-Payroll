@@ -9,19 +9,17 @@ projects:
     environments:
       - name: demo
         services:
-          # Demo site (free static site). Builds the browser-only demo
-          # (apps/web, fictional data, no backend). Deploys are manual
-          # during the demo sprint (autoDeployTrigger off) so a half
-          # finished push never goes live. The seeded demo API and its
+          # Demo site (free static site). Currently the plain placeholder.
+          # NOTE: applying a Blueprint change triggers a deploy by itself
+          # even with autoDeployTrigger off, so the real demo build
+          # (apps/web) is only switched in AFTER the owner has approved
+          # the previews in chat. The seeded demo API and its
           # private Postgres come later and need owner approval first.
           - type: web
             name: hr-payroll-demo-site
             runtime: static
-            buildCommand: >-
-              corepack enable && corepack prepare pnpm@10.28.0 --activate
-              && pnpm install --frozen-lockfile --filter "@payroll/web..."
-              && pnpm --filter @payroll/web build
-            staticPublishPath: ./apps/web/dist
+            buildCommand: echo "static placeholder, nothing to build"
+            staticPublishPath: ./deploy/render/demo-placeholder
             autoDeployTrigger: "off"
             envVars:
               - key: NODE_VERSION
