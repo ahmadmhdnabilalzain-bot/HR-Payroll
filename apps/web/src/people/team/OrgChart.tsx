@@ -224,7 +224,8 @@ function Branch(p: BranchProps) {
     <button type="button" className={s.toggle}
       aria-expanded={expanded} aria-controls={`team-${n.employeeId}`}
       disabled={keep !== null}
-      aria-label={fill(expanded ? w.close : w.open, { name: n.name })}
+      aria-label={`${p.depth <= 1 ? `${size}. ` : ""}${fill(expanded
+        ? w.close : w.open, { name: n.name })}`}
       onClick={() => p.toggle(n.employeeId)}>
       {p.depth <= 1 && <span className={s.toggleText}>{size}</span>}
       <Icon name={expanded ? "chevronDown" : "chevronEnd"} size={16} />

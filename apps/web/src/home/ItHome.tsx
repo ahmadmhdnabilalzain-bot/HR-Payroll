@@ -53,18 +53,18 @@ function Tile(p: { id: string; label: string; figure: string;
           <span style={{ inlineSize: `${Math.round(p.meter * 100)}%` }} />
         </span>
       )}
-      {p.children}
     </>
   );
   return (
     <li className={it.tile}>
-      {p.href === null ? <div className={it.tileIn}>{body}</div> : (
-        <a className={it.tileIn} href={p.href}>
+      {p.href === null ? <div className={it.tileHead}>{body}</div> : (
+        <a className={it.tileHead} href={p.href}>
           {body}
           <span className={it.go} aria-hidden="true">
             <Icon name="chevronEnd" size={16} /></span>
         </a>
       )}
+      {p.children}
     </li>
   );
 }
