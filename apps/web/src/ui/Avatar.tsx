@@ -27,7 +27,8 @@ export function toneOf(id: string): number {
  * the name always sits beside it, so it is hidden from screen readers.
  */
 export function Avatar(p: { id: string; name: string;
-  size?: "xs" | "sm" | "md" | "lg"; className?: string }) {
+  size?: "xs" | "sm" | "md" | "lg";
+  className?: string | undefined }) {
   return (
     <span className={`${s.avatar} ${p.className ?? ""}`}
       data-size={p.size ?? "md"} data-tone={toneOf(p.id)}

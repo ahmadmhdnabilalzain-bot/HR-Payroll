@@ -150,4 +150,10 @@ export const home = {
   inFile: "In the salary file",
   heldOutLabel: "Held out",
   heldNone: "None",
+  cardNationals: "UAE nationals of {total}",
+  cardNationalsSub: "Headcount by nationality",
+  cardLeave: "Off in the next 7 days",
+  cardDocs: "Documents expiring in 30 days",
+  cardWaiting: "Waiting for approval",
+  cardLeaveNext: "Next: {name}, from {date}",
 } satisfies EnNamespace;

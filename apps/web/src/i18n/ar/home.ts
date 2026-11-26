@@ -181,4 +181,10 @@ export const home: ArOf<typeof en> = {
   inFile: "في ملف الرواتب",
   heldOutLabel: "محجوز",
   heldNone: "لا شيء",
+  cardNationals: "مواطنون من أصل {total}",
+  cardNationalsSub: "العدد حسب الجنسية",
+  cardLeave: "في إجازة خلال 7 أيام",
+  cardDocs: "مستندات تنتهي خلال 30 يومًا",
+  cardWaiting: "بانتظار الاعتماد",
+  cardLeaveNext: "التالي: {name}، من {date}",
 };
