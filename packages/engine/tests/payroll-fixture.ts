@@ -1,6 +1,7 @@
 import { fils } from "../src/money";
 import { loadPayrollParams } from "../src/payroll/params";
 import type {
+  AbsenceKind,
   GpssaInput,
   PayEmployee,
   PayslipInput,
@@ -58,6 +59,9 @@ export function dates(ym: string, from: number, to: number): string[] {
   }
   return out;
 }
+
+export const absent = (kind: AbsenceKind, ds: string[]) =>
+  ds.map((date) => ({ date, kind }));
 
 export function codeOf(fn: () => unknown): string {
   try {
