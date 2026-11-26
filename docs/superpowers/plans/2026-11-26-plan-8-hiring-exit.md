@@ -174,7 +174,9 @@ Law task: fresh per-task review.
 | empSettlementDueDays | 14 | official | DL33_ART53 |
 | empSettlementTrigger | "last-working-date" | convention | DL33_ART53 |
 | empNoticeStartRule | "day-after-notice" | convention | ENGINE_CONVENTION |
-| empProbationEndRule | "clamped-months-minus-one-day" | convention | ENGINE_CONVENTION |
+| empProbationEndRule | "clamped-months-minus-1-day" | convention | (EC) |
+
+(EC) = source id `ENGINE_CONVENTION`.
 
   - `calendar.ts`: `addMonthsClamped(date: string, months: number):
     string` (same day number `months` later, clamped to the target
@@ -185,9 +187,7 @@ Law task: fresh per-task review.
     "summary-dismissal" | "worker-exit-without-notice" |
     "probation-employer-termination" | "probation-leave-state" |
     "probation-new-employer"`; `EXIT_KINDS: readonly ExitKind[]` in
-    that order; `PROBATION_KINDS` (the last three); `WORKER_KINDS =
-    ["resignation", "worker-exit-without-notice",
-    "probation-leave-state", "probation-new-employer"]`;
+    that order; `PROBATION_KINDS` (the last three);
     `type NoticeFlag = "reduced-by-agreement" | "counsel-review" |
     "job-search-day"`;
     `ProbationInput { joiningDate: string; probationMonths: number }`;
@@ -817,8 +817,9 @@ whole-branch review; `hire_*` tests pin the salary copy.
   `toEmployeeView`, `viewerScope`, and these two, exported from
   `src/people/employees.ts` (the code behind `POST /v1/employees` and
   `PUT /v1/employees/{id}/salary`, each writing its Plan 3 audit
-  event): `createEmployee(ctx: ReqCtx, body: EmployeeCreate):
-  Promise<EmployeeRow>`, `setSalary(ctx: ReqCtx, employeeId: string,
+  event): `createEmployee(ctx: ReqCtx, body: EmployeeCreate, id?:
+  string): Promise<EmployeeRow>` (`id` defaults to `deps.newId()`),
+  `setSalary(ctx: ReqCtx, employeeId: string,
   body: SalaryUpdate): Promise<EmployeeRow>`.
 - Produces (contract):
   - `TemplateKind = z.enum(["onboarding","exit"])`; `TemplateItem {
@@ -1002,8 +1003,10 @@ Law and money: fresh per-task review.
   `EngineError`, `Fils`; Plan 3 `Settlement` (contract), `toMoney`,
   `loadEmployee`, `viewerScope`, `computePayRun` (cross-check test
   only), and `updateEmployee(ctx: ReqCtx, id: string, patch:
-  EmployeeUpdate): Promise<EmployeeRow>` (the code behind `PATCH
-  /v1/employees/{id}`, exported from `src/people/employees.ts`).
+  EmployeeUpdate & { lastWorkingDate?: string | null }):
+  Promise<EmployeeRow>` (the code behind `PATCH /v1/employees/{id}`,
+  exported from `src/people/employees.ts`; internal callers may pass
+  `lastWorkingDate: null` to clear it).
 - Produces (contract):
   - `ExitKind` (literal copy of the engine's seven strings; the
     schema test compares with a literal list, as Plan 3 does for
@@ -1078,7 +1081,9 @@ Law and money: fresh per-task review.
   - Rules:
     1. Create: owner and hr any kind for any employee in the company;
        other roles only for self (`employeeId` omitted or own) and a
-       kind in the engine's `WORKER_KINDS`, else 403 `FORBIDDEN`. No
+       kind in `SELF_SERVICE_KINDS = ["resignation",
+       "probation-leave-state", "probation-new-employer"]` (contract
+       `exits.ts`), else 403 `FORBIDDEN`. No
        terms row: 422 `EMPLOYMENT_TERMS_REQUIRED`. An `EngineError`
        from `noticeFor`: 422 `ENGINE_REFUSED`. A second open exit: 409
        `EXIT_EXISTS` (`ON CONFLICT DO NOTHING`, no row returned).
@@ -1169,3 +1174,343 @@ Law and money: fresh per-task review.
 - [ ] **Step 3: Implement** `settlement.ts` first (pure), then the rest.
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(api): exit flow and final settlement`.
+
+### Task 7: Document and access-revocation hooks, closing an exit
+
+Security (changes the tenant guard): fresh per-task review.
+
+**Files:**
+- Create: `packages/api/migrations/806_exit_hooks.sql`,
+  `packages/api/src/ports/documents.ts`, `src/ports/access.ts`,
+  `src/exits/hooks.ts`, `src/exits/close.ts`
+- Modify: contract `exits.ts`, `routes-hr.ts`, `errors.ts`,
+  `examples.ts`, `tests/routes-hr.test.ts`; api `src/auth/guard.ts`,
+  `src/routes/auth.ts` (`me` and accept-invite), `src/tasks/tasks.ts`
+  (`isActiveMember`), `src/deps.ts` (`documents`, `access` ports),
+  `src/routes/exits.ts`, `tests/helpers/test-app.ts`,
+  `tests/conformance.test.ts`
+- Test: `packages/api/tests/revocation.test.ts`,
+  `tests/exit-hooks.test.ts`
+
+**Interfaces:**
+- Consumes: Task 6 exits, `Exit`; Task 2 `openFlowTaskIds`; Plan 3
+  `dubaiDate`, the tenant guard in `src/auth/guard.ts`, `GET /v1/me`
+  and accept-invite in `src/routes/auth.ts`.
+- Produces (contract):
+  - `DocumentKind = z.enum(["experience-certificate",
+    "settlement-statement"])`; `DocumentsRequest { kinds:
+    DocumentKind[] 1..2; lang: Lang }`.
+  - `AccessResult { inApp: "revoked" | "no-login"; external:
+    "revoked" | "not-configured" | "failed"; beforeLastDay: boolean;
+    at: Timestamp }`.
+  - Routes (three): `generateExitDocuments POST
+    /v1/exits/{id}/documents` (owner, hr; `Exit`), `revokeExitAccess
+    POST /v1/exits/{id}/revoke-access` (owner, hr, `mfa: true`;
+    `AccessResult`), `closeExit POST /v1/exits/{id}/close` (owner, hr;
+    `Exit`).
+  - Error codes: `SETTLEMENT_REQUIRED` 409, `LAST_OWNER` 409,
+    `EXIT_BEFORE_LAST_DAY` 409, `CLEARANCE_OPEN` 409 (`detail.taskIds`),
+    `ACCESS_NOT_REVOKED` 409. `EXAMPLES.AccessResult`.
+- Produces (api):
+  - `DocumentPort { generate(r: { companyId: string; exitId: string;
+    employeeId: string; kind: DocumentKind; lang: Lang }): Promise<{
+    status: "generated"; documentRef: string } | { status:
+    "not-configured" }> }`, default `notConfiguredDocuments`. The port
+    gets ids only, never amounts (the documents module, UQ34, reads
+    what it needs later).
+  - `AccessPort { revoke(r: { companyId: string; exitId: string;
+    employeeId: string }): Promise<{ status: "revoked" } | { status:
+    "not-configured" }> }`, default `notConfiguredAccess`.
+  - Migration 806: `exit_hook_runs(id, company_id, exit_id, hook
+    ('documents' | 'access'), kind, status, ref, at)`; `ALTER TABLE
+    memberships ADD COLUMN revoked_at timestamptz, ADD COLUMN
+    revoked_by uuid`.
+  - Ports run inside the handler's transaction; a throwing port is
+    recorded as `failed` and never rolls back the transaction.
+  - Documents: exit `in-notice` or `closed` (else 409
+    `EXIT_NOT_APPROVED`); `settlement-statement` needs a `computed`
+    settlement (409 `SETTLEMENT_REQUIRED`); one run per kind per call;
+    audit `exit.documents-requested` (`data: { kinds, statuses }`).
+  - Revoke: exit `in-notice` (else 409 `EXIT_NOT_APPROVED`). In-app:
+    every membership of this company whose `employee_id` is the leaver
+    and `revoked_at` is null gets `revoked_at = now`, `revoked_by`; if
+    that would leave the company with no unrevoked `owner`: 409
+    `LAST_OWNER` and nothing changes; no membership: `inApp
+    "no-login"`. External: `AccessPort.revoke`. A repeat call returns
+    the stored result and does not call the port again.
+    `beforeLastDay = dubaiDate(now) < lastWorkingDate`. Audit
+    `exit.access-revoked` (`data: { inApp, external }`).
+  - Guard: a tenant request whose membership has `revoked_at` set gets
+    403 `TENANT_FORBIDDEN` (same as no membership); `GET /v1/me` omits
+    revoked memberships; accept-invite for an existing `(company,
+    user)` membership sets role and employee link and clears
+    `revoked_at`; `isActiveMember` adds `revoked_at IS NULL`. Sessions
+    are not deleted: the user keeps access to other companies.
+  - Close: exit `in-notice` (else 409 `EXIT_NOT_APPROVED`);
+    `dubaiDate(now) >= lastWorkingDate` (else 409
+    `EXIT_BEFORE_LAST_DAY`); `openFlowTaskIds` empty (else 409
+    `CLEARANCE_OPEN` with the ids); a settlement stored, computed or
+    refused (else 409 `SETTLEMENT_REQUIRED`); access `revoked` or
+    `no-login` (else 409 `ACCESS_NOT_REVOKED`). Sets `closed`,
+    `closedAt`; audit `exit.closed`.
+
+- [ ] **Step 1: Write the failing tests**
+
+`revocation.test.ts`:
+- `revoked_session_gets_403_immediately` (Review Focus 5): the leaver
+  logs in; after revoke, the same token on `GET /v1/me/payslips` with
+  this company gets 403 `TENANT_FORBIDDEN`; with a second company
+  where the user is a member it still gets 200.
+- `revoke_needs_mfa`: 403 `MFA_REQUIRED`.
+- `revoke_last_owner_409`: the leaver is the only owner: 409
+  `LAST_OWNER`, membership unchanged.
+- `revoke_no_login_reports_no_login`.
+- `revoke_idempotent_no_second_port_call`: a counting `AccessPort`
+  is called once over two calls; both responses equal.
+- `access_port_throw_recorded_failed`: `external "failed"`, `inApp
+  "revoked"`, membership revoked.
+- `me_hides_revoked_membership`.
+- `rehire_invite_restores_membership`: a new invite accepted by the
+  same user gives 200 on tenant routes again.
+- `revoked_member_not_assignable`: task assign gives 422
+  `ASSIGNEE_NOT_MEMBER`.
+
+`exit-hooks.test.ts`:
+- `documents_not_configured_by_default`: both kinds recorded
+  `not-configured`.
+- `settlement_statement_needs_settlement`: 409 `SETTLEMENT_REQUIRED`.
+- `document_port_gets_ids_only`: a spy port's argument JSON has exactly
+  the keys `companyId, exitId, employeeId, kind, lang` and lacks the
+  settlement total.
+- `document_port_throw_recorded_failed`: 200, status `failed`.
+- `close_blocked_by_open_tasks`: 409 `CLEARANCE_OPEN`, `detail.taskIds`
+  equals the open exit task ids.
+- `close_before_last_day_409`: clock one day before.
+- `close_needs_settlement` and `close_needs_access`: 409 with the
+  codes above.
+- `close_happy_path`: all tasks done, settlement computed, access
+  revoked, clock on the last day: status `closed`.
+
+- [ ] **Step 2: Run** `pnpm --filter @payroll/api test revocation
+  exit-hooks`. Expected: FAIL.
+- [ ] **Step 3: Implement** the files above.
+- [ ] **Step 4: Run** `pnpm check`. Expected: PASS (Plan 3's
+  `auth.test.ts` still passes unchanged).
+- [ ] **Step 5: Commit** `feat(api): exit hooks, access revocation, close`.
+
+### Task 8: Goals and check-ins, end-to-end flow, handover
+
+**Files:**
+- Create: `packages/contract/src/goals.ts`,
+  `packages/api/migrations/807_goals.sql`,
+  `packages/api/src/goals/goals.ts`, `src/routes/goals.ts`
+- Modify: contract `routes-hr.ts`, `examples.ts`, `index.ts`,
+  `errors.ts`, `tests/routes-hr.test.ts`; api `src/app.ts`,
+  `tests/conformance.test.ts`, `tests/leak.test.ts`; root
+  `HANDOVER.md`, `LEDGER.md`
+- Test: `packages/api/tests/goals.test.ts`, `tests/hr-flow.test.ts`
+
+**Interfaces:**
+- Consumes: Tasks 1 to 7; Plan 3 `viewerScope`, `verifyChain`.
+- Produces (contract):
+  - `GoalStatus = z.enum(["active","achieved","dropped"])`;
+    `GoalCreate { employeeId?: Id; title 1..200; description?: max
+    2000; measure?: max 200; target?: max 200; dueDate?: IsoDate }`;
+    `GoalUpdate` (partial of create without `employeeId`, plus
+    `status`); `CheckInCreate { progress: int 0..100; note?: max 2000
+    }`; `CheckIn { id; authorUserId; progress; note: string | null;
+    at }`; `Goal { id; employeeId; title; description: string | null;
+    measure: string | null; target: string | null; dueDate: IsoDate |
+    null; status; createdBy; createdAt; lastCheckIn: { progress; at }
+    | null; checkIns: CheckIn[] }` (`checkIns` is empty in lists).
+  - Routes (five, all roles): `listGoals GET /v1/goals` (query
+    `employeeId?, status?`), `createGoal POST /v1/goals` (201),
+    `getGoal GET /v1/goals/{id}`, `updateGoal PATCH /v1/goals/{id}`,
+    `addGoalCheckIn POST /v1/goals/{id}/check-ins` (201); all respond
+    `Goal` (list: `Goal[]`).
+  - Error code: `GOAL_CLOSED` 409. `EXAMPLES.Goal`.
+  - Final `HR_ROUTE_IDS` has 45 ids; `ROUTES.length` is 94.
+- Produces (api):
+  - Migration 807: `goals`, `goal_check_ins` (insert and select only).
+  - Rules: scope by `viewerScope` (owner and hr all; manager self and
+    direct reports; employee self), out of scope 404; an employee
+    creates goals only for self (else 403 `FORBIDDEN`); update by the
+    creator, owner, hr or the employee's manager; check-ins by the
+    employee, their manager, owner or hr, append only, on `active`
+    goals only (409 `GOAL_CLOSED`). No ratings, scores or pay fields.
+  - Audit: `goal.created`, `goal.updated` (`data: { changed }`),
+    `goal.checked-in` (`data: { progress }`).
+
+- [ ] **Step 1: Write the failing tests**
+
+`goals.test.ts`:
+- `goal_employee_creates_own`: 201, `employeeId` is self.
+- `goal_employee_cannot_create_for_other`: 403 `FORBIDDEN`.
+- `goal_manager_reports_only`: a non-report's goal is 404.
+- `goal_checkin_progress_bounds`: 101 gives 400 `VALIDATION_FAILED`.
+- `goal_checkin_closed_409`: after status `achieved`.
+- `goal_last_checkin_in_list`: list shows the latest check-in.
+- `goal_no_pay_fields`: no key of `Goal.shape` matches
+  `/amount|bonus|salary|rating|score/`.
+
+`hr-flow.test.ts`:
+- `hr_flow_end_to_end`: manager requests a requisition, owner
+  approves; hr adds a candidate and application and moves it to
+  `offer`; hr creates an offer; owner approves with MFA; hr records
+  acceptance and hires; the owner invites the new employee (Plan 3
+  invite with `employeeId`) and the employee accepts; all onboarding
+  tasks are completed; clock
+  moves past probation end; the employee resigns; hr approves; hr
+  computes the settlement (status `computed`, `notComputed` equals the
+  engine's list); documents return `not-configured`; access is revoked
+  with MFA; all exit tasks are completed; clock moves to the last
+  working day; close gives `closed`. Then `GET
+  /v1/audit-events/verify` gives `ok: true` and no audit `data` text
+  contains `"8888.01"` or the settlement total.
+
+- [ ] **Step 2: Run** `pnpm --filter @payroll/api test goals hr-flow`.
+  Expected: FAIL.
+- [ ] **Step 3: Implement** the files above.
+- [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
+- [ ] **Step 5: Update `HANDOVER.md`** (state; package layout rows for
+  `src/employment/` and the new api folders; limits: ports not
+  configured, no scheduler, no web screens, the flag-only list, the
+  conventions in Rulings 4 to 9) and **append to `LEDGER.md`** section 3
+  every ruling below with today's date.
+- [ ] **Step 6: Commit** `feat(api): goals, end-to-end flow, handover`.
+
+---
+
+## Rulings
+
+Claude's calls under the owner's "decide, don't ask" instruction. Each
+says what it costs if wrong. The executor appends them to `LEDGER.md`.
+
+1. **API and contract only; no web screens.** Plan 4's web app builds
+   against `HR_ROUTES` in a later plan. Cost: the owner cannot click
+   through hiring or exits until that plan ships.
+2. **Statutory values live in a new engine pack `ae-employment`** with
+   `emp`-prefixed keys (unique next to Plan 5's packs, which share one
+   overrides map) and five new source ids. Cost: a textual merge in
+   `sources.ts` if Plan 5 lands in parallel.
+3. **Status mapping.** `official` only where the note quotes the value
+   as READ: 6 months, 14 days (9(1), 9(4)/(6)), one month (9(3), kept
+   as months, not 30 days), 30 to 90 days (43(1)), reducible by
+   agreement (43(2)), job-search day (43(5)), 14 days (53). Cost: none
+   for the values; see the conventions below.
+4. **Exits without notice (Articles 44, 45) give zero notice as a
+   `convention`** with a counsel flag; no grounds are encoded, because
+   the note lists Article 44's body (and Article 35, notice during
+   leave) as not read closely. Cost: HR must judge the grounds; a
+   wrong summary dismissal is not stopped by the product.
+5. **Settlement due date: 14 days (`official`, Article 53) counted from
+   the last working date (`convention`).** The master list tags the
+   14-day trigger as conflicting (UQ7, UQ12, UQ27). Cost: if the
+   trigger is another date (for example the contract end recorded by
+   MOHRE), every due date shifts; one pack param changes.
+6. **Notice counts from the day after written notice; last working
+   day = notice date + notice days** (`convention`). Cost: off by one
+   day against another reading; one function and its tests change.
+7. **Probation end = joining date plus months, clamped to month end,
+   minus one day** (`convention`), chosen because it never exceeds the
+   six-month limit (a property test pins it). Cost: a probation one or
+   two days shorter than a lawyer's reading near month ends.
+8. **A contract notice outside 30 to 90 days is refused**, not raised
+   to 30. Cost: HR must correct the terms before an offer or exit.
+9. **Agreed reductions apply only to resignation and termination**
+   (43(2)); probation notices (Article 9) cannot be reduced. Cost: a
+   mutual early release in probation needs a withdrawn exit and a new
+   one with a later notice date.
+10. **The exit kind never changes the settlement.** Resignation rules
+    are NOT FOUND in Decree-Law 33 of 2021. Cost: if a reduction for
+    resignation exists in a text we have not read, the shown gratuity
+    is too high; the trace shows which rules were used.
+11. **Settlement honesty:** the engine's `notComputed` list is shown
+    verbatim; loans, tickets, bonds, claims, cards and deductions are a
+    separate flag-only list; nothing is deducted. Cost: HR settles
+    these by hand until sourced rules and modules exist.
+12. **Unused leave days and unpaid service days are HR-entered** at
+    settlement time (as Plan 3 Ruling 13), not read from Plan 3 leave
+    balances, because the annual leave type is company-defined. Cost:
+    a typing error changes the settlement; the inputs are shown.
+13. **The exit settlement is a pure function in `packages/api` that
+    calls the engine**, cross-checked against Plan 3's payslip
+    settlement. Two screens show settlement. Cost: if they ever
+    differ, the cross-check test fails first.
+14. **No scheduler:** reminders and deadlines are dated tasks, overdue
+    is computed when read (Dubai date), and changed terms cancel and
+    recreate reminder tasks with a comment rather than re-dating them.
+    Cost: no push or email reminders until a notifications plan.
+15. **One shared approval rule (`assertDecidable`: role, pending
+    status, separation of duties)** with status columns per entity; no
+    generic approvals table yet (UQ18 is M2 to M3). Cost: a later
+    migration to the approval spine.
+16. **MFA on offer approval and access revocation only**; requisition
+    and exit approvals need no MFA. Cost: weaker than an
+    all-approvals MFA rule.
+17. **Interview scheduling is an interface:** `CalendarPort` defaults
+    to "not connected"; interviews are stored locally. Cost: no
+    calendar invites until a calendar integration plan.
+18. **Document generation is a hook:** `DocumentPort` defaults to "not
+    configured" and gets ids only. Cost: no certificate or settlement
+    statement files until the documents module (UQ34).
+19. **Access revocation = in-app membership revoke plus an external
+    port.** Sessions are kept so the user keeps other companies; the
+    last owner cannot be revoked; a new invite restores access. Cost:
+    external systems (email, door access) need their own adapter.
+20. **Ports run inside the handler's transaction and a throwing port
+    is recorded as failed, never rolling back.** Cost: if a later step
+    fails and rolls back after an external revoke succeeded, the two
+    disagree; the next call repeats the external revoke.
+21. **Hire idempotency by a claim row** (`offer_hires`, `ON CONFLICT DO
+    NOTHING`) before the employee is created. Cost: a hire that fails
+    after the claim rolls back fully, so nothing is half-made.
+22. **Candidates have no login; HR records offer responses.** No
+    candidate portal and no e-signature (signature rules are SR).
+    Cost: HR types the acceptance date.
+23. **One template per kind per company, versioned; defaults labelled
+    "product default, not law".** The visa cancellation task has no
+    due rule, because no deadline is sourced. Cost: companies with
+    several onboarding variants edit one template.
+24. **Only the system links tasks to flows;** nothing is deleted
+    (checklist items are `removed`, tasks `cancelled`, comments append
+    only). Cost: mistaken items stay visible as removed.
+25. **Goals are simple records:** no ratings, no pay links (UQ10 is
+    M3), no AI. Cost: performance reviews need a later plan.
+26. **Employment trace ids are not added to the explain catalog;** the
+    API returns raw trace lines with rule status, which avoids a merge
+    with Plan 5's catalog edits. Cost: no English or Arabic sentence
+    for these dates until the catalog gains them.
+27. **Audit action names avoid a hyphen in the first segment**
+    (`template.updated`, `terms.updated`). Plan 3's `pay-run.created`
+    and `leave-type.created` do not match its own regex
+    `^[a-z]+(\.[a-z-]+)+$`; the Plan 3 executor should relax it to
+    `^[a-z][a-z-]*(\.[a-z-]+)+$`. Cost: one regex change.
+28. **Migrations use Plan 8's range `801_` to `807_`** so parallel plans
+    cannot take the same number. Cost: none while ranges stay distinct.
+29. **Plan 3 functions consumed but not named there** (`validateSalary`,
+    `createEmployee`, `setSalary`, `updateEmployee`) are exported from
+    `src/people/employees.ts` with the signatures given. Cost: a small
+    refactor of Plan 3 code.
+30. **Self-service:** employees may resign (and give probation notices
+    that are theirs to give) for themselves; managers cannot open exits;
+    interviewers must be owner, hr or manager. Cost: a manager-led
+    termination goes through hr.
+31. **Product bounds** (headcount 1 to 50, criteria 1 to 10, offsets -60
+    to 365, interviewers 1 to 5) are product choices, not law. Cost: a
+    larger company hits a bound; a schema change.
+32. **Ruled out, each with its cost:** cost-of-hire preview and
+    hiring-plan cost (UQ6, UQ27); referral and agency ledger; work
+    permit, MOHRE contract and WPS setup tasks with legal deadlines;
+    labour card and visa cancellation deadlines; ticket ledger (UQ13),
+    loan, bond and card balances; exit interview forms; candidate data
+    retention and erasure (PDPL, UQ17); job posts and careers page
+    (UQ32, UQ33); resume parsing and AI screening; email-in
+    resignations (UQ22); notice during leave (Article 35); tracking the
+    job-search days (Article 43(5) is a flag only); the
+    probation-once-per-employer check (Article 9(2)); part-time
+    workers. Cost: each is a visible gap listed in the handover.
+33. **Review:** per-task review of Tasks 1 (law), 6 (money and law) and
+    7 (security), plus one whole-branch review (speed ruling); no pause
+    for plan review (ledger, 2026-11-25). Cost: a slipped bug in Tasks
+    2 to 5 or 8 is caught at the end.
