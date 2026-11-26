@@ -1,0 +1,169 @@
+.wrap {
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--color-divider);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+
+.title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.sample {
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+}
+
+.steps {
+  --node: 14px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.track {
+  position: absolute;
+  inset-inline: 10%;
+  inset-block-start: calc(var(--node) / 2 - 1px);
+  block-size: 2px;
+  border-radius: 2px;
+  background: var(--color-divider-strong);
+  overflow: hidden;
+}
+
+.trackFill {
+  display: block;
+  block-size: 100%;
+  background: var(--color-accent);
+  transform: scaleX(var(--fill));
+  transform-origin: 0 50%;
+  transition: transform var(--dur-slow) var(--ease-in-out);
+}
+
+[dir="rtl"] .trackFill {
+  transform-origin: 100% 50%;
+}
+
+.step {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.node {
+  display: grid;
+  place-items: center;
+  inline-size: var(--node);
+  block-size: var(--node);
+  margin-block-end: var(--space-2);
+  border: 2px solid var(--color-divider-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg);
+  color: var(--color-on-accent);
+  transition: background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.step[data-state="done"] .node {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.step[data-state="now"] .node {
+  border-color: var(--color-accent);
+  background: var(--color-bg);
+  box-shadow: 0 0 0 4px var(--color-accent-soft);
+}
+
+.label {
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: color var(--dur-base) ease;
+}
+
+.step[data-state="now"] .label,
+.step[data-state="done"] .label {
+  color: var(--color-text);
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.tag {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.step[data-state="open"] .node {
+  border-color: var(--color-warning);
+  background: var(--color-bg);
+}
+
+.step[data-state="open"] .tag {
+  color: var(--color-warning);
+}
+
+.step[data-state="open"] .label {
+  color: var(--color-text);
+}
+
+.step[data-state="done"] .tag {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+@media (max-width: 560px) {
+  .steps {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .track {
+    inset-inline: auto;
+    inset-inline-start: calc(var(--node) / 2 - 1px);
+    inset-block: calc(var(--node) / 2) calc(var(--node) / 2 + 12px);
+    inline-size: 2px;
+    block-size: auto;
+  }
+
+  .trackFill {
+    transform: scaleY(var(--fill));
+    transform-origin: 50% 0;
+  }
+
+  [dir="rtl"] .trackFill {
+    transform-origin: 50% 0;
+  }
+
+  .step {
+    grid-template-columns: var(--node) 1fr auto;
+    justify-items: start;
+    align-items: center;
+    column-gap: var(--space-3);
+    text-align: start;
+  }
+
+  .node {
+    margin: 0;
+  }
+}

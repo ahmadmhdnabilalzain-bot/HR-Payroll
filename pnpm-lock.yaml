@@ -32,6 +32,9 @@ importers:
       '@payroll/contract':
         specifier: workspace:*
         version: link:../../packages/contract
+      '@payroll/demo-data':
+        specifier: workspace:*
+        version: link:../../packages/demo-data
       '@payroll/engine':
         specifier: workspace:*
         version: link:../../packages/engine

@@ -1,0 +1,58 @@
+/* The one button vocabulary: primary, secondary, quiet. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: 32px;
+  padding-inline: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease, color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.primary {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.secondary {
+  border-color: var(--color-divider-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.secondary:hover {
+  border-color: var(--color-border);
+}
+
+.quiet {
+  padding-inline: var(--space-2);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.quiet:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+@media (max-width: 760px) {
+  .btn {
+    min-block-size: 40px;
+  }
+}

@@ -24,8 +24,13 @@ describe("boundaries", () => {
   it("no-other-workspace-imports", () => {
     const bad = filesImporting(/^@payroll\//).filter((f) =>
       importsOf(f).some((i) => i.startsWith("@payroll/") &&
-        !/^@payroll\/(engine|wps|contract)$/.test(i)));
+        !/^@payroll\/(engine|wps|contract|demo-data)$/.test(i)));
     expect(bad).toEqual([]);
+  });
+
+  it("demo-data-only-in-adapter", () => {
+    expect(filesImporting(/^@payroll\/demo-data/))
+      .toEqual(["src/demo/data/adapter.ts"]);
   });
 
   it("money-wire-only-in-contract", () => {

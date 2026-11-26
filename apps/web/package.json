@@ -15,6 +15,7 @@
     "@fontsource/ibm-plex-sans": "5.3.0",
     "@fontsource/ibm-plex-sans-arabic": "5.3.0",
     "@payroll/contract": "workspace:*",
+    "@payroll/demo-data": "workspace:*",
     "@payroll/engine": "workspace:*",
     "@payroll/wps": "workspace:*",
     "@tanstack/react-query": "5.108.4",
