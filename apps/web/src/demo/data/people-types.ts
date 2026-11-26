@@ -160,6 +160,8 @@ export interface Personas {
   gmId: string;
   managerId: string;
   employeeId: string;
+  /** The IT manager (WP10). */
+  itId: string;
 }
 
 export interface PeopleData {

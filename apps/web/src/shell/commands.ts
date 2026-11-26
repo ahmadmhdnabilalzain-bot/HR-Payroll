@@ -54,9 +54,9 @@ function focusApproval(id: string): void {
     ?.focus({ preventScroll: true });
 }
 
-const ROLES: Role[] = ["hr", "gm", "manager", "employee"];
+const ROLES: Role[] = ["hr", "gm", "it", "manager", "employee"];
 const ROLE_KEY: Record<Role, MessageKey> = { hr: "shell.roleHr",
-  gm: "shell.roleGm", manager: "shell.roleManager",
+  gm: "shell.roleGm", it: "shell.roleIt", manager: "shell.roleManager",
   employee: "shell.roleEmployee" };
 
 /** Commands that touch Home's rows go to Home first. */

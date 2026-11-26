@@ -13,11 +13,13 @@ import {
   type LeaveSlice,
 } from "./leave-state";
 
-/** manager and employee: the team view and the self view. */
-export type Role = "hr" | "gm" | "manager" | "employee";
-/** "s": a section's own page of areas (`#/s/people`, the phone tab). */
+/** manager and employee: the team view and the self view; it: the IT
+ * manager (access, connections, the audit chain; no company pay). */
+export type Role = "hr" | "gm" | "manager" | "employee" | "it";
+/** "s": a section's own page of areas (`#/s/people`, the phone tab);
+ * "me": the employee's own pages (payslips, documents, leave...). */
 export type Section = "home" | "pay-run" | "people" | "time-off" |
-  "reports" | "setup" | "s";
+  "reports" | "setup" | "s" | "me";
 
 export type Verdict = "approve" | "decline";
 
@@ -36,6 +38,10 @@ export interface DemoState extends LeaveSlice {
   /** Issue id to open and focus (from the palette or primary action). */
   focusIssue: string | null;
   sourcesOpen: boolean;
+  /** Home tasks marked done in the demo (task ids). */
+  tasksDone: string[];
+  /** Notifications marked read in the demo (notification ids). */
+  notesRead: string[];
 }
 
 export type Action =
@@ -49,11 +55,16 @@ export type Action =
   | { type: "undecide"; id: string }
   | { type: "focus-issue"; id: string | null }
   | { type: "sources"; open: boolean }
-  | LeaveAction;
+  | LeaveAction
+  | { type: "task-done"; id: string }
+  | { type: "task-undone"; id: string }
+  | { type: "notes-read"; ids: string[] }
+  | { type: "notes-unread"; ids: string[] };
 
 export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
-  focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL,
+  focusIssue: null, sourcesOpen: false, tasksDone: [], notesRead: [],
+  ...LEAVE_INITIAL,
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -79,6 +90,14 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "request-leave":
     case "withdraw-leave":
     case "restore-leave": return reduceLeave(s, a);
+    case "task-done": return s.tasksDone.includes(a.id) ? s
+      : { ...s, tasksDone: [...s.tasksDone, a.id] };
+    case "task-undone":
+      return { ...s, tasksDone: s.tasksDone.filter((x) => x !== a.id) };
+    case "notes-read":
+      return { ...s, notesRead: [...new Set([...s.notesRead, ...a.ids])] };
+    case "notes-unread": return { ...s,
+      notesRead: s.notesRead.filter((x) => !a.ids.includes(x)) };
   }
 }
 

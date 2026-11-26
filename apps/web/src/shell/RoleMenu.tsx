@@ -7,10 +7,10 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import s from "./TopBar.module.css";
 
-const ROLES: Role[] = ["hr", "gm", "manager", "employee"];
+export const ROLES: Role[] = ["hr", "gm", "it", "manager", "employee"];
 
-const ROLE_KEY: Record<Role, MessageKey> = { hr: "shell.roleHr",
-  gm: "shell.roleGm", manager: "shell.roleManager",
+export const ROLE_KEY: Record<Role, MessageKey> = { hr: "shell.roleHr",
+  gm: "shell.roleGm", it: "shell.roleIt", manager: "shell.roleManager",
   employee: "shell.roleEmployee" };
 
 function initials(name: string): string {

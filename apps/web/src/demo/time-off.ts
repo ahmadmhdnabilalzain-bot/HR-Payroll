@@ -14,15 +14,19 @@ export function personFor(d: DemoData, role: Role): string {
     case "gm": return p.gmId;
     case "manager": return p.managerId;
     case "employee": return p.employeeId;
+    case "it": return p.itId;
   }
 }
 
-/** Who a role may see in People and Time off. */
+/** Who a role may see in People and Time off. The IT manager sees the
+ * directory (to set up access) but no one's pay (canSeePay). */
 export function visibleIds(d: DemoData, s: Pick<DemoState, "role">)
   : string[] {
   const me = personFor(d, s.role);
   const all = d.people.people();
-  if (s.role === "hr" || s.role === "gm") return all.map((p) => p.id);
+  if (s.role === "hr" || s.role === "gm" || s.role === "it") {
+    return all.map((p) => p.id);
+  }
   if (s.role === "employee") return [me];
   return all.filter((p) => p.id === me || p.approverId === me)
     .map((p) => p.id);

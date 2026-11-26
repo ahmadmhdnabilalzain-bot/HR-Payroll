@@ -30,9 +30,11 @@ describe("boundaries", () => {
 
   it("demo-data-only-in-adapter", () => {
     // adapter.ts, plus the pay run's lazy detail chunk beside it, plus
-    // people.ts (People and Time off), which only adapter.ts imports.
+    // people.ts (People and Time off) and home.ts (Home and Me), which
+    // only adapter.ts imports; home-types.ts imports types only.
     expect(filesImporting(/^@payroll\/demo-data/))
-      .toEqual(["src/demo/data/adapter.ts", "src/demo/data/people.ts",
+      .toEqual(["src/demo/data/adapter.ts", "src/demo/data/home-types.ts",
+        "src/demo/data/home.ts", "src/demo/data/people.ts",
         "src/demo/data/run-detail.ts", "src/demo/data/run-explain.ts"]);
   });
 

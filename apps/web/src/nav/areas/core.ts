@@ -22,7 +22,8 @@ const me = (c: NavCtx): string => personFor(c.data, c.state.role);
 export const CORE_AREAS: readonly Area[] = [
   { id: "people.everyone", section: "people", group: "team",
     label: { en: "Everyone", ar: "الجميع" }, status: "live",
-    archetype: "LF", route: { section: "people" }, roles: HR_GM,
+    archetype: "LF", route: { section: "people" },
+    roles: ["hr", "gm", "it"],
     count: (c) => c.data.people.people().length,
     keywords: "staff employees list directory" },
   { id: "people.expiring", section: "people", group: "papers",

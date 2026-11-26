@@ -202,11 +202,12 @@ export function adaptPeople(c: DemoCompany): PeopleData {
   const byId = new Map(people.map((p) => [p.id, p]));
   const run = c.approvals.find((a) => a.kind === "pay-run");
   const employee = c.employees.find((e) => e.cases.includes("overtime"));
-  if (run === undefined || employee === undefined) {
+  const it = c.employees.find((e) => e.jobKey === "it-manager");
+  if (run === undefined || employee === undefined || it === undefined) {
     throw new Error("DEMO_NO_PERSONAS");
   }
   const personas = { hrId: run.makerEmployeeId, gmId: run.checkerEmployeeId,
-    employeeId: employee.id,
+    employeeId: employee.id, itId: it.id,
     managerId: approverIn(c.employees, employee.id) };
   const requests = requestsOf(c);
   return {

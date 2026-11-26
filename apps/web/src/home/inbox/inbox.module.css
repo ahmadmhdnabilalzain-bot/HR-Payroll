@@ -1,0 +1,244 @@
+/* Home's inbox: tasks, notices, notifications (WP10). */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.panel {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: 44px;
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-divider-strong);
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.more:hover {
+  text-decoration: underline;
+}
+
+.list {
+  display: grid;
+  justify-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  min-block-size: 56px;
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--color-divider);
+}
+
+.main {
+  display: grid;
+  flex: 1 1 220px;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.what {
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+a.what:hover {
+  text-decoration: underline;
+}
+
+.row[data-done="true"] .what {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-text-faint);
+}
+
+.meta {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.body {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Status: a neutral word; only the 8 px dot carries the colour. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.status::before {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--color-text-faint);
+  content: "";
+}
+
+.status[data-tone="overdue"]::before,
+.status[data-tone="bad"]::before {
+  background: var(--color-danger);
+}
+
+.status[data-tone="soon"]::before,
+.status[data-tone="warn"]::before {
+  background: var(--color-warning);
+}
+
+.status[data-tone="done"]::before,
+.status[data-tone="good"]::before {
+  background: var(--color-success);
+}
+
+.empty {
+  padding-block: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* The IT Home's four cards: two by two on a desk, stacked on a phone. */
+.cards2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 860px) {
+  .cards2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The bell's unread count. */
+.bell {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-end: 2px;
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 18px;
+  block-size: 18px;
+  padding-inline: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-danger);
+  color: var(--color-on-accent);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.notes {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  gap: 2px var(--space-3);
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--color-divider);
+}
+
+.note::before {
+  grid-row: 1;
+  align-self: center;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: transparent;
+  content: "";
+}
+
+.note[data-unread="true"]::before {
+  background: var(--color-accent);
+}
+
+.note > * {
+  grid-column: 2;
+}
+
+.noteTitle {
+  color: var(--color-text);
+  font-weight: 500;
+  text-align: start;
+  text-decoration: none;
+}
+
+a.noteTitle {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  margin-block: -12px;
+}
+
+a.noteTitle:hover {
+  text-decoration: underline;
+}
+
+.sheetFoot {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: var(--space-4);
+}
+
+@media (pointer: coarse) {
+  .row button {
+    min-block-size: 44px;
+  }
+}

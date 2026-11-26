@@ -10,9 +10,20 @@ import type { Area, AreaRoute, Group, NavCtx, SectionId } from "./types";
 const BAR: Record<Role, readonly SectionId[]> = {
   hr: ["home", "people", "time", "pay", "reports", "setup"],
   gm: ["home", "people", "time", "pay", "reports", "setup"],
+  it: ["home", "people", "reports", "setup"],
   manager: ["home", "pay", "time", "requests", "me"],
   employee: ["home", "pay", "time", "requests", "me"],
 };
+
+/**
+ * The IT manager runs access and connections: every Setup area HR can
+ * reach is theirs too (WP8 and WP9 list only hr and gm). People and
+ * Reports areas must name "it" themselves (no company pay).
+ */
+function roleAllows(a: Area, role: Role): boolean {
+  if (a.roles === undefined || a.roles.includes(role)) return true;
+  return role === "it" && a.section === "setup" && a.roles.includes("hr");
+}
 
 export const WORD: Record<SectionId, MessageKey> = {
   home: "shell.navHome", people: "shell.navPeople", time: "shell.navTime",
@@ -32,7 +43,7 @@ export function routeOf(a: Area, c: NavCtx): AreaRoute {
 /** Live, allowed for the role, and its route has a view: no dead ends. */
 export function isReachable(a: Area, role: Role): boolean {
   if (a.status !== "live") return false;
-  if (a.roles !== undefined && !a.roles.includes(role)) return false;
+  if (!roleAllows(a, role)) return false;
   const section = typeof a.route === "function" ? null : a.route.section;
   return section === null || VIEWS[section] !== undefined;
 }
