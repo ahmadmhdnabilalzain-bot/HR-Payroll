@@ -6,8 +6,15 @@ import {
   type ReactNode,
 } from "react";
 import type { DemoData, DemoSource } from "./data/types";
+import {
+  LEAVE_INITIAL,
+  reduceLeave,
+  type LeaveAction,
+  type LeaveSlice,
+} from "./leave-state";
 
-export type Role = "hr" | "gm";
+/** manager and employee: the team view and the self view. */
+export type Role = "hr" | "gm" | "manager" | "employee";
 export type Section = "home" | "pay-run" | "people" | "time-off" |
   "reports";
 
@@ -16,7 +23,8 @@ export type Verdict = "approve" | "decline";
 /** How a non-IBAN issue was settled; IBANs settle through the check. */
 export type Resolution = "reviewed" | "renewal";
 
-export interface DemoState {
+/** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
+export interface DemoState extends LeaveSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -39,11 +47,12 @@ export type Action =
   | { type: "decide"; id: string; verdict: Verdict }
   | { type: "undecide"; id: string }
   | { type: "focus-issue"; id: string | null }
-  | { type: "sources"; open: boolean };
+  | { type: "sources"; open: boolean }
+  | LeaveAction;
 
 export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
-  focusIssue: null, sourcesOpen: false,
+  focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL,
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -66,6 +75,9 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "undecide": return { ...s, decided: without(s.decided, a.id) };
     case "focus-issue": return { ...s, focusIssue: a.id };
     case "sources": return { ...s, sourcesOpen: a.open };
+    case "request-leave":
+    case "withdraw-leave":
+    case "restore-leave": return reduceLeave(s, a);
   }
 }
 

@@ -29,10 +29,11 @@ describe("boundaries", () => {
   });
 
   it("demo-data-only-in-adapter", () => {
-    // adapter.ts, plus the pay run's lazy detail chunk beside it.
+    // adapter.ts, plus the pay run's lazy detail chunk beside it, plus
+    // people.ts (People and Time off), which only adapter.ts imports.
     expect(filesImporting(/^@payroll\/demo-data/))
-      .toEqual(["src/demo/data/adapter.ts", "src/demo/data/run-detail.ts",
-        "src/demo/data/run-explain.ts"]);
+      .toEqual(["src/demo/data/adapter.ts", "src/demo/data/people.ts",
+        "src/demo/data/run-detail.ts", "src/demo/data/run-explain.ts"]);
   });
 
   it("money-wire-only-in-contract", () => {

@@ -1,0 +1,142 @@
+import type { Approval, DemoData, Localized } from "./data/types";
+import type {
+  AnnualBalance,
+  LeaveTypeId,
+  LeaveUse,
+} from "./data/people-types";
+import type { DemoState, Role } from "./state";
+
+/** The person each role stands for (all from the data). */
+export function personFor(d: DemoData, role: Role): string {
+  const p = d.people.personas();
+  switch (role) {
+    case "hr": return p.hrId;
+    case "gm": return p.gmId;
+    case "manager": return p.managerId;
+    case "employee": return p.employeeId;
+  }
+}
+
+/** Who a role may see in People and Time off. */
+export function visibleIds(d: DemoData, s: Pick<DemoState, "role">)
+  : string[] {
+  const me = personFor(d, s.role);
+  const all = d.people.people();
+  if (s.role === "hr" || s.role === "gm") return all.map((p) => p.id);
+  if (s.role === "employee") return [me];
+  return all.filter((p) => p.id === me || p.approverId === me)
+    .map((p) => p.id);
+}
+
+export function canSee(d: DemoData, s: Pick<DemoState, "role">,
+  id: string): boolean {
+  return visibleIds(d, s).includes(id);
+}
+
+/** HR and the GM see everyone's pay; others only their own. */
+export function canSeePay(d: DemoData, s: Pick<DemoState, "role">,
+  id: string): boolean {
+  if (s.role === "hr" || s.role === "gm") return true;
+  return id === personFor(d, s.role);
+}
+
+/** A request's state, as the screens word it. */
+export type RequestState = "waiting" | "booked" | "declined" |
+  "withdrawn";
+
+export interface RequestRow {
+  id: string;
+  employeeId: string;
+  leaveTypeId: LeaveTypeId;
+  startDate: string;
+  endDate: string;
+  halves: number;
+  state: RequestState;
+  approverId: string;
+  approvalId: string | null;
+  reason: Localized;
+  note: string;
+  /** Made during this demo (can be withdrawn while waiting). */
+  isNew: boolean;
+  /** Decided during this demo: the date is the demo's today. */
+  decidedOn: string | null;
+}
+
+function fromDecision(s: DemoState, approvalId: string | null,
+  fallback: RequestState): RequestState {
+  if (approvalId === null) return fallback;
+  const v = s.decided[approvalId];
+  if (v === undefined) return fallback;
+  return v === "approve" ? "booked" : "declined";
+}
+
+/** Every leave request: the package's and the demo's, newest first. */
+export function requestRows(d: DemoData, s: DemoState): RequestRow[] {
+  const asOf = d.people.asOf;
+  const reasons = d.people.reasons();
+  const made = s.requests.map((r): RequestRow => ({ id: r.id,
+    employeeId: r.employeeId, leaveTypeId: r.leaveTypeId,
+    startDate: r.startDate, endDate: r.endDate, halves: r.halves,
+    state: r.withdrawn ? "withdrawn"
+      : fromDecision(s, r.approvalId, "waiting"),
+    approverId: r.checkerId, approvalId: r.approvalId,
+    reason: reasons.find((x) => x.key === r.reasonKey)?.text
+      ?? { en: "", ar: "" }, note: r.note, isNew: true,
+    decidedOn: s.decided[r.approvalId] === undefined ? null : asOf }));
+  const base = d.people.leaveRequests().map((r): RequestRow => {
+    const fallback: RequestState = r.status === "approved" ? "booked"
+      : r.status === "rejected" ? "declined" : "waiting";
+    const decided = r.approvalId !== null &&
+      s.decided[r.approvalId] !== undefined;
+    return { id: r.id, employeeId: r.employeeId,
+      leaveTypeId: r.leaveTypeId, startDate: r.startDate,
+      endDate: r.endDate, halves: r.halves,
+      state: fromDecision(s, r.approvalId, fallback),
+      approverId: r.approverId, approvalId: r.approvalId,
+      reason: r.reason, note: "", isNew: false,
+      decidedOn: decided ? asOf : null };
+  });
+  return [...made, ...base.sort((a, b) =>
+    b.startDate.localeCompare(a.startDate))];
+}
+
+/** Booked leave is taken, waiting leave is pending; the rest is not. */
+export function usesOf(rows: RequestRow[]): LeaveUse[] {
+  return rows.filter((r) => r.state === "booked" || r.state === "waiting")
+    .map((r) => ({ employeeId: r.employeeId, leaveTypeId: r.leaveTypeId,
+      startDate: r.startDate, halves: r.halves,
+      state: r.state === "booked" ? "taken" : "pending" }));
+}
+
+/** The engine's annual balance with every decision so far. */
+export function annualNow(d: DemoData, s: DemoState, id: string)
+  : AnnualBalance | null {
+  return d.people.annualBalance(id, usesOf(requestRows(d, s)));
+}
+
+/** Days of a type used this year (booked only), in half-days. */
+export function usedHalves(rows: RequestRow[], id: string,
+  type: LeaveTypeId): number {
+  return rows.filter((r) => r.employeeId === id && r.leaveTypeId === type &&
+    r.state === "booked" && r.startDate.startsWith("2026"))
+    .reduce((n, r) => n + r.halves, 0);
+}
+
+/** The demo's new requests as approvals, for Home's inbox. */
+export function sessionApprovals(d: DemoData, s: DemoState): Approval[] {
+  return s.requests.filter((r) => !r.withdrawn).map((r) => ({
+    id: r.approvalId, kind: "leave", employeeId: r.employeeId,
+    title: d.people.leaveApprovalTitle, requestedOn: r.requestedOn,
+    amountFils: null, makerId: r.employeeId, checkerId: r.checkerId }));
+}
+
+/** The package's inbox plus the demo's requests, newest first. */
+export function allApprovals(d: DemoData, s: DemoState): Approval[] {
+  return [...sessionApprovals(d, s), ...d.approvalsInbox()];
+}
+
+/** Who is off on a date (booked, or waiting when asked for). */
+export function offOn(rows: RequestRow[], date: string): RequestRow[] {
+  return rows.filter((r) => (r.state === "booked" ||
+    r.state === "waiting") && r.startDate <= date && date <= r.endDate);
+}
