@@ -56,6 +56,11 @@ export const shell = {
   keyOpen: "open",
   keyClose: "close",
   breadcrumb: "Location",
+  panelWaiting: "Waiting",
+  panelNothing: "Nothing is waiting here.",
+  panelAreas: "Go to",
+  groupTabs: "In this group",
+  phoneTools: "Notifications and display",
   outsideTitle: "This page is outside your view.",
   outsideHelp: "It is for another role. Switch role from the menu at " +
     "the top, or go back to your Home.",

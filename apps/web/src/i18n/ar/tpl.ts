@@ -20,4 +20,13 @@ export const tpl: ArOf<typeof en> = {
   print: "طباعة",
   changes: "التغييرات",
   noChanges: "لا تغييرات بعد.",
+  more: "إجراءات أخرى",
+  hiddenCsv: "أظهر المبالغ للتنزيل",
+  sources: "بيانات تجريبية خيالية. القواعد كما نفهمها.",
+  next: "التالي",
+  history: "السجل",
+  summary: "ملخص",
+  open: "فتح",
+  inList: "في هذه القائمة",
+  axisFrom: "يبدأ المحور عند {v}",
 };

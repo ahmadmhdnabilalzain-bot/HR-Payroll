@@ -20,6 +20,6 @@ export function filterPeople(list: Person[], query: string,
   });
 }
 
-/** A branch name without the "(fictional)" tag, for dense rows. */
+/** A branch name without its city or any bracketed tag, for rows. */
 export const shortBranch = (name: string): string =>
   name.replace(/\s*\([^)]*\)\s*$/u, "").split(/[,،]/u)[0] ?? name;

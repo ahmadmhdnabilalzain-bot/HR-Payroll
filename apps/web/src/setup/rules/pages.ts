@@ -33,9 +33,9 @@ export function leavePage(d: DemoData): PageSpec {
           why: LAW_MIN } };
     }
     return { key: `type:${t.id}`, label: t.name.en,
-      value: t.paid ? "Paid, in steps (see sick leave below)"
-        : "Not paid",
-      help: t.paid ? "Days used are counted; there is no yearly balance."
+      value: t.paid ? "Paid, in steps" : "Not paid",
+      help: t.paid ? "Days used are counted, with no yearly balance. " +
+        "The steps are under Sick leave."
         : "Days used are counted and taken out of the month's pay." };
   });
   return { title: "Leave policies",
@@ -208,8 +208,7 @@ export function companyPage(d: DemoData): PageSpec {
   const people = d.people.people();
   const branches = new Set(people.map((p) => p.branch.en));
   return { title: "Company details",
-    lede: "How the company is set up in this demo. The company is " +
-      "fictional.",
+    lede: "How the company is set up: name, branches and pay groups.",
     groups: [
       g("Company",
         { key: "co:name", label: "Name", value: d.companyName.en },
@@ -279,5 +278,5 @@ export function groupsPage(d: DemoData, lang: Lang): PageSpec {
     groups: [g("Groups", ...[...by.entries()].map(([name, n]): ItemSpec => ({
       key: `pg:${name}`, label: name,
       value: `${n} ${n === 1 ? "person" : "people"}`,
-      help: `Payday ${payday} (sample date).` })))] };
+      help: `Payday ${payday}.` })))] };
 }

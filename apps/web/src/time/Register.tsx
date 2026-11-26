@@ -92,7 +92,7 @@ export function RegisterRecord(q: { id: string }) {
           <div className={s.picker}>
             <p className={s.note}>
               Late means more than {t.lateGraceMinutes} minutes after the
-              shift starts (sample grace).
+              shift starts.
             </p>
             {sheet.late.length === 0 && sheet.unpaidDays === 0 ? (
               <p className={s.muted}>No late arrivals and no unpaid

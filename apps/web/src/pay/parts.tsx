@@ -45,7 +45,7 @@ export function NotFound(p: { what: string; back: { label: string;
   return (
     <div className={s.page}>
       <PageHead title={`No such ${p.what}`} back={p.back}
-        lede={`This ${p.what} is not in the demo. Go back to the list ` +
+        lede={`There is no ${p.what} at this address. Go back to the list ` +
           "to pick another."} />
     </div>
   );

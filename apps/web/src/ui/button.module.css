@@ -12,6 +12,7 @@
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
+  text-decoration: none;
   touch-action: manipulation;
   transition: background-color var(--dur-fast) ease,
     border-color var(--dur-fast) ease, color var(--dur-fast) ease,
@@ -25,7 +26,12 @@
 
 .btn:disabled {
   cursor: not-allowed;
-  opacity: 0.45;
+}
+
+.primary:disabled,
+.secondary:disabled {
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
 }
 
 .large {
@@ -44,19 +50,22 @@
 }
 
 .secondary {
-  border-color: var(--color-divider-strong);
-  background: var(--color-surface);
+  background: var(--color-button-secondary);
   color: var(--color-text);
 }
 
 .secondary:hover:not(:disabled) {
-  border-color: var(--color-border);
+  background: var(--color-button-secondary-hover);
 }
 
 .quiet {
   padding-inline: var(--space-2);
   background: transparent;
   color: var(--color-text-muted);
+}
+
+.quiet:disabled {
+  color: var(--color-disabled-text);
 }
 
 .quiet:hover:not(:disabled) {

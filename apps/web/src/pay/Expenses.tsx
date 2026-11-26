@@ -25,7 +25,7 @@ function useApproval(x: ExpenseView): Approval | undefined {
 function useClaimState(x: ExpenseView): [string, Tone] {
   const { state } = useDemo();
   const a = useApproval(x);
-  if (a === undefined) return ["Agreed before the demo", "done"];
+  if (a === undefined) return ["Agreed earlier", "done"];
   const v = state.decided[a.id];
   return v === undefined ? ["Waiting", "check"] : v === "approve"
     ? ["Agreed", "done"] : ["Declined", "neutral"];
@@ -34,6 +34,28 @@ function useClaimState(x: ExpenseView): [string, Tone] {
 function ClaimStatus(p: { x: ExpenseView }) {
   const [word, tone] = useClaimState(p.x);
   return <Status tone={tone}>{word}</Status>;
+}
+
+/** Agree and Decline on the row, for the person who decides. */
+function ClaimActions(p: { x: ExpenseView }) {
+  const { data, state, dispatch } = useDemo();
+  const toast = useToast();
+  const a = useApproval(p.x);
+  if (a === undefined || state.decided[a.id] !== undefined ||
+    personOf(data, state.role) !== a.checkerId) return null;
+  const decide = (v: "approve" | "decline") => (): void => {
+    dispatch({ type: "decide", id: a.id, verdict: v });
+    toast.show(v === "approve" ? "Claim agreed" : "Claim declined",
+      () => dispatch({ type: "undecide", id: a.id }));
+  };
+  return (
+    <>
+      <button type="button" className={`${b.btn} ${b.secondary}`}
+        onClick={decide("decline")}>Decline</button>
+      <button type="button" className={`${b.btn} ${b.secondary}`}
+        onClick={decide("approve")}>Agree</button>
+    </>
+  );
 }
 
 /** R23: expense claims, decided by the person's manager. */
@@ -46,6 +68,8 @@ export function Expenses() {
       rows={pay.expenses} rowKey={(x) => x.id}
       searchText={(x) => `${x.name} ${x.title}`}
       rowHref={(x) => hrefOf("pay-run", "expenses", x.id)}
+      avatar={(x) => ({ id: x.employeeId, name: x.name })}
+      rowActions={(x) => <ClaimActions x={x} />}
       columns={[
         { key: "who", label: "Person", render: (x) => x.name },
         { key: "what", label: "Claim", render: (x) => x.title },

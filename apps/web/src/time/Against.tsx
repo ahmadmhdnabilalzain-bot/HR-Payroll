@@ -27,7 +27,7 @@ export function Against() {
       rows={rows}
       note={`Each day is read against the person's shift by the payroll ` +
         `engine. Late means more than ${t.lateGraceMinutes} minutes after ` +
-        "the shift starts (sample grace). Overtime is time past the shift."}
+        "the shift starts. Overtime is time past the shift."}
       csvName="attendance-against-shifts-2026-10.csv" />
   );
 }

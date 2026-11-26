@@ -3,6 +3,8 @@ import type { EnNamespace } from "../types";
 /** The explain-why panel. */
 export const explain = {
   open: "How this is worked out: {title}",
+  limit: "Limit",
+  limitOf: "of",
   close: "Close",
   working: "How it is worked out",
   inputs: "What went in",

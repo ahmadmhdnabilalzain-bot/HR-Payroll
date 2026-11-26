@@ -40,6 +40,10 @@ export interface ExplainRule {
 export interface ExplainStep {
   text: string;
   value?: ExplainValue;
+  /** A cap or limit, not part of the sum: drawn as its own "Limit"
+   * row with a bar showing how much of it is used, and no amount in
+   * the sum column. */
+  limit?: { used: Fils; cap: Fils };
 }
 
 export interface Explanation {

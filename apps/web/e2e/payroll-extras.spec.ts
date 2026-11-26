@@ -1,8 +1,21 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+/** The amounts toggle: in the bar, or in the phone's overflow menu. */
+async function toggleAmounts(page: Page, phone: boolean): Promise<void> {
+  if (!phone) {
+    await page.getByRole("button", { name: /Show amounts|Hide amounts/ })
+      .click();
+    return;
+  }
+  await page.getByRole("button", { name: /Viewing as/ }).click();
+  await page.getByRole("menuitemcheckbox", { name: "Hide amounts" }).click();
+  await page.keyboard.press("Escape");
+}
 
 test("gate-to-what-if-to-hold-to-advice-to-parallel-run",
-  async ({ page }) => {
+  async ({ page }, info) => {
+    const phone = info.project.name === "phone";
     await page.goto("/#/pay-run/gate");
     await expect(page.getByRole("heading", { level: 1,
       name: "Pre-pay checks" })).toBeVisible();
@@ -35,11 +48,10 @@ test("gate-to-what-if-to-hold-to-advice-to-parallel-run",
     await expect(page.getByRole("button", { name: /^Release / }))
       .toHaveCount(0);
 
-    await page.getByRole("button", { name: "Hide amounts" }).click();
+    await toggleAmounts(page, phone);
     await page.goto("/#/pay-run/gate/what-if");
     await expect(page.getByText(/Amounts are hidden/)).toBeVisible();
-    await page.getByRole("button", { name: /Show amounts|Hide amounts/ })
-      .click();
+    await toggleAmounts(page, phone);
 
     await page.goto("/#/setup/migration/parallel");
     await expect(page.getByText(/6 differ, 6 of them with a likely/))

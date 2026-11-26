@@ -1,5 +1,5 @@
 import { fils, type Fils } from "@payroll/engine";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ExplainLink, Explainable } from "../components/explain";
 import { reducedMotion, ROLL_MS } from "../demo/motion";
 import { useDemo } from "../demo/state";
@@ -8,15 +8,23 @@ import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
+import { NetTrend } from "./NetTrend";
+import { useRunApproval } from "../demo/actions";
+import type { Issue } from "../demo/data/types";
+import { RollDigits } from "../ui/RollDigits";
+import { CardIban } from "./CardIban";
+import { StatusAction, StatusSentence } from "./StatusLead";
 import { StepTracker } from "./StepTracker";
+import nt from "./NetTrend.module.css";
 import s from "./PayRunHero.module.css";
 
 /**
- * The figure that supports the headline: net pay, one line under it
- * (people, payday, and what is held out of the salary file, which
- * rolls into the file when an IBAN passes), the pension caveat as a
- * small line, "Why this number", and the progress. The make-up sits
- * below the fold (MakeUp).
+ * The top of Home as one statement. Left: the sentence, net pay with
+ * its line (people, payday, "Why this number"), a slim bar of who is
+ * ready against who is held for bank details (with the amount held
+ * out of the salary file, which rolls into the file when an IBAN
+ * passes), the one action, the step line and the pension caveat.
+ * Right: net pay June to October and what moved it (NetTrend).
  */
 export function PayRunHero() {
   const { lang, t } = useLocale();
@@ -25,31 +33,89 @@ export function PayRunHero() {
   const h = data.headline();
   const cal = data.payCalendar();
   const net = run.explain["run:net"];
+  const [editing, setEditing] = useState<Issue | null>(null);
   return (
-    <section className={s.hero} aria-labelledby="run-title">
-      <h2 id="run-title" className="visually-hidden">{t("home.net")}</h2>
-      <div className={s.lead}>
-        <p className={s.figure}>
-          <Explainable explanation={net}>
-            <Money value={h.netTotalFils} size="hero" countUp />
-          </Explainable>
-        </p>
-        <p className={s.line}>
-          <span>{t("home.netTo", { count: h.headcount })}</span>
-          <span className={s.dot} aria-hidden="true" />
-          <span>{t("home.paysOn", { date: formatDayMonth(cal.payday,
-            lang) })}</span>
-          <span className={s.dot} aria-hidden="true" />
-          <HeldOut value={h.heldNetFils} />
-          <ExplainLink explanation={net} className={s.why}>
-            <Icon name="info" size={16} />
-            {t("home.whyNumber")}
-          </ExplainLink>
-        </p>
-        <p className={s.caveat}>{h.netNote[lang]}</p>
+    <section className={s.hero} aria-labelledby="run-title" data-card="">
+      <div className={s.top}>
+        <div className={s.lead}>
+          <StatusSentence />
+          <div className={s.netCard}>
+            <p className={s.figure}>
+              <Explainable explanation={net}>
+                <Money value={h.netTotalFils} size="hero" countUp />
+              </Explainable>
+            </p>
+            <p className={s.line}>
+              <span>{t("home.netTo", { count: h.headcount })}</span>
+              <span className={s.dot} aria-hidden="true" />
+              <span>{t("home.paysOn", { date: formatDayMonth(cal.payday,
+                lang) })}</span>
+              <ExplainLink explanation={net} className={s.why}>
+                <Icon name="info" size={16} />
+                {t("home.whyNumber")}
+              </ExplainLink>
+            </p>
+            <ReadyBar total={h.headcount} file={h.sifTotalFils}
+              held={h.heldNetFils} />
+          </div>
+          {editing !== null ? (
+            <CardIban issue={editing} onDone={() => setEditing(null)} />
+          ) : (
+            <div className={s.act}>
+              <StatusAction onIban={setEditing} />
+              <StepTracker />
+            </div>
+          )}
+          <p className={s.caveat}>{h.netNote[lang]}</p>
+        </div>
+        <Suspense fallback={<div className={nt.placeholder} />}>
+          <NetTrend />
+        </Suspense>
       </div>
-      <StepTracker />
     </section>
+  );
+}
+
+/**
+ * Who is ready against who is held for bank details, as one slim bar
+ * (counts from the run's own blockers), with the amount held out of
+ * the salary file beside it.
+ */
+function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
+  const { t } = useLocale();
+  const run = useRunApproval();
+  const blocked = run.blockedBy.length;
+  const ready = p.total - blocked;
+  return (
+    <div className={s.ready}>
+      <div className={s.bar} aria-hidden="true">
+        <span className={s.barReady} style={{ flexGrow: ready }} />
+        {blocked > 0 && (
+          <span className={s.barHeld} style={{ flexGrow: blocked }} />
+        )}
+      </div>
+      <p className={s.readyLine}>
+        <span className={s.readyCount}>
+          {t("home.readyBar", { ready })}
+        </span>
+        {blocked > 0 && (
+          <span className={s.heldCount}>
+            <span className={s.heldDot} aria-hidden="true" />
+            {t("home.heldBar", { count: blocked })}
+          </span>
+        )}
+      </p>
+      <dl className={s.totals}>
+        <div data-fly-target="">
+          <dt>{t("home.inFile")}</dt>
+          <dd><RollDigits value={p.file} size="lg" /></dd>
+        </div>
+        <div>
+          <dt>{t("home.heldOutLabel")}</dt>
+          <dd><HeldOut value={p.held} /></dd>
+        </div>
+      </dl>
+    </div>
   );
 }
 
@@ -76,12 +142,8 @@ function HeldOut(p: { value: Fils }) {
   const zero = p.value === 0n && !rolling;
   return (
     <span className={s.held} data-zero={zero}>
-      {zero ? t("home.allInFile") : (
-        <>
-          <Money value={fils(p.value)} size="sm" />
-          {" "}{t("home.heldOut")}
-        </>
-      )}
+      {zero ? t("home.heldNone")
+        : <RollDigits value={fils(p.value)} size="lg" />}
     </span>
   );
 }

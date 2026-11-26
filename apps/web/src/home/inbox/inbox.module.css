@@ -36,7 +36,11 @@
   color: var(--color-accent);
   font-size: var(--text-sm);
   font-weight: 500;
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%,
+    transparent);
+  text-underline-offset: 3px;
 }
 
 .more:hover {
@@ -158,7 +162,7 @@ a.what:hover {
 }
 
 /*
- * The bell's unread mark: a teal dot, not a red count (red is only for
+ * The bell's unread mark: an ink dot, not a red count (red is only for
  * what stops pay). The number is in the button's label.
  */
 .bell {

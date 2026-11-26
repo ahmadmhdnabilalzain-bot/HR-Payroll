@@ -124,7 +124,7 @@ export interface TrainingCourse { id: string; name: string;
   provider: string; mandatory: boolean; repeatDays: number | null;
   audience: string }
 
-const PROVIDER = "Zarqan Demo Academy (fictional)";
+const PROVIDER = "Zarqan Demo Academy";
 
 export const TRAINING_COURSES: readonly TrainingCourse[] = [
   { id: "tr-induction", name: "Bank induction", provider: PROVIDER,
@@ -331,7 +331,7 @@ export function surveyViews(c: DemoCompany): SurveyView[] {
     status: "scheduled", opensOn: shortDateOf("2026-11-30"),
     closesOn: shortDateOf("2026-12-11"), invited: next, answered: null,
     responsePct: null, themes: [], groups: [],
-    display: { response: `Opens 30 Nov 2026 (sample), ` +
+    display: { response: `Opens 30 Nov 2026, ` +
       `${plural(next, "person", "people")} invited`,
     privacy: PRIVACY } }];
 }

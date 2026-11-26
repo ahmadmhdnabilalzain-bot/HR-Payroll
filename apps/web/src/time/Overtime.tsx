@@ -33,14 +33,15 @@ function useDecide(id: string, text: string) {
 }
 
 function Buttons(q: { id: string; text: string; phase: Phase;
-  allowed: boolean }) {
+  allowed: boolean; row?: boolean }) {
   const d = useDecide(q.id, q.text);
+  const fill = q.row === true ? b.secondary : b.primary;
   if (q.phase === "waiting" && q.allowed) {
     return (
       <span className={s.inline}>
         <button type="button" className={`${b.btn} ${b.secondary} `
           + s.rowBtn} onClick={d.put("decline")}>Decline</button>
-        <button type="button" className={`${b.btn} ${b.primary} `
+        <button type="button" className={`${b.btn} ${fill} `
           + s.rowBtn} onClick={d.put("accept")}>Accept</button>
       </span>
     );
@@ -75,6 +76,12 @@ export function Overtime() {
       rows={rows} rowKey={(c) => c.id}
       searchText={(c) => who.name(c.employeeId)}
       rowHref={(c) => hrefOf("time-off", "overtime", c.id)}
+      avatar={(c) => ({ id: c.employeeId,
+        name: who.name(c.employeeId) })}
+      rowActions={(c) => (
+        <Buttons id={c.id} text="The claim" phase={ph(c)} row
+          allowed={who.canDecide(c.employeeId)} />
+      )}
       segments={[
         { id: "wait", label: "To decide", match: (c) => ph(c) === "waiting" },
         { id: "done", label: "Decided", match: (c) => ph(c) === "accepted" ||

@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
+import { PageHead } from "../ui/templates";
+import tp from "../ui/templates/templates.module.css";
 import s from "./Reports.module.css";
 
 /**
@@ -15,8 +17,8 @@ export function Guard(p: { children: ReactNode; gmOnly?: boolean;
     (state.role === "it" && p.itOk === true);
   if (allowed) return <>{p.children}</>;
   return (
-    <div className={s.page}>
-      <h1 className={s.title}>This report is outside your view</h1>
+    <div className={tp.page}>
+      <PageHead title="This report is outside your view" />
       <p className={s.sub}>
         {p.gmOnly === true ? "It is for the General manager."
           : "It is for the HR manager and the General manager."}

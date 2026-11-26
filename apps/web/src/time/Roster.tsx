@@ -7,6 +7,7 @@ import { FilterList } from "../ui/templates";
 import { Status, useTimeData, useWho } from "./shared";
 import s from "./time.module.css";
 import { plural } from "./words";
+import { Footnote } from "../components/explain";
 
 const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 const dow = (iso: string): number => new Date(`${iso}T00:00:00Z`)
@@ -93,6 +94,7 @@ export function Roster() {
             </li>
           ))}
         </ul>
+        <Footnote />
       </div>
     </>
   );

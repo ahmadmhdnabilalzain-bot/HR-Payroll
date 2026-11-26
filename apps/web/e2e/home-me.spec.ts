@@ -9,13 +9,28 @@ async function asRole(page: Page, name: string): Promise<void> {
 test("employee-sends-papers-from-home-and-reads-notes", async ({ page }) => {
   await page.goto("/");
   await asRole(page, "Employee");
+  // The bell is in the bar on a desktop and in the avatar menu on a
+  // phone; either way it names the unread count.
+  const menu = page.getByRole("button", { name: /Viewing as/ });
   const bell = page.getByRole("button", { name: /Notifications, \d+ unread/ });
-  await expect(bell).toBeVisible();
-  await bell.click();
+  await page.getByRole("heading", { level: 1 }).waitFor();
+  const phone = !(await bell.isVisible());
+  if (phone) {
+    await menu.click();
+    await page.getByRole("menuitem", { name: /Notifications, \d+ unread/ })
+      .click();
+  } else await bell.click();
   await page.getByRole("button", { name: "Mark all as read" }).click();
   await page.getByRole("button", { name: "Close" }).click();
-  await expect(page.getByRole("button", { name: "Notifications" }))
-    .toBeVisible();
+  if (phone) {
+    await menu.click();
+    await expect(page.getByRole("menuitem", { name: "Notifications" }))
+      .toBeVisible();
+    await page.keyboard.press("Escape");
+  } else {
+    await expect(page.getByRole("button", { name: "Notifications" }))
+      .toBeVisible();
+  }
 
   await page.getByRole("link",
     { name: "Send your residence visa papers to HR" }).click();
