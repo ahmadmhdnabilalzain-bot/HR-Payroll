@@ -212,6 +212,18 @@ describe("timesheets and overtime review", () => {
     expect(d5.overtimeMinutes).toBe(0);
   });
 
+  it("submitter_may_not_approve", async () => {
+    const r = await as(s.hr, "POST", T, { employeeId: s.emp.report2,
+      year: 2026, month: 3 });
+    const sub = await as(s.hr, "POST", `${T}/${r.body.id}/submit`);
+    expect(sub.status, sub.text).toBe(200);
+    const own = await as(s.hr, "POST", `${T}/${r.body.id}/approve`);
+    expect(own.status).toBe(403);
+    expect(own.body.error.code).toBe("SOD_VIOLATION");
+    const ok = await as(s.owner, "POST", `${T}/${r.body.id}/approve`);
+    expect(ok.status, ok.text).toBe(200);
+  });
+
   it("clock_out_after_24_hours_refused", async () => {
     ctx.clock.now = new Date("2026-04-03T05:00:00.000Z");
     await as(s.employee, "POST", "/v1/attendance/clock-in");

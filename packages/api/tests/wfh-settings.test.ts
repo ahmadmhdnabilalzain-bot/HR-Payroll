@@ -96,13 +96,18 @@ describe("wfh settings and notice", () => {
     }
     const g = await as(s.employee, "GET", S);
     expect(g.body.neverCollected).toEqual([...NEVER_COLLECTED]);
+    // Every table, not only wfh_ ones (review M2b, M2c). `job_title`
+    // is the employee's job, not a window title.
     const cols = await ctx.deps.db.query<{ table_name: string;
       column_name: string }>(`SELECT table_name, column_name
-      FROM information_schema.columns WHERE table_name LIKE 'wfh\\_%'`);
-    expect(cols.length).toBeGreaterThan(0);
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()`);
+    expect(cols.some((c) => c.table_name.startsWith("wfh_"))).toBe(true);
+    const banned = new RegExp("screen|keystroke|key_log|url|title|content|" +
+      "host|domain|window|image|capture|clip|typed|keys");
     for (const c of cols) {
-      expect(c.column_name, c.table_name)
-        .not.toMatch(/screen|keystroke|key_log|url|title|content/);
+      if (c.column_name === "job_title") continue;
+      expect(c.column_name, c.table_name).not.toMatch(banned);
     }
   });
 

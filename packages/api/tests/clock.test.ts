@@ -102,6 +102,19 @@ describe("geofenced clock-in", () => {
     expect(extra.status).toBe(400);
   });
 
+  it("clock_out_24_hour_bound_exact", async () => {
+    ctx.clock.now = new Date("2026-03-05T05:00:00.000Z");
+    expect((await as(s.employee, "POST", IN)).status).toBe(201);
+    ctx.clock.now = new Date("2026-03-06T05:01:00.000Z");
+    const late = await as(s.employee, "POST", OUT);
+    expect(late.status).toBe(422);
+    expect(late.body.error.code).toBe("CLOCK_OUT_TOO_LATE");
+    ctx.clock.now = new Date("2026-03-06T05:00:00.000Z");
+    const edge = await as(s.employee, "POST", OUT);
+    expect(edge.status, edge.text).toBe(200);
+    expect(edge.body.minutes).toBe(1440);
+  });
+
   it("clock_in_after_2000_utc_dated_next_dubai_day", async () => {
     ctx.clock.now = new Date("2026-03-01T20:30:00.000Z");
     const i = await as(s.employee, "POST", IN, { method: "web" });

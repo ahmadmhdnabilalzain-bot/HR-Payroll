@@ -1,8 +1,18 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { dubaiDate } from "../src/time/dubai";
 import { seedCompany, type Seeded } from "./helpers/seed";
-import { asUser, keepSessions, seedTime } from "./helpers/seed-time";
-import { plainSession, seedWfh } from "./helpers/seed-wfh";
+import {
+  asUser,
+  keepSessions,
+  linkUser,
+  seedTime,
+} from "./helpers/seed-time";
+import {
+  minutes,
+  nextMinute,
+  plainSession,
+  seedWfh,
+} from "./helpers/seed-wfh";
 import { makeApp } from "./helpers/test-app";
 
 type Ctx = Awaited<ReturnType<typeof makeApp>>;
@@ -22,7 +32,25 @@ describe("wfh views", () => {
       "/v1/time/pay-inputs?year=2026&month=3")).body;
     const w = await seedWfh(ctx, s);
     day = dubaiDate(w.first);
+    await outsiderData(w.first);
   });
+  /** Data for an employee outside the manager's scope (review M17). */
+  async function outsiderData(first: Date) {
+    const u = await linkUser(ctx, s, s.emp.outsider, "wviwout");
+    await as(s.hr, "PUT", `/v1/employees/${s.emp.outsider}/time-profile`,
+      { workMode: "remote", geofenceMode: "off", workSiteIds: [],
+        wfhTracked: true, shiftWorker: false });
+    await as(u, "POST", "/v1/wfh/consent", { noticeVersion: 1,
+      decision: "granted" });
+    const rec = await as(u, "POST", "/v1/attendance/clock-in",
+      { method: "web", workLocation: "remote" });
+    const at = nextMinute(new Date(Date.parse(rec.body.clockIn)));
+    ctx.clock.now = new Date(Math.max(at.getTime() + 120_000,
+      first.getTime() + 15 * 60_000));
+    const up = await as(u, "POST", "/v1/wfh/activity", {
+      attendanceId: rec.body.id, minutes: minutes(at, 1) });
+    expect(up.status, up.text).toBe(200);
+  }
   const range = () => `from=${day}&to=${day}`;
 
   it("own_days_detail", async () => {
@@ -56,6 +84,18 @@ describe("wfh views", () => {
     const out = await as(s.manager, "GET",
       `/v1/wfh/summary?${range()}&employeeId=${s.emp.outsider}`);
     expect(out.status).toBe(404);
+  });
+
+  it("summary_scope_without_employee", async () => {
+    const ids = async (who: typeof s.owner) => new Set((await as(who,
+      "GET", `/v1/wfh/summary?${range()}`)).body.items.map(
+      (x: { employeeId: string }) => x.employeeId));
+    expect((await ids(s.owner)).has(s.emp.outsider)).toBe(true);
+    const mgr = await ids(s.manager);
+    expect(mgr.has(s.emp.report)).toBe(true);
+    expect(mgr.has(s.emp.outsider)).toBe(false);
+    const emp = await ids(s.employee);
+    expect([...emp]).toEqual([s.emp.report]);
   });
 
   it("locations_owner_hr_mfa", async () => {
