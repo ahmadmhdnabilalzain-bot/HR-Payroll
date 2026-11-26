@@ -606,3 +606,11 @@ Important, 9 Minor). One commit per item, test first.
   forged header with the right id below a real fail (still rejected),
   end to end through the hook. UNVERIFIED: Postmark's header order and
   whether it strips inbound headers that claim its id.
+- I5 (idle timeout, no deadline): `http-node.ts` now sets an overall
+  timer that destroys the request at `timeoutMs` whatever the server
+  sends, and stops reading (destroys the response) at the 64 KiB body
+  cap. `sendWith(requestFn, scheme)` is the seam; the test runs a
+  local plain-HTTP trickle server (no TLS change) and checks the call
+  ends near the deadline, the cap ends a never-ending body, and the
+  real client still refuses http. Per-run budgets for the delivery job
+  were not added (the deadline bounds each delivery).

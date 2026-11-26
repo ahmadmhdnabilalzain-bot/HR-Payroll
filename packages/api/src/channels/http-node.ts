@@ -35,36 +35,62 @@ function failure(err: unknown): HttpFailure {
   return new HttpFailure(/CERT|TLS|SSL/.test(code) ? "TLS" : "NETWORK");
 }
 
-function send(r: HttpRequest): Promise<HttpResponse> {
-  const url = new URL(r.url);
-  if (url.protocol !== "https:") {
-    return Promise.reject(new HttpFailure("NETWORK"));
-  }
-  return new Promise((resolve, reject) => {
-    const req = request(url, { method: r.method, headers: r.headers,
-      timeout: r.timeoutMs,
-      ...(r.pinAddress === undefined ? {} : { lookup: pinned(r.pinAddress) }),
-    }, (res) => {
-      const chunks: Buffer[] = [];
-      let size = 0;
-      res.on("data", (c: Buffer) => {
-        if (size < MAX_BODY) chunks.push(c.subarray(0, MAX_BODY - size));
-        size += c.length;
+type RequestFn = typeof request;
+
+/**
+ * One request with an overall deadline (security review I5): the timer
+ * destroys the request however slowly the server trickles bytes, and
+ * reading stops (the socket is destroyed) once MAX_BODY is reached.
+ * `requestFn` and `scheme` are a seam for the local trickle test.
+ */
+export function sendWith(requestFn: RequestFn, scheme: string) {
+  return (r: HttpRequest): Promise<HttpResponse> => {
+    const url = new URL(r.url);
+    if (url.protocol !== scheme) {
+      return Promise.reject(new HttpFailure("NETWORK"));
+    }
+    return new Promise((resolve, reject) => {
+      let done = false;
+      const settle = (fn: () => void) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        fn();
+      };
+      const req = requestFn(url, { method: r.method, headers: r.headers,
+        timeout: r.timeoutMs, ...(r.pinAddress === undefined ? {}
+          : { lookup: pinned(r.pinAddress) }) }, (res) => {
+        const chunks: Buffer[] = [];
+        let size = 0;
+        const finish = () => settle(() => resolve({
+          status: res.statusCode ?? 0, headers: headersOf(res.headers),
+          body: Buffer.concat(chunks).toString("utf8") }));
+        res.on("data", (c: Buffer) => {
+          chunks.push(c.subarray(0, MAX_BODY - size));
+          size += c.length;
+          if (size >= MAX_BODY) {
+            finish();
+            res.destroy();
+          }
+        });
+        res.on("end", finish);
+        res.on("error", (e) => settle(() => reject(failure(e))));
       });
-      res.on("end", () => resolve({ status: res.statusCode ?? 0,
-        headers: headersOf(res.headers),
-        body: Buffer.concat(chunks).toString("utf8") }));
-      res.on("error", (e) => reject(failure(e)));
+      const timer = setTimeout(() => {
+        const e = new HttpFailure("TIMEOUT");
+        settle(() => reject(e));
+        req.destroy(e);
+      }, r.timeoutMs);
+      req.on("timeout", () => req.destroy(new HttpFailure("TIMEOUT")));
+      req.on("error", (e) => settle(() => reject(e instanceof HttpFailure
+        ? e : failure(e))));
+      if (r.body !== undefined) req.write(r.body);
+      req.end();
     });
-    req.on("timeout", () => req.destroy(new HttpFailure("TIMEOUT")));
-    req.on("error", (e) => reject(e instanceof HttpFailure ? e
-      : failure(e)));
-    if (r.body !== undefined) req.write(r.body);
-    req.end();
-  });
+  };
 }
 
 /** The real client: https only, no redirects followed, pinned lookup. */
 export function nodeHttpClient(): HttpClient {
-  return { send };
+  return { send: sendWith(request, "https:") };
 }
