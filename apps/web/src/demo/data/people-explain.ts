@@ -98,7 +98,8 @@ function ruleOf(r: LineSource["rules"][number]): ExplainRule {
   const status: SourceStatus = citation === null ? "unsourced"
     : known ?? "unsourced";
   return { text: `${name[0]?.toUpperCase() ?? ""}${name.slice(1)}: ` +
-    `${shown}${said}`, status, citation };
+    `${shown}${said}`, status, citation,
+    statusLabel: r.presentedLabel ?? null };
 }
 
 /** The engine's sentence without its closing status list. */
