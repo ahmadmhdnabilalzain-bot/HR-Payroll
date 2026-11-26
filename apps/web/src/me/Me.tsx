@@ -1,4 +1,5 @@
 import type { ViewProps } from "../views";
+import { Cover } from "../home/extra/Cover";
 import { MyDocuments } from "./MyDocuments";
 import { MyLeave, MyRequests } from "./MyLeave";
 import { MyPayslips } from "./MyPayslips";
@@ -15,6 +16,7 @@ export function Me(p: ViewProps) {
     case "leave": return <MyLeave />;
     case "requests": return <MyRequests />;
     case "profile": return <MyProfile />;
+    case "cover": return <Cover />;
     default: return <MyPayslips />;
   }
 }

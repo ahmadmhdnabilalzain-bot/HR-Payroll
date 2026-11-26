@@ -3,6 +3,7 @@ import type { PapersData } from "./papers-types";
 import type { MovesData } from "./moves-types";
 import type { HomeData } from "./home-types";
 import type { PeopleData } from "./people-types";
+import type { MoreData } from "./more-types";
 import type { TalentData } from "./talent-types";
 import type { TeamData } from "./team-types";
 
@@ -149,6 +150,8 @@ export interface DemoData {
   moves: MovesData;
   /** Home and Me: tasks, notices, the IT view (home-types.ts). */
   home: HomeData;
+  /** New employee, claims, cover (more-types.ts). */
+  more: MoreData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };

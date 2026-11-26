@@ -18,6 +18,7 @@ import {
   type DemoIssue,
 } from "@payroll/demo-data";
 import { adaptPapers } from "./papers";
+import { adaptMore } from "./more";
 import { adaptMoves } from "./moves";
 import { adaptHome } from "./home";
 import { adaptPeople } from "./people";
@@ -116,6 +117,7 @@ export function adapt(c: DemoCompany): DemoData {
     talent: adaptTalent(c),
     moves: adaptMoves(c),
     home: adaptHome(c),
+    more: adaptMore(c),
   };
 }
 

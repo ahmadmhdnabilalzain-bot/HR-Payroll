@@ -11,6 +11,7 @@ import { AREAS as REPORTS } from "./reports";
 import { AREAS as SETUP_ACCESS } from "./setup-access";
 import { AREAS as SETUP_RULES } from "./setup-rules";
 import { AREAS as SETUP_STRUCTURE } from "./setup-structure";
+import { AREAS as SWEEP_PEOPLE } from "./sweep-people";
 import { AREAS as TIME } from "./time";
 
 /**
@@ -31,4 +32,5 @@ export const ALL_AREAS: readonly Area[] = [
   ...SETUP_ACCESS,
   ...SETUP_STRUCTURE,
   ...HOME_ME,
+  ...SWEEP_PEOPLE,
 ];

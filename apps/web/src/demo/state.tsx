@@ -49,6 +49,12 @@ import {
   type PapersSlice,
 } from "./papers-state";
 import {
+  MORE_INITIAL,
+  reduceMore,
+  type MoreAction,
+  type MoreSlice,
+} from "./more-state";
+import {
   PAY_INITIAL,
   reducePay,
   type PayAction,
@@ -71,7 +77,7 @@ export type Resolution = "reviewed" | "renewal";
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
-    TeamSlice, MovesSlice, PaySlice {
+    TeamSlice, MovesSlice, PaySlice, MoreSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -107,6 +113,7 @@ export type Action =
   | TeamAction
   | MovesAction
   | PayAction
+  | MoreAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -116,7 +123,8 @@ export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL, ...TEAM_INITIAL,
-  ...MOVES_INITIAL, ...PAY_INITIAL, tasksDone: [], notesRead: [],
+  ...MOVES_INITIAL, ...PAY_INITIAL, ...MORE_INITIAL, tasksDone: [],
+  notesRead: [],
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -180,6 +188,18 @@ export function reduce(s: DemoState, a: Action): DemoState {
       return { ...s, notesRead: [...new Set([...s.notesRead, ...a.ids])] };
     case "notes-unread": return { ...s,
       notesRead: s.notesRead.filter((x) => !a.ids.includes(x)) };
+    case "more-hire":
+    case "more-hire-withdraw":
+    case "more-hire-restore":
+    case "more-claim":
+    case "more-claim-withdraw":
+    case "more-claim-restore":
+    case "more-fix":
+    case "more-fix-withdraw":
+    case "more-fix-restore":
+    case "more-cover":
+    case "more-cover-withdraw":
+    case "more-cover-restore": return reduceMore(s, a);
     case "pay-request":
     case "pay-withdraw":
     case "pay-restore":

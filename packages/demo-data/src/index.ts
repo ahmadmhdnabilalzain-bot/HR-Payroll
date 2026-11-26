@@ -36,3 +36,4 @@ export * from "./wpd-structure";
 export * from "./wpd-templates";
 export * from "./wpd-cost";
 export * from "./wpd-talent";
+export * from "./wpe-more";
