@@ -111,10 +111,9 @@ function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
   return (
     <div className={s.ready}>
       <div className={s.bar} aria-hidden="true">
-        <span className={s.barReady} style={{ flexGrow: ready }} />
-        {blocked > 0 && (
-          <span className={s.barHeld} style={{ flexGrow: blocked }} />
-        )}
+        {blocked > 0 && <span className={s.barHeld} />}
+        <span className={s.barReady} style={{ "--k":
+          p.total === 0 ? 1 : ready / p.total } as object} />
       </div>
       <p className={s.readyLine}>
         <span className={s.readyCount}>

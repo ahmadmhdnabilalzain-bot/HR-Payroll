@@ -44,9 +44,9 @@ export const SPLIT_IN = 0.3;
 /** Slide progress at the start of the closing phase. */
 export const SPLIT_OUT = 0.7;
 /** Opacity of the changed digits through the middle phase. */
-export const DIM = 0.35;
+export const DIM = 0.25;
 /** Blur of the changed digits through the middle phase. */
-export const BLUR = "0.1em";
+export const BLUR = "0.14em";
 /** A glyph at or above this (opacity x share in the clip) is read. */
 export const LEGIBLE = 0.5;
 /** Whole-figure crossfade: old out over this, then new in over it. */

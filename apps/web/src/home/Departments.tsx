@@ -75,7 +75,7 @@ function DeptRow(p: { d: DepartmentRow; top: DepartmentRow;
     <>
       <span className={s.name}>{p.d.name[lang]}</span>
       <span className={s.bar} aria-hidden="true">
-        <span className={s.fill} style={{ transform: `scaleX(${k})` }} />
+        <span className={s.fill} style={{ "--k": k } as object} />
       </span>
       <span className={s.value}>
         <Explainable explanation={explain[`dept-${p.metric === "cost"

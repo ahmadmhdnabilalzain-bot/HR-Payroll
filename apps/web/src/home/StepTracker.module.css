@@ -13,17 +13,60 @@
   list-style: none;
 }
 
+/* Fills move by transform: scaleX only (no layout), from 0 on first
+ * paint (@starting-style), 320 ms ease-out; reduced motion: none. */
 .dots > li {
+  position: relative;
   inline-size: 18px;
   block-size: 4px;
   border-radius: 2px;
   background: var(--color-divider-strong);
-  transition: background-color var(--dur-base) var(--ease-out);
+  overflow: hidden;
 }
 
-.dots > li[data-state="done"],
-.dots > li[data-state="now"] {
+.dots > li::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform var(--dur-slow, 320ms)
+    var(--ease-out, cubic-bezier(0.2, 0, 0, 1));
+}
+
+[dir="rtl"] .dots > li::after {
+  transform-origin: 100% 50%;
+}
+
+.dots > li[data-state="done"]::after,
+.dots > li[data-state="now"]::after {
+  transform: none;
+}
+
+/* The steps fill one after the other, 60 ms apart. */
+.dots > li:nth-child(2)::after {
+  transition-delay: 60ms;
+}
+
+.dots > li:nth-child(3)::after {
+  transition-delay: 120ms;
+}
+
+.dots > li:nth-child(4)::after {
+  transition-delay: 180ms;
+}
+
+@starting-style {
+  .dots > li[data-state]::after {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dots > li::after {
+    transition: none;
+  }
 }
 
 .line {

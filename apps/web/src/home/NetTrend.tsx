@@ -1,13 +1,12 @@
 import { fils, type Fils } from "@payroll/engine";
-import { gsap } from "gsap";
-import { useLayoutEffect, useRef, type RefObject } from "react";
-import { reducedMotion } from "../demo/motion";
+import { useRef } from "react";
 import { hrefOf } from "../demo/route";
 import { useLocale } from "../i18n/LocaleProvider";
 import { usePay } from "../pay/load";
 import type { PastRunView } from "../pay/types";
 import { Money } from "../ui/Money";
 import { Avatar } from "../ui/Avatar";
+import { useChartMotion } from "../ui/chartMotion";
 import s from "./NetTrend.module.css";
 
 /** Chart box in SVG units; the SVG scales to its column. */
@@ -57,12 +56,14 @@ export function NetTrend() {
   const { t } = useLocale();
   const pay = usePay();
   const runs = pay.runs;
-  const box = useRef<SVGSVGElement>(null);
+  const fig = useRef<HTMLElement>(null);
   const pts = pointsOf(runs);
   const paid = runs.filter((r) => r.paid).length;
   const last = runs.at(-1);
   const first = runs[0];
-  useDraw(box);
+  // The line draws left to right once in view (480 ms), then the
+  // October tail and the points fade in; a new net morphs the line.
+  useChartMotion(fig, runs.map((r) => `${r.id}${r.net}`).join());
   if (last === undefined || first === undefined) return null;
   const change = last.change ?? 0n;
   const before = runs.at(-2);
@@ -79,13 +80,13 @@ export function NetTrend() {
         </h2>
         <p className={s.note}>{t("home.trendNote")}</p>
       </div>
-      <figure className={s.figure}>
-        <svg ref={box} className={s.chart} viewBox={`0 0 ${W} ${H}`}
+      <figure className={s.figure} ref={fig}>
+        <svg className={s.chart} viewBox={`0 0 ${W} ${H}`}
           aria-hidden="true" focusable="false">
           <path className={s.line} d={line(solid)} pathLength={1}
-            data-draw="line" />
+            data-line="" data-key="line" />
           {tail.length > 1 && (
-            <path className={s.tail} d={line(tail)} data-draw="tail" />
+            <path className={s.tail} d={line(tail)} data-label="" />
           )}
         </svg>
         <ol className={s.points}>
@@ -93,7 +94,7 @@ export function NetTrend() {
             <li key={r.id} style={{ insetInlineStart:
               `${(pts[i]!.x / W) * 100}%`, insetBlockStart:
               `${(pts[i]!.y / H) * 100}%` }} data-paid={r.paid}
-              data-draw="dot">
+              data-label="">
               <span className="visually-hidden">
                 {r.label}{r.paid ? "" : `, ${t("home.trendPrepared")}`}
                 {": "}<Money value={r.net} tween={false} />
@@ -160,31 +161,4 @@ function Signed(p: { value: bigint }) {
         tween={false} />
     </span>
   );
-}
-
-/**
- * The opening pass: the line draws left to right (path length 1, so
- * the page zoom cannot skew it), the area and the October tail fade
- * in under it, then the points. Reduced motion shows the end state.
- */
-function useDraw(box: RefObject<SVGSVGElement | null>): void {
-  useLayoutEffect(() => {
-    const svg = box.current;
-    if (svg === null || reducedMotion()) return undefined;
-    const root = svg.parentElement;
-    const q = (k: string) => root?.querySelectorAll(`[data-draw="${k}"]`)
-      ?? [];
-    const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-    tl.fromTo(q("line"), { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" })
-      .fromTo(q("area"), { opacity: 0 }, { opacity: 1, duration: 0.5 },
-        0.35)
-      .fromTo(q("tail"), { opacity: 0 }, { opacity: 1, duration: 0.3 },
-        0.85)
-      .fromTo(q("dot"), { opacity: 0 }, { opacity: 1, duration: 0.25,
-        stagger: 0.06 }, 0.5);
-    return () => {
-      tl.progress(1).kill();
-    };
-  }, [box]);
 }

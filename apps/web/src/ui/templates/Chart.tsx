@@ -1,7 +1,7 @@
 import type { Fils } from "@payroll/engine";
-import { gsap } from "gsap";
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { useDemo } from "../../demo/state";
+import { useChartMotion } from "../chartMotion";
 import { formatMoney, formatSignedMoney, MINUS }
   from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
@@ -9,9 +9,9 @@ import s from "./templates.module.css";
 
 /**
  * Report charts (RP): plain SVG, no library, ink and grey only. Bars
- * draw in with GSAP (power3.out, 40 ms apart) and are simply there
- * under reduced motion. Amount labels follow hide-amounts; the bars
- * stay, without figures.
+ * grow from zero once in view and tween on a data change
+ * (ui/chartMotion, WAAPI); under reduced motion they are simply there.
+ * Amount labels follow hide-amounts; the bars stay, without figures.
  */
 
 const HIDDEN = "••";
@@ -46,28 +46,6 @@ function useWidth(ref: RefObject<HTMLElement | null>): number {
   return w;
 }
 
-/** Draw the marks in once, unless the viewer asked for less motion. */
-function useDrawIn(ref: RefObject<SVGSVGElement | null>, axis: "x" | "y",
-  ready: boolean, key: string): void {
-  useLayoutEffect(() => {
-    const svg = ref.current;
-    if (svg === null || !ready) return undefined;
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const marks = svg.querySelectorAll<SVGElement>("[data-mark]");
-      gsap.from(marks, {
-        [axis === "y" ? "scaleY" : "scaleX"]: 0,
-        transformOrigin: (_: number, el: SVGElement) =>
-          el.dataset.origin ?? (axis === "y" ? "50% 100%" : "0% 50%"),
-        duration: 0.6, ease: "power3.out", stagger: 0.04, delay: 0.1,
-      });
-      gsap.from(svg.querySelectorAll("[data-label]"), {
-        opacity: 0, duration: 0.3, delay: 0.4, stagger: 0.03 });
-    });
-    return () => mm.revert();
-  }, [ref, axis, ready, key]);
-}
-
 export interface BarDatum {
   label: string;
   value: Fils;
@@ -95,7 +73,8 @@ export function BarChart(p: { data: BarDatum[]; label: string;
   const bar = Math.max(8, Math.min(56, slot * 0.56));
   const y = (v: bigint): number => max === 0n ? 0
     : Number((v * 10000n) / max) / 10000 * plot;
-  useDrawIn(svg, "y", w > 0, p.data.map((d) => d.label).join());
+  useChartMotion(svg, p.data.map((d) => `${d.label}${d.value}`).join(),
+    w > 0);
   const hide = state.hideAmounts;
   return (
     <figure className={s.chart} ref={box}>
@@ -110,7 +89,8 @@ export function BarChart(p: { data: BarDatum[]; label: string;
             const x = i * slot + (slot - bar) / 2;
             return (
               <g key={d.label}>
-                <rect data-mark="" x={x} y={top + plot - bh} width={bar}
+                <rect data-mark="" data-key={d.label} x={x}
+                  y={top + plot - bh} width={bar}
                   height={bh} rx={4}
                   className={d.focus === true ? s.markInk : s.markGrey} />
                 {!hide && (
@@ -183,8 +163,10 @@ export function Waterfall(p: { steps: WaterfallStep[]; label: string }) {
   const plotW = Math.max(40, w - labelW - valueW - 16);
   const x = (v: bigint): number => labelW + 8 +
     (Number(v) - min) / (max - min || 1) * plotW;
-  useDrawIn(svg, "x", w > 0, p.steps.map((d) => `${d.label}${d.value}`)
-    .join());
+  // The steps build left to right, each from the previous one's end
+  // (a fall grows leftward from it), 40 ms apart on one 600 ms swing.
+  useChartMotion(svg, p.steps.map((d) => `${d.label}${d.value}`).join(),
+    w > 0, { stagger: 40, duration: 600 });
   const hide = state.hideAmounts;
   return (
     <figure className={s.chart} ref={box}>
@@ -208,18 +190,21 @@ export function Waterfall(p: { steps: WaterfallStep[]; label: string }) {
                   {st.label.length > (narrow ? 18 : 30)
                     ? `${st.label.slice(0, narrow ? 17 : 29)}…`
                     : st.label}</text>
-                <rect data-mark="" x={left} y={yy + 6} width={width}
+                <rect data-mark="" data-grow="x"
+                  data-key={total ? (i === 0 ? "start" : "end") : st.label}
+                  x={left} y={yy + 6} width={width}
                   height={row - 12} rx={3}
                   data-origin={down ? "100% 50%" : "0% 50%"}
                   className={total ? s.markInk : down ? s.markHollow
                     : s.markGrey} />
                 {total && (
-                  <path d={`M${a + 7} ${yy + row - 4} l6 -${row - 8} ` +
+                  <path data-label=""
+                    d={`M${a + 7} ${yy + row - 4} l6 -${row - 8} ` +
                     `M${a + 12} ${yy + row - 4} l6 -${row - 8}`}
                     className={s.axisBreak} />
                 )}
                 {next !== undefined && (
-                  <line x1={b} x2={b} y1={yy + row - 6}
+                  <line data-label="" x1={b} x2={b} y1={yy + row - 6}
                     y2={yy + row + gap + 6} className={s.connector} />
                 )}
                 <text data-label="" x={w} y={yy + row / 2 + 5}

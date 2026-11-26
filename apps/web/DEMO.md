@@ -64,7 +64,8 @@ pnpm --filter @payroll/web build:offline
   the details table. The owner brief and the board report open with
   `Summary` (three columns: what changed, needs a decision, at risk).
 - **Home hero** (`home/PayRunHero.tsx`): one sentence, the net figure
-  rolling from the last true total (`RollDigits`, never a count-up),
+  rolling from the last true total (`RollDigits`: only the changed
+  digits roll, never a count-up; see "Data in motion"),
   its make-up, the step tracker and four cards (`PeopleStrip`: UAE
   nationals, who is off this week, documents expiring, who waits),
   each a link with its own picture. IT, the manager and the employee
@@ -403,11 +404,12 @@ are in `docs/demo/copy-audit.md`.
   gratuity code stays out of the entry chunk.
 - **Money:** integer fils; tweens step in whole per mille (bigint).
 - **Motion:** CSS and small hand-written code (`ui/flight.ts`,
-  `listMotion.ts`, `RollDigits`), with GSAP for number rolls and chart
-  and org-chart entrances (`demo/motion.ts`); no Motion library.
-  150 to 250 ms ease-out, numbers ease on change only, FLIP reorder,
-  rows stagger 90 ms when revealed, crossfade on theme and role
-  switches. `prefers-reduced-motion` turns all of it off.
+  `listMotion.ts`, `ui/Rolling.tsx`, `ui/chartMotion.ts`), with GSAP
+  left only for the org chart, the opening film and the days-left
+  roll; no Motion library. FLIP reorder, rows stagger 90 ms when
+  revealed, crossfade on theme and role switches.
+  `prefers-reduced-motion` turns all of it off. Figures and charts:
+  "Data in motion" below.
 - **Lint:** the repo has no linter: `pnpm typecheck`, `pnpm lines` and
   the style tests are the checks.
 
@@ -641,3 +643,72 @@ e2e`. Screenshot, axe and recording scripts live outside the repo.
   hosted demo). Skip is not shown during that wait.
 - Headless Chromium logs "GPU stall due to ReadPixels" warnings from
   its own compositor; the page logs no errors.
+
+## Data in motion (figures, charts, rails)
+
+Everything here runs on CSS transitions or WAAPI, so it shows up in
+`document.getAnimations()`. Reduced motion draws the end state at once.
+
+- **Money and counts** (`ui/Money.tsx`, `ui/Count.tsx`, engine in
+  `ui/Rolling.tsx`, timeline in `ui/roll.ts`): a changed figure rolls
+  only the digits that changed, each a two-glyph column sliding one
+  line in a clip (`clip-path`, so the baseline holds; tabular figures,
+  so nothing shifts). 320 ms: 0 to 90 ms every changed digit moves
+  together and dims to 25 % with a 0.14em blur; 90 to 230 ms the
+  middle of the slide ripples right to left, 20 ms per digit (capped
+  at three steps); 230 to 320 ms all finish together and sharpen.
+  Outside the middle the changed digits are always at the same point,
+  so the figure reads as the old total or the new one; inside it none
+  can be read. It never shows an amount in between and never counts
+  up. A sign flip or a digit more or less swaps the whole figure
+  instead (old out over 120 ms, then new in over 120 ms, never both).
+  `tests/unit/roll.test.ts` steps the timeline every 1 ms. Headline
+  figures (hero, lg) carry `aria-live="polite"` with the final value
+  only. While amounts are hidden the mask is drawn and no digit is
+  ever animated; toggling Hide amounts brings the arriving face (dots
+  or digits) in out of a blur over 180 ms, with the real digits gone
+  from the first frame of hiding.
+- **Charts** (`ui/chartMotion.ts`, used by the report bar chart and
+  waterfall, the dashboard trend bars, change bars, horizontal bars,
+  split bar, sparklines and the Home net trend): once per mount, when
+  first in view, marks grow from their zero edge (480 ms ease-out,
+  30 ms apart), lines draw in by `stroke-dashoffset` (480 ms), then
+  values and labels fade in (200 ms). The entrance is built paused at
+  frame 0 on mount and played by an IntersectionObserver, so a chart
+  never flashes full first. Executive dashboard bars use 600 ms to
+  match the tiles' 600 ms rise. The Variance waterfall builds top to
+  bottom, 40 ms apart over 600 ms, each step growing from the previous
+  step's end (a fall grows back from it). On a data change (Variance's
+  earlier or later month) the chart is not remounted: marks FLIP from
+  their old box (320 ms), lines morph their path, new marks grow,
+  labels fade back. Scales start at 0.001, not 0: Chromium draws an
+  SVG element with a non-invertible transform as if untransformed.
+- **Rails** (Home ready-against-held bar, Home step dashes, the pay
+  run's phone step bar, department bars, tile meters): fills move by
+  `transform: scaleX` only (320 ms ease-out, from 0 on first paint via
+  `@starting-style`).
+- **Frame-stepping a capture:** `document.getAnimations()` holds every
+  roll, chart and rail animation. Pause them all, then set
+  `currentTime` on each and wait two animation frames before each
+  screenshot (Chromium commits a seek to the compositor a frame late):
+
+  ```js
+  const all = document.getAnimations();
+  all.forEach((a) => a.pause());
+  for (let t = 0; t <= 960; t += 40) {
+    all.forEach((a) => { a.currentTime = t; });
+    await new Promise((r) => requestAnimationFrame(() =>
+      requestAnimationFrame(r)));
+    // capture
+  }
+  ```
+
+  JS outside WAAPI: the IntersectionObserver that starts a chart's
+  entrance (a chart below the fold holds paused at frame 0 until it
+  is scrolled to), the React state that adds and removes a roll's
+  columns (they go when the animations' `finished` promise resolves,
+  so a paused capture keeps them), and GSAP in the org chart, the
+  opening film and the days-left roll (`people/useRoll.ts`), which
+  `getAnimations()` cannot see; use `gsap.globalTimeline.pause()` and
+  `.time()` for those.
+

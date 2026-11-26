@@ -57,8 +57,8 @@ function Meter(p: { part: number; whole: number }) {
   const share = Math.min(1, p.part / Math.max(p.whole, 1));
   return (
     <span className={s.meter} aria-hidden="true">
-      <span className={s.meterFill} style={{ inlineSize:
-        `${(share * 100).toFixed(1)}%` }} />
+      <span className={s.meterFill} style={{ "--k": share.toFixed(3) } as
+        object} />
     </span>
   );
 }
