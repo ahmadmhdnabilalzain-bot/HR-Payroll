@@ -6,7 +6,7 @@ import { People } from "./people/People";
 import { Reports } from "./reports/Reports";
 import { SectionPage } from "./shell/SectionPage";
 import { Setup } from "./setup/Setup";
-import { TimeOff } from "./timeoff/TimeOff";
+import { TimeRouter } from "./time/TimeRouter";
 
 /**
  * The views of the demo, one per top-level section. A section shows in
@@ -23,7 +23,7 @@ export const VIEWS: Partial<Record<Section, ComponentType<ViewProps>>> = {
   home: Home,
   "pay-run": PayRun,
   people: People,
-  "time-off": TimeOff,
+  "time-off": TimeRouter,
   reports: Reports,
   setup: Setup,
   s: SectionPage,

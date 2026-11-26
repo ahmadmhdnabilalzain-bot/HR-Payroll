@@ -7,6 +7,12 @@ import {
 } from "react";
 import type { DemoData, DemoSource } from "./data/types";
 import {
+  reduceTime,
+  TIME_INITIAL,
+  type TimeAction,
+  type TimeSlice,
+} from "./time-state";
+import {
   LEAVE_INITIAL,
   reduceLeave,
   type LeaveAction,
@@ -38,7 +44,7 @@ export type Resolution = "reviewed" | "renewal";
 
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
-  extends LeaveSlice, RulesSlice, AccessSlice {
+  extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -64,12 +70,13 @@ export type Action =
   | { type: "sources"; open: boolean }
   | LeaveAction
   | RulesAction
-  | AccessAction;
+  | AccessAction
+  | TimeAction;
 
 export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
-  ...ACCESS_INITIAL,
+  ...ACCESS_INITIAL, ...TIME_INITIAL,
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -105,6 +112,10 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "key-restore":
     case "hook-resend":
     case "hook-unresend": return reduceAccess(s, a);
+    case "time-decide":
+    case "time-undo":
+    case "punch-match":
+    case "punch-unmatch": return reduceTime(s, a);
   }
 }
 
