@@ -34,6 +34,7 @@ them apart is deliberate.
 | 2026-11-25 | "If LinkedIn is risky ignore it. But the rest it should be full integration." LinkedIn is excluded for now; Instagram, TikTok, Snapchat and X get full integrations. |
 | 2026-11-25 | "I need a feature for meetings within the app itself. Video and audio with summarized meeting points and assigned list of tasks per staff." Added to scope (UQ37); feasibility research in progress. |
 | 2026-11-25 | "Work from home would record screen time and location service." On screenshots and keystroke logging: "No, I don't want those 2." Both are out of scope, with no switch. "Location service will just record once every hour." |
+| 2026-11-26 | UI brief (before designing the interface): "I am not looking for something standard. This has to look extremely advanced with motion graphics and animation, extremely smooth, easy user interface and navigation, looking super high tech, bright and dark mode switches, no long side bar menus, the flow of the functions need to be clear and doesn't confuse the staff. It shouldn't look like it was made with AI. I genuinely want clients to be amazed." Supersedes the standard shell in Plan 4. |
 | 2026-11-25 | Asked for the combined list of all competitors' features (`docs/superpowers/specs/2026-11-25-combined-feature-list.md`). |
 
 ## 2. Standing instructions (the owner's words)
