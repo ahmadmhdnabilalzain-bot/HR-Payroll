@@ -797,3 +797,10 @@ The owner can overrule any of these. Full list with reasons:
 - Coverage after wave 4 and fixes: about 160+ of 207 UAE-scope rows live
   (77 percent before wave 4); pension for UAE nationals stays "Not
   computed" by decision.
+- Owner (2026-11-26): no more videos or screenshots of in-progress work in
+  chat ("no need to burn tokens"); plain-text progress only. Exception: the
+  final approval check on the finished build. After the full browser
+  walkthrough passes and everything is approved, produce a 4 to 5 minute
+  product-launch style promo video of the finished app covering all
+  features (story and shot list approved first). Agents must not record
+  videos for chat unless a task needs one for its own verification.
