@@ -8,6 +8,7 @@ import type { RequestsData } from "./requests-types";
 import type { FilesData } from "./files-types";
 import type { MoreData } from "./more-types";
 import type { VerifyData } from "./verify-types";
+import type { EsignData } from "./esign-types";
 import type { TalentData } from "./talent-types";
 import type { TeamData } from "./team-types";
 
@@ -164,6 +165,8 @@ export interface DemoData {
   more: MoreData;
   /** Verifiable letters and document intake (verify-types.ts). */
   verify: VerifyData;
+  /** Electronic signing (esign-types.ts). */
+  esign: EsignData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };

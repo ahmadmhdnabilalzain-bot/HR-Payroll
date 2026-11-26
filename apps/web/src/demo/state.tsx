@@ -120,6 +120,12 @@ import {
   type RuleChangeAction,
   type RuleChangeSlice,
 } from "../setup/rule-change/state";
+import {
+  ESIGN_INITIAL,
+  reduceEsign,
+  type EsignAction,
+  type EsignSlice,
+} from "./esign-state";
 
 /** manager and employee: the team view and the self view; it: the IT
  * manager (access, connections, the audit chain; no company pay). */
@@ -139,7 +145,8 @@ export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
-    PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice {
+    PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
+    EsignSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -186,6 +193,7 @@ export type Action =
   | VerifyAction
   | RuleChangeAction
   | PlanningAction
+  | EsignAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -204,6 +212,7 @@ export const INITIAL: DemoState = {
   ...VERIFY_INITIAL,
   ...RULE_CHANGE_INITIAL,
   ...PLANNING_INITIAL,
+  ...ESIGN_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -321,6 +330,7 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "salary-release": return reduceHolds(s, a);
     case "rule-change-step":
     case "rule-change-undo": return reduceRuleChange(s, a);
+    case "esign": return reduceEsign(s, a);
   }
 }
 
