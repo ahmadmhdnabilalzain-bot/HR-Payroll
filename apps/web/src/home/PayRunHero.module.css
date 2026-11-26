@@ -45,14 +45,17 @@
   max-inline-size: 520px;
 }
 
-/* Ready against held: the held share is the track, the ready share
- * an ink fill over it that grows by scaleX (no layout) when an IBAN
- * passes, 320 ms ease-out, from 0 on first paint. A 3 px cut in the
- * card's colour keeps the two apart. Reduced motion: no transition. */
+/* Ready against held on a grey track: the ready share grows from the
+ * start edge and the held share from the end edge, both by scaleX (no
+ * layout), 320 ms ease-out, from 0 on first paint, so no frame says
+ * everyone is held. When an IBAN passes, ink grows and red shrinks on
+ * the same clock. A 3 px cut in the card's colour keeps them apart.
+ * Reduced motion: no transition. */
 .bar {
   position: relative;
   block-size: 8px;
   border-radius: 4px;
+  background: var(--color-divider-strong);
   overflow: hidden;
 }
 
@@ -60,6 +63,14 @@
   position: absolute;
   inset: 0;
   background: var(--color-danger);
+  transform: scaleX(var(--h, 0));
+  transform-origin: 100% 50%;
+  transition: transform var(--dur-slow, 320ms)
+    var(--ease-out, cubic-bezier(0.2, 0, 0, 1));
+}
+
+[dir="rtl"] .barHeld {
+  transform-origin: 0 50%;
 }
 
 .barReady {
@@ -80,13 +91,15 @@
 }
 
 @starting-style {
-  .barReady {
+  .barReady,
+  .barHeld {
     transform: scaleX(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .barReady {
+  .barReady,
+  .barHeld {
     transition: none;
   }
 }
