@@ -3,6 +3,7 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../Icon";
 import { Avatar } from "../Avatar";
 import { PageFoot } from "./PageFoot";
+import { saveView, savedView } from "./listMotion";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -78,8 +79,19 @@ export function FilterList<T>(p: {
   actions?: ReactNode;
 }) {
   const { t } = useLocale();
-  const [q, setQ] = useState("");
-  const [seg, setSeg] = useState(p.segments?.[0]?.id ?? "");
+  // Search and filter outlive a trip to a record and back.
+  const [key] = useState(() => location.hash);
+  const [q, setQRaw] = useState(() => savedView()?.q ?? "");
+  const [seg, setSegRaw] = useState(() => savedView()?.seg ??
+    p.segments?.[0]?.id ?? "");
+  const setQ = (v: string): void => {
+    setQRaw(v);
+    saveView(key, { q: v, seg });
+  };
+  const setSeg = (v: string): void => {
+    setSegRaw(v);
+    saveView(key, { q, seg: v });
+  };
   const active = p.segments?.find((x) => x.id === seg);
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
   const shown = p.rows.filter((r) => (active === undefined ||
@@ -172,13 +184,14 @@ function Row<T>(q: { p: RowProps<T>; r: T }) {
       {c.render(r)}
     </span>
   ) : (
-    <span key={c.key} className={s.cellMain}>
+    <span key={c.key} className={s.cellMain} data-row-main="">
       {who !== undefined && <Avatar id={who.id} name={who.name} />}
       <span className={s.cellText}>{c.render(r)}</span>
     </span>
   ));
   const row = href === undefined ? <div className={s.row}>{cells}</div>
-    : <a className={s.row} href={href}>{cells}</a>;
+    : <a className={s.row} href={href} data-row=""
+      data-row-name={who?.name}>{cells}</a>;
   if (p.rowActions === undefined) return <li>{row}</li>;
   return (
     <li className={s.actRow}>

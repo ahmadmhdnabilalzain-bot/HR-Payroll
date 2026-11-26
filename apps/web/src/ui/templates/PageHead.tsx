@@ -20,6 +20,8 @@ export function PageHead(p: { title: string; lede?: string | undefined;
   crumbs?: Crumb[] | undefined;
   /** Beside the title: a status pill. */
   badge?: ReactNode;
+  /** Before the title: the person's face (a record about someone). */
+  face?: ReactNode;
   meta?: ReactNode;
   id?: string }) {
   const { t } = useLocale();
@@ -42,6 +44,7 @@ export function PageHead(p: { title: string; lede?: string | undefined;
         )}
       <div className={s.headRow}>
         <div className={s.titleWrap}>
+          {p.face}
           <h1 className={s.title} id={p.id}>{p.title}</h1>
           {p.badge}
         </div>

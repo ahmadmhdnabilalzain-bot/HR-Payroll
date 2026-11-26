@@ -65,6 +65,13 @@
   min-block-size: var(--text-title-lh);
 }
 
+/* The record's face: 44 px, the row's face (36 px) grows into it. */
+.headFace {
+  inline-size: 44px;
+  block-size: 44px;
+  font-size: 15px;
+}
+
 .titleWrap {
   display: flex;
   flex: 1 1 240px;
@@ -1589,4 +1596,39 @@ li + li.actRow > .row {
 .asideActions:empty,
 .asideBlock:has(> .asideActions:empty):not(:has(> p)) {
   display: none;
+}
+
+/* List to record (listMotion.ts): the face and the name travel, 280 ms
+ * on the sheet curve; the rest of the page crossfades under them. */
+:global(html[data-list-motion])::view-transition-group(*) {
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The old page leaves quickly, so two pages never read as one. */
+:global(html[data-list-motion])::view-transition-old(root) {
+  animation-duration: 140ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+:global(html[data-list-motion])::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The name keeps its proportions: it scales from its start edge. */
+:global(html[data-list-motion])::view-transition-old(list-name),
+:global(html[data-list-motion])::view-transition-new(list-name) {
+  block-size: 100%;
+  inline-size: auto;
+  object-fit: contain;
+  object-position: left center;
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+:global(html[data-list-motion])::view-transition-old(list-face),
+:global(html[data-list-motion])::view-transition-new(list-face) {
+  block-size: 100%;
+  animation-duration: 280ms;
 }

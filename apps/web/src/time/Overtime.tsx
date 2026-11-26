@@ -124,6 +124,7 @@ export function OvertimeRecord(q: { id: string }) {
       who.lang)}`} lede={`${who.jobOf(c.employeeId)}. ${word}.`}
     back={{ label: "Overtime to decide", href: hrefOf("time-off",
       "overtime") }}
+    avatar={{ id: c.employeeId, name: who.name(c.employeeId) }}
     actions={<Buttons id={c.id} text="The claim" phase={phase}
       allowed={who.canDecide(c.employeeId)} />}
     stats={[

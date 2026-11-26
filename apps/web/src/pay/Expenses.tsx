@@ -109,6 +109,7 @@ function ClaimPage(p: { x: ExpenseView }) {
   };
   return (
     <RecordTabs title={x.name} lede={`${x.title}, ${x.date}`}
+      avatar={{ id: x.employeeId, name: x.name }}
       back={{ label: "Expense claims", href: LIST }}
       actions={a !== undefined && verdict === undefined && isChecker ? (
         <>
