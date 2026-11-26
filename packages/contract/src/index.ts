@@ -14,6 +14,7 @@ export * from "./sif";
 export * from "./audit";
 export * from "./lists";
 export * from "./time-settings";
+export * from "./time-rosters";
 export { HolidayList, SpecialPeriodList, WorkSiteList }
   from "./routes-time-settings";
 export * from "./routes";

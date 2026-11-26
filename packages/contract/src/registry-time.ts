@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import * as settingsRoutes from "./routes-time-settings";
 import * as settings from "./time-settings";
+import * as rosters from "./time-rosters";
 
 function named(mod: Record<string, unknown>, names: readonly string[]) {
   const out: Record<string, z.ZodType> = {};
@@ -21,4 +22,10 @@ export const TIME_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
     "TimeProfileUpdate"]),
   ...named(settingsRoutes, ["HolidayList", "SpecialPeriodList",
     "WorkSiteList"]),
+  ...named(rosters, ["ShiftTemplate", "ShiftTemplateCreate",
+    "ShiftTemplateUpdate", "ShiftTemplateList", "RosterSlot",
+    "RosterDay", "RosterDayList", "RosterPut", "EmployeeFlag",
+    "RosterResult", "RotationApply", "RosterPublish", "PublishResult",
+    "SwapRequest", "SwapRequestList", "SwapCreate", "SwapRespond",
+    "SwapDecision"]),
 };

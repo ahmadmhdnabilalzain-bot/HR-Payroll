@@ -23,6 +23,7 @@ import {
 } from "./lists";
 import { IdParams } from "./primitives";
 import { TIME_SETTINGS_ROUTES } from "./routes-time-settings";
+import { TIME_ROSTER_ROUTES } from "./routes-time-rosters";
 import {
   ALL_ROLES,
   DECIDERS,
@@ -86,4 +87,5 @@ export const LEAVE_ATTENDANCE_ROUTES: readonly RouteDef[] = [...LEAVE,
 /** Plan 9's routes (time, attendance, leave policies, WFH), in order. */
 export const TIME_ROUTES: readonly RouteDef[] = [
   ...TIME_SETTINGS_ROUTES,
+  ...TIME_ROSTER_ROUTES,
 ];

@@ -28,4 +28,23 @@ export async function seedTimeRows(admin: Db, c: string, emp: string)
     `INSERT INTO employee_time_profiles (company_id, employee_id, work_mode,
        geofence_mode, work_site_ids, wfh_tracked, shift_worker)
      VALUES ($1, $2, 'site', 'off', '{}', false, false)`, [c, emp]);
+  await seedRosterRows(admin, c, emp);
+}
+
+async function seedRosterRows(admin: Db, c: string, emp: string) {
+  const tpl = rowId(c, "94");
+  await admin.query(
+    `INSERT INTO shift_templates (id, company_id, name, start_min, end_min,
+       break_minutes, status) VALUES ($1, $2, 'Shift A', 540, 1020, 60,
+       'active')`, [tpl, c]);
+  await admin.query(
+    `INSERT INTO roster_entries (company_id, employee_id, date, draft_kind,
+       draft_shift_template_id) VALUES ($1, $2, '2026-03-02', 'shift', $3)`,
+    [c, emp, tpl]);
+  await admin.query(
+    `INSERT INTO swap_requests (id, company_id, requester_employee_id,
+       date, peer_employee_id, peer_date, status, requester_version,
+       peer_version, requested_by, created_at) VALUES ($1, $2, $3,
+       '2026-03-02', $3, '2026-03-02', 'cancelled', 0, 0, $3, $4)`,
+    [rowId(c, "95"), c, emp, AT]);
 }

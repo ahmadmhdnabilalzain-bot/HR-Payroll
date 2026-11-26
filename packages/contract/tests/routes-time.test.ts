@@ -8,6 +8,10 @@ const TIME_ROUTE_IDS = [
   "createSpecialPeriod", "updateSpecialPeriod", "listWorkSites",
   "createWorkSite", "updateWorkSite", "getTimeProfile",
   "updateTimeProfile",
+  "listShiftTemplates", "createShiftTemplate", "updateShiftTemplate",
+  "getRoster", "putRosterEntries", "applyRotation", "publishRoster",
+  "listSwapRequests", "createSwapRequest", "respondSwapRequest",
+  "approveSwapRequest", "rejectSwapRequest", "cancelSwapRequest",
 ];
 
 const FORBIDDEN_PATH =

@@ -41,7 +41,61 @@ async function settingsFlow(f: TimeFlowCtx): Promise<string> {
   return s.body.id as string;
 }
 
+/** A second employee with a user (a swap peer); returns both. */
+async function peer(f: TimeFlowCtx) {
+  const { hit, owner, c } = f;
+  const e = await hit("createEmployee", owner, c, {}, { number: "E-9",
+    fullName: "Peer Nine", jobTitle: "Clerk", nationality: "IN",
+    workerClass: "expat-full-time", joiningDate: "2019-01-01" });
+  const inv = await hit("inviteUser", owner, c, {}, {
+    email: "peer9@example.com", role: "employee", employeeId: e.body.id });
+  const acc = await hit("acceptInvite", null, null, {}, {
+    setupToken: inv.body.setupToken, password: "correct horse battery " +
+      "staple", displayName: "Peer" });
+  return { id: e.body.id as string, token: acc.body.token as string };
+}
+
+async function rosterFlow(f: TimeFlowCtx, p: { id: string }) {
+  const { hit, owner, emp, c, empId } = f;
+  const t = await hit("createShiftTemplate", owner, c, {}, {
+    name: "Shift A", start: "09:00", end: "17:00", breakMinutes: 60 });
+  await hit("updateShiftTemplate", owner, c, { id: t.body.id },
+    { nameAr: null });
+  await hit("listShiftTemplates", emp, c);
+  const slot = { kind: "shift", shiftTemplateId: t.body.id };
+  await hit("putRosterEntries", owner, c, {}, { entries: [
+    { employeeId: empId, date: "2026-03-10", slot },
+    { employeeId: empId, date: "2026-03-11", slot },
+    { employeeId: empId, date: "2026-03-12", slot }] });
+  await hit("applyRotation", owner, c, {}, { employeeIds: [p.id],
+    from: "2026-03-10", to: "2026-03-12", pattern: [null] });
+  await hit("publishRoster", owner, c, {}, { from: "2026-03-10",
+    to: "2026-03-12" });
+  await hit("getRoster", emp, c, {}, undefined,
+    { query: "?from=2026-03-10&to=2026-03-12" });
+}
+
+async function swapFlow(f: TimeFlowCtx, p: { id: string; token: string }) {
+  const { hit, owner, emp, c } = f;
+  const ask = (date: string) => hit("createSwapRequest", emp, c, {},
+    { date, withEmployeeId: p.id });
+  const a = await ask("2026-03-10");
+  await hit("respondSwapRequest", p.token, c, { id: a.body.id },
+    { accept: true });
+  await hit("approveSwapRequest", owner, c, { id: a.body.id }, {});
+  const b = await ask("2026-03-11");
+  await hit("respondSwapRequest", p.token, c, { id: b.body.id },
+    { accept: true });
+  await hit("rejectSwapRequest", owner, c, { id: b.body.id }, {});
+  const d = await ask("2026-03-12");
+  await hit("cancelSwapRequest", emp, c, { id: d.body.id });
+  await hit("listSwapRequests", emp, c);
+}
+
 /** Every Plan 9 route, in task order. */
 export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await settingsFlow(f);
+  const p = await peer(f);
+  await rosterFlow(f, p);
+  await swapFlow(f, p);
 }
