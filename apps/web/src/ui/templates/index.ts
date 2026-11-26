@@ -6,8 +6,10 @@
  */
 export { ApprovalForm } from "./ApprovalForm";
 export type { FieldKind, FormField, FormValues } from "./ApprovalForm";
-export { FilterList } from "./FilterList";
-export type { ListColumn, ListSegment } from "./FilterList";
+export { Avatar, initials, StatusPill, tintOf } from "./Avatar";
+export type { StatusTone } from "./Avatar";
+export { FilterList, SHORT_LIST } from "./FilterList";
+export type { ListColumn, ListSegment, ListSummary } from "./FilterList";
 export { MonthCalendar } from "./MonthCalendar";
 export type { CalEvent, CalTone } from "./MonthCalendar";
 export { MoreMenu } from "./Menu";

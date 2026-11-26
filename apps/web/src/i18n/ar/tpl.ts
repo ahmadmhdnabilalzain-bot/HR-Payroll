@@ -27,5 +27,6 @@ export const tpl: ArOf<typeof en> = {
   history: "السجل",
   summary: "ملخص",
   open: "فتح",
+  inList: "في هذه القائمة",
   axisFrom: "يبدأ المحور عند {v}",
 };

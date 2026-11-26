@@ -177,12 +177,45 @@
   font-size: var(--text-xs);
 }
 
-/* LF: toolbar, segmented filter, fixed 48 px rows. */
+/* LF: summary band, toolbar, segmented filter, sticky headers, 56 px
+ * rows. */
+.band {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.band > div {
+  display: grid;
+  flex: 1 1 160px;
+  max-inline-size: 240px;
+  gap: 2px;
+  padding: var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-secondary);
+}
+
+.band dd {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.3px;
+}
+
+.band dt {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
+  min-inline-size: 0;
 }
 
 .searchBox {
@@ -208,6 +241,18 @@
   outline: none;
 }
 
+/* The segments scroll sideways when they do not fit (past four). */
+.segScroll {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: var(--radius-control);
+}
+
+.segScroll::-webkit-scrollbar {
+  display: none;
+}
+
 .segments {
   display: inline-flex;
   align-items: center;
@@ -220,6 +265,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  flex: none;
   min-block-size: 44px;
   padding-inline: var(--space-3);
   border: 0;
@@ -228,6 +274,7 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .segments button[aria-pressed="true"] {
@@ -241,6 +288,7 @@
   padding-inline: var(--space-3);
   font-size: var(--text-sm);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .shown {
@@ -249,13 +297,14 @@
   font-size: var(--text-sm);
 }
 
+/* overflow: clip, not hidden, so the column headers can stick. */
 .list {
   margin: 0;
   padding: 0;
   border-radius: var(--radius-panel);
   background: var(--color-surface);
   list-style: none;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .listHead,
@@ -265,56 +314,108 @@
   grid-auto-flow: column;
   align-items: center;
   gap: var(--space-4);
-  min-block-size: 48px;
+  min-block-size: 56px;
   padding-inline: var(--space-4);
 }
 
+li[aria-hidden="true"] {
+  position: sticky;
+  z-index: 2;
+  inset-block-start: var(--bar-h, 57px);
+}
+
 .listHead {
+  z-index: 2;
+  inset-block-start: var(--bar-h, 57px);
   min-block-size: 36px;
+  border-block-end: 1px solid var(--color-hairline);
+  background: var(--color-surface-secondary);
   color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  font-size: 12px;
   font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.2px;
 }
 
 .row {
+  position: relative;
   padding-block: var(--space-2);
   color: var(--color-text);
   text-decoration: none;
+}
+
+li + li > .row {
   box-shadow: inset 0 1px 0 var(--color-divider);
 }
 
 a.row:hover {
-  background: var(--color-surface-2);
+  background: var(--color-surface-secondary);
 }
 
-.cellMain,
+/* Cells wrap rather than cut: a row grows to two lines if it must. */
 .cell {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
-.cellMain {
-  font-weight: 500;
+.cell > * {
   white-space: normal;
 }
 
-/* Long names and sentences: two lines at most, never cut mid-line. */
+/* The name: wraps (two lines in practice), never cut. */
+.cellMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
 .cellText {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  min-inline-size: 0;
   line-height: 1.35;
+}
+
+/* A row with buttons: the row's link, then the buttons in a column of
+ * their own (the same width in the header). */
+.actRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 216px;
+  align-items: center;
+}
+
+li + li.actRow {
+  box-shadow: inset 0 1px 0 var(--color-divider);
+}
+
+li + li.actRow > .row {
+  box-shadow: none;
+}
+
+.actRow:has(> a.row:hover) {
+  background: var(--color-surface-secondary);
+}
+
+.headActs {
+  align-self: stretch;
+  border-block-end: 1px solid var(--color-hairline);
+  background: var(--color-surface-secondary);
+}
+
+.rowActs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-inline-end: var(--space-4);
 }
 
 /* A 44 px hit area for small buttons inside a row. */
 .tap {
   min-block-size: 44px;
-}
-
-.cell {
-  color: var(--color-text-muted);
 }
 
 [data-end="true"] {
@@ -326,29 +427,206 @@ a.row:hover {
   display: none;
 }
 
+.avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--size, 32px);
+  block-size: var(--size, 32px);
+  border-radius: 50%;
+  background: var(--tint, var(--color-avatar-1));
+  color: var(--color-text);
+  font-size: calc(var(--size, 32px) * 0.38);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Status: a dot and a word. The word stays ink; the dot is the state. */
+.status,
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.pill {
+  min-block-size: 28px;
+  padding-inline: 10px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dot {
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--color-text-faint);
+}
+
+[data-tone="ok"] > .dot {
+  background: var(--color-success);
+}
+
+[data-tone="warn"] > .dot {
+  background: var(--color-warning);
+}
+
+[data-tone="stop"] > .dot {
+  background: var(--color-danger);
+}
+
+[data-tone="done"] > .dot {
+  background: var(--color-text);
+}
+
 .empty {
   padding-block: var(--space-5);
   color: var(--color-text-muted);
 }
 
-/* RT: summary strip, tabs, key-value grid. */
-.stats {
+.emptyState {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.emptyState p {
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 20px;
+}
+
+/* RT: an 8 + 4 column record: content (tabs) and a side panel with
+ * the figures, the next action and the history. */
+.record {
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  grid-template-areas: "head head" "main side";
+  column-gap: var(--space-6);
+  align-items: start;
+}
+
+.record[data-side="false"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "head" "main";
+}
+
+.recordHead {
+  grid-area: head;
+}
+
+.recordMain {
+  display: grid;
+  grid-area: main;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.aside {
+  position: sticky;
+  inset-block-start: calc(var(--bar-h, 57px) + var(--space-5));
+  display: grid;
+  grid-area: side;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-secondary);
+}
+
+.asideFigures {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.asideFigures dt {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.asideFigures dd {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+.asideBlock {
+  display: grid;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-hairline);
+}
+
+.asideBlock:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+.asideTitle {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.nextText {
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.asideActions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-5) var(--space-7);
-  margin: 0;
+  gap: var(--space-2);
 }
 
-.stats dt {
+.asideActions > * {
+  min-block-size: 44px;
+}
+
+.timeline {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  display: grid;
+  gap: 2px;
+  padding-inline-start: var(--space-4);
+  border-inline-start: 2px solid var(--color-hairline);
+}
+
+.timeline li:last-child {
+  border-inline-start-color: var(--color-text);
+}
+
+.timeline small {
   color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  font-size: 13px;
 }
 
-.stats dd {
-  margin: 0;
-  font-size: var(--text-3xl);
+.pillWrap {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 28px;
+  padding-inline: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-secondary);
+  font-size: 13px;
   font-weight: 500;
-  font-variant-numeric: tabular-nums;
 }
 
 .tabs {
@@ -704,20 +982,71 @@ a.row:hover {
       env(safe-area-inset-bottom));
   }
 
-  .listHead {
+  .listHead,
+  li[aria-hidden="true"] {
     display: none;
   }
 
-  /* Phones: two lines per row, the name then the rest. */
+  .record {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "side" "main";
+  }
+
+  .aside {
+    position: static;
+    padding: var(--space-4);
+  }
+
+  .asideFigures {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  /* Phones: two lines per row, the name, then the rest run on in
+   * one wrapping line (under the name, past the avatar). */
   .row {
-    grid-auto-flow: row;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
     gap: 2px var(--space-3);
-    padding-block: var(--space-2);
+    padding-block: var(--space-3);
   }
 
   .cellMain {
-    grid-column: 1 / -1;
+    flex: 1 0 100%;
+  }
+
+  .list[data-avatar="true"] .row {
+    padding-inline-start: calc(var(--space-4) + 32px + var(--space-3));
+  }
+
+  .list[data-avatar="true"] .cellMain {
+    margin-inline-start: calc(-32px - var(--space-3));
+  }
+
+  .cell {
+    flex: 0 1 auto;
+    max-inline-size: 100%;
+  }
+
+  .cell[data-end="true"] {
+    margin-inline-start: auto;
+  }
+
+  .actRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rowActs {
+    justify-content: flex-start;
+    padding: 0 var(--space-4) var(--space-3);
+  }
+
+  .list[data-avatar="true"] .rowActs {
+    padding-inline-start: calc(var(--space-4) + 32px + var(--space-3));
+  }
+
+  .band > div {
+    flex-basis: 120px;
   }
 
   .cell {
@@ -753,4 +1082,8 @@ a.row:hover {
     inline-size: 100vw;
     border-radius: 0;
   }
+}
+
+.rowActs button {
+  min-block-size: 44px;
 }

@@ -15,6 +15,9 @@ test("time-hr-decides-overtime-and-undoes", async ({ page }) => {
   await expect(page.getByText("Waiting for Arjun Menon").first())
     .toBeVisible();
   await page.getByRole("link", { name: /Rafiq Hossain/ }).first().click();
+  // The list rows carry Accept too: wait for the claim's own page.
+  await expect(page.getByRole("tab", { name: "Claim", exact: true }))
+    .toBeVisible();
   await page.getByRole("button", { name: "Accept" }).click();
   await expect(page.getByText(/Accepted by .*27 October/).first())
     .toBeVisible();

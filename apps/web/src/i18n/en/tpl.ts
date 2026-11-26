@@ -25,5 +25,6 @@ export const tpl = {
   history: "History",
   summary: "Summary",
   open: "Open",
+  inList: "In this list",
   axisFrom: "Axis starts at {v}",
 } satisfies EnNamespace;
