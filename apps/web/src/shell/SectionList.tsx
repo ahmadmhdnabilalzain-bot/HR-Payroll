@@ -26,7 +26,7 @@ function onArrows(e: KeyboardEvent<HTMLElement>): void {
  * can never disagree. Counts are grey; red only when a count stops pay.
  */
 export function SectionList(p: { section: SectionId; variant: "panel" |
-  "page"; onPick?(): void }) {
+  "page"; onPick?(): void; level?: 2 | 3 }) {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const groups = panelOf(state.role, p.section);
@@ -39,8 +39,9 @@ export function SectionList(p: { section: SectionId; variant: "panel" |
       {groups.map(({ group, areas }) => (
         <section key={group.id} className={s.group}
           aria-labelledby={`grp-${p.variant}-${group.section}-${group.id}`}>
-          <h3 id={`grp-${p.variant}-${group.section}-${group.id}`}
-            className={s.heading}>{group.label[lang]}</h3>
+          <Heading level={p.level ?? 3}
+            id={`grp-${p.variant}-${group.section}-${group.id}`}
+            className={s.heading}>{group.label[lang]}</Heading>
           <ul className={s.areas}>
             {areas.map((a) => {
               const r = routeOf(a, c);
@@ -71,4 +72,11 @@ export function SectionList(p: { section: SectionId; variant: "panel" |
       ))}
     </div>
   );
+}
+
+function Heading(p: { level: 2 | 3; id: string; className?: string | undefined;
+  children: string }) {
+  return p.level === 2
+    ? <h2 id={p.id} className={p.className}>{p.children}</h2>
+    : <h3 id={p.id} className={p.className}>{p.children}</h3>;
 }

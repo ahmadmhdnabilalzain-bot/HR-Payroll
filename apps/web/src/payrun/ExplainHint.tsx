@@ -6,15 +6,20 @@ const KEY = "mubinflow.explainHint";
 
 function seen(): boolean {
   try {
-    return localStorage.getItem(KEY) === "1";
+    if (new URLSearchParams(location.search).get("reset") === "1") {
+      sessionStorage.removeItem(KEY);
+      return false;
+    }
+    return sessionStorage.getItem(KEY) === "1";
   } catch {
     return false;
   }
 }
 
 /**
- * Teaches the dotted line once, beside the first figure: closed for
- * good (this browser only) once dismissed. A convenience, so storage
+ * Teaches the dotted line once per visit, beside the first figure
+ * (session storage, so a laptop shows it again at each showing;
+ * `?reset=1` brings it back at once). A convenience, so storage
  * failing only means it shows again.
  */
 export function ExplainHint() {
@@ -26,7 +31,7 @@ export function ExplainHint() {
       <span>{t("payrun.hint")}</span>
       <button type="button" className={s.hintBtn} onClick={() => {
         try {
-          localStorage.setItem(KEY, "1");
+          sessionStorage.setItem(KEY, "1");
         } catch {
           // Shows again next time; nothing else depends on it.
         }

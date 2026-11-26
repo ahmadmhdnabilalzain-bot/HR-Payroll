@@ -26,7 +26,8 @@ export function SectionPage(p: ViewProps) {
       {words.map((w) => (
         <div key={w} className={s.block}>
           {id === undefined && <h2 className={s.word}>{t(WORD[w])}</h2>}
-          <SectionList section={w} variant="page" />
+          <SectionList section={w} variant="page"
+            level={id === undefined ? 3 : 2} />
         </div>
       ))}
     </div>

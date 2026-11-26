@@ -1,4 +1,7 @@
+import { fils, type Fils } from "@payroll/engine";
+import { useEffect, useState } from "react";
 import { ExplainLink, Explainable } from "../components/explain";
+import { reducedMotion, ROLL_MS } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
@@ -37,14 +40,7 @@ export function PayRunHero() {
           <span>{t("home.paysOn", { date: formatDayMonth(cal.payday,
             lang) })}</span>
           <span className={s.dot} aria-hidden="true" />
-          <span className={s.held} data-zero={h.heldNetFils === 0n}>
-            {h.heldNetFils === 0n ? t("home.allInFile") : (
-              <>
-                <Money value={h.heldNetFils} size="sm" />
-                {" "}{t("home.heldOut")}
-              </>
-            )}
-          </span>
+          <HeldOut value={h.heldNetFils} />
           <ExplainLink explanation={net} className={s.why}>
             <Icon name="info" size={16} />
             {t("home.whyNumber")}
@@ -54,5 +50,38 @@ export function PayRunHero() {
       </div>
       <StepTracker />
     </section>
+  );
+}
+
+/**
+ * What is held out of the salary file. When the last IBAN passes, the
+ * amount rolls down to zero first (the money visibly moves into the
+ * file), and only then does the line say everyone is in the file.
+ */
+function HeldOut(p: { value: Fils }) {
+  const { t } = useLocale();
+  // Derived during render (React's "previous value" pattern), so the
+  // amount stays mounted and rolls from its last value to zero.
+  const [prev, setPrev] = useState(p.value);
+  const [rolling, setRolling] = useState(false);
+  if (prev !== p.value) {
+    setPrev(p.value);
+    if (prev > 0n && p.value === 0n && !reducedMotion()) setRolling(true);
+  }
+  useEffect(() => {
+    if (!rolling) return undefined;
+    const h = setTimeout(() => setRolling(false), ROLL_MS + 150);
+    return () => clearTimeout(h);
+  }, [rolling]);
+  const zero = p.value === 0n && !rolling;
+  return (
+    <span className={s.held} data-zero={zero}>
+      {zero ? t("home.allInFile") : (
+        <>
+          <Money value={fils(p.value)} size="sm" />
+          {" "}{t("home.heldOut")}
+        </>
+      )}
+    </span>
   );
 }
