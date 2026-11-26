@@ -6,7 +6,8 @@ import { formatDate, formatTime } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
-import { SignStamp } from "../ui/SignStamp";
+import { ScriptSignature, SignStamp } from "../ui/SignStamp";
+import { ReleaseStatus } from "./ReleaseStatus";
 import b from "../ui/button.module.css";
 import {
   decisionTime,
@@ -51,6 +52,7 @@ export function ApproveStep(p: { go: Go }) {
     a.decide(v);
   };
   const waiting = verdict === undefined;
+  const fresh = at !== null && nowMs() - at < 2000;
   const blocked = a.blockedBy.length > 0;
   // Why Approve, or Continue to Pay, cannot be pressed yet, in words.
   const reason = !waiting ? null
@@ -96,8 +98,9 @@ export function ApproveStep(p: { go: Go }) {
               <SignStamp className={s.stamp} seal={false}
                 label={t("payrun.chainRecorded")}
                 name={checker.name[lang]} role={checker.role[lang]}
-                when={decidedAt}
-                fresh={at !== null && nowMs() - at < 2000} />
+                when={decidedAt} fresh={fresh}>
+                <ScriptSignature name={checker.name[lang]} />
+              </SignStamp>
             ) : (
               <div className={s.chainText}>
                 <p className={s.chainLabel}>
@@ -115,7 +118,11 @@ export function ApproveStep(p: { go: Go }) {
         </ol>
 
         <div className={s.approveBox}>
-          <h3 className={s.blockTitle}>{t("payrun.whatYouApprove")}</h3>
+          <div className={s.approveHead}>
+            <h3 className={s.blockTitle}>{t("payrun.whatYouApprove")}</h3>
+            <ReleaseStatus released={verdict === "approve"}
+              fresh={verdict === "approve" && fresh} />
+          </div>
           <dl className={s.approveFigures}>
             <div>
               <dt>{t("payrun.netTo", { count: h.headcount })}</dt>

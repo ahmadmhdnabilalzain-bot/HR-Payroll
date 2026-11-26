@@ -1111,3 +1111,55 @@
 .totals .plainFig:not(:hover):not(:focus-visible) {
   border-block-end-color: transparent;
 }
+
+/* "What the sign-off covers" and where the pay stands, on one line. */
+.approveHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* Held, then released: a hairline pill that the ink sweeps across. */
+.release {
+  position: relative;
+  display: inline-grid;
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.releaseBase,
+.releaseInk {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 28px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-pill);
+}
+
+.releaseBase {
+  box-shadow: inset 0 0 0 1px var(--color-divider-strong);
+  color: var(--color-text-muted);
+}
+
+.releaseInk {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.releaseDot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.release[data-released="false"] .releaseDot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}

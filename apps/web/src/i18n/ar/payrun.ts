@@ -96,6 +96,8 @@ export const payrun: ArOf<typeof en> = {
   chainDeclined: "أُعيدت",
   notYet: "لم يُتخذ قرار بعد",
   payAfter: "يُفتح الصرف بعد أن يوقّع {name} على الدورة.",
+  payHeld: "الرواتب موقوفة حتى التوقيع",
+  payReleased: "أُفرج عن الرواتب إلى ملف الرواتب",
   approveTitle: "التوقيع على الرواتب",
   approveSub: "شخص يُعد الدورة وآخر يوقّع عليها.",
   prepared: "الإعداد",
