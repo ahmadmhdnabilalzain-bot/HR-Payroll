@@ -188,13 +188,16 @@
   margin: 0;
 }
 
+/* Label and amount share one baseline, whatever their sizes (17 px
+ * labels and 15 px figures on a phone). */
 .line,
 .total {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
   min-block-size: 48px;
+  padding-block: 2px;
   border-block-start: 1px solid var(--color-divider);
   font-size: var(--text-md);
 }
