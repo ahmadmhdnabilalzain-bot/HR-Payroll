@@ -63,7 +63,7 @@ describe("report data", () => {
 describe("report catalogue and formats", () => {
   it("every live reports area has a one-line question", () => {
     const live = ALL_AREAS.filter((a) => a.section === "reports" &&
-      a.status === "live");
+      a.status === "live" && a.id !== "reports.all");
     expect(live.length).toBeGreaterThanOrEqual(13);
     expect(live.filter((a) => (BLURB[a.id] ?? "") === "")
       .map((a) => a.id)).toEqual([]);

@@ -27,7 +27,7 @@ export function Catalogue() {
           <h2 id={`rg-${group.id}`} className={s.group}>
             {group.label[lang]}</h2>
           <ul className={s.list}>
-            {areas.map((a) => {
+            {areas.filter((a) => a.id !== "reports.all").map((a) => {
               const r = routeOf(a, { data: ctx.data, state: ctx.state });
               return (
                 <li key={a.id} style={{ "--i": n++ } as object}>

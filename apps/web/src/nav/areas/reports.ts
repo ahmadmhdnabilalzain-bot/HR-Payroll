@@ -5,6 +5,10 @@ const HR_GM = ["hr", "gm"] as const;
 const rep = (...rest: string[]) => ({ section: "reports" as const, rest });
 
 export const AREAS: readonly Area[] = [
+  { id: "reports.all", section: "reports", group: "analysis",
+    label: { en: "All reports", ar: "كل التقارير" }, status: "live",
+    archetype: "custom", roles: HR_GM, route: { section: "reports" },
+    keywords: "catalogue list index" },
   { id: "reports.trend", section: "reports", group: "pay",
     label: { en: "Payroll trend", ar: "اتجاه الرواتب" }, status: "live",
     archetype: "RP", roles: HR_GM, route: rep("trend"),
