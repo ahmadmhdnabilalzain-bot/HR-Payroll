@@ -3,7 +3,10 @@ import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import { openFlowTaskIds } from "../tasks/tasks";
 import { dubaiDate } from "../time/dubai";
-import { exitAccess } from "./exit-hooks-view";
+import { loadEmployee } from "../people/employees";
+import { storedAccess } from "./exit-hooks-view";
+import { leaverLogins, stillActive } from "./leaver-logins";
+import { assertNotSubject } from "./subject";
 import type { ExitRow } from "./exit-rows";
 import { exitView, visibleExit } from "./exits";
 
@@ -22,11 +25,31 @@ async function assertClosable(ctx: IdCtx, x: ExitRow): Promise<void> {
   if (open.length > 0) {
     throw new ApiError("CLEARANCE_OPEN", undefined, { taskIds: open });
   }
-  // Computed or refused: either way HR has seen the engine's answer.
+  await assertSettlementCurrent(ctx, x);
+  await assertAccessClosed(ctx, x);
+}
+
+/** Computed or refused, and made on the current salary (review M-2). */
+async function assertSettlementCurrent(ctx: IdCtx, x: ExitRow) {
   if (x.settlement === null) throw new ApiError("SETTLEMENT_REQUIRED");
-  const access = await exitAccess(ctx.tx, co(ctx), x);
-  if (access.status === "not-revoked") {
+  const e = await loadEmployee(ctx.tx, ctx.deps, co(ctx), x.employeeId);
+  if (e.salaryVersion !== x.settlement.inputs.salaryVersion) {
+    throw new ApiError("SETTLEMENT_STALE");
+  }
+}
+
+/**
+ * A revocation run is stored (also for "no-login"), and no login that
+ * may be the leaver's is active now, re-read live (review I-1).
+ */
+async function assertAccessClosed(ctx: IdCtx, x: ExitRow) {
+  if (await storedAccess(ctx.tx, co(ctx), x) === null) {
     throw new ApiError("ACCESS_NOT_REVOKED");
+  }
+  const live = stillActive(await leaverLogins(ctx.tx, co(ctx), x));
+  if (live.length > 0) {
+    throw new ApiError("ACCESS_NOT_REVOKED", undefined,
+      { userIds: live.map((l) => l.userId) });
   }
 }
 
@@ -37,6 +60,7 @@ async function assertClosable(ctx: IdCtx, x: ExitRow): Promise<void> {
  */
 export async function closeExit(ctx: IdCtx) {
   const x = await visibleExit(ctx, true);
+  await assertNotSubject(ctx, x);
   await assertClosable(ctx, x);
   await ctx.tx.query(
     `UPDATE exits SET status = 'closed', closed_at = $3

@@ -69,9 +69,10 @@ beforeAll(async () => {
 describe("exit request and notice", () => {
   it("exit_employee_resigns_self", async () => {
     const agreed = MIN - 10;
-    const r = await by(s.employee, "POST", "/v1/exits", { kind:
-      "resignation", noticeGivenDate: GIVEN, agreedNoticeDays: agreed,
-      reason: REASON });
+    // Only owner or hr may record an agreed notice (review M-3).
+    const r = await by(s.hr, "POST", "/v1/exits", { kind: "resignation",
+      employeeId: s.emp.report, noticeGivenDate: GIVEN,
+      agreedNoticeDays: agreed, reason: REASON });
     expect(r.status, r.text).toBe(201);
     const want = calculateNotice({ kind: "resignation",
       joiningDate: "2019-01-01", noticeGivenDate: GIVEN,
@@ -205,7 +206,7 @@ describe("approval, settlement and withdrawal", () => {
   it("exit_settlement_hidden_from_manager", async () => {
     const mine = (await must(by(s.employee, "GET", "/v1/exits"))).items;
     const x = mine[0];
-    await must(by(s.hr, "POST", `/v1/exits/${x.id}/decision`,
+    await must(by(s.owner, "POST", `/v1/exits/${x.id}/decision`,
       { approve: true }));
     const r = await must(by(s.hr, "POST", `/v1/exits/${x.id}/settlement`,
       inputs));

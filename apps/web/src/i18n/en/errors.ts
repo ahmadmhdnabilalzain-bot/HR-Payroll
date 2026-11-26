@@ -125,6 +125,7 @@ export const errors = {
   CLEARANCE_OPEN: "Some clearance tasks are still open.",
   ACCESS_NOT_REVOKED: "Revoke the person's access first.",
   GOAL_CLOSED: "This goal is closed.",
+  SETTLEMENT_STALE: "The salary changed; compute the settlement again.",
   ASSIGNEE_NOT_MEMBER: "The assignee is not a member here.",
   INTERVIEW_TIMES: "The interview must end after it starts.",
   INTERVIEWER_ROLE: "Interviewers must be owners, HR or managers.",

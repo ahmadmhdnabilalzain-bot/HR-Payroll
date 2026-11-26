@@ -42,7 +42,7 @@ async function flow(ctx: Ctx, s: Seeded) {
   await go(s.owner, "POST", `/v1/offers/${offer.id}/decision`,
     { approve: true });
   await go(s.hr, "POST", `/v1/offers/${offer.id}/response`,
-    { accepted: true, respondedOn: "2025-05-20" });
+    { accepted: true, respondedOn: "2026-03-01" });
   const hire = await go(s.hr, "POST", `/v1/offers/${offer.id}/hire`,
     { number: "F-1", nationality: "IN", workerClass: "expat-full-time",
       email: "mira@example.com" }, 201);
@@ -66,10 +66,15 @@ describe("hr flow end to end", () => {
     for (const t of hire.tasks) {
       await go(s.hr, "PATCH", `/v1/tasks/${t.id}`, { status: "done" });
     }
-    const x = await go(mira, "POST", "/v1/exits", { kind: "resignation",
-      noticeGivenDate: "2026-01-15", reason: "Further study" }, 201);
+    // Back-dated notice: hr records Mira's resignation (self-service
+    // cannot back-date); the owner approves.
+    const x = await go(s.hr, "POST", "/v1/exits", { kind: "resignation",
+      employeeId: empId, noticeGivenDate: "2026-01-15",
+      reason: "Further study" }, 201);
     expect(x.inProbation).toBe(false);
-    await go(s.hr, "POST", `/v1/exits/${x.id}/decision`, { approve: true });
+    await go(s.owner, "POST", `/v1/exits/${x.id}/decision`,
+      { approve: true });
+    expect((await go(mira, "GET", `/v1/exits/${x.id}`)).id).toBe(x.id);
     const st = await go(s.hr, "POST", `/v1/exits/${x.id}/settlement`,
       { unusedLeaveDays: 4, serviceUnpaidLeaveDays: 0 });
     const settlement = st.settlement.settlement;
@@ -85,7 +90,8 @@ describe("hr flow end to end", () => {
         lang: "en" });
     expect(docs.documents.every((d: { status: string }) =>
       d.status === "not-configured")).toBe(true);
-    const access = await go(s.hr, "POST", `/v1/exits/${x.id}/revoke-access`);
+    const access = await go(s.hr, "POST", `/v1/exits/${x.id}/revoke-access`,
+      {});
     expect(access.inApp).toBe("revoked");
     const tasks = await go(s.hr, "GET",
       `/v1/tasks?flowType=exit&flowId=${x.id}`);

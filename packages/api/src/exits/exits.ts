@@ -11,7 +11,9 @@ import { loadEmployee } from "../people/employees";
 import { inScope, viewerScope } from "../people/redact";
 import { loadTerms } from "../onboarding/terms";
 import { cancelFlowTasks } from "../tasks/tasks";
-import { exitAccess } from "./exit-hooks-view";
+import { dubaiDate } from "../time/dubai";
+import { storedAccess } from "./exit-hooks-view";
+import { isSubject } from "./subject";
 import {
   exitRows,
   exitSealer,
@@ -72,7 +74,23 @@ function leaverOf(ctx: ReqCtx<ExitCreate>): string {
     throw new ApiError("FORBIDDEN");
   }
   if (asked === null) throw new ApiError("NO_EMPLOYEE_LINK");
+  if (!payroll(ctx)) checkSelfService(ctx);
   return asked;
+}
+
+/**
+ * Self-service (review M-3): an agreed shorter notice is the
+ * employer's to record, and notice cannot be given in the past.
+ */
+function checkSelfService(ctx: ReqCtx<ExitCreate>): void {
+  if (ctx.body.agreedNoticeDays !== undefined) {
+    throw new ApiError("FORBIDDEN", "Only owner or hr record an agreed " +
+      "notice");
+  }
+  if (ctx.body.noticeGivenDate < dubaiDate(ctx.deps.now())) {
+    throw new ApiError("VALIDATION_FAILED", "Notice cannot be back-dated",
+      { fields: ["body.noticeGivenDate"] });
+  }
 }
 
 async function insertExit(ctx: ReqCtx<ExitCreate>, employeeId: string,
@@ -116,17 +134,28 @@ async function restoreLastDay(ctx: ReqCtx, x: ExitRow) {
     { lastWorkingDate: x.priorLastWorkingDate });
 }
 
-/** The requester, owner or hr, while requested or in notice. */
-export async function withdrawExit(ctx: IdCtx) {
-  const x = await visibleExit(ctx, true);
-  if (!payroll(ctx) && x.requestedBy !== ctx.user!.id) {
-    throw new ApiError("FORBIDDEN");
+/**
+ * Owner or hr while requested or in notice; the requester alone only
+ * while still requested (review M-4). The leaver may withdraw only
+ * their own still-requested exit (review I-2).
+ */
+async function checkWithdraw(ctx: IdCtx, x: ExitRow): Promise<void> {
+  const ownPending = x.requestedBy === ctx.user!.id &&
+    x.status === "requested";
+  if (!ownPending && await isSubject(ctx, x)) {
+    throw new ApiError("SOD_VIOLATION");
   }
+  if (!payroll(ctx) && !ownPending) throw new ApiError("FORBIDDEN");
   if (x.status !== "requested" && x.status !== "in-notice") {
     throw new ApiError("EXIT_NOT_OPEN");
   }
-  const access = await exitAccess(ctx.tx, co(ctx), x);
-  if (access.status === "revoked") throw new ApiError("EXIT_ACCESS_REVOKED");
+  const done = await storedAccess(ctx.tx, co(ctx), x);
+  if (done?.inApp === "revoked") throw new ApiError("EXIT_ACCESS_REVOKED");
+}
+
+export async function withdrawExit(ctx: IdCtx) {
+  const x = await visibleExit(ctx, true);
+  await checkWithdraw(ctx, x);
   if (x.status === "in-notice") {
     await restoreLastDay(ctx, x);
     await cancelFlowTasks(ctx.tx, ctx.deps, co(ctx), ctx.user!.id,

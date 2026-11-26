@@ -102,6 +102,10 @@ export async function hrFlow(hit: Hitter, f: HrFlowCtx): Promise<void> {
   f.otherEmployeeId = await onboarding(hit, f, offerId, days);
   await exits(hit, f);
   await goals(hit, f);
+  await hit("linkUserEmployee", f.owner, f.c, { id: f.ownerId },
+    { employeeId: f.otherEmployeeId });
+  await hit("linkUserEmployee", f.owner, f.c, { id: f.ownerId },
+    { employeeId: null });
 }
 
 async function goals(hit: Hitter, f: HrFlowCtx) {
@@ -117,7 +121,9 @@ async function goals(hit: Hitter, f: HrFlowCtx) {
 /** The employee resigns; owner2 approves; settlement; a withdrawal. */
 export async function exits(hit: Hitter, f: HrFlowCtx): Promise<string> {
   // Notice given early enough that the last day has passed.
-  const x = await hit("createExit", f.emp, f.c, {}, { kind: "resignation",
+  // Back-dated, so hr records it (self-service cannot back-date).
+  const x = await hit("createExit", f.owner, f.c, {}, { kind: "resignation",
+    employeeId: f.employeeId,
     noticeGivenDate: "2026-01-15", reason: "Moving" });
   const id = x.body.id as string;
   await hit("listExits", f.emp, f.c);
@@ -138,10 +144,11 @@ async function hooks(hit: Hitter, f: HrFlowCtx, id: string) {
   await hit("generateExitDocuments", f.owner, f.c, { id },
     { kinds: ["experience-certificate", "settlement-statement"],
       lang: "en" });
-  await hit("revokeExitAccess", f.owner, f.c, { id });
+  await hit("revokeExitAccess", f.owner, f.c, { id }, {});
   await hit("closeExit", f.owner, f.c, { id });
   const t = await hit("listTasks", f.owner, f.c, {}, undefined,
     { query: `?flowType=exit&flowId=${id}` });
+  if (!Array.isArray(t.body.items)) throw new Error(`tasks: ${t.text}`);
   for (const task of t.body.items) {
     await hit("updateTask", f.owner, f.c, { id: task.id },
       { status: "done" });

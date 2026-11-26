@@ -11,6 +11,7 @@ import { ApiError } from "../http/errors";
 import { engineTerms } from "../onboarding/engine-terms";
 import { checkSalary } from "../people/employee-writes";
 import { sealerFor } from "../people/employees";
+import { dubaiDate } from "../time/dubai";
 import {
   canSeeOffer,
   listOfferRows,
@@ -125,6 +126,12 @@ export async function recordResponse(ctx: IdCtx<OfferResponse>) {
   const b = ctx.body;
   if (o.expiresOn !== null && b.respondedOn > o.expiresOn) {
     throw new ApiError("OFFER_EXPIRED");
+  }
+  // Not before the offer was made, not in the future (review M-7).
+  const made = dubaiDate(new Date(o.createdAt));
+  if (b.respondedOn < made || b.respondedOn > dubaiDate(ctx.deps.now())) {
+    throw new ApiError("VALIDATION_FAILED", "Response date out of range",
+      { fields: ["body.respondedOn"] });
   }
   return setStatus(ctx, o, b.accepted ? "accepted" : "declined",
     b.accepted ? "offer.accepted" : "offer.declined",

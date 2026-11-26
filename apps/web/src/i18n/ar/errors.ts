@@ -119,6 +119,7 @@ export const errors: ArOf<typeof en> = {
   CLEARANCE_OPEN: "بعض مهام إخلاء الطرف ما زالت مفتوحة.",
   ACCESS_NOT_REVOKED: "ألغِ وصول الشخص أولاً.",
   GOAL_CLOSED: "هذا الهدف مغلق.",
+  SETTLEMENT_STALE: "تغيّر الراتب؛ احسب التسوية من جديد.",
   ASSIGNEE_NOT_MEMBER: "المكلَّف ليس عضواً هنا.",
   INTERVIEW_TIMES: "يجب أن تنتهي المقابلة بعد بدئها.",
   INTERVIEWER_ROLE: "يجب أن يكون المقابِلون مالكين أو موارد بشرية أو مديرين.",

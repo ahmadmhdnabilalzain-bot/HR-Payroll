@@ -34,6 +34,11 @@ function changedKeys(b: TaskUpdate): string[] {
 async function checkRights(ctx: IdCtx<TaskUpdate>, r: TaskRow,
   changed: string[]): Promise<void> {
   const v = viewerOf(ctx);
+  // The leaver cannot work their own clearance tasks (review I-4).
+  if (r.flow_type === "exit" && r.employee_id !== null &&
+    ctx.tenant!.employeeId === r.employee_id) {
+    throw new ApiError("FORBIDDEN");
+  }
   const edits = changed.some((k) =>
     (EDIT_FIELDS as readonly string[]).includes(k));
   if (edits && !canEditTask(v, owned(r))) throw new ApiError("FORBIDDEN");

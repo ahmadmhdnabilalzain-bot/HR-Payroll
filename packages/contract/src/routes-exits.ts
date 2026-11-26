@@ -5,11 +5,20 @@ import {
   ExitCreate,
   ExitList,
   ExitQuery,
+  RevokeRequest,
   SettlementInputs,
+  UserEmployeeLink,
 } from "./exits";
 import { Decision } from "./hiring";
 import { IdParams } from "./primitives";
-import { ALL_ROLES, PAYROLL, ten, type RouteDef } from "./route-def";
+import {
+  ALL_ROLES,
+  OWNER,
+  PAYROLL,
+  ten,
+  type RouteDef,
+} from "./route-def";
+import { CompanyUser } from "./user";
 
 const one = { params: IdParams };
 
@@ -37,8 +46,11 @@ export const EXIT_HOOK_ROUTES: readonly RouteDef[] = [
     path: "/v1/exits/{id}/documents", ...one, body: DocumentsRequest,
     response: Exit }),
   ten(PAYROLL, { id: "revokeExitAccess", method: "POST",
-    path: "/v1/exits/{id}/revoke-access", ...one, response: AccessResult,
-    mfa: true }),
+    path: "/v1/exits/{id}/revoke-access", ...one, body: RevokeRequest,
+    response: AccessResult, mfa: true }),
   ten(PAYROLL, { id: "closeExit", method: "POST",
     path: "/v1/exits/{id}/close", ...one, response: Exit }),
+  ten(OWNER, { id: "linkUserEmployee", method: "PATCH",
+    path: "/v1/users/{id}/employee", ...one, body: UserEmployeeLink,
+    response: CompanyUser, mfa: true }),
 ];

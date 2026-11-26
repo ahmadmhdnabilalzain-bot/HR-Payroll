@@ -20,11 +20,13 @@ export function exitFixtures(ctx: Ctx, s: Seeded) {
     return r.body;
   }
   /** An employee (joined 2019) with salary and zero-month terms. */
-  async function staff(): Promise<string> {
-    const e = await must(by(s.hr, "POST", "/v1/employees", {
+  async function staff(email?: string): Promise<string> {
+    const body: Record<string, unknown> = {
       number: `L-${n++}`, fullName: "Leaver", jobTitle: "Clerk",
       nationality: "IN", workerClass: "expat-full-time",
-      joiningDate: "2019-01-01", managerId: s.emp.manager }), 201);
+      joiningDate: "2019-01-01", managerId: s.emp.manager };
+    if (email !== undefined) body.email = email;
+    const e = await must(by(s.hr, "POST", "/v1/employees", body), 201);
     await must(by(s.hr, "PUT", `/v1/employees/${e.id}/salary`,
       salaryOf("4000.00")));
     await must(by(s.hr, "PUT", `/v1/employees/${e.id}/terms`,
@@ -38,14 +40,20 @@ export function exitFixtures(ctx: Ctx, s: Seeded) {
       employeeId);
     return { employeeId, user };
   }
-  /** A resignation by hr, approved by the owner. */
+  /** A resignation by hr, approved by the owner (or `approver`). */
   async function approvedExit(employeeId: string,
-    noticeGivenDate = "2026-03-01"): Promise<any> {
-    const x = await must(by(s.hr, "POST", "/v1/exits", { employeeId,
+    noticeGivenDate = "2026-03-01", approver = s.owner,
+    creator = s.hr): Promise<any> {
+    const x = await must(by(creator, "POST", "/v1/exits", { employeeId,
       kind: "resignation", noticeGivenDate }), 201);
-    return must(by(s.owner, "POST", `/v1/exits/${x.id}/decision`,
+    return must(by(approver, "POST", `/v1/exits/${x.id}/decision`,
       { approve: true }));
   }
+  /** Revokes with the server's proposed logins (owner by default). */
+  const revoke = (exitId: string, who = s.owner,
+    notTheLeaver?: string[]) => by(who, "POST",
+    `/v1/exits/${exitId}/revoke-access`,
+    notTheLeaver === undefined ? {} : { notTheLeaver });
   const settle = (exitId: string) => must(by(s.hr, "POST",
     `/v1/exits/${exitId}/settlement`,
     { unusedLeaveDays: 3, serviceUnpaidLeaveDays: 0 }));
@@ -59,5 +67,6 @@ export function exitFixtures(ctx: Ctx, s: Seeded) {
         { status: "done" }));
     }
   }
-  return { by, must, staff, withLogin, approvedExit, settle, clearTasks };
+  return { by, must, staff, withLogin, approvedExit, settle, clearTasks,
+    revoke };
 }

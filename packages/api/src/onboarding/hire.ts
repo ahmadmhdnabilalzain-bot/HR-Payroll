@@ -45,6 +45,20 @@ async function resultOf(ctx: ReqCtx, c: Claim): Promise<HireResult> {
     flowId: c.flow_id, tasks: tasks.map((t) => toSummary(t, today)) };
 }
 
+/**
+ * The application is still at `offer` and the requisition open
+ * (review M-8): a withdrawn application or cancelled requisition is
+ * never hired.
+ */
+async function assertStillHiring(ctx: ReqCtx, o: OfferRow) {
+  const [r] = await ctx.tx.query<{ stage: string; status: string }>(
+    `SELECT a.stage, r.status FROM applications a JOIN requisitions r
+       ON r.company_id = a.company_id AND r.id = a.requisition_id
+     WHERE a.company_id = $1 AND a.id = $2`, [co(ctx), o.applicationId]);
+  if (r!.stage !== "offer") throw new ApiError("APPLICATION_CLOSED");
+  if (r!.status !== "open") throw new ApiError("REQUISITION_NOT_OPEN");
+}
+
 /** Claims the offer; null when another request already did. */
 async function claim(ctx: ReqCtx, offerId: string): Promise<Claim | null> {
   const rows = await ctx.tx.query<Claim>(
@@ -113,6 +127,7 @@ export async function hireFromOffer(ctx: HireCtx) {
   const done = await existingClaim(ctx, o.id);
   if (done !== null) return new Reply(200, await resultOf(ctx, done));
   if (o.status !== "accepted") throw new ApiError("OFFER_NOT_ACCEPTED");
+  await assertStillHiring(ctx, o);
   const c = await claim(ctx, o.id);
   if (c === null) {
     return new Reply(200, await resultOf(ctx, (await existingClaim(ctx,

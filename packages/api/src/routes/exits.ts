@@ -8,7 +8,8 @@ import {
   listExits,
   withdrawExit,
 } from "../exits/exits";
-import { generateDocuments, revokeAccess } from "../exits/hooks";
+import { generateDocuments } from "../exits/hooks";
+import { revokeAccess } from "../exits/revoke";
 
 export function registerExitRoutes(app: App, deps: AppDeps): void {
   register(app, deps, "createExit", createExit);

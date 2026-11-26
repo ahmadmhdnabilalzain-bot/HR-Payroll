@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { withTenant } from "../src/db/tenant";
 import type { AccessPort } from "../src/ports/access";
+import { userOfEmployee } from "../src/onboarding/terms";
 import { exitFixtures } from "./helpers/exit-fixtures";
 import { seedCompany, type Seeded } from "./helpers/seed";
 import { addMember } from "./helpers/seed-hr";
@@ -28,7 +29,7 @@ let s: Seeded;
 let fx: ReturnType<typeof exitFixtures>;
 
 const revoke = (exitId: string, token = s.hr.token) => call(ctx.app, token,
-  s.companyId, "POST", `/v1/exits/${exitId}/revoke-access`);
+  s.companyId, "POST", `/v1/exits/${exitId}/revoke-access`, {});
 
 const membership = (userId: string) => withTenant(ctx.deps.db,
   { companyId: s.companyId, userId: null }, (tx) => tx.query<{
@@ -95,9 +96,10 @@ describe("access revocation", () => {
       userId: null }, (tx) => tx.query(
       `UPDATE memberships SET employee_id = $2 WHERE company_id = $1
        AND user_id = $3`, [lone.companyId, id, lone.owner.userId]));
-    const x = await lfx.approvedExit(id);
+    const x = await lfx.approvedExit(id, "2026-03-01", lone.hr,
+      lone.owner);
     const r = await call(ctx.app, lone.hr.token, lone.companyId, "POST",
-      `/v1/exits/${x.id}/revoke-access`);
+      `/v1/exits/${x.id}/revoke-access`, {});
     expect(r.status).toBe(409);
     expect(r.body.error.code).toBe("LAST_OWNER");
     const [m] = await withTenant(ctx.deps.db, { companyId: lone.companyId,
@@ -191,6 +193,25 @@ describe("access revocation", () => {
     const r = await call(ctx.app, user.token, s.companyId, "GET",
       "/v1/company");
     expect(r.status).toBe(403);
+  });
+
+  it("revoked_login_not_task_assignee", async () => {
+    const { employeeId, user } = await fx.withLogin();
+    await revoke((await fx.approvedExit(employeeId)).id);
+    const who = await withTenant(ctx.deps.db, { companyId: s.companyId,
+      userId: null }, (tx) => userOfEmployee(tx, s.companyId, employeeId));
+    expect(who).toBeNull();
+    expect(user.userId).toBeDefined();
+  });
+
+  it("my_companies_policy_ignores_revoked", async () => {
+    const { employeeId, user } = await fx.withLogin();
+    await revoke((await fx.approvedExit(employeeId)).id);
+    const rows = await withTenant(ctx.deps.db, { companyId: null,
+      userId: user.userId }, async (tx) => [
+      ...await tx.query("SELECT id FROM companies"),
+      ...await tx.query("SELECT company_id FROM memberships")]);
+    expect(rows).toEqual([]);
   });
 
   it("revoked_member_not_assignable", async () => {

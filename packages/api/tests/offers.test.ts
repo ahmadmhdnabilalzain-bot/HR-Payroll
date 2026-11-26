@@ -94,6 +94,24 @@ describe("offers", () => {
     expect(r.body.status).toBe("pending-approval");
   });
 
+  it("offer_notice_checked_on_start_date", async () => {
+    const r = await create(s.hr, { startDate: "2026-05-10" });
+    const line = r.body.termsTrace.find((l: { id: string }) =>
+      l.id === "employment.notice.contract");
+    expect(line.inputs.onDate).toBe("2026-05-10");
+  });
+
+  it("offer_response_date_within_offer_life", async () => {
+    const r = await create(s.hr);
+    await by(s.owner, "POST", `/v1/offers/${r.body.id}/decision`,
+      { approve: true });
+    for (const respondedOn of ["2026-02-27", "2026-03-02"]) {
+      const x = await by(s.hr, "POST", `/v1/offers/${r.body.id}/response`,
+        { accepted: true, respondedOn });
+      expect(x.status, respondedOn).toBe(400);
+    }
+  });
+
   it("offer_salary_hidden_from_manager", async () => {
     const r = await by(s.manager, "GET", `/v1/offers/${h.offerId}`);
     expect(r.status, r.text).toBe(200);
@@ -134,15 +152,15 @@ describe("offers", () => {
   });
 
   it("offer_expired_409", async () => {
-    const r = await create(s.hr, { expiresOn: "2026-03-10" });
+    const r = await create(s.hr, { expiresOn: "2026-03-01" });
     await by(s.owner, "POST", `/v1/offers/${r.body.id}/decision`,
       { approve: true });
     const x = await by(s.hr, "POST", `/v1/offers/${r.body.id}/response`,
-      { accepted: true, respondedOn: "2026-03-11" });
+      { accepted: true, respondedOn: "2026-03-02" });
     expect(x.status).toBe(409);
     expect(x.body.error.code).toBe("OFFER_EXPIRED");
     const ok = await by(s.hr, "POST", `/v1/offers/${r.body.id}/response`,
-      { accepted: false, respondedOn: "2026-03-10" });
+      { accepted: false, respondedOn: "2026-03-01" });
     expect(ok.body.status).toBe("declined");
   });
 

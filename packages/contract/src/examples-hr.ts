@@ -152,7 +152,7 @@ const exit = {
   inProbation: false, flags: [], noticeTrace: [dueTrace],
   reason: "Moving abroad.", requestedBy: IDS.user, decidedBy: IDS.user,
   decidedAt: AT, settlement: exitSettlement,
-  access: { status: "not-revoked", at: null }, documents: [],
+  access: { status: "not-revoked", at: null, logins: [] }, documents: [],
   closedAt: null, createdAt: AT,
 };
 

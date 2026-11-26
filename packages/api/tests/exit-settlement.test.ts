@@ -25,6 +25,13 @@ function engine(i: typeof base) {
 }
 
 describe("computeExitSettlement (pure)", () => {
+  it("exit_settlement_over_wire_cap_refused", () => {
+    const s = computeExitSettlement({ ...base,
+      lastBasicMonthly: fils(9_000_000_000_00n) });
+    expect(s).toMatchObject({ status: "refused",
+      code: "AMOUNT_TOO_LARGE" });
+  });
+
   it("exit_settlement_equals_engine", () => {
     const s = computeExitSettlement(base);
     const e = engine(base).value;

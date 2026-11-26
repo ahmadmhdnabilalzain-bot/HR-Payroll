@@ -103,6 +103,13 @@ const payroll = (v: Viewer) => v.role === "owner" || v.role === "hr";
 const leaver = (v: Viewer, x: ExitRow) =>
   v.employeeId !== null && v.employeeId === x.employeeId;
 
+/** Access, with the matched logins for owner and hr only. */
+async function accessFor(tx: Db, companyId: string, x: ExitRow,
+  pay: boolean): Promise<Exit["access"]> {
+  const a = await exitAccess(tx, companyId, x);
+  return pay ? a : { ...a, logins: [] };
+}
+
 /** The only serializer. Settlement and reason: owner, hr, the leaver. */
 export async function toExitView(tx: Db, companyId: string, x: ExitRow,
   v: Viewer): Promise<Exit> {
@@ -116,7 +123,7 @@ export async function toExitView(tx: Db, companyId: string, x: ExitRow,
     noticeTrace: x.noticeTrace, reason: full ? x.reason : null,
     requestedBy: x.requestedBy, decidedBy: x.decidedBy,
     decidedAt: x.decidedAt, settlement: full ? x.settlement : null,
-    access: await exitAccess(tx, companyId, x),
+    access: await accessFor(tx, companyId, x, payroll(v)),
     documents: await exitDocuments(tx, companyId, x.id),
     closedAt: x.closedAt, createdAt: x.createdAt };
 }

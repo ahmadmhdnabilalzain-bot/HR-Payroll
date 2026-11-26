@@ -15,6 +15,7 @@ import { UUID } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
 import { register, type App, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
+import { assertInviteNotSpentByExit } from "../exits/invite-guard";
 
 export const INVITE_MS = 72 * 3600 * 1000;
 
@@ -164,6 +165,8 @@ async function acceptIn(tx: Db, ctx: ReqCtx<AcceptInviteRequest>,
   const at = ctx.deps.now().toISOString();
   const inv = await openInvite(tx, ctx.deps, ctx.body.setupToken);
   const userId = await userFor(tx, ctx, inv.email, verifiedId);
+  await assertInviteNotSpentByExit(tx, companyId, inv,
+    new Date(Date.parse(inv.expires_at) - INVITE_MS).toISOString());
   await joinCompany(tx, { companyId, userId, role: inv.role,
     employeeId: inv.employee_id, at });
   await tx.query("UPDATE invites SET used_at = $2 WHERE id = $1",

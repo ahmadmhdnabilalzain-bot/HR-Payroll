@@ -6,7 +6,11 @@ import {
   GRATUITY_PACKS,
   type Fils,
 } from "@payroll/engine";
+import { CodedError } from "../coded-error";
 import { toMoney } from "../db/money";
+
+/** `toMoney` refusals: shown as a refused settlement, not a 500. */
+const WIRE_CODES = ["AMOUNT_TOO_LARGE", "NEGATIVE_AMOUNT"];
 
 export interface ExitSettlementInput {
   joiningDate: string;
@@ -41,7 +45,13 @@ export function computeExitSettlement(i: ExitSettlementInput): Settlement {
         ar: explainTrace(r.trace, "ar"), arReviewed: false },
       includedInSif: false };
   } catch (e) {
-    if (!(e instanceof EngineError)) throw e;
-    return { status: "refused", code: e.code, message: e.message };
+    if (e instanceof EngineError) {
+      return { status: "refused", code: e.code, message: e.message };
+    }
+    if (e instanceof CodedError && WIRE_CODES.includes(e.code)) {
+      return { status: "refused", code: e.code,
+        message: "the amount does not fit the money format" };
+    }
+    throw e;
   }
 }

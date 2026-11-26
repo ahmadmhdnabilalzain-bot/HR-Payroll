@@ -132,6 +132,24 @@ describe("offer to hire", () => {
     expect((await db("SELECT id FROM tasks")).length).toBe(tasks.length);
   });
 
+  it("hire_copies_every_component", async () => {
+    const id = await offer(bigReq);
+    const o = await must(by(s.hr, "GET", `/v1/offers/${id}`));
+    const r = await must(by(s.hr, "POST", `/v1/offers/${id}/hire`,
+      hireBody()), 201);
+    expect(r.employee.salary).toEqual(o.salary);
+  });
+
+  it("hire_refused_when_application_closed", async () => {
+    const id = await offer(bigReq);
+    const o = await must(by(s.hr, "GET", `/v1/offers/${id}`));
+    await must(by(s.hr, "POST", `/v1/applications/${o.applicationId}/stage`,
+      { stage: "withdrawn" }));
+    const r = await by(s.hr, "POST", `/v1/offers/${id}/hire`, hireBody());
+    expect(r.status).toBe(409);
+    expect(r.body.error.code).toBe("APPLICATION_CLOSED");
+  });
+
   it("hire_fills_requisition_at_headcount", async () => {
     const req = await openReq(1);
     const id = await offer(req);

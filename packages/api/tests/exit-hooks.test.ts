@@ -50,7 +50,7 @@ describe("document hook (default port)", () => {
   it("close_blocked_by_open_tasks", async () => {
     const x = await fx.approvedExit(await fx.staff(), "2026-01-15");
     await fx.settle(x.id);
-    await fx.must(fx.by(s.hr, "POST", `/v1/exits/${x.id}/revoke-access`));
+    await fx.must(fx.by(s.hr, "POST", `/v1/exits/${x.id}/revoke-access`, {}));
     const open = await fx.must(fx.by(s.hr, "GET",
       `/v1/tasks?flowType=exit&flowId=${x.id}&status=open`));
     const r = await fx.by(s.hr, "POST", `/v1/exits/${x.id}/close`);
@@ -71,7 +71,7 @@ describe("document hook (default port)", () => {
   it("close_needs_settlement", async () => {
     const x = await fx.approvedExit(await fx.staff(), "2026-01-15");
     await fx.clearTasks(x.id);
-    await fx.must(fx.by(s.hr, "POST", `/v1/exits/${x.id}/revoke-access`));
+    await fx.must(fx.by(s.hr, "POST", `/v1/exits/${x.id}/revoke-access`, {}));
     const r = await fx.by(s.hr, "POST", `/v1/exits/${x.id}/close`);
     expect(r.status).toBe(409);
     expect(r.body.error.code).toBe("SETTLEMENT_REQUIRED");
@@ -92,7 +92,7 @@ describe("document hook (default port)", () => {
     const x = await fx.approvedExit(employeeId, "2026-01-15");
     await fx.clearTasks(x.id);
     await fx.settle(x.id);
-    await fx.must(fx.by(s.hr, "POST", `/v1/exits/${x.id}/revoke-access`));
+    await fx.must(fx.by(s.hr, "POST", `/v1/exits/${x.id}/revoke-access`, {}));
     const r = await fx.by(s.hr, "POST", `/v1/exits/${x.id}/close`);
     expect(r.status, r.text).toBe(200);
     expect(r.body.status).toBe("closed");

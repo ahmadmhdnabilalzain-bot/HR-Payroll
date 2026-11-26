@@ -8,7 +8,9 @@ CREATE TABLE exit_hook_runs (
   id uuid PRIMARY KEY,
   company_id uuid NOT NULL REFERENCES companies (id),
   exit_id uuid NOT NULL,
-  hook text NOT NULL CHECK (hook IN ('documents', 'access')),
+  -- 'access-confirm': HR confirmed a login (ref) is someone else's.
+  hook text NOT NULL
+    CHECK (hook IN ('documents', 'access', 'access-confirm')),
   kind text NOT NULL,
   status text NOT NULL,
   ref text,
@@ -29,3 +31,16 @@ GRANT SELECT, INSERT ON exit_hook_runs TO payroll_app;
 
 ALTER TABLE memberships ADD COLUMN revoked_at timestamptz;
 ALTER TABLE memberships ADD COLUMN revoked_by uuid REFERENCES users (id);
+
+-- "My companies" (no tenant set) shows only unrevoked memberships.
+DROP POLICY companies_select ON companies;
+CREATE POLICY companies_select ON companies FOR SELECT
+  USING (id = app_company_id() OR (app_company_id() IS NULL AND id IN
+    (SELECT m.company_id FROM memberships m
+     WHERE m.user_id = app_user_id() AND m.revoked_at IS NULL)));
+
+DROP POLICY memberships_select ON memberships;
+CREATE POLICY memberships_select ON memberships FOR SELECT
+  USING (company_id = app_company_id()
+    OR (app_company_id() IS NULL AND user_id = app_user_id()
+      AND revoked_at IS NULL));

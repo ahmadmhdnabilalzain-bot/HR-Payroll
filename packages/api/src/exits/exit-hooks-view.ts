@@ -1,6 +1,7 @@
 import type { AccessResult, Exit } from "@payroll/contract";
 import type { Db } from "../db/db";
 import { dubaiDate } from "../time/dubai";
+import { leaverLogins, stillActive } from "./leaver-logins";
 
 interface RunRow {
   kind: string;
@@ -31,20 +32,21 @@ export async function storedAccess(tx: Db, companyId: string,
 }
 
 /**
- * The leaver's in-app access: the stored revocation if it ran, else
- * "no-login" when no unrevoked membership of this company is linked to
- * the employee, else "not-revoked".
+ * The leaver's in-app access, read live: "not-revoked" while any login
+ * that may be theirs (linked, or same email, not confirmed as someone
+ * else's) is active, even after a revocation ran; else the stored
+ * result; else "no-login" (review C-1, I-1).
  */
 export async function exitAccess(tx: Db, companyId: string,
   x: { id: string; employeeId: string; lastWorkingDate: string }):
   Promise<Exit["access"]> {
+  const logins = await leaverLogins(tx, companyId, x);
   const done = await storedAccess(tx, companyId, x);
-  if (done !== null) return { status: done.inApp, at: done.at };
-  const rows = await tx.query(
-    `SELECT 1 FROM memberships WHERE company_id = $1 AND employee_id = $2
-     AND revoked_at IS NULL`, [companyId, x.employeeId]);
-  return { status: rows.length === 0 ? "no-login" : "not-revoked",
-    at: null };
+  if (stillActive(logins).length > 0) {
+    return { status: "not-revoked", at: done?.at ?? null, logins };
+  }
+  if (done !== null) return { status: done.inApp, at: done.at, logins };
+  return { status: "no-login", at: null, logins };
 }
 
 /** Every document hook run of the exit, oldest first. */

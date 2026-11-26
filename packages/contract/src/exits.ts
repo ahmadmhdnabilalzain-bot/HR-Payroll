@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Settlement } from "./payroll";
 import { Id, IsoDate, Lang, listOf, Timestamp } from "./primitives";
+import { Role } from "./roles";
 import { TraceLine } from "./trace";
 
 /** The engine's seven exit kinds (literal copy; a test compares). */
@@ -50,9 +51,10 @@ export const ExitCreate = z.object({
 export type ExitCreate = z.infer<typeof ExitCreate>;
 
 /** HR-entered at settlement time (Ruling 12). */
+/** Upper bounds (3650 days) are product bounds, not law. */
 export const SettlementInputs = z.object({
-  unusedLeaveDays: z.number().int().min(0),
-  serviceUnpaidLeaveDays: z.number().int().min(0),
+  unusedLeaveDays: z.number().int().min(0).max(3650),
+  serviceUnpaidLeaveDays: z.number().int().min(0).max(3650),
 });
 export type SettlementInputs = z.infer<typeof SettlementInputs>;
 
@@ -87,6 +89,30 @@ export const DocumentsRequest = z.object({
 });
 export type DocumentsRequest = z.infer<typeof DocumentsRequest>;
 
+/** A login that may belong to the leaver (Plan 8 review C-1). */
+export const LeaverLogin = z.object({
+  userId: Id,
+  role: Role,
+  match: z.enum(["linked", "email"]),
+  active: z.boolean(),
+  /** HR confirmed this login belongs to someone else. */
+  confirmedOther: z.boolean(),
+});
+export type LeaverLogin = z.infer<typeof LeaverLogin>;
+
+/**
+ * Revokes every active login the server lists in `access.logins`,
+ * except those HR confirms belong to someone else.
+ */
+export const RevokeRequest = z.object({
+  notTheLeaver: z.array(Id).max(20).optional(),
+});
+export type RevokeRequest = z.infer<typeof RevokeRequest>;
+
+/** Owner links (or unlinks) a member's login to an employee record. */
+export const UserEmployeeLink = z.object({ employeeId: Id.nullable() });
+export type UserEmployeeLink = z.infer<typeof UserEmployeeLink>;
+
 /** In-app membership revoke plus the external port (Ruling 19). */
 export const AccessResult = z.object({
   inApp: z.enum(["revoked", "no-login"]),
@@ -120,6 +146,11 @@ export const Exit = z.object({
   access: z.object({
     status: z.enum(["not-revoked", "revoked", "no-login"]),
     at: Timestamp.nullable(),
+    /**
+     * Logins that may be the leaver's: linked to the employee record,
+     * or with the employee's email. Owner and hr only (else empty).
+     */
+    logins: z.array(LeaverLogin),
   }),
   documents: z.array(ExitDocument),
   closedAt: Timestamp.nullable(),

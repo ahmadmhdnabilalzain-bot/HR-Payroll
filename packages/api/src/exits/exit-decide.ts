@@ -18,6 +18,7 @@ import { createTasks, type NewTaskInput } from "../tasks/tasks";
 import { exitSealer, type ExitRow } from "./exit-rows";
 import { exitView, visibleExit } from "./exits";
 import { computeExitSettlement } from "./settlement";
+import { assertNotSubject } from "./subject";
 
 type IdCtx<B = unknown> = ReqCtx<B, unknown, { id: string }>;
 
@@ -34,17 +35,21 @@ function dueLine(x: ExitRow) {
 async function exitTasks(ctx: ReqCtx, x: ExitRow, e: EmployeeRow) {
   const flow = { type: "exit" as const, id: x.id };
   const t = await getTemplate(ctx.tx, co(ctx), "exit");
-  const people = {
-    managerUserId: await userOfEmployee(ctx.tx, co(ctx), e.managerId),
-    employeeUserId: await userOfEmployee(ctx.tx, co(ctx), e.id) };
+  // The leaver never holds a clearance item (review I-4): the
+  // employee's items go to the manager (else hr), naming the leaver.
+  const mgr = await userOfEmployee(ctx.tx, co(ctx), e.managerId);
+  const people = { managerUserId: mgr, employeeUserId: mgr };
   const deadline: NewTaskInput = {
     title: "Pay the final settlement by this date", description: null,
     assigneeUserId: null, assigneeRole: "hr",
     dueDate: x.settlementDueDate, employeeId: e.id, flow,
     source: "exit-deadline", rule: dueLine(x), checklist: [] };
-  return createTasks(ctx.tx, ctx.deps, co(ctx), ctx.user!.id, [
-    ...expandTemplate(t, x.lastWorkingDate, people,
-      { employeeId: e.id, flow, source: "exit-template" }), deadline]);
+  const items = expandTemplate(t, x.lastWorkingDate, people,
+    { employeeId: e.id, flow, source: "exit-template" }).map((it, i) =>
+    t.items[i]!.assignee !== "employee" ? it : { ...it,
+      description: `Collect from ${e.fullName} (the leaver).` });
+  return createTasks(ctx.tx, ctx.deps, co(ctx), ctx.user!.id,
+    [...items, deadline]);
 }
 
 async function approve(ctx: IdCtx<Decision>, x: ExitRow) {
@@ -62,6 +67,7 @@ async function approve(ctx: IdCtx<Decision>, x: ExitRow) {
 /** Owner or hr, never the requester (no MFA: Ruling 16). */
 export async function decideExit(ctx: IdCtx<Decision>) {
   const x = await visibleExit(ctx, true);
+  await assertNotSubject(ctx, x);
   assertDecidable(ctx, { status: x.status, requestedBy: x.requestedBy },
     { pending: "requested", roles: ["owner", "hr"] });
   await ctx.tx.query(
@@ -110,6 +116,7 @@ function settlementOf(ctx: ReqCtx<SettlementInputs>, x: ExitRow,
  */
 export async function computeSettlement(ctx: IdCtx<SettlementInputs>) {
   const x = await visibleExit(ctx, true);
+  await assertNotSubject(ctx, x);
   if (x.status !== "in-notice") throw new ApiError("EXIT_NOT_APPROVED");
   const e = await loadEmployee(ctx.tx, ctx.deps, co(ctx), x.employeeId);
   const st = settlementOf(ctx, x, e);

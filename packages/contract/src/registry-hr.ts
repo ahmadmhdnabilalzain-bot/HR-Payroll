@@ -23,7 +23,7 @@ export const HR_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
     "HireResult", "ChecklistTemplateList"]),
   ...pick(exits, ["ExitCreate", "SettlementInputs", "ExitSettlement",
     "ExitDocument", "Exit", "ExitList", "DocumentsRequest",
-    "AccessResult"]),
+    "AccessResult", "LeaverLogin", "RevokeRequest", "UserEmployeeLink"]),
   ...pick(goals, ["GoalCreate", "GoalUpdate", "CheckInCreate", "CheckIn",
     "Goal", "GoalList"]),
 };
