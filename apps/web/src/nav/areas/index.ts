@@ -10,6 +10,7 @@ import { AREAS as PEOPLE_TEAM } from "./people-team";
 import { AREAS as REPORTS } from "./reports";
 import { AREAS as SETUP_ACCESS } from "./setup-access";
 import { AREAS as SETUP_RULES } from "./setup-rules";
+import { AREAS as SETUP_STRUCTURE } from "./setup-structure";
 import { AREAS as TIME } from "./time";
 
 /**
@@ -21,3 +22,4 @@ export const ALL_AREAS: readonly Area[] = [...CORE_AREAS, ...PEOPLE_TEAM,
   ...SETUP_RULES, ...SETUP_ACCESS, ...HOME_ME, ...COST];
   ...PEOPLE_MOVES, ...PEOPLE_PAPERS, ...PEOPLE_TALENT, ...TIME, ...PAY,
   ...REPORTS, ...SETUP_RULES, ...SETUP_ACCESS, ...HOME_ME];
+  ...SETUP_RULES, ...SETUP_ACCESS, ...SETUP_STRUCTURE, ...HOME_ME];
