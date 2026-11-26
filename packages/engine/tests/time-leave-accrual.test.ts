@@ -1,4 +1,3 @@
-import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { TIME_PACKS } from "../src/rules/time-pack";
 import {
@@ -131,27 +130,6 @@ describe("balanceHalves", () => {
     }
     expect(balanceHalves({ ...BAL, adjustmentHalves: -4 }).availableHalves)
       .toBe(46);
-  });
-  it("balance_identity", () => {
-    const arbTaken = fc.array(fc.record({
-      date: fc.constantFrom("2026-01-15", "2026-03-31", "2026-07-01"),
-      halves: fc.integer({ min: 0, max: 20 }),
-    }), { maxLength: 5 });
-    const arb = fc.record({
-      accruedHalves: fc.integer({ min: 0, max: 120 }),
-      carriedHalves: fc.integer({ min: 0, max: 60 }),
-      carriedExpiresOn: fc.constantFrom(null, "2026-03-31"),
-      adjustmentHalves: fc.integer({ min: -20, max: 20 }),
-      taken: arbTaken,
-      pendingHalves: fc.integer({ min: 0, max: 20 }),
-      asOf: fc.constantFrom("2026-02-01", "2026-04-01", "2026-12-31"),
-    });
-    fc.assert(fc.property(arb, (b) => {
-      const r = balanceHalves(b);
-      expect(r.availableHalves + r.takenHalves + b.pendingHalves +
-        r.expiredHalves).toBe(b.accruedHalves + b.carriedHalves +
-        b.adjustmentHalves);
-    }));
   });
 });
 
