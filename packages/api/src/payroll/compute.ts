@@ -1,4 +1,5 @@
 import {
+  MONEY_MAX_FILS,
   NOT_COMPUTED_PAY,
   type PayRunEntry,
   type PayRunProblem,
@@ -187,6 +188,32 @@ export function computePayRun(s: RunSnapshot): { problems: Problem[];
   if (problems.length > 0) return { problems, payslips: [], gross: fils(0n) };
   const payslips = paid.map((e) => payslipOf(e,
     entries.get(e.employeeId) ?? { employeeId: e.employeeId }, s.period));
-  return { problems, payslips,
-    gross: fils(payslips.reduce((n, p) => n + p.gross, 0n)) };
+  const gross = fils(payslips.reduce((n, p) => n + p.gross, 0n));
+  problems.push(...capProblems(payslips, gross));
+  if (problems.length > 0) return { problems, payslips: [], gross: fils(0n) };
+  return { problems, payslips, gross };
+}
+
+/**
+ * Amounts the wire format cannot carry (above 999,999,999.99 AED): a
+ * payslip gross, a settlement total, or the run gross (reported on the
+ * last employee).
+ */
+function capProblems(ps: ComputedPayslip[], gross: Fils): Problem[] {
+  const out: Problem[] = [];
+  for (const p of ps) {
+    const s = p.settlement;
+    const over = [
+      ...(p.gross > MONEY_MAX_FILS ? ["gross"] : []),
+      ...(s?.status === "computed" && s.total > MONEY_MAX_FILS
+        ? ["settlement"] : [])];
+    if (over.length > 0) {
+      out.push(problem(p.employeeId, "VALIDATION_FAILED", over));
+    }
+  }
+  const last = ps.at(-1);
+  if (out.length === 0 && gross > MONEY_MAX_FILS && last !== undefined) {
+    out.push(problem(last.employeeId, "VALIDATION_FAILED", ["runGross"]));
+  }
+  return out;
 }

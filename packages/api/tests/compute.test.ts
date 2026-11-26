@@ -129,6 +129,16 @@ describe("computePayRun", () => {
       code: "VALIDATION_FAILED", missing: ["basic", "bonus"] }]);
   });
 
+  it("a run gross above the wire cap is a problem", () => {
+    const big = (id: string) => emp({ employeeId: id, components: [
+      { code: "basic", label: "B", amount: fils(60_000_000_000n),
+        sifBucket: "fixed" }] });
+    const out = computePayRun(snap([big(E1), big(E2)]));
+    expect(out.payslips).toEqual([]);
+    expect(out.problems).toEqual([{ employeeId: E2,
+      code: "VALIDATION_FAILED", missing: ["runGross"] }]);
+  });
+
   it("people outside the period are not paid", () => {
     const out = computePayRun(snap([emp({ lastWorkingDate: "2026-02-28" }),
       emp({ employeeId: E2, joiningDate: "2026-04-01" })]));

@@ -38,14 +38,15 @@ export const PayRunEntry = z.object({
     }))
     .max(30)
     .optional(),
-  unusedLeaveDays: z.number().int().min(0).optional(),
+  /** Input sanity limit (not a statutory value): 100 years of days. */
+  unusedLeaveDays: z.number().int().min(0).max(36600).optional(),
   /**
    * Leavers only: unpaid leave days over the whole service, passed to
    * the gratuity calculation. Required for a leaver in the period (as
    * is unusedLeaveDays): omitted gives SETTLEMENT_INPUT_REQUIRED with
    * missing ["serviceUnpaidLeaveDays"]. Enter 0 when there was none.
    */
-  serviceUnpaidLeaveDays: z.number().int().min(0).optional(),
+  serviceUnpaidLeaveDays: z.number().int().min(0).max(36600).optional(),
 });
 export type PayRunEntry = z.infer<typeof PayRunEntry>;
 

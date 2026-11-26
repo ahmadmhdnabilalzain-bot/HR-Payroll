@@ -83,7 +83,7 @@ describe("pay runs and payslips", () => {
   it("no amount in audit data or clear payslip columns", async () => {
     const ev = await rows("SELECT data FROM audit_events WHERE action = " +
       "'pay-run.created'");
-    expect(ev[0]).toMatchObject({ data: { period: { year: 2026, month: 3 },
+    expect(ev[0]).toMatchObject({ data: { year: 2026, month: 3,
       employeeCount: 4 } });
     const text = JSON.stringify(ev);
     expect(text).not.toMatch(/\d+\.\d{2}/);
@@ -91,6 +91,42 @@ describe("pay runs and payslips", () => {
       .not.toContain(SALARY_SENTINEL);
     expect(JSON.stringify(await rows("SELECT snapshot_enc FROM pay_runs")))
       .not.toContain("777777");
+  });
+
+  it("payslips only go into drafts; the creator never approves (DB)",
+    async () => {
+      const ctx2 = { companyId: s.companyId, userId: null };
+      const insert = withTenant(ctx.deps.db, ctx2, (tx) => tx.query(
+        `INSERT INTO payslips (id, company_id, pay_run_id, employee_id,
+           body_enc, created_at) VALUES ($1, $2, $3, $4, 'x', $5)`,
+        ["00000000-0000-4000-8000-0000000fffff", s.companyId, runId,
+          s.emp.report2, "2026-03-31T00:00:00.000Z"]));
+      await expect(insert).rejects.toThrow(/draft pay runs/);
+      const r = await postRun(ctx, s.hr, s, "sod-db", { period:
+        { year: 2027, month: 1 }, entries: [] });
+      const self = withTenant(ctx.deps.db, ctx2, (tx) => tx.query(
+        `UPDATE pay_runs SET status = 'approved', approved_by = created_by
+         WHERE id = $1`, [r.body.id]));
+      await expect(self).rejects.toThrow(/pay_runs_sod/);
+      await as(s.hr, "POST", `/v1/pay-runs/${r.body.id}/void`);
+    });
+
+  it("a company with nobody in the period gets no run", async () => {
+    const r = await postRun(ctx, s.hr, s, "empty-1",
+      { period: { year: 2010, month: 1 }, entries: [] });
+    expect(r.status).toBe(422);
+    expect(r.body.error.code).toBe("RUN_EMPTY");
+  });
+
+  it("an amount above the wire cap is a problem, not a 500", async () => {
+    const r = await postRun(ctx, s.hr, s, "cap-1", { period:
+      { year: 2027, month: 2 }, entries: [{ employeeId: s.emp.report,
+        oneOffs: [{ code: "bonus", label: "Bonus", amount: "999999999.99",
+          sifBucket: "otherAllowances" }] }] });
+    expect(r.status).toBe(422);
+    expect(r.body.error.detail.problems).toEqual([{
+      employeeId: s.emp.report, code: "VALIDATION_FAILED",
+      missing: ["gross"] }]);
   });
 
   it("a draft whose inputs changed cannot be approved", async () => {

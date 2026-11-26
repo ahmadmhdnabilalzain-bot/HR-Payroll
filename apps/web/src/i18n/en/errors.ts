@@ -67,4 +67,5 @@ export const errors = {
     "created. Void it and create it again.",
   SALARY_MISSING: "An employee in this period has no salary.",
   LAST_OWNER: "The company needs at least one owner.",
+  RUN_EMPTY: "Nobody is employed in this month, so there is no run.",
 } satisfies EnNamespace;

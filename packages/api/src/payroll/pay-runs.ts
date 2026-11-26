@@ -116,6 +116,7 @@ export async function createPayRun(ctx: ReqCtx<PayRunCreate>, key: string)
   const snap = await buildSnapshot(tx, deps, c, body);
   const out = computePayRun(snap);
   if (out.problems.length > 0) throw problemsError(out.problems);
+  if (out.payslips.length === 0) throw new ApiError("RUN_EMPTY");
   const id = deps.newId();
   const at = deps.now().toISOString();
   const inputHash = snapshotHash(snap);
@@ -131,7 +132,7 @@ export async function createPayRun(ctx: ReqCtx<PayRunCreate>, key: string)
   await storePayslips(tx, deps, c, id, out.payslips);
   await appendAudit(tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "pay-run.created", entityType: "pay-run", entityId: id,
-    data: { period: body.period, employeeCount: out.payslips.length,
+    data: { ...body.period, employeeCount: out.payslips.length,
       inputHash } });
   return new Reply(201, toPayRun(await loadRun(tx, c, id)));
 }
@@ -161,7 +162,7 @@ export async function approvePayRun(ctx: ReqCtx<unknown, unknown,
     [c, r.id, ctx.user!.id, at]);
   await appendAudit(tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "pay-run.approved", entityType: "pay-run", entityId: r.id,
-    data: { period: { year: r.year, month: r.month } } });
+    data: { year: r.year, month: r.month } });
   return toPayRun(await loadRun(tx, c, r.id));
 }
 
@@ -175,6 +176,6 @@ export async function voidPayRun(ctx: ReqCtx<unknown, unknown,
     "WHERE company_id = $1 AND id = $2", [c, r.id, at]);
   await appendAudit(ctx.tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "pay-run.voided", entityType: "pay-run", entityId: r.id,
-    data: { period: { year: r.year, month: r.month } } });
+    data: { year: r.year, month: r.month } });
   return toPayRun(await loadRun(ctx.tx, c, r.id));
 }
