@@ -7,6 +7,7 @@ import type { SafetyData } from "./safety-types";
 import type { RequestsData } from "./requests-types";
 import type { FilesData } from "./files-types";
 import type { MoreData } from "./more-types";
+import type { VerifyData } from "./verify-types";
 import type { TalentData } from "./talent-types";
 import type { TeamData } from "./team-types";
 
@@ -161,6 +162,8 @@ export interface DemoData {
   home: HomeData;
   /** New employee, claims, cover (more-types.ts). */
   more: MoreData;
+  /** Verifiable letters and document intake (verify-types.ts). */
+  verify: VerifyData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };

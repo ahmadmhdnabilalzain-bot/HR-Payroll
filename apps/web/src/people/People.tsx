@@ -16,6 +16,7 @@ import { Profile } from "./Profile";
 import { Safety } from "./safety/Safety";
 import { Talent } from "./talent/Talent";
 import { Team } from "./team/Team";
+import { Verify } from "./verify/Verify";
 import s from "./page.module.css";
 
 /**
@@ -34,6 +35,7 @@ export function People(p: ViewProps) {
   if (id === "talent") return <Talent rest={p.rest.slice(1)} />;
   if (id === "safety") return <Safety rest={p.rest.slice(1)} />;
   if (id === "exit") return <Exit rest={p.rest.slice(1)} />;
+  if (id === "verify") return <Verify rest={p.rest.slice(1)} />;
   if (id === "files") return <Files rest={p.rest.slice(1)} />;
   if (id === "moves") return <Moves rest={p.rest} />;
   if (id === "requests") return <Requests rest={p.rest} />;

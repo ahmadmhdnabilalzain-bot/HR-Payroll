@@ -20,6 +20,7 @@ import {
 import { adaptFiles } from "./files";
 import { adaptPapers } from "./papers";
 import { adaptMore } from "./more";
+import { adaptVerify } from "./verify";
 import { adaptMoves } from "./moves";
 import { adaptHome } from "./home";
 import { adaptPeople } from "./people";
@@ -124,6 +125,7 @@ export function adapt(c: DemoCompany): DemoData {
     files: adaptFiles(c),
     home: adaptHome(c),
     more: adaptMore(c),
+    verify: adaptVerify(c),
   };
 }
 

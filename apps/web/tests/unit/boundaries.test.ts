@@ -46,9 +46,12 @@ describe("boundaries", () => {
       "src/demo/data/time.ts",
       "src/reports/source.ts",
       "src/reports/cost/source.ts",
+      "src/reports/planning/source.ts",
       "src/reports/more/source.ts",
       "src/pay/more/source.ts",
       "src/setup/more/source.ts",
+      "src/setup/erp/source.ts",
+      "src/setup/privacy/source.ts",
       "src/setup/access/data.ts",
       "src/setup/structure/data.ts",
       "src/demo/data/safety-types.ts",
@@ -65,7 +68,10 @@ describe("boundaries", () => {
       "src/demo/data/more.ts",
       "src/demo/data/pay.ts",
       "src/demo/data/requests-types.ts",
+      "src/demo/data/rule-change.ts",
       "src/demo/data/requests.ts",
+      "src/demo/data/verify-types.ts",
+      "src/demo/data/verify.ts",
     ];
     expect([...filesImporting(/^@payroll\/demo-data/)].sort())
       .toEqual([...allowed].sort());
