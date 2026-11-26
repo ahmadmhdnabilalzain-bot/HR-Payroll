@@ -248,7 +248,7 @@ c = convention):
 | gpssaGccNationalContribution | null, **unsourced** | none |
 | gpssaRoundingMode | "HALF_UP", convention | ENGINE_CONVENTION |
 
-- [ ] **Step 1: Write the failing tests** in `payroll-packs.test.ts`:
+- [x] **Step 1: Write the failing tests** in `payroll-packs.test.ts`:
   - `freezes both packs`: `Object.isFrozen(PAYROLL_PACKS[0]!.params
     .overtimeUpliftBps)` and the same for `GPSSA_PACKS` are `true`.
   - `cites an article for every official param`: for every param of
@@ -279,15 +279,15 @@ c = convention):
     "2023-10-01")` throws `NO_PACK_FOR_DATE`.
   - `names the article in the source note`: `sourceOf("DL57_ART4").note`
     contains `"Article 4"`.
-- [ ] **Step 2: Run** `pnpm --filter @payroll/engine test payroll-packs`;
+- [x] **Step 2: Run** `pnpm --filter @payroll/engine test payroll-packs`;
   expect FAIL (modules missing).
-- [ ] **Step 3: Implement** the source ids, the two packs (a local
+- [x] **Step 3: Implement** the source ids, the two packs (a local
   `param(value, status, sourceId)` helper as in `gratuity-pack.ts`; each
   param line keeps a short comment quoting the article clause), and
   `params.ts` with the signatures above.
-- [ ] **Step 4: Run** `pnpm check`; expect PASS (existing
+- [x] **Step 4: Run** `pnpm check`; expect PASS (existing
   `shared.test.ts` checks every source has a note).
-- [ ] **Step 5: Commit** `feat(engine): payroll and GPSSA rule-packs`.
+- [x] **Step 5: Commit** `feat(engine): payroll and GPSSA rule-packs`.
 
 ### Task 2: Payslip types and input validation
 
@@ -386,7 +386,7 @@ night not 0..minutes), `DATE_OUTSIDE_PAY_PERIOD`, `DUPLICATE_DATE`,
 `CONSENT_REQUIRED`, `GPSSA_INPUT_REQUIRED`, `GPSSA_INPUT_NOT_EXPECTED`,
 `UNSUPPORTED_WORKER_CLASS`.
 
-- [ ] **Step 1: Write the failing tests** in
+- [x] **Step 1: Write the failing tests** in
   `payroll-validate.test.ts` (`P = loadPayrollParams(PAYROLL_PACKS[0]!,
   undefined)`):
   - `returns the full June window`: `validatePayslipInput(fx(), P)`
@@ -431,12 +431,12 @@ night not 0..minutes), `DATE_OUTSIDE_PAY_PERIOD`, `DUPLICATE_DATE`,
     `gpssa: null` gives `GPSSA_INPUT_REQUIRED`; an expat with a
     `GpssaInput` gives `GPSSA_INPUT_NOT_EXPECTED`; workerClass `"x"`
     gives `UNSUPPORTED_WORKER_CLASS`.
-- [ ] **Step 2: Run** `pnpm --filter @payroll/engine test
+- [x] **Step 2: Run** `pnpm --filter @payroll/engine test
   payroll-validate`; expect FAIL.
-- [ ] **Step 3: Implement** `types.ts`, `validate.ts` (one small
+- [x] **Step 3: Implement** `types.ts`, `validate.ts` (one small
   checker per input group) and `payroll-fixture.ts`.
-- [ ] **Step 4: Run** `pnpm check`; expect PASS.
-- [ ] **Step 5: Commit** `feat(engine): payslip types and validation`.
+- [x] **Step 4: Run** `pnpm check`; expect PASS.
+- [x] **Step 5: Commit** `feat(engine): payslip types and validation`.
 
 ### Task 3: Day accounting, sick and maternity steps, prorated pay
 
@@ -491,7 +491,7 @@ Rules (decided here; see Rulings 3 to 6):
   `beyond`, `probation`, `usedBefore`, `usedAfter`; result
   `usedAfter`).
 
-- [ ] **Step 1: Write the failing tests.** Amounts are fils for basic,
+- [x] **Step 1: Write the failing tests.** Amounts are fils for basic,
   housing, transport, then the sum. Arithmetic: line =
   monthly * paidHalfDays / totalHalfDays, HALF_UP.
   - `pays a full June in full`: 60/60: 1000000, 400000, 100000;
@@ -533,11 +533,11 @@ Rules (decided here; see Rulings 3 to 6):
     `fullPay "5"` and `halfPay "5"`, `earn.allowance#housing` result
     `"366667"` with rule keys including `prorationBasis` and
     `paidLeaveBase`.
-- [ ] **Step 2: Run** `pnpm --filter @payroll/engine test payroll-days
+- [x] **Step 2: Run** `pnpm --filter @payroll/engine test payroll-days
   payroll-earnings`; expect FAIL.
-- [ ] **Step 3: Implement** `accountDays` and `fixedEarnings` as above.
-- [ ] **Step 4: Run** `pnpm check`; expect PASS.
-- [ ] **Step 5: Commit** `feat(engine): payroll day accounting`.
+- [x] **Step 3: Implement** `accountDays` and `fixedEarnings` as above.
+- [x] **Step 4: Run** `pnpm check`; expect PASS.
+- [x] **Step 5: Commit** `feat(engine): payroll day accounting`.
 
 ### Task 4: Overtime, rest-day and holiday work, leave encashment
 
@@ -586,7 +586,7 @@ Rules (Rulings 7 to 9):
   `mulDiv(wage, encashLeaveDays, dailyDivisor, roundingMode)`, line
   `earn.leave-encashment` (input `days`).
 
-- [ ] **Step 1: Write the failing tests** (FX: basic 1000000, wage
+- [x] **Step 1: Write the failing tests** (FX: basic 1000000, wage
   1500000, 8 hours; overtime denominator 30*8*60*10000 = 144000000):
   - `pays two hours of overtime at 125%`: 2026-06-10, 120 min, night 0:
     1000000*120*12500/144000000 = 10416.67 -> 10417; no flag.
@@ -615,12 +615,12 @@ Rules (Rulings 7 to 9):
     0, inputs `days "0"`, `daysOff "1"`.
   - `cashes five leave days at the wage`: 1500000*5/30 = 250000.
   - `emits no lines with no variable input`: FX gives `[]`.
-- [ ] **Step 2: Run** `pnpm --filter @payroll/engine test
+- [x] **Step 2: Run** `pnpm --filter @payroll/engine test
   payroll-variable`; expect FAIL.
-- [ ] **Step 3: Implement** `variableEarnings` (one helper each for
+- [x] **Step 3: Implement** `variableEarnings` (one helper each for
   overtime, rest-day kinds and encashment).
-- [ ] **Step 4: Run** `pnpm check`; expect PASS.
-- [ ] **Step 5: Commit** `feat(engine): overtime, rest-day pay, encashment`.
+- [x] **Step 4: Run** `pnpm check`; expect PASS.
+- [x] **Step 5: Commit** `feat(engine): overtime, rest-day pay, encashment`.
 
 ### Task 5: GPSSA contributions for UAE nationals
 
@@ -671,7 +671,7 @@ Rules (Rulings 10 to 13):
   (message "GCC national pension contributions are not supported: no
   sourced rule exists"); with one it throws `UNSUPPORTED_WORKER_CLASS`.
 
-- [ ] **Step 1: Write the failing tests** (`g(regime, base)` loads
+- [x] **Step 1: Write the failing tests** (`g(regime, base)` loads
   params with `{ gpssaContributionSalaryBase: base }`; national FX:
   `workerClass "uae-national"`, `gpssa: { regime, fixingMonth:
   "2026-01", fixingBasic: 1000000n, fixingAllowances: 500000n,
@@ -709,11 +709,11 @@ Rules (Rulings 10 to 13):
   - `refuses GCC nationals`: no override: `UNSOURCED_PARAM`,
     `detail.key "gpssaGccNationalContribution"`; with override `"x"`:
     `UNSUPPORTED_WORKER_CLASS`.
-- [ ] **Step 2: Run** `pnpm --filter @payroll/engine test payroll-gpssa`;
+- [x] **Step 2: Run** `pnpm --filter @payroll/engine test payroll-gpssa`;
   expect FAIL.
-- [ ] **Step 3: Implement** `gpssa.ts` as above.
-- [ ] **Step 4: Run** `pnpm check`; expect PASS.
-- [ ] **Step 5: Commit** `feat(engine): GPSSA contributions`.
+- [x] **Step 3: Implement** `gpssa.ts` as above.
+- [x] **Step 4: Run** `pnpm check`; expect PASS.
+- [x] **Step 5: Commit** `feat(engine): GPSSA contributions`.
 
 ### Task 6: Deductions, caps and loans (Article 25)
 
@@ -765,7 +765,7 @@ Rules (Rulings 14 to 18):
   loans `balanceBefore`, `balanceAfter`. Also `cap.base`,
   `cap.overall` and `ded.total`.
 
-- [ ] **Step 1: Write the failing tests** (FX: earned and contractual
+- [x] **Step 1: Write the failing tests** (FX: earned and contractual
   wage 1500000, so overall cap 750000):
   - `sets the caps from the earned wage`: `caps` equal
     `{ wageBase: 1500000n, overall: 750000n }`.
@@ -801,12 +801,12 @@ Rules (Rulings 14 to 18):
   - `follows an overridden order`: `deductionOrder` with `loan` first
     takes the loan before the court debt; `"gpssa"` alone throws
     `INVALID_PARAM`.
-- [ ] **Step 2: Run** `pnpm --filter @payroll/engine test
+- [x] **Step 2: Run** `pnpm --filter @payroll/engine test
   payroll-deductions`; expect FAIL.
-- [ ] **Step 3: Implement** `applyDeductions` (a cap table, one loop
+- [x] **Step 3: Implement** `applyDeductions` (a cap table, one loop
   over the order, one helper per item).
-- [ ] **Step 4: Run** `pnpm check`; expect PASS.
-- [ ] **Step 5: Commit** `feat(engine): capped deductions and loans`.
+- [x] **Step 4: Run** `pnpm check`; expect PASS.
+- [x] **Step 5: Commit** `feat(engine): capped deductions and loans`.
 
 ### Task 7: calculatePayslip, not-computed list and properties
 
@@ -869,7 +869,7 @@ the sorted, comma-joined keys of every trace rule with `overridden`).
 `" nationals only (Decree-Law 57/2023 Art 1)"]`; for `uae-national`
 `[]`.
 
-- [ ] **Step 1: Write the failing tests** in `payroll-payslip.test.ts`
+- [x] **Step 1: Write the failing tests** in `payroll-payslip.test.ts`
   (`run(i, ov?) = calculatePayslip(i, DEFAULT_PAYROLL_PACKS, ov)`):
   - `pays FX in full`: gross 1500000n, totalDeductions 0n, net
     1500000n, employerCost 0n; earning kinds `["basic", "housing",
@@ -902,7 +902,7 @@ the sorted, comma-joined keys of every trace rule with `overridden`).
     140001n`: deductions 165000 + 140001 = 305001, net 1194999, nothing
     deferred (305001 <= 750000).
   - `gives the same payslip twice`: two runs are `toEqual`.
-- [ ] **Step 2: Write the failing properties** in `payroll-props.test.ts`
+- [x] **Step 2: Write the failing properties** in `payroll-props.test.ts`
   (fast-check, 200 runs each; the arbitrary builds a valid expat or
   national-with-override input in 2026: basic 1 to 10^9 fils, 0 to 3
   allowances 0 to 10^9, joining and leaving dates in or around the
@@ -926,11 +926,11 @@ the sorted, comma-joined keys of every trace rule with `overridden`).
     variable input; joining day d and d - k in the same month).
   - `one more unpaid day never raises gross`.
   - `the same input gives the same output`.
-- [ ] **Step 3: Run** `pnpm --filter @payroll/engine test
+- [x] **Step 3: Run** `pnpm --filter @payroll/engine test
   payroll-payslip payroll-props`; expect FAIL.
-- [ ] **Step 4: Implement** `payslip.ts` and `not-computed.ts`.
-- [ ] **Step 5: Run** `pnpm check`; expect PASS.
-- [ ] **Step 6: Commit** `feat(engine): monthly payslip`.
+- [x] **Step 4: Implement** `payslip.ts` and `not-computed.ts`.
+- [x] **Step 5: Run** `pnpm check`; expect PASS.
+- [x] **Step 6: Commit** `feat(engine): monthly payslip`.
 
 ### Task 8: Explanations in English and Arabic, and the case library
 
@@ -1036,8 +1036,10 @@ ded.damage       EN Deduction for damage {in.ref}: {result} R
                  AR خصم بسبب إتلاف {in.ref}: {result} R
 ded.court-debt   EN Court-ordered deduction {in.ref}: {result} R
                  AR خصم بموجب حكم قضائي {in.ref}: {result} R
-ded.scheme       EN Deduction for an approved scheme {in.ref}: {result} R
-                 AR خصم لصالح نظام معتمد {in.ref}: {result} R
+ded.scheme       EN Deduction for a savings or welfare scheme {in.ref}:
+                    {result} R
+                 AR خصم لصالح نظام ادخار أو رعاية {in.ref}: {result} R
+                 (build correction: "approved" removed, honest wording)
 ded.loan         EN Loan repayment {in.ref}: {result} R
                  AR سداد قرض {in.ref}: {result} R
 ded.total        EN Total deductions: {result} R
@@ -1111,7 +1113,7 @@ digit strings, converted with `fils(BigInt(s))`):
 `sourceIds` entry must resolve with `sourceOf`, else
 `INVALID_CASE_FILE`. A case that throws reports `ERROR <code>`.
 
-- [ ] **Step 1: Write the failing tests**:
+- [x] **Step 1: Write the failing tests**:
   - `payroll-explain.test.ts`: `has both languages for every payroll
     id` (every key of `PAYROLL_EN` is in `PAYROLL_AR` and the reverse;
     every id emitted by the Task 7 national, overtime, sick, maternity,
@@ -1128,15 +1130,15 @@ digit strings, converted with `fils(BigInt(s))`):
     `rejects an unknown source id` (temp dir, `INVALID_CASE_FILE`);
     `reports an engine error as ERROR <code>` (a national case without
     overrides gives `"ERROR UNSOURCED_PARAM"`).
-- [ ] **Step 2: Run** `pnpm --filter @payroll/engine test
+- [x] **Step 2: Run** `pnpm --filter @payroll/engine test
   payroll-explain payroll-cases`; expect FAIL.
-- [ ] **Step 3: Implement** the catalog file (comment
+- [x] **Step 3: Implement** the catalog file (comment
   `// NEEDS NATIVE REVIEW` above `PAYROLL_AR`), the merge into
   `MESSAGES` and `MONEY_IDS`, `baseId`, the schema, the runner (same
   shape as `runCases`) and the ten JSON files.
-- [ ] **Step 4: Run** `pnpm check`; expect PASS (the existing explain
+- [x] **Step 4: Run** `pnpm check`; expect PASS (the existing explain
   and cases tests still pass).
-- [ ] **Step 5: Commit** `feat(engine): payslip explanations and cases`.
+- [x] **Step 5: Commit** `feat(engine): payslip explanations and cases`.
 
 ### Task 9: Payslip to WPS adapter, handover and ledger
 
@@ -1173,7 +1175,7 @@ Mapping (Ruling 19):
   slip.unpaidDays`. EVP only when `variable > 0`.
 - If `fixed + variable !== slip.net`, throw `ADAPTER_MISMATCH`.
 
-- [ ] **Step 1: Write the failing tests** (bank details `{ personId:
+- [x] **Step 1: Write the failing tests** (bank details `{ personId:
   "00915012345663", routingCode: "802420101", account:
   "AE400240043520123456701" }`, the clean fixture's account; payslips
   from `calculatePayslip` on the engine's FX values, rebuilt locally in
@@ -1200,17 +1202,17 @@ Mapping (Ruling 19):
     arbitrary rebuilt here): `fixed + variable equals net`, `EVP parts
     add up to variable`, `nothing is negative`, `EVP exists only with
     variable pay`.
-- [ ] **Step 2: Run** `pnpm --filter @payroll/wps test from-payslip`;
+- [x] **Step 2: Run** `pnpm --filter @payroll/wps test from-payslip`;
   expect FAIL.
-- [ ] **Step 3: Implement** `from-payslip.ts`.
-- [ ] **Step 4: Update docs**: `HANDOVER.md` (current state: Plan 5
+- [x] **Step 3: Implement** `from-payslip.ts`.
+- [x] **Step 4: Update docs**: `HANDOVER.md` (current state: Plan 5
   built; engine layout row "Monthly payslip | `src/payroll/`";
   known limits: the Rulings below that move money, and that every
   national's payslip needs the `gpssaContributionSalaryBase`
   override); `LEDGER.md` section 3 or a new "Rulings made during the
   Plan 5 build" section: one line per Ruling below.
-- [ ] **Step 5: Run** `pnpm check`; expect PASS.
-- [ ] **Step 6: Commit** `feat(wps): payslip to SIF adapter`.
+- [x] **Step 5: Run** `pnpm check`; expect PASS.
+- [x] **Step 6: Commit** `feat(wps): payslip to SIF adapter`.
 
 ---
 

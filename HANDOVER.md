@@ -26,6 +26,16 @@ source-cited, with an open API and Arabic from the start.
   information file (SIF) from a batch and checks any SIF file, with a
   plain-English report. Format only: it pays nobody and claims no
   compliance.
+- **Plan 5 (monthly payroll) is built** on a worktree branch, test-first,
+  one commit per task (`docs/superpowers/plans/plan-5-build-report.md`).
+  `calculatePayslip` computes one month's payslip in the pure engine:
+  calendar-day proration, sick and maternity pay steps, overtime,
+  rest-day and holiday work, in-service leave encashment, Article 25
+  deduction caps and loans, and GPSSA contributions for UAE nationals,
+  every money field traced to a rule-pack param. `payslipToSifEmployee`
+  in `packages/wps` turns a payslip into a SIF EDR and EVP. The plan's
+  per-task reviews (Tasks 3 to 7 and 9) were not run by the builder; the
+  whole-branch review is still to do.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -68,6 +78,8 @@ sample and gives one warning (its account fails the IBAN check).
 | Rule-packs (versioned, sourced) | `src/rules/`, `src/sources.ts` |
 | Gratuity and settlement | `src/gratuity*.ts`, `src/settlement.ts` |
 | Rule-change preview | `src/preview.ts` |
+| Monthly payslip | `src/payroll/`, `src/rules/payroll-pack.ts`, `src/rules/gpssa-pack.ts` |
+| Payslip case library (I/O shell) | `src/cases/payroll-*.ts`, `cases/payroll/*.json` |
 | Explanation in English and Arabic | `src/explain/` |
 | Case library and runner (I/O shell) | `src/cases/`, `cases/gratuity/*.json` |
 | Demo command (I/O shell) | `src/cli.ts`, `src/main.ts` |
@@ -85,6 +97,7 @@ sample and gives one warning (its account fails the IBAN check).
 | Demo command (I/O shell) | `src/cli*.ts`, `src/main.ts`, `src/shell.ts` |
 | Batch file schema (zod, shell) | `src/batch-schema.ts` |
 | Sample batch | `samples/batch.json` |
+| Payslip to EDR and EVP | `src/from-payslip.ts` |
 
 `@payroll/wps` is the pure barrel; `@payroll/wps/shell` holds the files,
 clock and zod. A purity test keeps the core free of them, as in the
@@ -120,7 +133,9 @@ engine refuses to run without an explicit value.
 - The routing code table has six banks and is old (undated; the guide
   sample is from 2009), so real files often get a `ROUTING_UNKNOWN`
   warning.
-- Amounts are inputs: no monthly pay run exists yet. One currency, AED.
+- SIF batch amounts are inputs; `payslipToSifEmployee` can build one
+  employee's EDR and EVP from a payslip, but no pay run stores or batches
+  payslips yet. One currency, AED.
 - "EVP parts add up to variable pay" is inferred, so it is a warning.
 - The generator writes the SCR count as `1`; the DIB sample shows `01`
   and the Emirates Islamic sample `1`. Ruling: keep `1` (see `LEDGER.md`
@@ -130,6 +145,28 @@ engine refuses to run without an explicit value.
 - Finding codes added beyond the plan: `AMOUNT_FORMAT`, `COUNT_FORMAT`,
   `CURRENCY`, `PAY_START_TOO_EARLY`, `FIELD_TOO_LONG`, `ROUTING_UNKNOWN`.
 - Deferred minors and the reviewer rulings are in `LEDGER.md` (section 3).
+- Payslip (Plan 5): **every UAE national's payslip throws
+  `UNSOURCED_PARAM` until the caller passes the
+  `gpssaContributionSalaryBase` override** (`basic` or `wage`); the
+  payslip then flags `OVERRIDE_USED`. GCC nationals are refused. The
+  GPSSA regime (DL57 or Law 7) is an input, never inferred.
+- Payslip rulings that move money (`LEDGER.md`, "Rulings made during the
+  Plan 5 build"): calendar-day proration; sick and maternity "full pay"
+  read as the wage; overtime hourly rate = basic / 30 / contract hours;
+  rest-day and holiday work paid as an extra day's wage plus 50% of
+  basic (the premium-only reading is an override); GPSSA not prorated
+  and Law 7 skips a partial last month; deduction caps on the earned
+  wage, rounded down; violation cap is the stricter of 5% and five
+  days; when the 50% cap binds the order is GPSSA, court debt,
+  overpayment, violation, damage, scheme, loan, and the rest is
+  deferred; the GPSSA share can be deferred; WPS fixed is the earned
+  basic after deductions.
+- Payslip not computed (listed on every payslip): income tax, ILOE,
+  exit pay (see `calculateSettlement`), bonuses, GPSSA unpaid-leave
+  reduction and late additions, the 144-hour three-week limit, Ramadan
+  hours, alimony ranking, the 3-month sanction limit, the WPS 85% test,
+  other paid leave. The first payroll month is March 2022 and the first
+  month for nationals November 2023 (`NO_PACK_FOR_DATE` before).
 
 ## Where things are
 
@@ -150,8 +187,9 @@ needs checking against official sources before anything is built on it.
 
 ## Next step
 
-Plan 3: data model, API, tenancy and security baseline (`LEDGER.md`
-section 4). The Plan 2 whole-branch review and its fix round are done.
+Plan 5: a whole-branch review of the payroll engine work (money and law),
+then merge the worktree branch. Plan 3: data model, API, tenancy and
+security baseline (`LEDGER.md` section 4). The Plan 2 whole-branch review and its fix round are done.
 Write the plan, build it test-first, keep this handover current. Plan 3
 gets one whole-branch review at the end, plus separate reviews of the
 money, security and tenancy tasks (speed ruling, `LEDGER.md`). The owner

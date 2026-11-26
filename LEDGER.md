@@ -253,3 +253,82 @@ overrule any of these.
   the warning. Why: the warning is about the code, and the first line
   names it. Cost if wrong: the SCR line shows no warning of its own;
   pinned by a test, change both together.
+
+## 10. Rulings made during the Plan 5 build (Claude's calls)
+
+The owner can overrule any of these. Dated 2026-11-26. Rulings 1 to 22
+are the plan's (`docs/superpowers/plans/2026-11-26-plan-5-monthly-payroll.md`,
+section "Rulings", with the cost of each if wrong); B1 to B6 were made
+while building (`docs/superpowers/plans/plan-5-build-report.md`).
+
+- Ruling 1: two packs with keys unique across both, `ae-payroll` (from
+  2022-02-02) and `ae-gpssa` (from 2023-10-31), selected on the month's
+  first day: first payroll month March 2022, first for nationals
+  November 2023.
+- Ruling 2: one source id per article (`DL33_ART19` and so on), not a
+  new `article` field on `RuleSource`.
+- Ruling 3: calendar-day proration (`convention`), rounded HALF_UP once
+  per line.
+- Ruling 4: sick and maternity pay reduce earnings, not deductions, so
+  they do not use the 50% cap; "full pay" is read as the wage.
+- Ruling 5: the sick-leave year and the days already used are inputs;
+  probation sick days are unpaid and do not use up the 90.
+- Ruling 6: leave beyond the law (sick over 90, maternity over 105) is
+  unpaid and flagged, never refused.
+- Ruling 7: overtime hourly rate = contractual basic / 30 / the
+  contract's daily hours (at most 8); minutes, not hours.
+- Ruling 8: the 2-hour daily overtime cap flags and never cuts pay; the
+  144-hour three-week limit is cited but not checked.
+- Ruling 9: rest-day and holiday work pays an extra day's wage plus 50%
+  of basic; "premium only" is a supported override; shift workers get
+  25% at night; days off in lieu pay 0.
+- Ruling 10: the GPSSA regime (`dl57-2023` or `law7-1999`) is an input,
+  never inferred.
+- Ruling 11: the GPSSA contribution salary base is unsourced: every UAE
+  national's payslip throws `UNSOURCED_PARAM` until the caller passes
+  `gpssaContributionSalaryBase`, and then flags `OVERRIDE_USED`.
+- Ruling 12: GPSSA is not prorated (DL57 Art 11(3)); Law 7 skips a
+  partial last month; the salary is fixed in January or the joining
+  month and passed in, and a wrong month is refused; unpaid leave does
+  not reduce it.
+- Ruling 13: GCC nationals are refused, as in the gratuity.
+- Ruling 14: the deduction cap base is the earned wage (basic and
+  allowances after proration); "five days' wage" uses the contractual
+  wage / 30; caps round DOWN.
+- Ruling 15: violation cap conflict (Art 25(1)(f) 5% against Art
+  39(1)(c) five days): the stricter is used and flagged.
+- Ruling 16: when the 50% cap binds the order is GPSSA, court debt,
+  overpayment, violation, damage, scheme, loan (a param); remainders are
+  deferred and reported.
+- Ruling 17: the GPSSA employee share counts towards the 50% cap and can
+  be deferred; the caller resubmits it as `GpssaInput.arrears`.
+- Ruling 18: loans need written consent; "scheme" (Art 25(1)(d) and
+  (e)) always needs consent; no interest is computed.
+- Ruling 19: WPS split: fixed = earned basic, variable = everything
+  else itemised in the EVP; deductions come off fixed first, then other
+  allowances, overtime, encashment, passage, medical, conveyance,
+  housing; the adapter lives in `packages/wps`.
+- Ruling 20: exit leave pay belongs to `calculateSettlement`; the
+  payslip refuses encashment in a leaving month (`ENCASHMENT_AT_EXIT`).
+- Ruling 21: ILOE and the WPS 85% test are not computed and are listed
+  on every payslip; no demo command in Plan 5.
+- Ruling 22: Law 7 rates and the 2.5% government support are `official`
+  (read in the official site's English text; amendments unread).
+- Ruling B1: `calculatePayslip` checks the period (`INVALID_PERIOD`)
+  before it selects a pack, so month 13 is reported as a bad period and
+  not as `selectPack`'s `INVALID_DATE`. Cost if wrong: none.
+- Ruling B2: overtime and rest-day work may share a date (extra hours on
+  a worked rest day); only a date listed twice in one list, or work on
+  an absence date, is refused. Cost if wrong: one more check.
+- Ruling B3: a deferred remainder is `kind-cap` when the kind cap left
+  was not more than the overall cap left, else `overall-cap`. Cost if
+  wrong: a label only; amounts do not change.
+- Ruling B4: the `ded.scheme` message says "savings or welfare scheme"
+  instead of the plan's "approved scheme", to keep approval words out of
+  product text. Cost if wrong: one string.
+- Ruling B5: override keys that no pack uses are ignored, as in the
+  gratuity (no new error code). Cost if wrong: a typo in an override
+  name is silently unused; `OVERRIDE_USED` lists only keys used.
+- Ruling B6: `deductionOrder` is loaded as text and parsed by
+  `applyDeductions`, which refuses anything but the seven kinds once
+  each (`INVALID_PARAM`). Cost if wrong: none.
