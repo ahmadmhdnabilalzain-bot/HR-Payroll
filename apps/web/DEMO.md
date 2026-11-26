@@ -69,8 +69,9 @@ pnpm --filter @payroll/web build:offline
   nationals, who is off this week, documents expiring, who waits),
   each a link with its own picture. IT, the manager and the employee
   have their own Home.
-  Depth on this card only: a hairline, a contact shadow and two soft
-  ambient layers (dark: a lit top edge and an outline instead). Once
+  Depth on this card only: a 1 px inner top highlight, a hairline, a
+  contact shadow and two soft ambient layers (dark: a lit top edge and
+  an outline instead); the explain drawer has the same highlight. Once
   per load (`ui/firstReveal.ts`) a soft band of light crosses it (from
   520 ms, 1.8 s, transform and opacity, no pointer events) and the
   ready bar (from 260 ms, 720 ms) and the step rail (from 420 ms, 110
@@ -82,26 +83,34 @@ pnpm --filter @payroll/web build:offline
   angle on a phone, flat in print).
 - **Bank moment** (`ui/flight.ts`, `home/useIbanFlight.ts`): one
   flight helper for the demo. When an IBAN passes, the held amount
-  leaves its row as a clone in a fixed layer (420 ms on a spring, then
-  a 160 ms fade) and lands on the salary-file total, which gives a
-  hair as it receives it (1.03 to 1, 280 ms) and then rolls; Home's
-  top card, Home's issue list and the Fix step use the same call.
-  Reduced motion: no travel, a 120 ms fade.
+  leaves the IBAN field as a chip in a fixed layer and lands on the
+  salary-file total's end edge (420 ms on a spring, k 300, c 30); then
+  it hands over: the chip shrinks to 0.6 and fades over 120 ms while
+  the total starts its roll in the same frame, with a hair of give
+  (1.03 to 1, 280 ms). Two legible amounts are never cross-faded.
+  Home's top card, Home's issue list and the Fix step use the same
+  call. The IBAN is saved as the chip lands, so on the Fix step the
+  row turns "Fixed" after the flight, never before it. Reduced
+  motion: no travel, a 120 ms fade.
 - **Sign-off** (`ui/SignStamp.tsx`): one stamp for every signature
   (name, role, when, a check seal), shared by the pay run's Approve
-  step and the e-signature sheet (which adds the drawn or typed
+  step, Home and the e-signature sheet (which adds the drawn or typed
   signature, the reference and the fingerprint as extra lines). A
   fresh signature plays one sequence from the moment of signing
   (`signSequence`): the card comes up (180 ms), the signature draws
   (from 100 ms, 560 ms: a stroke for a drawn one, a wipe for a name;
   the pay run signs the General manager's name in script), the stamp
-  lands as the pen lifts (from 600 ms: 1.04 to 0.995 to 1 over 360
-  ms, the seal dropping in, a ring settling out), then on the pay run
-  the "Pay held until sign-off" pill turns "Pay released to the salary
-  file" as ink sweeps across it (from 880 ms, 420 ms, the flight
-  spring; `payrun/ReleaseStatus.tsx`). The words change at the click;
-  only the ink is late. A declined one is dashed, has no seal and
-  simply lands.
+  lands as the pen lifts (1.08 to 1 over 320 ms, cubic-bezier(0.2,
+  0.8, 0.2, 1), the seal dropping in, a ring settling out over 600
+  ms), then on the pay run the "Pay held until sign-off" pill turns
+  "Pay released to the salary file" as ink sweeps across it (420 ms,
+  the flight spring; `payrun/ReleaseStatus.tsx`). On the pay run the
+  stamp spans the timeline and the right card's height eases (250 ms,
+  `ui/heightTween.ts`). Signed on Home, the stamp lands beside the
+  figure at once, the sentence above swaps from 280 ms and the card's
+  height eases (250 ms). The words change at the click; only the
+  visuals are late. A declined one is dashed, has no seal and simply
+  lands.
 - **List to record** (`ui/templates/listMotion.ts`): opening a row
   sends its face and name into the record's head (a view transition,
   280 ms); Back returns to the same row, scroll, search and filter.
@@ -434,9 +443,10 @@ are in `docs/demo/copy-audit.md`.
   bank flight, Home hero, first reveals) are CSS animations and Web
   Animations only, no GSAP, each finite and timed from one start, so a
   capture can pause `document.getAnimations()` and seek `currentTime`
-  frame by frame. The one exception is the IBAN save: the flight's two
-  animations seek, but the save that follows runs on a timer (real
-  time), so let it run before capturing the roll.
+  frame by frame. The one exception is the IBAN save: the flight's
+  animations seek, but the save (and so the total's roll) starts from
+  the flight's finish event, so let the flight play out in real time
+  before capturing the roll.
 - **Lint:** the repo has no linter: `pnpm typecheck`, `pnpm lines` and
   the style tests are the checks.
 
@@ -590,19 +600,22 @@ are in `docs/demo/copy-audit.md`.
 - **Explain panel** (`src/components/explain`): plain-data contract, no
   provider. A figure becomes a button (`Explainable`) or a text link
   (`ExplainLink`). The panel is a side panel on wide screens and a sheet on
-  phones. Opening it: the figure flies into the header (380 ms) and resolves
-  from faint to full ink, a short rule draws under it; then the working
-  assembles (`assembly.ts`): from 240 ms, one line every 96 ms (tighter for long
-  workings, 56 ms on phones), each rising in as its rule draws and its amount
-  slides up whole (never counted, so no line shows a number it does not end on);
-  a total waits for the line before it to land, and the sum check (the last
-  total) lands last on an ink rule; the rest follows. Gratuity steps reconcile
-  to the fils (tier 2 is the total less tier 1, both from the engine). Notice
-  pay, deductions and other dues are listed as not worked out. Rule status comes
-  from the engine, or from the package's `PRESENTED_STATUS` where it differs
-  (the 50% deduction limit reads "secondary-sourced, as we read it"). Citations
-  name Decree-Law 33/2021 articles only where the primary text was read (Art 51
-  for gratuity).
+  phones. Opening it is a true change of size: a copy of the header figure
+  leaves the source figure at its own size (the hero's 56 px, scale about 2 to
+  1) and lands in the header in 420 ms on the bank flight's spring, in its own
+  top layer, so it never leads the sliding drawer; the source dims to 0.35 until
+  the drawer closes; a short rule draws under the landed figure; then the
+  working assembles (`assembly.ts`): from 360 ms, one line every 96 ms (tighter
+  for long workings, 56 ms on phones), each rising in as its rule draws and its
+  amount slides up whole (never counted, so no line shows a number it does not
+  end on); a total waits for the line before it to land, and the sum check (the
+  last total) lands last on an ink rule; the rest follows. Gratuity steps
+  reconcile to the fils (tier 2 is the total less tier 1, both from the engine).
+  Notice pay, deductions and other dues are listed as not worked out. Rule
+  status comes from the engine, or from the package's `PRESENTED_STATUS` where
+  it differs (the 50% deduction limit reads "secondary-sourced, as we read it").
+  Citations name Decree-Law 33/2021 articles only where the primary text was
+  read (Art 51 for gratuity).
 - **Reports** (`#/reports/<id>`): payroll summary, cost by department
   (the department bars), headcount by nationality (headcount only,
   "sample data, regime for banks to be confirmed"), documents
