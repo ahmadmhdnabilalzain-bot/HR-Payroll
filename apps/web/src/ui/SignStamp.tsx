@@ -9,8 +9,11 @@ export const PAPER_MS = 180;
 export const SIG_MS = 560;
 /** When the signature starts, after the card is up. */
 export const SIG_AT = 100;
-/** The stamp's landing: a soft settle, no bounce. */
-export const STAMP_MS = 360;
+/** The stamp's landing: 1.08 to 1, a soft settle, no bounce. */
+export const STAMP_MS = 320;
+/** The ring settling out behind a landed stamp. */
+export const RING_MS = 600;
+const STAMP_EASE = "cubic-bezier(0.2, 0.8, 0.2, 1)";
 
 /**
  * The sign-off sequence, in ms from the moment of signing, so every
@@ -63,9 +66,9 @@ function drawSignature(el: Element, dir: string): void {
  * when. Shared by the pay run's Approve step and the e-signature sheet.
  * `fresh` (the signature was just made) plays the sequence: the card
  * comes up (180 ms), the signature (a child marked `data-sig`) draws
- * (560 ms), and as the pen lifts the stamp lands, from 1.04 to 1 with
- * a soft settle (360 ms), the seal dropping in and a faint ring
- * settling out behind it. Without a signature the stamp lands at once.
+ * (560 ms), and as the pen lifts the stamp lands, from 1.08 to 1
+ * (320 ms), the seal dropping in and a ring settling out behind it
+ * (600 ms). Without a signature the stamp lands at once.
  * Without `fresh` (a page opened later) it is simply there. `seal`
  * (default on) draws the check seal; off where a timeline already
  * marks the step. `declined` draws it dashed and muted, with no seal.
@@ -96,10 +99,9 @@ export function SignStamp(p: { label: string; name: string; role: string;
     // frame and seal land; without one the whole stamp does.
     const target = sig !== null ? el.querySelector(`.${s.frame}`) : el;
     target?.animate([
-      { transform: "scale(1.04)", opacity: 0 },
-      { transform: "scale(0.995)", opacity: 1, offset: 0.62 },
+      { transform: "scale(1.08)", opacity: 0 },
       { transform: "scale(1)", opacity: 1 },
-    ], { duration: STAMP_MS, delay: land, easing: settle,
+    ], { duration: STAMP_MS, delay: land, easing: STAMP_EASE,
       fill: "backwards" });
     el.querySelector(`.${s.seal}`)?.animate([
       { transform: "scale(1.5)", opacity: 0 },
@@ -110,7 +112,8 @@ export function SignStamp(p: { label: string; name: string; role: string;
     el.querySelector(`.${s.ring}`)?.animate([
       { opacity: 0.9, transform: "scale(1)" },
       { opacity: 0, transform: "scale(1.08)" },
-    ], { duration: 560, delay: land + STAMP_MS - 120, easing: "ease-out" });
+    ], { duration: RING_MS, delay: land + STAMP_MS - 120,
+      easing: "ease-out" });
   }, [p.fresh]);
   return (
     <div ref={box} className={`${s.stamp} ${p.className ?? ""}`}

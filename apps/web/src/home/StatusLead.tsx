@@ -1,5 +1,6 @@
 import { useRunApproval } from "../demo/actions";
-import { isBlocking, openIssues } from "../demo/derive";
+import { isBlocking, openIssues, runApprovalId } from "../demo/derive";
+import { decisionTime, nowMs, recordDecision } from "../payrun/model";
 import { hrefOf } from "../demo/route";
 import type { Issue } from "../demo/data/types";
 import { useDemo } from "../demo/state";
@@ -31,9 +32,15 @@ export function StatusSentence() {
       ? (run.isChecker ? t("home.statusApproveYou", { month })
         : t("home.statusApprove", { month, name: checker }))
       : t("home.statusBank", { month, count: run.blockedBy.length });
+  // Signed here a moment ago: the stamp lands in the card first and
+  // the sentence changes after it (from 280 ms).
+  const id = runApprovalId(data);
+  const at = id === null ? null : decisionTime(id);
+  const late = run.phase === "file" && at !== null && nowMs() - at < 2000;
   return (
     <header className={s.lead}>
-      <h1 key={sentence} id="run-title" className={s.sentence}>
+      <h1 key={sentence} id="run-title" className={s.sentence}
+        data-late={late}>
         {sentence}
       </h1>
       <p className={s.date}>
@@ -68,7 +75,11 @@ export function StatusAction(p: { onIban?(issue: Issue): void }) {
             ${b.large}`} disabled={!run.canDecide}
             aria-describedby={held.length === 0 ? undefined
               : "approve-why"}
-            onClick={() => run.decide("approve")}>
+            onClick={() => {
+              const id = runApprovalId(data);
+              if (id !== null) recordDecision(id);
+              run.decide("approve");
+            }}>
             {t("home.primaryApprove", { month })}
           </button>
           {!run.canDecide && held.length > 0 && (

@@ -597,8 +597,10 @@
 }
 
 /* The checker's sign-off lands as a stamp (ui/SignStamp). */
+/* At the timeline's full width, so the most important "done" in the
+ * product reads as one. */
 .stamp {
-  justify-self: start;
+  justify-self: stretch;
   margin-block-start: -6px;
 }
 

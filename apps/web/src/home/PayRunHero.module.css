@@ -7,7 +7,9 @@
   border-radius: var(--radius-panel);
   background: var(--color-surface);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--color-shadow) 4%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-surface) 60%,
+      transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-shadow) 6%, transparent),
     0 1px 2px color-mix(in srgb, var(--color-shadow) 5%, transparent),
     0 6px 16px -4px color-mix(in srgb, var(--color-shadow) 7%,
       transparent),
@@ -19,7 +21,7 @@
  * and a quiet outline, over a deep ambient shadow. */
 :global([data-theme="dark"]) .hero {
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--color-text) 7%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-text) 6%, transparent),
     0 0 0 1px color-mix(in srgb, var(--color-text) 7%, transparent),
     0 24px 48px -12px color-mix(in srgb, var(--color-shadow) 60%,
       transparent);
@@ -447,4 +449,16 @@
   .caveat {
     padding-inline: var(--space-4);
   }
+}
+
+/* The figure, and once signed off the stamp beside it. */
+.figureRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-6);
+}
+
+.heroStamp {
+  margin-block-end: var(--space-1);
 }

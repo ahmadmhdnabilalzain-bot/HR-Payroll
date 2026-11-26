@@ -20,6 +20,13 @@
   animation: swap-in var(--dur-slow) var(--ease-out);
 }
 
+/* After a sign-off on Home the stamp lands first; the sentence swaps
+ * from 280 ms. */
+.sentence[data-late="true"] {
+  animation-delay: 280ms;
+  animation-fill-mode: both;
+}
+
 @keyframes swap-in {
   from {
     opacity: 0;

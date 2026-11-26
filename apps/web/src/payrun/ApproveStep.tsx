@@ -7,6 +7,8 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
 import { ScriptSignature, SignStamp } from "../ui/SignStamp";
+import { useRef } from "react";
+import { useHeightTween } from "../ui/heightTween";
 import { ReleaseStatus } from "./ReleaseStatus";
 import b from "../ui/button.module.css";
 import {
@@ -53,6 +55,10 @@ export function ApproveStep(p: { go: Go }) {
   };
   const waiting = verdict === undefined;
   const fresh = at !== null && nowMs() - at < 2000;
+  // The card loses "Send back" and the reason as the run is signed:
+  // its height eases (250 ms) rather than jumping.
+  const box = useRef<HTMLDivElement>(null);
+  useHeightTween(box, verdict);
   const blocked = a.blockedBy.length > 0;
   // Why Approve, or Continue to Pay, cannot be pressed yet, in words.
   const reason = !waiting ? null
@@ -117,7 +123,7 @@ export function ApproveStep(p: { go: Go }) {
           </li>
         </ol>
 
-        <div className={s.approveBox}>
+        <div ref={box} className={s.approveBox}>
           <div className={s.approveHead}>
             <h3 className={s.blockTitle}>{t("payrun.whatYouApprove")}</h3>
             <ReleaseStatus released={verdict === "approve"}

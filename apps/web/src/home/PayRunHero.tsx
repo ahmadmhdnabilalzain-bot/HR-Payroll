@@ -1,5 +1,10 @@
 import { fils, type Fils } from "@payroll/engine";
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
+import { runApprovalId } from "../demo/derive";
+import { formatDate, formatTime } from "../i18n/format";
+import { decisionTime, demoClockIso, nowMs } from "../payrun/model";
+import { useHeightTween } from "../ui/heightTween";
+import { SignStamp } from "../ui/SignStamp";
 import { ExplainLink, Explainable } from "../components/explain";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
@@ -51,10 +56,15 @@ export function PayRunHero() {
   // Once per load: a slow soft light crosses the card and the rails
   // fill; after that the card is simply there.
   const first = useFirstReveal("home-hero");
+  const phase = useRunApproval().phase;
+  // The card's height eases as the action under it changes (250 ms).
+  const card = useRef<HTMLElement>(null);
+  useHeightTween(card, phase);
   return (
     <>
     <StatusSentence />
-    <section className={s.hero} aria-labelledby="run-title" data-card=""
+    <section ref={card} className={s.hero} aria-labelledby="run-title"
+      data-card=""
       data-hero-first={first}>
       {first && !phone && (
         <span className={s.sheen} aria-hidden="true" />
@@ -62,11 +72,14 @@ export function PayRunHero() {
       <div className={s.top}>
         <div className={s.lead}>
           <div className={s.netCard}>
-            <p className={s.figure} data-hero-figure="">
-              <Explainable explanation={net}>
-                <RollDigits value={h.netTotalFils} size="hero" />
-              </Explainable>
-            </p>
+            <div className={s.figureRow}>
+              <p className={s.figure} data-hero-figure="">
+                <Explainable explanation={net}>
+                  <RollDigits value={h.netTotalFils} size="hero" />
+                </Explainable>
+              </p>
+              {phase === "file" && <HeroStamp />}
+            </div>
             <p className={s.line}>
               <span>{t("home.netTo", { count: h.headcount })}</span>
               <span className={s.dot} aria-hidden="true" />
@@ -163,5 +176,30 @@ function HeldOut(p: { value: Fils }) {
       {zero ? t("home.heldNone")
         : <RollDigits value={fils(p.value)} size="lg" />}
     </span>
+  );
+}
+
+/**
+ * Once the General manager has signed the run off, the sign-off sits
+ * beside the figure as the shared stamp (name, role, when). Signed
+ * here a moment ago, it lands (320 ms, 1.08 to 1, the ring 600 ms)
+ * before the sentence above changes.
+ */
+function HeroStamp() {
+  const { lang, t } = useLocale();
+  const { data } = useDemo();
+  const detail = useRunDetail();
+  const checker = data.employee(data.runPeople().checkerId);
+  const id = runApprovalId(data);
+  const at = id === null ? null : decisionTime(id);
+  const day = data.payCalendar().asOf;
+  const when = at === null ? formatDate(day, lang)
+    : t("payrun.recordedWhen", { date: formatDate(day, lang),
+      time: formatTime(demoClockIso(at, detail.preparedOn,
+        detail.preparedAt), lang) });
+  return (
+    <SignStamp className={s.heroStamp} label={t("payrun.chainRecorded")}
+      name={checker.name[lang]} role={checker.role[lang]} when={when}
+      fresh={at !== null && nowMs() - at < 2000} />
   );
 }
