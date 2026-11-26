@@ -1,0 +1,48 @@
+{
+  "id": "joiner-june-11",
+  "title": "Joiner on 11 June, calendar-day proration",
+  "input": {
+    "year": 2026,
+    "month": 6,
+    "employee": {
+      "workerClass": "expat-full-time",
+      "joiningDate": "2026-06-11",
+      "leavingDate": null,
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": null
+    },
+    "absences": [],
+    "sickDaysUsedBefore": 0,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [],
+    "loans": []
+  },
+  "expected": {
+    "gross": "1000001",
+    "totalDeductions": "0",
+    "net": "1000001",
+    "employerCost": "0"
+  },
+  "sourceIds": [
+    "ENGINE_CONVENTION"
+  ],
+  "status": "convention"
+}

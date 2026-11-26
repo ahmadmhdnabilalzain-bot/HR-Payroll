@@ -1,4 +1,9 @@
 import { deepFreeze } from "../freeze";
+import {
+  PAYROLL_AR,
+  PAYROLL_EN,
+  PAYROLL_MONEY_IDS,
+} from "./payroll-catalog";
 
 export type Lang = "en" | "ar";
 
@@ -11,6 +16,7 @@ export type Lang = "en" | "ar";
 /** Trace line ids whose result is raw fils and must be shown as AED. */
 export const MONEY_IDS: readonly string[] = deepFreeze([
   "gratuity.cap", "gratuity.total", "leave.pay", "settlement.total",
+  ...PAYROLL_MONEY_IDS,
 ]);
 
 const EN: Record<string, string> = {
@@ -55,8 +61,8 @@ const AR: Record<string, string> = {
 
 /** Frozen: a caller cannot rewrite later explanations. */
 export const MESSAGES: Record<Lang, Record<string, string>> = deepFreeze({
-  en: EN,
-  ar: AR,
+  en: { ...EN, ...PAYROLL_EN },
+  ar: { ...AR, ...PAYROLL_AR },
 });
 
 /** Words for rule statuses, and the text used when no rule applies. */

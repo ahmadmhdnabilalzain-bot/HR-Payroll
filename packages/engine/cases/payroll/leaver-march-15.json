@@ -1,0 +1,48 @@
+{
+  "id": "leaver-march-15",
+  "title": "Leaver on 15 March, 15 of 31 days",
+  "input": {
+    "year": 2026,
+    "month": 3,
+    "employee": {
+      "workerClass": "expat-full-time",
+      "joiningDate": "2020-03-01",
+      "leavingDate": "2026-03-15",
+      "probationEndDate": null,
+      "shiftWorker": false,
+      "normalHoursPerDay": 8,
+      "basicMonthly": "1000000",
+      "allowances": [
+        {
+          "code": "housing",
+          "kind": "housing",
+          "monthly": "400000"
+        },
+        {
+          "code": "transport",
+          "kind": "conveyance",
+          "monthly": "100000"
+        }
+      ],
+      "gpssa": null
+    },
+    "absences": [],
+    "sickDaysUsedBefore": 0,
+    "maternityDaysUsedBefore": 0,
+    "overtime": [],
+    "restDayWork": [],
+    "encashLeaveDays": 0,
+    "deductions": [],
+    "loans": []
+  },
+  "expected": {
+    "gross": "725806",
+    "totalDeductions": "0",
+    "net": "725806",
+    "employerCost": "0"
+  },
+  "sourceIds": [
+    "ENGINE_CONVENTION"
+  ],
+  "status": "convention"
+}
