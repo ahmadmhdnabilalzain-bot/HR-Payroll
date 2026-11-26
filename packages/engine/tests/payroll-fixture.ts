@@ -1,12 +1,15 @@
+import { expect } from "vitest";
 import { fils } from "../src/money";
 import { loadPayrollParams } from "../src/payroll/params";
 import type {
   AbsenceKind,
   GpssaInput,
   PayEmployee,
+  Payslip,
   PayslipInput,
 } from "../src/payroll/types";
 import { PAYROLL_PACKS } from "../src/rules/payroll-pack";
+import type { TraceLine } from "../src/trace-types";
 
 /** The shared fixture's params: the real pack, no overrides. */
 export const P = loadPayrollParams(PAYROLL_PACKS[0]!, undefined);
@@ -79,4 +82,23 @@ export function detailOf(fn: () => unknown): Record<string, string> {
     return (e as { detail: Record<string, string> }).detail;
   }
   return {};
+}
+
+/** Every payslip line and total has one trace line with its value. */
+export function expectTraced(s: Payslip, trace: TraceLine[]): void {
+  const lines = [...s.earnings, ...s.deductions, ...s.employerCosts];
+  for (const l of lines) {
+    const hits = trace.filter((x) => x.id === l.traceId);
+    expect(hits, l.traceId).toHaveLength(1);
+    expect(hits[0]?.result, l.traceId).toBe(String(l.amount));
+  }
+  const totals: [string, bigint][] = [["earn.gross", s.gross],
+    ["ded.total", s.totalDeductions], ["pay.net", s.net],
+    ["employer.total", s.employerCost], ["cap.base", s.caps.wageBase],
+    ["cap.overall", s.caps.overall]];
+  for (const [id, v] of totals) {
+    const hits = trace.filter((x) => x.id === id);
+    expect(hits, id).toHaveLength(1);
+    expect(hits[0]?.result, id).toBe(String(v));
+  }
 }
