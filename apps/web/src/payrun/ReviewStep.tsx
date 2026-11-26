@@ -1,6 +1,10 @@
 import type { Fils } from "@payroll/engine";
 import { useId, useState } from "react";
-import { ExplainLink, Explainable } from "../components/explain";
+import {
+  ExplainLink,
+  Explainable,
+  type Explanation,
+} from "../components/explain";
 import type { PersonRow } from "../demo/data/run-types";
 import { useTweenedNumber } from "../demo/motion";
 import { useDemo } from "../demo/state";
@@ -48,12 +52,17 @@ export function ReviewStep() {
           </dd>
         </div>
         <Total label={t("payrun.gross")} now={d.totals.gross}
-          prev={d.prev.gross} month={pm} />
+          prev={d.prev.gross} month={pm} why={d.explain["run:gross"]} />
         <Total label={t("payrun.deductions")} now={d.totals.deductions}
-          prev={d.prev.deductions} month={pm} />
+          prev={d.prev.deductions} month={pm}
+          why={d.explain["run:deductions"]} />
         <div className={s.total}>
           <dt>{t("payrun.people")}</dt>
-          <dd className={s.count}><span className="tabular">{people}</span></dd>
+          <dd className={s.count}>
+            <Explainable explanation={d.explain["run:people"]}>
+              <span className="tabular">{people}</span>
+            </Explainable>
+          </dd>
           <dd><CountChange now={d.totals.headcount}
             prev={d.prev.headcount} month={pm} /></dd>
         </div>
@@ -136,11 +145,16 @@ function PersonLine(p: { p: PersonRow; i: number; typo: boolean;
   );
 }
 
-function Total(p: { label: string; now: Fils; prev: Fils; month: string }) {
+function Total(p: { label: string; now: Fils; prev: Fils; month: string;
+  why: Explanation | undefined }) {
   return (
     <div className={s.total}>
       <dt>{p.label}</dt>
-      <dd><RollMoney value={p.now} size="lg" /></dd>
+      <dd>
+        <Explainable explanation={p.why}>
+          <RollMoney value={p.now} size="lg" />
+        </Explainable>
+      </dd>
       <dd><ChangeNote now={p.now} prev={p.prev} month={p.month} /></dd>
     </div>
   );

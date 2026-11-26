@@ -54,6 +54,8 @@ export interface SumSpec {
   after?: ExplainStep[];
   notComputed?: string[];
   scope: string;
+  /** The one line shown when there is nothing to add. */
+  emptyText?: string;
   /** How a count total reads ("31 people"); counts only. */
   countText?: (n: number) => string;
 }
@@ -83,8 +85,9 @@ export function sumSteps(parts: Part[], totalText: string,
 export function sumExplain(spec: SumSpec): Explanation {
   // Nothing to add still shows as a working: "None", then 0.
   const s = spec.parts.length > 0 ? spec : { ...spec, parts: [{
-    text: "None on the demo date", value: spec.countText !== undefined
-      ? count(0, spec.countText(0)) : money(fils(0n)) }] };
+    text: spec.emptyText ?? "None on the demo date",
+    value: spec.countText !== undefined ? count(0, spec.countText(0))
+      : money(fils(0n)) }] };
   const total = totalOf(s.parts, s.countText);
   const isCount = total.kind === "count";
   return { id: s.id, title: s.title, subject: s.subject,

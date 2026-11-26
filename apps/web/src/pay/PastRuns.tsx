@@ -84,9 +84,15 @@ function RunPage(p: { r: PastRunView }) {
           <Explainable explanation={r.explanation}>
             <Money value={r.net} size="lg" />
           </Explainable>) },
-        { label: "Gross pay", value: <Money value={r.gross} size="lg" /> },
+        { label: "Gross pay", value: (
+          <Explainable explanation={r.grossExplanation}>
+            <Money value={r.gross} size="lg" />
+          </Explainable>) },
         { label: "Against the month before", value: r.change === null
-          ? "First month shown" : <Change value={r.change} size="lg" /> },
+          ? "First month shown" : (
+            <Explainable explanation={r.changeExplanation ?? undefined}>
+              <Change value={r.change} size="lg" />
+            </Explainable>) },
       ]}
       tabs={[
         { id: "changes", label: "Who changed", render: () =>

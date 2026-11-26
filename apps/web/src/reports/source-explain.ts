@@ -101,6 +101,7 @@ export function historyExplains(c: DemoCompany, dept: DeptName,
       summary: "The overtime lines of each payslip, added up. Each is " +
         "worked out by the pay rules from the hours on the timesheet.",
       resultLabel: "Overtime cost",
+      emptyText: "No overtime this month",
       parts: ot.map((l) => ({ text: `${name(l.employeeId)}, ` +
         `${hours(l.overtimeMinutes)} hours`,
       value: money(l.overtimeAmount) })),
@@ -167,7 +168,7 @@ export function varianceExplains(c: DemoCompany, v: Variance)
       "records show for them, so the causes add up to the whole change.",
     resultLabel: "Change in gross",
     parts: v.drivers.map((d) => ({ text: d.label,
-      value: money(d.amount) })),
+      value: money(d.amount) })), emptyText: "Nobody's gross pay changed",
     inputs: [{ label: `${againstLabel} gross`, value: money(base.gross),
       from: `${HISTORY}, worked out again` },
     { label: `${monthLabel} gross`, value: money(now.gross),

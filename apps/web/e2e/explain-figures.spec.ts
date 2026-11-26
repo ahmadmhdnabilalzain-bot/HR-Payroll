@@ -93,3 +93,32 @@ test("why-this-number-executive-dashboard", async ({ page }) => {
   await why(page, /worked out: Gross pay, January to October/, /October/);
   await why(page, /worked out: Loans and advances outstanding/, /owed/);
 });
+
+test("why-this-number-home-strip-and-departments", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "On the payroll" }))
+    .toBeVisible();
+  await clean(page);
+  await why(page, /worked out: People on the payroll/, /by department/);
+  await why(page, /worked out: Documents expiring/, /Documents/);
+  await why(page, /worked out: Department cost/, /Gross cost/);
+  await page.getByRole("link", { name: "On leave today" }).click();
+  await expect(page).toHaveURL(/#\/time-off/);
+});
+
+test("why-this-number-review-totals-and-past-runs", async ({ page }) => {
+  await page.goto("/#/pay-run/review");
+  await expect(page.getByRole("heading", { level: 2,
+    name: "What this month pays" })).toBeVisible();
+  await clean(page);
+  await why(page, /worked out: Gross pay, whole run/, /by department/);
+  await why(page, /worked out: Deductions, whole run/, /Deductions/);
+  await why(page, /worked out: People paid this month/, /People/);
+  await page.goto("/#/pay-run/runs/2026-09");
+  await expect(page.getByRole("heading", { level: 1,
+    name: "September 2026" })).toBeVisible();
+  await clean(page);
+  await why(page, /worked out: Gross pay, September 2026/, /by department/);
+  await why(page, /worked out: Net pay against the month before/,
+    /Change/);
+});

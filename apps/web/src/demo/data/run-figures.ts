@@ -106,6 +106,14 @@ export function figureExplains(c: DemoCompany): Record<string, Explanation> {
       notComputed: ["Employer pension, insurance and other employer " +
         "costs are not in this figure."], scope }));
   }
+  for (const d of depts) {
+    put(sumExplain({ id: `dept-people:${d.id}`, title: "Department " +
+      "headcount", subject: d.name,
+      summary: `Everyone in ${d.name} with a payslip on the October run, ` +
+        "counted once each.", resultLabel: "People", countText: people,
+      parts: d.slips.map((s) => ({ text: emp.get(s.employeeId)?.fullName
+        ?? "", value: count(1, "1") })), totalText: d.name, scope }));
+  }
   put(sumExplain({ id: "dept-cost:total", title: "Cost by department",
     subject: "Whole company",
     summary: "Each department's October gross pay, added up. It is the " +

@@ -16,6 +16,7 @@ import * as live from "../../src/demo/live-explain";
 import { INITIAL, type DemoState } from "../../src/demo/state";
 import { offOn, requestRows } from "../../src/demo/time-off";
 import { share } from "../../src/reports/fmt";
+import { buildPayView } from "../../src/demo/data/pay";
 import { buildExtrasSource } from "../../src/demo/data/payroll-extras";
 import { buildCostSource } from "../../src/reports/cost/source";
 import { buildMoreSource } from "../../src/reports/more/source";
@@ -128,6 +129,9 @@ describe.each(STATES)("pay run figures, %s", (_name, ibans) => {
     for (const x of rows) {
       holds(d.explain[`dept-cost:${x.id}`], x.costFils, `dept ${x.id}`);
     }
+    for (const x of rows) {
+      holds(d.explain[`dept-people:${x.id}`], x.headcount, `people ${x.id}`);
+    }
     holds(d.explain["dept-cost:total"],
       rows.reduce((n, x) => n + x.costFils, 0n), "dept total");
     for (const x of d.nationalities.rows) {
@@ -210,6 +214,19 @@ describe("cost, brief, board, loans and extras add up", () => {
     const why = x.journalExplain(j);
     holds(why.debits, j.debits, "debits");
     holds(why.credits, j.credits, "credits");
+  });
+});
+
+describe("pay past runs add up", () => {
+  it("net-gross-and-change-for-every-month", () => {
+    const runs = buildPayView().runs;
+    for (const r of runs) {
+      holds(r.explanation, r.net, `${r.key} net`);
+      holds(r.grossExplanation, r.gross, `${r.key} gross`);
+      if (r.change === null) expect(r.changeExplanation).toBeNull();
+      else holds(r.changeExplanation ?? undefined, r.change,
+        `${r.key} change`);
+    }
   });
 });
 
