@@ -428,13 +428,13 @@ needs checking against official sources before anything is built on it.
 | 4 | Web app | groundwork merged; screens wait for the design pick |
 | 5 | Monthly payroll engine | built, reviewed, fixed, merged |
 | 6 | Expenses and claims (approval spine, receipts) | API build running |
-| 7 | Documents, letters, Emiratisation | API merged to main (a038a5e+); independent security review done, fixes R1-R6 in progress |
+| 7 | Documents, letters, Emiratisation | merged to main with review fixes R1-R6; scoped re-review running |
 | 8 | Hiring, tasks, exit flow | engine part merged; API build running |
-| 9 | Time, attendance, leave policies, WFH | merged to main; re-review found migration 905 upgrade defect (N1) and others, fixes in progress |
+| 9 | Time, attendance, leave policies, WFH | merged to main with review fixes N1-N8; scoped re-review running |
 | 10 | Performance, learning, surveys | API build running (branch `api-plan-10`) |
 | 11 | Owner view, pre-pay gate, evidence | API build running (branch `api-plan-11`; engine part merged) |
-| 12 | VAT, corporate tax, e-invoicing | API built (branch `api-plan-12`); money review found 1 critical + 6 important, fixes in progress; not merged |
-| 13 | Channels and integrations | merged to main; independent security review fixes applied (re-check of SSO changes I3/I4 advised) |
+| 12 | VAT, corporate tax, e-invoicing | built on `api-plan-12`; two review rounds, fixes N1-N11 in progress; not merged |
+| 13 | Channels and integrations | merged to main with security fixes I1-I5; scoped re-review running |
 | 14 | Meetings | planned; blocked until a telecom position is confirmed |
 | 15 | Social and website insights | planned; waits for 8, 11, 13 |
 | 16 | Finance modules | planned; waits for 6, 7, 12 |
