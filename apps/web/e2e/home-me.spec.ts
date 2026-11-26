@@ -102,3 +102,12 @@ test("switching-role-opens-the-new-home-at-the-top", async ({ page }) => {
   await asRole(page, "IT manager");
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
 });
+
+test("leave-left-reads-one-way-on-me-and-home", async ({ page }) => {
+  await page.goto("/");
+  await asRole(page, "Employee");
+  await expect(page.getByText(/22½ days left/).first()).toBeVisible();
+  await page.evaluate(() => { location.hash = "#/me/leave"; });
+  await expect(page.getByText(/22½ days left/).first()).toBeVisible();
+  await expect(page.getByText(/22\.5 days/)).toHaveCount(0);
+});
