@@ -23,6 +23,7 @@ import {
   toLeaveRequest,
   type RequestRow,
 } from "../leave/requests";
+import { assertPaidChange } from "../leave/policy";
 import { sealerFor } from "../people/employees";
 import { inScope, viewerScope } from "../people/redact";
 import { dubaiDate } from "../time/dubai";
@@ -58,6 +59,7 @@ async function updateType(ctx: IdCtx<LeaveTypeUpdate>) {
     name_ar: b.nameAr === undefined ? r.name_ar : b.nameAr,
     paid: b.paid ?? r.paid,
     annual_days: b.annualDays === undefined ? r.annual_days : b.annualDays };
+  await assertPaidChange(ctx.tx, co(ctx), r.id, next.paid);
   await ctx.tx.query(
     `UPDATE leave_types SET name = $3, name_ar = $4, paid = $5,
        annual_days = $6 WHERE company_id = $1 AND id = $2`,
