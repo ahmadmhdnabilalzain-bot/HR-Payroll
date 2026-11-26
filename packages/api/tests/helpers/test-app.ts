@@ -6,6 +6,9 @@ import { keyringFromKey } from "../../src/crypto/keyring";
 import type { SubjectHandler } from "../../src/approvals/subjects";
 import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
+import type { ReceiptReader } from "../../src/receipts/reader";
+import { nullReceiptReader } from "../../src/receipts/reader";
+import { memoryBlobStore } from "../../src/storage/blob";
 import { createTestDb } from "./test-db";
 
 export const TEST_KEK = new Uint8Array(32).fill(7);
@@ -25,6 +28,8 @@ export interface MakeAppOpts {
   db?: Db;
   /** Approval subject handlers (default: the app's own). */
   subjects?: SubjectHandler[];
+  /** Receipt reader (default: the null reader). */
+  reader?: ReceiptReader;
 }
 
 export async function makeApp(opts: MakeAppOpts = {}) {
@@ -45,6 +50,8 @@ export async function makeApp(opts: MakeAppOpts = {}) {
     keyring: keyringFromKey(TEST_KEK, rand),
     log: (line) => logs.push(line),
     passwordCost: { N: 1024 },
+    blobs: memoryBlobStore(),
+    receiptReader: opts.reader ?? nullReceiptReader,
   };
   const app = createApp(deps, opts.subjects === undefined ? {}
     : { subjects: opts.subjects });
@@ -67,6 +74,15 @@ async function toRes(r: Response): Promise<Res> {
     body = text;
   }
   return { status: r.status, body, text, headers: r.headers };
+}
+
+/** A GET whose body is read as bytes (binary downloads). */
+export async function callBytes(app: Hono, token: string,
+  companyId: string, path: string) {
+  const r = await app.request(path, { headers: {
+    authorization: `Bearer ${token}`, "x-company-id": companyId } });
+  return { status: r.status, headers: r.headers,
+    bytes: new Uint8Array(await r.arrayBuffer()) };
 }
 
 export async function call(

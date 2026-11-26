@@ -10,6 +10,7 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 |---|---|---|
 | 1 | `feat(contract): expenses, approvals, receipts` | done |
 | 2 | `feat(api): shared approval spine` | done |
+| 3 | `feat(api): receipts with storage and OCR port` | done |
 
 ## Adaptations to the plan (Task 1)
 
@@ -86,6 +87,50 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
    `tests/pg-plan6.integration.test.ts` (skipped without
    `DATABASE_URL`), so Plan 3's `pg-concurrency.ts` is not edited.
 
+## Adaptations to the plan (Task 3)
+
+1. **Body limits per route.** Plan 3's global 1 MiB `bodyLimit` ran
+   before every route, so `src/http/body-limit.ts` now skips routes
+   that declare their own `bodyLimit` and `register()` adds that
+   route's limiter with `app.use` (so the route table still lists one
+   handler per route). Both answer 413 `PAYLOAD_TOO_LARGE`.
+2. **`BinaryReply`** in `src/http/context.ts` sends raw bytes with the
+   stored type, `Content-Disposition: attachment;
+   filename="receipt-<id>.<ext>"`, `X-Content-Type-Options: nosniff`
+   and `Cache-Control: no-store`.
+3. **`systemDeps(db, kek, blobs)`** takes the blob store; `main.ts`
+   passes `fsBlobStore(RECEIPTS_DIR)`. The column union in
+   `people/employees.ts` gained `"content"` so the sealer's AAD is
+   exactly `<companyId>:receipts:content:<receiptId>`.
+4. **`receipt.downloaded`** audit data is `{ contentType, size }` (the
+   plan named no keys). `readSuggestion` also takes the request id for
+   its log line, which carries a reason (`threw` or `invalid`) but
+   never the reader's output or error text.
+5. **`receiptVisible`** takes an optional extra viewer check, which
+   Task 5 supplies (approvers of a claim that references the receipt).
+6. **Tests:** `callBytes` in `tests/helpers/test-app.ts` reads binary
+   bodies; `memoryBlobStore().dump()` lets the test see that stored
+   bytes are encrypted; `makeApp({ reader })` swaps the OCR port.
+
+## Receipts design (Task 3)
+
+- Strict base64 is checked with a plain character class plus length
+  and padding rules, then decoded and re-encoded to reject non-zero
+  padding bits (Node's decoder never throws). The first version used a
+  repeated-group regex, which overflowed V8's regex stack on a 7 MB
+  body and gave a 500; the oversize test caught it.
+- The size limit is computed from the text length before decoding;
+  the declared type must equal the sniffed one; only JPEG, PNG and PDF
+  magic bytes pass (`length > magic`), so HTML, SVG, GIF and HEIC fail.
+- Bytes are encrypted with the company key before `BlobStore.put`;
+  `fsBlobStore` accepts only `<uuid>/receipts/<uuid>` keys, writes a
+  `.part` file exclusively and hard-links it into place, so a blob is
+  never half-written or overwritten.
+- `receipts` is insert-only (no update grant), with a database CHECK
+  on type, size and hash shape.
+- Missing visibility is always 404, never 403. `duplicateOf` lists only
+  same-employee receipts for callers other than owner and hr.
+
 ## Decisions
 
 1. **Commit trailer.** The brief asks for `Co-Authored-By: Claude
@@ -117,12 +162,18 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 ## Test order (honest)
 
 - Task 1: contract tests written and seen red (18 failures), then green.
+- Task 3: sniff, fs-blob, receipts and config tests seen red (modules
+  missing), then green.
 - Task 2: `approvals-resolve.test.ts` was written before `resolve.ts`
   but not run red before it existed; `approvals.test.ts` was seen red
   (module missing), then green. The tenancy suite went red on the new
   tables, then green after seeding.
 
 ## Concerns
+
+- A receipt's blob is written before the database transaction
+  commits; a failed transaction leaves an orphan encrypted file (never
+  served: no row points at it). A sweeper is later work.
 
 1. `pnpm check` is not fully green, for reasons that predate this
    branch: two `apps/web` tests fail on the base commit and still fail

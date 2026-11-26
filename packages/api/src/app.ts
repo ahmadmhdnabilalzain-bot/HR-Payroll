@@ -1,8 +1,8 @@
 import { Hono, type MiddlewareHandler } from "hono";
-import { bodyLimit } from "hono/body-limit";
 import type { AppDeps } from "./deps";
 import type { App, Env } from "./http/context";
 import { ApiError, toErrorResponse } from "./http/errors";
+import { defaultBodyLimit } from "./http/body-limit";
 import { logRequest } from "./http/log";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerCompanyRoutes } from "./routes/company";
@@ -40,18 +40,11 @@ function requestMiddleware(deps: AppDeps): MiddlewareHandler<Env> {
   };
 }
 
-/** Request bodies above 1 MiB are refused (413). */
-const MAX_BODY = 1024 * 1024;
-
 /** The HTTP app. Every route comes from the contract's ROUTES table. */
 export function createApp(deps: AppDeps, opts: ExpenseAppOpts = {}): App {
   const app = new Hono<Env>();
   app.use("*", requestMiddleware(deps));
-  app.use("*", bodyLimit({ maxSize: MAX_BODY, onError: (c) => {
-    const r = toErrorResponse(new ApiError("PAYLOAD_TOO_LARGE"),
-      c.get("requestId"));
-    return c.json(r.body, 413);
-  } }));
+  app.use("*", defaultBodyLimit());
   app.onError((err, c) => {
     const r = toErrorResponse(err, c.get("requestId"));
     if (r.status >= 500) deps.log({ requestId: c.get("requestId"),

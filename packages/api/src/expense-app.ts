@@ -2,6 +2,7 @@ import { handlerMap, type SubjectHandler } from "./approvals/subjects";
 import type { AppDeps } from "./deps";
 import type { App } from "./http/context";
 import { registerApprovalRoutes } from "./routes/approvals";
+import { registerReceiptRoutes } from "./routes/receipts";
 
 export interface ExpenseAppOpts {
   /** Approval subject handlers; the default is the app's own list. */
@@ -16,4 +17,5 @@ export function registerExpenseApp(app: App, deps: AppDeps,
   opts: ExpenseAppOpts): void {
   const handlers = handlerMap(opts.subjects ?? DEFAULT_SUBJECTS);
   registerApprovalRoutes(app, deps, handlers);
+  registerReceiptRoutes(app, deps);
 }

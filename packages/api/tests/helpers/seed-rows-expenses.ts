@@ -27,4 +27,11 @@ export async function seedExpenseRows(admin: Db, c: string, emp: string,
        approver, eligible, status)
      VALUES ($1, $2, 1, '{"kind":"line-manager"}', ARRAY[$3::uuid],
        'pending')`, [c, req, user]);
+  await admin.query(
+    `INSERT INTO receipts (id, company_id, employee_id, uploaded_by,
+       file_name, content_type, size, sha256, blob_key, suggestion,
+       uploaded_at) VALUES ($1, $2, $3, $4, 'r.png', 'image/png', 1, $5,
+       $6, '{"source":"none"}', $7)`,
+    [rowId(c, "c3"), c, emp, user, "0".repeat(64),
+      `${c}/receipts/${rowId(c, "c3")}`, AT]);
 }
