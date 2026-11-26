@@ -62,6 +62,16 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
           emp(r.employeeId), `${nameOf(r.employeeId)} withdrew a ` +
           `payslip question: ${line}.`);
     }
+    case "policy-ack":
+    case "policy-unack": {
+      const p = d.policies.byId(a.policyId);
+      const ack = a.type === "policy-ack";
+      return make(ack ? "people.policy-acknowledged"
+        : "people.policy-ack-undone", "people", { kind: "policy",
+        id: a.policyId, label: p?.title ?? "Policy" },
+      `${who} ${ack ? "acknowledged" : "took back the acknowledgement of"}` +
+        ` ${p?.title ?? "a policy"}.`);
+    }
     case "rule-edit": return make("setup.rule-changed", "setup",
       { kind: "rule", id: a.edit.key, label: a.edit.what },
       `${who} changed a rule: ${a.edit.what}.`);

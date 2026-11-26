@@ -184,6 +184,12 @@ import {
   type CommissionSlice,
 } from "./commission-state";
 import {
+  POLICIES_INITIAL,
+  reducePolicies,
+  type PoliciesAction,
+  type PoliciesSlice,
+} from "./policies-state";
+import {
   ESIGN_INITIAL,
   reduceEsign,
   type EsignAction,
@@ -210,7 +216,8 @@ export interface DemoState
     EidSlice, FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
     AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
     SandboxSlice, ReferralSlice, AuditorSlice, FinishSlice, EsignSlice,
-    BonusSlice, CommissionSlice, ChecksSlice, HiringSlice {
+    BonusSlice, CommissionSlice, ChecksSlice, HiringSlice,
+    PoliciesSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -268,6 +275,7 @@ export type Action =
   | EsignAction
   | BonusAction
   | CommissionAction
+  | PoliciesAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -296,6 +304,7 @@ export const INITIAL: DemoState = {
   ...ESIGN_INITIAL,
   ...BONUS_INITIAL,
   ...COMMISSION_INITIAL,
+  ...POLICIES_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -467,6 +476,8 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "commission-unprepare":
     case "commission-decide":
     case "commission-undecide": return reduceCommission(s, a);
+    case "policy-ack":
+    case "policy-unack": return reducePolicies(s, a);
   }
 }
 

@@ -8,6 +8,7 @@ import type { RequestsData } from "./requests-types";
 import type { FilesData } from "./files-types";
 import type { FinishData } from "./finish-types";
 import type { MoreData } from "./more-types";
+import type { PoliciesData } from "./policies-types";
 import type { VerifyData } from "./verify-types";
 import type { ChecksData } from "./checks-types";
 import type { HiringData } from "./hiring-types";
@@ -182,6 +183,8 @@ export interface DemoData {
   checks: ChecksData;
   /** Hiring budget (positions) and hiring requests. */
   hiring: HiringData;
+  /** The policy library and cited answers (policies-types.ts). */
+  policies: PoliciesData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };

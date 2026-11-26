@@ -38,6 +38,7 @@ export * from "./wpd-cost";
 export * from "./wpd-talent";
 export * from "./wpe-safety";
 export * from "./wpe-requests";
+export * from "./wpe-policies";
 export * from "./wpe-exit-files";
 export * from "./wpe-brief";
 export * from "./wpe-exit";

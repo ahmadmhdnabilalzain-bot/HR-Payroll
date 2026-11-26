@@ -25,6 +25,7 @@ import { adaptFinish } from "./finish";
 import { adaptPapers } from "./papers";
 import { adaptMore } from "./more";
 import { adaptVerify } from "./verify";
+import { adaptPolicies } from "./policies";
 import { adaptEsign } from "./esign";
 import { adaptMoves } from "./moves";
 import { adaptHome } from "./home";
@@ -143,6 +144,7 @@ export function adapt(c: DemoCompany): DemoData {
     esign: adaptEsign(c),
     checks: adaptChecks(c),
     hiring: adaptHiring(c, people.personas().managerId),
+    policies: adaptPolicies(),
   };
 }
 

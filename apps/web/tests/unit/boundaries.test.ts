@@ -86,6 +86,8 @@ describe("boundaries", () => {
       "src/demo/data/verify.ts",
       "src/demo/data/esign-types.ts",
       "src/demo/data/esign.ts",
+      "src/demo/data/policies-types.ts",
+      "src/demo/data/policies.ts",
     ];
     expect([...filesImporting(/^@payroll\/demo-data/)].sort())
       .toEqual([...allowed].sort());

@@ -66,9 +66,14 @@ test("an employee reports an incident and it reaches the HR log",
       .toBeAttached();
   });
 
-test("help shows a video marker on every card", async ({ page }) => {
+test("help cards open a step-by-step walkthrough, no video", async ({
+  page }) => {
   await page.goto("/#/me/help");
-  await expect(page.getByText("Video to record").first()).toBeVisible();
-  await expect(page.getByText(/Short videos: 0 recorded/)).toBeVisible();
+  await expect(page.getByText("Video to record")).toHaveCount(0);
+  await page.getByRole("button", {
+    name: /Walkthrough: 90 seconds, Ask for leave/ }).click();
+  await expect(page.getByText("Step 1 of 5")).toBeVisible();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByText("Step 2 of 5")).toBeVisible();
   await clean(page);
 });

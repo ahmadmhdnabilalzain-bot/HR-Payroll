@@ -5,6 +5,7 @@ import { PageHead } from "../ui/templates";
 import s from "../people/requests/requests.module.css";
 import tpl from "../ui/templates/templates.module.css";
 import { Footnote } from "../components/explain";
+import { Walkthrough } from "./Walkthrough";
 
 interface Card {
   id: string;
@@ -15,13 +16,6 @@ interface Card {
   /** Who it is for: everyone, or the HR side only. */
   hr?: boolean;
 }
-
-/**
- * Short training clips, by card id. None are recorded yet, so every
- * card shows a "Video to record" marker instead of a player. A clip is
- * a local file (no outside request), added here with its length.
- */
-const CLIPS: Readonly<Record<string, { src: string; length: string }>> = {};
 
 const CARDS: readonly Card[] = [
   { id: "leave", title: "Ask for leave",
@@ -91,7 +85,7 @@ const CARDS: readonly Card[] = [
     href: hrefOf("people", "requests", "splits"), go: "Open splits" },
 ];
 
-/** H12: the help centre: how-to cards, each with a video marker. */
+/** H12: the help centre: how-to cards, each with a walkthrough. */
 export function MyHelp() {
   const { state } = useDemo();
   const [q, setQ] = useState("");
@@ -99,13 +93,12 @@ export function MyHelp() {
   const shown = CARDS.filter((c) => (c.hr !== true || hrSide) &&
     `${c.title} ${c.steps.join(" ")}`.toLowerCase()
       .includes(q.trim().toLowerCase()));
-  const recorded = shown.filter((c) => CLIPS[c.id] !== undefined).length;
   return (
     <div className={tpl.page}>
       <PageHead title="Help"
         lede={"Short how-to cards for the things people ask most. Each " +
-          "one has a link to the right page and a place for a short " +
-          "video."} />
+          "one has a link to the right page and a step-by-step " +
+          "walkthrough."} />
       <div className={s.stack}>
         <label className={s.field}>
           <span>Search help</span>
@@ -114,8 +107,8 @@ export function MyHelp() {
             placeholder="For example: payslip, letter, leave" />
         </label>
         <p className={s.muted} role="status">
-          {`Short videos: ${recorded} recorded, ${shown.length - recorded} ` +
-            `to record (of ${shown.length} cards shown).`}
+          {`Walkthroughs: ${shown.length} cards shown. Each one is a ` +
+            "guided list of steps, about 90 seconds to read."}
         </p>
         {shown.length === 0 ? (
           <p className={s.muted}>No card matches. Try one word, such as
@@ -128,7 +121,8 @@ export function MyHelp() {
                 <ol>
                   {c.steps.map((x) => <li key={x}>{x}</li>)}
                 </ol>
-                <Clip card={c} />
+                <Walkthrough title={c.title} steps={c.steps} href={c.href}
+                  go={c.go} />
                 <a className={s.link} href={c.href}>{c.go}</a>
               </article>
             ))}
@@ -137,22 +131,5 @@ export function MyHelp() {
       </div>
       <Footnote />
     </div>
-  );
-}
-
-/** The card's clip, or the marker that says there is none yet. */
-function Clip(p: { card: Card }) {
-  const clip = CLIPS[p.card.id];
-  if (clip === undefined) {
-    return (
-      <p className={s.muted}>
-        <strong>Video to record.</strong> Not recorded yet: the steps
-        above are the guide.
-      </p>
-    );
-  }
-  return (
-    <video controls preload="none" src={clip.src}
-      aria-label={`${p.card.title}, ${clip.length}`} />
   );
 }
