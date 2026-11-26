@@ -1,14 +1,18 @@
-# Mubinflow: a note for the IT Manager (27 Nov 2026)
+# MubinFlow: a note for the IT Manager (27 Nov 2026)
 
-Mubinflow is HR and payroll for UAE mainland companies. This page says
+MubinFlow is HR and payroll for UAE mainland companies. This page says
 plainly what you saw today, what exists behind it, and what is still open.
 
 ## What the demo is, and is not
 
 - It is a website that runs entirely in your browser on invented data (a
   fictional "Zarqan Demo Bank"). No server, no database, nothing saved; a
-  reload starts again. The page is served from Frankfurt, Germany.
+  reload starts again. The demo is hosted in Frankfurt; the hosting region
+  for a live service is not decided.
 - It is not a live account, a pilot or a security test of the product.
+- Role limits in the demo are a filter in your browser: anyone can switch
+  role, and all demo data is built in the browser for every role. Real
+  enforcement belongs to the backend, which has had no outside test.
 - We claim no certification or compliance. We hold no SOC 2 report, no
   ISO 27001 certificate and have had no external penetration test. No
   authority has reviewed the product.
@@ -27,17 +31,17 @@ plainly what you saw today, what exists behind it, and what is still open.
 
 ## Controls as designed in the backend (built and tested by us)
 
-- **Roles and access.** Each action needs a permission; roles bundle them
-  (for example, IT administrator sees no salaries). Each company's data
-  is separated in the database by row-level security.
+- **Roles and access.** Each action needs a permission; roles bundle them.
+  Each company's data is separated in the database by row-level security,
+  designed and tested by us, not by anyone else.
 - **Segregation of duties.** The person who prepares a pay run cannot
-  approve it. Nobody decides their own leave or edits their own salary or
+  sign it off. Nobody decides their own leave or edits their own salary or
   bank details (only the account owner can, with a second sign-in step).
   The second step (authenticator app) is required for salary and bank
   changes.
-- **Audit trail.** Append-only and hash-chained per company. The database
-  refuses UPDATE, DELETE and TRUNCATE on it; a check tool finds an edited
-  row (we tested this).
+- **Audit trail.** Append-only and hash-chained per company, designed and
+  tested by us, not by anyone else. The database refuses UPDATE, DELETE
+  and TRUNCATE on it; a check tool finds an edited row.
 - **Sealed sensitive fields.** Salaries, IBANs, Emirates IDs, payslips and
   salary files are encrypted field by field (AES-256-GCM, a key per
   company).

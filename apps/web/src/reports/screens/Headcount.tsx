@@ -22,7 +22,7 @@ export function Headcount() {
   const rows = src.departments.map(line);
   return (
     <ReportPage crumbs={crumbs} title="Headcount and turnover"
-      period="1 January 2026 to today"
+      period="1 January 2026 to the report date"
       figure={{ label: "Turnover this year", value: turnover(total) }}
       columns={[{ label: "Department" }, { label: "1 January", end: true },
         { label: "Joined", end: true }, { label: "Left", end: true },

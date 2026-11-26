@@ -14,6 +14,6 @@ export const explain = {
   secondary: "Secondary source",
   convention: "Our working rule",
   unsourced: "No source yet",
-  scope: "{scope}. Fictional data.",
+  scope: "{scope}.",
   how: "How this is worked out",
 } satisfies EnNamespace;

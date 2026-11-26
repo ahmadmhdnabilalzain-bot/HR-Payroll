@@ -110,7 +110,7 @@ describe("the demo bank", () => {
     const n = c.nationalities as unknown as Record<string, unknown>;
     expect(Object.keys(n).sort()).toEqual(["asOf", "byNationality",
       "headcount", "headcountText", "label", "uaeNationals"]);
-    expect(n.label).toBe("sample data, regime for banks to be confirmed");
+    expect(n.label).toBe("The rules for banks are not confirmed yet");
   });
 });
 
@@ -204,11 +204,12 @@ describe("selectors, explanations and labels", () => {
     const h = headline(c);
     expect(h.basis.ruleSet).toBe("UAE mainland");
     expect(Object.keys(h.basis).sort()).toEqual(["pension", "ruleSet"]);
-    expect(h.basis.pension).toMatch(/^UAE nationals: not computed \(/);
+    expect(h.basis.pension)
+      .toMatch(/^Pension for UAE nationals: Not computed\. /);
     const d = documents(c);
     expect(d[0]!.daysLeft).toBeLessThanOrEqual(d[1]!.daysLeft);
     const p = payCalendar(c);
-    expect(p.label).toBe("sample dates");
+    expect(p.label).toBe("planned dates");
     expect([p.asOf, p.cutOff, p.approveBy, p.salaryFileSent,
       p.payday]
       .every((x) => /^\d{4}-\d{2}-\d{2}$/.test(x))).toBe(true);

@@ -60,7 +60,7 @@ function correctionExplain(c: DemoCompany, x: ReturnType<
   const month = `${monthName(x.month)} 2026`;
   return { id: `correction:${x.id}`, title: "Pay correction",
     subject: x.display.name,
-    summary: `${month} is worked out again by the engine with the ` +
+    summary: `${month} is worked out again by the payroll with the ` +
       "record put right; the difference is owed and paid in " +
       `${x.payIn}.`,
     result: { label: "Owed", value: money(x.amount) },
@@ -85,7 +85,7 @@ function runExplain(c: DemoCompany, id: string, label: string,
   return { id: `past-run:${id}`, title: `Net pay, ${label}`,
     subject: "Whole pay run",
     summary: `The sum of ${slips.length} payslips, each worked out by ` +
-      "the engine line by line in whole fils.",
+      "the payroll line by line, exactly.",
     result: { label: "Net pay", value: money(net) },
     inputs: [{ label: "Payslips", value: text(String(slips.length)),
       from: `${label} payroll` }],
@@ -150,8 +150,8 @@ function dueExplain(c: DemoCompany, s: ReturnType<
       from: "Employee record" }],
     rules: [{ text: `A final settlement is paid within ` +
       `${SETTLEMENT_DUE_DAYS} days after the last working day.`,
-    status: "convention", statusLabel: "as we read it",
-    citation: "Our reading of the UAE Labour Law, Decree-Law 33/2021" }],
+    status: "official", statusLabel: null,
+    citation: "Decree-Law 33/2021, Article 53" }],
     steps: [
       { text: "Last working day", value: text(s.display.lastDay) },
       { text: `Add ${SETTLEMENT_DUE_DAYS} days`,

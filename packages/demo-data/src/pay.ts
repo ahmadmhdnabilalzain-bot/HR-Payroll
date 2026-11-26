@@ -309,7 +309,7 @@ export function loans(c: DemoCompany): LoanRecord[] {
     loanRow(c, { ref: "ADV-1007", employeeId: "emp-018", kind: "advance",
       status: "approved", principal: fils(300000n),
       instalment: fils(100000n), balance: fils(300000n), ledger: [] },
-    "November", "Salary advance approved on 26 October; recovered in " +
+    "November", "Salary advance agreed on 26 October; recovered in " +
       "three instalments, each checked against the limits on the day."),
   ];
 }
@@ -342,7 +342,7 @@ export function payCorrections(c: DemoCompany): PayCorrection[] {
       "work.", (i) => ({ ...i, absences: i.absences.filter((a) =>
       !WRONG_UNPAID.dates.includes(a.date)) })),
     correction(c, "cor-002", MISSED_OT.employeeId, 9, "Three hours of " +
-      "overtime on 17 September were approved but not paid.",
+      "overtime on 17 September were agreed but not paid.",
     (i) => ({ ...i, overtime: [...i.overtime, ot] })),
   ];
 }
@@ -359,8 +359,8 @@ const FINE = (n: number): FakeIdentifier => ({
 
 /** Fines on bank cars, waiting for a decision (fictional records). */
 export function trafficFines(c: DemoCompany): TrafficFine[] {
-  const note = "Recovering a fine from pay is not computed: the demo " +
-    "has no sourced rule for it, and any deduction would be checked " +
+  const note = "Recovering a fine from pay is not computed: there " +
+    "is no sourced rule for it, and any deduction would be checked " +
     "against the deduction limits.";
   return [["emp-013", "2026-10-09", 60000n, "Speeding, bank car"],
     ["emp-017", "2026-10-18", 40000n, "Parking, bank car"]].map(
@@ -422,18 +422,18 @@ const el = (code: string, label: string, type: PayElement["type"],
 export function payElements(): PayElement[] {
   return [
     el("basic", "Basic salary", "earning", "Contract, prorated by the " +
-      "engine", "Fixed pay"),
+      "payroll", "Fixed pay"),
     el("housing", "Housing allowance", "earning", "Contract", "Housing"),
     el("transport", "Transport allowance", "earning", "Contract",
       "Conveyance"),
     el("phone", "Phone allowance", "earning", "Contract", "Other"),
     el("back-pay", "Back pay on basic salary", "earning", "Owed minus " +
-      "paid, from two engine runs", "Other"),
-    el("overtime", "Overtime", "earning", "Computed by the engine from " +
-      "approved hours", "Overtime"),
+      "paid, from two runs", "Other"),
+    el("overtime", "Overtime", "earning", "Computed by the payroll from " +
+      "agreed hours", "Overtime"),
     el("loan", "Loan instalment", "deduction", "Entered; limited by the " +
-      "engine", "Taken from pay before the file"),
+      "deduction limits", "Taken from pay before the file"),
     el("traffic-fine", "Traffic fine recovery", "deduction", "Not " +
-      "computed in the demo", "Not in the file"),
+      "computed", "Not in the file"),
   ];
 }

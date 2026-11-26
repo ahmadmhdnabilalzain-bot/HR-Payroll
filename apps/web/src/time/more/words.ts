@@ -55,7 +55,7 @@ export const M = {
     toCheck: "To check", button: "Correct a day", submit: "Send for sign-off",
     correct: "Correct", newState: "It should read", reason: "Reason",
     clockIn: "In (hh:mm)", clockOut: "Out (hh:mm)",
-    hint: "Corrections do not change the October run in this demo.",
+    hint: "Corrections do not change the October run.",
     empty: "No days to check.", signOff: "Sign off", decline: "Decline",
     undo: "Undo", waiting: "Waiting for the General manager",
     signedOff: "Signed off", declined: "Declined",
@@ -85,8 +85,8 @@ export const M = {
     site: "Site", person: "Person", when: "When", status: "Status",
     scan: "Scan the code", submit: "Check in", empty:
       "Nobody has checked in at a kiosk yet.", checked: "Checked in",
-    code: "Sample code, not a working QR code.",
-    face: "Face check-in is not part of this demo.",
+    code: "Not a working QR code.",
+    face: "Face check-in is not built yet.",
     done: (n: string): string => `${n} checked in.`, time: "Time (hh:mm)",
     badTime: "Type the time as hh:mm, like 08:30." },
   cover: { title: "Leave-safe roster", lede: "November: leave on the " +

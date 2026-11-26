@@ -14,7 +14,7 @@ export function EmployerCostScreen() {
   const rows = k.rows.map((r) => {
     const name = dept.get(r.departmentId) ?? "";
     if (r.employer.status === "not-computed") {
-      return [r.name, name, m(r.gross), "Not computed (pension)",
+      return [r.name, name, m(r.gross), "Not computed",
         "Gross only"];
     }
     const a = r.employer.amount;

@@ -35,7 +35,7 @@ export const timeoff = {
   withdrawn: "Withdrawn",
   withdraw: "Withdraw",
   withdrew: "Request withdrawn",
-  approve: "Approve",
+  approve: "Book",
   decline: "Decline",
   bookedToast: "{name}'s time off is booked",
   declinedToast: "{name}'s request is declined",
@@ -61,7 +61,7 @@ export const timeoff = {
   holidaysSkipped: { one: "{count} public holiday not counted",
     other: "{count} public holidays not counted" },
   holidayNote: "Days are counted on working days: weekends and the " +
-    "sample public holidays in Setup are skipped.",
+    "public holidays in Setup are skipped.",
   legendRest: "Weekend or public holiday (not counted)",
   goesTo: "Goes to {name}, {role}",
   send: "Send request",

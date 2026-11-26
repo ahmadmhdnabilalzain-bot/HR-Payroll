@@ -1,6 +1,6 @@
 # Brief for wave-3 builders (data plus screens, one package each)
 
-You add MISSING feature rows to the Mubinflow demo (React 19 + Vite + TS,
+You add MISSING feature rows to the MubinFlow demo (React 19 + Vite + TS,
 apps/web, browser only, fictional data, UAE only; the product is HR and
 payroll for UAE mainland SMEs). First client meeting is tomorrow; the owner
 wants HR and payroll at 80 percent of the 207 rows in

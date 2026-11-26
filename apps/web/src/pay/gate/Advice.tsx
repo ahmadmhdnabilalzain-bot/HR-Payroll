@@ -41,7 +41,7 @@ export function Advice() {
         `${out.length === 1 ? "is" : "are"} not in the file: no IBAN ` +
         "that passes its check yet.", heldCount === 0 ? "" : `${heldCount} ` +
         `${heldCount === 1 ? "salary is" : "salaries are"} held by choice; ` +
-        "in the demo the file is not made again, so tell the bank before " +
+        "the file is not made again, so tell the bank before " +
         "upload.", "The bank checks the file again on upload."]
         .filter((x) => x !== "").join(" ")} />
   );

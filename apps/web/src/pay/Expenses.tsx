@@ -133,11 +133,11 @@ function ClaimPage(p: { x: ExpenseView }) {
           {a !== undefined && verdict === undefined && !isChecker && (
             <div className={s.decide}>
               <p>{`Only ${data.employee(a.checkerId).name.en} can decide ` +
-                "this claim. It also shows in their approvals on Home."}</p>
+                "this claim. It also shows in their decisions on Home."}</p>
               {a.checkerId === data.runPeople().checkerId && (
                 <button type="button" className={`${b.btn} ${b.secondary}`}
                   onClick={() => switchRole("gm")}>
-                  View as General Manager</button>
+                  View as General manager</button>
               )}
             </div>
           )}

@@ -561,7 +561,7 @@ export function trendRows(c: DemoCompany): TrendRow[] {
     const before = h[i - 1];
     const l = m.leaveTaken;
     return { month: m.month, monthText: reportMonth(m.month),
-      statusText: m.status === "paid" ? "Paid" : "Awaiting approval",
+      statusText: m.status === "paid" ? "Paid" : "Awaiting sign-off",
       headcountText: `${m.headcount} people`,
       grossText: formatAed(m.gross), netText: formatAed(m.net),
       overtimeText: m.overtimeMinutes === 0 ? "None"

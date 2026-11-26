@@ -46,7 +46,7 @@ export const timeoff: ArOf<typeof en> = {
   withdrawn: "مسحوبة",
   withdraw: "سحب الطلب",
   withdrew: "سُحب الطلب",
-  approve: "موافقة",
+  approve: "حجز",
   decline: "رفض",
   bookedToast: "حُجزت إجازة {name}",
   declinedToast: "رُفض طلب {name}",
@@ -70,7 +70,7 @@ export const timeoff: ArOf<typeof en> = {
   afterThis: "يتبقى {days} بعد هذا الطلب",
   holidaysSkipped: counted("لا يُحتسب ", " من العطلات الرسمية"),
   holidayNote: "تُحتسب أيام العمل فقط: تُستثنى عطلة نهاية الأسبوع " +
-    "والعطلات الرسمية التجريبية في الإعدادات.",
+    "والعطلات الرسمية في الإعدادات.",
   legendRest: "عطلة نهاية الأسبوع أو عطلة رسمية (لا تُحتسب)",
   goesTo: "يُرسل إلى {name}، {role}",
   send: "إرسال الطلب",

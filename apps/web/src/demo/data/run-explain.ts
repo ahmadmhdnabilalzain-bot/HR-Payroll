@@ -142,8 +142,7 @@ function gratuity(c: DemoCompany, e: DemoEmployee): Explanation | null {
       `${daysText(t2?.result)} days of basic wage.`,
     value: money(fils(g - tier1)) },
     { text: `Together ${daysText(total?.inputs["daysOwed"])} days, ` +
-      "worked out exactly, then rounded to the nearest fils, once, at " +
-      "the end.",
+      "worked out exactly and rounded once, to two decimals.",
     value: money(g) },
     { text: "The limit is two years' basic wage. " +
       (cap?.inputs["capApplied"] === "true" ? "It is reached, so the " +
@@ -234,9 +233,10 @@ function loanCap(c: DemoCompany, e: DemoEmployee, s: DemoPayslip)
   const first = e.fullName.split(" ")[0] ?? e.fullName;
   return { ...base(c, `loan:${e.id}`, "Loan deduction, capped",
     e.fullName),
-  summary: `${first}'s loan instalment is more than the law lets an ` +
-    "employer take in one month: all deductions together may not be " +
-    "more than half of the wage. The rest moves to next month.",
+  summary: `${first}'s loan instalment is more than the deduction ` +
+    "limit allows in one month: all deductions together may not be " +
+    "more than half of the wage, as we read it. The rest moves to " +
+    "next month.",
   result: { label: "Deducted this month", value: money(d.taken) },
   inputs: [
     { label: "Wage earned this month", value:
@@ -328,8 +328,8 @@ function runNet(c: DemoCompany): Explanation {
   const n = c.payRun.payslips.length;
   const held = c.payRun.payslips.filter((s) => !s.sif.included).length;
   return { ...base(c, "run:net", "Net pay, whole run", "Whole pay run"),
-    summary: `The sum of ${n} payslips, each worked out by the engine ` +
-      "line by line in whole fils. Nothing is rounded at the total.",
+    summary: `The sum of ${n} payslips, each worked out by the payroll ` +
+      "line by line, exactly. Nothing is rounded at the total.",
     result: { label: "Net pay", value: money(t.net) },
     inputs: [{ label: "Payslips", value: text(String(n)),
       from: "October payroll" }],

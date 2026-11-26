@@ -98,7 +98,7 @@ export function profileChanges(c: DemoCompany): ProfileChange[] {
  * P36 Travel and air tickets
  * ---------------------------------------------------------------- */
 
-export const TICKET_BASIS = "Sample policy: one economy return ticket " +
+export const TICKET_BASIS = "Example policy: one economy return ticket " +
   "to the home country every 12 months for staff who are not UAE " +
   "nationals; grade 7 and above fly business. It stands in until the " +
   "bank's own ticket policy is entered.";
@@ -341,7 +341,7 @@ export interface CalendarMark {
   display: { when: string; note: string };
 }
 
-const NOTE_SAMPLE = "Sample date.";
+const NOTE_SAMPLE = "Planned date.";
 
 /** The last working day of a month: the demo's payday. */
 function paydayOf(ym: string): string {

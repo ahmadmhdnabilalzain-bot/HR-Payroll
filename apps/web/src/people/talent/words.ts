@@ -24,7 +24,7 @@ export const T = {
     provider: "Provider", audience: "Who it is for", status: "Status",
     repeats: "Repeats", every: "Every {n} days after completion",
     once: "Once", kind: "Kind", person: "Person", nextDue: "Next due",
-    noOne: "Nobody on this course yet.", fictional: "Sample course" },
+    noOne: "Nobody on this course yet.", fictional: "Example course" },
   surveys: { title: "Engagement surveys",
     lede: "Staff pulse surveys: results for the closed one and the date " +
       "of the next.",

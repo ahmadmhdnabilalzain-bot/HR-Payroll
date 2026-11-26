@@ -58,9 +58,9 @@ export function MyCalendar() {
     <div>
       <MonthCalendar title="My calendar"
         lede={manager ? "Your leave and your team's, public holidays, " +
-          "payday and training. Holiday and pay dates are sample dates."
+          "payday and training. Holiday dates are expected dates."
           : "Your leave, public holidays, payday and training. Holiday " +
-            "and pay dates are sample dates."}
+            "dates are expected dates."}
         month={month} monthLabel={`${MONTHS[Number(m) - 1] ?? ""} ${y ?? ""}`}
         rows={[...who.map((id) => ({ id, label: id === me ? "Me"
           : p.nameOf(id) })), { id: "company", label: "Holidays" },

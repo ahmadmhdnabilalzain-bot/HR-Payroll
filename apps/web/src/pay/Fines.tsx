@@ -31,7 +31,7 @@ export function Fines() {
   return (
     <FilterList title="Traffic fines"
       lede={"Fines on bank cars. Decide who pays each one; recovering a " +
-        "fine from pay is not worked out here."}
+        "fine from pay is not worked out yet."}
       rows={pay.fines} rowKey={(f) => f.id}
       searchText={(f) => `${f.name} ${f.offence}`}
       rowHref={(f) => hrefOf("pay-run", "fines", f.id)}

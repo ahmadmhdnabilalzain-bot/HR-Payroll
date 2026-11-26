@@ -128,7 +128,7 @@ export function documentTypes(c: DemoCompany): DocumentTypeView[] {
       onFile: docs.length, expiringSoon: soon,
       display: { reminders: t.tracks ? "Reminders at 90 and 30 days " +
         "before it ends" : "No end date to track",
-      onFile: docs.length === 0 ? "No copies on file in the demo"
+      onFile: docs.length === 0 ? "No copies on file"
         : plural(docs.length, "copy", "copies") + " on file" } };
   });
 }
@@ -209,7 +209,7 @@ export interface PayrollExclusion {
   element: string;
   kind: ExclusionKind;
   reason: string;
-  source: "engine" | "demo check";
+  source: "Payroll rules" | "Check";
   display: { who: string; element: string; since: string };
 }
 
@@ -239,26 +239,26 @@ export function payrollExclusions(c: DemoCompany): PayrollExclusion[] {
     const e = emps.get(s.employeeId)!;
     if (s.pension !== null) {
       add(e, "Pension", "not-computed", PENSION_NOT_COMPUTED.en,
-        "engine", "Every pay run until the fund is confirmed");
+        "Payroll rules", "Every pay run until the fund is confirmed");
       const g = gratuityOutcome(e);
       add(e, "End-of-service gratuity", "not-applicable", g.reason,
-        "engine", `Joined ${shortDateText(e.joiningDate)}`);
+        "Payroll rules", `Joined ${shortDateText(e.joiningDate)}`);
     }
     if (!s.sif.included) {
       add(e, "Salary file (WPS)", "held-out", s.sif.reason,
-        "demo check", `Held in the ${monthName(c)} run`);
+        "Check", `Held in the ${monthName(c)} run`);
     }
     if (e.cases.includes("probation") && s.payslip.unpaidDays > 0) {
       add(e, "Sick leave pay", "probation", "A sick day inside " +
-        "probation is unpaid, as the engine's leave rules say.",
-      "engine", `Probation ends ${shortDateText(e.probationEndDate!)}`);
+        "probation is unpaid, as the leave rules say.",
+      "Payroll rules", `Probation ends ${shortDateText(e.probationEndDate!)}`);
     }
   }
   for (const st of c.payRun.settlements) {
     const e = emps.get(st.employeeId)!;
     add(e, "October pay run", "outside-run", "Left the bank on " +
       `${shortDateText(e.leavingDate!)}; the final settlement is paid ` +
-      "outside the pay run and the salary file.", "demo check",
+      "outside the pay run and the salary file.", "Check",
     shortDateText(e.leavingDate!));
   }
   return out;

@@ -112,8 +112,8 @@ const stage = (label: string, date: string | null, done: boolean)
   ? `${label}: not booked` : `${label}: ${displayDate(date)}${done
     ? "" : " (booked)"}` });
 
-const FEES = "Government fees are not shown: the demo has no fee " +
-  "schedule.";
+const FEES = "Government fees are not shown: no fee " +
+  "schedule is loaded.";
 
 /** Visa and Emirates ID cases, tied to the documents near expiry. */
 export function visaCases(c: DemoCompany): VisaCase[] {
@@ -149,7 +149,7 @@ export interface DemoWarning { id: string; employeeId: string;
   deductionNote: string;
   display: { name: string; issuedBy: string; status: string } }
 
-const NO_DEDUCTION = "No deduction: the demo records warnings only; any " +
+const NO_DEDUCTION = "No deduction: warnings are recorded only; any " +
   "penalty is not computed.";
 
 /** Days someone arrived after 08:15, from the attendance records. */

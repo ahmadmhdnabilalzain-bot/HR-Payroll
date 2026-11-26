@@ -24,7 +24,7 @@ import { departmentText, jobTitleText, shortDateText } from "./wp3";
 
 export const GRATUITY_BASIS = "As if each person left on " +
   `${shortDateText(AS_OF)}, with basic salary as in the October pay run. ` +
-  "Unpaid leave is counted as 0 days in this sample. Labour Law " +
+  "Unpaid leave is counted as 0 days. Labour Law " +
   "gratuity only: leave pay, notice pay and other dues are not in it.";
 
 export interface GratuityProvisionRow {
@@ -143,10 +143,10 @@ export function employerCostView(c: DemoCompany): EmployerCost {
       departmentId: e.departmentId, gross, employer: s.employer,
       display: { gross: formatAed(gross),
         employer: s.employer.status === "computed"
-          ? formatAed(s.employer.amount) : "Not computed (pension)",
+          ? formatAed(s.employer.amount) : "Not computed",
         total: s.employer.status === "computed"
           ? formatAed(fils(gross + s.employer.amount))
-          : `${formatAed(gross)} plus pension not computed` } };
+          : `${formatAed(gross)} plus pension: Not computed` } };
   });
   const add = (xs: EmployerCostRow[], f: (r: EmployerCostRow) => bigint)
     : Fils => fils(xs.reduce((n, r) => n + f(r), 0n));
@@ -173,7 +173,7 @@ export function employerCostView(c: DemoCompany): EmployerCost {
         headcount: mine.length, gross: g, employerComputed: ec,
         notComputed: m, display: { gross: formatAed(g),
           total: formatAed(fils(g + ec)), note: m === 0 ? "Complete"
-            : `Pension not computed for ${m}` } };
+            : `Pension: Not computed for ${m}` } };
     }),
     caveat, display: { gross: formatAed(gross),
       partialTotal: formatAed(partialTotal),

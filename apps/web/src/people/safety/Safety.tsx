@@ -9,7 +9,7 @@ import { Policies } from "./Policies";
 
 /**
  * `#/people/safety/<screen>[/<id>]`: health insurance, incidents, ILOE
- * and policy versions (People, Compliance and safety). HR and the
+ * and policy versions (People, Papers and safety). HR and the
  * General manager only; the registry guards the same.
  */
 export function Safety(p: { rest: string[] }) {
