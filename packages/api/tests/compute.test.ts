@@ -39,7 +39,7 @@ function emp(over: Partial<SnapshotEmployee> = {}): SnapshotEmployee {
 
 const snap = (employees: SnapshotEmployee[],
   entries: PayRunEntry[] = []): RunSnapshot =>
-  ({ period: MARCH, employees, entries });
+  ({ period: MARCH, employees, entries, reimbursements: [] });
 
 const both = [{ code: "basic", amount: "3000.00" },
   { code: "housing", amount: "1000.00" }];

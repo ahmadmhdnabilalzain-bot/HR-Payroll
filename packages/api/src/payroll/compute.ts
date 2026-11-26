@@ -1,5 +1,6 @@
 import {
   NOT_COMPUTED_PAY,
+  REIMBURSEMENT_WPS_NOTE,
   type PayRunEntry,
   type PayRunProblem,
   type Period,
@@ -8,6 +9,7 @@ import {
   type WorkerClass,
 } from "@payroll/contract";
 import { fils, parseAed, type Fils } from "@payroll/engine";
+import { applyReimbursements } from "../expenses/reimburse";
 import { periodBounds } from "../leave/days";
 import { settle, type ComputedSettlement } from "./compute-settlement";
 
@@ -34,10 +36,20 @@ export interface SnapshotEmployee {
   unpaidLeaveDays: number;
 }
 
+/** An approved expense claim paid with the run (outside gross). */
+export interface SnapshotReimbursement {
+  employeeId: string;
+  claimId: string;
+  title: string;
+  amount: Fils;
+}
+
 export interface RunSnapshot {
   period: Period;
   employees: SnapshotEmployee[];
   entries: PayRunEntry[];
+  /** Sorted by claimId, so the input hash covers them. */
+  reimbursements: SnapshotReimbursement[];
 }
 
 export interface ComputedLine extends SnapshotComponent {
@@ -55,6 +67,18 @@ export interface ComputedPayslip {
   notComputed: string[];
   settlement: ComputedSettlement | null;
   trace: TraceLine[];
+  /** Plan 6: never in lines or gross; net = salaryNet + total. */
+  reimbursements: ComputedReimbursement[];
+  reimbursementTotal: Fils;
+  salaryNet: Fils;
+  reimbursementNote: typeof REIMBURSEMENT_WPS_NOTE | null;
+}
+
+export interface ComputedReimbursement {
+  claimId: string;
+  label: string;
+  amount: Fils;
+  traceId: string;
 }
 
 type Problem = PayRunProblem;
@@ -137,7 +161,9 @@ function payslipOf(e: SnapshotEmployee, x: PayRunEntry, p: Period)
     workerClass: e.workerClass }, basic, x, x.unusedLeaveDays!) : null;
   return { employeeId: e.employeeId, employeeName: e.name, period: p,
     lines, gross, net: gross, notComputed: [...NOT_COMPUTED_PAY],
-    settlement, trace: lines.map((l) => traceOf(l, e.salaryVersion)) };
+    settlement, trace: lines.map((l) => traceOf(l, e.salaryVersion)),
+    reimbursements: [], reimbursementTotal: fils(0n), salaryNet: gross,
+    reimbursementNote: null };
 }
 
 function entryMap(s: RunSnapshot, problems: Problem[]) {
@@ -168,8 +194,10 @@ export function computePayRun(s: RunSnapshot): { problems: Problem[];
     } else problems.push(...entryProblems(e, x, s.period));
   }
   if (problems.length > 0) return { problems, payslips: [], gross: fils(0n) };
-  const payslips = paid.map((e) => payslipOf(e,
-    entries.get(e.employeeId) ?? { employeeId: e.employeeId }, s.period));
+  // Reimbursements are added last, after the salary net is known.
+  const payslips = paid.map((e) => applyReimbursements(payslipOf(e,
+    entries.get(e.employeeId) ?? { employeeId: e.employeeId }, s.period),
+  s.reimbursements));
   return { problems, payslips,
     gross: fils(payslips.reduce((n, p) => n + p.gross, 0n)) };
 }

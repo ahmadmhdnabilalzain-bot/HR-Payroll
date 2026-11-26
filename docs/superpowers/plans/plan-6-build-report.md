@@ -13,6 +13,7 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 | 3 | `feat(api): receipts with storage and OCR port` | done |
 | 4 | `feat(api): expense policy, pricing, checks` | done |
 | 5 | `feat(api): expense claims with approvals` | done |
+| 6 | `feat(api): reimburse approved claims in payroll` | done |
 
 ## Adaptations to the plan (Task 1)
 
@@ -187,6 +188,41 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
     against one monthly limit give one 200 and one 422 (the employee
     row lock serialises them).
 
+## Adaptations to the plan (Task 6)
+
+1. **The pay-run columns** (`reimbursement_total`, `claim_count`,
+   `pending_claim_count`) are stored on `pay_runs` at insert (migration
+   604) and read by `toPayRun`, so a voided run keeps the figures it
+   had.
+2. **`buildSnapshot(..., source)`** takes `{ newRun: true }` (approved,
+   unlinked, in-scope claims minus `excludeClaimIds`, locked) or `{
+   runId }` (the claims linked to that run). Approval rebuilds the
+   snapshot from the linked claims, so its input hash still matches;
+   with the plan's single rule the rebuild would have found no claims
+   and refused every run that pays one.
+3. **`src/expenses/run-claims.ts`** holds the payroll side (select for
+   a new run, claims of a run, pending count, link, reimburse,
+   release). `createPayRun` was split (`insertRun`) to keep functions
+   short; its behaviour for runs without claims is unchanged.
+4. **Linking is guarded twice:** the select is `FOR UPDATE` with
+   `status = 'approved' AND pay_run_id IS NULL` in id order (no
+   deadlock between two runs), and the link UPDATE repeats that
+   predicate and must touch every snapshot claim (else 409
+   `RUN_INPUTS_CHANGED`).
+5. **`applyReimbursements` starts from `salaryNet`** (which the salary
+   step sets equal to `net`) and replaces its own trace lines, so
+   applying it twice gives the same payslip.
+6. **Test helpers** live in `tests/helpers/reimb-world.ts` and
+   `expense-fixtures.ts` (`claimOf`, `claimFor`, `approvedClaim`), not
+   in Plan 3's `seed.ts` (`seedClaim` in the plan), to keep merges
+   simple.
+7. **SIF check:** the test asserts the SIF total equals the run's
+   gross and the file contains neither the claim amount nor the net
+   with reimbursements; `buildSifBatch` is unchanged and reads only
+   `lines`.
+8. **Real PostgreSQL:** March and April runs created at once link
+   three claims, each to exactly one of the two runs.
+
 ## Decisions
 
 1. **Commit trailer.** The brief asks for `Co-Authored-By: Claude
@@ -218,6 +254,10 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 ## Test order (honest)
 
 - Task 1: contract tests written and seen red (18 failures), then green.
+- Task 6: reimburse, pay-run and exactly-once tests seen red (10
+  failures), then green; every Plan 3 pay-run, SIF and idempotency test
+  still passes unchanged (only the compute test builder gained
+  `reimbursements: []`).
 - Task 5: claim, submit and approval-flow tests seen red (18 failures,
   routes 404), then green.
 - Task 4: pricing, check, purity and policy tests seen red (modules

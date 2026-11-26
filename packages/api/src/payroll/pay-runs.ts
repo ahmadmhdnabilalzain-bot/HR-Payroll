@@ -10,7 +10,13 @@ import type { Db } from "../db/db";
 import { toMoney } from "../db/money";
 import { Reply, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
-import { computePayRun } from "./compute";
+import {
+  linkClaims,
+  markReimbursed,
+  pendingClaimCount,
+  releaseClaims,
+} from "../expenses/run-claims";
+import { computePayRun, type RunSnapshot } from "./compute";
 import { storePayslips } from "./payslips";
 import {
   buildSnapshot,
@@ -35,6 +41,9 @@ export interface RunRow {
   approved_by: string | null;
   approved_at: string | null;
   sif_file_id: string | null;
+  reimbursement_total: bigint;
+  claim_count: number;
+  pending_claim_count: number;
 }
 
 /**
@@ -51,8 +60,9 @@ export const toPayRun = (r: RunRow): PayRun => ({
   createdAt: r.created_at, approvedAt: r.approved_at,
   inputHash: r.input_hash, employeeCount: r.employee_count,
   gross: toMoney(fils(BigInt(r.gross))), notComputed: [...NOT_COMPUTED_PAY],
-  sifFileId: r.sif_file_id, reimbursementTotal: "0.00", claimCount: 0,
-  pendingClaimCount: 0 });
+  sifFileId: r.sif_file_id,
+  reimbursementTotal: toMoney(fils(BigInt(r.reimbursement_total))),
+  claimCount: r.claim_count, pendingClaimCount: r.pending_claim_count });
 
 export async function loadRun(tx: Db, companyId: string, id: string,
   lock = false): Promise<RunRow> {
@@ -94,15 +104,40 @@ function problemsError(ps: ReturnType<typeof computePayRun>["problems"]) {
 /** No conflict target: the key and the one-live-run index both count. */
 const INSERT_RUN = `INSERT INTO pay_runs (id, company_id, year, month,
     status, idempotency_key, request_hash, input_hash, snapshot_enc, gross,
-    employee_count, created_by, created_at)
-  VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12)
+    employee_count, created_by, created_at, reimbursement_total,
+    claim_count, pending_claim_count)
+  VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12, $13,
+    $14, $15)
   ON CONFLICT DO NOTHING RETURNING id`;
+
+type Computed = ReturnType<typeof computePayRun>;
+
+/** The insert; null when the key or the month was taken meanwhile. */
+async function insertRun(ctx: ReqCtx<PayRunCreate>, key: string,
+  requestHash: string, snap: RunSnapshot, out: Computed) {
+  const { tx, deps, body } = ctx;
+  const c = ctx.tenant!.companyId;
+  const id = deps.newId();
+  const at = deps.now().toISOString();
+  const inputHash = snapshotHash(snap);
+  const reimbursed = snap.reimbursements.reduce((n, r) => n + r.amount, 0n);
+  const pending = await pendingClaimCount(tx, c,
+    snap.employees.map((e) => e.employeeId));
+  const inserted = await tx.query(INSERT_RUN,
+    [id, c, body.period.year, body.period.month, key, requestHash,
+      inputHash, await sealSnapshot(tx, deps, c, id, snap),
+      out.gross.toString(), out.payslips.length, ctx.user!.id, at,
+      reimbursed.toString(), snap.reimbursements.length, pending]);
+  return inserted.length === 0 ? null : { id, at, inputHash };
+}
 
 /**
  * Idempotent create. The key is looked up first (a retry after inputs
  * changed still gets its run); the insert uses ON CONFLICT DO NOTHING
  * on the key and on the one-live-run-per-month index, and a loser
  * re-reads by key. No SQL error is caught inside the transaction.
+ * Approved expense claims are linked only after the insert succeeds,
+ * so a replay or a conflict never links a claim.
  */
 export async function createPayRun(ctx: ReqCtx<PayRunCreate>, key: string)
   : Promise<Reply> {
@@ -114,27 +149,22 @@ export async function createPayRun(ctx: ReqCtx<PayRunCreate>, key: string)
   if (await liveRunExists(tx, c, body)) {
     throw new ApiError("RUN_EXISTS_FOR_PERIOD");
   }
-  const snap = await buildSnapshot(tx, deps, c, body);
+  const snap = await buildSnapshot(tx, deps, c, body, { newRun: true });
   const out = computePayRun(snap);
   if (out.problems.length > 0) throw problemsError(out.problems);
-  const id = deps.newId();
-  const at = deps.now().toISOString();
-  const inputHash = snapshotHash(snap);
-  const inserted = await tx.query(INSERT_RUN,
-    [id, c, body.period.year, body.period.month, key, requestHash,
-      inputHash, await sealSnapshot(tx, deps, c, id, snap),
-      out.gross.toString(), out.payslips.length, ctx.user!.id, at]);
-  if (inserted.length === 0) {
+  const run = await insertRun(ctx, key, requestHash, snap, out);
+  if (run === null) {
     const winner = await byKey(tx, c, key);
     if (winner !== null) return replay(winner, requestHash);
     throw new ApiError("RUN_EXISTS_FOR_PERIOD");
   }
-  await storePayslips(tx, deps, c, id, out.payslips);
-  await appendAudit(tx, { companyId: c, at, actorUserId: ctx.user!.id,
-    action: "pay-run.created", entityType: "pay-run", entityId: id,
-    data: { period: body.period, employeeCount: out.payslips.length,
-      inputHash } });
-  return new Reply(201, toPayRun(await loadRun(tx, c, id)));
+  await storePayslips(tx, deps, c, run.id, out.payslips);
+  await linkClaims(ctx, run.id, snap.reimbursements);
+  await appendAudit(tx, { companyId: c, at: run.at,
+    actorUserId: ctx.user!.id, action: "pay-run.created",
+    entityType: "pay-run", entityId: run.id, data: { period: body.period,
+      employeeCount: out.payslips.length, inputHash: run.inputHash } });
+  return new Reply(201, toPayRun(await loadRun(tx, c, run.id)));
 }
 
 /**
@@ -151,7 +181,7 @@ export async function approvePayRun(ctx: ReqCtx<unknown, unknown,
   if (r.created_by === ctx.user!.id) throw new ApiError("SOD_VIOLATION");
   const stored = await openSnapshot(tx, deps, c, r.id, r.snapshot_enc);
   const now = await buildSnapshot(tx, deps, c,
-    { period: stored.period, entries: stored.entries });
+    { period: stored.period, entries: stored.entries }, { runId: r.id });
   if (snapshotHash(now) !== r.input_hash) {
     throw new ApiError("RUN_INPUTS_CHANGED");
   }
@@ -163,6 +193,7 @@ export async function approvePayRun(ctx: ReqCtx<unknown, unknown,
   await appendAudit(tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "pay-run.approved", entityType: "pay-run", entityId: r.id,
     data: { period: { year: r.year, month: r.month } } });
+  await markReimbursed(ctx, r.id);
   return toPayRun(await loadRun(tx, c, r.id));
 }
 
@@ -177,5 +208,6 @@ export async function voidPayRun(ctx: ReqCtx<unknown, unknown,
   await appendAudit(ctx.tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "pay-run.voided", entityType: "pay-run", entityId: r.id,
     data: { period: { year: r.year, month: r.month } } });
+  await releaseClaims(ctx, r.id);
   return toPayRun(await loadRun(ctx.tx, c, r.id));
 }

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const SRC = join(import.meta.dirname, "..", "src");
 /** Pure modules: no clock, environment, network, node APIs, ids or db. */
 const PURE = ["approvals/resolve.ts", "expenses/policy.ts",
-  "expenses/check.ts"];
+  "expenses/check.ts", "expenses/reimburse.ts"];
 const BANNED = [/\bDate\b/, /\bprocess\b/, /\bfetch\b/, /node:/,
   /randomUUID/, /["']\.\/db/, /["']\.\.\/db/];
 
