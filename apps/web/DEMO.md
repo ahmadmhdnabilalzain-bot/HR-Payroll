@@ -150,6 +150,28 @@ package. Never write "compliant", "approved", "certified" or
   at 90 ms (the first six). A sent request arrives at the top of the
   list with a short accent wash. Sheets slide 250 ms in and 200 ms
   out. Reduced motion turns all of it off.
+- **Critique pass:**
+  - The lists are inset grouped lists: radius 12, separators inset
+    16 px, no bordered cards.
+  - Severity is an 8 px dot beside a neutral word. Open items say
+    "Stops pay" (no IBAN, or an IBAN that fails its check) or "Check".
+  - Teal is for actions only, so calendar bars and status words are
+    neutral.
+  - People has segments: all, needs attention (open items) and
+    leavers. Its department picker is our own listbox, not a native
+    select.
+  - The profile opens with three facts: net pay, annual leave left and
+    years of service. Expiring papers appear once, under Documents.
+  - The payslip has an employer header, unpaid days, a print button
+    and dotted rules on worked-out figures only. Every figure still
+    opens its working.
+  - Days left roll with GSAP, power3.out over 600 ms (`useRoll`, whole
+    half-days, tabular figures).
+  - The sheet's scrim is a box shadow, because `::backdrop` does not
+    read custom properties in older Safari.
+  - A request must fall inside 2026 and may not overlap time off
+    already booked or waiting.
+  - Type sizes follow the new scale: body 15, secondary 13.
 - **Phones:** People becomes rows (name and status, role, branch), not
   a squeezed table. Who is off becomes a list. Sheets come up from the
   bottom (dvh, safe-area padding). Targets are 44 px and inputs 17 px.
