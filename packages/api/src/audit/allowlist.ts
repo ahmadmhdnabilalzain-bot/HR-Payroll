@@ -49,8 +49,9 @@ const CHECKS: Record<string, Check> = {
   inputHash: (v) => typeof v === "string" && /^[0-9a-f]{64}$/.test(v),
   // The SIF name is employer id + date + time: not personal data.
   fileName: (v) => typeof v === "string" && SIF_NAME.test(v),
-  employeeId: matches(UUID_RE),
-  leaveTypeId: matches(UUID_RE),
+  // A uuid is hex and may hold a long digit run; its shape is enough.
+  employeeId: (v) => typeof v === "string" && UUID_RE.test(v),
+  leaveTypeId: (v) => typeof v === "string" && UUID_RE.test(v),
   oldClockIn: matches(TIME),
   oldClockOut: matches(TIME),
   newClockIn: matches(TIME),

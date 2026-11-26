@@ -155,6 +155,7 @@ describe("audit log", () => {
       { role: "hr" }, { from: "hr", to: "manager" }, { version: 3 },
       { period: { year: 2026, month: 3 }, employeeCount: 2,
         inputHash: "a".repeat(64) },
+      { employeeId: "00000000-0000-4000-8000-000000001023" },
       { fileName: "0000000123456260401010000.SIF", errorCount: 0,
         warningCount: 1 },
       { oldClockIn: "2026-03-01T20:30:00.000Z",
