@@ -164,4 +164,18 @@ export const home: ArOf<typeof en> = {
   teamLeave: "إجازات فريقك",
   teamLeaveEmpty: "لا أحد في فريقك في إجازة أو بانتظار قرار.",
   openTimeOff: "فتح الإجازات",
+  trendTitle: "صافي الرواتب، من {from} إلى {to}",
+  trendPrepared: "مُعدّ ولم يُدفع بعد",
+  trendAgainst: "الصافي مقارنة بشهر {month}",
+  trendUp: "زيادة",
+  trendDown: "نقص",
+  trendDrivers: "الأكثر تأثيرًا في التغيير",
+  trendNote: "أكتوبر: مُعدّ ولم يُدفع بعد",
+  stepOf: "الخطوة {n} من {count}",
+  stepNext: "التالي: {step}، {date}",
+  readyBar: "{ready} جاهزون",
+  heldBar: {
+    ...all("{count} يحتاجون بيانات بنكية"),
+    one: "موظف واحد يحتاج بيانات بنكية",
+  },
 };
