@@ -1,5 +1,6 @@
 import type { Fils } from "@payroll/engine";
 import type { PeopleData } from "./people-types";
+import type { TeamData } from "./team-types";
 
 /**
  * What the screens read: a thin view over `@payroll/demo-data`, built
@@ -134,6 +135,8 @@ export interface DemoData {
   runPeople(): RunPeople;
   /** People and Time off (people-types.ts). */
   people: PeopleData;
+  /** Team and growth (team-types.ts). */
+  team: TeamData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };
