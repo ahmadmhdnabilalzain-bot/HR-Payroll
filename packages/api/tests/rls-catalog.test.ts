@@ -39,6 +39,29 @@ describe("RLS catalog", () => {
     }
   });
 
+  it("every tenant policy keys on app_company_id(), never true",
+    async () => {
+      const rows = await db.query<{ tablename: string; cmd: string;
+        qual: string | null; with_check: string | null }>(
+        `SELECT tablename, cmd, qual, with_check FROM pg_policies
+         WHERE schemaname = current_schema()`);
+      for (const name of tenant) {
+        const ps = rows.filter((p) => p.tablename === name);
+        for (const p of ps) {
+          const text = `${p.qual ?? ""} ${p.with_check ?? ""}`;
+          expect(text, `${name} ${p.cmd}`).toContain("app_company_id()");
+          expect(p.qual?.trim(), name).not.toBe("true");
+        }
+        const writes = ps.filter((p) => ["INSERT", "UPDATE", "ALL"]
+          .includes(p.cmd));
+        expect(writes.length, name).toBeGreaterThan(0);
+        for (const p of writes) {
+          expect(p.with_check ?? p.qual, `${name} ${p.cmd}`)
+            .toContain("app_company_id()");
+        }
+      }
+    });
+
   it("every other table is allowlisted as global", () => {
     const others = tables.map((t) => t.relname)
       .filter((n) => !tenant.includes(n));

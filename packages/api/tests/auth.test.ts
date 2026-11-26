@@ -214,6 +214,12 @@ describe("auth", () => {
     expect(line?.status).toBe(401);
   });
 
+  it("a body over 1 MiB is refused with 413", async () => {
+    const r = await call(ctx.app, null, null, "POST", "/v1/auth/login",
+      { email: "a@example.com", password: "x".repeat(1_100_000) });
+    expectError(r, 413, "PAYLOAD_TOO_LARGE");
+  });
+
   it("unknown route is a 404 with an error body", async () => {
     expectError(await call(ctx.app, null, null, "GET", "/v1/nope"), 404,
       "NOT_FOUND");

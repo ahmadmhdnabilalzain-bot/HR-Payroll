@@ -19,8 +19,8 @@ export interface AppDeps {
 /** What handlers get: everything but the raw database. */
 export type HandlerDeps = Omit<AppDeps, "db">;
 
-/** scrypt N for production (memory 128 * N * r = 32 MiB). */
-export const PRODUCTION_PASSWORD_COST = { N: 32768 };
+/** scrypt N = 2^16 for production (128 * N * r = 64 MiB per hash). */
+export const PRODUCTION_PASSWORD_COST = { N: 65536 };
 
 /** The real clock, ids, randomness and stdout JSON log. */
 export function systemDeps(db: Db, kek: Uint8Array): AppDeps {

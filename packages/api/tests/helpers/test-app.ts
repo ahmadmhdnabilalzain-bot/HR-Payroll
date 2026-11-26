@@ -3,6 +3,7 @@ import type { App as Hono } from "../../src/http/context";
 import { createApp } from "../../src/app";
 import { base32Decode, totpCode } from "../../src/auth/totp";
 import { keyringFromKey } from "../../src/crypto/keyring";
+import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
 import { createTestDb } from "./test-db";
 
@@ -18,7 +19,7 @@ export function sequentialId(n: number): string {
   return `00000000-0000-4000-8000-${n.toString(16).padStart(12, "0")}`;
 }
 
-export async function makeApp(opts: { start?: string } = {}) {
+export async function makeApp(opts: { start?: string; db?: Db } = {}) {
   const clock: Clock = {
     now: new Date(opts.start ?? "2026-03-01T08:00:00.000Z"),
     advance(ms) {
@@ -29,7 +30,7 @@ export async function makeApp(opts: { start?: string } = {}) {
   const logs: Record<string, unknown>[] = [];
   const rand = (k: number) => new Uint8Array(randomBytes(k));
   const deps: AppDeps = {
-    db: await createTestDb(),
+    db: opts.db ?? await createTestDb(),
     now: () => clock.now,
     newId: () => sequentialId(n++),
     randomBytes: rand,

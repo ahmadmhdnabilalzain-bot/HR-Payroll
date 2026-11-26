@@ -14,7 +14,7 @@ describe("keyring (AES-256-GCM)", () => {
 
   it("round-trips and uses the v1 format", () => {
     const c = ring.encrypt(dekA, aad(A), "7777.77");
-    expect(c).toMatch(/^v1\.[\w-]+$/);
+    expect(c).toMatch(/^v1\.[0-9a-f]{8}\.[\w-]+$/);
     expect(c).not.toContain("7777");
     expect(ring.decrypt(dekA, aad(A), c)).toBe("7777.77");
   });
@@ -36,6 +36,19 @@ describe("keyring (AES-256-GCM)", () => {
     const c = ring.encryptGlobal("users:mfa_secret:u1", "JBSWY3DP");
     expect(ring.decryptGlobal("users:mfa_secret:u1", c)).toBe("JBSWY3DP");
     expect(() => ring.decryptGlobal("users:mfa_secret:u2", c)).toThrow();
+  });
+  it("keeps DEK wrapping and global values apart", () => {
+    expect(() => ring.encrypt(dekA, "global:x", "v")).toThrow(/company/);
+    const g = ring.encryptGlobal(`${A}:dek`, "not a dek");
+    expect(() => ring.decrypt(g, aad(A), ring.encrypt(dekA, aad(A), "x")))
+      .toThrow();
+  });
+  it("names the master key and refuses another one's cipher", () => {
+    const other = keyringFromKey(new Uint8Array(32).fill(9),
+      (n) => randomBytes(n));
+    const c = other.encryptGlobal("users:mfa_secret:u1", "x");
+    expect(() => ring.decryptGlobal("users:mfa_secret:u1", c))
+      .toThrow(/another master key/);
   });
   it("refuses a key that is not 32 bytes", () => {
     expect(() => keyringFromKey(new Uint8Array(16), (n) => randomBytes(n)))

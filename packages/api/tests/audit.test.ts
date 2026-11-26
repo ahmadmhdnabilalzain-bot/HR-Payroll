@@ -19,7 +19,7 @@ import {
   COMPANY_B,
   USER_A,
   createTestDb,
-  seedTwoCompanies,
+  seedTwoBareCompanies,
 } from "./helpers/test-db";
 
 function input(n: number, companyId = COMPANY_A): AuditInput {
@@ -72,7 +72,7 @@ describe("audit log", () => {
   let db: Db;
   beforeEach(async () => {
     db = await createTestDb();
-    await seedTwoCompanies(db);
+    await seedTwoBareCompanies(db);
   });
 
   it("chains events from the genesis hash and verifies", async () => {

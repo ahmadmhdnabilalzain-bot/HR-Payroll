@@ -35,22 +35,31 @@ async function inTransaction<T>(
   fn: (tx: Db) => Promise<T>,
 ): Promise<T> {
   const c = await pool.connect();
+  let broken: Error | undefined;
   try {
     await c.query("BEGIN");
     const out = await fn(clientDb(c));
     await c.query("COMMIT");
     return out;
   } catch (err) {
-    await c.query("ROLLBACK");
+    // A failing ROLLBACK (broken connection) must not hide the
+    // original error, and that client must not go back to the pool.
+    try {
+      await c.query("ROLLBACK");
+    } catch (rollbackErr) {
+      broken = rollbackErr as Error;
+    }
     throw err;
   } finally {
-    c.release();
+    c.release(broken);
   }
 }
 
-export async function openPg(url: string): Promise<Db> {
+export async function openPg(url: string, opts: { max?: number } = {})
+  : Promise<Db> {
   // isoTimestamp converts any session time zone offset to UTC.
-  const pool = new pg.Pool({ connectionString: url, types: typeOverrides });
+  const pool = new pg.Pool({ connectionString: url, types: typeOverrides,
+    max: opts.max ?? 10 });
   const run = (c: Client, sql: string, params?: unknown[]) =>
     c.query(sql, params);
   await run(pool, "SELECT 1");

@@ -1,10 +1,17 @@
-import { createCipheriv, createDecipheriv } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  hkdfSync,
+} from "node:crypto";
 
 /**
  * Field encryption: one AES-256-GCM data key (DEK) per company, wrapped
- * by the master key (KEK). Cipher text is `v1.<base64url iv|tag|ct>`.
- * AAD is `<companyId>:<table>:<column>:<rowId>`, so a value cannot be
- * moved to another row, column or company.
+ * by a key derived from the master key (KEK). Cipher text is
+ * `v1.<keyId>.<base64url iv|tag|ct>`; the key id names the master key
+ * so a later rotation can tell old from new. AAD is
+ * `<companyId>:<table>:<column>:<rowId>`, so a value cannot be moved
+ * to another row, column or company.
  */
 export interface Keyring {
   wrapNewDek(companyId: string): { dekWrapped: string };
@@ -16,21 +23,28 @@ export interface Keyring {
 
 const IV_LEN = 12;
 const TAG_LEN = 16;
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 type Random = (n: number) => Uint8Array;
 
-function seal(key: Uint8Array, aad: string, plain: Uint8Array,
-  iv: Uint8Array): string {
+function seal(key: Uint8Array, kid: string, aad: string,
+  plain: Uint8Array, iv: Uint8Array): string {
   const c = createCipheriv("aes-256-gcm", key, iv);
   c.setAAD(Buffer.from(aad, "utf8"));
   const ct = Buffer.concat([c.update(plain), c.final()]);
   const packed = Buffer.concat([iv, c.getAuthTag(), ct]);
-  return `v1.${packed.toString("base64url")}`;
+  return `v1.${kid}.${packed.toString("base64url")}`;
 }
 
-function open(key: Uint8Array, aad: string, cipher: string): Buffer {
-  if (!cipher.startsWith("v1.")) throw new Error("unknown cipher format");
-  const packed = Buffer.from(cipher.slice(3), "base64url");
+function open(key: Uint8Array, kid: string, aad: string,
+  cipher: string): Buffer {
+  const [v, id, body] = cipher.split(".");
+  if (v !== "v1" || body === undefined) {
+    throw new Error("unknown cipher format");
+  }
+  if (id !== kid) throw new Error("cipher made with another master key");
+  const packed = Buffer.from(body, "base64url");
   const d = createDecipheriv("aes-256-gcm", key,
     packed.subarray(0, IV_LEN));
   d.setAAD(Buffer.from(aad, "utf8"));
@@ -39,28 +53,36 @@ function open(key: Uint8Array, aad: string, cipher: string): Buffer {
     d.final()]);
 }
 
-const dekAad = (companyId: string) => `${companyId}:dek`;
-
 function companyOf(aad: string): string {
-  const id = aad.split(":")[0];
-  if (id === undefined || id === "") throw new Error("AAD has no company");
+  const id = aad.split(":")[0] ?? "";
+  if (!UUID.test(id)) throw new Error("AAD must start with a company id");
   return id;
+}
+
+/** HKDF-SHA256 subkeys: one for wrapping DEKs, one for global values. */
+function subkey(kek: Uint8Array, info: string): Uint8Array {
+  return new Uint8Array(hkdfSync("sha256", kek, new Uint8Array(0),
+    `payroll:${info}`, 32));
 }
 
 export function keyringFromKey(kek: Uint8Array, random: Random): Keyring {
   if (kek.length !== 32) throw new Error("master key must be 32 bytes");
+  const kid = createHash("sha256").update(kek).digest("hex").slice(0, 8);
+  const wrapKey = subkey(kek, "kek-wrap");
+  const globalKey = subkey(kek, "kek-global");
+  const dekAad = (aad: string) => `${companyOf(aad)}:dek`;
   const unwrap = (wrapped: string, aad: string) =>
-    open(kek, dekAad(companyOf(aad)), wrapped);
+    open(wrapKey, kid, dekAad(aad), wrapped);
   return {
-    wrapNewDek: (companyId) => ({ dekWrapped: seal(kek, dekAad(companyId),
-      random(32), random(IV_LEN)) }),
-    encrypt: (wrapped, aad, plain) => seal(unwrap(wrapped, aad), aad,
+    wrapNewDek: (companyId) => ({ dekWrapped: seal(wrapKey, kid,
+      dekAad(companyId), random(32), random(IV_LEN)) }),
+    encrypt: (wrapped, aad, plain) => seal(unwrap(wrapped, aad), kid, aad,
       Buffer.from(plain, "utf8"), random(IV_LEN)),
     decrypt: (wrapped, aad, cipher) =>
-      open(unwrap(wrapped, aad), aad, cipher).toString("utf8"),
-    encryptGlobal: (aad, plain) => seal(kek, `global:${aad}`,
+      open(unwrap(wrapped, aad), kid, aad, cipher).toString("utf8"),
+    encryptGlobal: (aad, plain) => seal(globalKey, kid, aad,
       Buffer.from(plain, "utf8"), random(IV_LEN)),
     decryptGlobal: (aad, cipher) =>
-      open(kek, `global:${aad}`, cipher).toString("utf8"),
+      open(globalKey, kid, aad, cipher).toString("utf8"),
   };
 }
