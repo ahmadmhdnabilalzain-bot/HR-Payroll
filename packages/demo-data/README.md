@@ -90,3 +90,36 @@ end in `.test`. Arabic labels are NEEDS NATIVE REVIEW
 to net, nets sum to the run total, SIF records sum to the run total
 less held pay, each payslip equals a fresh engine run, same seed gives
 the same bytes, fake identifiers only, labels complete.
+
+## WP3: hiring, joining and leaving (`src/wp3.ts`)
+
+Fictional recruiting, joining and leaving data for the same 31 people.
+Nothing restates a joining date or a salary: it is all derived from
+the employees, so it holds for every seed. The two fixed people are
+the new hire (case `probation`) and the leaver (case `leaver`).
+
+- Requisitions (`requisitionViews`, `vacancyViews`): a filled teller
+  seat (the new hire), the leaver's backfill, two credit analyst seats
+  and one on hold. Pay bands come from the bank's grade scale; seats
+  carry position ids (`positionIdOf`, `newPositionId`) for WP2.
+- Candidates (`candidateBoard`): 13 invented people (the hired one is
+  the new hire's own record), interviews with a panel, closed ones kept
+  apart.
+- Offers (`offerViews`, `offerLetterText`): the new hire's accepted
+  offer equals the employee record; open offers are priced at the
+  grade's band floor (40% housing, grade transport, phone from grade
+  7), start after 27 Oct 2026 and are already decided (draft, sent,
+  accepted, declined), so no new item waits in the approvals inbox.
+- Checklists (`joinerChecklistViews`, `leaverChecklistView`,
+  `employmentEndView`): the new hire's joining list (the Emirates ID
+  step is overdue; the bank step follows the IBAN on record), a
+  pre-joining list for the accepted re-joiner, the leaver's list with
+  the settlement from the pay run and its due date from `payCalendar`.
+- Moves (`moveViews`): two done transfers (the record already shows
+  the new seat), one approved for 16 Nov 2026, and a re-join of a
+  former colleague who is not on the staff list yet. Our reading, to
+  confirm: his earlier gratuity was settled, the new period starts at
+  the re-joining date.
+- `hiringSummary`, `managerIdFor` (the line-manager rule, the same as
+  the approval checker), `shortDateText` ("27 Oct 2026", unlike
+  `displayDate`), `dueTextOf`.
