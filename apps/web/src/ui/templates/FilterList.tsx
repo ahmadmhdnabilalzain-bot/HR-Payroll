@@ -5,7 +5,7 @@ import { Avatar } from "../Avatar";
 import b from "../button.module.css";
 import { PageFoot } from "./PageFoot";
 import { lastRecord, saveView, savedView } from "./listMotion";
-import { useEntrance, useListFlip, useSwapIn } from "./listEnter";
+import { useEntrance, useListFlip } from "./listEnter";
 import { maskNode, useMaskText } from "../mask";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
@@ -132,10 +132,8 @@ export function FilterList<T>(p: {
   // Rows rise in once per route; a filter, a search or a decision
   // slides them to their new places (listEnter.ts).
   const host = useRef<HTMLDivElement>(null);
-  const emptyRef = useRef<HTMLDivElement>(null);
   useEntrance(host, ":scope > ul > li[data-key]", { scope: "rows" });
   useListFlip(host, shown.map(p.rowKey));
-  useSwapIn(emptyRef, shown.length === 0);
   return (
     <div className={s.page}>
       <PageHead title={p.title} lede={p.lede} actions={p.actions}
@@ -184,7 +182,7 @@ export function FilterList<T>(p: {
       </div>
       <div className={m.host} ref={host}>
         {shown.length === 0 ? (
-          <div className={s.emptyState} ref={emptyRef}>
+          <div className={s.emptyState}>
             {p.rows.length > 0 && (q !== "" || active !== p.segments?.[0]) ? (
               <>
                 <p>{t("tpl.noMatch")}</p>

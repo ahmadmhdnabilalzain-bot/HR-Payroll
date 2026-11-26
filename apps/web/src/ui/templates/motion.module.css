@@ -7,9 +7,17 @@
 .host {
   position: relative;
   min-inline-size: 0;
-  /* Leaving rows never draw past the list's new end (clip, not
-   * hidden: the sticky column headers still stick). */
+}
+
+/* Leaving rows never draw past the list's new end (clip, not hidden:
+ * the sticky column headers still stick). An emptied list fades as
+ * one over the empty state, unclipped. */
+.host:has(> ul:not([data-ghost])) {
   overflow: clip;
+}
+
+.host > :global(ul[data-ghost]) {
+  margin: 0;
 }
 
 /* A row sliding to its new place covers a row that leaves under it. */

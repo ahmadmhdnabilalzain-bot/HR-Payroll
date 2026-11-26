@@ -13,7 +13,7 @@ import s from "./dash.module.css";
 export function FigureView(p: { f: Figure }) {
   const { lang } = useLocale();
   return (
-    <span className={s.tileFigure} data-card-figure="">
+    <span className={s.tileFigure}>
       {p.f.kind === "money"
         ? <Money value={p.f.fils} tween={false} />
         : <span className="tabular">{formatNumber(p.f.n, lang)}</span>}

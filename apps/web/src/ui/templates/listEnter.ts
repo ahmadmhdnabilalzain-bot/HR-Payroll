@@ -150,7 +150,7 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
         io.unobserve(e.target);
         show(e.target as HTMLElement, true);
       });
-    }, { rootMargin: "0px 0px -6% 0px" });
+    }, { rootMargin: "0px 0px 6% 0px" });
     below.forEach((el) => {
       el.dataset["reveal"] = "wait";
       io.observe(el);
@@ -174,11 +174,26 @@ interface Spot {
   ghost: HTMLElement | null;
 }
 
-/** Where each keyed row is, relative to `host`, as drawn now. */
+/** The live list and its rows (never a leaving copy). */
+const UL = ":scope > ul:not([data-ghost])";
+const ROWS = `${UL} > li[data-key]`;
+
+/** The key of the whole list's copy, kept while the list empties. */
+const LIST = "\u0000list";
+
+/** Where each keyed row is, relative to `host`, as drawn now; the
+ * whole list under LIST, for the moment it empties. */
 function measure(host: HTMLElement): Map<string, Spot> {
   const out = new Map<string, Spot>();
   const h = host.getBoundingClientRect();
-  host.querySelectorAll<HTMLElement>(":scope > ul > li[data-key]")
+  const ul = host.querySelector<HTMLElement>(UL);
+  if (ul !== null) {
+    const r = ul.getBoundingClientRect();
+    out.set(LIST, { top: r.top - h.top, left: r.left - h.left,
+      width: r.width, height: r.height,
+      ghost: inView(r) ? ul.cloneNode(true) as HTMLElement : null });
+  }
+  host.querySelectorAll<HTMLElement>(ROWS)
     .forEach((el) => {
       const r = el.getBoundingClientRect();
       out.set(el.dataset["key"] ?? "", {
@@ -193,6 +208,8 @@ function measure(host: HTMLElement): Map<string, Spot> {
 /** A leaving row's copy: drawn only, never read, focused or matched. */
 function ghostOf(el: HTMLElement, at: Spot, z: number): HTMLElement {
   el.removeAttribute("data-key");
+  el.querySelectorAll("[data-key]").forEach((x) =>
+    x.removeAttribute("data-key"));
   el.setAttribute("aria-hidden", "true");
   el.setAttribute("inert", "");
   el.dataset["ghost"] = "";
@@ -238,7 +255,8 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
     last.current = sig;
     before.current = null;
     if (root === null || first || old === null) return;
-    const now = new Set(keys);
+    const list = root.querySelector(UL);
+    const now = new Set(list === null ? keys : [...keys, LIST]);
     // A row that comes back (Undo) loses its leaving copy at once.
     ghosts.current.forEach((g, k) => {
       if (now.has(k)) {
@@ -252,9 +270,25 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
     const slow = dur("--dur-slow");
     const base = dur("--dur-base");
     const ease = easeOut();
+    const h = root.getBoundingClientRect();
+    // A shorter list: what follows it (the page foot) rises with the
+    // rows rather than jumping. A longer one pushes it down at once,
+    // so it never crosses rows on their way in.
+    const lift = (tall.current - h.height) / z;
+    if (lift > 0.5) {
+      for (let el = root.nextElementSibling; el !== null;
+        el = el.nextElementSibling) {
+        (el as HTMLElement).animate([{ transform: `translateY(${lift}px)` },
+          { transform: "none" }], { duration: slow, easing: ease });
+      }
+    }
+    // The list emptied: it leaves as one while the empty state comes
+    // in, half a beat behind (never a blank frame between them).
+    const emptied = list === null && old.has(LIST);
     let leaving = 0;
     old.forEach((spot, k) => {
       if (now.has(k) || spot.ghost === null) return;
+      if (emptied !== (k === LIST)) return;
       leaving++;
       const g = ghostOf(spot.ghost, spot, z);
       ghosts.current.get(k)?.remove();
@@ -270,20 +304,19 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
       a.onfinish = drop;
       a.oncancel = drop;
     });
-    const h = root.getBoundingClientRect();
-    // A shorter list: what follows it (the page foot) rises with the
-    // rows rather than jumping. A longer one pushes it down at once,
-    // so it never crosses rows on their way in.
-    const lift = (tall.current - h.height) / z;
-    if (lift > 0.5) {
-      for (let el = root.nextElementSibling; el !== null;
-        el = el.nextElementSibling) {
-        (el as HTMLElement).animate([{ transform: `translateY(${lift}px)` },
-          { transform: "none" }], { duration: slow, easing: ease });
+    if (emptied) {
+      const empty = root.firstElementChild;
+      if (empty instanceof HTMLElement &&
+        empty.dataset["ghost"] === undefined) {
+        empty.animate([{ opacity: 0, transform: "translateY(4px)" },
+          { opacity: 1, transform: "none" }], { duration: base,
+          easing: ease, fill: "backwards",
+          delay: leaving > 0 ? fast / 2 : 0 });
       }
+      return;
     }
     let fresh = 0;
-    root.querySelectorAll<HTMLElement>(":scope > ul > li[data-key]")
+    root.querySelectorAll<HTMLElement>(ROWS)
       .forEach((el) => {
         const k = el.dataset["key"] ?? "";
         // Retarget from where the row is drawn now: its start was

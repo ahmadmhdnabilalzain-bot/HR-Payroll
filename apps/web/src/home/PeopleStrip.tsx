@@ -99,7 +99,7 @@ function Card(p: { href: string; label: string; value: number;
           {p.none !== undefined && p.value === 0
             ? <span className={s.none}>{p.none}</span>
             : (
-              <span className={`${s.value} tabular`} data-card-figure="">
+              <span className={`${s.value} tabular`}>
                 <Explainable explanation={p.why} className={s.why}>
                   {n}
                 </Explainable>

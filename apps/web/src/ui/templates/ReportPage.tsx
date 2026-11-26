@@ -115,7 +115,7 @@ export function ReportPage(p: {
       {p.figure !== undefined && (
         <div className={s.figure}>
           <span>{p.figure.label}</span>
-          <strong data-card-target="">
+          <strong>
             {p.figure.explanation === undefined ? p.figure.value : (
               <Explainable explanation={p.figure.explanation}>
                 {p.figure.value}

@@ -6,10 +6,11 @@
  * with the list's search and filter kept. Without the View Transitions
  * API, or with reduced motion, the page dissolves in over 120 ms.
  *
- * A dashboard tile or a Home card that opens a report works the same
- * way: its figure travels into the report's figure when the two say
- * the same thing (`a[data-card]` in a `[data-card-box]`, the figure
- * `[data-card-figure]`, landing on `[data-card-target]`). A report
+ * A dashboard tile or a Home card that opens a report grows into the
+ * report (a container transform: the card's frame moves and resizes to
+ * the report page while the card fades out and the report fades in,
+ * each at its own size; `a[data-card]` inside a `[data-card-box]`;
+ * Back shrinks the report into its card). A report
  * opened from the reports list takes its title along (the list row is
  * an `a[data-row]` too, and the report carries `[data-record-head]`).
  *
@@ -24,6 +25,7 @@ export const LIST_EASE = "cubic-bezier(0.4,0,0.2,1)";
 
 const FACE = "list-face";
 const NAME = "list-name";
+const CARD = "list-card";
 
 interface Transition {
   finished: Promise<void>;
@@ -36,6 +38,8 @@ type Doc = Document & {
 interface Parts {
   face: HTMLElement | null;
   name: HTMLElement | null;
+  /** A card's frame, or the report head it grows into. */
+  box?: HTMLElement | null;
 }
 
 type Kind = "row" | "card";
@@ -63,22 +67,21 @@ function exactText(root: HTMLElement, text: string): HTMLElement | null {
   return hit;
 }
 
-/** A tile or card's figure, for the card that opens `record`. Only
- * reports take a figure along (other pages have nowhere to land it). */
+/** The tile or card that opens `record`. Only reports take a card
+ * along (their head is where it lands). */
 function cardParts(record: string): Parts | null {
   if (!record.startsWith("#/reports")) return null;
   const a = [...document.querySelectorAll<HTMLAnchorElement>(
     "a[data-card]")].find((x) => x.getAttribute("href") === record);
   if (a === undefined) return null;
-  const box = a.closest<HTMLElement>("[data-card-box]") ?? a;
-  return { face: null,
-    name: box.querySelector<HTMLElement>("[data-card-figure]") };
+  return { face: null, name: null,
+    box: a.closest<HTMLElement>("[data-card-box]") ?? a };
 }
 
-/** The report's figure, where a card's figure lands. */
+/** The report a card grows into: the whole report page. */
 function targetParts(): Parts | null {
-  const el = document.querySelector<HTMLElement>("[data-card-target]");
-  return el === null ? null : { face: null, name: el };
+  const page = document.querySelector<HTMLElement>("[data-record-head]");
+  return page === null ? null : { face: null, name: null, box: page };
 }
 
 /** The source on the list side: a row, else a card. */
@@ -119,6 +122,7 @@ function nameParts(p: Parts | null): () => void {
   };
   put(p?.face ?? null, FACE);
   put(p?.name ?? null, NAME);
+  put(p?.box ?? null, CARD);
   return () => set.forEach((el) => {
     el.style.removeProperty("view-transition-name");
     el.style.removeProperty("inline-size");
@@ -131,7 +135,8 @@ function until(find: () => Parts | null, ms = 400): Promise<Parts | null> {
   return new Promise((done) => {
     const tick = (): void => {
       const p = find();
-      if ((p !== null && p.name !== null) || performance.now() > end) {
+      if ((p !== null && (p.name !== null || (p.box ?? null) !== null)) ||
+        performance.now() > end) {
         done(p);
       } else requestAnimationFrame(tick);
     };
@@ -230,7 +235,8 @@ function runRoute(oldUrl: string, render: () => void): void {
     const face = (row?.face ?? null) !== null &&
       (rec?.face ?? null) !== null;
     clearNew = nameParts(parts === null ? null
-      : { face: face ? parts.face : null, name: same ? parts.name : null });
+      : { face: face ? parts.face : null, name: same ? parts.name : null,
+        box: parts.box ?? null });
   });
   // A transition skipped by the next one rejects `ready`; nothing waits.
   vt.ready?.catch(() => undefined);
