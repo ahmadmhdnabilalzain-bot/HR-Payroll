@@ -3,6 +3,7 @@ import type { App as Hono } from "../../src/http/context";
 import { createApp } from "../../src/app";
 import { base32Decode, totpCode } from "../../src/auth/totp";
 import { keyringFromKey } from "../../src/crypto/keyring";
+import type { SubjectHandler } from "../../src/approvals/subjects";
 import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
 import { createTestDb } from "./test-db";
@@ -19,7 +20,14 @@ export function sequentialId(n: number): string {
   return `00000000-0000-4000-8000-${n.toString(16).padStart(12, "0")}`;
 }
 
-export async function makeApp(opts: { start?: string; db?: Db } = {}) {
+export interface MakeAppOpts {
+  start?: string;
+  db?: Db;
+  /** Approval subject handlers (default: the app's own). */
+  subjects?: SubjectHandler[];
+}
+
+export async function makeApp(opts: MakeAppOpts = {}) {
   const clock: Clock = {
     now: new Date(opts.start ?? "2026-03-01T08:00:00.000Z"),
     advance(ms) {
@@ -38,7 +46,9 @@ export async function makeApp(opts: { start?: string; db?: Db } = {}) {
     log: (line) => logs.push(line),
     passwordCost: { N: 1024 },
   };
-  return { app: createApp(deps), deps, clock, logs };
+  const app = createApp(deps, opts.subjects === undefined ? {}
+    : { subjects: opts.subjects });
+  return { app, deps, clock, logs };
 }
 
 export interface Res {

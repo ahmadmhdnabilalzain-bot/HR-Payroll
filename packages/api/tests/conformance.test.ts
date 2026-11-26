@@ -43,9 +43,13 @@ describe("whole-API conformance", () => {
     const routes = (ctx.app.routes as { method: string; path: string }[])
       .filter((r) => r.method !== "ALL")
       .map((r) => `${r.method} ${r.path}`);
-    const want = ROUTES.filter((r) => !PLAN6_PENDING.has(r.id)).map((r) =>
-      `${r.method} ${r.path.replace(/\{([a-zA-Z]+)\}/g, ":$1")}`);
-    expect([...routes].sort()).toEqual([...want].sort());
+    const key = (r: { method: string; path: string }) =>
+      `${r.method} ${r.path.replace(/\{([a-zA-Z]+)\}/g, ":$1")}`;
+    const all = ROUTES.map(key);
+    const want = ROUTES.filter((r) => !PLAN6_PENDING.has(r.id)).map(key);
+    expect(new Set(routes).size).toBe(routes.length);
+    expect(routes.filter((r) => !all.includes(r))).toEqual([]);
+    expect(want.filter((w) => !routes.includes(w))).toEqual([]);
   });
 
   it("one happy-path call per route parses with its response schema",

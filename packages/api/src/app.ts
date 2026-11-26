@@ -14,6 +14,7 @@ import { registerPayRunRoutes } from "./routes/pay-runs";
 import { registerSifRoutes } from "./routes/sif";
 import { registerAuditRoutes } from "./routes/audit";
 import { registerUserRoutes } from "./routes/users";
+import { registerExpenseApp, type ExpenseAppOpts } from "./expense-app";
 
 function internalLine(err: unknown): Record<string, unknown> {
   const e = err as { name?: unknown; code?: unknown };
@@ -43,7 +44,7 @@ function requestMiddleware(deps: AppDeps): MiddlewareHandler<Env> {
 const MAX_BODY = 1024 * 1024;
 
 /** The HTTP app. Every route comes from the contract's ROUTES table. */
-export function createApp(deps: AppDeps): App {
+export function createApp(deps: AppDeps, opts: ExpenseAppOpts = {}): App {
   const app = new Hono<Env>();
   app.use("*", requestMiddleware(deps));
   app.use("*", bodyLimit({ maxSize: MAX_BODY, onError: (c) => {
@@ -71,5 +72,6 @@ export function createApp(deps: AppDeps): App {
   registerPayRunRoutes(app, deps);
   registerSifRoutes(app, deps);
   registerAuditRoutes(app, deps);
+  registerExpenseApp(app, deps, opts);
   return app;
 }

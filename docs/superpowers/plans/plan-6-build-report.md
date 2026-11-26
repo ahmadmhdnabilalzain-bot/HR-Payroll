@@ -9,6 +9,7 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
 | Task | Commit message | State |
 |---|---|---|
 | 1 | `feat(contract): expenses, approvals, receipts` | done |
+| 2 | `feat(api): shared approval spine` | done |
 
 ## Adaptations to the plan (Task 1)
 
@@ -53,6 +54,38 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
    `ErrorDetail` follows the contract (problem objects are decoded as
    objects, mock JSON strings as before).
 
+## Adaptations to the plan (Task 2)
+
+1. **Visibility is checked before the step checks** in `decide`: a
+   caller who may not view the subject and is no step's approver gets
+   404 before any 409, so approval ids cannot be probed for state (the
+   plan listed the 409s first).
+2. **`approval_requests` stores `claimant_employee_id`**, and at
+   decision time every user now linked to that employee is excluded
+   too (not only the claimant user stored at submit).
+3. **A chain's first tier must start at "0.00"** (422 `CHAIN_INVALID`,
+   path `tiers.0.minTotal`), and `resolveChain` refuses a subject that
+   no tier covers with `NO_ELIGIBLE_APPROVER`. Without this, a claim
+   below the first tier would open a request with no steps.
+4. **`createApp(deps, opts)`** takes `{ subjects }`; Plan 6's routes are
+   registered by one call, `registerExpenseApp` in `src/expense-app.ts`
+   (one line in `app.ts`). `DEFAULT_SUBJECTS` is empty until Task 5.
+5. **Audit keys** for Plan 6 are in `src/audit/allowlist-expenses.ts`
+   (`subjectType`, `stepCount`, `stepOrder`, `tierCount`, `itemCount`,
+   `limitCount`, `rateCount`, `size`, `contentType`, `flagCodes`,
+   `payRunId`), spread into the Plan 3 allowlist; each has a shape
+   check (enums, integers, uuid).
+6. **`approval.cancelled`** is an extra audit action (a withdrawn
+   claim closes its open request).
+7. **Tenancy seed:** `tests/helpers/seed-rows-expenses.ts` seeds every
+   Plan 6 table for both companies, called by one line in
+   `seed-rows.ts`. The conformance registration check now asserts no
+   duplicate and no unknown route, and that every non-pending route is
+   registered (it compared sorted lists before).
+8. **Real PostgreSQL:** Plan 6's races are in their own file,
+   `tests/pg-plan6.integration.test.ts` (skipped without
+   `DATABASE_URL`), so Plan 3's `pg-concurrency.ts` is not edited.
+
 ## Decisions
 
 1. **Commit trailer.** The brief asks for `Co-Authored-By: Claude
@@ -66,6 +99,28 @@ based on `claude/quirky-wozniak-b7xkvr` at `32d2dfe`.
    expense policy, expense claims): Plan 3 already used 007 and 008,
    and Plans 8 and 9 use 801 and 901 blocks. The runner's three-digit
    pattern and lexical sort already order them, so it is unchanged.
+
+## Approval spine design (Task 2)
+
+- Database guards beside the code: a decided step and a closed request
+  cannot be updated again (trigger `approval_closed_is_final`); a
+  step's `decided_by` must be one of its `eligible` users (CHECK); one
+  open request per subject (partial unique index); `current_step` and
+  `closed_at` agree with `status` (CHECKs).
+- `decide` locks the request row `FOR UPDATE`, checks `stepOrder`
+  against `current_step`, then updates the step only `WHERE status =
+  'pending'` and requires one row.
+- Chain updates are optimistic: version 0 can only insert (`ON
+  CONFLICT DO NOTHING`), a later version only updates `WHERE version =
+  expected`; no row back means 409 `CHAIN_VERSION_CONFLICT`.
+
+## Test order (honest)
+
+- Task 1: contract tests written and seen red (18 failures), then green.
+- Task 2: `approvals-resolve.test.ts` was written before `resolve.ts`
+  but not run red before it existed; `approvals.test.ts` was seen red
+  (module missing), then green. The tenancy suite went red on the new
+  tables, then green after seeding.
 
 ## Concerns
 
