@@ -453,7 +453,10 @@ Law task: fresh per-task review.
     policy` condition applies to all six.
   - `EmployeeExpenseInput { case: EmployeeExpenseCase; expenseDate:
     string; attestations: Partial<Record<ConditionId, boolean |
-    null>>; stayDays?: number }`.
+    null>>; stayDays?: number }`. `stayDays` (case 4 only, else
+    `INVALID_INPUT`) counts calendar days including the first and the
+    last day (1 Nov to 1 Dec is 31), a cautious convention; the
+    Task 8 form says so.
   - `EmployeeExpenseOutcome = "conditions-met" | "condition-not-met" |
     "not-assessed"`.
   - `EmployeeExpenseAssessment { case; outcome; met: ConditionId[];
@@ -866,8 +869,8 @@ Money and law task: fresh per-task review.
     transactionDate, issueWindowBusinessDays, weekend, holidays)`;
     trace id `einv.issue-by`.
   - `tinFromTrn(trn: string, packs?): string` (first `tinDigits`
-    digits; a TRN that is not all digits or shorter than `tinDigits`
-    throws `INVALID_TRN`); `participantIdFor(trn, packs?): { scheme:
+    digits; a TRN that is not exactly 15 digits, the assumed shape of
+    Ruling 9, throws `INVALID_TRN`); `participantIdFor(trn, packs?): { scheme:
     string; id: string }` = `{ scheme: participantScheme, id:
     tinFromTrn(trn) }` (no separator is guessed).
 
@@ -892,6 +895,9 @@ Money and law task: fresh per-task review.
   `condition-not-met`, `taxAfterRelief` equals `taxBeforeRelief`.
 - `sbr_mne_member_not_met`, `sbr_null_attestation_not_assessed`.
 - `due_date_nine_months`: `dueDate "2027-09-30"`.
+- `period_limits`: `2025-07-01` to `2026-12-31` (18 months) is
+  accepted; `2025-07-01` to `2027-01-01` (one day more) and
+  `2025-06-30` to `2026-12-31` are `INVALID_PERIOD`.
 - `pack_before_2026_refused`: period ending `2025-12-31` throws
   `NO_PACK_FOR_DATE`.
 - `rates_secondary_in_trace`: rules `zeroBandUpperFils` and
@@ -912,7 +918,10 @@ Money and law task: fresh per-task review.
 - `issue_by_business_days`: transaction `2027-07-01` (Thursday), no
   holidays: 14 business days later is `"2027-07-21"`.
 - `participant_id`: TRN `"100123456700003"` gives `{ scheme: "0235",
-  id: "1001234567" }`; `"12345"` throws `INVALID_TRN`.
+  id: "1001234567" }`; `"12345"`, an 11-digit and a 16-digit TRN
+  throw `INVALID_TRN`.
+- `missing_documents_capped` also: `2027-08` with 30 invoices and 70
+  credit notes is `800000n` (the credit-note cap).
 - `fines_secondary`: trace rule `notImplementedFinePerMonthFils` has
   status `secondary`; `ftaReportingDeadline` is `null`.
 
