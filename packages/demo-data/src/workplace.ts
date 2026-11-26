@@ -1,6 +1,7 @@
 import { addDays, daysBetween, fils } from "@payroll/engine";
 import { AS_OF } from "./calendar";
 import type { FakeIdentifier } from "./fake-ids";
+import { netNoteOf } from "./notes";
 import type {
   ApprovalItem,
   DemoDocument,
@@ -81,16 +82,18 @@ export function buildApprovals(es: DemoEmployee[],
   const out: Omit<ApprovalItem, "id" | "status">[] = [
     { kind: "pay-run", subjectId: run.id, employeeId: null,
       requestedOn: AS_OF, amount: run.totals.net,
-      titleKey: "approval.pay-run", makerEmployeeId: "emp-028",
-      checkerEmployeeId: "emp-001" },
+      amountNote: netNoteOf(run), titleKey: "approval.pay-run",
+      makerEmployeeId: "emp-028", checkerEmployeeId: "emp-001" },
     ...leave.filter((r) => r.status === "pending").map((r) => ({
       kind: "leave" as const, subjectId: r.id, employeeId: r.employeeId,
-      requestedOn: "2026-10-27", amount: null, titleKey: "approval.leave",
+      requestedOn: "2026-10-27", amount: null, amountNote: null,
+      titleKey: "approval.leave",
       makerEmployeeId: r.employeeId,
       checkerEmployeeId: checkerOf(es, byId(r.employeeId)) })),
     ...expenses.filter((x) => x.status === "pending").map((x) => ({
       kind: "expense" as const, subjectId: x.id, employeeId: x.employeeId,
-      requestedOn: x.date, amount: x.amount, titleKey: x.titleKey,
+      requestedOn: x.date, amount: x.amount, amountNote: null,
+      titleKey: x.titleKey,
       makerEmployeeId: x.employeeId,
       checkerEmployeeId: checkerOf(es, byId(x.employeeId)) })),
   ];

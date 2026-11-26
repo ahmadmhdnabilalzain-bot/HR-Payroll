@@ -1,6 +1,6 @@
 import { fils, type Fils } from "@payroll/engine";
-import { PAY_CALENDAR } from "./calendar";
 import { issuesOf, type DemoIssue } from "./issues";
+import { employerCostNoteOf, netNoteOf } from "./notes";
 import { PENSION_NOT_COMPUTED } from "./pension";
 import type {
   ApprovalItem,
@@ -16,6 +16,12 @@ export interface HeadlineTotals {
   gross: Fils;
   deductions: Fils;
   net: Fils;
+  /** Shown on the net figure itself: pension is not in it. */
+  netNote: string;
+  /** Employer pension for nationals: not computed (never 0.00). */
+  employerCostNote: string;
+  /** "31 on the October payroll, 30 active on 27 October (...)". */
+  headcountText: string;
   /** In the SIF; the rest is held (no IBAN). */
   sifTotal: Fils;
   heldNet: Fils;
@@ -49,6 +55,9 @@ export function headlineTotals(c: DemoCompany): HeadlineTotals {
   return { employees: c.employees.length,
     uaeNationals: c.nationalities.uaeNationals, payslips: t.payslips,
     gross: t.gross, deductions: t.deductions, net: t.net,
+    netNote: netNoteOf(c.payRun),
+    employerCostNote: employerCostNoteOf(c.payRun),
+    headcountText: c.nationalities.headcountText,
     sifTotal: c.sif.total, heldNet: t.heldNet,
     settlements: fils(c.payRun.settlements.reduce((s, x) =>
       s + x.result.total, 0n)),
@@ -71,15 +80,6 @@ export function documents(c: DemoCompany): DocumentExpiry[] {
   return [...c.documents].sort((a, b) => a.daysLeft - b.daysLeft)
     .map((d) => ({ id: d.id, employeeId: d.employeeId, kind: d.kind,
       expiresOn: d.expiresOn, daysLeft: d.daysLeft }));
-}
-
-export interface PayCalendar { asOf: string; cutOff: string;
-  approveBy: string; sifDue: string; payday: string;
-  label: "sample dates" }
-
-/** The pay-month timeline: SAMPLE dates, labelled as such. */
-export function payCalendar(_c?: DemoCompany): PayCalendar {
-  return { ...PAY_CALENDAR };
 }
 
 export interface DepartmentCost {
@@ -131,46 +131,6 @@ export function approvalsInbox(c: DemoCompany, checkerEmployeeId?:
   string): ApprovalItem[] {
   return c.approvals.filter((a) => checkerEmployeeId === undefined ||
     a.checkerEmployeeId === checkerEmployeeId);
-}
-
-export interface SifSummary {
-  fileName: string;
-  employees: number;
-  heldOut: number;
-  total: Fils;
-  errors: number;
-  warnings: number;
-  /** Lines in the file by record type; findings cite file lines. */
-  lines: { total: number; edr: number; evp: number; scr: number };
-  /** Why a finding can sit on line 51 of a 31-employee file. */
-  linesNote: string;
-  report: string;
-  rulesScope: string;
-}
-
-export function sifSummary(c: DemoCompany): SifSummary {
-  const errors = c.sif.findings.filter((f) => f.severity === "error");
-  return { fileName: c.sif.fileName, employees: c.sif.employees,
-    heldOut: c.payRun.payslips.filter((s) => !s.sif.included).length,
-    total: c.sif.total, errors: errors.length,
-    warnings: c.sif.findings.length - errors.length,
-    lines: linesOf(c), linesNote: linesNoteOf(c),
-    report: c.sif.report, rulesScope: c.rulesScope };
-}
-
-function linesOf(c: DemoCompany): SifSummary["lines"] {
-  const rows = c.sif.text.split(/\r?\n/).filter((l) => l !== "");
-  const n = (t: string) => rows.filter((l) => l.startsWith(t)).length;
-  return { total: rows.length, edr: n("EDR"), evp: n("EVP"),
-    scr: n("SCR") };
-}
-
-function linesNoteOf(c: DemoCompany): string {
-  const l = linesOf(c);
-  return `The file has ${l.total} lines for ${l.edr} employees: one ` +
-    "salary line each, a second line with the allowance breakdown for " +
-    `${l.evp} of them, and one control line at the end. Line numbers ` +
-    "count every line of the file.";
 }
 
 export function employeesWithCase(c: DemoCompany, tag: string) {

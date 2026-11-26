@@ -98,7 +98,7 @@ describe("the demo bank", () => {
   it("Emiratisation is headcount by nationality only", () => {
     const n = c.nationalities as unknown as Record<string, unknown>;
     expect(Object.keys(n).sort()).toEqual(["asOf", "byNationality",
-      "headcount", "label", "uaeNationals"]);
+      "headcount", "headcountText", "label", "uaeNationals"]);
     expect(n.label).toBe("sample data, regime for banks to be confirmed");
   });
 });
@@ -163,7 +163,8 @@ describe("selectors, explanations and labels", () => {
     expect(x.rules.length).toBeGreaterThan(0);
     expect(x.rules[0]!.ruleId).toMatch(/^ae-payroll@/);
     expect(x.steps[0]).toMatch(/^Formula/);
-    expect(x.rulesScope).toBe("UAE mainland rules");
+    expect(x.rulesScope).toBe("Based on UAE mainland rules, as we " +
+      "read them");
     for (const l of explainPayslip(c, s.id)) {
       for (const r of l.rules) expect(r.source).not.toBeNull();
     }
@@ -183,9 +184,11 @@ describe("selectors, explanations and labels", () => {
     expect(d[0]!.daysLeft).toBeLessThanOrEqual(d[1]!.daysLeft);
     const p = payCalendar(c);
     expect(p.label).toBe("sample dates");
-    expect([p.asOf, p.cutOff, p.approveBy, p.sifDue, p.payday]
+    expect([p.asOf, p.cutOff, p.approveBy, p.salaryFileSent,
+      p.payday]
       .every((x) => /^\d{4}-\d{2}-\d{2}$/.test(x))).toBe(true);
-    expect(p.approveBy <= p.sifDue && p.sifDue <= p.payday).toBe(true);
+    expect(p.approveBy <= p.salaryFileSent &&
+      p.salaryFileSent <= p.payday).toBe(true);
   });
 
   it("the SIF summary counts the held payslip", () => {

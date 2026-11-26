@@ -3,11 +3,12 @@ import { AS_OF } from "./calendar";
 import { buildNationalities } from "./compliance";
 import { FAKE_EMPLOYER_ID, FAKE_ROUTING_CODE } from "./fake-ids";
 import {
+  ANNUAL_POLICY,
   buildLeaveBalances,
   buildLeaveRequests,
   LEAVE_TYPES,
-  unusedLeaveDays,
 } from "./leave";
+import { headcountTextOf } from "./notes";
 import { buildPayRun } from "./payroll";
 import { seededRng } from "./rng";
 import { buildRoster, DEPARTMENTS } from "./roster";
@@ -18,7 +19,7 @@ import { buildApprovals, buildDocuments, buildExpenses } from "./workplace";
 export const DEFAULT_SEED = 2026;
 
 /** Shown with every figure's source. One place, so it can change. */
-export const RULES_SCOPE = "UAE mainland rules";
+export const RULES_SCOPE = "Based on UAE mainland rules, as we read them";
 
 /** The FICTIONAL bank: invented name and codes; it pays its own staff. */
 export const DEMO_BANK = { id: "co-demo-bank", name: "Zarqan Demo Bank",
@@ -37,8 +38,8 @@ export function buildDemoCompany(seed: number = DEFAULT_SEED)
   const employees = buildRoster(rng);
   const leaveRequests = buildLeaveRequests(employees);
   const leaveBalances = buildLeaveBalances(employees, leaveRequests);
-  const payRun = buildPayRun(employees, (id) =>
-    unusedLeaveDays(leaveBalances, id));
+  const payRun = buildPayRun(employees, leaveRequests,
+    ANNUAL_POLICY.annualDays);
   const company = { ...DEMO_BANK };
   const attendance = buildAttendance(employees, rng, leaveRequests);
   const expenses = buildExpenses();
@@ -49,5 +50,6 @@ export function buildDemoCompany(seed: number = DEFAULT_SEED)
     attendance, timesheets: buildTimesheets(attendance), expenses,
     approvals: buildApprovals(employees, leaveRequests, expenses, payRun),
     documents: buildDocuments(employees),
-    nationalities: buildNationalities(employees) };
+    nationalities: { ...buildNationalities(employees),
+      headcountText: headcountTextOf(employees, payRun, AS_OF) } };
 }

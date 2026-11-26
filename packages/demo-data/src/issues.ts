@@ -47,6 +47,8 @@ export interface DemoIssue {
   sif: SifPlace | null;
   /** The engine's or validator's own words, when it raised it. */
   raisedAs: string | null;
+  /** Source status of the rule behind it, when the demo states one. */
+  sourceStatus: "secondary" | "convention" | null;
 }
 
 const AR_TBD = "";
@@ -54,7 +56,8 @@ const AR_TBD = "";
 type Make = Pick<DemoIssue, "code" | "source" | "employeeId" |
   "subjectId" | "title"> & { en: string; kind?: IssueKind;
   severity?: IssueSeverity; count?: number; date?: DisplayDate | null;
-  sif?: SifPlace | null; raisedAs?: string | null; ar?: string };
+  sif?: SifPlace | null; raisedAs?: string | null; ar?: string;
+  sourceStatus?: DemoIssue["sourceStatus"] };
 
 function issue(x: Make): DemoIssue {
   const f = FIX[x.code] ?? GENERIC;
@@ -63,7 +66,8 @@ function issue(x: Make): DemoIssue {
     employeeId: x.employeeId, subjectId: x.subjectId, count: x.count ?? 1,
     title: x.title, plainReason: { en: x.en, ar: x.ar ?? AR_TBD },
     suggestedFix: f.fix, fixKind: f.kind, date: x.date ?? null,
-    sif: x.sif ?? null, raisedAs: x.raisedAs ?? null };
+    sif: x.sif ?? null, raisedAs: x.raisedAs ?? null,
+    sourceStatus: x.sourceStatus ?? null };
 }
 
 const nameOf = (c: DemoCompany, id: string) =>
@@ -96,16 +100,22 @@ function engineFlags(c: DemoCompany): DemoIssue[] {
     s.payslip.flags.flatMap((f) => flagIssue(c, s, f)));
 }
 
+/** The demo's wording for the overall cap (a ruling, not the law). */
+export const DEDUCTION_CAP_NOTE = "Deductions are limited to 50% of the " +
+  "wage in our rules (secondary-sourced; the 85% payment test is not " +
+  "applied in this demo).";
+
 function deferred(c: DemoCompany): DemoIssue[] {
   return c.payRun.payslips.flatMap((s) => s.payslip.deferred.map((d) =>
     issue({ code: "DEDUCTION_DEFERRED", source: "engine",
       employeeId: s.employeeId, subjectId: d.ref,
-      title: "Loan deduction capped",
-      raisedAs: `${d.reason}: deferred ${d.deferred}`,
+      title: "Loan deduction capped", sourceStatus: "secondary",
+      raisedAs: s.payslip.flags.find((f) => f.code ===
+        "DEDUCTION_DEFERRED")?.message ?? null,
       en: `${possessive(nameOf(c, s.employeeId))} loan instalment is ` +
         `${formatAed(d.requested)}, but only ${formatAed(d.taken)} can ` +
-        `be deducted this month. The remaining ${formatAed(d.deferred)} ` +
-        "moves to next month." })));
+        `be deducted this month. ${DEDUCTION_CAP_NOTE} The remaining ` +
+        `${formatAed(d.deferred)} moves to next month.` })));
 }
 
 /** Sick days the engine left unpaid because of probation. */
