@@ -28,8 +28,10 @@ const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
 const WEAK_WORDS = [
   "change", "example", "placeholder", "password", "passwd", "secret",
   "default", "postgres", "payroll", "admin", "test", "dummy", "sample",
-  "xxxx", "1234", "qwerty", "letmein",
+  "xxxx", "qwerty", "letmein",
 ];
+// No digit-only or a-f-only words: `openssl rand -hex 24`, the
+// documented generator, could spell them and be refused at random.
 const RESERVED_USERS = new Set(["postgres", "root", "admin", "rdsadmin"]);
 const COMPOSE_PASSWORDS = [
   "POSTGRES_PASSWORD", "PAYROLL_OWNER_PASSWORD",

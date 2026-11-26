@@ -3,8 +3,10 @@
 For operators of the payroll API (`packages/api`) with PostgreSQL 16.
 The reference deployment is `deploy/docker-compose.yml`; the same steps
 apply on any host or platform. Commands are run from the repository
-root. Every command block below was run against the compose stack on
-2026-11-26 unless it is marked **untested**.
+root. Command blocks were run against the compose stack on 2026-11-26
+unless marked **untested**. In that test the image was prebuilt
+(through a sandbox proxy), so `--build` and `$DC build` themselves
+were not run as written.
 
 Shorthand used below (set it in your shell):
 
@@ -60,7 +62,7 @@ default or placeholder secrets and prints variable names, never values.
 3. Build and start:
 
    ```bash
-   $DC up -d --build
+   $DC up -d --build      # tested as: docker build ..., then $DC up -d
    $DC ps -a
    ```
 
@@ -118,6 +120,7 @@ to the URLs when the database is across a network.
 
 - Without compose: `pnpm api:migrate` with `MIGRATE_DATABASE_URL` (the
   owner) and `DATABASE_URL` set (both are read by the config loader).
+  **Untested** with these roles.
 - `pnpm api:dev` and the image's `main` command migrate and then serve,
   so they need the owner URL in the serving process. Production uses
   `serve` (no migrations, runtime role only) plus the `migrate` job.
@@ -178,7 +181,8 @@ $PAYROLL_BACKUP_PASSWORD@db:5432/payroll_restore" verify
 
 Pass: the counts match the live database as of the dump, and `verify`
 ends with `"broken":0`. Then prove the master key opens the restored
-data (section 5, "Which key is this?") and drop the scratch database:
+data (section 5, "Which key is this?") and drop the scratch database
+(**untested** as written; the test dropped and recreated it instead):
 
 ```bash
 $DC exec -T db psql -U postgres -c "DROP DATABASE payroll_restore"
@@ -186,8 +190,9 @@ $DC exec -T db psql -U postgres -c "DROP DATABASE payroll_restore"
 
 A full disaster restore is the same into a new stack: start `db` on an
 empty volume (init-roles runs by itself), `pg_restore` into `payroll`,
-start `api` with the same `PAYROLL_MASTER_KEY`. On 2026-11-26 an API
-container pointed at a restored database served a sign-in.
+start `api` with the same `PAYROLL_MASTER_KEY`. The full sequence into
+a new stack is **untested**; on 2026-11-26 an API container pointed at
+the scratch restored database served a sign-in.
 
 ## 5. Key management
 
@@ -377,7 +382,8 @@ count of broken chains. Exit code 0 when all are intact, 1 when any is
 broken, 2 on a setup error (including a company id that does not
 exist). It reuses the API's own `verifyChain`.
 
-Without compose (`VERIFY_DATABASE_URL` is the backup role):
+Without compose (`VERIFY_DATABASE_URL` is the backup role;
+**untested** outside the container, where it runs the same way):
 
 ```bash
 VERIFY_DATABASE_URL=postgres://payroll_backup:...@host:5432/payroll \
@@ -400,7 +406,7 @@ For one company over HTTP, as an owner or HR user of that company:
    ```bash
    git fetch && git checkout <new tag or commit>
    node deploy/check-env.mjs --target compose --file deploy/.env
-   $DC build
+   $DC build                 # untested as written (image prebuilt)
    ```
 
 4. Apply migrations, then replace the API:
@@ -421,7 +427,8 @@ For one company over HTTP, as an owner or HR user of that company:
    restore), check out the old version, `$DC build`, `$DC up -d`.
    **Untested** end to end.
 
-PostgreSQL minor versions: `docker compose pull db && $DC up -d db`.
+PostgreSQL minor versions: `$DC pull db && $DC up -d db`
+(**untested**).
 Major versions (16 to 17) need `pg_dump`/`pg_restore` or `pg_upgrade`
 into a new volume; plan it as its own change.
 

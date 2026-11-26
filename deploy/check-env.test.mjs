@@ -63,6 +63,8 @@ test("weak, short, placeholder and URL-unsafe passwords fail", () => {
     /placeholder/);
   assert.match(passwordProblem("Abcdefghijklmnopqrstuvwx@yz"), /URL/);
   assert.equal(passwordProblem(pw()), null);
+  // Any hex string from the documented generator must pass.
+  assert.equal(passwordProblem("0123456789abcdef".repeat(3)), null);
 });
 
 test("weak master keys fail with the API's own rule", () => {
