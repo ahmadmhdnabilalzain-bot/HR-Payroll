@@ -57,22 +57,27 @@
 }
 
 .layer {
-  /* Motion, measured frame by frame at 25 fps:
+  /* Motion (CSS and Web Animations, so it frame-steps):
    * - the drawer is opaque from its first frame and slides 32 px over
    *   280 ms (no fade, so no ghost frame); the scrim fades under it;
-   * - the tapped figure flies into the header over 380 ms (JS);
-   * - the working follows 20 ms apart and every step is in by 400 ms,
-   *   then what went in, the rules and the rest (never before the
-   *   working);
+   * - the tapped figure flies into the header over 380 ms and resolves
+   *   from faint to full ink on the way (JS); a hairline under it
+   *   draws once it has landed;
+   * - the working assembles line by line (assembly.ts: from 240 ms,
+   *   96 ms apart, tighter for long workings): each line rises in,
+   *   its rule draws across, and its amount slides up into place
+   *   whole, never counted, so no line shows a number it does not end
+   *   on; a total waits for the line before it to land; the sum check
+   *   (the last total) lands last on a heavier rule;
+   * - what went in, the rules and the rest follow the last line;
    * - closing: 200 ms, the drawer slides back 32 px as it fades.
-   * Reduced motion: a 120 ms fade in and out only (JS). */
+   * Phone: a shorter stagger, no rule drawing. Reduced motion: a
+   * 120 ms fade in and out only (JS); every line is simply there. */
   --drawer-ms: 280ms;
   --drawer-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --close-ms: 200ms;
   --close-ease: cubic-bezier(0.4, 0, 1, 1);
-  --steps-from: 0ms;
-  --steps-gap: 20ms;
-  --steps-ms: 160ms;
+  --steps-ms: 280ms;
   --after-steps: 260ms;
   position: fixed;
   inset: var(--banner, 0px) 0 0;
@@ -233,11 +238,29 @@
   will-change: transform;
 }
 
+/* At the 28 token, with presence: a heavier cut, tighter tracking,
+ * and a short ink rule under it once it has landed. */
 .resultFigure.resultFigure > :global(*) {
   font-size: var(--text-3xl);
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.025em;
   line-height: 34px;
+}
+
+.resultRule {
+  display: block;
+  inline-size: 40px;
+  block-size: 2px;
+  margin-block-start: var(--space-2);
+  border-radius: 1px;
+  background: var(--color-text);
+  transform-origin: 0 50%;
+  animation: rule-draw 320ms var(--ease-out, ease-out) both;
+  animation-delay: 300ms;
+}
+
+[dir="rtl"] .resultRule {
+  transform-origin: 100% 50%;
 }
 
 .result :global(*) {
@@ -270,15 +293,51 @@
 }
 
 .step {
+  position: relative;
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) minmax(120px, auto);
   animation: step-in var(--steps-ms) var(--drawer-ease) both;
-  animation-delay: calc(var(--steps-from) + var(--i, 0) * var(--steps-gap));
+  animation-delay: var(--d, 0ms);
   align-items: baseline;
   gap: var(--space-3);
   padding-block: var(--space-3);
-  border-block-start: 1px solid var(--color-divider);
   counter-increment: step;
+}
+
+/* The rule above each line: drawn across as the line arrives. */
+.step::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 1px;
+  background: var(--color-divider);
+  transform-origin: 0 50%;
+  animation: rule-draw 320ms var(--ease-out, ease-out) both;
+  animation-delay: var(--d, 0ms);
+}
+
+[dir="rtl"] .step::after {
+  transform-origin: 100% 50%;
+}
+
+/* A total sits on a firmer rule; the sum check on an ink one. */
+.step[data-total="true"]::after {
+  background: var(--color-divider-strong);
+}
+
+.step[data-check="true"]::after {
+  block-size: 1.5px;
+  background: var(--color-text);
+}
+
+.step[data-total="true"] .stepText,
+.step[data-total="true"] .stepValue :global(*) {
+  font-weight: 600;
+}
+
+@keyframes rule-draw {
+  from { transform: scaleX(0); }
 }
 
 .step::before {
@@ -292,14 +351,53 @@
   border-block-end: 1px solid var(--color-divider);
 }
 
+/* The working ends on the sum check: no second rule under it. */
+.step[data-check="true"]:last-child {
+  border-block-end: 0;
+}
+
 .stepText {
   font-size: var(--text-md);
   line-height: 1.45;
 }
 
+/* The amount slides up into its place whole, inside a clip, so it
+ * reads as rolling in and never shows another number on the way. */
 .stepValue {
+  overflow: clip;
+  overflow-clip-margin: 2px;
   text-align: end;
   white-space: nowrap;
+}
+
+.roll {
+  display: inline-block;
+  animation: value-in var(--steps-ms) var(--ease-out, ease-out) both;
+  animation-delay: calc(var(--d, 0ms) + 40ms);
+}
+
+/* The sum check lands: a touch further, a soft settle. */
+.step[data-check="true"] .roll {
+  animation-name: check-in;
+  animation-duration: 420ms;
+}
+
+@keyframes value-in {
+  from {
+    opacity: 0;
+    transform: translateY(70%);
+  }
+}
+
+@keyframes check-in {
+  0% {
+    opacity: 0;
+    transform: translateY(90%);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-4%);
+  }
 }
 
 .stepValue :global(*),
@@ -464,6 +562,12 @@
   .title {
     font-size: var(--text-xl);
   }
+
+  /* Lighter on a phone: the rules are simply there. */
+  .step::after,
+  .resultRule {
+    animation: none;
+  }
 }
 
 /* The phone sheet rises from the bottom edge, opaque throughout. */
@@ -479,6 +583,10 @@
   .panel,
   .scrim,
   .step,
+  .step::after,
+  .roll,
+  .resultRule,
+  .limitBar > span,
   .after,
   .layer[data-leaving="true"] .panel,
   .layer[data-leaving="true"] .scrim {
@@ -491,12 +599,12 @@
   border-radius: 0;
 }
 
-/* From a third, not from nothing: the working is never an empty
- * space under its heading, even on the drawer's first frame. */
+/* Each line rises in from nothing: the result already stands in
+ * the header, so the working builds towards a number on screen. */
 @keyframes step-in {
   from {
-    opacity: 0.3;
-    transform: translateY(6px);
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
 
@@ -507,7 +615,10 @@
 }
 
 @keyframes after-in {
-  from { opacity: 0.3; }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 /* The page's one provenance line (Footnote). */
@@ -555,6 +666,9 @@
   block-size: 100%;
   border-radius: inherit;
   background: var(--color-text);
+  transform-origin: 0 50%;
+  animation: rule-draw 420ms var(--ease-out, ease-out) both;
+  animation-delay: calc(var(--d, 0ms) + 80ms);
 }
 
 .limitText {

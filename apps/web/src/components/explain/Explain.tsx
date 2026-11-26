@@ -13,6 +13,7 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../../ui/Icon";
 import { useMaskText } from "../../ui/mask";
 import { Money } from "../../ui/Money";
+import { assembly } from "./assembly";
 import type { Fils } from "@payroll/engine";
 import type {
   ExplainValue,
@@ -175,9 +176,12 @@ function openFrom(origin: DOMRect | null, el: HTMLElement | null,
   const dx = (origin.left - r.left) / zoom;
   const dy = (origin.top - r.top) / zoom;
   const k = Math.min(1.4, Math.max(0.35, origin.height / r.height));
+  // It resolves on the way: from a little faint to full ink, so the
+  // figure reads as arriving rather than as a copy sliding about.
   el.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${k})`,
-    transformOrigin: "0 0" },
-  { transform: "none", transformOrigin: "0 0" }],
+    transformOrigin: "0 0", opacity: 0.55 },
+  { opacity: 1, offset: 0.7 },
+  { transform: "none", transformOrigin: "0 0", opacity: 1 }],
   // On a phone the sheet rises from the bottom edge in 280 ms: the
   // figure lands with it, so it never overshoots and settles back.
   { duration: phone() ? SHEET_MS : FLIGHT_MS, easing: OPEN_EASE });
@@ -221,6 +225,7 @@ export function ExplainPanel(p: { explanation: Explanation;
   const layer = useRef<HTMLDivElement>(null);
   const closing = useRef(false);
   const [top] = useState(bannerBottom);
+  const plan = assembly(e.steps, phone());
   const close = (): void => {
     if (closing.current) return;
     closing.current = true;
@@ -297,10 +302,12 @@ export function ExplainPanel(p: { explanation: Explanation;
             <span className={s.resultFigure} ref={result}>
               <Value v={e.result.value} size="hero" />
             </span>
+            <span className={s.resultRule} aria-hidden="true" />
           </div>
         </div>
         <div className={s.body} tabIndex={0} role="region"
-          aria-labelledby={`${id}-t`}>
+          aria-labelledby={`${id}-t`}
+          style={{ "--after-steps": `${plan.after}ms` } as object}>
           <p className={s.summary}>{e.summary}</p>
           <section aria-labelledby={`${id}-w`} className={s.section}>
             <h3 id={`${id}-w`} className={s.h3}>{t("explain.working")}</h3>
@@ -308,7 +315,9 @@ export function ExplainPanel(p: { explanation: Explanation;
               {e.steps.map((x, i) => (
                 <li key={i} className={s.step}
                   data-limit={x.limit !== undefined}
-                  style={{ "--i": Math.min(i, 10) } as object}>
+                  data-total={x.op === "total"}
+                  data-check={i === plan.check}
+                  style={{ "--d": `${plan.at[i] ?? 0}ms` } as object}>
                   <span className={s.stepText}>
                     {x.limit !== undefined && (
                       <span className={s.limitWord}>
@@ -318,7 +327,9 @@ export function ExplainPanel(p: { explanation: Explanation;
                     {x.text}
                   </span>
                   {x.value !== undefined && (
-                    <span className={s.stepValue}><Value v={x.value} /></span>
+                    <span className={s.stepValue}>
+                      <span className={s.roll}><Value v={x.value} /></span>
+                    </span>
                   )}
                   {x.limit !== undefined && <Limit {...x.limit} />}
                 </li>
