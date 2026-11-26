@@ -69,6 +69,7 @@ export const MESSAGES: Record<Lang, Record<string, string>> = deepFreeze({
 const STATUS_EN: Record<string, string> = {
   official: "official", secondary: "secondary", convention: "convention",
   hypothetical: "hypothetical", unsourced: "unsourced", none: "no rules",
+  overridden: "overridden",
 };
 
 // NEEDS NATIVE REVIEW: "convention" is "اختيار النظام" (the engine's
@@ -77,6 +78,7 @@ const STATUS_EN: Record<string, string> = {
 const STATUS_AR: Record<string, string> = {
   official: "رسمي", secondary: "ثانوي", convention: "اختيار النظام",
   hypothetical: "افتراضي", unsourced: "بلا مصدر", none: "بلا قواعد",
+  overridden: "قيمة مستبدلة",
 };
 
 export const STATUS_WORDS: Record<Lang, Record<string, string>> =

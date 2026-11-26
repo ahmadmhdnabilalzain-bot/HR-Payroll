@@ -11,7 +11,8 @@ export const PAYROLL_MONEY_IDS: readonly string[] = deepFreeze([
   "earn.basic", "earn.allowance", "earn.overtime.normal",
   "earn.overtime.night", "earn.rest-day", "earn.holiday",
   "earn.leave-encashment", "earn.gross", "gpssa.salary",
-  "gpssa.employer-gross", "gpssa.gov-support", "cap.base", "cap.overall",
+  "gpssa.employee-share", "gpssa.employer-gross", "gpssa.gov-support",
+  "cap.base", "cap.overall",
   "ded.gpssa", "ded.overpayment", "ded.violation", "ded.damage",
   "ded.court-debt", "ded.scheme", "ded.loan", "ded.total", "pay.net",
   "employer.gpssa", "employer.total",
@@ -41,6 +42,8 @@ export const PAYROLL_EN: Record<string, string> = deepFreeze({
   "earn.gross": "Gross pay: {result}" + R,
   "gpssa.salary": "Pension contribution salary (fixed in " +
     "{in.fixingMonth}): {result}" + R,
+  "gpssa.employee-share": "Employee pension share this month: " +
+    "{result}" + R,
   "gpssa.employer-gross": "Employer pension share before government " +
     "support: {result}" + R,
   "gpssa.gov-support": "Part of the employer share paid by the " +
@@ -87,6 +90,8 @@ export const PAYROLL_AR: Record<string, string> = deepFreeze({
     "أيام: {result}" + R,
   "earn.gross": "إجمالي الراتب: {result}" + R,
   "gpssa.salary": "راتب حساب الاشتراك (المحدد في {in.fixingMonth}): " +
+    "{result}" + R,
+  "gpssa.employee-share": "حصة الموظف في الاشتراك هذا الشهر: " +
     "{result}" + R,
   "gpssa.employer-gross": "حصة صاحب العمل في الاشتراك قبل دعم " +
     "الحكومة: {result}" + R,

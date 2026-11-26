@@ -2,7 +2,7 @@ import { EngineError } from "../errors";
 import { fils, mulDiv, type Fils } from "../money";
 import type { TraceBuilder } from "../trace";
 import type { TraceRule } from "../trace-types";
-import type { PayrollParams } from "./params";
+import type { GpssaRegime, PayrollParams } from "./params";
 import type {
   DeductionLineKind,
   DeductionRequest,
@@ -13,9 +13,13 @@ import type {
   PayslipLine,
 } from "./types";
 
+/** Where the GPSSA amount came from: this month's share plus arrears. */
+export interface GpssaTrace { share: Fils; arrears: Fils;
+  rules: TraceRule[]; regime: GpssaRegime }
 export interface DeductionArgs { earnedWage: Fils;
   contractualWage: Fils; gpssaShare: Fils | null;
-  requests: DeductionRequest[]; loans: LoanInstalment[] }
+  requests: DeductionRequest[]; loans: LoanInstalment[];
+  gpssaTrace?: GpssaTrace }
 export interface DeductionResult {
   lines: PayslipLine<DeductionLineKind>[]; total: Fils;
   caps: { wageBase: Fils; overall: Fils };
@@ -75,12 +79,21 @@ function kindCaps(a: DeductionArgs, p: PayrollParams): Caps {
 }
 
 interface Item { kind: DeductionLineKind; ref: string; requested: Fils;
-  loan: LoanInstalment | null }
+  loan: LoanInstalment | null; inputs?: Record<string, string>;
+  rules?: TraceRule[] }
+
+function gpssaItem(a: DeductionArgs, share: Fils): Item {
+  const g = a.gpssaTrace;
+  const item: Item = { kind: "gpssa", ref: "gpssa", requested: share,
+    loan: null };
+  if (g === undefined) return item;
+  return { ...item, rules: g.rules, inputs: { share: String(g.share),
+    arrears: String(g.arrears), regime: g.regime } };
+}
 
 function itemsOf(kind: DeductionLineKind, a: DeductionArgs): Item[] {
   if (kind === "gpssa") {
-    return a.gpssaShare === null ? [] : [{ kind, ref: "gpssa",
-      requested: a.gpssaShare, loan: null }];
+    return a.gpssaShare === null ? [] : [gpssaItem(a, a.gpssaShare)];
   }
   if (kind === "loan") {
     return a.loans.map((l) => ({ kind, ref: l.ref, loan: l,
@@ -144,7 +157,7 @@ function traceItem(s: State, t: TraceBuilder, i: Item, k: Taken): void {
   const inputs: Record<string, string> = { ref: i.ref,
     requested: String(i.requested), kindCap: k.cap.amount === null
       ? "none" : String(k.cap.amount), taken: String(k.taken),
-    deferred: String(k.rest) };
+    deferred: String(k.rest), ...i.inputs };
   if (i.loan !== null) {
     const after = fils(i.loan.balance - k.taken);
     inputs["instalment"] = String(i.loan.instalment);
@@ -156,7 +169,7 @@ function traceItem(s: State, t: TraceBuilder, i: Item, k: Taken): void {
     formula: "min(requested, what is left of the kind cap, what is " +
       "left of the overall cap)", inputs, result: String(k.taken),
     rules: [...k.cap.rules, k.p.deductionOverallCapBps.rule,
-      k.p.deductionOrder.rule] });
+      k.p.deductionOrder.rule, ...(i.rules ?? [])] });
 }
 
 function traceCaps(a: DeductionArgs, overall: Fils, p: PayrollParams,

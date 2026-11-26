@@ -63,12 +63,13 @@ function overtime(input: PayslipInput, p: PayrollParams,
     p.shiftWorkersNightExcluded.v;
   const normal = shift ? all : all - night;
   const nightPaid = shift ? 0 : night;
-  const extra = [p.shiftWorkersNightExcluded.rule];
+  const extra = [p.shiftWorkersNightExcluded.rule,
+    p.overtimeMaxMinutesPerDay.rule, p.maxNormalHoursPerDay.rule];
   const lines: Line[] = [];
   if (normal > 0) {
     lines.push(overtimeLine(input, p, t, { id: "earn.overtime.normal",
       label: "Overtime pay", minutes: normal, uplift: p.overtimeUpliftBps,
-      extra: [...extra, p.overtimeMaxMinutesPerDay.rule] }));
+      extra }));
   }
   if (nightPaid > 0) {
     lines.push(overtimeLine(input, p, t, { id: "earn.overtime.night",
