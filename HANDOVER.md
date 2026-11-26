@@ -1,7 +1,7 @@
 # Handover
 
 Read this first. Keep it current: update it in the same commit as any change
-of state. Last updated: 2026-11-26.
+of state. Last updated: 2026-11-26 (Plan 3).
 
 ## What this project is
 
@@ -24,6 +24,13 @@ source-cited, with an open API and Arabic from the start.
   information file (SIF) from a batch and checks any SIF file, with a
   plain-English report. Format only: it pays nobody and claims no
   compliance.
+- **Plan 3 (backend) is built** on a worktree branch (Tasks 1 to 8 plus
+  the security review's fixes), not yet merged into
+  `claude/quirky-wozniak-b7xkvr`. `packages/contract` (zod schemas, 50
+  routes, error codes, OpenAPI) and `packages/api` (Hono over
+  PostgreSQL with row-level security, sealed salary and bank fields,
+  hash-chained audit log, pay runs, payslips and SIF files).
+  Build report: `docs/superpowers/plans/plan-3-build-report-1.md`.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -45,6 +52,27 @@ HYPOTHETICAL before and after.
 pnpm sif -- packages/wps/samples/batch.json --out out
 pnpm sif:check -- out/0000000123456160126113000.SIF
 pnpm sif:check -- <file.SIF> --today 2026-11-26
+```
+
+```bash
+pnpm --filter @payroll/contract openapi    # writes dist/openapi.json
+pnpm api:migrate                           # migrations only
+pnpm api:dev                               # migrate, then serve
+```
+
+`api:dev` reads `DATABASE_URL` (the runtime role: no superuser, no
+BYPASSRLS, owns no table, granted `payroll_app WITH INHERIT FALSE, SET
+TRUE`), `MIGRATE_DATABASE_URL` (the role that owns the tables; defaults
+to `DATABASE_URL`), `PAYROLL_MASTER_KEY` (32 bytes, base64) and `PORT`
+(default 8787). It refuses to start with a bad key or an unsafe runtime
+role. Checked on 2026-11-26 against a throwaway PostgreSQL 16 (health,
+signup, the superuser and table-owner refusals). The real-PostgreSQL
+test suite runs when `DATABASE_URL` points at a superuser (it creates
+`plan3_owner` and `plan3_runtime` and a schema per case):
+
+```bash
+DATABASE_URL=postgres://postgres@127.0.0.1:55433/postgres \
+  pnpm --filter @payroll/api exec vitest run tests/pg.integration.test.ts
 ```
 
 `sif` reads a batch JSON (amounts as strings such as `"4000.00"`), writes
@@ -93,7 +121,40 @@ with a source id and a status: `official`, `secondary`, `convention`,
 `hypothetical` or `unsourced`. An `unsourced` value has no default and the
 engine refuses to run without an explicit value.
 
+## Contract layout (`packages/contract`, zod only)
+
+| Area | Files |
+|---|---|
+| Primitives, roles, errors | `src/primitives.ts`, `src/roles.ts`, `src/errors.ts` |
+| Schemas by family | `src/company.ts`, `user.ts`, `department.ts`, `employee.ts`, `leave.ts`, `attendance.ts`, `trace.ts`, `payroll.ts`, `sif.ts`, `audit.ts`, `lists.ts` |
+| Routes (50) | `src/route-def.ts`, `src/routes*.ts` |
+| Registry, examples, OpenAPI | `src/registry.ts`, `src/examples*.ts`, `src/openapi.ts`, `src/write-openapi.ts` |
+
+## API layout (`packages/api`)
+
+| Area | Files |
+|---|---|
+| Database, migrations, tenancy | `src/db/`, `migrations/001` to `008` |
+| HTTP plumbing (one transaction per request) | `src/app.ts`, `src/http/` |
+| Sign-in, sessions, TOTP, guards | `src/auth/` |
+| Field encryption | `src/crypto/keyring.ts` |
+| Audit log (allowlisted data, hash chain) | `src/audit/` |
+| People and redaction | `src/people/`, `src/routes/employees.ts`, `departments.ts` |
+| Leave and attendance | `src/leave/`, `src/attendance/`, `src/time/dubai.ts` |
+| Pay runs (pure compute), payslips, SIF | `src/payroll/` |
+| Entry and config | `src/main.ts`, `src/config.ts`, `src/deps.ts` |
+
 ## Known limits and open questions
+
+- Plan 3 limits: nothing on `NOT_COMPUTED_PAY` is computed (proration
+  for partial months, overtime premiums, unpaid leave deductions,
+  deductions and caps, GPSSA contributions, ILOE premiums, notice pay):
+  partial months and unpaid leave need entered amounts. The final
+  settlement is shown on the payslip but not paid through the SIF. No
+  external pen test, no KMS or key rotation, no email verification
+  (an invite can be accepted by whoever holds the token), anyone can
+  lock an account for 15 minutes with five wrong passwords, no rate
+  limiting, no pay-run corrections. Real payroll waits for the owner.
 
 - The gratuity pack applies to leavers on or after 2022-02-02 (Decree-Law 33
   of 2021). Earlier leavers throw `NO_PACK_FOR_DATE` (old law not modelled).
@@ -142,12 +203,14 @@ needs checking against official sources before anything is built on it.
 
 ## Next step
 
-Plan 3: data model, API, tenancy and security baseline (`LEDGER.md`
-section 4). Before it, a whole-branch review of Plan 2. Write the plan,
-build it test-first with per-task review, keep this handover current. The
-owner wants no technical questions: decide, record a ruling, continue.
+Review Plan 3 (whole branch, plus Tasks 5 and 7 for data protection and
+money), merge it into `claude/quirky-wozniak-b7xkvr`, then finish Plan 4
+(web app) against `packages/contract`. The owner wants no technical
+questions: decide, record a ruling, continue.
 
 ## Tooling (25 Nov 2026)
 
 Node 22, pnpm 10, TypeScript 7.0.2, Vitest 5.1.2, fast-check 4.11.0,
 zod 4.6.7, tsx 4.23.15, `@types/node` 22.x. Versions are pinned exactly.
+Plan 3 adds Hono 4.13.17, @hono/node-server 2.1.6, pg 8.23.1,
+@types/pg 8.23.1 and @electric-sql/pglite 0.5.16 (tests).

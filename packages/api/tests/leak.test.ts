@@ -22,11 +22,7 @@ const ROLES: Role[] = ["owner", "hr", "manager", "employee"];
 type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
 
-/** Routes not built yet answer 404 before auth; later tasks shrink it. */
-const NOT_BUILT = new Set(["getSifFile", "downloadSifFile",
-  "listAuditEvents", "verifyAuditChain"]);
-
-type Kind = "employee" | "payslip" | "payRun" | null;
+type Kind = "employee" | "payslip" | "payRun" | "sifFile" | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
 const ID_KIND: Record<string, Kind> = {
   getCompany: null, listUsers: null, listEmployees: null,
@@ -35,6 +31,8 @@ const ID_KIND: Record<string, Kind> = {
   getLeaveBalances: "employee", listAttendance: null,
   listMyPayslips: null, getPayslip: "payslip", listPayRuns: null,
   getPayRun: "payRun", listPayRunPayslips: "payRun",
+  getSifFile: "sifFile", downloadSifFile: "sifFile",
+  listAuditEvents: null, verifyAuditChain: null,
 };
 
 /** Query strings a route needs. */
@@ -64,6 +62,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   let ctx: Awaited<ReturnType<typeof makeApp>>;
   let s: Seeded;
   let runId: string;
+  let sifId: string;
   const slips = {} as Record<Target, string>;
   beforeAll(async () => {
     ctx = await makeApp();
@@ -78,32 +77,27 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       slips[t] = all.body.items.find((p: { employeeId: string }) =>
         p.employeeId === s.emp[t]).id;
     }
+    await call(ctx.app, s.owner.token, s.companyId, "PATCH", "/v1/company",
+      { wps: { employerId: "0000000123456", bankRoutingCode: "802420101" } });
+    sifId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
+      `/v1/pay-runs/${runId}/sif`)).body.id;
   });
   /** Every `{id}` to try for a route, with the record it belongs to. */
   const idsFor = (kind: Kind): [Target | null, string | null][] =>
     kind === "employee" ? TARGETS.map((t) => [t, s.emp[t]])
     : kind === "payslip" ? TARGETS.map((t) => [t, slips[t]])
-    : kind === "payRun" ? [[null, runId]] : [[null, null]];
+    : kind === "payRun" ? [[null, runId]]
+    : kind === "sifFile" ? [[null, sifId]] : [[null, null]];
   const path = (r: RouteDef, id: string | null) =>
     (id === null ? r.path : r.path.replace("{id}", id)) +
     (QUERY[r.id] ?? "");
 
-  it("every GET tenant route has a fixture or is listed as not built",
-    () => {
-      for (const r of getRoutes) {
-        expect(NOT_BUILT.has(r.id) || r.id in ID_KIND, r.id).toBe(true);
-        expect(NOT_BUILT.has(r.id) && r.id in ID_KIND, r.id).toBe(false);
-      }
-    });
+  it("every GET tenant route has a fixture", () => {
+    for (const r of getRoutes) expect(r.id in ID_KIND, r.id).toBe(true);
+  });
 
   for (const r of getRoutes) {
     it(`${r.id}`, async () => {
-      if (NOT_BUILT.has(r.id)) {
-        const res = await call(ctx.app, s.owner.token, s.companyId, "GET",
-          r.path.replace("{id}", s.emp.report));
-        expect(res.status).toBe(404);
-        return;
-      }
       for (const role of ROLES) {
         for (const [t, id] of idsFor(ID_KIND[r.id] ?? null)) {
           const res = await call(ctx.app, s[role].token, s.companyId,
@@ -135,12 +129,15 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       const mine = await call(ctx.app, s.employee.token, s.companyId,
         "GET", "/v1/me/payslips");
       expect(mine.body.items.length).toBe(1);
+      const file = await call(ctx.app, s.owner.token, s.companyId, "GET",
+        `/v1/sif-files/${sifId}/download`);
+      expect(file.text).toContain(IBAN_SENTINEL);
     });
 
   it("company B's owner gets 404 for every A id", async () => {
     const b = await signup(ctx.app, "other");
     const mfa = await enableMfa(ctx.app, ctx.clock, b);
-    const kinds: Kind[] = ["employee", "payslip", "payRun"];
+    const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile"];
     const allIds = kinds.flatMap((k) => idsFor(k).map(([, id]) => id!));
     for (const r of getRoutes.filter((x) => x.path.includes("{id}"))) {
       for (const id of allIds) {

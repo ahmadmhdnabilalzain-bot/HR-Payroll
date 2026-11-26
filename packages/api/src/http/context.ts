@@ -55,6 +55,11 @@ export class Reply {
   constructor(readonly status: 200 | 201, readonly body: unknown) {}
 }
 
+/** A `text/plain` attachment (the SIF download). */
+export class FileReply {
+  constructor(readonly text: string, readonly fileName: string) {}
+}
+
 /**
  * Commit the transaction, then answer with this error (e.g. a failed
  * password check whose failure counter must stick).
@@ -77,6 +82,11 @@ const NO_ENTER: Enter = () => {
 
 function respond(c: Context<Env>, def: RouteDef, out: unknown) {
   if (out instanceof Refuse) throw out.error;
+  if (out instanceof FileReply) {
+    c.header("Content-Disposition",
+      `attachment; filename="${out.fileName}"`);
+    return c.text(out.text, 200);
+  }
   const status = out instanceof Reply ? out.status : def.status;
   const body = out instanceof Reply ? out.body : out;
   if (status === 204) return c.body(null, 204);

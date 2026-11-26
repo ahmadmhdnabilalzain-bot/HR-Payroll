@@ -6,6 +6,8 @@
     "demo": "tsx packages/engine/src/main.ts packages/engine/samples/settlement.json",
     "sif": "tsx packages/wps/src/main.ts generate",
     "sif:check": "tsx packages/wps/src/main.ts check",
+    "api:dev": "tsx packages/api/src/main.ts",
+    "api:migrate": "tsx packages/api/src/main.ts migrate",
     "lines": "node scripts/check-line-length.mjs",
     "lines:test": "node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r --if-present typecheck",

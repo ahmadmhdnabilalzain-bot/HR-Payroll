@@ -61,6 +61,11 @@ async function seedPay(admin: Db, c: string, emp: string): Promise<void> {
     `INSERT INTO payslips (id, company_id, pay_run_id, employee_id,
        body_enc, created_at) VALUES ($1, $2, $3, $4, 'x', $5)`,
     [rowId(c, "b2"), c, run, emp, AT]);
+  await admin.query(
+    `INSERT INTO sif_files (id, company_id, pay_run_id, file_name, total,
+       text_enc, findings_enc, error_count, warning_count, created_by,
+       created_at) VALUES ($1, $2, $3, 'seed.SIF', 0, 'x', 'x', 0, 0, $4,
+       $5)`, [rowId(c, "b3"), c, run, emp, AT]);
 }
 
 async function seedTime(admin: Db, c: string, emp: string): Promise<void> {

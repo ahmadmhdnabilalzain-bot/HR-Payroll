@@ -37,8 +37,12 @@ export interface RunRow {
   sif_file_id: string | null;
 }
 
-/** The run; its SIF file id arrives with the SIF table (Task 8). */
-export const RUN_SELECT = `SELECT r.*, NULL::uuid AS sif_file_id
+/**
+ * The run with its SIF file id (one per run), derived by a join so an
+ * approved run row is never updated for it.
+ */
+export const RUN_SELECT = `SELECT r.*, (SELECT s.id FROM sif_files s
+    WHERE s.company_id = r.company_id AND s.pay_run_id = r.id) AS sif_file_id
   FROM pay_runs r`;
 
 export const toPayRun = (r: RunRow): PayRun => ({
@@ -86,6 +90,13 @@ function problemsError(ps: ReturnType<typeof computePayRun>["problems"]) {
       missing: p.missing })) });
 }
 
+/** No conflict target: the key and the one-live-run index both count. */
+const INSERT_RUN = `INSERT INTO pay_runs (id, company_id, year, month,
+    status, idempotency_key, request_hash, input_hash, snapshot_enc, gross,
+    employee_count, created_by, created_at)
+  VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12)
+  ON CONFLICT DO NOTHING RETURNING id`;
+
 /**
  * Idempotent create. The key is looked up first (a retry after inputs
  * changed still gets its run); the insert uses ON CONFLICT DO NOTHING
@@ -108,12 +119,7 @@ export async function createPayRun(ctx: ReqCtx<PayRunCreate>, key: string)
   const id = deps.newId();
   const at = deps.now().toISOString();
   const inputHash = snapshotHash(snap);
-  const inserted = await tx.query(
-    `INSERT INTO pay_runs (id, company_id, year, month, status,
-       idempotency_key, request_hash, input_hash, snapshot_enc, gross,
-       employee_count, created_by, created_at)
-     VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12)
-     ON CONFLICT DO NOTHING RETURNING id`,
+  const inserted = await tx.query(INSERT_RUN,
     [id, c, body.period.year, body.period.month, key, requestHash,
       inputHash, await sealSnapshot(tx, deps, c, id, snap),
       out.gross.toString(), out.payslips.length, ctx.user!.id, at]);
