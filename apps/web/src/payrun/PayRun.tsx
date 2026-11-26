@@ -7,6 +7,7 @@ import { formatDayMonth, formatMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import type { ViewProps } from "../views";
+import { isPayArea, PayArea } from "../pay/PayArea";
 import { ApproveStep } from "./ApproveStep";
 import { FixStep } from "./FixStep";
 import {
@@ -47,8 +48,17 @@ export function useGoStep(at: StepId): [boolean, 1 | -1, Go] {
   return [leaving, dir, go];
 }
 
-/** The pay run in four labelled steps: Review, Fix, Approve, Pay. */
+/**
+ * `#/pay-run/...`: the run's four steps, or a WP6 pay area (loans,
+ * revisions, ...) when the first segment names one.
+ */
 export function PayRun(p: ViewProps) {
+  return isPayArea(p.rest[0]) ? <PayArea rest={p.rest} />
+    : <RunSteps rest={p.rest} />;
+}
+
+/** The pay run in four labelled steps: Review, Fix, Approve, Pay. */
+function RunSteps(p: ViewProps) {
   const { lang, t } = useLocale();
   const { data } = useDemo();
   const a = useRunApproval();

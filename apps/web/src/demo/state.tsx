@@ -12,6 +12,12 @@ import {
   type LeaveAction,
   type LeaveSlice,
 } from "./leave-state";
+import {
+  PAY_INITIAL,
+  reducePay,
+  type PayAction,
+  type PaySlice,
+} from "../pay/pay-state";
 
 /** manager and employee: the team view and the self view. */
 export type Role = "hr" | "gm" | "manager" | "employee";
@@ -25,7 +31,7 @@ export type Verdict = "approve" | "decline";
 export type Resolution = "reviewed" | "renewal";
 
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
-export interface DemoState extends LeaveSlice {
+export interface DemoState extends LeaveSlice, PaySlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -49,11 +55,12 @@ export type Action =
   | { type: "undecide"; id: string }
   | { type: "focus-issue"; id: string | null }
   | { type: "sources"; open: boolean }
-  | LeaveAction;
+  | LeaveAction
+  | PayAction;
 
 export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
-  focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL,
+  focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...PAY_INITIAL,
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -79,6 +86,11 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "request-leave":
     case "withdraw-leave":
     case "restore-leave": return reduceLeave(s, a);
+    case "pay-request":
+    case "pay-withdraw":
+    case "pay-restore":
+    case "fine-decide":
+    case "fine-undo": return reducePay(s, a);
   }
 }
 

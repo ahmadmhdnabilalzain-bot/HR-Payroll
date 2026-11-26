@@ -1,16 +1,14 @@
 import {
-  BACK_PAY_RAISE,
   buildDemoCompany,
   demoLabel,
   displayDate,
   duration,
-  employedIn,
   isDemoLabelKey,
   issuesOf,
+  pastRuns,
   plural,
   SIF_CREATED,
   sifSummary,
-  slipOf,
   type DemoCompany,
   type DemoEmployee,
   type DemoPayslip,
@@ -38,10 +36,11 @@ import type {
 
 const PREV = { year: 2026, month: 9 } as const;
 
-const sumOf = (xs: DemoPayslip[], f: (s: DemoPayslip) => bigint): Fils =>
+const sumOf = (xs: Pick<DemoPayslip, "payslip">[],
+  f: (s: Pick<DemoPayslip, "payslip">) => bigint): Fils =>
   fils(xs.reduce((n, s) => n + f(s), 0n));
 
-function totalsOf(xs: DemoPayslip[]): RunTotals {
+function totalsOf(xs: Pick<DemoPayslip, "payslip">[]): RunTotals {
   return { gross: sumOf(xs, (s) => s.payslip.gross),
     deductions: sumOf(xs, (s) => s.payslip.totalDeductions),
     net: sumOf(xs, (s) => s.payslip.net),
@@ -49,17 +48,17 @@ function totalsOf(xs: DemoPayslip[]): RunTotals {
     headcount: xs.length };
 }
 
-/** September's payslips: the same engine, the same records. */
-function september(c: DemoCompany): Map<string, DemoPayslip> {
-  const out = new Map<string, DemoPayslip>();
-  for (const e of c.employees) {
-    if (!employedIn(e, PREV.year, PREV.month)) continue;
-    const opts = e.cases.includes("back-pay")
-      ? { ...PREV, basic: fils(e.basicMonthly - BACK_PAY_RAISE) }
-      : { ...PREV };
-    out.set(e.id, slipOf(e, opts, `ps-2026-09-${e.id}`));
-  }
-  return out;
+/** A month-before payslip: what the comparison reads. */
+type Prev = Pick<DemoPayslip, "employeeId" | "payslip" | "input">;
+
+/**
+ * September as paid: the package's pastRuns (the same engine, the
+ * same records, emp-012 on the old basic, the loan LN-2041 not yet
+ * started), so Review, Pay runs and the trend show one September.
+ */
+function september(c: DemoCompany): Map<string, Prev> {
+  const run = pastRuns(c).find((r) => r.month === PREV.month);
+  return new Map((run?.payslips ?? []).map((s) => [s.employeeId, s]));
 }
 
 export function labelOf(key: string): string {
@@ -75,8 +74,12 @@ const inOctober = (d: string | null): boolean =>
   d !== null && d.startsWith("2026-10");
 
 /** Why a person's pay moved against September, from the inputs. */
+const loanTaken = (s: Pick<DemoPayslip, "payslip"> | undefined): bigint =>
+  s?.payslip.deductions.filter((d) => d.kind === "loan")
+    .reduce((n, d) => n + d.amount, 0n) ?? 0n;
+
 function reasonsOf(e: DemoEmployee, s: DemoPayslip,
-  prev: DemoPayslip | undefined): string[] {
+  prev: Prev | undefined): string[] {
   const out: string[] = [];
   if (prev === undefined) {
     out.push(`Joined on ${displayDate(e.joiningDate)}, paid from that day`);
@@ -101,10 +104,14 @@ function reasonsOf(e: DemoEmployee, s: DemoPayslip,
   if (s.input.employee.allowances.some((a) => a.code === "back-pay")) {
     out.push("Back pay for September");
   }
+  if (prev !== undefined && loanTaken(prev) !== loanTaken(s)) {
+    out.push(loanTaken(prev) === 0n ? "Loan repayments started"
+      : "Loan repayment changed");
+  }
   return out;
 }
 
-function peopleOf(c: DemoCompany, prev: Map<string, DemoPayslip>)
+function peopleOf(c: DemoCompany, prev: Map<string, Prev>)
   : PersonRow[] {
   const byId = new Map(c.employees.map((e) => [e.id, e]));
   return c.payRun.payslips.map((s) => {
@@ -121,7 +128,7 @@ function peopleOf(c: DemoCompany, prev: Map<string, DemoPayslip>)
   });
 }
 
-function changesOf(people: PersonRow[], prev: Map<string, DemoPayslip>,
+function changesOf(people: PersonRow[], prev: Map<string, Prev>,
   c: DemoCompany): ChangeLine[] {
   const here = new Set(people.map((p) => p.id));
   const gone = [...prev.values()].filter((s) => !here.has(s.employeeId))
@@ -192,7 +199,7 @@ function nationalitiesOf(c: DemoCompany): RunDetail["nationalities"] {
       name: REGION.of(r.nationality) ?? r.nationality, count: r.count })) };
 }
 
-export function detailOf(c: DemoCompany, prev: Map<string, DemoPayslip>)
+export function detailOf(c: DemoCompany, prev: Map<string, Prev>)
   : RunDetail {
   const people = peopleOf(c, prev);
   const file = fileOf(c);

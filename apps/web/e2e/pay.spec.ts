@@ -1,0 +1,45 @@
+import { expect, test } from "@playwright/test";
+
+test("loan-request-is-decided-by-the-gm", async ({ page }) => {
+  await page.goto("/#/pay-run/loans");
+  await expect(page.getByRole("heading", { level: 1,
+    name: "Loans and advances" })).toBeVisible();
+  await page.getByRole("button", { name: "Give a loan or advance" })
+    .click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByLabel("Amount (AED)").fill("abc");
+  await sheet.getByRole("button", { name: "Send for a decision" }).click();
+  await expect(sheet.getByRole("alert")).toContainText("Enter the amount");
+  await sheet.getByLabel("Amount (AED)").fill("5000");
+  await sheet.getByRole("button", { name: "Send for a decision" }).click();
+  await expect(page.getByRole("status")).toContainText("to decide");
+  const row = page.getByRole("link", { name: /New request/ });
+  await expect(row).toContainText("Waiting");
+  await row.click();
+  await expect(page.getByText(/Waiting for .*General Manager/i))
+    .toBeVisible();
+  await page.getByRole("button", { name: "View as General Manager" })
+    .click();
+  await page.getByRole("button", { name: "Agree", exact: true }).click();
+  await expect(page.getByText(/^Agreed by /)).toBeVisible();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(page.getByText(/Waiting for /)).toBeVisible();
+});
+
+test("fine-decision-has-an-undo", async ({ page }) => {
+  await page.goto("/#/pay-run/fines/tf-1");
+  await page.getByRole("button", { name: "The bank pays" }).click();
+  await expect(page.getByText(/^The bank pays: /)).toBeVisible();
+  await page.getByRole("button", { name: "Take back decision" }).click();
+  await expect(page.getByRole("button", { name: "The bank pays" }))
+    .toBeVisible();
+});
+
+test("past-run-lists-every-payslip", async ({ page }) => {
+  await page.goto("/#/pay-run/runs/2026-09");
+  await expect(page.getByRole("heading", { level: 1,
+    name: "September 2026" })).toBeVisible();
+  await page.getByRole("tab", { name: /Payslips/ }).click();
+  await expect(page.getByRole("list", { name: "Payslips" })
+    .getByRole("listitem")).toHaveCount(30);
+});
