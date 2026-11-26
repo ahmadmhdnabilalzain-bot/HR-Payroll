@@ -74,3 +74,12 @@ test("deep-links-outside-the-role-are-turned-away", async ({ page }) => {
   await page.getByRole("link", { name: "Back to Home" }).click();
   await expect(page).toHaveURL(/#\/home$|\/$/);
 });
+
+test("manager-home-never-says-no-one-waits-under-a-waiting-request",
+  async ({ page }) => {
+    await page.goto("/");
+    await asRole(page, "Team manager");
+    await expect(page.getByRole("heading", { level: 1 }))
+      .toHaveText(/waits? for you/);
+    await expect(page.getByText(/off or waiting/)).toHaveCount(0);
+  });
