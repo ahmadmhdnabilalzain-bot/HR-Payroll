@@ -281,7 +281,12 @@ needs checking against official sources before anything is built on it.
 | 17 | Governed assistant, import, intranet, chat | planned; waits for 6, 13 |
 
 Also in the repo: the Arabic native-review pack (`docs/review/`) and the
-deployment and CI kit (`deploy/`, `.github/`, `docs/ops/`) when merged.
+deployment and CI kit (`deploy/`: Docker, compose, role setup, env check;
+`.github/workflows/ci.yml`; `docs/ops/runbook.md` and
+`docs/ops/security-checklist.md`). The CI workflow has never run on GitHub;
+the images and compose stack were tested locally. Known gaps: no rate
+limiting, the API image runs TypeScript through tsx (no compile step),
+backups are not encrypted or copied off the host.
 
 ## Next step
 
