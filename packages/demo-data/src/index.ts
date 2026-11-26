@@ -29,3 +29,6 @@ export * from "./time";
 export * from "./papers";
 export * from "./wp7";
 export * from "./wp9";
+export * from "./wp3";
+export * from "./wp2";
+export * from "./wp10";
