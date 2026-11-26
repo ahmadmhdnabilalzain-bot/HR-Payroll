@@ -123,12 +123,20 @@ export function SectionPanel(p: { section: SectionId; label: string;
                         {areas.length === 1 ? shortOf(first, lang)
                           : group.label[lang]}
                       </span>
-                      {areas.length > 1 && (
-                        <span className={s.groupAreas}>
-                          {areas.map((a) => shortOf(a, lang)).join(" · ")}
-                        </span>
-                      )}
                     </a>
+                    {areas.length > 1 && (
+                      <ul className={s.groupAreas}>
+                        {areas.map((a) => (
+                          <li key={a.id}>
+                            <a className={s.areaLink} data-area=""
+                              href={hrefOfArea(a, c)} onClick={() => {
+                                pickGroup(a.section, a.group);
+                                p.onClose();
+                              }}>{shortOf(a, lang)}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 );
               })}

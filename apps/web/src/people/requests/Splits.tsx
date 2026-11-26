@@ -103,7 +103,7 @@ export function SplitRecord(props: { id: string }) {
   const [asking, setAsking] = useState<"split" | "reset" | null>(null);
   const a = p.data.approvalsInbox().find((x) => x.id === props.id);
   if (a === undefined) {
-    return <NotFound what="item" back="Sign-off resets" href={LIST} />;
+    return <NotFound what="item" back="Change sign-off" href={LIST} />;
   }
   const word = wordOf(p, a);
   const verdict = p.state.decided[a.id];
@@ -116,7 +116,7 @@ export function SplitRecord(props: { id: string }) {
     <>
       <RecordTabs title={a.title[p.lang]} lede={a.employeeId === null
         ? "Company" : p.nameOf(a.employeeId)}
-      back={{ label: "Sign-off resets", href: LIST }}
+      back={{ label: "Change sign-off", href: LIST }}
       stats={[{ label: "Status", value: WORDS[word][0] },
         { label: "Sent", value: p.when(a.requestedOn) },
         { label: "Checker", value: split?.secondId == null

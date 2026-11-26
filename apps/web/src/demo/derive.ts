@@ -72,7 +72,8 @@ export function runPhase(d: DemoData, s: DemoState): RunPhase {
   return approvalBlockedBy(d, s).length > 0 ? "bank-details" : "approve";
 }
 
-export type StepId = "inputs" | "bank" | "approve" | "sif" | "pay";
+/** The same four steps as the Pay run page (payrun/model.ts). */
+export type StepId = "review" | "fix" | "approve" | "pay";
 export type StepState = "done" | "now" | "next";
 
 export interface Step {
@@ -82,18 +83,18 @@ export interface Step {
 }
 
 /**
- * The pay month as five dated steps. Inputs closed on the cut-off;
- * bank details are current while a payslip is held out; then the
- * approval; then the salary file. Review items never hold it back.
+ * The pay month as four dated steps, the Pay run page's own: Review
+ * (inputs closed on the cut-off), Fix (current while a payslip is held
+ * out), Sign off, then Pay (the salary file, paid on payday). Review
+ * items never hold it back.
  */
 export function steps(d: DemoData, s: DemoState): Step[] {
   const c = d.payCalendar();
   const phase = runPhase(d, s);
-  const now: StepId = phase === "file" ? "sif"
-    : phase === "approve" || phase === "declined" ? "approve" : "bank";
-  const order: [StepId, string][] = [["inputs", c.cutOff],
-    ["bank", c.asOf], ["approve", c.approveBy], ["sif", c.sifDue],
-    ["pay", c.payday]];
+  const now: StepId = phase === "file" ? "pay"
+    : phase === "approve" || phase === "declined" ? "approve" : "fix";
+  const order: [StepId, string][] = [["review", c.cutOff],
+    ["fix", c.asOf], ["approve", c.approveBy], ["pay", c.payday]];
   const at = order.findIndex(([id]) => id === now);
   return order.map(([id, date], i) => ({ id, date,
     state: i < at ? "done" : i === at ? "now" : "next" }));

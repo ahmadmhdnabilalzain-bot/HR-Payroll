@@ -65,6 +65,8 @@ export const payrun = {
   fixTitle: "Fix before sign-off",
   fixSub: "What stops pay comes first: a payslip without a valid bank " +
     "account holds the whole run. Checks do not; mark each once looked at.",
+  fixDoneTitle: "Fixed before sign-off",
+  fixDoneSub: "The run is signed off. This is what was open before.",
   fixListTitle: "Before sign-off",
   fixStops: { one: "{count} stops pay", other: "{count} stop pay" },
   fixNoStops: "nothing stops pay",

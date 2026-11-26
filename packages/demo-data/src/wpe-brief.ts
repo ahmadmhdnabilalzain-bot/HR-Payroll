@@ -107,9 +107,9 @@ export function ownerBrief(c: DemoCompany): OwnerBrief {
       text: "Counted from the run's own checks.", count: h.issuesOpen,
       next: "Open the pay run to fix them.", live: "issues-open" }),
     ...(settle === undefined ? [] : [item({ id: "settlement", area: "Pay",
-      item: "Final settlement, outside the run",
-      text: `${nameOf(c, settle.employeeId)}: gratuity and leave pay ` +
-        "worked out; notice pay and other dues to add.",
+      item: "Gratuity and leave pay so far",
+      text: `${nameOf(c, settle.employeeId)}: final settlement, paid ` +
+        "outside the run. Notice pay and other dues are added by HR.",
       amount: settle.result.total,
       next: "Paid on its own, not in the salary file.",
       live: "settlement", subjectId: settle.employeeId })]),

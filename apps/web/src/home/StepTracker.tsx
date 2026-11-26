@@ -6,15 +6,14 @@ import { useLocale } from "../i18n/LocaleProvider";
 import s from "./StepTracker.module.css";
 
 const LABEL: Record<StepId, MessageKey> = {
-  inputs: "home.stepInputs",
-  bank: "home.stepBank",
-  approve: "home.stepApprove",
-  sif: "home.stepSif",
-  pay: "home.stepPay",
+  review: "payrun.review",
+  fix: "payrun.fix",
+  approve: "payrun.approve",
+  pay: "payrun.pay",
 };
 
 /**
- * The pay month in one line: "Step 2 of 5 · Bank details", five small
+ * The pay month in one line: "Step 2 of 4 · Fix", four small
  * dots, and what comes next with its date. Every part comes from the
  * shared steps(); the dots fill as the run moves on.
  */

@@ -188,6 +188,13 @@
   }
 }
 
+/* No keyboard on a phone or tablet: no Esc hint. */
+@media (hover: none), (max-width: 560px) {
+  .esc {
+    display: none;
+  }
+}
+
 /* Touch: rows are 44 px. */
 @media (pointer: coarse) {
   .item {

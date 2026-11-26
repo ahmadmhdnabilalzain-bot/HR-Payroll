@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { settlementTotal } from "../../demo/figures";
+import { settlementLabel, settlementTotal } from "../../demo/figures";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { itemsNow } from "../../people/moves/view";
@@ -102,7 +102,8 @@ function Flow(p: { flow: Flow }) {
       stats={[
         { label: "Last day", value: f.lastDay },
         { label: "Pay by", value: f.payBy },
-        { label: "Total so far", value: settlement === undefined
+        { label: settlementLabel(state, f.employeeId),
+          value: settlement === undefined
           ? "Not worked out" : <Money value={settlementTotal(
             settlement.total, state, f.employeeId)} size="lg" /> },
       ]}

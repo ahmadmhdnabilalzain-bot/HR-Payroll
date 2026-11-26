@@ -1,5 +1,6 @@
 import type { LeaverChecklistView } from "../../demo/data/moves-types";
-import { settlementTotal } from "../../demo/figures";
+import { SETTLEMENT_NOTE, SETTLEMENT_SO_FAR, settlementTotal }
+  from "../../demo/figures";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { Money } from "../../ui/Money";
@@ -25,7 +26,8 @@ function LeaverList() {
     progressOf(itemsNow(l.id, l.items, state));
   return (
     <FilterList title="Leaver checklists" rows={data.moves.leavers()}
-      lede="What to close, return and pay when someone leaves."
+      lede={"What to close, return and pay when someone leaves. " +
+        SETTLEMENT_NOTE}
       rowKey={(l) => l.id} searchText={(l) => `${l.personName} ${l.title}`}
       rowHref={(l) => hrefLeaver(l.employeeId)}
       segments={[{ id: "all", label: "All", match: () => true },
@@ -36,7 +38,7 @@ function LeaverList() {
         { key: "r", label: "Role", render: (l) => l.title },
         { key: "d", label: "Last working day",
           render: (l) => l.lastWorkingDay.display },
-        { key: "s", label: "Settlement", end: true,
+        { key: "s", label: SETTLEMENT_SO_FAR, end: true,
           render: (l) => <Money value={settlementTotal(
             l.settlement.total.value, state, l.employeeId)} size="sm" />
         },

@@ -32,7 +32,7 @@ export const AREAS: readonly Area[] = [
     keywords: "D5 signing link joining pack new employee candidate " +
       "remind" },
   { id: "people.signing-link", section: "people", group: "moves",
-    label: { en: "A signing link", ar: "رابط توقيع" },
+    label: { en: "Send to sign", ar: "إرسال للتوقيع" },
     status: "live", archetype: "FA",
     route: { section: "people", rest: ["esign", "link"] },
     keywords: "D5 sign on phone link new joiner" },

@@ -1,7 +1,8 @@
 import { fils } from "@payroll/engine";
 import { useState } from "react";
 import { Explainable } from "../components/explain";
-import { settlementTotal } from "../demo/figures";
+import { SETTLEMENT_NOTE, SETTLEMENT_SO_FAR, SETTLEMENT_WITH_DUES,
+  settlementLabel, settlementTotal } from "../demo/figures";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
@@ -51,9 +52,8 @@ function SentStatus(p: { x: SettlementView }) {
 }
 
 /** What the total holds so far, in plain words. */
-export const SO_FAR = "Gratuity and leave pay worked out; notice pay " +
-  "and other dues to add";
-const WITH_DUES = "Gratuity, leave pay and the other dues HR added";
+const SO_FAR = SETTLEMENT_SO_FAR;
+const WITH_DUES = SETTLEMENT_WITH_DUES;
 
 /** R31: final settlements for people leaving, paid outside the run. */
 export function Settlements() {
@@ -76,11 +76,11 @@ export function Settlements() {
         { key: "who", label: "Person", render: (x) => x.name },
         { key: "last", label: "Last day", render: (x) => x.lastDay },
         { key: "due", label: "Pay by", render: (x) => x.due },
-        { key: "tot", label: "Total so far", end: true, render: (x) =>
+        { key: "tot", label: SO_FAR, end: true, render: (x) =>
           <Money value={total(x)} size="sm" /> },
         { key: "what", label: "What is in it", render: (x) =>
-          state.otherDues[x.employeeId] === undefined ? SO_FAR
-            : WITH_DUES },
+          state.otherDues[x.employeeId] === undefined ? SETTLEMENT_NOTE
+            : "Other dues added by HR" },
         { key: "st", label: "Status", render: (x) => <SentStatus x={x} /> },
       ]}
       empty={"Nobody is leaving. A settlement appears here when an " +
@@ -129,8 +129,11 @@ function Statement(p: { x: SettlementView }) {
   };
   return (
     <>
-      <RecordTabs title={x.name} lede={`Final settlement, last day ` +
-        `${x.lastDay}`} back={{ label: "Final settlements", href: LIST }}
+      <RecordTabs title={x.name}
+        lede={`Final settlement, last day ${x.lastDay}. ` +
+          (dues === undefined ? SETTLEMENT_NOTE
+            : "Other dues added by HR are in the total.")}
+        back={{ label: "Final settlements", href: LIST }}
         tab={tab} onTab={setTab}
         actions={(
           <>
@@ -206,8 +209,8 @@ function Statement(p: { x: SettlementView }) {
                   </li>
                 ))}
                 <li className={s.row}>
-                  <span className={s.rowText}><strong>Total so far
-                  </strong></span>
+                  <span className={s.rowText}><strong>{settlementLabel(state,
+                    x.employeeId)}</strong></span>
                   <span className={s.rowEnd}>
                     <Money value={total} size="md" /></span>
                 </li>

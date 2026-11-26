@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRunApproval } from "../demo/actions";
-import { runApprovalId } from "../demo/derive";
+import { runApprovalId, runPhase } from "../demo/derive";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { beforeApproval } from "../reports/dash/model";
@@ -188,6 +188,9 @@ function FixAction(p: { go: Go; next: StepId }) {
   const { t } = useLocale();
   const { data, state } = useDemo();
   const { stops } = beforeApproval(data, state);
+  if (runPhase(data, state) === "file") {
+    return <Continue go={p.go} next="pay" />;
+  }
   if (stops === 0) return <Continue go={p.go} next={p.next} />;
   const full = t("payrun.fixFirst", { count: stops });
   return (

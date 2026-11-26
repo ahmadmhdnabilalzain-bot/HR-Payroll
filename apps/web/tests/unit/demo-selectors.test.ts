@@ -52,12 +52,12 @@ describe("demo selectors", () => {
     const half = reduce(INITIAL, { type: "iban",
       employeeId: blocked[0] ?? "", value: src.bankLetterIban(
         blocked[0] ?? "") });
-    expect(now(half)).toBe("bank");
+    expect(now(half)).toBe("fix");
   });
 
   it("entering-the-letter-iban-reruns-the-file-check", () => {
     const who = d.heldIds()[0] ?? "";
-    expect(now(INITIAL)).toBe("bank");
+    expect(now(INITIAL)).toBe("fix");
     const iban = src.bankLetterIban(who);
     expect(src.tryIban({}, who, iban)).toEqual({ ok: true });
     const s = reduce(INITIAL, { type: "iban", employeeId: who,
@@ -87,7 +87,7 @@ describe("demo selectors", () => {
         value: src.bankLetterIban(id) }), INITIAL);
     const run = runApprovalId(d) ?? "";
     expect(now(reduce(s0, { type: "decide", id: run,
-      verdict: "approve" }))).toBe("sif");
+      verdict: "approve" }))).toBe("pay");
     const declined = reduce(s0, { type: "decide", id: run,
       verdict: "decline" });
     expect(now(declined)).toBe("approve");

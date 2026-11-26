@@ -77,17 +77,37 @@
 }
 
 /* Digits on their way to the total are muted; the total is solid. */
+.stack {
+  display: inline-grid;
+}
+
+.stack > * {
+  grid-area: 1 / 1;
+}
+
+.ghost {
+  pointer-events: none;
+  animation: ghost-out 200ms ease-out both;
+}
+
+@keyframes ghost-out {
+  to {
+    opacity: 0;
+  }
+}
+
 .settled {
   transition: color var(--dur-base) var(--ease-out);
 }
 
-.rolling {
-  color: var(--color-text-muted);
-}
 
 @media (prefers-reduced-motion: reduce) {
   .settled {
     transition: none;
+  }
+
+  .ghost {
+    display: none;
   }
 }
 

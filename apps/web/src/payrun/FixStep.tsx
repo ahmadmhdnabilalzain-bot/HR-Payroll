@@ -2,7 +2,7 @@ import { fils, type Fils } from "@payroll/engine";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { ExplainLink } from "../components/explain";
 import type { Issue } from "../demo/data/types";
-import { confirmations, isBlocking } from "../demo/derive";
+import { confirmations, isBlocking, runPhase } from "../demo/derive";
 import { beforeApproval } from "../reports/dash/model";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
@@ -110,6 +110,7 @@ export function FixStep() {
   const setup = confirmations(data);
   const fixed = Object.keys(state.ibans);
   const isHr = state.role === "hr";
+  const signed = runPhase(data, state) === "file";
   const figure = useRef<HTMLSpanElement>(null);
   const shown = useHeldFlight(h.sifTotalFils, h.heldNetFils,
     h.sifPeople, figure);
@@ -122,9 +123,11 @@ export function FixStep() {
   const open = count.checks;
   return (
     <section aria-labelledby="step-title" className={s.step}>
-      <h2 id="step-title" className={s.stepTitle}>{t("payrun.fixTitle")}</h2>
+      <h2 id="step-title" className={s.stepTitle}>
+        {signed ? t("payrun.fixDoneTitle") : t("payrun.fixTitle")}</h2>
       <p className={s.stepSub}>
-        {isHr ? t("payrun.fixSub") : t("payrun.gmFixNote")}
+        {signed ? t("payrun.fixDoneSub")
+          : isHr ? t("payrun.fixSub") : t("payrun.gmFixNote")}
       </p>
 
       <div className={s.fileNow} aria-live="polite">

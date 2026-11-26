@@ -16,6 +16,7 @@ export interface BriefLiveInput {
 }
 
 export interface LiveRow {
+  item: string;
   text: string;
   amount: Fils | null;
   count: number | null;
@@ -24,8 +25,8 @@ export interface LiveRow {
 
 /** One brief row as the demo stands now; the package wrote the rest. */
 export function briefLive(i: BriefItem, x: BriefLiveInput): LiveRow {
-  const same: LiveRow = { text: i.text, amount: i.amount, count: i.count,
-    next: i.next };
+  const same: LiveRow = { item: i.item, text: i.text,
+    amount: i.amount, count: i.count, next: i.next };
   switch (i.live) {
     case "issues-open":
       return { ...same, count: x.fig.open, next: x.fig.open === 0
@@ -41,7 +42,8 @@ export function briefLive(i: BriefItem, x: BriefLiveInput): LiveRow {
         x.dues.otherDues[i.subjectId] !== undefined;
       return { ...same, amount: settlementTotal(i.amount, x.dues,
         i.subjectId), text: added ? i.text.replace(/: .*$/, ": gratuity, " +
-        "leave pay and the other dues HR added.") : i.text };
+        "leave pay and the other dues HR added.") : i.text,
+        item: added ? "Gratuity, leave pay and other dues" : i.item };
     }
     case "approvals-waiting":
       if (x.verdict === "approve") return { ...same,
@@ -60,7 +62,7 @@ export function briefRows(brief: OwnerBrief, x: BriefLiveInput,
     const n = briefLive(i, x);
     const figure = n.amount !== null ? m(n.amount)
       : n.count !== null ? String(n.count) : "";
-    return [`${i.area}: ${i.item}`, `${n.text} ${n.next}`, figure];
+    return [`${i.area}: ${n.item}`, `${n.text} ${n.next}`, figure];
   });
   return [...rows, ...brief.dates.map((d) =>
     [`Dates: ${d.label}`, d.text, ""])];

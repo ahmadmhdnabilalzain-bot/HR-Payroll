@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import type { LeaverChecklistView } from "../../demo/data/moves-types";
 import { Explainable } from "../../components/explain";
-import { settlementTotal } from "../../demo/figures";
+import { SETTLEMENT_NOTE, settlementLabel, settlementTotal }
+  from "../../demo/figures";
 import { useDemo } from "../../demo/state";
 import { useRunDetail } from "../../demo/useRunDetail";
 import { Money } from "../../ui/Money";
@@ -18,9 +19,13 @@ export function Settlement(p: { leaver: LeaverChecklistView }) {
   return (
     <div className={s.settle}>
       <div className={s.settleTotal}>
-        <span>Final settlement so far</span>
+        <span>{settlementLabel(state, l.employeeId)}</span>
         <Money value={settlementTotal(l.settlement.total.value, state,
           l.employeeId)} size="hero" />
+        <span className={s.quiet}>
+          {state.otherDues[l.employeeId] === undefined
+            ? SETTLEMENT_NOTE : "Other dues added by HR are in the total."}
+        </span>
         <span className={s.quiet}>{l.settlement.statusText}</span>
       </div>
       <Suspense fallback={<p className={s.quiet}>Loading the working</p>}>

@@ -178,7 +178,7 @@ const SAMPLES: [IntakeSource, string, string | null, string | null,
 
 const emailOf = (name: string): string =>
   `${name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/ +/g, ".")}` +
-  "@example.com";
+  "@zarqan-demo.test";
 
 /** Documents that came in before the demo day, and where each went. */
 export function intakeSamples(c: DemoCompany): IntakeSample[] {
@@ -187,7 +187,7 @@ export function intakeSamples(c: DemoCompany): IntakeSample[] {
   return SAMPLES.map(([source, fileName, who, docType, daysAgo, time,
     expires], i) => {
     const on = addDays(AS_OF, -daysAgo);
-    const from = who === null ? "unknown.sender@example.com"
+    const from = who === null ? "unknown.sender@zarqan-demo.test"
       : source === "email" ? emailOf(nameOf(who))
         : source === "upload" ? `${nameOf(who)}, in the staff portal`
           : "HR desk";

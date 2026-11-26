@@ -35,6 +35,20 @@ export function settlementTotal(base: Fils, s: Pick<DemoState,
   return dues === undefined ? base : fils(base + dues.amount);
 }
 
+/** The words for a settlement's total: the engine's figure is gratuity
+ * and leave pay only, so it never reads as the final amount until HR
+ * has added notice pay and other dues. */
+export const SETTLEMENT_SO_FAR = "Gratuity and leave pay so far";
+export const SETTLEMENT_WITH_DUES = "Gratuity, leave pay and other dues";
+export const SETTLEMENT_NOTE =
+  "Notice pay and other dues are added by HR.";
+
+export function settlementLabel(s: Pick<DemoState, "otherDues">,
+  employeeId: string | null): string {
+  return employeeId !== null && s.otherDues[employeeId] !== undefined
+    ? SETTLEMENT_WITH_DUES : SETTLEMENT_SO_FAR;
+}
+
 export function figures(d: DemoData, s: DemoState): Figures {
   const h = d.headline();
   const open = openIssues(d, s);

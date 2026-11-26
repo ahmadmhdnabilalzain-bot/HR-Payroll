@@ -24,7 +24,8 @@ test("exit-flow-steps-flags-and-settlement", async ({ page }) => {
   await expect(page.getByRole("list", { name: "Legal and pay flags" }))
     .not.toContainText("Final settlement paid");
   await page.getByRole("tab", { name: "Settlement" }).click();
-  await expect(page.getByText("Final settlement so far")).toBeVisible();
+  await expect(page.getByRole("tabpanel", { name: "Settlement" })
+    .getByText("Gratuity and leave pay so far")).toBeVisible();
   const bad = await new AxeBuilder({ page }).analyze();
   expect(bad.violations).toEqual([]);
   await page.getByRole("link", { name: "Open the settlement" }).click();

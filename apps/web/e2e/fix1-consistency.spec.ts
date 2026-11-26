@@ -14,8 +14,8 @@ const go = async (page: Page, hash: string): Promise<void> => {
 test("other dues add to the settlement on its page and the brief",
   async ({ page }) => {
     await page.goto("/#/pay-run/settlements/emp-014");
-    await expect(page.getByText("Gratuity and leave pay worked out; " +
-      "notice pay and other dues to add").first()).toBeVisible();
+    await expect(page.getByText("Notice pay and other dues are " +
+      "added by HR.").first()).toBeVisible();
     await page.getByRole("button", { name: "Add other dues" }).click();
     await page.getByLabel("Amount (AED)").fill("4500");
     await page.getByLabel("What it is for").fill("Notice pay, one month");

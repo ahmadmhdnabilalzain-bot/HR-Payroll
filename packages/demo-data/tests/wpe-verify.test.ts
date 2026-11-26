@@ -92,8 +92,8 @@ describe("WPE document intake samples", () => {
       const t = shown(intakeSamples(c));
       expect(t).not.toMatch(BANNED_WORDS);
       expect(t).not.toMatch(ISO);
-      for (const m of t.match(/[\w.]+@[\w.]+/g) ?? []) {
-        expect(m).toMatch(/@example\.com$/);
+      for (const m of t.match(/[\w.]+@[\w.-]+/g) ?? []) {
+        expect(m).toMatch(/@zarqan-demo\.test$/);
       }
     }));
 });

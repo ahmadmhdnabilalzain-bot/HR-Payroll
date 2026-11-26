@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useLayoutEffect, useRef, type RefObject } from "react";
 
 /** Durations in ms; the CSS tokens carry the same values. */
 export const DUR = { fast: 150, base: 200, slow: 250 } as const;
@@ -11,47 +11,19 @@ export function reducedMotion(): boolean {
     matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Totals roll over this long (GSAP power3.out), per the motion spec. */
-export const ROLL_MS = 600;
-
 /**
- * A bigint that rolls to its target when the target changes (GSAP,
- * power3.out). The first render shows the target as is unless `start`
- * asks for the opening count-up. The steps are integer (per mille of
- * the gap), so no float reaches money; tabular figures hold the width.
+ * Figures land at once. A money figure or a count never counts up
+ * through in-between values (a figure on the way never reads as the
+ * total), and a header count is the store's value in the same frame.
+ * Money figures crossfade in ui/Money instead. Kept as hooks.
  */
-export function useTweenedBigint(target: bigint, ms: number = ROLL_MS,
-  start?: bigint): bigint {
-  const first = start !== undefined && !reducedMotion() ? start : target;
-  const [shown, setShown] = useState(first);
-  const from = useRef(first);
-  useLayoutEffect(() => {
-    const start = from.current;
-    if (start === target) return undefined;
-    if (reducedMotion()) {
-      from.current = target;
-      setShown(target);
-      return undefined;
-    }
-    const proxy = { p: 0 };
-    const tween = gsap.to(proxy, { p: 1, duration: ms / 1000,
-      ease: "power3.out", onUpdate: () => {
-        const k = BigInt(Math.round(proxy.p * 1000));
-        const v = start + ((target - start) * k) / 1000n;
-        from.current = v;
-        setShown(v);
-      } });
-    return () => {
-      tween.kill();
-    };
-  }, [target, ms]);
-  return shown;
+export function useTweenedBigint(target: bigint): bigint {
+  return target;
 }
 
-/** A whole number that eases to its target (counts, headcounts). */
-export function useTweenedNumber(target: number, ms: number = DUR.slow)
-  : number {
-  return Number(useTweenedBigint(BigInt(target), ms));
+/** A whole number, as is (counts, headcounts). */
+export function useTweenedNumber(target: number): number {
+  return target;
 }
 
 /**

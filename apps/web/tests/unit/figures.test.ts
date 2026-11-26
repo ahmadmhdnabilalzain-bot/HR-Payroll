@@ -94,11 +94,11 @@ describe("other dues on a final settlement", () => {
   const figure = (s: DemoState): string => {
     const fig = figures(source.at(s.ibans), s);
     return briefRows(more.brief, { fig, verdict: undefined, dues: s }, m)
-      .find((r) => r[0] === "Pay: Final settlement, outside the run")![2]!;
+      .find((r) => r[0]?.startsWith("Pay: Gratuity"))![2]!;
   };
 
   it("says what is worked out and what is still to add", () => {
-    expect(settle.text).toMatch(/gratuity and leave pay worked out; notice/);
+    expect(settle.text).toMatch(/Notice pay and other dues are added by HR/);
     expect(figure(INITIAL)).toBe(m(settle.amount!));
   });
 
