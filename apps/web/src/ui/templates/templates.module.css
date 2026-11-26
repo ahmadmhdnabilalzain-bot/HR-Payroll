@@ -7,11 +7,29 @@
   padding: 40px var(--page-pad) var(--space-8);
 }
 
-/* The head: breadcrumb row (44, always there), then the h1, so the
- * h1 top is 88 px under the bar on every page. */
+/* The head: the h1 top is 96 px under the bar on every page. Without
+ * group tabs: 40 (page) + 8 + the breadcrumb row (48, always there).
+ * Under the tabs (8 + 32 under the bar): no breadcrumb row and the h1
+ * 56 under them. Phones: 16 under the tabs. */
 .head {
+  --head-top: var(--space-2);
   display: grid;
   gap: 0;
+  margin-block-start: var(--head-top);
+}
+
+.head[data-tabs="true"] {
+  --head-top: var(--space-4);
+}
+
+@media (max-width: 760px) {
+  .head {
+    --head-top: 0px;
+  }
+
+  .head[data-tabs="true"] {
+    --head-top: 0px;
+  }
 }
 
 .crumbs {

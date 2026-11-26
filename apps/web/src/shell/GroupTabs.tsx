@@ -11,6 +11,20 @@ import s from "./GroupTabs.module.css";
 const OWN_STEPS = /^pay-run\/(review|fix|approve|pay)$/;
 
 /**
+ * The group tabs shown at `route`, or null: the one rule GroupTabs
+ * draws by and PageHead reads, so a page under tabs drops its
+ * breadcrumb row and sets its title 56 px under the tabs.
+ */
+export function useGroupTabs(route: Route)
+  : ReturnType<typeof tabsAt> {
+  const { data, state } = useDemo();
+  if (OWN_STEPS.test([route.section, ...route.rest].join("/"))) {
+    return null;
+  }
+  return tabsAt(state.role, { data, state }, route.section, route.rest);
+}
+
+/**
  * The sibling areas of the page you are on, as tabs: the panel opens a
  * group's first area and the rest of the group sits here, drawn from
  * the registry for the role. Shown only on an area's own page (not on
@@ -20,10 +34,7 @@ export function GroupTabs(p: { route: Route }) {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const c = { data, state };
-  if (OWN_STEPS.test([p.route.section, ...p.route.rest].join("/"))) {
-    return null;
-  }
-  const found = tabsAt(state.role, c, p.route.section, p.route.rest);
+  const found = useGroupTabs(p.route);
   if (found === null) return null;
   const { at, tabs: sibs } = found;
   return (
