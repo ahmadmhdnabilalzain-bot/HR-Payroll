@@ -157,6 +157,7 @@ export function valueWords(key: string, v: ParamValue | null): string {
   if (/DayOfNextMonth$/.test(key)) return `Day ${v} of the next month`;
   if (/Months$/.test(key)) return plural(v, "month", "months");
   if (/Years$/.test(key)) return plural(v, "year", "years");
+  if (/YearsOfWage$/.test(key)) return `${plural(v, "year", "years")} of wage`;
   if (/Fils$/.test(key)) return "Not set";
   return String(v);
 }

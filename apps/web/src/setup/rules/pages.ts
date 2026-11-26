@@ -129,7 +129,7 @@ export function endOfServicePage(): PageSpec {
         r(EOS, "capBase", "Limit measured on"),
         r(EOS, "basicWageOnly", "Worked out on basic wage only")),
       g("Counting service",
-        r(EOS, "unpaidDaysExcluded", "Unpaid leave counts"),
+        r(EOS, "unpaidDaysExcluded", "Unpaid leave left out"),
         r(EOS, "partYearProRata", "Part of a year"),
         r(EOS, "endDateInclusive", "Last day counts"),
         r(EOS, "roundingMode", "Rounding")),
