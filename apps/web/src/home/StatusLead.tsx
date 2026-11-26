@@ -1,5 +1,6 @@
 import { useRunApproval } from "../demo/actions";
 import { isBlocking, openIssues } from "../demo/derive";
+import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import {
   formatList,
@@ -60,6 +61,24 @@ export function StatusLead() {
                 </p>
               )}
             </>
+          )}
+          {!run.isChecker && firstHeld === undefined &&
+            run.phase !== "bank-details" && (
+            <a className={`${b.btn} ${b.primary} ${b.large}`}
+              href={run.phase === "file" ? hrefOf("pay-run", "pay")
+                : hrefOf("pay-run", "approve")}>
+              {run.phase === "file" ? t("home.primaryOpenPay")
+                : t("home.primaryOpenRun")}
+            </a>
+          )}
+          {run.isChecker && (run.phase === "file" ||
+            run.phase === "declined") && (
+            <a className={`${b.btn} ${b.secondary} ${b.large}`}
+              href={hrefOf("pay-run", run.phase === "file" ? "pay"
+                : "approve")}>
+              {run.phase === "file" ? t("home.primaryOpenPay")
+                : t("home.primaryOpenRun")}
+            </a>
           )}
           {!run.isChecker && firstHeld !== undefined && (
             <button type="button" className={`${b.btn} ${b.primary}
