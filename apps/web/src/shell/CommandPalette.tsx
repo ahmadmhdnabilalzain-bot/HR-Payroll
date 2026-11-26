@@ -1,4 +1,11 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { useRunApproval, useSwitchRole } from "../demo/actions";
 import { formatMonthName } from "../i18n/format";
 import { useDemo } from "../demo/state";
@@ -8,7 +15,8 @@ import { useTheme } from "../theme/ThemeProvider";
 import { VIEWS } from "../views";
 import { areasFor, routeOf, WORD, WORD_ICON } from "../nav/registry";
 import { Icon } from "../ui/Icon";
-import { commands, matches, type Command, type Group } from "./commands";
+import { commands, GROUP_ORDER, matches, type Command, type Group }
+  from "./commands";
 import s from "./CommandPalette.module.css";
 
 /** Opens on Cmd/Ctrl+K anywhere, and on "/" when not typing. */
@@ -48,7 +56,6 @@ export function CommandPalette(p: { open: boolean; arabicShown: boolean;
   );
 }
 
-const GROUPS: Group[] = ["go", "actions", "people"];
 const GROUP_KEY: Record<Group, MessageKey> = { go: "shell.groupGo",
   actions: "shell.groupActions", people: "shell.groupPeople" };
 
@@ -60,6 +67,13 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
   const run = useRunApproval();
   const [query, setQuery] = useState("");
   const [at, setAt] = useState(0);
+  // Rows rise in one after another (20 ms apart) on opening only, not
+  // on every keystroke.
+  const [entering, setEntering] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setEntering(false), 400);
+    return () => clearTimeout(id);
+  }, []);
   const listId = useId();
   const all = useMemo(() => commands({ data, state, dispatch, t, lang,
     arabicShown: p.arabicShown,
@@ -109,11 +123,12 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
         <kbd className={s.esc}>Esc</kbd>
       </div>
       <div id={listId} role="listbox" className={s.list}
+        data-entering={entering}
         aria-label={t("shell.paletteLabel")}>
         {shown.length === 0 && (
           <p className={s.empty}>{t("shell.paletteEmpty")}</p>
         )}
-        {GROUPS.map((g) => {
+        {GROUP_ORDER.map((g) => {
           const items = shown.filter((c) => c.group === g);
           if (items.length === 0) return null;
           return (
@@ -126,10 +141,12 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
                 return (
                   <div key={c.id} id={`${listId}-${i}`} role="option"
                     aria-selected={i === at} className={s.item}
+                    style={{ "--i": Math.min(i, 12) } as CSSProperties}
                     onMouseMove={() => setAt(i)} onClick={() => pick(c)}>
                     <Icon name={c.icon} />
                     <span className={s.label}>{c.label}</span>
                     {c.hint !== "" && <span className={s.hint}>{c.hint}</span>}
+                    <kbd className={s.enter} aria-hidden="true">↵</kbd>
                   </div>
                 );
               })}
