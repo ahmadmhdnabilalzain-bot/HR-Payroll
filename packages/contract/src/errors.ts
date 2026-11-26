@@ -1,0 +1,76 @@
+import { z } from "zod";
+
+/**
+ * Every code an HTTP error body can carry, with its status. Internal
+ * codes (MIGRATION_NAME, AUDIT_SENSITIVE_DATA, CANONICAL_NUMBER) are
+ * not API codes and never reach a response. Pay-run problem codes
+ * (EMPLOYEE_NOT_IN_PERIOD, ENTERED_AMOUNTS_REQUIRED,
+ * SETTLEMENT_INPUT_REQUIRED) travel inside a PAY_RUN_PROBLEMS body.
+ */
+export const ERROR_STATUS = {
+  VALIDATION_FAILED: 400,
+  COMPANY_HEADER_REQUIRED: 400,
+  IDEMPOTENCY_KEY_REQUIRED: 400,
+  INVITE_INVALID: 400,
+  MFA_CODE_INVALID: 400,
+  UNAUTHENTICATED: 401,
+  INVALID_CREDENTIALS: 401,
+  FORBIDDEN: 403,
+  TENANT_FORBIDDEN: 403,
+  MFA_REQUIRED: 403,
+  MFA_ENROLMENT_REQUIRED: 403,
+  SOD_VIOLATION: 403,
+  NOT_FOUND: 404,
+  EMAIL_TAKEN: 409,
+  ALREADY_MEMBER: 409,
+  MFA_ALREADY_ENROLLED: 409,
+  MFA_NOT_STARTED: 409,
+  EMPLOYEE_NUMBER_TAKEN: 409,
+  LEAVE_OVERLAP: 409,
+  LEAVE_NOT_PENDING: 409,
+  LEAVE_NOT_CANCELLABLE: 409,
+  ALREADY_CLOCKED_IN: 409,
+  NOT_CLOCKED_IN: 409,
+  IDEMPOTENCY_KEY_REUSED: 409,
+  RUN_EXISTS_FOR_PERIOD: 409,
+  RUN_NOT_DRAFT: 409,
+  RUN_NOT_APPROVED: 409,
+  INVITE_USED: 410,
+  INVITE_EXPIRED: 410,
+  BASIC_COMPONENT_REQUIRED: 422,
+  DUPLICATE_COMPONENT: 422,
+  LEAVE_CROSSES_YEAR: 422,
+  INSUFFICIENT_BALANCE: 422,
+  NO_EMPLOYEE_LINK: 422,
+  PAY_RUN_PROBLEMS: 422,
+  EMPLOYEE_NOT_IN_PERIOD: 422,
+  ENTERED_AMOUNTS_REQUIRED: 422,
+  SETTLEMENT_INPUT_REQUIRED: 422,
+  COMPANY_WPS_SETTINGS_MISSING: 422,
+  EMPLOYEE_BANK_MISSING: 422,
+  SIF_GENERATION_FAILED: 422,
+  ENGINE_REFUSED: 422,
+  ACCOUNT_LOCKED: 423,
+  INTERNAL: 500,
+} as const;
+
+export type ErrorCode = keyof typeof ERROR_STATUS;
+
+export const ERROR_CODES = Object.keys(ERROR_STATUS) as [
+  ErrorCode,
+  ...ErrorCode[],
+];
+
+export const ErrorCodeSchema = z.enum(ERROR_CODES);
+
+export const ApiErrorBody = z.object({
+  error: z.object({
+    code: ErrorCodeSchema,
+    message: z.string(),
+    requestId: z.string(),
+    detail: z
+      .record(z.string(), z.union([z.string(), z.array(z.string())]))
+      .optional(),
+  }),
+});
+export type ApiErrorBody = z.infer<typeof ApiErrorBody>;
