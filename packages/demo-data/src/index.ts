@@ -54,3 +54,4 @@ export * from "./wpe-audit";
 export * from "./wpe-time-finish";
 export * from "./wpe-esign";
 export * from "./wpe-checks";
+export * from "./wpe-hiring";
