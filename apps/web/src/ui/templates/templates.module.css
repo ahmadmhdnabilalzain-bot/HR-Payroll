@@ -319,7 +319,7 @@
   padding-inline: var(--space-4);
 }
 
-li[aria-hidden="true"] {
+.list > li[aria-hidden="true"] {
   position: sticky;
   z-index: 2;
   inset-block-start: var(--bar-h, 57px);
@@ -1426,7 +1426,7 @@ li + li.actRow > .row {
   }
 
   .listHead,
-  li[aria-hidden="true"] {
+  .list > li[aria-hidden="true"] {
     display: none;
   }
 
@@ -1538,21 +1538,59 @@ li + li.actRow > .row {
     display: none;
   }
 
+  /* Phones: each row is the name, then its values as label: value. */
+  .table,
+  .table tbody,
+  .table tfoot {
+    display: block;
+  }
+
   .table tr {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: var(--space-2) var(--space-4);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px var(--space-4);
+    padding: var(--space-3) var(--space-4);
     border-block-end: 1px solid var(--color-divider);
   }
 
-  .table td {
+  .table td,
+  .table td[data-end="true"] {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1);
+    max-inline-size: 100%;
     padding: 0;
     border: 0;
+    font-size: 15px;
+    text-align: start;
+    white-space: normal;
   }
 
   .table td:first-child {
-    grid-column: 1 / -1;
+    flex-basis: 100%;
     font-weight: 500;
+  }
+
+  .table td[data-label]:not(:first-child)::before {
+    content: attr(data-label);
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 400;
+  }
+
+  .table td:not(:first-child):has(> .none) {
+    display: none;
+  }
+
+  .table tr.totalRow {
+    border-block-start: 2px solid var(--color-text);
+    border-block-end: 0;
+  }
+
+  .table tr.totalRow td {
+    border: 0;
   }
 
   .sheet {

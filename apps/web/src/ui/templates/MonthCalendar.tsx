@@ -53,6 +53,8 @@ export function MonthCalendar(p: {
   events: CalEvent[];
   onMonth?(step: -1 | 1): void;
   agenda?: boolean;
+  /** What each tone means on this page ("Payday", "Done"). */
+  legend?: Partial<Record<CalTone, string>>;
   /** The page's own content under the grid (a list of the month). */
   children?: ReactNode;
 }) {
@@ -66,6 +68,7 @@ export function MonthCalendar(p: {
   const inMonth = p.events.filter((e) => e.end >= first &&
     e.start <= last).sort((a, b) => a.start.localeCompare(b.start));
   const tones = [...new Set(inMonth.map((e) => e.tone))];
+  const word = (x: CalTone): string => p.legend?.[x] ?? TONE_WORD[x];
   const rowLabel = (id: string): string =>
     p.rows.find((r) => r.id === id)?.label ?? "";
   return (
@@ -83,7 +86,7 @@ export function MonthCalendar(p: {
         <ul className={s.legend} aria-label={p.monthLabel}>
           {tones.map((x) => (
             <li key={x}><span className={s.swatch} data-tone={x}
-              aria-hidden="true" />{TONE_WORD[x]}</li>
+              aria-hidden="true" />{word(x)}</li>
           ))}
         </ul>
       )}
@@ -151,7 +154,7 @@ export function MonthCalendar(p: {
                 </span>
                 <span className={s.status} data-tone={TONE_OF[e.tone]}>
                   <span className={s.dot} aria-hidden="true" />
-                  {TONE_WORD[e.tone]}
+                  {word(e.tone)}
                 </span>
               </li>
             ))}

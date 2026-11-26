@@ -52,6 +52,7 @@ export function PayCalendar() {
         label: `${x.label}, ${formatDayMonth(x.on, lang)}` }))}
       events={steps.map((x) => ({ rowId: x.id, start: x.on, end: x.on,
         tone: x.tone, label: `${x.label}, ${formatDayMonth(x.on, lang)}` }))}
+      legend={{ booked: "Pay run date", waiting: "Due, by the rule" }}
       onMonth={(step) => {
         const next = shift(month, step);
         if (next >= run && next <= shift(run, 1)) setMonth(next);

@@ -49,6 +49,8 @@ export function Calendar() {
           { id: "docs", label: "Documents expire" },
           { id: "cases", label: "Case steps" }]}
         events={events} agenda={false}
+        legend={{ shift: "Pay date", booked: "Done",
+          waiting: "Coming up" }}
         onMonth={(step) => setMonth(shift(month, step))}>
         {inMonth.length === 0 ? <p className={c.empty}>
           Nothing is due this month.</p> : (
