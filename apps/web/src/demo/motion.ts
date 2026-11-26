@@ -1,9 +1,9 @@
 import { gsap } from "gsap";
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
-/** Durations in ms; the CSS tokens carry the same values. */
-export const DUR = { fast: 150, base: 200, slow: 250 } as const;
-export const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+/** Durations in ms; theme/motion.css carries the same values. */
+export const DUR = { fast: 120, base: 200, slow: 320, hero: 480 } as const;
+export const EASE_OUT = "cubic-bezier(0.2, 0, 0, 1)";
 
 /** Read on each use: the person can change it while the page is open. */
 export function reducedMotion(): boolean {
