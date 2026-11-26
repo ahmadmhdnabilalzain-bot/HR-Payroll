@@ -13,6 +13,12 @@ import {
   type TimeSlice,
 } from "./time-state";
 import {
+  reduceTeam,
+  TEAM_INITIAL,
+  type TeamAction,
+  type TeamSlice,
+} from "./team-state";
+import {
   LEAVE_INITIAL,
   reduceLeave,
   type LeaveAction,
@@ -50,7 +56,8 @@ export type Resolution = "reviewed" | "renewal";
 
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
-  extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice {
+  extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
+    TeamSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -78,12 +85,14 @@ export type Action =
   | RulesAction
   | AccessAction
   | TimeAction
-  | PapersAction;
+  | PapersAction
+  | TeamAction;
 
 export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL,
+  ...TEAM_INITIAL,
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -127,6 +136,12 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "paper-undo":
     case "request-new":
     case "letter-new": return reducePapers(s, a);
+    case "team-probation-send":
+    case "team-probation-withdraw":
+    case "team-probation-decide":
+    case "team-probation-undo":
+    case "team-remind":
+    case "team-unremind": return reduceTeam(s, a);
   }
 }
 

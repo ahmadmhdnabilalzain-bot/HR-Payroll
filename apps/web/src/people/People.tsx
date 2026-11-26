@@ -4,9 +4,11 @@ import { canSee, personFor } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
 import type { ViewProps } from "../views";
 import { Papers } from "./papers/Papers";
+import { Growth } from "./growth/Growth";
 import { Payslip } from "./Payslip";
 import { PeopleList } from "./PeopleList";
 import { Profile } from "./Profile";
+import { Team } from "./team/Team";
 import s from "./page.module.css";
 
 /**
@@ -20,6 +22,8 @@ export function People(p: ViewProps) {
   const me = personFor(data, state.role);
   const [id, sub] = p.rest;
   if (id === "papers") return <Papers rest={p.rest} />;
+  if (id === "team") return <Team rest={p.rest.slice(1)} />;
+  if (id === "growth") return <Growth rest={p.rest.slice(1)} />;
   const who = id ?? (state.role === "employee" ? me : undefined);
   if (who === undefined) return <PeopleList />;
   if (data.people.person(who) === null) {

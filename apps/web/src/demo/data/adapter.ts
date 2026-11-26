@@ -19,6 +19,7 @@ import {
 } from "@payroll/demo-data";
 import { adaptPapers } from "./papers";
 import { adaptPeople } from "./people";
+import { adaptTeam } from "./team";
 import type {
   Approval,
   DemoData,
@@ -108,6 +109,7 @@ export function adapt(c: DemoCompany): DemoData {
       checkerId: run.checkerEmployeeId }),
     people: adaptPeople(c),
     papers: adaptPapers(c),
+    team: adaptTeam(c),
   };
 }
 
