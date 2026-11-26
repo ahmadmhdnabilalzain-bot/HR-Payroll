@@ -16,7 +16,7 @@ export const timeoff = {
   sickUsed: { one: "{n} day this year",
     other: "{n} days this year" },
   sickNote: "No fixed balance. How each day is paid follows the " +
-    "payroll rules and shows on the payslip.",
+    "payroll rules; an unpaid day shows on the payslip.",
   unpaid: "Unpaid leave",
   unpaidUsed: { one: "{n} day this year",
     other: "{n} days this year" },

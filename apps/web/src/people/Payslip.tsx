@@ -5,12 +5,23 @@ import { useDemo } from "../demo/state";
 import { canSeePay } from "../demo/time-off";
 import { formatMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { dayText, lineLabel } from "./words";
 import p from "./page.module.css";
 import s from "./Payslip.module.css";
 
-/** The month's payslip, line by line; every figure explains itself. */
+/** Lines whose figure is worked out, not copied from the contract. */
+const DERIVED = new Set(["overtime", "rest-day", "holiday",
+  "leave-encashment", "loan", "gpssa", "back-pay"]);
+
+/**
+ * The month's payslip as a document: the employer, the person and
+ * the period at the top, then earnings, deductions and net pay. Every
+ * figure opens its working; the dotted rule marks only the figures
+ * that are worked out (overtime, a capped loan, totals), so it stays
+ * a hint and not a texture.
+ */
 export function Payslip(q: { id: string }) {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
@@ -33,14 +44,15 @@ export function Payslip(q: { id: string }) {
           <span aria-hidden="true" className={p.sep}>/</span>
           <span aria-current="page">{t("people.pay")}</span>
         </nav>
-        <h1 className={p.title}>{t("people.payslipTitle", { month })}</h1>
-        {slip !== null && allowed && (
-          <p className={p.lead}>
-            {x.name[lang]} · {t("people.period", {
-              from: dayText(slip.payStart, lang),
-              to: dayText(slip.payEnd, lang) })}
-          </p>
-        )}
+        <div className={s.titleRow}>
+          <h1 className={p.title}>{t("people.payslipTitle", { month })}</h1>
+          {slip !== null && allowed && (
+            <button type="button" onClick={() => print()}
+              className={[b.btn, b.secondary, p.tall, s.print].join(" ")}>
+              {t("people.print")}
+            </button>
+          )}
+        </div>
       </header>
       {!allowed ? (
         <p className={p.empty}>{t("people.payslipPrivate")}</p>
@@ -64,11 +76,13 @@ function Line(q: { slip: PayslipView; line: PayslipLineView }) {
   const { t } = useLocale();
   const label = lineLabel(q.line, t);
   const ex = useExplained(q.slip, q.line.traceId, label);
+  const derived = DERIVED.has(q.line.kind) || DERIVED.has(q.line.code ?? "");
   return (
     <div className={s.line}>
       <dt>{label}</dt>
       <dd>
-        <Explainable explanation={ex}>
+        <Explainable explanation={ex}
+          className={derived ? undefined : s.plain}>
           <Money value={q.line.amountFils} tween={false} />
         </Explainable>
       </dd>
@@ -111,12 +125,32 @@ function Total(q: { slip: PayslipView; traceId: string; label: string;
 
 function Slip(q: { slip: PayslipView }) {
   const { lang, t } = useLocale();
+  const { data } = useDemo();
   const slip = q.slip;
+  const x = data.people.person(slip.employeeId);
   const earnings = slip.lines.filter((l) => l.group === "earning");
   const deductions = slip.lines.filter((l) => l.group === "deduction");
   return (
     <article className={s.slip} aria-label={t("people.pay")}>
-      <p className={s.hint}>{t("people.explainHint")}</p>
+      <header className={s.docHead}>
+        <div className={s.docWho}>
+          <span className={s.employer}>{data.companyName[lang]}</span>
+          <span className={s.person}>{x?.name[lang]}</span>
+          <span className={s.meta}>
+            {x?.role[lang]} · <span className="tabular">{x?.number}</span>
+          </span>
+        </div>
+        <div className={s.docWhen}>
+          <span className={s.period}>{t("people.period", {
+            from: dayText(slip.payStart, lang),
+            to: dayText(slip.payEnd, lang) })}</span>
+          {slip.unpaidDays > 0 && (
+            <span className={s.meta}>
+              {t("people.unpaidDays", { count: slip.unpaidDays })}
+            </span>
+          )}
+        </div>
+      </header>
       <section aria-labelledby="slip-earn">
         <h2 id="slip-earn" className={s.groupTitle}>
           {t("people.earnings")}
@@ -145,19 +179,17 @@ function Slip(q: { slip: PayslipView }) {
             label={t("people.totalDeductions")}
             value={slip.deductionsFils} />
         </dl>
-        {slip.pension !== null && (
-          <p className={s.pension}>{slip.pension.text[lang]}</p>
-        )}
       </section>
       <dl className={s.netBlock}>
         <Total slip={slip} traceId={slip.netTraceId}
           label={t("people.net")} value={slip.netFils} strong />
       </dl>
-      {slip.held !== null && (
-        <p className={s.held}><strong>{t("people.held")}. </strong>
-          {slip.held}</p>
-      )}
-      <p className={s.scope}>{slip.rulesScope[lang]}</p>
+      <footer className={s.foot}>
+        <p>{t("people.explainHint")}</p>
+        {slip.pension !== null && <p>{slip.pension.text[lang]}</p>}
+        {slip.held !== null && <p>{t("people.held")}. {slip.held}</p>}
+        <p>{slip.rulesScope[lang]}</p>
+      </footer>
     </article>
   );
 }

@@ -1,0 +1,96 @@
+.box {
+  position: relative;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-inline-size: 220px;
+  min-block-size: 44px;
+  padding-inline: var(--space-4) var(--space-3);
+  border: 1px solid var(--color-divider-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  transition: border-color var(--dur-fast) ease;
+}
+
+.button:hover {
+  border-color: var(--color-border);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.button > svg {
+  color: var(--color-text-muted);
+}
+
+.value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 30;
+  min-inline-size: 100%;
+  max-block-size: min(360px, 60dvh);
+  margin: 0;
+  padding: var(--space-1);
+  overflow-y: auto;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-pop);
+  list-style: none;
+  transform-origin: top;
+  animation: pop 160ms var(--ease-out);
+}
+
+.list:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-control);
+  font-size: var(--text-md);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.option[data-active="true"] {
+  background: var(--color-surface-2);
+}
+
+.option > svg {
+  color: var(--color-accent);
+}
+
+@media (max-width: 760px) {
+  .button {
+    min-inline-size: 0;
+  }
+}

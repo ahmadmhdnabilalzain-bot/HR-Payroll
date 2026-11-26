@@ -1,26 +1,72 @@
+/* A reading page: 8 of 12 columns, from the same left edge. */
 .page > * {
   max-inline-size: calc((var(--container) - 2 * var(--page-pad)) * 8 / 12);
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .slip {
   display: grid;
   gap: var(--space-6);
   padding: var(--space-6);
-  border: 1px solid var(--color-divider-strong);
   border-radius: var(--radius-panel);
   background: var(--color-surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 4%,
+      transparent),
+    0 8px 24px color-mix(in srgb, var(--color-shadow) 6%, transparent);
 }
 
-.hint {
+.docHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block-end: var(--space-5);
+  border-block-end: 1px solid var(--color-divider);
+}
+
+.docWho,
+.docWhen {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+
+.docWhen {
+  text-align: end;
+}
+
+.employer {
   color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.person {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.period {
   font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.meta {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .groupTitle {
   padding-block-end: var(--space-2);
-  border-block-end: 1px solid var(--color-divider-strong);
   color: var(--color-text-muted);
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
@@ -35,8 +81,9 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  min-block-size: 52px;
-  border-block-end: 1px solid var(--color-divider);
+  min-block-size: 48px;
+  border-block-start: 1px solid var(--color-divider);
+  font-size: var(--text-md);
 }
 
 .line dt,
@@ -47,63 +94,74 @@
 .line dd,
 .total dd {
   margin: 0;
+  font-weight: 500;
   text-align: end;
 }
 
-.total {
-  border-block-end: 0;
-  font-weight: 500;
+/* Figures that are copied, not worked out: no dotted rule at rest. */
+.slip .plain {
+  border-block-end-color: transparent;
+}
+
+.slip .plain:hover,
+.slip .plain:focus-visible {
+  border-block-end-color: var(--color-accent);
 }
 
 .total dt {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .netBlock {
   margin: 0;
-  padding-block-start: var(--space-3);
+}
+
+.netBlock .total {
   border-block-start: 2px solid var(--color-text);
+  padding-block-start: var(--space-2);
 }
 
 .total[data-strong="true"] dt {
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
 }
 
 .notComputed {
-  color: var(--color-warning);
+  color: var(--color-text-muted);
   font-weight: 500;
 }
 
 .none {
   padding-block: var(--space-3);
+  border-block-start: 1px solid var(--color-divider);
   color: var(--color-text-muted);
   font-size: var(--text-md);
 }
 
-.pension,
-.held {
-  margin-block-start: var(--space-3);
+.foot {
+  display: grid;
+  gap: var(--space-2);
   max-inline-size: 68ch;
   color: var(--color-text-muted);
-  font-size: var(--text-md);
-  line-height: 1.55;
-}
-
-.held {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-panel);
-  background: var(--color-warning-bg);
-  color: var(--color-text);
-}
-
-.scope {
-  color: var(--color-text-muted);
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
+  line-height: 1.5;
 }
 
 @media (max-width: 760px) {
   .slip {
     padding: var(--space-4);
-    border-radius: var(--radius-panel);
+  }
+
+  .docWhen {
+    text-align: start;
+  }
+}
+
+@media print {
+  .print {
+    display: none;
+  }
+
+  .slip {
+    box-shadow: none;
   }
 }
