@@ -53,7 +53,7 @@ export function RequestForm(p: { budgetId: string | null }) {
   const [replaces, setReplaces] = useState("");
   const [headcount, setHeadcount] = useState("1");
   const [start, setStart] = useState(pick0 !== null &&
-    pick0.startIso > asOf ? pick0.startIso : data.hiring.addDays(asOf, 68));
+    pick0.startIso > asOf ? pick0.startIso : data.hiring.addDays(asOf, 69));
   const [urgency, setUrgency] = useState<Urgency>("normal");
   const [ttf, setTtf] = useState("45");
   const [jd, setJd] = useState(data.hiring.jobDescription(job0, dept0));

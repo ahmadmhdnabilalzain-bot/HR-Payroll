@@ -26,7 +26,7 @@ export const AREAS: readonly Area[] = [
       "headcount first year spend committed sign off" },
   { id: "people.hiring-requests", section: "people", group: "hiring",
     label: { en: "Hiring requests", ar: "طلبات التوظيف" },
-    status: "live", archetype: "FA", roles: ["hr", "gm", "manager"],
+    status: "live", archetype: "FA", roles: HR_GM,
     route: go("requests"), count: waiting,
     keywords: "P10 hiring request requisition request a hire new " +
       "position job description criteria time to fill timeline" },

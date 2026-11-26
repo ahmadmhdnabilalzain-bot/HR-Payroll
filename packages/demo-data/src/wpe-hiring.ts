@@ -425,7 +425,8 @@ const FAMILY: Record<string, string> = { teller: "branch",
   "payments-officer": "operations", "operations-manager": "operations",
   "archive-clerk": "operations", "compliance-officer": "compliance",
   "aml-analyst": "compliance", accountant: "finance",
-  "finance-manager": "finance", "hr-officer": "hr", "hr-manager": "hr" };
+  "finance-manager": "finance", "hr-officer": "hr", "hr-manager": "hr",
+  "executive-assistant": "office", "general-manager": "office" };
 
 const DUTIES: Record<string, string[]> = {
   branch: ["Serve customers at the counter, in person and by phone.",
@@ -449,6 +450,9 @@ const DUTIES: Record<string, string[]> = {
   finance: ["Post entries and close the month on time.",
     "Reconcile accounts and explain differences.",
     "Prepare reports for the finance manager."],
+  office: ["Run the General manager's diary and meetings.",
+    "Prepare papers and minutes for management meetings.",
+    "Be the first point of contact for visitors and calls."],
   hr: ["Keep employee records and documents current.",
     "Support hiring, joining and leaving.",
     "Answer staff questions in plain words."],
@@ -465,6 +469,8 @@ const MUST: Record<string, string[]> = {
     "Clear writing in English"],
   finance: ["A degree in accounting", "Two years closing the month"],
   hr: ["Two years in HR", "Knows UAE mainland employment practice"],
+  office: ["Three years supporting a senior manager",
+    "Arabic and English"],
 };
 
 const NICE: Record<string, string[]> = {
@@ -476,6 +482,7 @@ const NICE: Record<string, string[]> = {
   compliance: ["Has a recognised AML qualification"],
   finance: ["Has worked with payroll journals"],
   hr: ["Has run a payroll"],
+  office: ["Has worked at a bank"],
 };
 
 const familyOf = (jobKey: string): string => FAMILY[jobKey] ?? "operations";
@@ -598,7 +605,7 @@ function requestSpecs(c: DemoCompany, managerId: string): RequestSpec[] {
           text: "Put on hold until the 2027 budget is confirmed" }] },
     { id: "hreq-005", jobKey: opsJob.jobKey, dept: mgr.departmentId,
       requisitionId: null, budgetId: null, reason: "new", headcount: 1,
-      start: "2027-01-03", urgency: "high", ttf: 45, status: "with-hr",
+      start: "2027-01-04", urgency: "high", ttf: 45, status: "with-hr",
       signed: null, raisedBy: managerId, events: [
         { by: managerId, on: "2026-10-22", to: "with-hr",
           text: "Raised the request" },
@@ -607,7 +614,7 @@ function requestSpecs(c: DemoCompany, managerId: string): RequestSpec[] {
           "person from January would stop the overtime." }] },
     { id: "hreq-006", jobKey: "aml-analyst", dept: "dept-compliance",
       requisitionId: null, budgetId: null, reason: "new", headcount: 1,
-      start: "2027-01-17", urgency: "normal", ttf: 60, status: "with-gm",
+      start: "2027-01-18", urgency: "normal", ttf: 60, status: "with-gm",
       signed: null, raisedBy: compliance, events: [
         { by: compliance, on: "2026-10-19", to: "with-hr",
           text: "Raised the request" },

@@ -357,12 +357,7 @@ export function budgetRows(d: DemoData, s: S): BudgetRow[] {
   const base = d.hiring.budget();
   const signed = (a: AskNow) => a.decision?.verdict === "signed-off";
   const seeded = base.map((row0): BudgetRow => {
-    const mine = asks.filter((a) => a.kind === "change" &&
-      a.budgetId === row0.id);
-    const changes = mine.filter(signed);
-    const last = changes.at(-1);
-    let row = seatNow(d, s, last === undefined ? row0
-      : withCost(d, row0, last.grade, last.steps), base);
+    let row = seatNow(d, s, row0, base);
     const r = reqs.find((x) => x.id === row.requestId);
     if (row.budgetState === "waiting" && r !== undefined &&
       r.signedOffIso !== null && (r.status === "open" ||
@@ -372,8 +367,7 @@ export function budgetRows(d: DemoData, s: S): BudgetRow[] {
         name: d.people.person(gm)?.name.en ?? "", on: { iso: r.signedOffIso,
           display: d.hiring.dateText(r.signedOffIso) } } };
     }
-    return { ...row, session: false, changes,
-      pending: mine.find((a) => a.decision === null) ?? null };
+    return { ...row, session: false, changes: [], pending: null };
   });
   const added = asks.filter((a) => a.kind === "add" && signed(a))
     .map((a): BudgetRow => {
@@ -403,15 +397,24 @@ export function budgetRows(d: DemoData, s: S): BudgetRow[] {
     r.requisitionId === null && r.signedOffIso !== null)
     .flatMap((r) => Array.from({ length: r.headcount }, (_, i) =>
       fromRequest(d, r, i + 1)));
-  return [...seeded, ...added, ...fresh];
+  // Changes apply to every position, seeded or made in the demo.
+  return [...seeded, ...added, ...fresh].map((row): BudgetRow => {
+    const mine = asks.filter((a) => a.kind === "change" &&
+      a.budgetId === row.id);
+    const changes = mine.filter(signed);
+    const last = changes.at(-1);
+    return { ...(last === undefined ? row
+      : withCost(d, row, last.grade, last.steps)), session: row.session,
+    changes, pending: mine.find((a) => a.decision === null) ?? null };
+  });
 }
 
 /** Budgeted positions a new request can fill (no live request yet). */
 export const freePositions = (rows: readonly BudgetRow[],
   reqs: readonly RequestNow[]): BudgetRow[] =>
   rows.filter((b) => b.status === "budgeted" && b.budgetState ===
-    "signed-off" && !reqs.some((r) => r.budgetId === b.id &&
-    !["declined", "withdrawn"].includes(r.status)));
+    "signed-off" && b.requestId === null && !reqs.some((r) =>
+    r.budgetId === b.id && !["declined", "withdrawn"].includes(r.status)));
 
 // ---------------------------------------------------------------
 // Home: tasks and notifications for HR, the GM and the manager
@@ -443,9 +446,10 @@ export function hiringTasks(d: DemoData, s: S)
         `hiring request for ${r.title}`, who, "approval", href));
     }
     if (r.status === "changes" && r.raisedById === me) {
+      const by = [...r.events].reverse().find((e) => e.to === "changes");
       out.push(task(me, `hiring:changes:${r.id}`, `Update your ` +
-        `hiring request for ${r.title}`, "HR asked for changes",
-      "approval", href));
+        `hiring request for ${r.title}`, `${by?.name ?? "HR"} asked for ` +
+        "changes", "approval", href));
     }
     if (s.role === "hr" && r.status === "open") {
       const late = timelineOf(d, s, r).find((m) => m.state === "overdue");

@@ -76,7 +76,7 @@ import {
 } from "./checks-state";
 import {
   HIRING_INITIAL,
-  reduceHiring,
+  reduceHiringMoves,
   type HiringAction,
   type HiringSlice,
 } from "./hiring-state";
@@ -364,7 +364,7 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "budget-ask":
     case "budget-ask-undo":
     case "budget-decide":
-    case "budget-undecide": return reduceHiring(s, a);
+    case "budget-undecide": return reduceHiringMoves(s, a);
     case "more-hire":
     case "more-hire-withdraw":
     case "more-hire-restore":

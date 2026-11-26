@@ -79,10 +79,11 @@ export interface HiringData {
   addDays(iso: string, n: number): string;
   /** The workings behind a position's figures (explain panel). */
   explain: {
-    monthly(title: string, cost: PositionCost): Explanation;
-    firstYear(title: string, cost: PositionCost): Explanation;
-    left(title: string, p: { firstYear: Fils; committed: SpendLine | null;
-      offered: SpendLine | null }): Explanation;
+    /** `key`: the position's id, so two seats never share a working. */
+    monthly(key: string, title: string, cost: PositionCost): Explanation;
+    firstYear(key: string, title: string, cost: PositionCost): Explanation;
+    left(key: string, title: string, p: { firstYear: Fils;
+      committed: SpendLine | null; offered: SpendLine | null }): Explanation;
     total(label: string, rows: readonly { title: string;
       value: Fils }[]): Explanation;
   };

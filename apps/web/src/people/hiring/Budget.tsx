@@ -67,7 +67,7 @@ export function BudgetList() {
         searchText={(r) => `${r.title} ${r.departmentText} ${r.ownerName}`}
         filters={(
           <label className={h.field}>
-            <span>Department</span>
+            <span className="visually-hidden">Department</span>
             <select value={dept} onChange={(e) => setDept(e.target.value)}>
               <option value="all">All departments</option>
               {depts.map((d) => (
@@ -76,7 +76,9 @@ export function BudgetList() {
             </select>
           </label>
         )}
+        summary={[]}
         meta={(
+          <div className={h.stack}>
           <dl className={h.figures} aria-label="Budget and spend">
             <div><dt>First-year budget</dt><dd>
               <Explainable explanation={ex.total("First-year budget",
@@ -99,6 +101,8 @@ export function BudgetList() {
                 <Money value={t.left} size="md" tween={false} />
               </Explainable></dd></div>
           </dl>
+          <p className={h.quiet}>{data.hiring.budgetBasis}</p>
+          </div>
         )}
         segments={[{ id: "all", label: "All", match: () => true },
           st("budgeted"), st("open"), st("in-hiring"), st("filled")]}
@@ -122,7 +126,6 @@ export function BudgetList() {
             onClick={() => setAdding(true)}>Add a position</button>
         ) : undefined}
         empty="No positions here. Choose another department or status." />
-      <p className={h.quiet}>{data.hiring.budgetBasis}</p>
       <AddPosition open={adding} onClose={() => setAdding(false)} />
     </>
   );
@@ -236,12 +239,16 @@ export function BudgetRecord(p: { id: string }) {
       )}
       {state.role === "gm" && ask === null && decidedHere !== undefined && (
         <button type="button" className={`${b.btn} ${b.quiet}`}
-          onClick={() => dispatch({ type: "budget-undecide",
-            askId: decidedHere.id })}>Undo the decision</button>
+          onClick={() => dispatch(decidedHere.by === actor.id &&
+            state.budgetAsks.some((x) => x.id === decidedHere.id)
+            ? { type: "budget-ask-undo", id: decidedHere.id }
+            : { type: "budget-undecide", askId: decidedHere.id })}>
+          Undo</button>
       )}
-      {state.role === "hr" && ask === null && (
+      {(state.role === "hr" || state.role === "gm") && ask === null && (
         <button type="button" className={`${b.btn} ${b.secondary}`}
-          onClick={() => setAsking(true)}>Ask for a budget change</button>
+          onClick={() => setAsking(true)}>{state.role === "gm"
+            ? "Change the budget" : "Ask for a budget change"}</button>
       )}
       {mineAsk && (
         <button type="button" className={`${b.btn} ${b.quiet}`}
@@ -264,15 +271,15 @@ export function BudgetRecord(p: { id: string }) {
           tone: PILL[r.status] }}
         stats={[
           { label: "A full month", value: (
-            <Explainable explanation={ex.monthly(r.title, r.cost)}>
+            <Explainable explanation={ex.monthly(r.id, r.title, r.cost)}>
               <Money value={r.cost.monthly} tween={false} />
             </Explainable>) },
           { label: "First-year budget", value: (
-            <Explainable explanation={ex.firstYear(r.title, r.cost)}>
+            <Explainable explanation={ex.firstYear(r.id, r.title, r.cost)}>
               <Money value={r.cost.firstYear} tween={false} />
             </Explainable>) },
           { label: "Left", value: (
-            <Explainable explanation={ex.left(r.title, {
+            <Explainable explanation={ex.left(r.id, r.title, {
               firstYear: r.cost.firstYear, committed: r.committed,
               offered: r.offered })}>
               <Money value={r.left} tween={false} />
@@ -346,12 +353,14 @@ function AskChange(p: { row: BudgetRow; open: boolean; onClose(): void }) {
     data.hiring.maxSteps));
   const [why, setWhy] = useState("");
   const [problem, setProblem] = useState("");
+  const gm = state.role === "gm";
   const cost = useMemo(() => data.hiring.cost(grade, steps, p.row.startIso),
     [data, grade, steps, p.row.startIso]);
   const lo = Math.min(role?.gradeMin ?? p.row.grade, p.row.grade);
   const hi = Math.max(role?.gradeMax ?? p.row.grade, p.row.grade);
   return (
-    <Sheet open={p.open} title="Ask for a budget change" onClose={p.onClose}>
+    <Sheet open={p.open} title={gm ? "Change the budget"
+      : "Ask for a budget change"} onClose={p.onClose}>
       <form className={h.stack} onSubmit={(e) => {
         e.preventDefault();
         if (grade === p.row.grade && steps === p.row.steps) {
@@ -359,7 +368,8 @@ function AskChange(p: { row: BudgetRow; open: boolean; onClose(): void }) {
           return;
         }
         if (why.trim() === "") {
-          setProblem("Say why, so the General manager can decide.");
+          setProblem(gm ? "Say why, for HR and the trail."
+            : "Say why, so the General manager can decide.");
           return;
         }
         const id = nextAskId(state);
@@ -368,8 +378,9 @@ function AskChange(p: { row: BudgetRow; open: boolean; onClose(): void }) {
           jobKey: p.row.jobKey, departmentId: p.row.departmentId,
           startIso: p.row.startIso, by: actor.id, role: actor.role,
           on: actor.on } });
-        toast.show(`${p.row.title}: budget change sent to the General ` +
-          "manager", () => dispatch({ type: "budget-ask-undo", id }));
+        toast.show(gm ? `${p.row.title}: budget changed and signed off`
+          : `${p.row.title}: budget change sent to the General manager`,
+        () => dispatch({ type: "budget-ask-undo", id }));
         setWhy("");
         setProblem("");
         p.onClose();
@@ -405,7 +416,8 @@ function AskChange(p: { row: BudgetRow; open: boolean; onClose(): void }) {
           {problem}</p>}
         <div className={h.actions}>
           <button type="submit" className={`${b.btn} ${b.primary}`}>
-            Send to the General manager</button>
+            {gm ? "Change and sign off" : "Send to the General manager"}
+          </button>
         </div>
       </form>
     </Sheet>
@@ -426,7 +438,7 @@ function AddPosition(p: { open: boolean; onClose(): void }) {
   const [grade, setGrade] = useState(role?.gradeMin ?? 3);
   const [steps, setSteps] = useState(0);
   const [start, setStart] = useState(data.hiring.addDays(data.hiring.asOf,
-    67));
+    69));
   const [why, setWhy] = useState("");
   const [problem, setProblem] = useState("");
   const g = role === undefined ? grade : Math.min(Math.max(grade,

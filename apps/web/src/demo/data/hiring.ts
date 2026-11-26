@@ -87,21 +87,22 @@ export function adaptHiring(c: DemoCompany, managerId: string)
     dateText: shortDateText,
     addDays,
     explain: {
-      monthly: (title, cost) => sumExplain({ id: `hire-month:${title}`,
+      monthly: (key, title, cost) => sumExplain({ id: `hire-month:${key}`,
         title: "A full month's budget", subject: title,
         summary: "The grade and step the budget allows, as a full " +
           "month's gross pay.", resultLabel: "A full month, gross",
         parts: cost.parts.map((x) => ({ text: x.label,
           value: money(x.monthly) })), notComputed: [NOT_IN],
         scope: c.rulesScope }),
-      firstYear: (title, cost) => sumExplain({ id: `hire-year:${title}`,
+      firstYear: (key, title, cost) => sumExplain({
+        id: `hire-year:${key}`,
         title: "First-year budget", subject: title,
         summary: `Twelve payroll months of gross pay from ` +
           `${cost.startText}.`, resultLabel: "First year, gross",
         parts: cost.months.map((x) => ({ text: x.part
           ? `${x.label} (part month)` : x.label, value: money(x.gross) })),
         notComputed: [NOT_IN], scope: c.rulesScope }),
-      left: (title, p) => sumExplain({ id: `hire-left:${title}`,
+      left: (key, title, p) => sumExplain({ id: `hire-left:${key}`,
         title: "Budget left", subject: title,
         summary: "The first-year budget less pay agreed and pay offered.",
         resultLabel: "Left", parts: [

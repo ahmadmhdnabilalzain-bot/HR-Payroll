@@ -172,8 +172,11 @@ function hiring(a: HiringAct, s: DemoState, d: DemoData, make: Make,
       return a.ask.kind === "add"
         ? make("people.budget-position-added", "people", bud(id, t),
           `${who} added and signed off a budgeted position for ${t}.`)
-        : make("people.budget-change-asked", "people", bud(id, t),
-          `${who} asked to change the hiring budget for ${t}.`);
+        : a.ask.role === "gm" ? make("people.budget-changed", "people",
+          bud(id, t), `${who} changed and signed off the hiring budget ` +
+          `for ${t}.`)
+          : make("people.budget-change-asked", "people", bud(id, t),
+            `${who} asked to change the hiring budget for ${t}.`);
     }
     case "budget-ask-undo": return make("people.budget-ask-undone",
       "people", bud(a.id, askTitle(a.id)), `${who} took back a hiring ` +

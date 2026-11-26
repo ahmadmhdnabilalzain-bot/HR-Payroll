@@ -4,7 +4,6 @@ import type {
   MilestoneState,
   RequestStatus,
 } from "../../demo/data/hiring-types";
-import type { HiringStep } from "../../demo/hiring-state";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { personFor } from "../../demo/time-off";
@@ -76,34 +75,20 @@ export function RequestRecord(p: { id: string }) {
   const last = undoable(r, me);
   const staff = state.role === "hr" || state.role === "gm";
 
-  /** A step on a requisition's request moves the requisition too. */
-  const undoStep = (st: Pick<HiringStep, "id" | "to" | "from">): void => {
-    dispatch({ type: "hiring-step-undo", id: st.id });
-    if (req === undefined || (st.to !== "open" && st.to !== "on-hold")) {
-      return;
-    }
-    if (st.from === req.status || (st.from !== "open" &&
-      st.from !== "on-hold")) {
-      dispatch({ type: "move-undo", key: `req:${req.id}` });
-    } else {
-      dispatch({ type: "move-step", key: `req:${req.id}`, step: {
-        value: st.from, from: st.to, by: actor.id, role: actor.role,
-        on: actor.on } });
-    }
-  };
+  /** One undo path: the step and, with it, the requisition. */
+  const undoStep = (id: string): void =>
+    dispatch({ type: "hiring-step-undo", id });
   const take = (a: Act, why: string): void => {
     const id = `hstep-${state.nextHiring}`;
-    const st = { id, to: a.to, from: r.status };
+    const key = req === undefined ? "" : `req:${req.id}`;
     dispatch({ type: "hiring-step", step: { requestId: r.id, to: a.to,
       from: r.status, note: why, by: actor.id, role: actor.role,
-      on: actor.on } });
-    if (req !== undefined && (a.to === "open" || a.to === "on-hold")) {
-      dispatch({ type: "move-step", key: `req:${req.id}`, step: {
-        value: a.to, from: reqNow(req, state), by: actor.id,
-        role: actor.role, on: actor.on } });
-    }
+      on: actor.on, req: req !== undefined && (a.to === "open" ||
+        a.to === "on-hold") ? { key, before: state.moveSteps[key] ?? null,
+        set: { value: a.to, from: reqNow(req, state), by: actor.id,
+          role: actor.role, on: actor.on } } : null } });
     toast.show(`${r.title}: ${a.id === "resume" ? "resumed"
-      : a.label.toLowerCase()}`, () => undoStep(st));
+      : a.label.toLowerCase()}`, () => undoStep(id));
   };
   const start = (a: Act): void => {
     if (a.note === "none") take(a, "");
@@ -136,7 +121,7 @@ export function RequestRecord(p: { id: string }) {
     <div className={h.actions}>
       {last !== null ? (
         <button type="button" className={`${b.btn} ${b.secondary}`}
-          onClick={() => undoStep(last)}>Undo</button>
+          onClick={() => undoStep(last.id)}>Undo</button>
       ) : primary !== undefined && (
         <button type="button" className={`${b.btn} ${b.primary}`}
           onClick={() => start(primary)}>{primary.label}</button>

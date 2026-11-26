@@ -1,4 +1,5 @@
 import type { RequestStatus, Urgency } from "./data/hiring-types";
+import type { MovesSlice, MoveStep } from "./moves-state";
 import type { Role } from "./state";
 
 /**
@@ -45,6 +46,9 @@ export interface HiringStep extends Who {
   from: RequestStatus;
   /** Why (asked for changes, declined, on hold); may be empty. */
   note: string;
+  /** A request tied to a requisition moves it too (the Requisitions
+   * overlay, `req:<id>`); the undo puts back what was there. */
+  req: { key: string; set: MoveStep; before: MoveStep | null } | null;
 }
 
 export interface HiringMessage extends Who {
@@ -128,14 +132,37 @@ function without<T>(r: Record<string, T>, key: string): Record<string, T> {
   return rest;
 }
 
+/** Steps with their requisition: one action, one undo, both slices. */
+export function reduceHiringMoves<S extends HiringSlice & MovesSlice>(
+  s: S, a: HiringAction): S {
+  if (a.type === "hiring-step" && a.step.req !== null) {
+    const r = a.step.req;
+    return { ...reduceHiring(s, a), moveSteps: { ...s.moveSteps,
+      [r.key]: r.set } };
+  }
+  if (a.type === "hiring-step-undo") {
+    const st = s.hiringSteps.find((x) => x.id === a.id);
+    if (st === undefined) return s;
+    const next = reduceHiring(s, a);
+    if (st.req === null) return next;
+    const { [st.req.key]: _gone, ...rest } = s.moveSteps;
+    return { ...next, moveSteps: st.req.before === null ? rest
+      : { ...rest, [st.req.key]: st.req.before } };
+  }
+  return reduceHiring(s, a);
+}
+
 export function reduceHiring<S extends HiringSlice>(s: S,
   a: HiringAction): S {
   const n = s.nextHiring;
+  const has = (xs: readonly { id: string }[], id: string): boolean =>
+    xs.some((x) => x.id === id);
   switch (a.type) {
     case "hiring-raise":
       return { ...s, hiringNew: [...s.hiringNew, { ...a.draft, ...a.who,
         id: `hreq-new-${n}`, n: a.n }], nextHiring: n + 1 };
     case "hiring-raise-undo":
+      if (!has(s.hiringNew, a.id)) return s;
       return { ...s, hiringNew: s.hiringNew.filter((x) => x.id !== a.id),
         hiringSteps: s.hiringSteps.filter((x) => x.requestId !== a.id),
         hiringMessages: s.hiringMessages.filter((x) =>
@@ -144,23 +171,27 @@ export function reduceHiring<S extends HiringSlice>(s: S,
       return { ...s, hiringSteps: [...s.hiringSteps, { ...a.step,
         id: `hstep-${n}` }], nextHiring: n + 1 };
     case "hiring-step-undo":
+      if (!has(s.hiringSteps, a.id)) return s;
       return { ...s, hiringSteps: s.hiringSteps.filter((x) =>
         x.id !== a.id) };
     case "hiring-message":
       return { ...s, hiringMessages: [...s.hiringMessages, { ...a.message,
         id: `hmsg-${n}` }], nextHiring: n + 1 };
     case "hiring-message-undo":
+      if (!has(s.hiringMessages, a.id)) return s;
       return { ...s, hiringMessages: s.hiringMessages.filter((x) =>
         x.id !== a.id) };
     case "hiring-edit":
       return { ...s, hiringEdits: [...s.hiringEdits, { ...a.edit,
         id: `hedit-${n}` }], nextHiring: n + 1 };
     case "hiring-edit-undo":
+      if (!has(s.hiringEdits, a.id)) return s;
       return { ...s, hiringEdits: s.hiringEdits.filter((x) =>
         x.id !== a.id) };
     case "budget-ask": {
       const id = `bask-new-${n}`;
-      const own = a.ask.kind === "add" && a.ask.role === "gm";
+      // The General manager's own ask is his sign-off.
+      const own = a.ask.role === "gm";
       return { ...s, budgetAsks: [...s.budgetAsks, { ...a.ask, id }],
         budgetDecisions: own ? { ...s.budgetDecisions, [id]: {
           askId: id, verdict: "signed-off", note: "", by: a.ask.by,
@@ -168,12 +199,14 @@ export function reduceHiring<S extends HiringSlice>(s: S,
         nextHiring: n + 1 };
     }
     case "budget-ask-undo":
+      if (!has(s.budgetAsks, a.id)) return s;
       return { ...s, budgetAsks: s.budgetAsks.filter((x) => x.id !== a.id),
         budgetDecisions: without(s.budgetDecisions, a.id) };
     case "budget-decide":
       return { ...s, budgetDecisions: { ...s.budgetDecisions,
         [a.decision.askId]: a.decision } };
     case "budget-undecide":
+      if (s.budgetDecisions[a.askId] === undefined) return s;
       return { ...s, budgetDecisions: without(s.budgetDecisions, a.askId) };
   }
 }

@@ -25,7 +25,7 @@ test("manager raises a hire; HR asks for changes, then sends it on",
     await asRole(page, "Team manager");
     await go(page, "#/people/hiring/requests");
     await expect(h1(page)).toHaveText("My hiring requests");
-    await page.getByRole("link", { name: "Request a hire" }).first().click();
+    await page.locator('a[href$="/hiring/requests/new"]').first().click();
     await expect(h1(page)).toHaveText("Request a hire");
     await expect(page.getByLabel("Job description"))
       .toHaveValue(/What you will do:/);
@@ -100,9 +100,16 @@ test("GM signs off a request and a budget change; the trail shows it",
       .first()).toBeVisible();
   });
 
-test("IT and the employee are turned away, with no amounts",
+test("the manager, IT and the employee are turned away",
   async ({ page }) => {
     await page.goto("/");
+    await asRole(page, "Team manager");
+    for (const hash of ["#/people/hiring/budget",
+      "#/people/hiring/budget/bud-pos-014",
+      "#/people/hiring/requests/hreq-002"]) {
+      await go(page, hash);
+      await expect(h1(page)).toContainText("outside your view");
+    }
     for (const role of ["IT manager", "Employee"]) {
       await asRole(page, role);
       for (const hash of ["#/people/hiring/budget",

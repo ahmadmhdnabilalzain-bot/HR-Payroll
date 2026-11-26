@@ -41,7 +41,7 @@ const step = (s: DemoState, id: string, role: Role, to: string,
   note = ""): DemoState => {
   const r = find(s, id);
   return run(as(role, s), { type: "hiring-step", step: { requestId: id,
-    to: to as never, from: r.status, note, ...who(role) } });
+    to: to as never, from: r.status, note, req: null, ...who(role) } });
 };
 const draft = (): HiringDraft => {
   const me = personFor(d, "manager");
@@ -155,16 +155,71 @@ describe("hiring requests: who sees and does what", () => {
   it("the held systems engineer goes back to the GM, then opens", () => {
     let s = step(INITIAL, "hreq-004", "hr", "with-gm");
     expect(find(s, "hreq-004").status).toBe("with-gm");
-    s = step(s, "hreq-004", "gm", "open");
-    s = run(s, { type: "move-step", key: "req:req-004", step: {
-      value: "open", from: "on-hold", ...who("gm") } });
+    s = run(as("gm", s), { type: "hiring-step", step: { requestId:
+      "hreq-004", to: "open", from: "with-gm", note: "", ...who("gm"),
+      req: { key: "req:req-004", before: null, set: { value: "open",
+        from: "on-hold", ...who("gm") } } } });
     const row = budgetRows(d, s).find((b) => b.positionId === "pos-new-3")!;
     expect(row.budgetState).toBe("signed-off");
     expect(row.status).toBe("open");
   });
 });
 
+describe("hiring: one undo, both slices", () => {
+  it("a linked step moves the requisition; undo puts it back, once", () => {
+    const set = { value: "on-hold", from: "open", ...who("hr") };
+    let s = run(as("hr"), { type: "hiring-step", step: { requestId:
+      "hreq-002", to: "on-hold", from: "open", note: "", ...who("hr"),
+      req: { key: "req:req-002", before: null, set } } });
+    expect(s.moveSteps["req:req-002"]!.value).toBe("on-hold");
+    expect(find(s, "hreq-002").status).toBe("on-hold");
+    const id = s.hiringSteps[0]!.id;
+    s = run(s, { type: "hiring-step-undo", id });
+    expect(s.moveSteps["req:req-002"]).toBeUndefined();
+    expect(find(s, "hreq-002").status).toBe("open");
+    // The toast's undo after the page's: nothing changes, no audit line.
+    expect(reduce(s, { type: "hiring-step-undo", id })).toBe(s);
+    expect(reduce(s, { type: "budget-undecide", askId: "x" })).toBe(s);
+    expect(reduce(s, { type: "hiring-message-undo", id: "x" })).toBe(s);
+  });
+});
+
 describe("hiring budget", () => {
+  it("a change on a position added in the demo waits, then applies", () => {
+    let s = run(as("gm"), { type: "budget-ask", ask: { kind: "add",
+      budgetId: null, grade: 4, steps: 0, reason: "Cover", jobKey: "teller",
+      departmentId: "dept-retail", startIso: "2027-03-01", ...who("gm") } });
+    const added = budgetRows(d, s).find((b) => b.session)!;
+    expect(added.status).toBe("budgeted");
+    s = run(as("hr", s), { type: "budget-ask", ask: { kind: "change",
+      budgetId: added.id, grade: 4, steps: 3, reason: "Market",
+      jobKey: "teller", departmentId: "dept-retail",
+      startIso: "2027-03-01", ...who("hr") } });
+    const asked = budgetRows(d, s).find((b) => b.id === added.id)!;
+    expect(asked.pending!.steps).toBe(3);
+    expect(hiringTasks(d, as("gm", s)).map((t) => t.id))
+      .toContain(`hiring:budget:${asked.pending!.id}`);
+    s = run(as("gm", s), { type: "budget-decide", decision: {
+      askId: asked.pending!.id, verdict: "signed-off", note: "",
+      ...who("gm") } });
+    const done = budgetRows(d, s).find((b) => b.id === added.id)!;
+    expect(done.steps).toBe(3);
+    expect(done.cost.firstYear).toBeGreaterThan(added.cost.firstYear);
+  });
+
+  it("the General manager's own change is signed off at once", () => {
+    const s = run(as("gm"), { type: "budget-ask", ask: { kind: "change",
+      budgetId: "bud-pos-new-2", grade: 5, steps: 3, reason: "Market",
+      jobKey: "", departmentId: "", startIso: "", ...who("gm") } });
+    const row = budgetRows(d, s).find((b) => b.id === "bud-pos-new-2")!;
+    expect(row.pending).toBeNull();
+    expect(row.steps).toBe(3);
+    expect(auditFor({ type: "budget-ask", ask: { kind: "change",
+      budgetId: "bud-pos-new-2", grade: 5, steps: 3, reason: "x",
+      jobKey: "", departmentId: "", startIso: "", ...who("gm") } },
+    as("gm"), d)!.summary).toMatch(/changed and signed off/);
+  });
+
   it("five seats; changes signed off move the cost", () => {
     const rows = budgetRows(d, INITIAL);
     expect(rows).toHaveLength(5);
@@ -245,6 +300,8 @@ describe("Home and the guard", () => {
         .toBe(false);
       expect(areasFor("manager").map((a) => a.id)).toContain(
         "requests.hire");
+      expect(areasFor("manager").map((a) => a.id)).not.toContain(
+        "people.hiring-requests");
       expect(areasFor("it").some((a) => a.id.includes("hiring")))
         .toBe(false);
     });
@@ -256,7 +313,7 @@ describe("audit and figures", () => {
     const acts: Action[] = [
       { type: "hiring-raise", draft: draft(), who: who("gm"), n: 7 },
       { type: "hiring-step", step: { requestId: "hreq-006", to: "open",
-        from: "with-gm", note: "", ...who("gm") } },
+        from: "with-gm", note: "", req: null, ...who("gm") } },
       { type: "hiring-message", message: { requestId: "hreq-006",
         text: "AED 9,000 is fine", ...who("gm") } },
       { type: "budget-decide", decision: { askId: "bask-001",
