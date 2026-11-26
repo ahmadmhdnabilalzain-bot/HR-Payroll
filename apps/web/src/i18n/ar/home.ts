@@ -65,6 +65,9 @@ export const home: ArOf<typeof en> = {
   stepDone: "تم",
   stepNow: "الآن",
   blockersTitle: "قبل التوقيع",
+  signedOffTitle: "تم الاعتماد",
+  signedOffNote: "تم اعتماد رواتب {month}. " +
+    "ما بقي للمراجعة مدرج أدناه للدورة التالية.",
   openIssues: {
     zero: "لا بنود مفتوحة",
     one: "بند مفتوح واحد",

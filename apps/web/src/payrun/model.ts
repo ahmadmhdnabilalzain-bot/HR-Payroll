@@ -16,21 +16,21 @@ export function stepOf(rest: string[]): StepId {
 export type StepState = "done" | "now" | "next" | "tofix" | "waiting";
 
 /**
- * Each step's state from the shared approval: Fix is done when nothing
- * holds the file; Approve when the decision is recorded; Pay is ready
- * once approved. Progress only: every step can be opened at any time.
+ * Each step's state from the shared approval, the same whichever step
+ * is open (the open step is marked by the ring and aria-current): one
+ * step is current. Review is done (its items never hold the run back);
+ * Fix is current while bank details hold the file; then Approve; then
+ * Pay. Every step can still be opened at any time.
  */
-export function stepStates(at: StepId, a: RunApproval)
+export function stepStates(_at: StepId, a: RunApproval)
   : Record<StepId, StepState> {
   const fixed = a.blockedBy.length === 0;
   const approved = a.phase === "file";
-  const cur = (id: StepId, done: boolean, fallback: StepState)
-    : StepState => done ? "done" : at === id ? "now" : fallback;
   return {
-    review: at === "review" ? "now" : "done",
-    fix: fixed ? (at === "fix" ? "now" : "done") : "tofix",
-    approve: cur("approve", approved, fixed ? "next" : "waiting"),
-    pay: approved ? "now" : at === "pay" ? "now" : "next",
+    review: "done",
+    fix: fixed ? "done" : "tofix",
+    approve: approved ? "done" : fixed ? "now" : "waiting",
+    pay: approved ? "now" : "next",
   };
 }
 

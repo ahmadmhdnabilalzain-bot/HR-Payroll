@@ -1,5 +1,6 @@
 import { downloadText } from "../../lib/download";
 import { toCsv } from "../../reports/csv";
+import { plural } from "../../reports/fmt";
 import { useDemo } from "../../demo/state";
 import b from "../../ui/button.module.css";
 import { amountsHidden, maskCsvColumns, useMaskText }
@@ -44,9 +45,11 @@ export function Import(p: { d: AccessData }) {
               onClick={() => downloadText(sample.fileName, fileText,
                 "text/csv;charset=utf-8")}>Download the sample file</button>
             <button type="button" className={`${b.btn} ${b.primary} ${s.tap}`}
-              onClick={() => toast.show(`Nothing imported. ${
-                sample.summary.ready} ready rows would be added; ${
-                sample.summary.errors} rows need a fix first.`)}>
+              onClick={() => toast.show("Nothing imported. " +
+                `${plural(sample.summary.ready, "ready row would",
+                  "ready rows would")} be added; ${plural(
+                  sample.summary.errors, "row needs", "rows need")} a ` +
+                "fix first.")}>
               Import the ready rows</button>
           </>
         )}

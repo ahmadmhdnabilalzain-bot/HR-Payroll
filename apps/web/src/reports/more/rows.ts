@@ -29,7 +29,8 @@ export function briefLive(i: BriefItem, x: BriefLiveInput): LiveRow {
   switch (i.live) {
     case "issues-open":
       return { ...same, count: x.fig.open, next: x.fig.open === 0
-        ? "Nothing left to fix." : i.next };
+        ? "Nothing left to fix." : x.fig.signedOff ? "Signed off; " +
+          "these are left to review in the next run." : i.next };
     case "held":
       return { ...same, amount: x.fig.heldNetFils,
         next: x.fig.heldNetFils === 0n ? "Nothing is held out now."

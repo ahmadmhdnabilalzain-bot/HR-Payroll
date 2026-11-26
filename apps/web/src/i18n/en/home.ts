@@ -51,6 +51,10 @@ export const home = {
   stepDone: "Done",
   stepNow: "Now",
   blockersTitle: "Before sign-off",
+  signedOffTitle: "Signed off",
+  signedOffNote: "{month} pay is signed off. What was still open to " +
+    "review is listed below for the next run; none of it holds the " +
+    "salary file.",
   openIssues: { one: "{count} open issue", other: "{count} open issues" },
   noIssues: "No open issues",
   blockCount: { one: "{count} blocks sign-off",
