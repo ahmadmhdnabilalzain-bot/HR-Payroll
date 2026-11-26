@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { formatDate } from "../../i18n/format";
@@ -8,6 +8,8 @@ import { mayOpen, routeOf } from "../../nav/registry";
 import b from "../../ui/button.module.css";
 import { useToast } from "../../ui/Toast";
 import { PageHead } from "../../ui/templates";
+import { useEntrance, useListFlip } from "../../ui/templates/listEnter";
+import m from "../../ui/templates/motion.module.css";
 import tp from "../../ui/templates/templates.module.css";
 import { useMakerChecker } from "../../pay/parts";
 import { useReportCrumbs } from "../fmt";
@@ -70,8 +72,14 @@ export function TemplatesScreen() {
     const href = t === undefined ? null : hrefFor(t.areaId, v.filter);
     return href === null ? [] : [{ v, href }];
   });
+  // The shared list motion: the cards rise in once, a saved view
+  // slides in and a removed one fades where it stood (listEnter.ts).
+  const page = useRef<HTMLDivElement>(null);
+  const viewsHost = useRef<HTMLDivElement>(null);
+  useEntrance(page, "ul[aria-label='Templates'] > li", { scope: "cards" });
+  useListFlip(viewsHost, views.map(({ v }) => v.id));
   return (
-    <div className={tp.page}>
+    <div className={tp.page} ref={page}>
       <PageHead title="Report templates" crumbs={crumbs}
         lede={"Ready reports. Pick a template, set what you want to see, " +
           "and open it, or save the view to come back to."} />
@@ -110,13 +118,14 @@ export function TemplatesScreen() {
       </ul>
       <div className={s.wrap}>
         <h2 className={s.h2}>My views</h2>
+        <div className={m.host} ref={viewsHost}>
         {views.length === 0 ? (
           <p className={s.basis}>No saved views yet. Pick a template and
             choose Save my view.</p>
         ) : (
           <ul className={s.views} aria-label="My views">
             {views.map(({ v, href }) => (
-              <li key={v.id}>
+              <li key={v.id} data-key={v.id}>
                 <a href={href}>{v.name}</a>
                 <span className={s.muted}>{`Saved ` +
                   formatDate(v.on, lang)}</span>
@@ -127,6 +136,7 @@ export function TemplatesScreen() {
             ))}
           </ul>
         )}
+        </div>
         <p className={s.basis}>
           A template opens the report that already exists, set to the
           month or cost centre you pick. Saved views stay in this demo.

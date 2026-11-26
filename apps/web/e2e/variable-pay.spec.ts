@@ -1,6 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+/** Let entrances and exits settle: axe reads colours mid-fade. */
+async function settle(page: Page): Promise<void> {
+  await page.waitForFunction(() => document.getAnimations().every((x) =>
+    x.playState !== "running" ||
+    x.effect?.getTiming().iterations === Infinity));
+}
+
 async function asRole(page: Page, name: string): Promise<void> {
   await page.getByRole("button", { name: /Viewing as/ }).click();
   await page.getByRole("menuitemradio", { name }).click();
@@ -19,6 +26,7 @@ test("bonus run: prepare, send, sign off, then the pay run history",
     await page.getByRole("link", { name: "Q3 performance bonus" }).click();
     await expect(page.getByText("Draft").first()).toBeVisible();
     await page.getByRole("button", { name: "Send for sign off" }).click();
+    await settle(page);
     const bad = await new AxeBuilder({ page }).analyze();
     expect(bad.violations).toEqual([]);
     await asRole(page, "General manager");
@@ -44,6 +52,7 @@ test("commission: HR prepares, the GM signs off, the employee sees it",
     await page.getByRole("button", { name: "Prepare statements" }).click();
     await expect(page.getByText("Waiting for sign off").first())
       .toBeVisible();
+    await settle(page);
     const bad = await new AxeBuilder({ page }).analyze();
     expect(bad.violations).toEqual([]);
     await asRole(page, "General manager");

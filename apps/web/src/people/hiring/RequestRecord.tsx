@@ -1,5 +1,5 @@
 import type { Fils } from "@payroll/engine";
-import { useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import type {
   MilestoneState,
   RequestStatus,
@@ -10,6 +10,8 @@ import { personFor } from "../../demo/time-off";
 import { Outside } from "../../shell/Outside";
 import { Money } from "../../ui/Money";
 import b from "../../ui/button.module.css";
+import { useListFlip } from "../../ui/templates/listEnter";
+import m from "../../ui/templates/motion.module.css";
 import { useToast } from "../../ui/Toast";
 import {
   KeyValues,
@@ -159,9 +161,10 @@ export function RequestRecord(p: { id: string }) {
             <Summary r={r} band={band} staff={staff} />) },
           { id: "thread", label: `Messages (${messages})`, render: () => (
             <div className={h.stack}>
+              <Flip keys={r.events.map((e) => e.id)}>
               <ol className={h.rows} aria-label="Messages and steps">
                 {r.events.map((e) => (
-                  <li key={e.id} className={h.message}>
+                  <li key={e.id} data-key={e.id} className={h.message}>
                     <span className={h.who}>{`${e.name}, ${e.title}, ` +
                       e.on.display}</span>
                     <span>{e.to === null ? e.text : <Dot
@@ -179,6 +182,7 @@ export function RequestRecord(p: { id: string }) {
                   </li>
                 ))}
               </ol>
+              </Flip>
               <form className={h.compose} onSubmit={(e) => {
                 e.preventDefault();
                 send();
@@ -265,6 +269,14 @@ export function RequestRecord(p: { id: string }) {
       {editing && <EditSheet r={r} onClose={() => setEditing(false)} />}
     </>
   );
+}
+
+/** The shared list motion on a thread: a message slides in, one taken
+ * back fades where it stood (listEnter.ts). */
+function Flip(p: { keys: string[]; children: ReactNode }) {
+  const host = useRef<HTMLDivElement>(null);
+  useListFlip(host, p.keys);
+  return <div className={m.host} ref={host}>{p.children}</div>;
 }
 
 function Summary(p: { r: RequestNow; band: { min: Fils; max: Fils };

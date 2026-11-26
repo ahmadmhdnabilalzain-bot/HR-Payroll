@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { fils } from "@payroll/engine";
 import { Explainable } from "../../components/explain";
 import {
@@ -20,6 +20,8 @@ import b from "../../ui/button.module.css";
 import { useMaskText } from "../../ui/mask";
 import { Money } from "../../ui/Money";
 import { PageHead, ReportPage, type Cell } from "../../ui/templates";
+import { useListFlip } from "../../ui/templates/listEnter";
+import m from "../../ui/templates/motion.module.css";
 import { useToast } from "../../ui/Toast";
 import { employerExplain, personExplain, totalEmployerExplain,
   totalExplain } from "./explain";
@@ -72,16 +74,20 @@ export function Sandbox() {
       draft: draft as SandboxDraftSpec }));
   };
 
+  // A saved plan slides in, a taken-back one fades (listEnter.ts).
+  const plansHost = useRef<HTMLDivElement>(null);
+  useListFlip(plansHost, state.sandboxPlans.map((p) => p.id));
   const plans = (
     <section className={s.plans} aria-labelledby="sb-plans">
       <h2 id="sb-plans">Draft plans</h2>
+      <div className={m.host} ref={plansHost}>
       {state.sandboxPlans.length === 0 ? (
         <p className={s.muted}>None saved yet. Try a change, then choose
           Save as draft plan.</p>
       ) : (
         <ul className={s.planList}>
           {state.sandboxPlans.map((p) => (
-            <li key={p.id}>
+            <li key={p.id} data-key={p.id}>
               <div>
                 <strong>{mask(p.title)}</strong>
                 <span className={s.muted}>
@@ -100,6 +106,7 @@ export function Sandbox() {
           ))}
         </ul>
       )}
+      </div>
     </section>
   );
 

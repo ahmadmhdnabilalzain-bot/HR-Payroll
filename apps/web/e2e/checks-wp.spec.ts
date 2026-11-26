@@ -1,6 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+/** Let entrances and exits settle: axe reads colours mid-fade. */
+async function settle(page: Page): Promise<void> {
+  await page.waitForFunction(() => document.getAnimations().every((x) =>
+    x.playState !== "running" ||
+    x.effect?.getTiming().iterations === Infinity));
+}
+
 async function asRole(page: Page, name: string): Promise<void> {
   await page.getByRole("button", { name: /Viewing as/ }).click();
   await page.getByRole("menuitemradio", { name }).click();
@@ -20,6 +27,7 @@ test("anomaly checks: findings link to people, marks are undoable",
     await expect(page.getByRole("status").first())
       .toContainText("Marked Kavya Iyer as reviewed");
     await expect(row).toContainText("Reviewed");
+    await settle(page);
     const bad = await new AxeBuilder({ page }).analyze();
     expect(bad.violations).toEqual([]);
     await row.getByRole("button", { name: "Undo" }).click();
@@ -45,6 +53,7 @@ test("report templates open a report; my view is saved and removed",
     const mine = page.getByRole("list", { name: "My views" });
     await expect(mine.getByRole("link", { name: "Variance, Sep 2026" }))
       .toHaveAttribute("href", "#/reports/variance/2026-09");
+    await settle(page);
     const bad = await new AxeBuilder({ page }).analyze();
     expect(bad.violations).toEqual([]);
     await mine.getByRole("link", { name: "Variance, Sep 2026" }).click();

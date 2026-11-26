@@ -1,6 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+/** Let entrances and exits settle: axe reads colours mid-fade. */
+async function settle(page: Page): Promise<void> {
+  await page.waitForFunction(() => document.getAnimations().every((x) =>
+    x.playState !== "running" ||
+    x.effect?.getTiming().iterations === Infinity));
+}
+
 /**
  * Hiring budget and hiring requests: a manager raises a request, HR
  * asks for changes and sends it on, the General manager signs off a
@@ -41,6 +48,7 @@ test("manager raises a hire; HR asks for changes, then sends it on",
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(page.getByText("Can we start in February?"))
       .toBeVisible();
+    await settle(page);
     const bad = await new AxeBuilder({ page }).analyze();
     expect(bad.violations).toEqual([]);
 
@@ -93,6 +101,7 @@ test("GM signs off a request and a budget change; the trail shows it",
     await page.getByRole("button", { name: "Sign off the change" }).click();
     await expect(page.getByRole("status").first())
       .toContainText("budget change signed off");
+    await settle(page);
     const bad = await new AxeBuilder({ page }).analyze();
     expect(bad.violations).toEqual([]);
     await go(page, "#/reports/audit");

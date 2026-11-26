@@ -3,6 +3,9 @@
 Date 2026-11-26. Build: branch claude/quirky-wozniak-b7xkvr, HEAD 2d8e196.
 Updated 2026-11-26 on branch features (ft1, ft2 and ft3 merged): 7 more rows
 live, see section 3a; the counts below are the updated ones.
+Updated 2026-11-26 on branch release (motion, features and ft4 merged): no
+change to the count. P20 is now Hiring budget and stays live; hiring
+requests sit under P10, which was live already. See section 3b.
 Map: docs/design/2026-11-26-navigation-map.md, section 8 (207 UAE-scope rows:
 208 less R45, Saudi payroll). Method as in docs/demo/coverage-2.md. Coverage 2
 was counted at HEAD 0448198 (160 live).
@@ -94,7 +97,7 @@ overflow, and nothing shows a figure while amounts are hidden.
 | R13 | Off-cycle and bonus runs | pay.bonus | #/pay-run/bonus | Bonus runs |
 | P66 | Sales commission statements | pay.commission | #/pay-run/commission | Sales commission |
 | R43 | AI anomaly checks | reports.anomalies | #/reports/anomalies | Anomaly checks |
-| P20 | Cost-of-hire preview | people.cost-of-hire | #/reports/cost-of-hire | Cost of hire |
+| P20 | Cost-of-hire preview | people.hiring-budget (was people.cost-of-hire) | #/people/hiring/budget (was #/reports/cost-of-hire) | Hiring budget |
 | X12 | Report templates library | reports.templates | #/reports/templates | Report templates |
 | R41 | Pay-structure sandbox | pay.sandbox | #/pay-run/more/sandbox | Pay-structure sandbox |
 | P22 | Referral and agency ledger | people.referrals | #/people/moves/referrals | Referrals and agencies |
@@ -104,6 +107,24 @@ prepare, review and GM sign off). The other six were missing. The employee
 sees an own commission statement on My payslips once the month is signed off.
 Judgement call: R43 is rule-based checks with a reason per flag, not a model;
 it is counted live because the row asks for run-level flags before paying.
+
+## 3b. The ft4 merge (hiring budget and hiring requests): still 183
+
+Branch release = motion plus features plus ft4. ft4 removes the
+people.cost-of-hire area and its route and adds three areas:
+people.hiring-budget (P20, HR and GM), people.hiring-requests (P10, HR and
+GM) and requests.hire (P10, "Request a hire" for a team manager). The
+registry now has 195 areas (193 less 1 plus 3). The search still finds
+"cost of hire".
+
+- P20 Cost-of-hire preview: live, now Hiring budget at #/people/hiring/budget
+  (one row per budgeted seat, first-year cost worked out like a payslip,
+  committed, offered and left). Heading seen: "Hiring budget".
+- P10 Hiring: requisitions: was live (people.requisitions) and stays live;
+  hiring requests (#/people/hiring/requests, heading "Hiring requests") add
+  raise, HR review, GM sign-off and a timeline to it. No new row.
+
+So live stays 183 of 207 (88.4 percent); partial 5, missing 19.
 
 ## 4. Wave 4 work packages not yet landed
 

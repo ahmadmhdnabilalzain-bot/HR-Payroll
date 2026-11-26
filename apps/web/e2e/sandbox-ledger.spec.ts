@@ -35,6 +35,10 @@ async function shot(page: Page, name: string): Promise<void> {
 }
 
 async function clean(page: Page): Promise<void> {
+  // Let exits and entrances settle: axe reads colours mid-fade.
+  await page.waitForFunction(() => document.getAnimations().every((x) =>
+    x.playState !== "running" ||
+    x.effect?.getTiming().iterations === Infinity));
   const bad = await new AxeBuilder({ page }).analyze();
   expect(bad.violations).toEqual([]);
 }

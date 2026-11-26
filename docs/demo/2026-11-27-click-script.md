@@ -6,7 +6,7 @@ General Manager (GM) and IT Manager. They open the same link on their own
 iPhones (Safari).
 
 Every figure below was read from the demo itself on 26 Nov 2026 (build of
-branch claude/quirky-wozniak-b7xkvr). If a figure on screen differs, trust
+branch release: motion, the new features and hiring merged). If a figure on screen differs, trust
 the screen and say "this is the sample bank's figure".
 
 Never say "compliant", "certified", "guaranteed" or "approved by" any
@@ -24,6 +24,13 @@ authority. Say "as we read the law" and "we will confirm".
 5. Have the link or a QR code ready to show for the phones.
 6. Open this script and the two other notes on paper or a second screen:
    2026-11-27-it-manager-note.md and 2026-11-27-discovery-questions.md.
+7. The opening film plays once per browser, at the first load. If you
+   tried the link on this laptop already, it will not play again by
+   itself. To show it in the meeting, either open the link in a fresh
+   private window, or press Cmd K, type "replay" and choose "Replay
+   opening" (offered to the HR manager and the General manager, on the
+   laptop; a phone shows a still instead of the film). "Skip" lands on
+   Home.
 
 ## What to tell them about the phones (say this once, at the start)
 
@@ -53,15 +60,22 @@ saved. To change who you are, tap the round initials at the top right."
 the last thing that went wrong in your current system?" Listen. Write it down. If it
 matches a step below, say "I will show you that in a minute".
 
-**Click.** Nothing yet. The demo opens on Home, viewing as HR manager
-(Fatima Al Ketbi). Then click "Why this number" under the big figure.
+**Click.** If the opening has not played on this laptop, let it play
+(or press "Skip"); if it has, and you want it, Cmd K, "Replay opening"
+(see "Before the meeting", item 7). The demo then opens on Home, viewing
+as HR manager (Fatima Al Ketbi). Click "Why this number" under the big
+figure.
 
 **They see.** One sentence at the top: "2 bank details hold October pay",
 with one black button, "Enter bank details". Under it the net pay figure,
-the date line "Tuesday, 27 October · Zarqan Demo Bank", five steps
-(Inputs close, Bank details, Sign off, Salary file, Payday) and the list
-"Before sign-off: 2 items block sign-off · 6 to review". "Why this number" opens
-a side panel that adds the figure up.
+the date line "Tuesday, 27 October · Zarqan Demo Bank", "29 ready, 2 need
+bank details", "In the salary file AED 908,430.94", "Held out AED
+25,300.00", the step line "Step 2 of 4 · Fix" with "Next: Sign off, 28
+Oct" (the four steps are Review, Fix, Sign off, Pay), "Waiting for a
+decision" with 4, and the list "Before sign-off: 2 items block sign-off ·
+6 to review". "Why this number" opens a side panel that adds the figure
+up. Further down, "To do" lists "Review the hiring request for Payments
+officer" just after the overdue visa task (step 8, hiring).
 
 **Say.** "Home answers one question: can October be paid, and what is my
 next step. Every number can be opened to see how it was worked out."
@@ -95,10 +109,11 @@ is refused in plain words. Then use "Fill from bank letter".
 
 **They see.** After Priya: a message "Priya Nair: IBAN saved. Salary file
 checked again: 31 people, AED 933,730.94.", the sentence becomes "1 bank
-detail holds October pay" and "held out of the salary file" changes to
-"Held out: None". After Juma: the sentence becomes "October pay is ready
-for sign-off" with the button "Go to sign-off", the line under the steps
-reads "Step 3 of 5 · Sign off", and the list shows only "6 to review".
+detail holds October pay", "In the salary file" becomes AED 933,730.94
+and "Held out" changes from AED 25,300.00 to "None". After Juma: the
+sentence becomes "October pay is ready for sign-off" with the button "Go
+to sign-off", "31 ready", the step line reads "Step 3 of 4 · Sign off"
+with "Next: Pay, 30 Oct", and the list shows only "6 to review".
 
 **Say.** "The system will not let October be signed off while one person
 cannot be paid, or while an account number has a typo the bank would
@@ -125,8 +140,9 @@ story restarts at step 1 (about 30 seconds to catch up).
 2. Click "Sign off October pay".
 
 **They see.** As the GM, Home reads "October pay waits for your sign-off".
-After the click it reads "October salary file is next", with the button
-"Open the salary file", and "Step 4 of 5 · Salary file". The list
+After the click a stamp reads "Sign-off recorded, Khalid Al Nuaimi, 27
+October 2026 at 09:30", Home reads "October salary file is next", with
+the button "Open the salary file", and "Step 4 of 4 · Pay". The list
 heading changes to "Signed off": what is left to review does not hold
 the salary file.
 
@@ -146,11 +162,12 @@ menu does not open, press Esc and click "Viewing as" again.
 
 **Click.** "Open the salary file". Then "Download salary file".
 
-**They see.** A page that reads "Salary file for 31 people, AED
-933,730.94, to Zarqan Demo Bank, dated 27 October 2026", "Held out:
-Nobody", "What the file check found: No problems found in the file", and
-the file line by line (name, account, days, fixed pay, variable pay). The
-download is a .SIF file.
+**They see.** The pay run at "Step 4 of 4: Pay": "Salary file AED
+933,730.94, 31 people · Zarqan Demo Bank · dated 27 October 2026", "Ready
+to upload to Zarqan Demo Bank.", "The file in brief" (63 lines; "Held
+out: Nobody"), "What the file check found: No problems found in the
+file.", and the file line by line (name, account, days, fixed pay,
+variable pay). The download is a .SIF file.
 
 **Say.** "This is the wage protection salary file you upload to your bank.
 We check the layout and every account before it leaves. Your bank checks it
@@ -305,7 +322,10 @@ working as designed: switch to HR manager.
 
 **They see.** Six words in the top bar that never grow: Home, People,
 Time, Pay, Reports, Setup. Each opens a panel of groups (for Pay: This
-month, Changes, Owed and leaving), with small counts of things waiting.
+month, Changes, Owed and leaving), with small counts of things waiting
+(People shows "Hiring requests 1 waiting"; Reports shows "Anomaly checks
+7 waiting"). Pay also lists Bonus runs, Sales commission and the
+Pay-structure sandbox.
 Cmd K lists people, areas and actions, for example "Open issue: James
 Whitfield, Final settlement needs notice pay" first for "James". On the
 phones: a bottom bar (Home, People, Time, Pay, More;
@@ -322,6 +342,33 @@ meeting".
 
 **If it goes wrong.** If Cmd K does nothing, click the search field in
 the top bar (or press /). If a panel does not close, press Esc.
+
+**Hiring (optional, 1 to 2 minutes, if they ask about hiring or time
+allows).**
+1. As HR manager, on Home under "To do", click "Review the hiring request
+   for Payments officer" (or People, then "Hiring requests").
+2. The request reads "With HR", HR-REQ-2026-0005, Operations, raised by
+   Arjun Menon, with "Send for sign-off", "Ask for changes", "Put on
+   hold" and the tabs Summary, Messages, Job description, Criteria,
+   Timeline. Click "Send for sign-off", then "Send for sign-off" again
+   to confirm: it reads "Waiting for sign-off".
+3. People, then "Hiring budget": "First-year budget AED 1,395,284.67",
+   "Committed AED 340,659.67", "Offered AED 759,600.00", "Left AED
+   295,025.00", one row per budgeted position.
+4. Optional: "Viewing as", then "General manager". His "To do" on Home
+   lists "Sign off the hiring request for Payments officer" (the one HR
+   just sent), then "Sign off the hiring request for AML analyst" and
+   "Sign off a budget change for Relationship manager". Then switch back
+   to HR manager.
+
+Say: "A manager asks for a hire on the request itself; HR reviews it,
+the General manager signs off the budget, and the questions stay on the
+request, not in email. The budget is worked out like a payslip, twelve
+months from the start date."
+
+The fact: hiring adds tasks to "To do" (at the start HR has 13 open
+tasks and the GM 9) but not to "Waiting for a decision" (HR still 4) and
+not to the pay figures.
 
 ## Step 9. Questions and answers (20:00 on)
 
