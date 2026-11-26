@@ -21,7 +21,7 @@ const PEOPLE = `SELECT e.id, e.full_name, e.department_id, m.role,
     r.viewed_at, r.acknowledged_at
   FROM employees e
   LEFT JOIN memberships m ON m.company_id = e.company_id
-    AND m.employee_id = e.id
+    AND m.employee_id = e.id AND m.revoked_at IS NULL
   LEFT JOIN LATERAL (SELECT min(viewed_at) AS viewed_at,
       min(acknowledged_at) AS acknowledged_at FROM library_receipts x
     WHERE x.company_id = e.company_id AND x.version_id = $3

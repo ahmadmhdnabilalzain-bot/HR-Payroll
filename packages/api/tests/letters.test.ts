@@ -146,6 +146,18 @@ describe("letters", () => {
   });
 });
 
+describe("Arabic letters need the Arabic company name", () => {
+  it("names company.nameAr when it is not set", async () => {
+    const w = await letterWorld("noar");
+    await w.req(w.s.owner, "PATCH", "/v1/company", { nameAr: null });
+    const p = await w.req(w.s.hr, "POST", "/v1/letters/preview", {
+      templateId: w.tmpl("noc", "ar").id, employeeId: w.s.emp.report,
+      ...CERT });
+    expect([p.status, p.body.error.code, p.body.error.detail.fields])
+      .toEqual([422, "MERGE_VALUE_MISSING", ["company.nameAr"]]);
+  });
+});
+
 describe("letters without a renderer", () => {
   it("issue answers 503 and stores nothing", async () => {
     const w = await letterWorld("nopdf", { pdf: unavailableRenderer() });

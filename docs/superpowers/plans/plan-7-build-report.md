@@ -108,10 +108,10 @@ Task 2 (engine pack and tracker) was already merged and is used as is.
    `FILE_TOO_LARGE` instead of a validation error.
 7. **Error codes** are one `DOCUMENT_ERROR_STATUS` block spread into
    `ERROR_STATUS`; `PAYLOAD_TOO_LARGE` already existed.
-8. **Test helper `plan7-pending.ts`** lists Plan 7 ids not yet served;
-   the conformance, leak and runtime-role flow suites skip them
-   (`isPending` also covers `PLAN6_PENDING`). Each task marks its ids
-   served.
+8. **Test helper `plan7-pending.ts`** listed Plan 7 ids not yet
+   served while the tasks were built (the conformance, leak and
+   runtime-role flow suites skipped them); it was deleted in the second
+   merge, when every route was served.
 
 ### Task 3 (files)
 
@@ -318,7 +318,9 @@ native speaker.
 
 ## Decisions
 
-1. **Commit trailers.** The brief asks for `Claude Sonnet 5.5`; the
+1. **Commit trailers.** (The first merge commit `f28df25` has no
+   trailers; the merge commits and a final `docs:` commit for the
+   report are extra to the one-commit-per-task rule.) The brief asks for `Claude Sonnet 5.5`; the
    session's attribution reminder says `Claude Opus 5.5` and yields
    only to the user's own CLAUDE.md or memory. The repository has no
    CLAUDE.md and `LEDGER.md` has no attribution rule, so the commits
@@ -345,7 +347,7 @@ lists already existed).
 
 ## Test summary (after the second merge)
 
-- api: 89 files, 672 tests pass (pglite plus the real-PostgreSQL
+- api: 90 files, 673 tests pass (pglite plus the real-PostgreSQL
   suite on a throwaway server; `pdf.test.ts` against real Chrome).
 - contract 131, engine 584, wps 172 of 173 (the one SIF timing test
   timed out at 5 s under machine load 14 and passes alone; Plan 7 does
@@ -363,8 +365,12 @@ lists already existed).
    should run the API (or a renderer process) as a non-root user.
 3. **No virus scan** (Ruling 5): a malicious PDF uploaded by one user
    reaches another's PDF reader.
-4. **Orphans:** unclaimed uploads, and blobs written before a failed
-   transaction, are never cleaned up.
+4. **Orphans and quotas:** after the second merge a failed request
+   deletes the blob it wrote (Plan 6's `onFailure` hook), but unclaimed
+   uploads stay forever, and `POST /v1/files` (all roles, 10 MiB each)
+   has no daily quota like Plan 6's receipts and no rate limit; nor
+   do `letterPreview` and `letterIssue` (a Chrome render per call). The
+   Task 3 and Task 7 reviewers should decide on caps.
 5. **Render inside the request transaction:** the render holds a
    database connection (not a lock) for up to 10 s; heavy letter use
    could exhaust the pool.
@@ -375,7 +381,21 @@ lists already existed).
 7. **Emiratisation:** every figure is `secondary` from snippet-level
    research; the report says so (`disclaimer`) and asks for input
    instead of guessing, but the primary MOHRE text is still unread.
-8. In one full API run 6 tests were reported skipped (63 of 64 files);
-   rerun alone, the Chrome and real-PostgreSQL files passed, and the
-   final full run (672 tests) skipped none. Probably a resource limit
-   at startup; worth watching in CI.
+8. Twice a full API run reported skipped tests (6, then 4 of 672) with
+   one file skipped; rerun alone the Chrome and real-PostgreSQL files
+   pass, and the last full run passed 672 of 672 with none skipped.
+   Probably the throwaway PostgreSQL server failing to start under
+   machine load (the global setup skips quietly); worth watching in CI.
+9. **A failed render closes the shared browser**, so letters rendering
+   at that moment fail too (500) and the next one relaunches Chrome.
+10. **Audit keys can still collide the other way:** Plan 7's keys
+   (`type`, `lang`, `roles`, `mime`, `sha256`, ...) are generic, and a
+   later plan spreading the same key after them would replace Plan 7's
+   check. The new test only checks Plan 7 against the expense and HR
+   lists; a whole-table duplicate check would be better.
+11. **Revoked memberships** (Plan 8): the library receipts report now
+   ignores a revoked membership's role (`revoked_at IS NULL`); there
+   is no dedicated test for that predicate.
+12. Arabic strings in test fixtures and `pdf.test.ts` are test data and
+   are not marked `NEEDS NATIVE REVIEW`; every Arabic string in
+   `src/` and the web catalogue is.

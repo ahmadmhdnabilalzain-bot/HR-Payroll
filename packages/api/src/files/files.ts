@@ -19,7 +19,8 @@ import { sniffContentType } from "../receipts/sniff";
 import { safeFileName } from "./names";
 
 /** What file storage needs from a request. */
-export type FileCtx = Pick<ReqCtx, "tx" | "deps" | "tenant" | "user">;
+export type FileCtx = Pick<ReqCtx, "tx" | "deps" | "tenant" | "user" |
+  "onFailure">;
 
 interface FileRow {
   id: string;
@@ -86,6 +87,8 @@ export async function storeFile(ctx: FileCtx, name: string,
     [id, c, safeFileName(name), mime, bytes.length, sha256(bytes), key,
       ctx.user!.id, ctx.deps.now().toISOString()]);
   const sealed = (await companyKey(ctx)).encryptBytes(aadOf(c, id), bytes);
+  // A failed request (rolled back) removes the blob it wrote.
+  ctx.onFailure(() => ctx.deps.blobs.delete(key));
   await ctx.deps.blobs.put(key, sealed);
   return toFileRef(row!);
 }
