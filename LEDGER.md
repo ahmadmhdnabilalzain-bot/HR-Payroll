@@ -566,3 +566,24 @@ The owner can overrule any of these. Full list with reasons:
   resources were checked before and after and are unchanged.
 - Advisor (owner set it to Fable 5.2 on 2026-11-26): consult it before
   decisions; it had lapsed for a long stretch and was resumed.
+
+## 15. First client and demo scope (2026-11-26)
+
+- Owner: the demo company is a fictional **bank**, "because that will be
+  my first client to meet". The client's name is deliberately not
+  recorded here or anywhere in the repo, searches or hosting; the
+  fictional demo bank must not resemble it.
+- Advisor-driven rules for a bank audience: no regulatory, certification
+  or "compliant" claims; Emiratisation shown as headcount by nationality
+  only (the bank regime is unverified; the pack rests on secondary
+  research); pension only where the GPSSA pack covers the case, the rest
+  listed as not computed; a bank's regulator requirements for outsourcing
+  and data location are UNVERIFIED (treat like PDPL: primary sources and
+  counsel); the Frankfurt hosting region is fine only for fictional demo
+  data.
+- Gates: no hosted demo until the idle-timeout crash fix (C-1, Plan 7
+  R6 follow-up) is on main and re-tested; Plans 15 and 16 wait until the
+  meeting date is known (screens are the critical path).
+- Owner questions open: meeting date; the bank's size and whether it is
+  mainland or DIFC/ADGM; who attends (IT security, compliance?); which HR
+  and payroll system it uses today.
