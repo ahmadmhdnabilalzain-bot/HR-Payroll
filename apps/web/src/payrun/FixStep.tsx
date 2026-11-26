@@ -42,10 +42,10 @@ export function plainOnly(text: string): string {
 /**
  * The held amount flying into the file total, in order: the IBAN
  * passes, a "+AED 25,300.00" chip leaves the row and lands on the
- * total's end edge (420 ms spring, ui/flight); only as it lands is the
- * IBAN saved, so the total starts its roll in the same frame as the
- * chip hands over (120 ms), "held out" changes, and the row moves to
- * "Fixed" after the flight, never before it. Reduced motion: no
+ * total's end edge (420 ms spring, ui/flight) and fades there (120
+ * ms); only then is the IBAN saved, so the total starts its roll once
+ * the chip is gone, "held out" changes, and the row moves to "Fixed"
+ * after the flight, never before it. Reduced motion: no
  * flight, the save is at once and the figures change with a short
  * fade.
  */
@@ -221,6 +221,10 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
   // Saved and in flight: the form closes and no action shows, so the
   // row cannot be saved twice while the chip travels.
   const [flying, setFlying] = useState(false);
+  // Saved: the form stays drawn, inert, while its height collapses
+  // (PayRun.module.css .rowForm), so the rows under it rise with it
+  // rather than jumping up as it goes.
+  const [closing, setClosing] = useState(false);
   const row = useRef<HTMLLIElement>(null);
   const i = p.issue;
   const name = i.employeeId === null ? ""
@@ -244,14 +248,16 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
             onClick={() => setOpen(true)}>{t("payrun.enterIban")}</button>
         </span>
       )}
-      {p.canFix && i.employeeId !== null && open && (
-        <span className={s.rowForm}>
+      {p.canFix && i.employeeId !== null && (open || closing) && (
+        <span className={s.rowForm} data-closing={closing}
+          inert={closing}>
           <IbanForm employeeId={i.employeeId} name={name}
             onCancel={() => setOpen(false)}
             onSave={(value) => {
               const id = i.employeeId!;
               const from = row.current?.querySelector("input") ?? null;
               setFlying(true);
+              setClosing(true);
               setOpen(false);
               p.setBusy(true);
               // The chip flies first; the row turns "Fixed" as it lands.
