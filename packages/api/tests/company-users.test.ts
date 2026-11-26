@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { withTenant } from "../src/db/tenant";
 import {
   call,
+  enableMfa,
   login,
   makeApp,
   PASSWORD,
@@ -94,6 +95,34 @@ describe("company and users", () => {
     expect(locked.status).toBe(423);
     expect(locked.body.error.code).toBe("ACCOUNT_LOCKED");
     expect((await login(ctx.app, b.email, PASSWORD)).status).toBe(423);
+  });
+
+  it("the owner changes a role with MFA; the last owner stays", async () => {
+    const hr = await accept(ctx, await invite(ctx, a, "hr@example.com",
+      "hr"));
+    const hrId = hr.body.user.id as string;
+    const path = `/v1/users/${hrId}`;
+    const noMfa = await call(ctx.app, a.token, a.companyId, "PATCH", path,
+      { role: "manager" });
+    expect(noMfa.body.error.code).toBe("MFA_ENROLMENT_REQUIRED");
+    await enableMfa(ctx.app, ctx.clock, a.token);
+    const ok = await call(ctx.app, a.token, a.companyId, "PATCH", path,
+      { role: "manager" });
+    expect(ok.status, ok.text).toBe(200);
+    expect(ok.body.role).toBe("manager");
+    const last = await call(ctx.app, a.token, a.companyId, "PATCH",
+      `/v1/users/${a.userId}`, { role: "hr" });
+    expect(last.status).toBe(409);
+    expect(last.body.error.code).toBe("LAST_OWNER");
+    const missing = await call(ctx.app, a.token, a.companyId, "PATCH",
+      "/v1/users/00000000-0000-4000-8000-00000000dead", { role: "hr" });
+    expect(missing.status).toBe(404);
+    const events = await withTenant(ctx.deps.db, { companyId: a.companyId,
+      userId: null }, (tx) => tx.query<{ action: string; data: unknown }>(
+      "SELECT action, data FROM audit_events WHERE action = " +
+      "'user.role-changed'"));
+    expect(events).toEqual([{ action: "user.role-changed",
+      data: { from: "hr", to: "manager" } }]);
   });
 
   it("an expired or unknown invite is refused", async () => {

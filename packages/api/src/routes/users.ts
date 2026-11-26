@@ -2,6 +2,7 @@ import type {
   AcceptInviteRequest,
   InviteRequest,
   Role,
+  RoleChange,
 } from "@payroll/contract";
 import { appendAudit } from "../audit/audit";
 import { insertMembership, insertUser, userByEmail } from
@@ -139,8 +140,40 @@ async function acceptInvite(ctx: ReqCtx<AcceptInviteRequest>) {
     (tx) => signedIn(tx, deps, userId, false));
 }
 
+async function changeRole(tx: Db, ctx: ReqCtx<RoleChange, unknown,
+  { id: string }>, companyId: string) {
+  const target = ctx.params.id;
+  const [m] = await tx.query<{ role: Role }>(
+    "SELECT role FROM memberships WHERE company_id = $1 AND user_id = $2",
+    [companyId, target]);
+  if (m === undefined) throw new ApiError("NOT_FOUND");
+  const to = ctx.body.role;
+  if (m.role === "owner" && to !== "owner") {
+    const [n] = await tx.query<{ n: bigint }>(
+      `SELECT count(*) AS n FROM memberships
+       WHERE company_id = $1 AND role = 'owner'`, [companyId]);
+    if ((n?.n ?? 0n) <= 1n) throw new ApiError("LAST_OWNER");
+  }
+  await tx.query("UPDATE memberships SET role = $3 WHERE company_id = $1 " +
+    "AND user_id = $2", [companyId, target, to]);
+  await appendAudit(tx, { companyId, at: ctx.deps.now().toISOString(),
+    actorUserId: ctx.user!.id, action: "user.role-changed",
+    entityType: "user", entityId: target, data: { from: m.role, to } });
+}
+
+/** Owner only, MFA session; the last owner cannot be demoted. */
+async function changeUserRole(ctx: ReqCtx<RoleChange, unknown,
+  { id: string }>) {
+  const companyId = ctx.tenant!.companyId;
+  await withTenant(ctx.deps.db, { companyId, userId: ctx.user!.id },
+    (tx) => changeRole(tx, ctx, companyId));
+  const list = await listUsers(ctx);
+  return list.items.find((u) => u.userId === ctx.params.id);
+}
+
 export function registerUserRoutes(app: App, deps: AppDeps): void {
   register(app, deps, "listUsers", listUsers);
+  register(app, deps, "changeUserRole", changeUserRole);
   register(app, deps, "inviteUser", inviteUser);
   register(app, deps, "acceptInvite", acceptInvite);
 }

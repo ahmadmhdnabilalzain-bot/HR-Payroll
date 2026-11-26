@@ -131,6 +131,23 @@ describe("auth", () => {
     expect(me2.body.session.mfa).toBe(true);
   });
 
+  it("auth_totp_code_is_single_use", async () => {
+    const a = await signup(ctx.app, "acme");
+    const code = await enrolMfa(ctx, a.token, ctx.clock);
+    // The confirm code's step is used: the same code cannot sign in.
+    expectError(await login(ctx.app, a.email, PASSWORD, code()), 401,
+      "INVALID_CREDENTIALS");
+    ctx.clock.advance(30_000);
+    const first = code();
+    expect((await login(ctx.app, a.email, PASSWORD, first)).status)
+      .toBe(200);
+    expectError(await login(ctx.app, a.email, PASSWORD, first), 401,
+      "INVALID_CREDENTIALS");
+    ctx.clock.advance(30_000);
+    expect((await login(ctx.app, a.email, PASSWORD, code())).status)
+      .toBe(200);
+  });
+
   it("auth_mfa_confirm_rejects_a_wrong_code", async () => {
     const a = await signup(ctx.app, "acme");
     expectError(await call(ctx.app, a.token, null, "POST",

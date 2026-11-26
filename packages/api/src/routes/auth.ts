@@ -7,11 +7,11 @@ import type {
 import { appendAudit } from "../audit/audit";
 import { insertMembership, insertUser, userByEmail, userById } from
   "../auth/accounts";
-import { login, meOf, mfaSecret, signedIn, unixSeconds } from
+import { freshTotpStep, login, meOf, signedIn } from
   "../auth/login";
 import { hashPassword } from "../auth/password";
 import { expireSession, markSessionMfa } from "../auth/session";
-import { base32Encode, verifyTotp } from "../auth/totp";
+import { base32Encode } from "../auth/totp";
 import type { Db } from "../db/db";
 import { withTenant } from "../db/tenant";
 import type { AppDeps } from "../deps";
@@ -82,13 +82,11 @@ async function confirmMfa(ctx: ReqCtx<MfaConfirmRequest>) {
   return asUser(deps, ctx.user!.id, async (tx) => {
     const u = (await userById(tx, ctx.user!.id))!;
     if (u.mfa_enrolled) throw new ApiError("MFA_ALREADY_ENROLLED");
-    const secret = mfaSecret(deps, u);
-    if (secret === null) throw new ApiError("MFA_NOT_STARTED");
-    if (!verifyTotp(secret, ctx.body.code, unixSeconds(deps.now()))) {
-      throw new ApiError("MFA_CODE_INVALID");
-    }
-    await tx.query("UPDATE users SET mfa_enrolled = true WHERE id = $1",
-      [u.id]);
+    if (u.mfa_secret_enc === null) throw new ApiError("MFA_NOT_STARTED");
+    const step = freshTotpStep(deps, u, ctx.body.code);
+    if (step === null) throw new ApiError("MFA_CODE_INVALID");
+    await tx.query("UPDATE users SET mfa_enrolled = true, " +
+      "mfa_last_step = $2 WHERE id = $1", [u.id, step]);
     await markSessionMfa(tx, session!.tokenHash);
     return meOf(tx, { ...u, mfa_enrolled: true },
       { mfa: true, expiresAt: session!.expiresAt });

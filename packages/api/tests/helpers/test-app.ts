@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { App as Hono } from "../../src/http/context";
 import { createApp } from "../../src/app";
+import { base32Decode, totpCode } from "../../src/auth/totp";
 import { keyringFromKey } from "../../src/crypto/keyring";
 import type { AppDeps } from "../../src/deps";
 import { createTestDb } from "./test-db";
@@ -91,6 +92,21 @@ export async function signup(app: Hono, name: string): Promise<Account> {
   if (r.status !== 201) throw new Error(`signup ${r.status} ${r.text}`);
   return { token: r.body.token, companyId: r.body.memberships[0].companyId,
     userId: r.body.user.id, email, password: PASSWORD };
+}
+
+/**
+ * Enrols and confirms TOTP; the session behind `token` becomes an MFA
+ * session. Returns a function giving the code for the clock's now.
+ */
+export async function enableMfa(app: Hono, clock: Clock, token: string) {
+  const e = await call(app, token, null, "POST", "/v1/auth/mfa/enrol");
+  if (e.status !== 200) throw new Error(`enrol ${e.status} ${e.text}`);
+  const secret = base32Decode(e.body.secret);
+  const code = () => totpCode(secret, Math.floor(clock.now.getTime() / 1000));
+  const c = await call(app, token, null, "POST", "/v1/auth/mfa/confirm",
+    { code: code() });
+  if (c.status !== 200) throw new Error(`confirm ${c.status} ${c.text}`);
+  return code;
 }
 
 export function login(app: Hono, email: string, password: string,

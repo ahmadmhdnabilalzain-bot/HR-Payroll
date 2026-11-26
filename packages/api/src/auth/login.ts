@@ -12,7 +12,7 @@ import {
 } from "./accounts";
 import { hashPassword, verifyPassword } from "./password";
 import { createSession } from "./session";
-import { base32Decode, verifyTotp } from "./totp";
+import { base32Decode, totpStep } from "./totp";
 
 /** Security policy (not statutory): 5 failures lock for 15 minutes. */
 export const MAX_FAILED_LOGINS = 5;
@@ -43,11 +43,24 @@ export function mfaSecret(deps: AppDeps, u: UserRow): Uint8Array | null {
     `users:mfa_secret:${u.id}`, u.mfa_secret_enc));
 }
 
-function totpOk(deps: AppDeps, u: UserRow, code: string | undefined) {
-  if (code === undefined) return true;
-  const secret = u.mfa_enrolled ? mfaSecret(deps, u) : null;
-  return secret !== null &&
-    verifyTotp(secret, code, unixSeconds(deps.now()));
+/**
+ * The step of a fresh, matching code; null when the code is wrong or
+ * its step (or an earlier one) was already used.
+ */
+export function freshTotpStep(deps: AppDeps, u: UserRow, code: string)
+  : number | null {
+  const secret = mfaSecret(deps, u);
+  if (secret === null) return null;
+  const step = totpStep(secret, code, unixSeconds(deps.now()));
+  if (step === null) return null;
+  const last = u.mfa_last_step === null ? null : Number(u.mfa_last_step);
+  return last !== null && step <= last ? null : step;
+}
+
+/** undefined: no code sent; null: a code was sent and refused. */
+function loginStep(deps: AppDeps, u: UserRow, code: string | undefined) {
+  if (code === undefined) return undefined;
+  return u.mfa_enrolled ? freshTotpStep(deps, u, code) : null;
 }
 
 async function recordFailure(tx: Db, deps: AppDeps, u: UserRow) {
@@ -71,14 +84,16 @@ async function check(tx: Db, deps: AppDeps, b: LoginRequest)
     Date.parse(u.locked_until) > deps.now().getTime()) {
     return { kind: "locked" };
   }
-  const ok = await verifyPassword(b.password, u.password_hash) &&
-    totpOk(deps, u, b.totp);
-  if (!ok) {
+  const passOk = await verifyPassword(b.password, u.password_hash);
+  const step = passOk ? loginStep(deps, u, b.totp) : null;
+  if (!passOk || step === null) {
     await recordFailure(tx, deps, u);
     return { kind: "fail" };
   }
-  await tx.query("UPDATE users SET failed_logins = 0, locked_until = NULL" +
-    " WHERE id = $1", [u.id]);
+  await tx.query(
+    `UPDATE users SET failed_logins = 0, locked_until = NULL,
+     mfa_last_step = coalesce($2, mfa_last_step) WHERE id = $1`,
+    [u.id, step ?? null]);
   return { kind: "ok", userId: u.id, mfa: b.totp !== undefined };
 }
 

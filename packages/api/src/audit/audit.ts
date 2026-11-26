@@ -1,9 +1,13 @@
-import type { AuditEvent, AuditVerifyResult } from "@payroll/contract";
+import type {
+  AuditData,
+  AuditEvent,
+  AuditVerifyResult,
+} from "@payroll/contract";
 import { CodedError } from "../coded-error";
 import { isoTimestamp, type Db } from "../db/db";
 import { eventHash, GENESIS_HASH, type HashedEvent } from "./canonical";
 
-export type AuditData = Record<string, string | number | boolean | string[]>;
+export type { AuditData };
 
 export interface AuditInput {
   companyId: string;

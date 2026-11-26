@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const MAX = 80;
 const ROOTS = ["packages", "scripts"];
-const EXTENSIONS = new Set([".ts", ".json", ".mjs", ".md"]);
+const EXTENSIONS = new Set([".ts", ".json", ".mjs", ".md", ".sql"]);
 const SKIP_DIRS = new Set(["node_modules", "dist", ".superpowers"]);
 const SKIP_FILES = new Set([
   "pnpm-lock.yaml",
@@ -33,7 +33,7 @@ export function listFiles(dir) {
   return out;
 }
 
-function isChecked(name) {
+export function isChecked(name) {
   return !SKIP_FILES.has(name) && EXTENSIONS.has(extname(name));
 }
 

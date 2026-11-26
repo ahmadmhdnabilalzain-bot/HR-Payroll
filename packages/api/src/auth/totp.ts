@@ -29,11 +29,25 @@ export function verifyTotp(
   code: string,
   unixSeconds: number,
 ): boolean {
-  let ok = false;
+  return totpStep(secret, code, unixSeconds) !== null;
+}
+
+/**
+ * The step (unix seconds / 30) whose code matches, trying the
+ * previous, current and next step; null when none does. Callers keep
+ * the last accepted step so a code works once.
+ */
+export function totpStep(
+  secret: Uint8Array,
+  code: string,
+  unixSeconds: number,
+): number | null {
+  let found: number | null = null;
   for (const d of [-1, 0, 1]) {
-    ok = sameCode(totpCode(secret, unixSeconds + d * STEP), code) || ok;
+    const t = unixSeconds + d * STEP;
+    if (sameCode(totpCode(secret, t), code)) found = Math.floor(t / STEP);
   }
-  return ok;
+  return found;
 }
 
 /** RFC 4648 base32 without padding (authenticator apps expect this). */

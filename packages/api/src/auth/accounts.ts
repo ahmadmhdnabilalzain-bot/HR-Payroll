@@ -10,6 +10,7 @@ export interface UserRow {
   mfa_enrolled: boolean;
   failed_logins: number;
   locked_until: string | null;
+  mfa_last_step: bigint | null;
 }
 
 export function toUser(r: UserRow): User {
