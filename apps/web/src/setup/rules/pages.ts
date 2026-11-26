@@ -205,8 +205,7 @@ export function companyPage(d: DemoData): PageSpec {
   const people = d.people.people();
   const branches = new Set(people.map((p) => p.branch.en));
   return { title: "Company details",
-    lede: "How the company is set up in this demo. The company is " +
-      "fictional.",
+    lede: "How the company is set up: name, branches and pay groups.",
     groups: [
       g("Company",
         { key: "co:name", label: "Name", value: d.companyName.en },

@@ -63,12 +63,12 @@ export function SettingsPage(p: {
               <li key={x.key} className={`${s.groupedRow} ${s.setRow}`}>
                 <span className={s.rowText}>
                   <span>{x.label}</span>
-                  {x.help !== undefined && <small>{x.help}</small>}
                   {x.list !== undefined && x.list.length > 0 && (
                     <ul className={s.rowList}>
                       {x.list.map((v) => <li key={v}>{v}</li>)}
                     </ul>
                   )}
+                  {x.help !== undefined && <small>{x.help}</small>}
                 </span>
                 <span className={s.rowValue}>{x.value}</span>
                 <span className={s.rowAct}>

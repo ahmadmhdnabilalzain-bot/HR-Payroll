@@ -1395,6 +1395,7 @@ li + li.actRow > .row {
 
 .rowAct > * {
   gap: 2px;
+  text-decoration: none;
 }
 
 .rowList {
@@ -1601,4 +1602,10 @@ li + li.actRow > .row {
 
 .rowActs button {
   min-block-size: 44px;
+}
+
+/* A next-action block whose buttons render nothing goes away. */
+.asideActions:empty,
+.asideBlock:has(> .asideActions:empty):not(:has(> p)) {
+  display: none;
 }
