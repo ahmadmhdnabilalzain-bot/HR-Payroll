@@ -325,7 +325,57 @@ native speaker.
    use the reminder's Opus line (as the Plan 6 builder did). Nothing
    is pushed, so a rewrite is cheap if overruled.
 
+2. **Plan 7 test helpers live in their own files** (`seed-documents`,
+   `seed-headcount`, `seed-rows-documents`, `api-flow-documents`,
+   `letter-world`, `letter-page`, `text-pdf`, `leak-documents.test`),
+   so Plan 3's and other plans' helpers change by a line or two.
+3. **No subagents**; the per-task security reviews the brief asks for
+   (Tasks 3 and 7, Emiratisation honesty) were not run inside this
+   build and are still owed by the coordinator.
+
+## Test order (honest)
+
+Every task's new tests were written first and seen red (modules
+missing, routes 404, or wrong values), then green: Task 1 (3 files
+red), Task 3 (keyring, names, files), Task 4 (expiry, retention, API),
+Task 5 (audience, library), Task 6 (merge, starters, templates),
+Task 7 (letter HTML, PDF, letters, access, config), Task 8
+(Emiratisation API; `overridable-keys` passed at once because both
+lists already existed).
+
+## Test summary (after the second merge)
+
+- api: 89 files, 672 tests pass (pglite plus the real-PostgreSQL
+  suite on a throwaway server; `pdf.test.ts` against real Chrome).
+- contract 131, engine 584, wps 172 of 173 (the one SIF timing test
+  timed out at 5 s under machine load 14 and passes alone; Plan 7 does
+  not touch wps), web 103 of 103.
+- typecheck (all packages and `deploy/`), line checks, `lines:test`,
+  `ops:test` pass. The repo-wide `pnpm check` was not run in one go
+  (memory under parallel load); its parts were run one by one.
+
 ## Concerns
 
-1. `PLAN6_PENDING` was never drained by Plan 6: its 25 served routes
-   are skipped by the conformance, leak and runtime-role flow suites.
+1. `PLAN6_PENDING` was never drained by Plan 6 (fixed upstream since).
+2. **Chrome runs with its sandbox off where the API runs as root**;
+   the request lock-down, CSP and dead proxy remain, but a renderer
+   exploit would not be contained by Chrome's sandbox. Production
+   should run the API (or a renderer process) as a non-root user.
+3. **No virus scan** (Ruling 5): a malicious PDF uploaded by one user
+   reaches another's PDF reader.
+4. **Orphans:** unclaimed uploads, and blobs written before a failed
+   transaction, are never cleaned up.
+5. **Render inside the request transaction:** the render holds a
+   database connection (not a lock) for up to 10 s; heavy letter use
+   could exhaust the pool.
+6. **Arabic:** the starter letters, labels, currency word and web
+   error texts are the implementer's Arabic; no Arabic letter can be
+   issued until an owner records a native review per version, but
+   previews and web texts show it now.
+7. **Emiratisation:** every figure is `secondary` from snippet-level
+   research; the report says so (`disclaimer`) and asks for input
+   instead of guessing, but the primary MOHRE text is still unread.
+8. In one full API run 6 tests were reported skipped (63 of 64 files);
+   rerun alone, the Chrome and real-PostgreSQL files passed, and the
+   final full run (672 tests) skipped none. Probably a resource limit
+   at startup; worth watching in CI.
