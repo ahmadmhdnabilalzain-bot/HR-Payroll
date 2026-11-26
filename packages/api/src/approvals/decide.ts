@@ -10,6 +10,7 @@ import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import {
   handlerFor,
+  holdsStepRole,
   loadRequest,
   loadSteps,
   viewFor,
@@ -37,15 +38,17 @@ async function checkVisible(ctx: ReqCtx, handlers: SubjectHandlers,
 }
 
 /**
- * Separation of duties at decision time: the claimant (as stored and
- * every user linked to the claimant employee now), the submitter and
- * the approvers of earlier steps may not decide.
+ * Separation of duties at decision time: everyone excluded when the
+ * request opened (claimant users, submitter, makers), every user
+ * linked to the claimant employee now, and the approvers of earlier
+ * steps may not decide. A role step also needs the role now: a user
+ * demoted after submit loses the step (revises Ruling 11).
  */
 async function actorVerdict(ctx: ReqCtx, r: RequestRow,
   steps: StepRow[]): Promise<Verdict> {
   const linked = await linkedUsers(ctx.tx, ctx.tenant!.companyId,
     r.claimant_employee_id);
-  const excluded = [r.submitted_by, ...linked];
+  const excluded = [r.submitted_by, ...linked, ...r.excluded_list];
   if (r.claimant_user_id !== null) excluded.push(r.claimant_user_id);
   const prior = steps.filter((s) => s.status === "approved")
     .map((s) => s.decided_by!);
@@ -59,6 +62,10 @@ async function checkActor(ctx: ReqCtx, r: RequestRow, steps: StepRow[])
   : Promise<void> {
   const verdict = await actorVerdict(ctx, r, steps);
   if (verdict !== "ok") throw new ApiError(verdict as ErrorCode);
+  const step = steps.find((s) => s.step_order === r.current_step)!;
+  if (!holdsStepRole(ctx, step.approver)) {
+    throw new ApiError("NOT_AN_APPROVER");
+  }
 }
 
 /**

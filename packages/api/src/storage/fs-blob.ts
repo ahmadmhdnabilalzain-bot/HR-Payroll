@@ -37,6 +37,9 @@ export function fsBlobStore(dir: string): BlobStore {
         await rm(part, { force: true });
       }
     },
+    async delete(key) {
+      await rm(pathOf(dir, key), { force: true });
+    },
     async get(key) {
       const path = pathOf(dir, key);
       try {

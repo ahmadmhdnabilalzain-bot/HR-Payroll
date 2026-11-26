@@ -1,6 +1,8 @@
 import { routeById } from "@payroll/contract";
 import { base32Decode, totpCode } from "../../src/auth/totp";
 import { channelFlow } from "./api-flow-channels";
+import { expenseReports, expensesFlow } from "./conformance-expenses";
+import { hrFlow } from "./conformance-hr";
 import { salaryOf } from "./seed";
 import { call, makeApp, PASSWORD, type Res } from "./test-app";
 
@@ -71,9 +73,13 @@ export async function runFlow(ctx: Ctx, hit: Hitter): Promise<void> {
     { role: "manager" });
   await leave(hit, owner, e.body.token, c, emp);
   await attendance(hit, owner, e.body.token, c);
-  await payroll(hit, owner, owner2, e.body.token, c);
+  await expensesFlow(hit, owner, e.body.token, c);
+  const runId = await payroll(hit, owner, owner2, e.body.token, c);
+  await expenseReports(hit, owner, c, runId);
   await channelFlow(ctx, hit, { owner, owner2, emp: e.body.token,
     empId: emp, company: c });
+  await hrFlow(hit, { owner, ownerId: su.body.user.id, owner2,
+    emp: e.body.token, empUserId: e.body.user.id, employeeId: emp, c });
   await hit("listAuditEvents", owner, c, {}, undefined,
     { query: "?limit=10" });
   await hit("verifyAuditChain", owner, c);
@@ -152,4 +158,5 @@ async function payroll(hit: Hitter, owner: string, owner2: string,
   const sif = await hit("generateSif", owner, c, { id });
   await hit("getSifFile", owner, c, { id: sif.body.id });
   await hit("downloadSifFile", owner, c, { id: sif.body.id });
+  return id;
 }

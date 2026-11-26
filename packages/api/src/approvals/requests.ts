@@ -29,6 +29,8 @@ export interface RequestRow {
   claimant_user_id: string | null;
   claimant_employee_id: string;
   created_at: string;
+  /** `excluded` as a JSON list (drivers differ on uuid[] parsing). */
+  excluded_list: string[];
 }
 
 export interface StepRow {
@@ -54,7 +56,8 @@ export function handlerFor(handlers: SubjectHandlers, type: SubjectType) {
 export async function loadRequest(tx: Db, companyId: string, id: string,
   lock = false): Promise<RequestRow> {
   const [r] = await tx.query<RequestRow>(
-    `SELECT * FROM approval_requests WHERE company_id = $1 AND id = $2
+    `SELECT *, array_to_json(excluded) AS excluded_list
+     FROM approval_requests WHERE company_id = $1 AND id = $2
      ${lock ? "FOR UPDATE" : ""}`, [companyId, id]);
   if (r === undefined) throw new ApiError("NOT_FOUND");
   return r;
@@ -109,7 +112,11 @@ export async function openRequest(ctx: ReqCtx, handlers: SubjectHandlers,
   const c = ctx.tenant!.companyId;
   const facts = await handlerFor(handlers, type).facts(ctx.tx, c, subjectId);
   const chain = await getChain(ctx.tx, c, type);
+  const excluded = [...new Set([submitterUserId, ...facts.claimantUserIds,
+    ...facts.makerUserIds, ...(facts.claimantUserId === null ? []
+      : [facts.claimantUserId])])].sort();
   const steps = resolveChain({ ...facts, submitterUserId,
+    alsoExcluded: excluded,
     overLimitApprover: chain.overLimitApprover,
     tiers: chain.tiers.map((t) => ({ approver: t.approver,
       minTotal: parseAed(t.minTotal) })),
@@ -119,10 +126,10 @@ export async function openRequest(ctx: ReqCtx, handlers: SubjectHandlers,
   await ctx.tx.query(
     `INSERT INTO approval_requests (id, company_id, subject_type,
        subject_id, status, current_step, submitted_by, claimant_user_id,
-       claimant_employee_id, created_at)
-     VALUES ($1, $2, $3, $4, 'pending', 1, $5, $6, $7, $8)`,
+       claimant_employee_id, created_at, excluded)
+     VALUES ($1, $2, $3, $4, 'pending', 1, $5, $6, $7, $8, $9::uuid[])`,
     [id, c, type, subjectId, submitterUserId, facts.claimantUserId,
-      facts.claimantEmployeeId, at]);
+      facts.claimantEmployeeId, at, `{${excluded.join(",")}}`]);
   await insertSteps(ctx.tx, c, id, steps);
   await appendAudit(ctx.tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "approval.opened", entityType: "approval", entityId: id,
@@ -155,14 +162,20 @@ export async function cancelRequest(ctx: ReqCtx, approvalId: string)
 interface TaskRow extends RequestRow {
   step_order: number;
   step_count: number;
+  approver: ApproverSpec;
 }
+
+/** A role step needs the role now (a demoted user is not offered it). */
+export const holdsStepRole = (ctx: ReqCtx, a: ApproverSpec) =>
+  a.kind !== "role" || ctx.tenant!.role === a.role;
 
 /** Pending steps the caller may decide, oldest first. */
 export async function inbox(ctx: ReqCtx, handlers: SubjectHandlers)
   : Promise<ApprovalTask[]> {
   const c = ctx.tenant!.companyId;
   const rows = await ctx.tx.query<TaskRow>(
-    `SELECT r.*, s.step_order, (SELECT count(*)::int FROM approval_steps x
+    `SELECT r.*, array_to_json(r.excluded) AS excluded_list, s.step_order,
+       s.approver, (SELECT count(*)::int FROM approval_steps x
        WHERE x.company_id = r.company_id AND x.request_id = r.id)
        AS step_count
      FROM approval_steps s JOIN approval_requests r
@@ -172,7 +185,9 @@ export async function inbox(ctx: ReqCtx, handlers: SubjectHandlers)
      ORDER BY r.created_at, r.id`, [c, ctx.user!.id]);
   const today = dubaiDate(ctx.deps.now());
   const out: ApprovalTask[] = [];
-  for (const r of rows) {
+  const me = ctx.user!.id;
+  for (const r of rows.filter((x) => holdsStepRole(ctx, x.approver) &&
+    !x.excluded_list.includes(me))) {
     const facts = await handlerFor(handlers, r.subject_type)
       .facts(ctx.tx, c, r.subject_id);
     out.push({ approvalId: r.id, subjectType: r.subject_type,

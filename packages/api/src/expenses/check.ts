@@ -39,6 +39,11 @@ export interface CheckInput {
   /** `"<categoryId>|<date>|<fils>"` of the employee's other claims. */
   otherSignatures: ReadonlySet<string>;
   otherHashes: ReadonlySet<string>;
+  /**
+   * Receipt hashes on other employees' claims: flagged only as a
+   * possible duplicate, so the other person is never named.
+   */
+  companyHashes: ReadonlySet<string>;
 }
 
 export interface Flag { code: ClaimFlagCode; index: number | null }
@@ -95,6 +100,9 @@ function dupFlags(it: CheckItem, i: CheckInput, sigs: Set<string>,
   }
   if (it.receiptHashes.some((h) => i.otherHashes.has(h) || hashes.has(h))) {
     out.push("DUPLICATE_RECEIPT");
+  } else if (!out.includes("POSSIBLE_DUPLICATE") &&
+    it.receiptHashes.some((h) => i.companyHashes.has(h))) {
+    out.push("POSSIBLE_DUPLICATE");
   }
   sigs.add(sig);
   for (const h of it.receiptHashes) hashes.add(h);

@@ -78,6 +78,69 @@ them apart is deliberate.
 | 2026-11-26 | Supersedes Plan 3 ruling 9 in part: the keyring derives separate HKDF subkeys for wrapping company keys and for global values, and cipher text names the master key (`v1.<keyId>.<data>`). KMS and rotation are still deferred. | Security review (M-5). |
 | 2026-11-26 | Adds to Plan 3 rulings 2 and 4: production uses two database roles, a migration role that owns the tables and a runtime role (no superuser, no BYPASSRLS, owns nothing) granted `payroll_app WITH SET TRUE`; the server refuses to start otherwise. | Security review (I-2): PostgreSQL 16 role semantics and superuser bypass. |
 | 2026-11-26 | Supersedes Plan 3 ruling 8 in part: MFA enrolment and confirmation need the password, confirmation no longer upgrades the session, and other sessions are revoked; TOTP codes are single-use. | Security review (I-4) and coordinator instruction. |
+| 2026-11-26 | Plan 8 Ruling 1: API and contract only; no web screens (Plan 4's web app builds against `HR_ROUTES` later). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 2: statutory values live in the engine pack `ae-employment` with `emp`-prefixed keys and five `DL33_ART*` source ids. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 3: `official` only where the research note quotes the value as READ (6 months, 14 days, one month, 30 to 90 days, reducible by agreement, job-search day, 14 days). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 4: exits without notice (Articles 44, 45) give zero notice as a `convention` with a counsel flag; no grounds are encoded. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 5: settlement due date is 14 days (`official`, Article 53) counted from the last working date (`convention`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 6: notice counts from the day after written notice; last working day = notice date + notice days (`convention`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 7: probation end = joining date plus months, clamped to month end, minus one day (`convention`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 8: a contract notice outside 30 to 90 days is refused, not raised to 30. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 9: agreed notice reductions apply only to resignation and termination (43(2)); probation notices cannot be reduced. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 10: the exit kind never changes the settlement (resignation rules NOT FOUND in Decree-Law 33 of 2021). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 11: the engine's `notComputed` list is shown verbatim; loans, tickets, bonds, claims, cards and deductions are flag-only and never deducted. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 12: unused leave days and unpaid service days are HR-entered at settlement time. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 13: the exit settlement is a pure API function that calls the engine, cross-checked against Plan 3's payslip settlement. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 14: no scheduler; reminders and deadlines are dated tasks, overdue is computed on read (Dubai date), changed terms cancel and recreate reminders with a comment. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 15: one shared approval rule (`assertDecidable`: role, pending status, separation of duties); no generic approvals table yet. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 16: MFA on offer approval and access revocation only. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 17: interview scheduling is a `CalendarPort`, default "not connected"; interviews are stored locally. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 18: document generation is a `DocumentPort`, default "not configured", given ids only. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 19: access revocation = in-app membership revoke plus an external port; sessions are kept for other companies; the last owner cannot be revoked; a new invite restores access. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 20: ports run inside the handler's transaction; a throwing port is recorded as failed and never rolls back. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 21: hire idempotency by a claim row (`offer_hires`, `ON CONFLICT DO NOTHING`) before the employee is created. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 22: candidates have no login; HR records offer responses; no e-signature. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 23: one template per kind per company, versioned; defaults labelled "product default, not law"; the visa cancellation task has no due rule. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 24: only the system links tasks to flows; nothing is deleted (items removed, tasks cancelled, comments append only). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 25: goals are simple records: no ratings, no pay links, no AI. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 26: employment trace ids are not added to the explain catalog; raw trace lines with rule status are returned. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 27: Plan 8 audit action names avoid a hyphen in the first segment (`template.updated`, `terms.updated`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 28: Plan 8 migrations use the range 801 to 807. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 29: Plan 3 functions consumed but not named there are exported with the planned signatures (built as `src/people/employee-actions.ts`; Plan 3's salary check is `checkSalary`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 30: employees may resign (and give the probation notices that are theirs) for themselves; managers cannot open exits; interviewers must be owner, hr or manager. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 31: product bounds (headcount 1 to 50, criteria 1 to 10, offsets -60 to 365, interviewers 1 to 5) are product choices, not law. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 32: ruled out, each a visible gap in the handover: cost-of-hire and hiring-plan cost, referral and agency ledger, permit/MOHRE/WPS setup deadlines, labour card and visa cancellation deadlines, ticket/loan/bond/card balances, exit interview forms, candidate data retention (PDPL), job posts and careers page, resume parsing and AI screening, email-in resignations, notice during leave, job-search day tracking, the probation-once check, part-time workers. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 33: per-task review of Tasks 1, 6 and 7 plus one whole-branch review; no pause for plan review. | Plan 8 build. |
+| 2026-11-26 | Plan 8 build calls (builder's decisions; full list in `docs/superpowers/plans/plan-8-build-report.md`): joiners before 2022-02-02 get zero-month terms only; terms check the contract notice on the later of joining date and today; revoking access closes the leaver's unused invites; audit keys for Plan 8 are a separate allowlist file spread into Plan 3's; list responses are `{ items }`. | Plan 8 build. |
+| 2026-11-26 | Plan 6 ruling 1 (UNSOURCED, flagged): reimbursements are paid with payroll but outside the SIF; the SIF carries salary only, the payslip `net` includes reimbursements, and payslips, runs and the payouts report show `REIMBURSEMENT_WPS_NOTE`. | No source says whether expense repayments must go through WPS; one change in `buildSifBatch` if they must. |
+| 2026-11-26 | Plan 6 ruling 2: "non-taxable" means "not wage": never in gross, the deduction cap base, GPSSA or gratuity (property-tested). | No personal income tax rule in our packs. |
+| 2026-11-26 | Plan 6 ruling 3: reimbursement is added to the API payslip after the salary computation, not inside the engine. | Keeps the engine invariant `net = gross - deductions` and its SIF adapter intact. |
+| 2026-11-26 | Plan 6 ruling 4: VAT is captured only (VAT-inclusive amount, VAT, supplier name and TRN); the only check is VAT <= amount; `vatRecoverability` is fixed at `not-assessed` (unsourced) with `VAT_STATEMENT` on every claim and VAT report. | FTA Decision 17 of 2026 is known from secondary summaries only. |
+| 2026-11-26 | Plan 6 ruling 5: TRN format `^\d{15}$` is a convention, not a sourced rule; no checksum. | One regex to change. |
+| 2026-11-26 | Plan 6 ruling 6: AED only; original currency and amount are information fields flagged `FOREIGN_CURRENCY`; no exchange rate. | Claimants convert by hand. |
+| 2026-11-26 | Plan 6 ruling 7: mileage and per diem rates are dated company policy values with no default; whole kilometres and whole days; the applied rate is stored on the item. | No statutory private-sector rate was read. |
+| 2026-11-26 | Plan 6 ruling 8: per-role limits key on the four app roles, with a `role: null` default row. | One lookup to change if the owner meant grade or department. |
+| 2026-11-26 | Plan 6 ruling 9: limits are checked at submit only, against submitted, approved and reimbursed claims; `block` refuses, `flag` needs a justification and adds the over-limit approver. | A policy tightened after submit does not re-check open claims. |
+| 2026-11-26 | Plan 6 ruling 10: approval spine scope (UQ18): generic chains per subject type, amount tiers, line-manager, role and named-user approvers, fallback hr then owner, maker-checker, distinct approvers, over-limit escalation, optimistic step numbers, inbox and aging. Delegation, leave-aware rerouting, risk signals, SLA alerts, moving leave and pay runs onto the spine and WhatsApp approvals are deferred. | Leave and pay runs keep Plan 3's checks for now. |
+| 2026-11-26 | Plan 6 ruling 11: eligibility is fixed at submit; a claim whose last approver leaves is cancelled and resubmitted. | Occasional resubmission. |
+| 2026-11-26 | Plan 6 ruling 12: a one-person company cannot approve its own claims (`NO_ELIGIBLE_APPROVER`). | As Plan 3 ruling 10 for pay runs. |
+| 2026-11-26 | Plan 6 ruling 13: expense approvals need no MFA; changing a chain needs owner and MFA. | Who approves money is a sensitive setting (G10). |
+| 2026-11-26 | Plan 6 ruling 14: no partial approval; the approver returns the claim instead. | One more round trip. |
+| 2026-11-26 | Plan 6 ruling 15: claim amounts are stored in clear (bigint fils) so reports sum in SQL; payslip bodies stay sealed; receipt files are encrypted. | A database reader sees expense amounts, not salaries. |
+| 2026-11-26 | Plan 6 ruling 16: draft edits are revisions, not deletes (no delete grant). | A few spare rows. |
+| 2026-11-26 | Plan 6 ruling 17: receipts are JPEG, PNG or PDF, sniffed from bytes, at most 5 MiB, sent as base64 JSON under a 7.5 MB body limit, always downloaded as an attachment under a generated name; HEIC is refused. | iPhone photos are converted in the client. |
+| 2026-11-26 | Plan 6 ruling 18: storage is a `BlobStore` port: memory in tests, local disk (`RECEIPTS_DIR`) in development, object storage later. | Multi-server needs the object-storage adapter first. |
+| 2026-11-26 | Plan 6 ruling 19: OCR is an interface only (`ReceiptReader`, null by default); output is schema-checked, stored as a suggestion and never applied. | Claimants type every field until a reader is chosen. |
+| 2026-11-26 | Plan 6 ruling 20: duplicates are flagged, never blocked (`POSSIBLE_DUPLICATE`, `DUPLICATE_RECEIPT`). | An approver can still approve a real duplicate after seeing the flag. |
+| 2026-11-26 | Plan 6 ruling 21: approved, unlinked claims of in-scope employees join the next run created; HR can exclude claims per run; void releases them; approval marks them reimbursed; submitted claims are counted as a warning, never a block. | A claim approved just after a run waits a month unless the draft is voided and recreated. |
+| 2026-11-26 | Plan 6 ruling 22: a leaver's claim approved after the final run waits as `approved` and shows as `employee-left` in the unpaid report; it is not added to the settlement. | HR pays it by hand. |
+| 2026-11-26 | Plan 6 ruling 23: reports are owner and hr only; CSV has a statement line first and a BOM, and formula-like cells are written as text. | Managers cannot export team spend. |
+| 2026-11-26 | Plan 6 ruling 24: audit data holds counts, codes and ids, never amounts, VAT, TRNs or supplier names. | Auditors read amounts from the claim. |
+| 2026-11-26 | Plan 6 ruling 25: backend only; expense and approval screens are a Plan 4 follow-up; the web mocks carry the no-claim payslip and pay-run values. | No user-facing expenses until then. |
+| 2026-11-26 | Plan 6 ruling 26: migrations are numbered 601 to 604 (Plan 3 already used 007 and 008; Plans 8 and 9 use 801 and 901 blocks); the runner's three-digit lexical order is unchanged. | Supersedes the plan's 007 to 010. |
+| 2026-11-26 | Plan 6 ruling 27: no cards, no payments, no bank payment files; the payouts report is a list for HR. | Licensed partners first (ledger 2026-11-25). |
+| 2026-11-26 | Plan 6 ruling 28: per-task security review for Tasks 2, 3 and 6, one whole-branch review at the end; built in one worktree, in order. | A slip in Tasks 1, 4, 5 or 7 is caught by the final review. |
+| 2026-11-26 | Plan 6 build: adaptations to the plan (route count 75, list envelopes, extra files, visibility before step checks, first tier at 0.00, run columns, snapshot rebuild from linked claims, Opus commit trailer) are listed in `docs/superpowers/plans/plan-6-build-report.md`. | Plan 6 build. |
 | 2026-11-26 | Supersedes the 2026-11-26 row on Plan 3 ruling 13 above: a leaver's `serviceUnpaidLeaveDays` is required like `unusedLeaveDays`; a missing value is refused with `SETTLEMENT_INPUT_REQUIRED`, never treated as 0 (current plan text, rule 5 and Ruling 13; money review I-1). | Assuming 0 overstated the gratuity (200 unpaid days: 22,986.30 shown instead of 20,794.52). |
 
 ## 4. Future plan (current)

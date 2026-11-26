@@ -1,3 +1,4 @@
+import { VAT_STATEMENT } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   createClaim,
@@ -32,7 +33,8 @@ describe("expense claims: drafts, edits, visibility", () => {
     expect(r.status, r.text).toBe(201);
     expect(r.body).toMatchObject({ status: "draft",
       employeeId: s.emp.report, createdBy: s.employee.userId,
-      vatRecoverability: "not-assessed", approval: null, payRunId: null,
+      vatRecoverability: "not-assessed", vatStatement: VAT_STATEMENT,
+      approval: null, payRunId: null,
       total: "135.50", vatTotal: "2.17" });
     expect(r.body.items[0]).toMatchObject({ kind: "mileage",
       amount: "90.00", vatAmount: "0.00", rateApplied: "0.75",
@@ -89,15 +91,20 @@ describe("expense claims: drafts, edits, visibility", () => {
     expect(rows.map((x) => x.revision)).toEqual([1, 2, 2]);
     const other = await as(s.manager, "PATCH",
       `/v1/expense-claims/${c.body.id}`, { title: "Mine" });
-    expect(other.status).toBe(403);
+    // A draft is invisible to the manager (404), never editable.
+    expect(other.status).toBe(404);
   });
 
   it("visibility", async () => {
     const mine = await createClaim(ctx, s.employee, s, [meal(cats, "5.00")]);
     const theirs = await createClaim(ctx, s.hr, s, [meal(cats, "6.00")],
       { employeeId: s.emp.report2 });
-    expect((await as(s.manager, "GET",
-      `/v1/expense-claims/${mine.body.id}`)).status).toBe(200);
+    // A draft is the employee's own work: the manager sees it only
+    // once submitted (security review M-2).
+    const path = `/v1/expense-claims/${mine.body.id}`;
+    expect((await as(s.manager, "GET", path)).status).toBe(404);
+    await as(s.employee, "POST", `${path}/submit`);
+    expect((await as(s.manager, "GET", path)).status).toBe(200);
     expect((await as(s.employee, "GET",
       `/v1/expense-claims/${theirs.body.id}`)).status).toBe(404);
     const list = await as(s.employee, "GET", "/v1/expense-claims");

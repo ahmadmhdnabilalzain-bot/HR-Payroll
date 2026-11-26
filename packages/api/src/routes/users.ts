@@ -15,6 +15,7 @@ import { UUID } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
 import { register, type App, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
+import { assertInviteNotSpentByExit } from "../exits/invite-guard";
 
 export const INVITE_MS = 72 * 3600 * 1000;
 
@@ -36,6 +37,7 @@ async function listUsers(ctx: ReqCtx) {
        u.mfa_enrolled
      FROM memberships m JOIN users u ON u.id = m.user_id
      WHERE m.company_id = $1 AND u.kind = 'human'
+       AND m.revoked_at IS NULL
      ORDER BY u.email`, [companyId]);
   return { items: rows.map((r) => ({ userId: r.user_id, email: r.email,
     displayName: r.display_name, role: r.role, employeeId: r.employee_id,
@@ -47,7 +49,7 @@ async function listUsers(ctx: ReqCtx) {
  * no member linked and no open invite.
  */
 async function checkLinkable(tx: Db, deps: HandlerDeps, companyId: string,
-  employeeId: string): Promise<void> {
+  employeeId: string, email: string): Promise<void> {
   await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
     "id = $2 FOR UPDATE", [companyId, employeeId]);
   const e = await tx.query(
@@ -58,11 +60,14 @@ async function checkLinkable(tx: Db, deps: HandlerDeps, companyId: string,
       { fields: ["body.employeeId"] });
   }
   const taken = await tx.query(
-    `SELECT 1 FROM memberships WHERE company_id = $1 AND employee_id = $2
+    `SELECT 1 FROM memberships m WHERE m.company_id = $1
+       AND m.employee_id = $2 AND NOT (m.revoked_at IS NOT NULL AND
+         m.user_id IN (SELECT u.id FROM users u
+           WHERE lower(u.email) = lower($4)))
      UNION ALL
      SELECT 1 FROM invites WHERE company_id = $1 AND employee_id = $2
        AND used_at IS NULL AND expires_at > $3`,
-    [companyId, employeeId, deps.now().toISOString()]);
+    [companyId, employeeId, deps.now().toISOString(), email]);
   if (taken.length > 0) throw new ApiError("EMPLOYEE_ALREADY_LINKED");
 }
 
@@ -71,7 +76,8 @@ async function inviteUser(ctx: ReqCtx<InviteRequest>) {
   const { deps, body } = ctx;
   const companyId = ctx.tenant!.companyId;
   if (body.employeeId !== undefined) {
-    await checkLinkable(ctx.tx, ctx.deps, companyId, body.employeeId);
+    await checkLinkable(ctx.tx, ctx.deps, companyId, body.employeeId,
+      body.email);
   }
   const setupToken = `${companyId}.${newSecret(deps)}`;
   const now = deps.now();
@@ -122,20 +128,48 @@ async function userFor(tx: Db, ctx: ReqCtx<AcceptInviteRequest>,
   return id;
 }
 
+/**
+ * One user per employee record in a company (Plan 3 M-7). The unique
+ * index also counts revoked memberships, so a revoked link still holds
+ * the employee; only the same user can take it back.
+ */
+async function assertEmployeeFree(tx: Db, m: { companyId: string;
+  userId: string; employeeId: string | null }) {
+  if (m.employeeId === null) return;
+  const linked = await tx.query(
+    `SELECT 1 FROM memberships WHERE company_id = $1 AND employee_id = $2
+     AND user_id <> $3`, [m.companyId, m.employeeId, m.userId]);
+  if (linked.length > 0) throw new ApiError("EMPLOYEE_ALREADY_LINKED");
+}
+
+/**
+ * A new membership, or a revoked one restored (Plan 8: a rehire's new
+ * invite sets the role and employee link and clears the revocation).
+ */
+async function joinCompany(tx: Db, m: { companyId: string;
+  userId: string; role: Role; employeeId: string | null; at: string }) {
+  const [old] = await tx.query<{ revoked_at: string | null }>(
+    `SELECT revoked_at FROM memberships WHERE company_id = $1
+     AND user_id = $2 FOR UPDATE`, [m.companyId, m.userId]);
+  if (old !== undefined && old.revoked_at === null) {
+    throw new ApiError("ALREADY_MEMBER");
+  }
+  await assertEmployeeFree(tx, m);
+  if (old === undefined) return insertMembership(tx, m);
+  await tx.query(
+    `UPDATE memberships SET role = $3, employee_id = $4, revoked_at = NULL,
+       revoked_by = NULL WHERE company_id = $1 AND user_id = $2`,
+    [m.companyId, m.userId, m.role, m.employeeId]);
+}
+
 async function acceptIn(tx: Db, ctx: ReqCtx<AcceptInviteRequest>,
   companyId: string, verifiedId: string | null): Promise<string> {
   const at = ctx.deps.now().toISOString();
   const inv = await openInvite(tx, ctx.deps, ctx.body.setupToken);
   const userId = await userFor(tx, ctx, inv.email, verifiedId);
-  const member = await tx.query("SELECT 1 FROM memberships WHERE " +
-    "company_id = $1 AND user_id = $2", [companyId, userId]);
-  if (member.length > 0) throw new ApiError("ALREADY_MEMBER");
-  if (inv.employee_id !== null) {
-    const linked = await tx.query("SELECT 1 FROM memberships WHERE " +
-      "company_id = $1 AND employee_id = $2", [companyId, inv.employee_id]);
-    if (linked.length > 0) throw new ApiError("EMPLOYEE_ALREADY_LINKED");
-  }
-  await insertMembership(tx, { companyId, userId, role: inv.role,
+  await assertInviteNotSpentByExit(tx, companyId, inv,
+    new Date(Date.parse(inv.expires_at) - INVITE_MS).toISOString());
+  await joinCompany(tx, { companyId, userId, role: inv.role,
     employeeId: inv.employee_id, at });
   await tx.query("UPDATE invites SET used_at = $2 WHERE id = $1",
     [inv.id, at]);
@@ -178,10 +212,11 @@ async function changeRole(tx: Db, ctx: ReqCtx<RoleChange, unknown,
   // once queue here, so the second sees one owner left.
   const owners = await tx.query<{ user_id: string }>(
     `SELECT user_id FROM memberships WHERE company_id = $1
-     AND role = 'owner' ORDER BY user_id FOR UPDATE`, [companyId]);
+     AND role = 'owner' AND revoked_at IS NULL ORDER BY user_id
+     FOR UPDATE`, [companyId]);
   const [m] = await tx.query<{ role: Role }>(
     `SELECT role FROM memberships WHERE company_id = $1 AND user_id = $2
-     FOR UPDATE`, [companyId, target]);
+     AND revoked_at IS NULL FOR UPDATE`, [companyId, target]);
   if (m === undefined) throw new ApiError("NOT_FOUND");
   const to = ctx.body.role;
   if (m.role === "owner" && to !== "owner" && owners.length <= 1) {

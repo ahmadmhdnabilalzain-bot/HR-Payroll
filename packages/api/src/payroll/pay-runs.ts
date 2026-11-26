@@ -1,5 +1,6 @@
 import {
   NOT_COMPUTED_PAY,
+  REIMBURSEMENT_WPS_NOTE,
   type PayRun,
   type PayRunCreate,
 } from "@payroll/contract";
@@ -66,10 +67,10 @@ export const toPayRun = (r: RunRow): PayRun => ({
   createdAt: r.created_at, approvedAt: r.approved_at,
   inputHash: r.input_hash, employeeCount: r.employee_count,
   gross: toMoney(fils(BigInt(r.gross))), notComputed: [...NOT_COMPUTED_PAY],
-  sifFileId: r.sif_file_id,
+  sifFileId: r.sif_file_id, changedSinceLastRun: r.changes,
   reimbursementTotal: toMoney(fils(BigInt(r.reimbursement_total))),
   claimCount: r.claim_count, pendingClaimCount: r.pending_claim_count,
-  changedSinceLastRun: r.changes });
+  reimbursementNote: r.claim_count > 0 ? REIMBURSEMENT_WPS_NOTE : null });
 
 export async function loadRun(tx: Db, companyId: string, id: string,
   lock = false): Promise<RunRow> {
@@ -106,8 +107,8 @@ async function liveRunExists(tx: Db, companyId: string, b: PayRunCreate) {
 /** No conflict target: the key and the one-live-run index both count. */
 const INSERT_RUN = `INSERT INTO pay_runs (id, company_id, year, month,
     status, idempotency_key, request_hash, input_hash, snapshot_enc, gross,
-    employee_count, created_by, created_at, reimbursement_total,
-    claim_count, pending_claim_count, changes)
+    employee_count, created_by, created_at, changes, reimbursement_total,
+    claim_count, pending_claim_count)
   VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12, $13,
     $14, $15, $16)
   ON CONFLICT DO NOTHING RETURNING id`;
@@ -131,9 +132,24 @@ async function insertRun(ctx: ReqCtx<PayRunCreate>, key: string,
     [id, c, body.period.year, body.period.month, key, requestHash,
       inputHash, await sealSnapshot(tx, deps, c, id, snap),
       out.gross.toString(), out.payslips.length, ctx.user!.id, at,
-      reimbursed.toString(), snap.reimbursements.length, pending,
-      JSON.stringify(changes)]);
+      JSON.stringify(changes), reimbursed.toString(),
+      snap.reimbursements.length, pending]);
   return inserted.length === 0 ? null : { id, at, inputHash };
+}
+
+/**
+ * The stored run for this key (a 200 replay), or 409 when another run
+ * holds the month. The key is read again after the month check: a
+ * request with the same key may have committed between the two reads.
+ */
+async function priorRun(tx: Db, c: string, key: string, body: PayRunCreate,
+  requestHash: string): Promise<Reply | null> {
+  const prior = await byKey(tx, c, key);
+  if (prior !== null) return replay(prior, requestHash);
+  if (!(await liveRunExists(tx, c, body))) return null;
+  const won = await byKey(tx, c, key);
+  if (won !== null) return replay(won, requestHash);
+  throw new ApiError("RUN_EXISTS_FOR_PERIOD");
 }
 
 /**
@@ -149,11 +165,8 @@ export async function createPayRun(ctx: ReqCtx<PayRunCreate>, key: string)
   const { tx, deps, body } = ctx;
   const c = ctx.tenant!.companyId;
   const requestHash = sha256Hex(canonicalJson(body));
-  const prior = await byKey(tx, c, key);
-  if (prior !== null) return replay(prior, requestHash);
-  if (await liveRunExists(tx, c, body)) {
-    throw new ApiError("RUN_EXISTS_FOR_PERIOD");
-  }
+  const prior = await priorRun(tx, c, key, body, requestHash);
+  if (prior !== null) return prior;
   const snap = await buildSnapshot(tx, deps, c, body, { newRun: true });
   const out = computePayRun(snap);
   if (out.problems.length > 0) throw problemsError(out.problems);
@@ -200,7 +213,7 @@ export async function approvePayRun(ctx: ReqCtx<unknown, unknown,
   await appendAudit(tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "pay-run.approved", entityType: "pay-run", entityId: r.id,
     data: { year: r.year, month: r.month } });
-  await markReimbursed(ctx, r.id);
+  await markReimbursed(ctx, r.id, r.claim_count);
   await emitEvent(eventCtx(ctx), { type: "pay-run.approved",
     payRunId: r.id, period: { year: r.year, month: r.month } });
   return toPayRun(await loadRun(tx, c, r.id));

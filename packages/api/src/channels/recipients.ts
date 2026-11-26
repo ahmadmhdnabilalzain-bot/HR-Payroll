@@ -10,6 +10,7 @@ async function members(tx: Db, c: string, ids: string[]): Promise<string[]> {
   const rows = await tx.query<{ user_id: string }>(
     `SELECT m.user_id FROM memberships m JOIN users u ON u.id = m.user_id
      WHERE m.company_id = $1 AND u.kind = 'human'
+       AND m.revoked_at IS NULL
        AND m.user_id = ANY ($2::uuid[])
      ORDER BY m.user_id`, [c, `{${ids.join(",")}}`]);
   return rows.map((r) => r.user_id);
@@ -20,6 +21,7 @@ async function usersWhere(tx: Db, c: string, cond: string,
   const rows = await tx.query<{ user_id: string }>(
     `SELECT m.user_id FROM memberships m JOIN users u ON u.id = m.user_id
      WHERE m.company_id = $1 AND u.kind = 'human'
+       AND m.revoked_at IS NULL
        AND ${cond} ORDER BY m.user_id`, [c, ...args]);
   return rows.map((r) => r.user_id);
 }

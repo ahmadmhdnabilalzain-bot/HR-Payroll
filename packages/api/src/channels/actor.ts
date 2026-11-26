@@ -10,6 +10,11 @@ const NO_ENTER: Enter = () => {
   throw new Error("an actor context opens no transaction");
 };
 
+/** Channel actors write no outside files; refusing keeps rollback safe. */
+const NO_UNDO = () => {
+  throw new Error("an actor context registers no undo");
+};
+
 /**
  * A request context for a person acting through a channel (WhatsApp,
  * email-in) or a job, inside the caller's tenant transaction. The
@@ -21,7 +26,8 @@ export async function actorCtx<B = unknown>(tx: Db, deps: HandlerDeps,
   const user = await userById(tx, userId);
   const [m] = await tx.query<{ role: Role; employee_id: string | null }>(
     `SELECT role, employee_id FROM memberships
-     WHERE company_id = $1 AND user_id = $2`, [companyId, userId]);
+     WHERE company_id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+    [companyId, userId]);
   if (user === null || m === undefined) {
     throw new ApiError("TENANT_FORBIDDEN");
   }
@@ -29,6 +35,7 @@ export async function actorCtx<B = unknown>(tx: Db, deps: HandlerDeps,
     session: { tokenHash: "", userId, mfa: false, via,
       expiresAt: deps.now().toISOString() },
     tenant: { companyId, role: m.role, employeeId: m.employee_id },
-    tx, enter: NO_ENTER, params: {}, query: {}, headers: {},
+    tx, enter: NO_ENTER, onFailure: NO_UNDO, params: {}, query: {},
+    headers: {},
     body: body as B };
 }

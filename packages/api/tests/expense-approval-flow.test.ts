@@ -98,6 +98,10 @@ describe("expense claims through the approval spine", () => {
     const c = await createClaim(ctx, s.employee, s,
       [meal(cats, "35.00", { receiptIds: [up.body.id] })]);
     expect(c.status, c.text).toBe(201);
+    const draft = await callBytes(ctx.app, s.manager.token, s.companyId,
+      url);
+    expect(draft.status).toBe(404);
+    await claimAction(ctx, s.employee, s, c.body.id, "submit");
     const m = await callBytes(ctx.app, s.manager.token, s.companyId, url);
     expect(m.status).toBe(200);
     const meta = await as(s.manager, "GET", `/v1/receipts/${up.body.id}`);

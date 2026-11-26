@@ -19,13 +19,13 @@ const C2 = "00000000-0000-4000-8000-0000000006c2";
 const emp = (over: Partial<SnapshotEmployee> = {}): SnapshotEmployee => ({
   employeeId: E1, name: "Asha", joiningDate: "2019-01-01",
   lastWorkingDate: null, workerClass: "expat-full-time", salaryVersion: 1,
+  bank: { routingCode: "803320101", iban: "AE070331234567890123456" },
+  labourPersonId: "00000000000001",
   unpaidLeaveDays: 0, components: [
     { code: "basic", label: "Basic", amount: fils(400000n),
       sifBucket: "fixed" },
     { code: "housing", label: "Housing", amount: fils(150000n),
-      sifBucket: "housing" }],
-  bank: { routingCode: "803320101", iban: "AE070331234567890123456" },
-  labourPersonId: "00000000000001", ...over });
+      sifBucket: "housing" }], ...over });
 
 function slip(): ComputedPayslip {
   const s: RunSnapshot = { period: { year: 2026, month: 3 },
@@ -66,6 +66,17 @@ describe("applyReimbursements", () => {
     expect(out.trace.slice(0, base.trace.length)).toEqual(base.trace);
   });
 
+  it("salary net comes from the incoming net (deductions kept)", () => {
+    // A salary step that deducts without touching salaryNet (review I-3).
+    const base = { ...slip(), net: fils(500000n) };
+    const out = applyReimbursements(base, [claim(C1, 25000n)]);
+    expect(out.salaryNet).toBe(500000n);
+    expect(out.net).toBe(525000n);
+    expect(applyReimbursements(out, [claim(C1, 25000n)])).toEqual(out);
+    const none = applyReimbursements(out, []);
+    expect([none.net, none.salaryNet]).toEqual([500000n, 500000n]);
+  });
+
   it("ignores_other_employees", () => {
     const out = applyReimbursements(slip(), [claim(C1, 100n, E2)]);
     expect(out.reimbursementTotal).toBe(0n);
@@ -88,7 +99,9 @@ describe("applyReimbursements", () => {
         employees: [emp({ components: [{ code: "basic", label: "Basic",
           amount: fils(basic), sifBucket: "fixed" }] })], entries: [],
         reimbursements: [] };
-      const base = computePayRun(s).payslips[0]!;
+      const computed = computePayRun(s).payslips[0]!;
+      // Any salary net up to gross, as a later salary step may deduct.
+      const base = { ...computed, net: fils(computed.net * 3n / 4n) };
       const claims = xs.map((x, i) => claim(
         `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`, x));
       const out = applyReimbursements(base, claims);

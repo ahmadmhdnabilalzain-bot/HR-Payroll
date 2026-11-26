@@ -6,6 +6,8 @@
 export interface BlobStore {
   put(key: string, bytes: Uint8Array): Promise<void>;
   get(key: string): Promise<Uint8Array | null>;
+  /** Removes a blob (a rolled-back upload); a missing key is fine. */
+  delete(key: string): Promise<void>;
 }
 
 export interface MemoryBlobStore extends BlobStore {
@@ -23,6 +25,9 @@ export function memoryBlobStore(): MemoryBlobStore {
     async get(key) {
       const b = m.get(key);
       return b === undefined ? null : new Uint8Array(b);
+    },
+    async delete(key) {
+      m.delete(key);
     },
     dump: () => new Map([...m].map(([k, v]) => [k, new Uint8Array(v)])),
   };

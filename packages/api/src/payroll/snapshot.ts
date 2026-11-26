@@ -29,18 +29,6 @@ export async function buildSnapshot(tx: Db, deps: HandlerDeps,
   // create or approval to commit, so the snapshot is never stale.
   await tx.query(`SELECT id FROM employees WHERE company_id = $1
     ORDER BY id FOR SHARE`, [companyId]);
-  const employees = await snapshotEmployees(tx, deps, companyId, body);
-  const ids = employees.map((e) => e.employeeId);
-  const reimbursements = "runId" in source
-    ? await claimsOfRun(tx, companyId, source.runId)
-    : await claimsForNewRun(tx, companyId, ids, body.excludeClaimIds ?? []);
-  return { period: body.period, employees, entries: body.entries,
-    reimbursements };
-}
-
-/** In-period employees; any unreadable sealed field fails the run. */
-async function snapshotEmployees(tx: Db, deps: HandlerDeps,
-  companyId: string, body: PayRunCreate): Promise<SnapshotEmployee[]> {
   const rows = await listEmployees(tx, deps, companyId);
   const employees: SnapshotEmployee[] = [];
   const unreadable: PayRunProblem[] = [];
@@ -64,7 +52,12 @@ async function snapshotEmployees(tx: Db, deps: HandlerDeps,
     employees.push(e);
   }
   if (unreadable.length > 0) throw problemsError(unreadable);
-  return employees;
+  const ids = employees.map((e) => e.employeeId);
+  const reimbursements = "runId" in source
+    ? await claimsOfRun(tx, companyId, source.runId)
+    : await claimsForNewRun(tx, companyId, ids, body.excludeClaimIds ?? []);
+  return { period: body.period, employees, entries: body.entries,
+    reimbursements };
 }
 
 /** Keyed fingerprint under the company key (`Sealer.mac`). */

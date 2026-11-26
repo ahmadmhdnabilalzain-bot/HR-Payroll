@@ -63,6 +63,7 @@ const payRun = {
   reimbursementTotal: "0.00",
   claimCount: 0,
   pendingClaimCount: 0,
+  reimbursementNote: null,
 };
 
 const sifFile = {

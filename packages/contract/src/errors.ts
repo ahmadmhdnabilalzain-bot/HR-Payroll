@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CHANNEL_ERROR_STATUS } from "./errors-channels";
+import { HR_ERROR_STATUS } from "./errors-hr";
 
 /**
  * Plan 6 (approvals, receipts, expenses). Claim problem codes
@@ -19,6 +20,7 @@ const EXPENSE_ERROR_STATUS = {
   CLAIM_NOT_CANCELLABLE: 409,
   RECEIPT_TOO_LARGE: 413,
   RECEIPT_TYPE_NOT_ALLOWED: 415,
+  RECEIPT_QUOTA_EXCEEDED: 429,
   NO_ELIGIBLE_APPROVER: 422,
   CHAIN_INVALID: 422,
   RECEIPT_TYPE_MISMATCH: 422,
@@ -89,6 +91,7 @@ export const ERROR_STATUS = {
   PAYLOAD_TOO_LARGE: 413,
   ACCOUNT_LOCKED: 423,
   INTERNAL: 500,
+  ...HR_ERROR_STATUS,
   ...EXPENSE_ERROR_STATUS,
   ...CHANNEL_ERROR_STATUS,
 } as const;

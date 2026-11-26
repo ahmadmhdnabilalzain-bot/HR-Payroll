@@ -2,23 +2,31 @@ import type { RouteDef } from "./route-def";
 import { ACCOUNT_ROUTES } from "./routes-account";
 import { CHANNEL_ROUTES } from "./routes-channels";
 import { EXPENSE_ROUTES } from "./routes-expenses";
+import { HR_ROUTES } from "./routes-hr";
 import { PAY_ROUTES } from "./routes-pay";
 import { PEOPLE_ROUTES } from "./routes-people";
 import { TIME_ROUTES } from "./routes-time";
 
 export type { Auth, Method, RouteDef } from "./route-def";
 export { CHANNEL_ROUTES } from "./routes-channels";
+export { HR_ROUTES };
+
+/** Plan 3's and Plan 6's routes. */
+export const CORE_ROUTES: readonly RouteDef[] = [
+  ...ACCOUNT_ROUTES,
+  ...PEOPLE_ROUTES,
+  ...TIME_ROUTES,
+  ...PAY_ROUTES,
+  ...EXPENSE_ROUTES,
+];
 
 /**
  * Route groups, one per plan area, in registration order. A plan adds
  * its group here; `ROUTES` is their concatenation.
  */
 export const ROUTE_GROUPS: readonly (readonly RouteDef[])[] = [
-  ACCOUNT_ROUTES,
-  PEOPLE_ROUTES,
-  TIME_ROUTES,
-  PAY_ROUTES,
-  EXPENSE_ROUTES,
+  CORE_ROUTES,
+  HR_ROUTES,
   CHANNEL_ROUTES,
 ];
 

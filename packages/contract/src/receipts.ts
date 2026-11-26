@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Id, IsoDate, Money, Timestamp } from "./primitives";
+import { Id, IsoDate, Money, text, Timestamp } from "./primitives";
 
 /** Receipt files: JPEG, PNG and PDF only, sniffed from the bytes. */
 export const ReceiptContentType = z.enum(["image/jpeg", "image/png",
@@ -14,7 +14,7 @@ export const Trn = z.string().regex(/^\d{15}$/);
 
 export const ReceiptUpload = z.object({
   employeeId: Id.optional(),
-  fileName: z.string().trim().min(1).max(120),
+  fileName: text(1, 120),
   contentType: ReceiptContentType,
   /** Standard base64 of the file (checked strictly by the server). */
   dataBase64: z.string().min(1).max(7_200_000),
@@ -30,7 +30,7 @@ export const ReceiptSuggestion = z.object({
   amount: Money.optional(),
   vatAmount: Money.optional(),
   supplierTrn: Trn.optional(),
-  supplierName: z.string().trim().min(1).max(120).optional(),
+  supplierName: text(1, 120).optional(),
   date: IsoDate.optional(),
 });
 export type ReceiptSuggestion = z.infer<typeof ReceiptSuggestion>;

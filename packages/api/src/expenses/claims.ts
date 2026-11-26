@@ -6,7 +6,7 @@ import type {
   ExpenseClaimQuery,
   ExpenseClaimUpdate,
 } from "@payroll/contract";
-import { cancelRequest } from "../approvals/requests";
+import { cancelRequest, loadRequest } from "../approvals/requests";
 import { appendAudit } from "../audit/audit";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
@@ -100,6 +100,10 @@ export async function updateClaim(ctx: ReqCtx<ExpenseClaimUpdate,
       WHERE company_id = $1 AND id = $2`,
     [c, r.id, r.revision + 1, t.total, t.vatTotal]);
   }
+  await ctx.tx.query(`UPDATE expense_claims SET editors =
+      array_append(editors, $3::uuid)
+    WHERE company_id = $1 AND id = $2 AND NOT ($3::uuid = ANY (editors))`,
+  [c, r.id, ctx.user!.id]);
   await claimAudit(ctx, "updated", r.id, { changed: Object.keys(b).sort() });
   return claimView(ctx, await visibleClaim(ctx, r.id));
 }
@@ -120,11 +124,30 @@ function cancelMode(ctx: ReqCtx<ClaimCancel>, r: ClaimRow): CancelMode {
   throw new ApiError("CLAIM_NOT_CANCELLABLE");
 }
 
+/**
+ * Locks in the order `decide` uses (approval request, then claim), so
+ * a cancel racing the last approval cannot deadlock. A request that
+ * changed in between (a resubmit) is a 409 to retry.
+ */
+async function lockedForCancel(ctx: ReqCtx, id: string)
+  : Promise<ClaimRow> {
+  const peek = await visibleClaim(ctx, id);
+  if (peek.approval_id !== null) {
+    await loadRequest(ctx.tx, ctx.tenant!.companyId, peek.approval_id,
+      true);
+  }
+  const r = await visibleClaim(ctx, id, true);
+  if (r.approval_id !== peek.approval_id) {
+    throw new ApiError("APPROVAL_STEP_CHANGED");
+  }
+  return r;
+}
+
 /** Withdraw (claimant, creator) or cancel an unpaid approval (hr). */
 export async function cancelClaim(ctx: ReqCtx<ClaimCancel, unknown,
   { id: string }>): Promise<ExpenseClaim> {
   const c = ctx.tenant!.companyId;
-  const r = await visibleClaim(ctx, ctx.params.id, true);
+  const r = await lockedForCancel(ctx, ctx.params.id);
   cancelMode(ctx, r);
   if (r.status === "submitted" && r.approval_id !== null) {
     await cancelRequest(ctx, r.approval_id);

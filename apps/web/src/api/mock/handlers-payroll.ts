@@ -71,7 +71,8 @@ function create(c: Ctx, r: WireRequest): AppPayRun {
     approvedAt: null, inputHash: "", employeeCount: slips.length,
     gross: slips.reduce((t: Fils, s) => add(t, s.gross), fils(0n)),
     notComputed: [...NOT_COMPUTED_PAY], sifFileId: null,
-    reimbursementTotal: fils(0n), claimCount: 0, pendingClaimCount: 0 };
+    reimbursementTotal: fils(0n), claimCount: 0, pendingClaimCount: 0,
+    reimbursementNote: null };
   const run = { ...draft, inputHash: inputHash(c, draft) };
   c.s.runs = [...c.s.runs, run];
   c.s.payslips = [...c.s.payslips, ...slips];

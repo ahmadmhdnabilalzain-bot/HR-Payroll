@@ -31,7 +31,9 @@ export const expenseClaimSubject: SubjectHandler = {
     const r = await claimRow(tx, companyId, id);
     const users = await employeeUsers(tx, companyId, r.employee_id);
     const total = fils(BigInt(r.total));
-    return { claimantEmployeeId: r.employee_id, ...users, total,
+    const makerUserIds = [...new Set([r.created_by, ...r.editors])];
+    return { claimantEmployeeId: r.employee_id, ...users, makerUserIds,
+      total,
       overLimit: r.over, summary: { employeeName: r.employee_name,
         title: r.title, total: toMoney(total),
         flagCodes: [...new Set(r.flags.map((f) => f.code))] } };

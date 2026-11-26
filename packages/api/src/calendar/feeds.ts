@@ -108,7 +108,7 @@ async function liveFeed(tx: Db, c: string, feedId: string, secret: string) {
     employee_id: string | null }>(
     `SELECT f.*, m.role, m.employee_id FROM calendar_feeds f
      LEFT JOIN memberships m ON m.company_id = f.company_id
-       AND m.user_id = f.user_id
+       AND m.user_id = f.user_id AND m.revoked_at IS NULL
      WHERE f.company_id = $1 AND f.id = $2`, [c, feedId]);
   const ok = r !== undefined && r.status === "active" &&
     same(r.secret_hash, sha256Hex(secret)) && r.role !== null &&

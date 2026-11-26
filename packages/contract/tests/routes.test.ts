@@ -1,17 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { CHANNEL_ROUTES, ROUTES } from "../src/index";
-import { PLAN3_IDS, PLAN6_IDS, PUBLIC_CHANNEL_IDS } from "./route-ids";
+import { CORE_ROUTES, ROUTES } from "../src/index";
+import { PUBLIC_CHANNEL_IDS } from "./route-ids";
 
 function paramNames(path: string): string[] {
   return [...path.matchAll(/\{([a-zA-Z]+)\}/g)].map((m) => m[1] ?? "");
 }
 
 describe("ROUTES", () => {
-  it("the Plan 3 and Plan 6 ids are all present", () => {
-    const ids = ROUTES.map((r) => r.id);
-    for (const id of PLAN3_IDS) expect(ids, id).toContain(id);
-    for (const id of PLAN6_IDS) expect(ids, id).toContain(id);
-    expect(PLAN3_IDS.length + PLAN6_IDS.length).toBe(75);
+  it("core has 75 routes (Plan 3's 50 plus Plan 6's 25)", () => {
+    expect(CORE_ROUTES.length).toBe(75);
   });
   it("ids are unique", () => {
     const ids = ROUTES.map((r) => r.id);
@@ -31,19 +28,15 @@ describe("ROUTES", () => {
       }
     }
   });
-  it("mfa routes are tenant routes", () => {
+  it("mfa routes are tenant routes (Plan 3 set fixed)", () => {
     for (const r of ROUTES.filter((x) => x.mfa)) {
       expect(r.auth, r.id).toBe("tenant");
     }
-    const mfa = ROUTES.filter((x) => x.mfa).map((x) => x.id);
-    for (const id of ["approvePayRun", "changeUserRole", "downloadSifFile",
-      "getEmployeeBank", "putApprovalChain", "putEmployeeBank",
-      "putEmployeeSalary"]) expect(mfa, id).toContain(id);
-    const other = mfa.filter((id) => !PLAN3_IDS.includes(id) &&
-      !PLAN6_IDS.includes(id));
-    for (const id of other) {
-      expect(CHANNEL_ROUTES.map((r) => r.id), id).toContain(id);
-    }
+    expect(CORE_ROUTES.filter((x) => x.mfa).map((x) => x.id).sort())
+      .toEqual(
+      ["approvePayRun", "changeUserRole", "downloadSifFile",
+        "getEmployeeBank", "putApprovalChain", "putEmployeeBank",
+        "putEmployeeSalary"]);
   });
   it("public routes are the four plus the listed channel ids", () => {
     const ids = ROUTES.filter((r) => r.auth === "public").map((r) => r.id);
@@ -75,20 +68,18 @@ describe("ROUTES", () => {
     }
   });
   it("owner-only routes are the four", () => {
-    const owner = ROUTES.filter((r) => r.roles.length === 1 &&
-      !CHANNEL_ROUTES.includes(r)).map((r) => r.id).sort();
+    const owner = CORE_ROUTES.filter((r) => r.roles.length === 1)
+      .map((r) => r.id).sort();
     expect(owner).toEqual(["approvePayRun", "changeUserRole", "inviteUser",
       "listUsers", "putApprovalChain",
       "updateCompany"]);
   });
   it("only the SIF download is text/plain", () => {
-    const text = ROUTES.filter((r) => r.contentType === "text/plain" &&
-      !CHANNEL_ROUTES.includes(r));
+    const text = CORE_ROUTES.filter((r) => r.contentType === "text/plain");
     expect(text.map((r) => r.id)).toEqual(["downloadSifFile"]);
   });
   it("binary routes are GETs; the upload has a 7.5 MB body limit", () => {
-    const binary = ROUTES.filter((r) => r.contentType === "binary" &&
-      !CHANNEL_ROUTES.includes(r));
+    const binary = CORE_ROUTES.filter((r) => r.contentType === "binary");
     expect(binary.map((r) => r.id)).toEqual(["downloadReceipt"]);
     for (const r of binary) expect(r.method, r.id).toBe("GET");
     const up = ROUTES.find((r) => r.id === "uploadReceipt");

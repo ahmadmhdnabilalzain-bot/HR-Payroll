@@ -232,7 +232,8 @@ export function computePayRun(s: RunSnapshot): { problems: Problem[];
 
 /**
  * Amounts the wire format cannot carry (above 999,999,999.99 AED): a
- * payslip gross, a settlement total, or the run gross (reported on the
+ * payslip gross or net (with reimbursements), a settlement total,
+ * or the run gross (reported on the
  * last employee).
  */
 function capProblems(ps: ComputedPayslip[], gross: Fils): Problem[] {
@@ -241,6 +242,8 @@ function capProblems(ps: ComputedPayslip[], gross: Fils): Problem[] {
     const s = p.settlement;
     const over = [
       ...(p.gross > MONEY_MAX_FILS ? ["gross"] : []),
+      ...(p.net > MONEY_MAX_FILS && p.gross <= MONEY_MAX_FILS
+        ? ["net"] : []),
       ...(s?.status === "computed" && s.total > MONEY_MAX_FILS
         ? ["settlement"] : [])];
     if (over.length > 0) {

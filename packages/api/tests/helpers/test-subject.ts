@@ -58,6 +58,7 @@ export function testSubjects(type: SubjectType = "expense-claim")
       const r = await rowOf(tx, companyId, id);
       const users = await employeeUsers(tx, companyId, r.employee_id);
       return { claimantEmployeeId: r.employee_id, ...users,
+        makerUserIds: [],
         total: fils(BigInt(r.total)), overLimit: false,
         summary: { employeeName: r.full_name, title: "Test subject",
           total: toMoney(fils(BigInt(r.total))), flagCodes: [] } };
