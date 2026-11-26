@@ -44,3 +44,5 @@ export * from "./tax/calendar";
 export * from "./tax/vat-line";
 export * from "./tax/vat-periods";
 export * from "./tax/vat201";
+export * from "./tax/corporate-tax";
+export * from "./tax/einvoicing";
