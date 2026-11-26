@@ -339,16 +339,6 @@
   min-block-size: 32px;
   font-size: var(--text-sm);
 }
-
-.rowFigures {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
-  align-self: center;
-  text-align: end;
-  white-space: nowrap;
-}
-
 .rowChange {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
@@ -370,10 +360,51 @@
   font-weight: 500;
 }
 
-/* Review: a face for each person on the row. */
+/* Review: a face, the person and why, then the change against last
+ * month (the lead figure of the row) and the net it lands on. */
+.changes {
+  --cols: 36px minmax(0, 1fr) 160px 160px;
+}
+
 .faceRow {
-  grid-template-columns: 36px minmax(0, 1fr) auto;
+  grid-template-columns: var(--cols);
   align-items: center;
+}
+
+.changesHead {
+  display: grid;
+  grid-template-columns: var(--cols);
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.end {
+  text-align: end;
+}
+
+.rowChangeCol,
+.rowNet {
+  justify-self: end;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.rowChangeCol .signed :global(*) {
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+.newWord {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.rowNet :global(*) {
+  color: var(--color-text-muted);
 }
 
 
@@ -468,37 +499,19 @@
   font-size: var(--text-sm);
 }
 
-/* The held amount travelling into the file total. */
-.flowChip {
-  position: absolute;
-  inset-block-start: 100%;
-  inset-inline-end: 0;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 2px;
-  color: var(--color-success);
+/* The held amount travelling into the file total (ui/flight clones
+ * the chip into a fixed layer at body level, so it is styled here and
+ * not inherited). */
+.chip {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-family: inherit;
+  font-size: var(--text-sm);
   font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  animation: flow 900ms var(--ease-out) both;
-}
-
-.flowChip :global(*) {
-  color: inherit;
-}
-
-@keyframes flow {
-  0% {
-    opacity: 0;
-    transform: translate(-160px, 6px);
-  }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(0, -18px);
-  }
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-pop);
 }
 
 /* Approve: maker and checker beside what the approval covers. */
@@ -574,8 +587,20 @@
 }
 
 .chainWho {
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* The checker's sign-off lands as a stamp (ui/SignStamp). */
+.stamp {
+  justify-self: start;
+  margin-block-start: -6px;
+}
+
+/* What the approval covers: net pay leads, the file follows. */
+.approveLead {
+  margin-block-start: var(--space-1);
 }
 
 .chainItem[data-state="now"] .chainNode {
@@ -595,7 +620,8 @@
 
 .approveFigures {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: end;
   gap: var(--space-5);
   margin: 0;
 }
@@ -660,40 +686,74 @@
   font-size: var(--text-md);
 }
 
-/* Pay: the file named in one sentence. */
+/* Pay: the salary file as an object, its amount at display size. */
 .fileCard {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: var(--space-4);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5);
   margin-block-start: var(--space-5);
-  padding: var(--space-5);
-  border-radius: 12px;
+  padding: var(--space-6);
+  border-radius: 16px;
   background: var(--color-surface);
   box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 4%,
       transparent),
-    0 8px 24px color-mix(in srgb, var(--color-shadow) 6%, transparent);
+    0 12px 32px color-mix(in srgb, var(--color-shadow) 8%, transparent);
 }
 
-.fileCard > svg {
-  display: none;
+/* A document glyph: grey while a draft, ink once it is final. */
+.fileGlyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 64px;
+  block-size: 80px;
+  border-radius: 10px;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  transition: background-color 320ms ease, color 320ms ease;
 }
 
-.fileCard .act {
-  min-block-size: 44px;
-  font-size: var(--text-md);
+.fileCard[data-ready="true"] .fileGlyph {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.fileExt {
+  position: absolute;
+  inset-block-end: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.fileGlyph > svg {
+  margin-block-end: 12px;
 }
 
 .fileCardText {
   display: grid;
   gap: var(--space-1);
+  min-inline-size: 0;
 }
 
-.fileHeadline {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  line-height: 1.4;
-  font-variant-numeric: tabular-nums;
+.fileLabel {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.fileFigure {
+  line-height: 1.1;
+}
+
+.fileMeta {
+  color: var(--color-text);
+  font-size: var(--text-md);
+}
+
+.fileCard .status {
+  margin-block-start: var(--space-2);
 }
 
 .status {
@@ -829,8 +889,7 @@
   border-block-start: 1px solid var(--color-divider);
 }
 
-.navBack,
-.navNext {
+.navBack {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -847,22 +906,6 @@
   padding-inline-start: 0;
   color: var(--color-text-muted);
 }
-
-.navNext {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-}
-
-a.navNext:hover {
-  background: var(--color-accent-hover);
-}
-
-.navNext[aria-disabled="true"] {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-a.navNext:active,
 .navBack:active {
   transform: scale(0.97);
 }
@@ -901,28 +944,39 @@ a.navNext:active,
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .changes {
+    --cols: 36px minmax(0, 1fr) auto;
+  }
+
+  .changesHead {
+    display: none;
+  }
+
   .faceRow {
-    grid-template-columns: 36px minmax(0, 1fr);
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    grid-template-areas: "face main change" "face main net";
+    align-items: start;
+    row-gap: 2px;
+  }
+
+  .faceRow > :first-child { grid-area: face; }
+  .faceRow .rowMain { grid-area: main; }
+  .faceRow .rowChangeCol { grid-area: change; }
+  .faceRow .rowNet { grid-area: net; }
+
+  .rowNet :global(*) {
+    font-size: var(--text-sm);
   }
 
   .rowAction {
     grid-column: 1;
   }
 
-  .rowAction,
-  .rowFigures {
+  .rowAction {
     justify-content: flex-start;
     justify-items: start;
     text-align: start;
   }
-
-  .rowFigures {
-    grid-column: 2;
-    grid-auto-flow: column;
-    justify-content: space-between;
-    inline-size: 100%;
-  }
-
   .rowForm {
     grid-column: 1 / -1;
   }
@@ -1000,26 +1054,34 @@ a.navNext:active,
   }
 
   .approveGrid,
-  .fileCard,
   .approveFigures {
     grid-template-columns: 1fr;
   }
 
-  .approveActions > * {
-    flex: 1 1 100%;
+  .fileCard {
+    gap: var(--space-4);
+    padding: var(--space-4);
   }
 
-  .navNext {
-    flex: 1;
-    justify-content: center;
+  .fileGlyph {
+    inline-size: 44px;
+    block-size: 56px;
+  }
+
+  .fileGlyph > svg {
+    inline-size: 20px;
+    block-size: 20px;
+  }
+
+  .approveActions > * {
+    flex: 1 1 100%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .swap,
   .row,
-  .hint,
-  .flowChip {
+  .hint {
     animation: none;
   }
 

@@ -39,6 +39,9 @@ export const payrun: ArOf<typeof en> = {
   fewerPeople: n("{count} أقل من {month}"),
   changedTitle: "ما الذي تغيّر منذ {month}",
   changedSub: "فقط من تغيّر راتبهم أو حُجز، والسبب.",
+  colPerson: "الموظف",
+  colAgainst: "مقارنة بـ{month}",
+  colNetOf: "صافي {month}",
   showAll: "اعرض جميع الموظفين ({count})",
   showChanged: "اعرض التغييرات فقط",
   hint: "اضغط على أي رقم تحته خط منقط لترى طريقة حسابه.",
@@ -73,6 +76,7 @@ export const payrun: ArOf<typeof en> = {
   fileNow: "ملف الرواتب الآن",
   fileLine: n("{count} موظف"),
   heldNow: "محجوز",
+  noneHeld: "لا أحد محجوز",
   enterIban: "أدخل الآيبان",
   markReviewed: "تمت المراجعة",
   reviewed: "روجع",
@@ -110,6 +114,10 @@ export const payrun: ArOf<typeof en> = {
   allChecked: "كل البنود مُعلّمة كمراجَعة.",
   payTitle: "الصرف",
   paySub: "ملف الرواتب لرفعه إلى نظام حماية الأجور في البنك.",
+  fileLabel: "ملف الرواتب",
+  fileMeta: "{count} موظف · {bank} · بتاريخ {date}",
+  downloaded: "تم التنزيل في {time}. ارفعه إلى {bank}؛ " +
+    "يفحصه البنك مرة أخرى عند الرفع.",
   fileHeadline: "ملف رواتب لـ {count} موظف، {amount}، إلى {bank}، " +
     "بتاريخ {date}",
   draft: "مسودة: يصبح الملف نهائيًا بعد اعتماد المدير العام.",

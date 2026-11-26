@@ -6,10 +6,12 @@ import { formatDate, formatTime } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
+import { SignStamp } from "../ui/SignStamp";
 import b from "../ui/button.module.css";
 import {
   decisionTime,
   forgetDecision,
+  nowMs,
   recordDecision,
 } from "./model";
 import type { Go } from "./PayRun";
@@ -88,18 +90,25 @@ export function ApproveStep(p: { go: Go }) {
               {verdict === "approve" ? <Icon name="check" size={14} />
                 : verdict === "decline" ? <Icon name="x" size={14} /> : null}
             </span>
-            <div className={s.chainText}>
-              <p className={s.chainLabel}>
-                {verdict === "approve" ? t("payrun.chainRecorded")
-                  : verdict === "decline" ? t("payrun.chainDeclined")
+            {verdict === "approve" ? (
+              <SignStamp className={s.stamp} seal={false}
+                label={t("payrun.chainRecorded")}
+                name={checker.name[lang]} role={checker.role[lang]}
+                when={decidedAt}
+                fresh={at !== null && nowMs() - at < 2000} />
+            ) : (
+              <div className={s.chainText}>
+                <p className={s.chainLabel}>
+                  {verdict === "decline" ? t("payrun.chainDeclined")
                     : t("payrun.chainWaiting")}
-              </p>
-              <p className={s.chainWho}>{checker.name[lang]}</p>
-              <p className={s.chainRole}>{checker.role[lang]}</p>
-              <p className={s.chainWhen}>
-                {waiting ? t("payrun.notYet") : decidedAt}
-              </p>
-            </div>
+                </p>
+                <p className={s.chainWho}>{checker.name[lang]}</p>
+                <p className={s.chainRole}>{checker.role[lang]}</p>
+                <p className={s.chainWhen}>
+                  {waiting ? t("payrun.notYet") : decidedAt}
+                </p>
+              </div>
+            )}
           </li>
         </ol>
 
@@ -108,7 +117,8 @@ export function ApproveStep(p: { go: Go }) {
           <dl className={s.approveFigures}>
             <div>
               <dt>{t("payrun.netTo", { count: h.headcount })}</dt>
-              <dd><Money value={h.netTotalFils} size="lg" /></dd>
+              <dd className={s.approveLead}>
+                <Money value={h.netTotalFils} size="hero" /></dd>
             </div>
             <div>
               <dt>{t("payrun.fileTo", { count: h.sifPeople })}</dt>

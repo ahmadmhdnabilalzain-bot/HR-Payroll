@@ -1,18 +1,19 @@
 import { fils, type Fils } from "@payroll/engine";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { ExplainLink } from "../components/explain";
 import type { Issue } from "../demo/data/types";
 import { confirmations, isBlocking } from "../demo/derive";
-import { reducedMotion } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { IbanForm } from "../home/IbanForm";
+import { formatSignedMoney } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
-import { Money } from "../ui/Money";
 import { useToast } from "../ui/Toast";
 import b from "../ui/button.module.css";
-import { RollMoney } from "./Roll";
+import { fly } from "../ui/flight";
+import { RollDigits } from "../ui/RollDigits";
+import { RollMoney, shortFade } from "./Roll";
 import s from "./PayRun.module.css";
 
 /** Which explanation an issue points at, when there is one. */
@@ -35,22 +36,39 @@ export function plainOnly(text: string): string {
 }
 
 /**
- * The held amount flowing into the file: when held pay drops and the
- * file total rises, the difference travels from one to the other.
+ * The held amount flying into the file total. When an IBAN passes and
+ * held pay drops, a "+AED 25,300.00" chip leaves the fixed row (its
+ * rect is taken before the save) and lands on the total (420 ms
+ * spring, ui/flight); only then do the total roll digit by digit and
+ * "held out" change. Any other change settles at once. Reduced
+ * motion: no flight, the figures change with a short fade.
  */
-function useFlow(held: Fils): { amount: Fils; n: number } | null {
-  const last = useRef(held);
-  const [flow, setFlow] = useState<{ amount: Fils; n: number } | null>(
-    null);
+function useHeldFlight(total: Fils, held: Fils, people: number,
+  target: RefObject<HTMLElement | null>): {
+  total: Fils; held: Fils; people: number;
+  from: RefObject<DOMRect | null> } {
+  const { lang } = useLocale();
+  const { state } = useDemo();
+  const [shown, setShown] = useState({ total, held, people });
+  const from = useRef<DOMRect | null>(null);
+  const was = useRef(held);
   useEffect(() => {
-    const was = last.current;
-    last.current = held;
-    if (held >= was || reducedMotion()) return undefined;
-    setFlow((f) => ({ amount: fils(was - held), n: (f?.n ?? 0) + 1 }));
-    const id = setTimeout(() => setFlow(null), 900);
-    return () => clearTimeout(id);
-  }, [held]);
-  return flow;
+    const before = was.current;
+    was.current = held;
+    const settle = (): void => setShown({ total, held, people });
+    const start = from.current;
+    from.current = null;
+    if (held >= before || start === null || target.current === null) {
+      settle();
+      return undefined;
+    }
+    const chip = document.createElement("span");
+    chip.textContent = state.hideAmounts ? "+AED ••••••"
+      : formatSignedMoney(fils(before - held), lang);
+    return fly({ from: start, to: target.current, content: chip,
+      className: s.chip ?? "", align: "end", onLand: settle });
+  }, [total, held, people]);
+  return { ...shown, from };
 }
 
 type Kind = "stops" | "check" | "confirm" | "fixed";
@@ -91,7 +109,12 @@ export function FixStep() {
   const setup = confirmations(data);
   const fixed = Object.keys(state.ibans);
   const isHr = state.role === "hr";
-  const flow = useFlow(h.heldNetFils);
+  const figure = useRef<HTMLSpanElement>(null);
+  const shown = useHeldFlight(h.sifTotalFils, h.heldNetFils,
+    h.sifPeople, figure);
+  const heldBox = useRef<HTMLSpanElement>(null);
+  const noneHeld = shown.held === 0n;
+  useEffect(() => shortFade(heldBox.current), [noneHeld]);
   const open = checks.filter((i) => state.resolved[i.id] === undefined)
     .length;
   return (
@@ -103,18 +126,14 @@ export function FixStep() {
 
       <div className={s.fileNow} aria-live="polite">
         <span className={s.fileNowLabel}>{t("payrun.fileNow")}</span>
-        <span className={s.fileNowFigure}>
-          <RollMoney value={h.sifTotalFils} size="lg" />
-          {flow !== null && (
-            <span key={flow.n} className={s.flowChip} aria-hidden="true">
-              <Money value={flow.amount} size="sm" signed tween={false} />
-            </span>
-          )}
+        <span className={s.fileNowFigure} ref={figure}>
+          <RollDigits value={shown.total} size="lg" />
         </span>
-        <span className={s.fileNowMeta}>
-          {t("payrun.fileLine", { count: h.sifPeople })},{" "}
-          <RollMoney value={h.heldNetFils} size="sm" />{" "}
-          {t("payrun.heldNow")}
+        <span className={s.fileNowMeta} ref={heldBox}>
+          {t("payrun.fileLine", { count: shown.people })},{" "}
+          {noneHeld ? t("payrun.noneHeld") : <>
+            <RollMoney value={shown.held} size="sm" />{" "}
+            {t("payrun.heldNow")}</>}
         </span>
       </div>
 
@@ -130,7 +149,8 @@ export function FixStep() {
         </h3>
         <ul className={s.group}>
           {blockers.map((i) => (
-            <BlockerRow key={i.id} issue={i} canFix={isHr} />
+            <BlockerRow key={i.id} issue={i} canFix={isHr}
+              from={shown.from} />
           ))}
           {fixed.map((id) => (
             <li key={`fixed-${id}`} className={s.row} data-done="true">
@@ -169,16 +189,18 @@ export function FixStep() {
   );
 }
 
-function BlockerRow(p: { issue: Issue; canFix: boolean }) {
+function BlockerRow(p: { issue: Issue; canFix: boolean;
+  from: RefObject<DOMRect | null> }) {
   const { lang, t } = useLocale();
   const { data, dispatch } = useDemo();
   const toast = useToast();
   const [open, setOpen] = useState(false);
+  const row = useRef<HTMLLIElement>(null);
   const i = p.issue;
   const name = i.employeeId === null ? ""
     : data.employee(i.employeeId).name[lang];
   return (
-    <li className={s.row} id={`fix-${i.id}`} data-open={open}>
+    <li ref={row} className={s.row} id={`fix-${i.id}`} data-open={open}>
       <span className={s.rowMain}>
         <KindTag kind="stops" />
         <span className={s.name}>{i.title[lang]}
@@ -198,6 +220,8 @@ function BlockerRow(p: { issue: Issue; canFix: boolean }) {
           <IbanForm employeeId={i.employeeId} name={name}
             onCancel={() => setOpen(false)}
             onSave={(value) => {
+              // Where the held amount leaves from, before the row goes.
+              p.from.current = row.current?.getBoundingClientRect() ?? null;
               dispatch({ type: "iban", employeeId: i.employeeId!, value });
               toast.show(t("payrun.fixedIban", { name }), () =>
                 dispatch({ type: "unset-iban",

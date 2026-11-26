@@ -225,6 +225,9 @@ function ApproveAction(p: { go: Go }) {
   );
 }
 
+/** Fired on window when the salary file is downloaded (Pay listens). */
+export const FILE_DOWNLOADED = "mubinflow:file-downloaded";
+
 /** Pay: the salary file, open only once the run is approved. */
 function DownloadAction() {
   const { t } = useLocale();
@@ -234,7 +237,10 @@ function DownloadAction() {
   return (
     <button type="button" className={btn} disabled={a.phase !== "file"}
       aria-label={full}
-      onClick={() => downloadText(f.fileName, f.text, "text/plain")}>
+      onClick={() => {
+        downloadText(f.fileName, f.text, "text/plain");
+        dispatchEvent(new Event(FILE_DOWNLOADED));
+      }}>
       <Label full={full} short={t("payrun.actDownload")} />
     </button>
   );

@@ -39,8 +39,13 @@ export function stepStates(at: StepId, a: RunApproval)
 /** When each decision was recorded in this visit (ms since epoch). */
 const decidedAt = new Map<string, number>();
 
+/** Wall-clock ms from the page's own timer (the clock stays in main). */
+export function nowMs(): number {
+  return performance.timeOrigin + performance.now();
+}
+
 export function recordDecision(id: string): void {
-  decidedAt.set(id, performance.timeOrigin + performance.now());
+  decidedAt.set(id, nowMs());
 }
 
 export function decisionTime(id: string): number | null {
