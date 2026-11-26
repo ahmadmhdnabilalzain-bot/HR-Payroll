@@ -7,6 +7,10 @@ export interface Config {
   port: number;
   /** Directory for encrypted receipt files (local-disk blob store). */
   receiptsDir: string;
+  /** Chrome or Chromium for letter PDFs; null: letters answer 503. */
+  chromePath: string | null;
+  /** CHROME_NO_SANDBOX=1: Chrome's sandbox off (needed as root). */
+  chromeNoSandbox: boolean;
 }
 
 const KEY_MESSAGE = "PAYROLL_MASTER_KEY must be 32 bytes base64";
@@ -35,5 +39,8 @@ export function loadConfig(env: Record<string, string | undefined>)
     throw new Error("RECEIPTS_DIR is required");
   }
   return { databaseUrl, migrateUrl: env.MIGRATE_DATABASE_URL ?? databaseUrl,
-    masterKey: key, port, receiptsDir };
+    masterKey: key, port, receiptsDir,
+    chromePath: env.CHROME_PATH === undefined || env.CHROME_PATH === ""
+      ? null : env.CHROME_PATH,
+    chromeNoSandbox: env.CHROME_NO_SANDBOX === "1" };
 }

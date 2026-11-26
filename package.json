@@ -11,6 +11,7 @@
     "e2e": "pnpm --filter @payroll/web e2e",
     "api:dev": "tsx packages/api/src/main.ts",
     "api:migrate": "tsx packages/api/src/main.ts migrate",
+    "letters:sample": "tsx packages/api/src/letters/sample.ts",
     "lines": "node scripts/check-line-length.mjs",
     "lines:test": "node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r --if-present typecheck",

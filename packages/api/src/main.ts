@@ -12,6 +12,7 @@ import { MIGRATIONS_DIR, migrate } from "./db/migrate";
 import { openPg } from "./db/pg";
 import { assertRuntimeRole } from "./db/role-check";
 import { systemDeps } from "./deps";
+import { letterRenderer } from "./pdf/setup";
 import { fsBlobStore } from "./storage/fs-blob";
 
 async function runMigrations(cfg: Config): Promise<void> {
@@ -32,8 +33,17 @@ async function main(argv: string[]): Promise<void> {
   const db = await openPg(cfg.databaseUrl);
   await assertRuntimeRole(db);
   const blobs = fsBlobStore(cfg.receiptsDir);
-  const app = createApp(systemDeps(db, cfg.masterKey, blobs));
-  serve({ fetch: app.fetch, port: cfg.port });
+  const log = (line: Record<string, unknown>) =>
+    process.stdout.write(`${JSON.stringify(line)}\n`);
+  const pdf = letterRenderer(cfg, log);
+  const app = createApp(systemDeps(db, cfg.masterKey, blobs, pdf));
+  const server = serve({ fetch: app.fetch, port: cfg.port });
+  const stop = () => {
+    server.close();
+    void pdf.close().finally(() => process.exit(0));
+  };
+  process.once("SIGTERM", stop);
+  process.once("SIGINT", stop);
   process.stdout.write(`${JSON.stringify({ event: "listening",
     port: cfg.port })}\n`);
 }

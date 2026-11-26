@@ -10,7 +10,9 @@ const SERVED: readonly string[] = [
   "libraryAudiencePut", "libraryDownload", "libraryAcknowledge",
   "libraryReceipts", "letterFields", "letterTemplatesList",
   "letterTemplateCreate", "letterTemplateGet", "letterTemplateVersionAdd",
-  "letterTemplatePublish", "letterTemplateNativeReview",
+  "letterTemplatePublish", "letterTemplateNativeReview", "letterPreview",
+  "letterIssue", "lettersList", "letterGet", "letterDownload",
+  "letterAcknowledge",
 ];
 
 /**

@@ -2,6 +2,7 @@ import { randomBytes as nodeRandomBytes, randomUUID } from "node:crypto";
 import { keyringFromKey, type Keyring } from "./crypto/keyring";
 import type { Db } from "./db/db";
 import { nullReceiptReader, type ReceiptReader } from "./receipts/reader";
+import { unavailableRenderer, type PdfRenderer } from "./pdf/renderer";
 import type { BlobStore } from "./storage/blob";
 
 /** One structured log line. Never a request or response body. */
@@ -20,6 +21,8 @@ export interface AppDeps {
   blobs: BlobStore;
   /** OCR port (suggestions only). */
   receiptReader: ReceiptReader;
+  /** Letter PDFs (headless Chrome, or unavailable). */
+  pdf: PdfRenderer;
 }
 
 /** What handlers get: everything but the raw database. */
@@ -29,8 +32,8 @@ export type HandlerDeps = Omit<AppDeps, "db">;
 export const PRODUCTION_PASSWORD_COST = { N: 65536 };
 
 /** The real clock, ids, randomness and stdout JSON log. */
-export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore)
-  : AppDeps {
+export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore,
+  pdf: PdfRenderer = unavailableRenderer()): AppDeps {
   const randomBytes = (n: number) => new Uint8Array(nodeRandomBytes(n));
   return {
     db,
@@ -42,5 +45,6 @@ export function systemDeps(db: Db, kek: Uint8Array, blobs: BlobStore)
     passwordCost: PRODUCTION_PASSWORD_COST,
     blobs,
     receiptReader: nullReceiptReader,
+    pdf,
   };
 }

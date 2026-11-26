@@ -28,6 +28,7 @@ export async function seedDocumentRows(admin: Db, c: string, emp: string,
     [rowId(c, "d3"), c, doc, file, user, AT]);
   await seedLibraryRows(admin, c, emp, user);
   await seedTemplateRows(admin, c, user);
+  await seedLetterRows(admin, c, emp, user);
   await admin.query(
     `INSERT INTO document_settings (company_id, lead_days, retention,
        updated_at) VALUES ($1, '{}', '{}', $2)`, [c, AT]);
@@ -71,4 +72,22 @@ async function seedTemplateRows(admin: Db, c: string, user: string)
        published_at) VALUES ($1, $2, $3, 1, 'published',
        '{"title":"N","paragraphs":["x"]}', '{}', false, $4, $5, $5)`,
     [rowId(c, "d8"), c, t, user, AT]);
+}
+
+async function seedLetterRows(admin: Db, c: string, emp: string,
+  user: string): Promise<void> {
+  const file = rowId(c, "d9");
+  await admin.query(
+    `INSERT INTO files (id, company_id, name, mime, size, sha256, blob_key,
+       uploaded_by, uploaded_at) VALUES ($1, $2, 'n.pdf',
+       'application/pdf', 1, $3, $4, $5, $6)`,
+    [file, c, "0".repeat(64), `${c}/files/${file}`, user, AT]);
+  await admin.query(
+    `INSERT INTO letters (id, company_id, kind, lang, template_id,
+       template_version_id, template_version, employee_id, issued_by,
+       issued_at, file_id, file_name, sha256, uses_salary, merge_enc)
+     VALUES ($1, $2, 'noc', 'en', $3, $4, 1, $5, $6, $7, $8, 'n.pdf', $9,
+       false, 'x')`,
+    [rowId(c, "da"), c, rowId(c, "d7"), rowId(c, "d8"), emp, user, AT,
+      file, "0".repeat(64)]);
 }

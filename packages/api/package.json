@@ -12,13 +12,16 @@
     "@payroll/contract": "workspace:*",
     "@payroll/engine": "workspace:*",
     "@payroll/wps": "workspace:*",
+    "dejavu-fonts-ttf": "2.37.3",
     "hono": "4.13.17",
     "pg": "8.23.1",
+    "puppeteer-core": "25.16.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.16",
     "@types/node": "22.20.7",
-    "@types/pg": "8.23.1"
+    "@types/pg": "8.23.1",
+    "pdfjs-dist": "6.4.299"
   }
 }

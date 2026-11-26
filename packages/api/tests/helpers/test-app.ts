@@ -8,7 +8,9 @@ import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
 import type { ReceiptReader } from "../../src/receipts/reader";
 import { nullReceiptReader } from "../../src/receipts/reader";
+import type { PdfRenderer } from "../../src/pdf/renderer";
 import { memoryBlobStore } from "../../src/storage/blob";
+import { textPdfRenderer } from "./text-pdf";
 import { createTestDb } from "./test-db";
 
 export const TEST_KEK = new Uint8Array(32).fill(7);
@@ -30,6 +32,8 @@ export interface MakeAppOpts {
   subjects?: SubjectHandler[];
   /** Receipt reader (default: the null reader). */
   reader?: ReceiptReader;
+  /** Letter renderer (default: the readable text renderer). */
+  pdf?: PdfRenderer;
 }
 
 export async function makeApp(opts: MakeAppOpts = {}) {
@@ -52,6 +56,7 @@ export async function makeApp(opts: MakeAppOpts = {}) {
     passwordCost: { N: 1024 },
     blobs: memoryBlobStore(),
     receiptReader: opts.reader ?? nullReceiptReader,
+    pdf: opts.pdf ?? textPdfRenderer(),
   };
   const app = createApp(deps, opts.subjects === undefined ? {}
     : { subjects: opts.subjects });

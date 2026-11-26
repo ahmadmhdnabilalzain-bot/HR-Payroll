@@ -24,7 +24,7 @@ export function formatMoney(f: Fils, lang: Lang): string {
 }
 
 export interface MergeSource {
-  company: Company;
+  company: Pick<Company, "name" | "nameAr">;
   employee: EmployeeRow | null;
   departmentName: string | null;
   issuerName: string;

@@ -1,7 +1,12 @@
 import { DOCUMENT_ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { PLAN7_PENDING } from "./helpers/plan7-pending";
-import { seedCompany, type Seeded, type Target } from "./helpers/seed";
+import {
+  SENTINELS,
+  seedCompany,
+  type Seeded,
+  type Target,
+} from "./helpers/seed";
 import {
   DOC_NUMBERS,
   seedDocuments,
@@ -23,7 +28,7 @@ const OWN: Record<Role, Target | null> = { owner: null, hr: null,
 const REPORTS: Target[] = ["report", "report2"];
 
 type Kind = "employee" | "document" | "download" | "library" |
-  "template" | null;
+  "template" | "letter" | null;
 const ID_KIND: Record<string, Kind> = {
   employeeDocumentsList: "employee", employeeDocumentGet: "document",
   employeeDocumentDownload: "download", documentAlerts: null,
@@ -31,7 +36,12 @@ const ID_KIND: Record<string, Kind> = {
   libraryList: null, libraryGet: "library", libraryDownload: "library",
   libraryReceipts: "library", letterFields: null,
   letterTemplatesList: null, letterTemplateGet: "template",
+  lettersList: null, letterGet: "letter", letterDownload: "letter",
 };
+
+/** A salary as a letter prints it ("1,111.11"). */
+const printed = (t: Target) =>
+  SENTINELS[t].salary.replace(/\B(?=(\d{3})+\.)/g, ",");
 
 /** In a library file shared with the employee's record only. */
 const LIB_MARKER = "LIBSECRET-7";
@@ -40,12 +50,13 @@ function forbidden(role: Role): string[] {
   if (role === "owner" || role === "hr") return [];
   const lib = role === "manager" ? [LIB_MARKER] : [];
   return [...lib, ...TARGETS.filter((t) => t !== OWN[role])
-    .map((t) => DOC_NUMBERS[t])];
+    .flatMap((t) => [DOC_NUMBERS[t], printed(t)])];
 }
 
 /** May `role` open this record at all (else 404)? */
 function opens(role: Role, t: Target, kind: Kind): boolean {
   if (role === "owner" || role === "hr" || t === OWN[role]) return true;
+  if (kind === "letter") return false;
   return role === "manager" && kind !== "download" && REPORTS.includes(t);
 }
 
@@ -58,6 +69,7 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
   let docs: Record<Target, SeededDoc>;
   let lib: string;
   let tmpl: string;
+  const letters = {} as Record<Target, string>;
   beforeAll(async () => {
     ctx = await makeApp({ start: "2026-11-26T08:00:00.000Z" });
     s = await seedCompany(ctx, "leakdoc");
@@ -69,13 +81,23 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
         fileId: f.id, requiresAck: false, audience: { allStaff: false,
           departmentIds: [], employeeIds: [s.emp.report], roles: [] } }))
       .body.id;
-    tmpl = (await call(ctx.app, s.hr.token, s.companyId, "GET",
-      "/v1/letter-templates")).body.items[0].id;
+    const all = (await call(ctx.app, s.hr.token, s.companyId, "GET",
+      "/v1/letter-templates")).body.items;
+    tmpl = all[0].id;
+    const cert = all.find((x: { kind: string; lang: string }) =>
+      x.kind === "salary-certificate" && x.lang === "en").id;
+    for (const t of TARGETS) {
+      letters[t] = (await call(ctx.app, s.hr.token, s.companyId, "POST",
+        "/v1/letters", { templateId: cert, employeeId: s.emp[t],
+          inputs: { "input.addressee": "Bank", "input.purpose": "Loan" } }))
+        .body.id;
+    }
   });
   const pathOf = (r: RouteDef, t: Target | null): string => {
     if (ID_KIND[r.id] === "library") return r.path.replace("{id}", lib);
     if (ID_KIND[r.id] === "template") return r.path.replace("{id}", tmpl);
     if (t === null) return r.path;
+    if (ID_KIND[r.id] === "letter") return r.path.replace("{id}", letters[t]);
     const d = docs[t];
     return r.path.replace("{id}", ID_KIND[r.id] === "employee"
       ? s.emp[t] : d.id).replace("{versionId}", d.versionId);
@@ -119,6 +141,10 @@ describe("Plan 7 routes leak nothing a viewer may not see", () => {
           authorization: `Bearer ${s.owner.token}`,
           "x-company-id": s.companyId } });
         expect(await res.text()).toContain(DOC_NUMBERS[t]);
+        const l = await ctx.app.request(`/v1/letters/${letters[t]}/download`,
+          { headers: { authorization: `Bearer ${s.owner.token}`,
+            "x-company-id": s.companyId } });
+        expect(await l.text()).toContain(printed(t));
       }
     });
 });

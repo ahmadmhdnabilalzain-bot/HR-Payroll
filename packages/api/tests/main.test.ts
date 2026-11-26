@@ -37,4 +37,14 @@ describe("loadConfig", () => {
     expect(() => loadConfig({ DATABASE_URL: "postgres://runtime@h/db",
       PAYROLL_MASTER_KEY: KEY })).toThrow("RECEIPTS_DIR is required");
   });
+  it("reads the Chrome settings for letters", () => {
+    const base = { DATABASE_URL: "postgres://runtime@h/db",
+      PAYROLL_MASTER_KEY: KEY, RECEIPTS_DIR: "/r" };
+    expect(loadConfig({ ...base, CHROME_PATH: "/x" }).chromePath).toBe("/x");
+    expect(loadConfig(base).chromePath).toBeNull();
+    expect(loadConfig({ ...base, CHROME_PATH: "" }).chromePath).toBeNull();
+    expect(loadConfig({ ...base, CHROME_NO_SANDBOX: "1" }).chromeNoSandbox)
+      .toBe(true);
+    expect(loadConfig(base).chromeNoSandbox).toBe(false);
+  });
 });

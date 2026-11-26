@@ -41,7 +41,7 @@ After the merge: api 330 tests pass; contract 98 pass; web 102 of 103
 | 4 | `feat(api): employee documents and expiry alerts` | done |
 | 5 | `feat(api): company library and receipts` | done |
 | 6 | `feat(api): letter templates and merge` | done |
-| 7 | `feat(api): letters rendered to PDF` | |
+| 7 | `feat(api): letters rendered to PDF` | done |
 | 8 | `feat(api): Emiratisation report, handover` | |
 
 Task 2 (engine pack and tracker) was already merged and is used as is.
@@ -188,6 +188,71 @@ Task 2 (engine pack and tracker) was already merged and is used as is.
    dates). `letter.reference` is the letter id.
 7. Signup seeds the ten starters in its existing transaction (20 more
    ids per signup).
+
+### Task 7 (letters and PDF)
+
+1. **Chrome is available here** (`/usr/bin/google-chrome`, Chrome for
+   Testing 158; `/opt/pw-browsers` also has Chromium), and
+   puppeteer-core 25.16.0, dejavu-fonts-ttf 2.37.3 and pdfjs-dist
+   6.4.299 installed from the registry. `pdf.test.ts` ran against the
+   real browser (5 tests), **with Chrome's own sandbox off**: the
+   container runs as root, where Chrome refuses its sandbox, so the
+   test passes `noSandbox` for uid 0 (production sets
+   `CHROME_NO_SANDBOX=1` only when it must).
+2. **Network lock-down is three layers, and the test proved the third
+   is needed.** Request interception (only `data:` passes) plus the
+   page CSP stop images, styles, scripts and fetches; but a raw-HTML
+   probe showed an `<iframe>` navigation escaping interception and
+   opening a TCP connection to a local listener. Chrome is therefore
+   also launched with `--proxy-server=127.0.0.1:9` and
+   `--proxy-bypass-list=<-loopback>`, so anything that escapes goes to
+   a dead proxy; the raw-HTML test (`renderHtml` seam: stylesheet,
+   image, iframe, script, `fetch`) now records zero connections.
+   Letters never contain such markup (every value is escaped); this is
+   defence in depth.
+3. **Each render uses a fresh isolated browser context**
+   (`createBrowserContext`), JavaScript off, closed afterwards; the
+   browser itself is launched once and reused, and closed and relaunched
+   after a failure. A failure logs `{ event: "pdf.render.failed",
+   error: <name> }` and answers 500.
+4. **`LetterPage.dateLine` and `refLine` are segments**, not strings,
+   so the date and reference are isolated like merged dates.
+5. **Isolated runs choose their direction:** `<bdi dir="ltr">` for runs
+   without Arabic letters (dates, `AED 4,000.00`), `<bdi dir="rtl">`
+   for runs with one. Looking at the rasterised Arabic sample showed
+   that `4,000.00 درهم` inside an LTR isolate prints the currency word
+   before the number for an Arabic reader; RTL isolation fixes it and
+   keeps the number intact.
+6. **Latin ligatures are off** (`font-variant-ligatures:
+   no-common-ligatures`): with them, PDF text extraction split
+   "Certificate" into "Certi fi cate". Arabic joining is unaffected.
+7. **Rendering happens before any write** (file, row or audit), so a
+   slow or failed render holds no lock (the audit head is locked
+   `FOR UPDATE` per company); with no renderer, issue answers 503 and
+   stores nothing (tested).
+8. **Salary values are gathered only for owner and hr** (from the
+   caller's role, not the template flag), so a manager's letter can
+   never carry a salary even if a template check were bypassed.
+9. **Issuer visibility follows the current role:** owner and hr see
+   all letters; the named employee sees theirs; an issuer sees the
+   letters they issued only when the letter uses no salary field. An
+   hr user moved to manager loses their salary certificates (tested).
+10. **A manager may name only a direct report**, never themself (404).
+11. **`letter.previewed` audit** has no entity id; `letter.downloaded`
+    and `letter.acknowledged` carry `{ letterId }`.
+12. **Retention test** dates a letter back in the test database instead
+    of moving the clock a month: sessions last 8 hours, so the plan's
+    clock move would sign every user out.
+13. **`letters/sample.ts` is a shell** like `main.ts`, so Plan 3's
+    "no env read outside main.ts and deps.ts" test lists it.
+14. `main.ts` closes the renderer on SIGTERM and SIGINT.
+
+Visual check (`pnpm letters:sample`, `pdftoppm`, English and Arabic
+salary certificates): Arabic letters join; dates read `2019-01-01` and
+`2026-11-26`; spaces are even; the sentence-final full stop sits at
+the left end of the Arabic sentence; after fix 5 the Arabic amount
+reads number then currency. The Arabic wording itself still needs a
+native speaker.
 
 ## Decisions
 
