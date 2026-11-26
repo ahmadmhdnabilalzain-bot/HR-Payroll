@@ -125,7 +125,6 @@ describe("problems from the engine, the SIF check and demo checks",
     for (const i of issues) {
       expect(i.suggestedFix.en.length, i.code).toBeGreaterThan(10);
       expect(i.suggestedFix.ar.length, i.code).toBeGreaterThan(3);
-      expect(i.plainReason.ar.length, i.code).toBeGreaterThan(3);
     }
     const kind = (code: string) => issues.find((i) => i.code === code)!
       .fixKind;

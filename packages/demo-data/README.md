@@ -24,8 +24,17 @@ const demo = buildDemoCompany(); // seed 2026; same seed, same bytes
   trace; totals are sums of the payslips.
 - The WPS SIF from `packages/wps` and its validation report. One
   payslip (no IBAN) is held out of the file, with its reason.
-- Problems, each with its source, a plain reason, a suggested fix
-  (EN/AR) and a `fixKind` (`issuesOf`). From the engine: overtime
+- Problems, each with its source, a short title, a plain sentence
+  (no codes, raw dates or citations; dates come as `{ iso, display }`),
+  a suggested fix and a `fixKind` (`issuesOf`). Each item has a
+  `kind`: `issue` (counted in `headline().issuesOpen`),
+  `needs-confirmation` (pension) or `note` (the invented bank's
+  routing code). `applyIbanFix(demo, employeeId, iban)` returns a new
+  demo where the held pay joins the SIF, regenerated and checked again
+  through packages/wps; a faulty IBAN is refused in plain words. SIF
+  findings carry the file line (each employee has a salary line and an
+  allowance line, so line 51 is the 26th employee; `sifSummary`
+  explains this). From the engine: overtime
   over the 2-hour daily limit, a loan instalment cut by the Article 25
   cap, a sick day unpaid in probation, the partial final settlement.
   From the SIF validator: an IBAN that fails mod 97, the fictional
