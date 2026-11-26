@@ -40,7 +40,7 @@ and exchange layer, every figure traced to a rule-pack parameter whose
 status says how well it is sourced, with no tax advice and no claim of
 compliance or submission.
 
-**Architecture:** Statutory values live in five new engine rule-packs
+**Architecture:** Statutory values live in four new engine rule-packs
 (`ae-vat`, `ae-vat-employee-expense`, `ae-ct`, `ae-einvoicing`) and
 pure engine functions under `packages/engine/src/tax/` (Decision 17
 conditions, VAT periods and due dates, VAT 201 boxes, corporate tax,
@@ -73,7 +73,7 @@ to 3 (speed ruling, autonomous mode). Extends
 tenancy, audit, roles); reuses
 `docs/superpowers/plans/2026-11-26-plan-6-expenses.md` (expense item
 VAT capture fields `amount`, `vatAmount`, `supplierName`,
-`supplierTrn`; CSV writer; `text/csv-optional`),
+`supplierTrn`; `text/csv-optional` responses from its Task 7),
 `docs/superpowers/plans/2026-11-26-plan-10-performance-learning.md`
 Task 1 (`ROUTE_GROUPS`, numeric migration order) and
 `docs/superpowers/plans/2026-11-26-plan-11-owner-view-evidence.md`
@@ -93,7 +93,7 @@ the later-merged plan reuses it instead of adding a second copy.
 | 6 | Plan 3 Tasks 1 to 8; Tasks 1 to 5 |
 | 7 | Task 6; Plan 6 Tasks 1 to 5 (expense claims) |
 | 8 | Tasks 2 and 7 |
-| 9 | Tasks 3, 4 and 7 |
+| 9 | Tasks 3, 4, 7 and 8 |
 | 10 | Tasks 5 and 6 |
 | 11 | Tasks 5 and 6 |
 | 12 | Tasks 7 and 11 |
@@ -125,9 +125,11 @@ worktree; Tasks 6 to 13 run in order in one worktree.
   "NOT FOUND" = `unsourced`.
 - Never "compliant", "FTA approved", "certified", "submitted to the
   FTA", "filed with the FTA", "recoverable", "claimable", "5%" or
-  "9%" in contract or api text. A return the company has filed by hand
-  is `marked-filed`, never "submitted". The words "tax advice" appear
-  only inside "not tax advice".
+  "9%" in contract or api source text. (The VAT 201 box labels quoted
+  from the FTA guide live in the engine and reach responses as quoted
+  FTA labels; contract examples carry none of them.) A return the
+  company has filed by hand is `marked-filed`, never "submitted".
+  The words "tax advice" appear only inside "not tax advice".
 - Every VAT, corporate tax and e-invoicing response carries `note:
   typeof TAX_NOT_ADVICE` plus its own statement (exact texts in Task
   6). Unsourced or not-entered values are `null` with a reason, never
@@ -254,7 +256,8 @@ Law task: fresh per-task review.
       (2): the same with "Article 2, case N".
     - `MD243_2025` (3.1): "Ministerial Decision 243 of 2025".
     - `MD244_2025_ART5` (3.1): "Ministerial Decision 244 of 2025,
-      Article 5".
+      Article 5"; `MD244_2025_ART3_4` (3.3): the same with "Articles 3
+      and 4 (pilot and voluntary start)".
     - `MD66_2026` (3.1): "MD 66 of 2026; MoF copy unsigned".
     - `MD197_2026` (3.1): "MD 197 of 2026; MoF copy unsigned".
     - `FTA_NEWS_2026_10_25` (3.3): "FTA news 25 Oct 2026; exact page
@@ -326,7 +329,7 @@ Law task: fresh per-task review.
     | largeGoLive | "2027-01-01" | official | MD244_2025_ART5 |
     | smallAppointBy | "2027-03-31" | official | MD244_2025_ART5 |
     | smallGoLive | "2027-07-01" | official | MD244_2025_ART5 |
-    | voluntaryFrom | "2026-07-01" | official | MD244_2025_ART5 |
+    | voluntaryFrom | "2026-07-01" | official | MD244_2025_ART3_4 |
     | b2cInScope | false | official | MD244_2025_ART5 |
     | issueWindowBusinessDays | 14 | secondary | MD197_2026 |
     | weekendDays | "SAT,SUN" | convention | ENGINE_CONVENTION |
@@ -372,7 +375,7 @@ Law task: fresh per-task review.
 `no-tax-figures.test.ts`: the files under `packages/engine/src/tax/`
 and (from Task 6, skipped while absent) `packages/api/src/tax/`,
 `packages/api/src/einvoicing/` and `packages/contract/src/tax/`
-contain none of `"500n"` as a VAT rate literal, `37500000`,
+contain none of `37500000`,
 `300000000`, `5000000000`, `"2026-10-30"`, `"2027-03-31"`,
 `"2027-07-01"`, `"0235"`; the contract and api files also contain
 none of the banned words of the Global Constraints (case-insensitive;
@@ -603,20 +606,21 @@ Money and law task: fresh per-task review.
   - `vat201-layout.ts`: `VAT201_BOXES: readonly BoxDef[]`, `BoxDef {
     box: "1" | ... | "15"; section: "outputs" | "inputs" | "totals";
     guideLabel: string; columns: ("amount" | "vat" | "adjustment")[];
-    ftaPopulated: boolean }`. Labels are the guide's own words, quoted:
-    1 "Standard rated supplies", 2 "Tax refunds provided to tourists",
-    3 "Supplies subject to the reverse charge provisions", 4 "Zero
-    rated supplies", 5 "Exempt supplies", 6 "Goods imported into the
-    UAE", 7 "Adjustments to goods imported into the UAE", 8 "Totals",
-    9 "Standard rated expenses", 10 "Supplies subject to the reverse
-    charge provisions", 11 "Totals", 12 "Total value of due tax for
-    the period", 13 "Total value of recoverable tax for the period",
-    14 "Payable tax for the period", 15 "Do you wish to request a
-    refund for the above amount of excess recoverable tax?". Boxes 2,
-    6 and 7 have `ftaPopulated: true`. Columns: boxes 4 and 5 amount
+    ftaPopulated: boolean; labelSource: "research-note" | "guide-pdf"
+    }`. Labels are the short names in research note section 1.1, not
+    quotes of the form: 1 "Standard rated supplies", 2 "Tax refunds to
+    tourists", 3 "Reverse charge supplies received", 4 "Zero-rated
+    supplies", 5 "Exempt supplies", 6 "Goods imported into the UAE",
+    7 "Adjustments to goods imported", 8 "Totals (outputs)", 9
+    "Standard rated expenses", 10 "Reverse charge supplies (inputs)",
+    11 "Totals (inputs)", 12 "Total value of due tax for the period",
+    13 "Total value of recoverable tax", 14 "Payable tax", 15 "Refund
+    request", all with `labelSource "research-note"`. When the
+    executor reads the guide PDF, a box may take the PDF's exact
+    wording with `labelSource "guide-pdf"`. Boxes 2, 6 and 7 have
+    `ftaPopulated: true`. Columns: boxes 4 and 5 amount
     only; 9 to 11 amount, VAT, adjustment; 12 to 14 one figure (vat);
-    15 none. (If a guide label differs from these words when the
-    executor opens the PDF, the PDF wins; the test reads this table.)
+    15 none.
   - `Vat201Doc { id: string; direction: "sale" | "purchase"; kind:
     "tax-invoice" | "simplified-invoice" | "credit-note"; treatment:
     VatTreatment; emirate: Emirate | null; net: Fils; vat: Fils;
@@ -645,7 +649,8 @@ Money and law task: fresh per-task review.
     Vat201Problem[]; warnings: Vat201Warning[]; excludedDocIds:
     string[]; notComputed: string[] }`.
   - `computeVat201(input: Vat201Input, packs?: readonly RulePack[]):
-    Traced<Vat201>`. Mapping (credit notes subtract their net, VAT and
+    Traced<Vat201>` (pack selected on `periodEnd`). Mapping (credit
+    notes subtract their net, VAT and
     claimed VAT; out-of-scope documents and purchases that are
     zero-rated or exempt go to `excludedDocIds`):
 
@@ -959,7 +964,9 @@ Money and law task: fresh per-task review.
     firstPeriodStart: IsoDate | null (day 01, refined, path
     ["firstPeriodStart"]); periodMonths: PeriodMonths | null;
     defaultEmirate: Emirate | null; taxGroupMember: boolean;
-    tradeLicenceNumber: string 1..60 | null; lastAccountingPeriodEnd:
+    tradeLicenceNumber: string 1..60 | null; einvoicingTin:
+    ^\d{10}$ | null (the member's own TIN when `taxGroupMember`);
+    lastAccountingPeriodEnd:
     IsoDate | null; lastAccountingPeriodRevenue: Money | null;
     holidays: IsoDate[] (0..60, unique); expenseCategoryMap: {
     expenseCategoryId: Id; taxCategoryId: Id }[] (0..200) }`;
@@ -1129,7 +1136,7 @@ words of the Global Constraints.
   - `ExpenseImportRequest { from: IsoDate; to: IsoDate }` (at most 366
     days apart, refined); `ExpenseImportResult { created: int;
     existing: int; skipped: { claimId: Id; itemId: Id; reason:
-    "category-not-mapped" | "no-vat-data" }[]; flagged: int }`.
+    "category-not-mapped" | "period-filed" }[]; flagged: int }`.
   - `TrnCheckRequest { trn: string 1..40 }`; `TrnCheck { valid:
     boolean; problems: ("NOT_15_DIGITS")[]; tin: string | null;
     participantId: { scheme: string; id: string } | null; note: typeof
@@ -1177,16 +1184,17 @@ words of the Global Constraints.
     gives `FOREIGN_CURRENCY`; kind `simplified-invoice` gives
     `SIMPLIFIED_INVOICE` ("check the simplified invoice conditions").
   - `periods-lock.ts`: `assertPeriodOpen(tx: Db, companyId: string,
-    taxDate: string): Promise<void>` (409 `PERIOD_FILED` when a
-    `marked-filed` return covers the date; returns nothing while Task
-    9's table does not exist: the function queries
-    `vat_returns` only from Task 9 on, and Task 7 ships it returning
-    without a query, with a `TODO(Task 9)`-free comment naming Task 9
-    as the owner of the lock check) and `assertCorrectsFiled(tx,
-    companyId, periodStart)` (422 `VAT_DOCUMENT_INVALID` with
-    `CORRECTS_OPEN_PERIOD` when that period is not marked filed; same
-    Task 9 note).
-  - `ledger.ts`: `createVatDocument(ctx, input)`,
+    taxDate: string): Promise<void>` and `assertCorrectsFiled(tx,
+    companyId, periodStart: string): Promise<void>`. Task 7 ships both
+    as functions that return at once (no return table exists yet) and
+    calls them from every write; Task 9 gives them their bodies (409
+    `PERIOD_FILED`; 422 `VAT_DOCUMENT_INVALID` with
+    `CORRECTS_OPEN_PERIOD`) and owns their tests.
+  - `ledger.ts`: `insertVatDocument(ctx: ReqCtx, input:
+    VatDocumentInput, source: VatDocumentSource, sourceRef: string |
+    null): Promise<VatDocument>` (all the checks below; used by the
+    routes with `"manual"`, `null` and by Tasks 7, 12 and 13),
+    `createVatDocument(ctx, input)`,
     `updateVatDocument(ctx, id, patch)`, `voidVatDocument(ctx, id,
     note)`, `listVatDocuments(ctx, q)`, `loadVatDocument(tx,
     companyId, id): Promise<VatDocument>` (404). Create and update
@@ -1195,8 +1203,9 @@ words of the Global Constraints.
     the category; problems give 422 `VAT_DOCUMENT_INVALID`; a unique
     violation gives 409 `VAT_DOCUMENT_DUPLICATE`; a voided document
     cannot change (409 `VAT_DOCUMENT_VOIDED`); a document linked to an
-    e-invoice (Task 12) cannot change amounts or be voided (409
-    `VAT_DOCUMENT_LINKED`). Audit `vat.document.created`,
+    e-invoice cannot change amounts or be voided (409
+    `VAT_DOCUMENT_LINKED`; the `einvoices` lookup is added in Task
+    12). Audit `vat.document.created`,
     `vat.document.updated` (`changed`), `vat.document.voided`.
   - `expense-import.ts`: `importExpenseVat(ctx, req):
     Promise<ExpenseImportResult>`: reads expense items of claims in
@@ -1209,16 +1218,15 @@ words of the Global Constraints.
     number `"EXP-<claimId first 8>-<item index>"`, kind
     `tax-invoice`; inserts with `on conflict (company_id, source,
     source_ref) do nothing` and counts `existing`; items whose
-    period is filed are skipped with `assertPeriodOpen`'s code in the
-    result as reason `"period-filed"` (add it to the enum); existing
+    period is filed are skipped with reason `"period-filed"`; existing
     documents whose claim is no longer `approved` or `reimbursed` get
     the finding `SOURCE_NO_LONGER_APPROVED` (never voided
     automatically) and are counted in `flagged`. Audit
     `vat.documents.imported` (`data: { created, existing, skipped,
     flagged }`).
   - `seed.ts`: `seedVat` adds one approved expense claim item (meals,
-    `"105.00"` with VAT `"5.00"`, TRN `"100000000000011"`) mapped to
-    `std-purchases`.
+    dated `2026-10-15`, `"105.00"` with VAT `"5.00"`, TRN
+    `"100000000000011"`) mapped to `std-purchases`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1262,6 +1270,10 @@ and participant scheme `"0235"`; `"10000000000000"` (14 digits) and
 - `import_skips_draft_and_rejected`: claims in other statuses are not
   read.
 - `import_range_limit`: 400 for a 367-day range.
+- `import_flags_source_no_longer_approved`: after an import, the
+  test sets the claim's status to `rejected` directly in the database
+  (as table owner); a re-import gives `flagged 1` and the document
+  carries `SOURCE_NO_LONGER_APPROVED`, still `active`.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/api test trn vat-ledger
   vat-import`. Expected: FAIL.
@@ -1361,6 +1373,10 @@ and participant scheme `"0235"`; `"10000000000000"` (14 digits) and
   `src/tax/returns.ts`, `src/tax/return-export.ts` (pure),
   `src/tax/checklist.ts` (pure), `src/routes/vat-returns.ts`
 - Modify: `packages/api/src/tax/periods-lock.ts` (real lock checks),
+  `packages/api/src/app.ts` (csv-optional responses, only if Plan 6
+  Task 7 has not added them: with `format=csv` the handler returns
+  `{ csv: string; fileName: string }`, served as `text/csv;
+  charset=utf-8` with `Content-Disposition: attachment`),
   contract `routes-vat.ts`, `errors.ts`, `examples.ts`, `index.ts`,
   `tests/routes-vat.test.ts`; api `src/app.ts`, `tests/leak.test.ts`,
   `tests/conformance.test.ts`
@@ -1428,6 +1444,9 @@ and participant scheme `"0235"`; `"10000000000000"` (14 digits) and
     GET /v1/vat/returns/{id}/export` (PAYROLL, mfa, csv-optional),
     `exportVatReturnDocuments GET /v1/vat/returns/{id}/documents`
     (PAYROLL, mfa, csv-optional).
+  - `EXAMPLES` for `VatReturn` and `Vat201Export` list only the seven
+    Box 1 rows and Box 4, so no FTA label with a banned word enters the
+    contract.
   - Error codes: `PERIOD_NOT_FOUND` 422 (not a period of the
     profile's calendar), `PERIOD_IN_FUTURE` 422 (period end after
     today), `RETURN_FILED` 409, `RETURN_INCOMPLETE` 422,
@@ -1487,8 +1506,9 @@ and participant scheme `"0235"`; `"10000000000000"` (14 digits) and
 
 - [ ] **Step 1: Write the failing tests**
 
-`vat-returns.test.ts` (clock 2026-11-26; seeded sale and purchase in
-Q3 2026):
+`vat-returns.test.ts` (clock 2026-11-26; each test first creates a DU
+standard sale net `"1000.00"` VAT `"50.00"` dated `2026-08-10` and a
+standard purchase net `"100.00"` VAT `"5.00"` dated `2026-08-12`):
 - `periods_listed_with_due`: GET periods for 2026 gives four rows; Q3
   due `"2026-10-28"`; Q4 status `open`; `dueRule.status` is
   `secondary`.
@@ -1556,9 +1576,9 @@ Q3 2026):
 **Interfaces:**
 - Consumes: Task 5 `computeCorporateTax`; Task 6 `vatAudit`,
   `CT_NOTE`, `TAX_NOT_ADVICE`; Plan 3 `Keyring` (company DEK); Plan 10
-  Task 1 `sealJson`, `openJson` (if absent, create them in
-  `packages/api/src/tax/seal.ts` with Plan 10's exact signatures and
-  AAD `"<companyId>:<table>:<column>:<rowId>"`).
+  Task 1 `sealJson`, `openJson` (if absent, create them at Plan 10's
+  path `packages/api/src/talent/seal.ts` with Plan 10's exact
+  signatures and AAD `"<companyId>:<table>:<column>:<rowId>"`).
 - Produces (contract):
   - `CtWorksheetInputs { accountingProfit: SignedMoney; adjustments: {
     label: 1..120; amount: Money; effect: "add" | "deduct" }[]
@@ -1646,7 +1666,8 @@ Q3 2026):
   `participantIdFor`; Task 1 `packParamsView`; Task 6
   `getTaxProfile`, `vatAudit`, `FINE_EXPOSURE_NOTE`,
   `EINVOICE_PROVIDER_NOTE`; Plan 11 Task 5 `Exposure` (if absent,
-  create it in `packages/contract/src/tax/exposure.ts` with Plan 11's
+  create it at Plan 11's path `packages/contract/src/owner/deadlines.ts`
+  with Plan 11's
   exact union: `{ status: "computed"; amount: Money; trace:
   TraceLine[] } | { status: "not-assessed"; reason: string } | {
   status: "none" }`); Plan 3 `dubaiDate`, `TraceLine`.
@@ -1667,7 +1688,8 @@ Q3 2026):
     { name; appointedOn; contractReference } | null; participantId: {
     scheme; id } | null; steps: { id; done: boolean }[]; warnings: (
     "TAX_GROUP_TIN_NOT_USABLE" | "NO_TRN_FOR_PARTICIPANT_ID" |
-    "BAND_UNKNOWN" | "APPOINTMENT_OVERDUE")[]; exposure: {
+    "BAND_UNKNOWN" | "APPOINTMENT_OVERDUE" |
+    "COUNTS_ONLY_PRODUCT_INVOICES")[]; exposure: {
     appointment: Exposure; missingDocuments: Exposure;
     ftaReporting: Exposure }; deadlineRules: ParamView[];
     exposureNote: typeof FINE_EXPOSURE_NOTE; providerNote: typeof
@@ -1714,13 +1736,12 @@ Q3 2026):
 - `fta_reporting_not_assessed`: always `not-assessed`.
 - `tax_group_warning`, `participant_id_from_trn` (`{ "0235",
   "1000000000" }` for the seeded TRN).
-- `vat_late_fines_shown_unsourced` (Review Focus 5): the readiness
-  response for any company has no `"0.00"` exposure where the status
-  is not `computed` (assert every `Exposure` with an `amount` has
-  `status "computed"`); and `GET /v1/vat/parameters` shows
-  `lateFilingFineFils` as `null` `unsourced`.
-
 `einvoicing-readiness.test.ts`:
+- `vat_late_fines_shown_unsourced` (Review Focus 5): in the readiness
+  response every `Exposure` that has an `amount` has `status
+  "computed"`, and `ftaReporting` is `not-assessed` (never `"0.00"`);
+  `GET /v1/vat/parameters` shows `lateFilingFineFils` and
+  `latePaymentFirstBps` as `null` and `unsourced`.
 - `readiness_defaults`: hr GET gives version 0, seven steps false,
   `providerNote` and `exposureNote` texts.
 - `readiness_owner_put`: hr PUT 403; owner PUT with `providerName`
@@ -1761,8 +1782,8 @@ Untrusted input task: fresh per-task review.
 - Consumes: Task 3 `checkDocumentVat`; Task 5 `einvoiceIssueBy`,
   `missingDocumentFineExposure`, `participantIdFor`; Task 6
   `vatAudit`, `requireVatProfile`, `EINVOICE_FIELD_NOTE`,
-  `EINVOICE_PROVIDER_NOTE`; Task 7 `createVatDocument` (internal form
-  taking `source` and `sourceRef`), `loadVatDocument`; Plan 3
+  `EINVOICE_PROVIDER_NOTE`; Task 7 `insertVatDocument`,
+  `loadVatDocument`, `loadTaxCategory`, `assertPeriodOpen`; Plan 3
   `Idempotency-Key` header handling (as `createPayRun`).
 - Produces (contract):
   - `KNOWN_EINVOICE_FIELDS = [{ id: "IBT-030", meaning: "Seller legal
@@ -1781,7 +1802,12 @@ Untrusted input task: fresh per-task review.
     1..60; creditReason?: 3..300; categoryId: Id; emirate: Emirate |
     null }` refined: a credit note needs `precedingInvoiceNumber` and
     `creditReason`; currency is always AED (no field).
-  - `EInvoiceStatus = z.enum(["draft","queued","accepted","rejected",
+  - `EInvoiceCanonical { type; number; issueDate; transactionDate;
+    currency: z.literal("AED"); supplier: EInvoiceParty; buyer:
+    EInvoiceParty; lines: EInvoiceLine[]; totals: { net; vat; gross:
+    Money }; precedingInvoiceNumber: string | null; creditReason:
+    string | null }` (what the provider port sends and receives).
+  - `EInvoiceStatus = z.enum(["draft","accepted","rejected",
     "failed","received","unreadable"])`; `MatchStatus =
     z.enum(["unmatched","suggested","matched","created"])` (inbound
     only; used in Task 13).
@@ -1797,7 +1823,7 @@ Untrusted input task: fresh per-task review.
     EINVOICE_PROVIDER_NOTE }`.
   - `EInvoiceQuery { direction?; status?; matchStatus? }`;
     `SyncResult { received: int; duplicates: int; unreadable: int;
-    statusUpdates: int }`.
+    foreign: int; statusUpdates: int }`.
   - Routes appended (PAYROLL): `listEinvoices GET /v1/einvoices`,
     `createOutboundEinvoice POST /v1/einvoices` (201),
     `getEinvoice GET /v1/einvoices/{id}`, `sendEinvoice POST
@@ -1805,31 +1831,32 @@ Untrusted input task: fresh per-task review.
     `syncEinvoices POST /v1/einvoices/sync`.
   - Error codes: `PROVIDER_NOT_CONFIGURED` 409, `EINVOICE_INVALID` 422
     (detail `problems`), `EINVOICE_NOT_DRAFT` 409,
-    `EINVOICE_NUMBER_TAKEN` 409, `PROVIDER_UNAVAILABLE` 503,
-    `EINVOICE_BUYER_NO_PARTICIPANT` 422.
+    `EINVOICE_NUMBER_TAKEN` 409, `EINVOICE_BUYER_NO_PARTICIPANT` 422,
+    `TAX_GROUP_TIN_NOT_USABLE` 422.
 - Produces (api):
   - `provider.ts`:
 
     ```ts
     interface OutboundEnvelope {
       idempotencyKey: string;          // "<einvoiceId>:<revision>"
-      sender: { scheme: string; id: string };
-      receiver: { scheme: string; id: string };
-      document: EInvoiceCanonical;     // contract EInvoice minus
-    }                                  // ids, status and notes
+      sender: ParticipantRef;
+      receiver: ParticipantRef;
+      document: EInvoiceCanonical;     // contract schema
+    }
     type SendResult =
       | { kind: "accepted"; messageId: string;
           taxDataReported: boolean | null }
       | { kind: "rejected"; errors: { code: string; message: string }[] }
       | { kind: "unavailable" };
+    interface ParticipantRef { scheme: string; id: string }
     interface InboundMessage { messageId: string; receivedAt: string;
       payload: unknown }
     interface EInvoiceProvider {
       readonly name: string;
       send(e: OutboundEnvelope): Promise<SendResult>;
-      fetchInbound(cursor: string | null):
+      fetchInbound(receiver: ParticipantRef, cursor: string | null):
         Promise<{ messages: InboundMessage[]; cursor: string | null }>;
-      status(messageId: string):
+      status(sender: ParticipantRef, messageId: string):
         Promise<{ taxDataReported: boolean | null }>;
     }
     ```
@@ -1840,20 +1867,27 @@ Untrusted input task: fresh per-task review.
   - `fake-provider.ts`: `class FakeEInvoiceProvider implements
     EInvoiceProvider` with `sent: OutboundEnvelope[]` (every call
     recorded), `script: SendResult[]` (consumed in order, default
-    accepted with `messageId "fake-<n>"`), `inbox: InboundMessage[]`
-    (`fetchInbound` returns all with index cursor), `deliverTwice(m)`
-    helper; same key twice returns the first result without a new
+    accepted with `messageId "fake-<n>"`), `inbox: Map<string,
+    InboundMessage[]>` keyed by `"<scheme>:<id>"` of the receiver
+    (`fetchInbound` returns that receiver's list from an index
+    cursor), `deliver(receiver, m)` and `deliverTwice(receiver, m)`
+    helpers; same key twice returns the first result without a new
     message id (like a real idempotent provider).
   - `check.ts`: `checkEinvoiceDraft(d: EInvoiceDraft, onDate: string):
     string[]` (problems): each line `net = quantity x unitPrice`
     rounded half up to fils (`LINE_NET_MISMATCH:<i>`); Task 3
-    `checkDocumentVat` errors per line (`LINE_VAT:<i>`); buyer TRN
+    `checkDocumentVat` errors per line (`LINE_VAT:<i>`); every line's
+    treatment equals the category's (`LINE_TREATMENT_MISMATCH:<i>`;
+    one invoice is one ledger document in one VAT 201 box, so mixed
+    treatments are split into separate invoices); buyer TRN
     required for a buyer in the UAE (`country "AE"`):
     `BUYER_TRN_REQUIRED` (product rule, see Ruling 26); totals are
     computed, never entered. `parseInbound(payload: unknown, maxBytes:
-    number): { ok: true; doc: EInvoiceCanonical } | { ok: false;
-    codes: string[] }` (zod, `canonicalJson` length check first:
-    `INBOUND_TOO_LARGE`; strings stored as data only).
+    number, ownTin: string): { ok: true; doc: EInvoiceCanonical } | {
+    ok: false; codes: string[] } | { ok: "foreign" }` (zod,
+    `canonicalJson` length check first: `INBOUND_TOO_LARGE`; strings
+    stored as data only; a buyer TRN whose TIN is not `ownTin` gives
+    `foreign`).
   - Migration 1207: `einvoices(id, company_id, direction, type,
     number, issue_date, transaction_date, supplier jsonb, buyer jsonb,
     lines jsonb, net bigint, vat bigint, gross bigint,
@@ -1873,35 +1907,52 @@ Untrusted input task: fresh per-task review.
     `sendOutbound(ctx, id, idempotencyKey)`: the same
     `Idempotency-Key` returns the stored result (Plan 3 pattern via
     `einvoice_sends`); status must be `draft`, `rejected` or `failed`
-    (else 409 `EINVOICE_NOT_DRAFT`); a resend after `rejected` bumps
-    `revision`; a buyer without TRN gives 422
-    `EINVOICE_BUYER_NO_PARTICIPANT`; calls `provider.send` with key
-    `"<id>:<revision>"`; `accepted` sets status, message id and
-    `taxDataReported`, then creates the sale VAT document (source
-    `einvoice-sent`, `sourceRef` the e-invoice id, net and VAT summed,
-    `claimedVat null`, category and emirate from the draft) and links
-    it; `rejected` stores the errors; `unavailable` sets `failed` and
-    gives 503 `PROVIDER_UNAVAILABLE`. Edits after `queued` do not
-    exist (no PATCH route); corrections are credit notes. Audit
+    (else 409 `EINVOICE_NOT_DRAFT`). Every refusal runs before
+    `provider.send`, because the handler's single `withTenant`
+    transaction rolls back on a thrown `ApiError`: buyer without TRN
+    (422 `EINVOICE_BUYER_NO_PARTICIPANT`); tax group member without
+    `einvoicingTin` (422 `TAX_GROUP_TIN_NOT_USABLE`); then a dry run
+    of the ledger checks for the sale document it will create
+    (`assertPeriodOpen` on the transaction date, category active and
+    a sale category, sale number free; the Task 7 codes). A resend
+    after `rejected` or `failed` bumps `revision`. It calls
+    `provider.send` with key `"<id>:<revision>"` and the sender
+    `participantIdFor(trn)` (or `{ scheme, id: einvoicingTin }` for a
+    tax group member). No outcome throws after the call: `accepted`
+    sets status, message id and `taxDataReported`, then
+    `insertVatDocument` with source `einvoice-sent`, `sourceRef` the
+    e-invoice id, net and VAT summed over lines, `claimedVat null`,
+    tax date the transaction date, category and emirate from the
+    draft, and for a credit note kind `credit-note` with
+    `originalDocumentNumber` = `precedingInvoiceNumber` and the credit
+    reason; `rejected` stores the errors; `unavailable` sets `failed`
+    with `providerErrors [{ code: "PROVIDER_UNAVAILABLE" }]`; all
+    three return 200 with the `EInvoice`. There is no edit after a
+    send (no PATCH route); corrections are credit notes. Audit
     `einvoice.created`, `einvoice.sent` (`data: { status, revision
     }`).
-  - `inbound.ts`: `syncInbound(ctx): Promise<SyncResult>`: pulls from
-    the stored cursor; each message: `parseInbound`; invalid gives a
+  - `inbound.ts`: `syncInbound(ctx): Promise<SyncResult>`: the
+    receiver is the company's own participant id (TRN, or
+    `einvoicingTin` for a tax group member; neither gives 422
+    `TAX_PROFILE_INCOMPLETE`); pulls that receiver's messages from the
+    stored cursor; each message: `parseInbound`; `foreign` is not
+    stored and is counted in `foreign`; invalid gives a
     row with status `unreadable` and `raw_errors` (payload not
     stored); valid gives status `received`, `matchStatus
     "unmatched"`; insert `on conflict (company_id,
     provider_message_id) do nothing` counts `duplicates`; the cursor
     is saved in the same transaction; then refreshes
     `taxDataReported` of outbound rows with `accepted` status and
-    `null` reporting. Audit `einvoice.received` (`data: { received,
+    `null` reporting (`status(sender, messageId)`). Audit
+    `einvoice.received` (`data: { received,
     duplicates, unreadable }`).
   - `overdue.ts`: `overdueCounts(rows: { type; transactionDate;
     issueBy; status }[], asOf: string): { month; invoices;
-    creditNotes }[]`: rows not `accepted` with `issueBy < asOf`,
+    creditNotes }[]`: outbound rows only, not `accepted`, with
+    `issueBy < asOf`,
     grouped by the month of `issueBy`; readiness passes these to
-    `missingDocumentFineExposure` (only documents created in this
-    product; the label says so: add warning
-    `"COUNTS_ONLY_PRODUCT_INVOICES"` to the readiness warnings enum).
+    `missingDocumentFineExposure`; readiness then always carries the
+    warning `COUNTS_ONLY_PRODUCT_INVOICES` once past `goLive`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1927,7 +1978,18 @@ Untrusted input task: fresh per-task review.
   concurrent sends with one key give one send.
 - `rejected_then_resend_bumps_revision`: script `rejected`, then
   `accepted`: the second envelope key ends `:2`.
-- `unavailable_is_503_failed`.
+- `unavailable_is_failed_and_kept`: script `unavailable`: 200 with
+  status `failed` and `providerErrors[0].code "PROVIDER_UNAVAILABLE"`;
+  a GET afterwards still shows `failed` (nothing rolled back).
+- `send_prechecks_before_provider`: with the transaction date in a
+  period marked filed (Task 9 helper), send gives 409 `PERIOD_FILED`
+  and `fake.sent.length` is 0; a tax group member without
+  `einvoicingTin` gives 422 `TAX_GROUP_TIN_NOT_USABLE` and no send.
+- `mixed_treatment_refused`: a standard line and a zero-rated line
+  give 422 `EINVOICE_INVALID` with `LINE_TREATMENT_MISMATCH:1`.
+- `credit_note_becomes_ledger_credit_note`: an accepted credit note
+  creates a `credit-note` sale document whose
+  `originalDocumentNumber` is the preceding invoice number.
 - `null_provider_409`: an app without the fake gives 409
   `PROVIDER_NOT_CONFIGURED` on send and sync.
 - `sent_invoice_cannot_resend`: a second send with a new key gives
@@ -1945,6 +2007,10 @@ Untrusted input task: fresh per-task review.
 - `inbound_duplicate_stored_once` (Review Focus 2): the same message
   delivered twice (and a second sync) gives one row and `duplicates
   1`.
+- `inbound_other_company_not_stored`: messages delivered to company
+  A's participant are not returned by company B's sync; a message in
+  B's inbox whose buyer TRN belongs to A gives `foreign 1` and no
+  row.
 - `inbound_unreadable_kept_without_payload`: an invalid payload gives
   status `unreadable`, `raw_errors` set and no payload text in the
   row.
@@ -1970,7 +2036,8 @@ Untrusted input task: fresh per-task review.
   `packages/api/migrations/1208_einvoice_match.sql`,
   `packages/api/src/einvoicing/match.ts` (pure),
   `src/einvoicing/matching.ts`, `src/routes/vat-einvoice-match.ts`
-- Modify: contract `routes-vat.ts`, `errors.ts`, `examples.ts`,
+- Modify: `packages/api/src/einvoicing/inbound.ts` (set
+  `suggested`), contract `routes-vat.ts`, `errors.ts`, `examples.ts`,
   `index.ts`, `tests/routes-vat.test.ts`; api `src/app.ts`,
   `tests/leak.test.ts`, `tests/conformance.test.ts`; `HANDOVER.md`,
   `LEDGER.md`
@@ -1979,7 +2046,7 @@ Untrusted input task: fresh per-task review.
 
 **Interfaces:**
 - Consumes: Task 12 `EInvoice`, inbound rows; Task 7
-  `createVatDocument`, `loadVatDocument`, `updateVatDocument`; Task 6
+  `insertVatDocument`, `loadVatDocument`; Task 6
   `vatAudit`.
 - Produces (contract):
   - `MatchDifference = z.enum(["NET_DIFFERS","VAT_DIFFERS",
@@ -2094,10 +2161,12 @@ wrong. Task 13 appends them to `LEDGER.md`.
    copy or the 2021 guide `secondary`; NOT FOUND `unsourced`). Cost if
    a status is too generous: one table row; the trace already names
    the source, so no figure changes.
-2. **The 5% rate is `secondary`.** It is read only from a worked
-   example in the 2021 FTA guide and a 2018 snippet; the VAT
-   Decree-Law was not read. Cost: none in figures; the label is
-   weaker than it may deserve until the Decree-Law is read.
+2. **The 5% rate is `secondary`, and `ae-vat` starts 2018-01-01 as a
+   convention.** The rate is read only from a worked example in the
+   2021 FTA guide and a 2018 snippet; the VAT Decree-Law was not read,
+   and neither research note gives the date VAT began. Cost: none in
+   figures; the label is weaker than it may deserve, and a document
+   dated before 2018 is refused (`NO_PACK_FOR_DATE`).
 3. **Zero-rated, exempt, out-of-scope and reverse-charge are
    company-tagged categories, not rates.** The product never decides
    which supply is zero-rated; it refuses VAT on non-standard
@@ -2108,7 +2177,10 @@ wrong. Task 13 appends them to `LEDGER.md`.
 4. **VAT 201 layout from the August 2021 guide, labelled on every
    return and export.** Box 1 is split by our own seven emirate codes
    (the guide's sub-box labels were not confirmed). The "Additional
-   Reporting Requirements" section is not computed. Cost if EmaraTax
+   Reporting Requirements" section is not computed. Box labels are
+   the research note's short names of the guide's boxes (Box 13
+   names "recoverable tax"), marked with their label source; the
+   product's own text never calls an amount recoverable. Cost if EmaraTax
    changed the form: a new layout table and mapping in
    `vat201-layout.ts` and `vat201.ts`; stored returns keep their
    snapshot.
@@ -2215,7 +2287,12 @@ wrong. Task 13 appends them to `LEDGER.md`.
     fields the dictionary needs and we lack are added to the model.
 25. **No edit and no cancel after sending; corrections are credit
     notes** (FTA FAQ: no cancellation concept). A rejected invoice can
-    be fixed and resent as a new revision. Cost: none known.
+    be fixed and resent as a new revision. One invoice has one
+    treatment (its category's), so it maps to one ledger document and
+    one VAT 201 box. The provider call runs inside the request
+    transaction, every refusal is checked before it, and no outcome
+    after it throws. Cost: a mixed-rate sale needs two invoices; a
+    slow provider holds one database transaction open for the call.
 26. **A UAE buyer must have a TRN before sending** (a participant id
     needs a TIN, and in-scope persons without registration must get
     one, FAQ). Cost: an invoice to a buyer still registering waits.
