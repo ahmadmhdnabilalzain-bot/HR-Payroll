@@ -1,11 +1,13 @@
 import { useState } from "react";
 import b from "../../ui/button.module.css";
+import { useMaskText } from "../../ui/mask";
 import type { SetupErpSource } from "./source";
 import s from "./erp.module.css";
 
 /** A table in a keyboard-reachable scroll area (phones scroll it). */
 function Table(p: { label: string; head: string[]; ends?: number[];
   rows: string[][]; foot?: string[] }) {
+  const mask = useMaskText();
   const end = (i: number) => p.ends?.includes(i) === true ? "true" : undefined;
   return (
     <div className={s.scroll} role="region" aria-label={p.label}
@@ -15,10 +17,10 @@ function Table(p: { label: string; head: string[]; ends?: number[];
           <th key={h} scope="col" data-end={end(i)}>{h}</th>))}</tr></thead>
         <tbody>{p.rows.map((r, i) => (
           <tr key={i}>{r.map((v, j) => (
-            <td key={j} data-end={end(j)}>{v}</td>))}</tr>))}</tbody>
+            <td key={j} data-end={end(j)}>{mask(v)}</td>))}</tr>))}</tbody>
         {p.foot !== undefined && (
           <tfoot><tr>{p.foot.map((v, j) => (
-            <td key={j} data-end={end(j)}>{v}</td>))}</tr></tfoot>)}
+            <td key={j} data-end={end(j)}>{mask(v)}</td>))}</tr></tfoot>)}
       </table>
     </div>
   );
@@ -97,14 +99,16 @@ export function PostingPreviewBlock(p: { src: SetupErpSource }) {
 
 /** The Teams card a waiting request would send. */
 export function TeamsPreview(p: { src: SetupErpSource }) {
+  const mask = useMaskText();
   return (
     <Block title="Cards it would send"
       hint="One card for each request waiting. Shown here, not sent.">
       {p.src.cards.map((c) => (
-        <article key={c.id} className={s.card} aria-label={c.title}>
-          <strong>{c.title}</strong>
-          {c.amount !== null && <span>{c.amount}</span>}
-          <small>{c.detail}</small>
+        <article key={c.id} className={s.card}
+          aria-label={mask(c.title)}>
+          <strong>{mask(c.title)}</strong>
+          {c.amount !== null && <span>{mask(c.amount)}</span>}
+          <small>{mask(c.detail)}</small>
           <div className={s.buttons}>{c.buttons.map((x) => (
             <span key={x} className={s.fake}>{x}</span>))}</div>
         </article>

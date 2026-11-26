@@ -10,6 +10,7 @@ import { IbanForm } from "../home/IbanForm";
 import { formatSignedMoney } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
+import { useMaskText } from "../ui/mask";
 import { useToast } from "../ui/Toast";
 import b from "../ui/button.module.css";
 import { fly } from "../ui/flight";
@@ -102,6 +103,7 @@ function KindTag(p: { kind: Kind }) {
  */
 export function FixStep() {
   const { lang, t } = useLocale();
+  const mask = useMaskText();
   const { data, state } = useDemo();
   const h = data.headline();
   const issues = data.issues().filter((i) => i.kind === "issue");
@@ -182,7 +184,7 @@ export function FixStep() {
               <span className={s.rowMain}>
                 <KindTag kind="confirm" />
                 <span className={s.name}>{i.title[lang]}</span>
-                <span className={s.reason}>{i.reason[lang]}</span>
+                <span className={s.reason}>{mask(i.reason[lang])}</span>
               </span>
             </li>
           ))}
@@ -195,6 +197,7 @@ export function FixStep() {
 function BlockerRow(p: { issue: Issue; canFix: boolean;
   from: RefObject<DOMRect | null> }) {
   const { lang, t } = useLocale();
+  const mask = useMaskText();
   const { data, dispatch } = useDemo();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -208,8 +211,9 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
         <KindTag kind="stops" />
         <span className={s.name}>{i.title[lang]}
           <span className={s.who}> · {name}</span></span>
-        <span className={s.reasonMain}>{plainOnly(i.reason[lang])}</span>
-        <span className={s.reason}>{i.suggestedFix[lang]}</span>
+        <span className={s.reasonMain}>
+          {mask(plainOnly(i.reason[lang]))}</span>
+        <span className={s.reason}>{mask(i.suggestedFix[lang])}</span>
       </span>
       {p.canFix && i.employeeId !== null && !open && (
         <span className={s.rowAction}>
@@ -238,6 +242,7 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
 
 function CheckRow(p: { issue: Issue; canAct: boolean; index: number }) {
   const { lang, t } = useLocale();
+  const mask = useMaskText();
   const { data, state, dispatch } = useDemo();
   const d = useRunDetail();
   const i = p.issue;
@@ -252,10 +257,11 @@ function CheckRow(p: { issue: Issue; canAct: boolean; index: number }) {
         <KindTag kind={done !== undefined ? "fixed" : "check"} />
         <span className={s.name}>{i.title[lang]}
           {name !== "" && <span className={s.who}> · {name}</span>}</span>
-        <span className={s.reasonMain}>{plainOnly(i.reason[lang])}</span>
+        <span className={s.reasonMain}>
+          {mask(plainOnly(i.reason[lang]))}</span>
         {/* One action per row (the button at its end); the working
             is a quiet link inside the advice, not a second action. */}
-        <span className={s.reason}>{i.suggestedFix[lang]}
+        <span className={s.reason}>{mask(i.suggestedFix[lang])}
           {ex !== null && <>{" "}
             <ExplainLink explanation={d.explain[ex]} className={s.rowLink}>
               {t("payrun.howWorked")}

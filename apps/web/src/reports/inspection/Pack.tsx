@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useMaskText } from "../../ui/mask";
 import { Money } from "../../ui/Money";
 import type { AuditData } from "./data";
 import s from "./audit.module.css";
@@ -25,6 +26,7 @@ type InspectionPack = AuditData["packs"][string];
 
 export function PackBody(p: { pack: InspectionPack }) {
   const { pack } = p;
+  const mask = useMaskText();
   const r = pack.register;
   return (
     <article className={s.pack} aria-label={pack.title}>
@@ -73,7 +75,7 @@ export function PackBody(p: { pack: InspectionPack }) {
               {pack.signOffs.map((x) => (
                 <li key={x.id} className={s.row}>
                   <span className={s.main}>
-                    <span>{x.kindText}: {x.subject}</span>
+                    <span>{x.kindText}: {mask(x.subject)}</span>
                     <small className={s.sub}>Asked by {x.askedBy}
                       {x.askedOn === "" ? "" : `, ${x.askedOn}`}</small>
                   </span>
@@ -91,7 +93,7 @@ export function PackBody(p: { pack: InspectionPack }) {
               {pack.files.map((f) => (
                 <li key={f.id} className={s.row}>
                   <span className={s.main}>
-                    <span>{f.what}</span>
+                    <span>{mask(f.what)}</span>
                     <small className={`${s.sub} ${s.mono}`} dir="ltr">
                       {f.name}</small>
                   </span>
@@ -107,8 +109,8 @@ export function PackBody(p: { pack: InspectionPack }) {
               {pack.exceptions.map((x) => (
                 <li key={x.id} className={s.row}>
                   <span className={s.main}>
-                    <span>{x.title}</span>
-                    <small className={s.sub}>{x.reason}</small>
+                    <span>{mask(x.title)}</span>
+                    <small className={s.sub}>{mask(x.reason)}</small>
                   </span>
                   <span className={s.end}>{x.severityText}. {x.statusText}
                   </span>
