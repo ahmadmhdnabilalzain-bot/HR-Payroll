@@ -15,6 +15,7 @@ export const E = {
   linkLede: (name: string) => `The signing link HR passed on to ${name}. ` +
     "They read each paper and sign it on their own phone.",
   nothing: "Nothing to sign.",
+  waitingYou: (n: number) => `Waiting for your signature (${n})`,
   all: "All",
   waiting: "Awaiting",
   done: "Signed",
@@ -39,6 +40,7 @@ export const E = {
   consentNeeded: "Tick the box to confirm before signing.",
   submit: "Sign",
   decline: "Decline",
+  back: "Back to signing",
   declineTitle: "Decline to sign",
   reason: "Reason",
   reasonNeeded: "Give a short reason.",

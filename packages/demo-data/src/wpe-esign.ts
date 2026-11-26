@@ -23,7 +23,7 @@ import { policies } from "./wpe-safety";
  * This is a demo of the signing workflow and claims no legal validity.
  */
 
-export const ESIGN_NOTE = "This is a demo of the signing workflow. No " +
+export const ESIGN_NOTE = "This is a demo of the signing workflow; no " +
   "legal validity is claimed for these signatures.";
 
 export const ESIGN_CONSENT = "I confirm I have read this document and " +

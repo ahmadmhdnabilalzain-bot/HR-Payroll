@@ -5,6 +5,7 @@ import { Departments } from "./Departments";
 import { EmployeeHome } from "./EmployeeHome";
 import { Expiries } from "./Expiries";
 import { Inbox } from "./inbox/Inbox";
+import { ToSignCard } from "../people/esign/ToSignCard";
 import { NoticesPage, TasksPage } from "./inbox/InboxPages";
 import { IssueList } from "./IssueList";
 import { ItHome } from "./ItHome";
@@ -47,6 +48,7 @@ export function Home(p: Partial<ViewProps>) {
           <Expiries />
         </div>
       </div>
+      <ToSignCard />
       <Inbox />
       <Departments />
     </div>

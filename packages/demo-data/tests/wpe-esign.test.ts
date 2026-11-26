@@ -113,7 +113,7 @@ describe("D5 e-sign documents", () => {
     }));
   it("the note claims no legal validity", () => {
     expect(ESIGN_NOTE).toMatch(/demo/);
-    expect(ESIGN_NOTE).toMatch(/No legal validity is claimed/);
+    expect(ESIGN_NOTE).toMatch(/no legal validity is claimed/);
   });
 });
 

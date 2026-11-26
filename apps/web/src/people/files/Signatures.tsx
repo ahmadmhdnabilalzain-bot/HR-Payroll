@@ -1,162 +1,87 @@
-import { useState } from "react";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
-import b from "../../ui/button.module.css";
-import { useToast } from "../../ui/Toast";
-import { FilterList, KeyValues, RecordTabs } from "../../ui/templates";
-import t from "../../ui/templates/templates.module.css";
-import { stepBy } from "../papers/model";
-import { Outside, Status } from "../team/common";
-import { Field, useActor, useNames } from "./common";
-import f from "./files.module.css";
-import { signRows, type SignNow, type SignRow } from "./signing";
-import { S } from "./words";
+import { FilterList, RecordTabs } from "../../ui/templates";
+import { trailOf, type EsignRow } from "../esign/model";
+import { SignBlock, useEsign, useSigner, Word } from "../esign/Sign";
+import s from "../esign/esign.module.css";
+import { E } from "../esign/words";
+import { Outside } from "../team/common";
 
 const LIST = hrefOf("people", "files", "signatures");
-const WORD: Record<SignNow, [string, "ok" | "warn" | "open" | "plain"]> = {
-  "not-requested": [S.notAsked, "plain"], waiting: [S.waiting, "warn"],
-  signed: [S.signed, "ok"], closed: [S.closed, "plain"] };
 
-/** P35: signature requests on letters and offers (a demo of the steps). */
+/**
+ * P35 and D5: the register of every paper that needs a signature, who
+ * signs it and in which order. Each record carries the SignBlock and
+ * its audit trail. A demo of the workflow; no legal validity claimed.
+ */
 export function Signatures(p: { rest: string[] }) {
-  const { data, state } = useDemo();
-  const rows = signRows(data, state);
+  const { rows } = useEsign();
+  const me = useSigner();
   if (p.rest[0] !== undefined) {
-    const row = rows.find((r) => r.id === p.rest[0]);
+    const row = rows.find((r) => r.doc.id === p.rest[0]);
     return row === undefined ? <Outside /> : <SignRecord row={row} />;
   }
   return (
-    <FilterList title={S.title} lede={S.lede} rows={rows}
-      rowKey={(r) => r.id} searchText={(r) => `${r.title} ${r.personName}`}
-      rowHref={(r) => hrefOf("people", "files", "signatures", r.id)}
+    <FilterList title={E.register} lede={E.registerLede} rows={rows}
+      rowKey={(r) => r.doc.id}
+      searchText={(r) => `${r.doc.title} ${r.doc.subjectName} ${
+        r.doc.signers.map((x) => x.name).join(" ")}`}
+      rowHref={(r) => hrefOf("people", "files", "signatures", r.doc.id)}
       segments={[
-        { id: "to", label: S.toSign, match: (r) => r.now === "waiting" },
-        { id: "done", label: S.signed, match: (r) => r.now === "signed" },
-        { id: "all", label: S.all, match: () => true },
+        { id: "wait", label: E.waiting, match: (r) =>
+          r.progress.word === "Awaiting signature" },
+        { id: "mine", label: E.hrHome, match: (r) =>
+          r.progress.next?.personId === me.by },
+        { id: "done", label: E.done, match: (r) =>
+          r.progress.word === "Signed" },
+        { id: "no", label: E.declined, match: (r) =>
+          r.progress.word === "Declined" },
+        { id: "all", label: E.all, match: () => true },
       ]}
       columns={[
-        { key: "d", label: S.paper, render: (r) => (
-          <span className={f.stack}><span>{r.title}</span>
-            <small>{r.personName}</small></span>) },
-        { key: "s", label: S.signer, render: (r) => (
-          <span className={f.stack}><span>{r.signerName}</span>
-            <small>{r.signerRole}</small></span>) },
-        { key: "t", label: S.status, render: (r) => {
-          const [word, tone] = WORD[r.now];
-          return <Status tone={tone}>{word}</Status>;
-        } },
+        { key: "d", label: E.paper, render: (r) => (
+          <span className={s.section}><span>{r.doc.title}</span>
+            <small className={s.muted}>{r.doc.subjectName}</small></span>) },
+        { key: "s", label: E.signers, render: (r) => (
+          <span className={s.muted}>{r.doc.signers.map((x) =>
+            `${x.order}. ${x.name}`).join(", ")}</span>) },
+        { key: "t", label: E.status, render: (r) => (
+          <span className={s.section}><Word word={r.progress.word} />
+            {r.progress.next !== null && (
+              <small className={s.muted}>{r.progress.next.personId === me.by
+                ? E.yourTurn : E.turnOf(r.progress.next.name)}</small>)}
+          </span>) },
       ]}
-      empty={S.empty} />
+      empty={E.nothing} />
   );
 }
 
-function SignRecord(p: { row: SignRow }) {
-  const { data, state, dispatch } = useDemo();
-  const names = useNames();
-  const me = useActor();
-  const toast = useToast();
+function SignRecord(p: { row: EsignRow }) {
+  const { data, state } = useDemo();
   const { row } = p;
-  const [typed, setTyped] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [word, tone] = WORD[row.now];
-  const mine = row.kind === "letter" ? state.role === "gm"
-    : state.role === "hr";
-  const doSign = (): void => {
-    if (typed.trim().toLowerCase() !== row.signerName.toLowerCase()) {
-      setError(S.mismatch(row.signerName));
-      return;
-    }
-    setError(null);
-    dispatch({ type: "files", op: { op: "sign", docId: row.id,
-      step: { ...me.who, typed: typed.trim() } } });
-    if (row.kind === "letter") {
-      dispatch({ type: "paper-step", id: row.sourceId,
-        step: stepBy(data, state, "issued") });
-    } else {
-      dispatch({ type: "move-step", key: `offer:${row.sourceId}`,
-        step: { value: "accepted", from: "sent", by: me.id,
-          role: me.role, on: me.on } });
-    }
-    toast.show(S.done, () => undo());
-  };
-  const undo = (): void => {
-    dispatch({ type: "files", op: { op: "unsign", docId: row.id } });
-    if (row.kind === "letter") {
-      dispatch({ type: "paper-undo", id: row.sourceId });
-    } else dispatch({ type: "move-undo", key: `offer:${row.sourceId}` });
-  };
-  const ask = (): void => {
-    dispatch({ type: "files", op: { op: "sign-ask", docId: row.id,
-      who: me.who } });
-    dispatch({ type: "paper-step", id: row.sourceId,
-      step: stepBy(data, state, "pending") });
-    toast.show(S.asked, () => {
-      dispatch({ type: "files", op: { op: "sign-unask", docId: row.id } });
-      dispatch({ type: "paper-undo", id: row.sourceId });
-    });
-  };
-  const canAsk = row.now === "not-requested" && row.kind === "letter" &&
-    state.role === "hr";
+  const trail = trailOf(data, state, row);
   return (
-    <RecordTabs title={row.title} lede={row.personName}
-      back={{ label: S.title, href: LIST }}
-      stats={[{ label: S.status, value: word },
-        { label: S.signer, value: row.signerName },
-        { label: S.role, value: row.signerRole }]}
-      actions={canAsk ? (
-        <button type="button" className={`${b.btn} ${b.primary}`}
-          onClick={ask}>{S.ask}</button>) : undefined}
+    <RecordTabs title={row.doc.title} lede={row.doc.subjectName}
+      back={{ label: E.register, href: LIST }}
+      stats={[{ label: E.status, value: row.progress.word },
+        { label: E.signers, value: String(row.doc.signers.length) },
+        { label: E.about, value: row.doc.subjectName }]}
       tabs={[
-        { id: "sign", label: S.signing, render: () => (
-          <div className={f.panel}>
-            <p className={f.hint}>{data.files.sign.note}</p>
-            {row.now === "signed" ? (
-              <>
-                <p className={f.sign}>{row.typed !== undefined
-                  ? S.signedLine(row.typed.typed, names.by(row.typed.by,
-                    row.typed.on)) : S.signedBefore}</p>
-                {row.typed !== undefined && (
-                  <div>
-                    <button type="button"
-                      className={`${b.btn} ${b.secondary}`}
-                      onClick={undo}>{S.undo}</button>
-                  </div>)}
-              </>
-            ) : row.now === "waiting" ? (mine ? (
-              <form className={t.form} onSubmit={(e) => {
-                e.preventDefault(); doSign(); }}>
-                {row.kind === "offer" && (
-                  <p className={f.hint}>{S.offerNote}</p>)}
-                <Field label={S.typeName(row.signerName)} help={S.typeHelp}>
-                  <input value={typed} autoComplete="off"
-                    onChange={(e) => { setTyped(e.target.value);
-                      setError(null); }} />
-                </Field>
-                {error !== null && <p className={t.error} role="alert">
-                  {error}</p>}
-                <div className={t.formActions}>
-                  <button type="submit" className={`${b.btn} ${b.primary}`}>
-                    {S.sign}</button>
-                </div>
-              </form>
-            ) : (
-              <p className={f.hint}>{row.kind === "letter" ? S.onlyGm
-                : S.onlyHrOffer}</p>
-            )) : row.now === "closed" ? (
-              <p className={f.hint}>{S.closedLine}</p>
-            ) : (
-              <p className={f.hint}>{row.kind === "letter" ? S.askFirst
-                : S.sendFirst}</p>
-            )}
+        { id: "sign", label: "Signing", render: () => (
+          <div className={s.page}>
+            <p className={s.note}>{data.esign.note}</p>
+            <SignBlock docId={row.doc.id} heading={false} />
           </div>) },
-        { id: "details", label: S.details, render: () => (
-          <KeyValues items={[
-            { label: S.paper, value: row.title },
-            { label: S.about, value: row.personName },
-            { label: S.status, value: <Status tone={tone}>{word}</Status> },
-            ...(row.asked !== undefined ? [{ label: S.askedBy,
-              value: names.by(row.asked.by, row.asked.on) }] : []),
-          ]} />) },
+        { id: "doc", label: E.preview, render: () => (
+          <pre className={s.preview} tabIndex={0}
+            aria-label={row.doc.title}>{row.doc.lines.join("\n")}</pre>) },
+        { id: "trail", label: E.trail, render: () => trail.length === 0
+          ? <p className={s.note}>{E.trailEmpty}</p> : (
+            <ol className={s.trail}>
+              {trail.map((x) => (
+                <li key={x.key}><strong>{x.what}</strong>: {x.who}
+                  <span className={s.muted}> · {x.when}</span></li>))}
+            </ol>) },
       ]} />
   );
 }

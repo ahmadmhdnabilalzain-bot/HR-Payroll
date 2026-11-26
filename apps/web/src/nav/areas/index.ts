@@ -23,6 +23,7 @@ import { AREAS as SWEEP_PAY } from "./sweep-pay";
 import { AREAS as SWEEP_PEOPLE } from "./sweep-people";
 import { AREAS as TIME } from "./time";
 import { AREAS as VERIFY } from "./verify";
+import { AREAS as ESIGN } from "./esign";
 
 /**
  * Every area, from a fixed list of files: WP1's core plus one file per
@@ -52,5 +53,6 @@ export const ALL_AREAS: readonly Area[] = [
   ...SWEEP_PEOPLE,
   ...ERP,
   ...VERIFY,
+  ...ESIGN,
   ...RULE_CHANGE,
 ];

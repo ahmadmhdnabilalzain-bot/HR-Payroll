@@ -14,6 +14,8 @@ import { Status, whoIs, type Tone } from "../team/common";
 import s from "../team/team.module.css";
 import { dayText } from "../words";
 import { fill, M } from "./words";
+import { PackLine } from "../esign/PackLine";
+import { packKeyOf } from "../esign/model";
 
 const W = M.hire;
 
@@ -119,6 +121,8 @@ export function NewEmployee() {
               {r.start !== null && (
                 <span className={s.sub}>{fill(W.fromOffer,
                   { no: r.start.offerId.replace("offer-", "") })}</span>)}
+              <PackLine packKey={r.hire !== null ? packKeyOf(r.hire)
+                : r.key} />
             </span>) },
           { key: "a", label: "", end: true, render: (r) => {
             if (r.start !== null) {
