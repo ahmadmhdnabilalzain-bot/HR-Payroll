@@ -9,5 +9,8 @@ export default defineConfig({
     testTimeout: 60_000,
     hookTimeout: 60_000,
     maxWorkers: 3,
+    // Starts a throwaway PostgreSQL for the real-PG suite when one is
+    // installed (see tests/global-pg.ts); skipped otherwise.
+    globalSetup: ["./tests/global-pg.ts"],
   },
 });

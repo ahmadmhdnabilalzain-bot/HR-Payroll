@@ -57,6 +57,18 @@ describe.skipIf(!ADMIN_URL)("real PostgreSQL, non-superuser runtime", () => {
       }
       const server = hits.filter((h) => h.res.status >= 500);
       expect(server.map((h) => h.id)).toEqual([]);
+      // As payroll_app: no payslip can be added to the approved run.
+      const run = hits.find((h) => h.id === "approvePayRun")!.res.body;
+      const slip = hits.find((h) => h.id === "getPayslip")!.res.body;
+      const company = hits.find((h) => h.id === "signup")!.res.body
+        .memberships[0].companyId;
+      const insert = withTenant(db, { companyId: company, userId: null },
+        (tx) => tx.query(
+          `INSERT INTO payslips (id, company_id, pay_run_id, employee_id,
+             body_enc, created_at) VALUES ($1, $2, $3, $4, 'x', now())`,
+          ["00000000-0000-4000-8000-0000000fffff", company, run.id,
+            slip.employeeId]));
+      await expect(insert).rejects.toThrow(/draft pay runs/);
     });
 
   describe("concurrency", () => {

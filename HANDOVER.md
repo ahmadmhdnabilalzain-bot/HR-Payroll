@@ -81,8 +81,14 @@ to `DATABASE_URL`), `PAYROLL_MASTER_KEY` (32 bytes, base64) and `PORT`
 (default 8787). It refuses to start with a bad key or an unsafe runtime
 role. Checked on 2026-11-26 against a throwaway PostgreSQL 16 (health,
 signup, the superuser and table-owner refusals). The real-PostgreSQL
-test suite runs when `DATABASE_URL` points at a superuser (it creates
-`plan3_owner` and `plan3_runtime` and a schema per case):
+test suite (it creates `plan3_owner` and `plan3_runtime` and a schema
+per case) runs inside `pnpm check` whenever a PostgreSQL server binary
+is installed under `/usr/lib/postgresql/<version>/bin`: a Vitest global
+setup (`packages/api/tests/global-pg.ts`) starts a throwaway cluster in
+a temp dir on a free port (as the `postgres` user when run as root),
+points `DATABASE_URL` at it, and stops and deletes it afterwards. With
+no binary it prints one line and skips. `PAYROLL_TEST_PG=0` turns it
+off; an existing superuser URL can be given instead:
 
 ```bash
 DATABASE_URL=postgres://postgres@127.0.0.1:55433/postgres \
