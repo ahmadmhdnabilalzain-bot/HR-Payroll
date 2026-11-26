@@ -64,7 +64,12 @@ const demo = buildDemoCompany(); // seed 2026; same seed, same bytes
   (full months plus 15 of 31 days of October, less leave taken: 18.71
   days), paid at basic / 30 and rounded once, half up, in fils. Our
   reading: the law gives leave for parts of the last year but no
-  method. Gratuity is calculateSettlement's.
+  method. Gratuity is calculateSettlement's. The leave screens read
+  `availableDays`, which for the leaver comes from the same function
+  (`unusedLeaveAtExit`), so the two figures cannot differ.
+- Where the engine pack labels the 50% deduction limit "official", the
+  explain view shows "secondary-sourced, as we read it"
+  (`PRESENTED_STATUS`; the engine is not changed).
 - The 50% deduction cap is shown as our rule (secondary-sourced; the
   85% payment test is not applied).
 - Pay calendar dates are samples; the settlement due date (14 days

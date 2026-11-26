@@ -46,6 +46,15 @@ export function unusedLeaveAtExit(e: DemoEmployee,
 }
 
 /**
+ * Unused days for display, two decimals, half up: the one figure the
+ * leave screens and the settlement both show.
+ */
+export function leaveDaysOf(u: UnusedLeave): number {
+  const hundredths = (u.num * 200n + u.den) / (2n * u.den);
+  return Number(hundredths) / 100;
+}
+
+/**
  * Gratuity from calculateSettlement (unchanged). Leave pay: basic /
  * leavePayDivisor x unused days, with the gratuity pack's own base,
  * divisor and rounding (half up), rounded once in fils.
@@ -64,7 +73,7 @@ export function settlementOf(e: DemoEmployee, reqs: DemoLeaveRequest[],
   const leavePay = mulDiv(e.basicMonthly, u.num,
     u.den * BigInt(Number(divisor.value)), mode.value as RoundingMode);
   const total = fils(g.value.gratuity + leavePay);
-  const days = (Number(u.num) / Number(u.den)).toFixed(2);
+  const days = leaveDaysOf(u).toFixed(2);
   const trace = [...g.trace.filter((l) => l.id !== "leave.pay" &&
     l.id !== "settlement.total"),
   { id: "leave.accrued", label: "Unused annual leave at exit",

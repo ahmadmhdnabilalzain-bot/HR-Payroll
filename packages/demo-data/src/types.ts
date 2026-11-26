@@ -154,7 +154,12 @@ export interface DemoLeaveBalance {
   accruedHalves: number;
   takenHalves: number;
   pendingHalves: number;
-  availableHalves: number;
+  /** null at exit: use availableDays (no second figure to differ). */
+  availableHalves: number | null;
+  /** What the leave screens show; at exit, the settlement's figure. */
+  availableDays: number;
+  /** How a leaver's days are counted (our reading), else null. */
+  basis: string | null;
 }
 
 export type DayStatus = "present" | "leave" | "absent-unpaid";
