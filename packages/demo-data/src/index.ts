@@ -34,3 +34,4 @@ export * from "./wp2";
 export * from "./wp10";
 export * from "./wpd-structure";
 export * from "./wpd-templates";
+export * from "./wpd-cost";
