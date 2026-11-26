@@ -1,12 +1,15 @@
 # Click script: first meeting with the bank (Fri 27 Nov 2026, 15:00 Dubai)
 
-For the owner, who presents from the laptop on the big screen. Twenty
-minutes of clicks, then questions. Attendees: the bank's HR Manager,
+For the owner, who presents from the laptop on the big screen. Twenty-five
+minutes of must-do clicks (steps 1 to 8), then questions. Steps marked
+OPTIONAL (9 and the extras inside steps 2 and 7) are for when the room is
+engaged or asks; skip them without apology. Attendees: the bank's HR Manager,
 General Manager (GM) and IT Manager. They open the same link on their own
 iPhones (Safari).
 
-Every figure below was read from the demo itself on 26 Nov 2026 (build of
-branch claude/quirky-wozniak-b7xkvr). If a figure on screen differs, trust
+Every figure below was read from the demo itself on 26 Nov 2026. Link:
+https://hr-payroll-demo-site-223y.onrender.com (add ?v= and the time to
+get the newest copy if a cached page shows). If a figure on screen differs, trust
 the screen and say "this is the sample bank's figure".
 
 Never say "compliant", "certified", "guaranteed" or "approved by" any
@@ -14,9 +17,14 @@ authority. Say "as we read the law" and "we will confirm".
 
 ## Before the meeting (10 minutes, not part of the 20)
 
-1. Open the demo link in Chrome or Safari on the laptop. Press reload once
-   so the story starts fresh. Check the top left says "MubinFlow demo:
-   fictional data".
+1. Open the demo link in Chrome or Safari on the laptop, in a fresh
+   window (a new private window is best). Reload once so the story starts
+   fresh. Check the top left says "MubinFlow demo: fictional data".
+   The opening film plays once per browser, at the first load, and only on
+   a laptop with a mouse, a wide window and WebGL. "Skip" is visible the
+   whole time: use it if the room is waiting. If you already saw it on
+   this browser, it will not play again: use a fresh window, or press
+   Cmd K and choose "Replay opening". On the phones there is no film.
 2. Make sure the theme is light (the sun and moon button, top right).
 3. Zoom the browser to 110% or 125% if the room is large (Cmd and +).
 4. Keep the offline file (mubinflow-demo.html) on the laptop desktop. It
@@ -31,19 +39,42 @@ authority. Say "as we read the law" and "we will confirm".
 tap anything you like. Nothing you do reaches my screen and nothing is
 saved. To change who you are, tap the round initials at the top right."
 
-## Timing
+## 60-second recovery card
 
-| Step | What | Clock |
-|---|---|---|
-| 1 | Home as HR: the sentence, "Why this number" | 0:00 to 2:30 |
-| 2 | Enter the two bank details | 2:30 to 5:00 |
-| 3 | Switch to the GM and sign off | 5:00 to 6:30 |
-| 4 | The salary file | 6:30 to 8:00 |
-| 5 | The leaver's gratuity, explained | 8:00 to 11:00 |
-| 6 | Employee asks for leave, manager decides | 11:00 to 14:00 |
-| 7 | IT manager view | 14:00 to 17:30 |
-| 8 | Menu panels and Cmd K | 17:30 to 20:00 |
-| 9 | Questions and answers | 20:00 on |
+- **Link slow or down on the laptop:** open the offline file
+  (mubinflow-demo.html, on the desktop) by double click. Same demo, no
+  internet. Tell the phones to wait; they can open the link later.
+- **A screen looks wrong, blank or stuck:** reload. The story restarts at
+  step 1; the two bank details take about 30 seconds to redo. Esc closes
+  any panel.
+- **Wrong person on screen:** the round initials, top right, switch role.
+  Pick the role the step names. A page the new role may not see opens that
+  role's Home: that is the design.
+- **Showing amounts is a problem** (screen-sharing, a visitor behind
+  you): the "Hide amounts" button in the top bar masks every figure.
+  Press it again to show them.
+- **A phone shows something different:** each phone has its own copy.
+  Say so and carry on; never fix a phone.
+- **Opening film does not play or hangs:** Skip. It is a bonus, not part
+  of the story.
+
+## Timing (must-do 25 minutes, then optional)
+
+| Step | What | Clock | Status |
+|---|---|---|---|
+| 1 | Home as HR: the sentence, "Why this number" | 0:00 to 2:30 | MUST |
+| 2 | Enter the two bank details | 2:30 to 5:00 | MUST |
+| 3 | Switch to the GM and sign off | 5:00 to 7:00 | MUST |
+| 4 | The salary file | 7:00 to 9:00 | MUST |
+| 5 | The leaver's gratuity, explained | 9:00 to 12:00 | MUST |
+| 6 | Employee asks for leave, manager decides | 12:00 to 15:00 | MUST |
+| 7 | IT manager view | 15:00 to 19:00 | MUST (short form if late) |
+| 8 | Menu panels and Cmd K | 19:00 to 21:00 | MUST (2 minutes) |
+| 9 | New features: hiring, bonus and commission, checks, sandbox, templates, referrals, audit | 21:00 to 25:00 | OPTIONAL, pick two |
+| 10 | Questions and answers | 25:00 on | MUST |
+
+If you are behind at the 15:00 mark, skip the optional extras and go
+straight to step 7's short form. Questions are worth more than clicks.
 
 ---
 
@@ -58,9 +89,9 @@ matches a step below, say "I will show you that in a minute".
 
 **They see.** One sentence at the top: "2 bank details hold October pay",
 with one black button, "Enter bank details". Under it the net pay figure,
-the date line "Tuesday, 27 October · Zarqan Demo Bank", five steps
-(Inputs close, Bank details, Sign off, Salary file, Payday) and the list
-"Before sign-off: 2 items block sign-off · 6 to review". "Why this number" opens
+the date line "Tuesday, 27 October · Zarqan Demo Bank", a four-step
+tracker (Inputs close, Bank details, Sign off, Pay) and the list "Waiting
+for a decision" with its count (read the count off the screen). "Why this number" opens
 a side panel that adds the figure up.
 
 **Say.** "Home answers one question: can October be paid, and what is my
@@ -69,6 +100,8 @@ next step. Every number can be opened to see how it was worked out."
 **The numbers.**
 - Net pay AED 933,730.94 to 31 people, paid on 30 Oct.
 - Gross AED 938,680.94 less deductions AED 4,950.00.
+- October net against September: AED 19,669.06 lower (net change
+  -19,669.06), shown in the trend on Home. Read it off the screen.
 - In the salary file AED 908,430.94 (30 people); held out AED 25,300.00
   (1 person with no bank account on file).
 - Pension for the 14 UAE nationals is not included and says so on screen.
@@ -98,7 +131,8 @@ checked again: 31 people, AED 933,730.94.", the sentence becomes "1 bank
 detail holds October pay" and "held out of the salary file" changes to
 "Held out: None". After Juma: the sentence becomes "October pay is ready
 for sign-off" with the button "Go to sign-off", the line under the steps
-reads "Step 3 of 5 · Sign off", and the list shows only "6 to review".
+reads "Step 3 of 4 · Sign off", and "Waiting for a decision" keeps only
+the items that are decisions, not blockers.
 
 **Say.** "The system will not let October be signed off while one person
 cannot be paid, or while an account number has a typo the bank would
@@ -126,9 +160,8 @@ story restarts at step 1 (about 30 seconds to catch up).
 
 **They see.** As the GM, Home reads "October pay waits for your sign-off".
 After the click it reads "October salary file is next", with the button
-"Open the salary file", and "Step 4 of 5 · Salary file". The list
-heading changes to "Signed off": what is left to review does not hold
-the salary file.
+"Open the salary file", and "Step 4 of 4 · Pay". What is left under
+"Waiting for a decision" no longer holds the salary file.
 
 **Say.** "One person prepares the pay run and a different person signs it
 off. HR cannot sign off their own run. The GM sees the same figures and
@@ -257,7 +290,8 @@ demo; that is expected.
 5. "Setup", then "Data and company" (it opens Company). Click the tab
    "Import", then the tab "Data location".
 
-If time is short, do 1, 2, 4 and the data location page only.
+If time is short, do 1, 2, 4 and the data location page only. Roles and
+Duties, and Import, are OPTIONAL.
 
 **They see.**
 - IT Home: "One connection is failing." Connections (to the finance
@@ -279,12 +313,17 @@ If time is short, do 1, 2, 4 and the data location page only.
 - Data location: "The demo is hosted in Frankfurt; the hosting
   region for a live service is not decided", and "Nothing here says the product holds a certification...".
 
+**Audit trail grows (nice to show, 20 seconds).** Every action you did in
+steps 2, 3 and 6 added an entry, so the count on the Audit chain card is
+higher than 58 now. Say "it writes itself as we work". Read the number off
+the screen; it depends on what you clicked.
+
 **Say.** "Every action is written once, linked to the one before it. If
 anyone changes an old entry, the check shows exactly where. In the real
 system the database itself refuses edits. Where your data would live is
 something we agree with you in writing before anything real is loaded."
 
-**The numbers.** 58 entries; 12 users; last access review 30 Sep 2026,
+**The numbers.** 58 entries at the start (it grows as actions happen); 12 users; last access review 30 Sep 2026,
 12 users checked, 1 role narrowed; second sign-in step on for 9 of 12
 users. Hand the IT Manager the IT note now.
 
@@ -323,9 +362,47 @@ meeting".
 **If it goes wrong.** If Cmd K does nothing, click the search field in
 the top bar (or press /). If a panel does not close, press Esc.
 
-## Step 9. Questions and answers (20:00 on)
+## Step 9. New features (OPTIONAL, 21:00 to 25:00: pick two)
 
-- Turn to the discovery questions (2026-11-27-discovery-questions.md).
+Everything here is in the same top bar and Cmd K; type the name to jump.
+
+**A. Hiring budget and Hiring requests (best one to show).**
+1. As Team manager (Arjun Menon): "Requests", then "Request a hire". Fill
+   in the form and send.
+2. As HR manager: People, "Hiring", "Hiring requests": review it.
+3. As General manager: sign it off. Open the request again.
+
+They see the request move manager to HR to GM, with messages on the
+request itself (no email). Once signed off it becomes an open position
+with a timeline (posted, shortlist, interviews, offer, start) counted from
+the sign-off. As GM, "Hiring budget" lists each seat with its budget; a
+change asked by HR waits for the GM. Say: "A manager asks, HR checks, the
+GM signs. Nothing goes by email and nothing is lost."
+
+**B. Bonus run and Sales commission (HR prepares, GM signs off).** Pay
+panel: "Bonus runs" (This month) and "Sales commission" (Changes). As HR
+send the draft; switch to GM and sign off. Same rule as pay: the preparer
+cannot sign. Read the amounts off the screen.
+
+**C. Anomaly checks.** Reports panel, "Analysis and trail", "Anomaly
+checks": unusual swings, duplicate or new bank details; mark each once
+looked at. Say: "It looks for what a person misses at 6 pm."
+
+**D. Pay-structure sandbox.** Pay panel, "Pay-structure sandbox": try a
+change to an allowance or rate and see October recomputed on a copy,
+without touching the real run.
+
+**E. Report templates.** Reports, "Report templates": saved views to start
+from.
+
+**F. Referrals and agencies.** People, "Hiring", "Referrals and agencies":
+who referred whom, and what becomes payable after probation.
+
+If a screen is not where this says, press Cmd K and type its name.
+
+## Step 10. Questions and answers (25:00 on)
+
+- Turn to the owner cheat sheet (2026-11-27-owner-cheatsheet.md) for the five tough answers, and the discovery questions (2026-11-27-discovery-questions.md).
   Start with the three marked "ask first".
 - IT questions: the IT note has prepared answers for SSO, hosting region,
   backups, penetration test, Arabic and support.

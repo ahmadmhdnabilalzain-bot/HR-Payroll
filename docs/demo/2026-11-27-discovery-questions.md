@@ -1,12 +1,13 @@
 # Discovery questions: first meeting with the bank (27 Nov 2026)
 
-25 questions for the owner to ask, grouped by who answers best. Each has
+30 questions for the owner to ask, grouped by who answers best. Each has
 the reason we ask. Ask the three marked "ask first" before or right after
 step 1 of the click script; they decide what to stress.
 
-The Keka points behind these questions come from public reviews and
-Keka's own help pages. They are questions, not accusations: we have not
-seen the bank's Keka setup, and Keka holds certifications we do not.
+The points behind these questions come from public reviews and help pages
+of common HR systems. They are questions, not accusations: we have not
+seen the bank's setup, and established vendors hold certifications we do
+not. Always say "your current system"; never name a vendor.
 
 Write the answers down word for word where you can.
 
@@ -26,18 +27,18 @@ Write the answers down word for word where you can.
 3. Which bank receives your salary file? Does it take the standard SIF,
    or a bank-specific format? Is the file made in your current system or by hand? Has one
    ever been rejected?
-   *Why:* the file format is bank-specific in practice. Keka claims files
-   for a few named banks only; we must know theirs before any promise.
+   *Why:* the file format is bank-specific in practice. Some systems
+   support a few named banks only; we must know theirs before any promise.
 
 4. How is gratuity worked out for you today: how many days a year, and on
    a 30-day or a 365-day basis? Has a settlement ever been questioned?
-   *Why:* some Keka help pages show a 15-day example; the law sets 21
+   *Why:* some help pages of other systems show a 15-day example; the law sets 21
    days for the first five years. Let them compare with step 5.
 
 5. Do leave, working hours or attendance rules differ by branch? Weekend
    days, shifts, Ramadan hours, public holidays, how staff clock in?
    *Why:* branch rules are where rigid setups break ("limited
-   customisation" is a top Keka complaint).
+   customisation" is a top complaint in reviews).
 
 6. Which allowances, overtime rules, bonuses and back pay do you run? Any
    payments outside the monthly run?
@@ -45,7 +46,7 @@ Write the answers down word for word where you can.
 
 7. Who decides leave, expenses, salary changes and the pay run? Who
    covers when that person is away?
-   *Why:* approvals and bulk edits are a known Keka pain; we need their
+   *Why:* approvals and bulk edits are a known pain in reviews; we need their
    real chain to set up maker and checker.
 
 8. Pension for UAE nationals: which fund do you pay today, at what rates,
@@ -57,7 +58,7 @@ Write the answers down word for word where you can.
    need their cases.
 
 10. Do staff use your current system's mobile app? For what? What would they miss?
-    *Why:* staff like Keka's app; our phone version is a website, with no
+    *Why:* staff often like a system's own app; our phone version is a website, with no
     native app yet. We need to know what matters most.
 
 ## For the General Manager (11 to 17)
@@ -68,7 +69,7 @@ Write the answers down word for word where you can.
     work. We should not assume it means AI.
 
 12. Which reports do you or the board ask for that HR builds by hand?
-    *Why:* "inflexible reports" is a common Keka complaint; tells us which
+    *Why:* "inflexible reports" is a common complaint in reviews; tells us which
     reports to have ready first.
 
 13. What do you track on Emiratisation today, and who receives it?
@@ -77,8 +78,8 @@ Write the answers down word for word where you can.
 
 14. Which plan and add-ons of your current system do you pay for? When does the contract
     end, and how much notice must you give?
-    *Why:* Keka's terms renew automatically unless notice is given 30
-    days before the end, and data access lasts 30 days after it ends.
+    *Why:* many contracts renew automatically unless notice is given well
+    before the end, and data access can stop soon after it ends.
     Timing decides the migration plan.
 
 15. Who decides, by when, and what would a trial or a parallel run (both
@@ -93,7 +94,7 @@ Write the answers down word for word where you can.
 
 17. What do you expect from support during payroll week: hours, response
     time, a named person?
-    *Why:* slow support is the most common Keka complaint. We should
+    *Why:* slow support is the most common complaint in reviews. We should
     promise only what we can keep.
 
 ## For the IT Manager (18 to 25)
@@ -122,13 +123,13 @@ Write the answers down word for word where you can.
 22. What can you export from your current system today: pay registers, leave balances,
     gratuity accruals, documents, audit logs? How many years of history
     must we keep?
-    *Why:* our Keka migration tool is not built; the exports decide the
+    *Why:* our migration tool is not built; the exports decide the
     migration plan. Ask for exports before giving notice.
 
 23. Which attendance devices do the branches use, and how do punches
     reach your current system today?
     *Why:* clock-in feeds are a common integration and a peak-hour pain
-    in Keka reviews.
+    in reviews.
 
 24. Who should see salaries? How long must the audit trail be kept? How
     often do you review who has access?
@@ -139,6 +140,35 @@ Write the answers down word for word where you can.
     Who needs Arabic?
     *Why:* our phone version is a website; Arabic is hidden until a native
     speaker reviews it.
+
+## New since the build: ask these if you show step 9 (26 to 30)
+
+26. **Hiring.** Who raises a request for a new position today, who checks
+    it, who signs off, and how long from "we need someone" to an open
+    position? Is the budget per position set up front?
+    *Why:* the demo's Hiring requests and Hiring budget (manager asks, HR
+    checks, GM signs off, timeline, no email) only matter if this is
+    messy today.
+
+27. **Bonus and commission.** Which bonuses and sales commission do you
+    pay, outside or inside the monthly run, and who signs them off? Any
+    clawback?
+    *Why:* the demo's bonus run and sales commission follow the same
+    HR prepares, GM signs off rule. We need their real tiers and timing.
+
+28. **Anomaly checks.** Which payroll mistakes have you caught late: a
+    duplicate account, a big swing, a new payee? What do you check by
+    hand before sign-off?
+    *Why:* tells us which of the demo's anomaly checks to stress.
+
+29. **What-if on pay.** Before a pay structure change (housing, transport,
+    a raise), how do you test the cost today?
+    *Why:* the pay-structure sandbox recomputes October on a copy.
+
+30. **Reports and referrals.** Which saved reports do you rerun every
+    month, and do you pay referral or agency fees, and when do they
+    become payable?
+    *Why:* report templates and the referral ledger.
 
 ## Prepared answer: pension for UAE nationals in Abu Dhabi
 

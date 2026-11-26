@@ -17,6 +17,19 @@ plainly what you saw today, what exists behind it, and what is still open.
   ISO 27001 certificate and have had no external penetration test. No
   authority has reviewed the product.
 
+## New in the demo since the first draft
+
+Hiring budget and Hiring requests (manager raises a request, HR checks,
+the GM signs off, then an open position with a timeline; no email),
+bonus runs and sales commission (HR prepares, the GM signs off), anomaly
+checks on the pay run, a pay-structure sandbox, report templates and a
+referral ledger. Each uses the same rule as pay: the person who prepares
+cannot sign off. Every action adds an entry to the audit trail, which you
+can watch grow. In the demo the extra screens run in your browser on
+invented data like the rest; their backend parts follow the same role
+and audit design but have had no outside test. IT sees no pay amounts in
+any of them.
+
 ## Where data would live (open items)
 
 - A live account's hosting region is not decided. Hosting in the UAE is a
