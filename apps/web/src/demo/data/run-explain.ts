@@ -142,12 +142,13 @@ function gratuity(c: DemoCompany, e: DemoEmployee): Explanation | null {
       `${daysText(t2?.result)} days of basic wage.`,
     value: money(fils(g - tier1)) },
     { text: `Together ${daysText(total?.inputs["daysOwed"])} days, ` +
-      "worked out exactly and rounded once, to the fils.",
+      "worked out exactly, then rounded to the nearest fils, once, at " +
+      "the end.",
     value: money(g) },
     { text: "The limit is two years' basic wage. " +
       (cap?.inputs["capApplied"] === "true" ? "It is reached, so the " +
         "gratuity stops there." : "It is not reached."),
-    value: money(fils(num(cap?.result))) },
+    limit: { used: g, cap: fils(num(cap?.result)) } },
     { text: `Unused annual leave: ${plural(unused, "day", "days")} at a ` +
       "day's basic wage. Paid with the gratuity, not part of it.",
     value: money(st.result.leavePay) },

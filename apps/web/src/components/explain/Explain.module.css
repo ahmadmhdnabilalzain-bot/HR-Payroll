@@ -468,3 +468,41 @@
     display: none;
   }
 }
+
+/* A limit is not part of the sum: its own row, a word and a bar. */
+.step[data-limit="true"] {
+  grid-template-columns: 24px minmax(0, 1fr);
+}
+
+.limitWord {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.limit {
+  grid-column: 2;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.limitBar {
+  display: block;
+  block-size: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+
+.limitBar > span {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--color-text);
+}
+
+.limitText {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

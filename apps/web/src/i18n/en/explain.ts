@@ -4,6 +4,8 @@ import type { EnNamespace } from "../types";
 export const explain = {
   open: "How this is worked out: {title}",
   footnote: "Fictional demo data. Rules as we read them.",
+  limit: "Limit",
+  limitOf: "of",
   close: "Close",
   working: "How it is worked out",
   inputs: "What went in",

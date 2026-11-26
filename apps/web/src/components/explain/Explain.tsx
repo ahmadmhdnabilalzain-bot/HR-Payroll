@@ -12,6 +12,7 @@ import type { MessageKey } from "../../i18n/t";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../../ui/Icon";
 import { Money } from "../../ui/Money";
+import type { Fils } from "@payroll/engine";
 import type {
   ExplainValue,
   Explanation,
@@ -30,6 +31,25 @@ function Value(p: { v: ExplainValue; size?: "hero" | "lg" | "md" }) {
   return p.v.kind === "money"
     ? <Money value={p.v.fils} size={p.size ?? "md"} tween={false} />
     : <span className={s.textValue}>{p.v.text}</span>;
+}
+
+/** A cap as a 6 px bar: how much of it is used, then the two figures. */
+function Limit(p: { used: Fils; cap: Fils }) {
+  const { t } = useLocale();
+  const pct = p.cap <= 0n ? 0
+    : Math.min(100, Number((p.used * 1000n) / p.cap) / 10);
+  return (
+    <span className={s.limit}>
+      <span className={s.limitBar} aria-hidden="true">
+        <span style={{ inlineSize: `${pct}%` }} />
+      </span>
+      <span className={s.limitText}>
+        <Money value={p.used} size="sm" tween={false} />
+        {" "}{t("explain.limitOf")}{" "}
+        <Money value={p.cap} size="sm" tween={false} />
+      </span>
+    </span>
+  );
 }
 
 /** Fired on window whenever an explanation opens (first-time hints). */
@@ -234,11 +254,20 @@ export function ExplainPanel(p: { explanation: Explanation;
             <ol className={s.steps}>
               {e.steps.map((x, i) => (
                 <li key={i} className={s.step}
+                  data-limit={x.limit !== undefined}
                   style={{ "--i": Math.min(i, 12) } as object}>
-                  <span className={s.stepText}>{x.text}</span>
+                  <span className={s.stepText}>
+                    {x.limit !== undefined && (
+                      <span className={s.limitWord}>
+                        {t("explain.limit")}
+                      </span>
+                    )}
+                    {x.text}
+                  </span>
                   {x.value !== undefined && (
                     <span className={s.stepValue}><Value v={x.value} /></span>
                   )}
+                  {x.limit !== undefined && <Limit {...x.limit} />}
                 </li>
               ))}
             </ol>
