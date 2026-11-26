@@ -359,7 +359,7 @@ export interface HirePreview {
   role: HireRole | null;
   national: boolean;
   startText: string;
-  basicText: string;
+  basic: Fils;
   allowances: { label: string; monthly: Fils }[];
   /** A full month's gross, from the engine. */
   monthlyGross: Fils;
@@ -424,7 +424,7 @@ export function hireCostPreview(c: DemoCompany, input: HireInput)
   }
   const empty: HirePreview = { problems, role, national: input.national,
     startText: isoOk(input.startIso) ? shortDateText(input.startIso) : "",
-    basicText: "", allowances: [], monthlyGross: fils(0n), months: [],
+    basic: fils(0n), allowances: [], monthlyGross: fils(0n), months: [],
     firstYearGross: fils(0n), employer: { status: "not-computed",
       note: HIRE_EMPLOYER_NOTE }, placeholders: [],
     placeholdersTotal: fils(0n), firstYearTotal: fils(0n), budget: null,
@@ -465,7 +465,7 @@ export function hireCostPreview(c: DemoCompany, input: HireInput)
     m.month.startsWith(String(HIRE_YEAR))).map((m) => m.gross)));
   const plan = workforcePlan(c).rows.find((r) =>
     r.departmentId === role.departmentId)!;
-  return { ...empty, problems: [], basicText: formatAed(pkg.basic),
+  return { ...empty, problems: [], basic: pkg.basic,
     allowances: pkg.allowances.map((a) => ({ label: ALLOWANCE_TEXT[a.code]
       ?? a.code, monthly: a.monthly })), monthlyGross: full.gross, months,
   firstYearGross, employer, placeholders, placeholdersTotal,
