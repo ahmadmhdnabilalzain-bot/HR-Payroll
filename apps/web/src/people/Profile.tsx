@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Person } from "../demo/data/people-types";
-import { hrefOf } from "../demo/route";
+import { hrefOf, navigate } from "../demo/route";
 import { useDemo } from "../demo/state";
 import {
   annualNow,
@@ -34,6 +34,8 @@ import {
 import p from "./page.module.css";
 import s from "./Profile.module.css";
 import { Avatar } from "../ui/Avatar";
+import { MoreMenu } from "../ui/templates";
+import { useToast } from "../ui/Toast";
 
 function years(from: string, to: string): number {
   const [fy, fm, fd] = from.split("-").map(Number);
@@ -86,6 +88,7 @@ export function Profile(q: { id: string }) {
               </p>
             )}
           </div>
+          <Actions person={x} />
         </div>
         <Summary person={x} />
       </header>
@@ -103,6 +106,46 @@ export function Profile(q: { id: string }) {
         </div>
       </div>
       <Footnote />
+    </div>
+  );
+}
+
+/**
+ * The person's own actions, at the end of the name row: the payslip
+ * (or time off, where pay is not shown) and a "..." menu for the rest.
+ * Every item works in the demo; nothing opens outside it.
+ */
+function Actions(q: { person: Person }) {
+  const { lang, t } = useLocale();
+  const { data, state } = useDemo();
+  const toast = useToast();
+  const x = q.person;
+  const month = formatMonth(data.headline().runMonth, lang);
+  const pay = canSeePay(data, state, x.id) &&
+    data.people.payslip(x.id) !== null;
+  const copy = (): void => {
+    void navigator.clipboard?.writeText(x.email).catch(() => undefined);
+    toast.show(t("people.emailCopied", { email: x.email }));
+  };
+  return (
+    <div className={s.actions}>
+      {pay ? (
+        <a href={hrefOf("people", x.id, "payslip")}
+          className={`${b.btn} ${b.secondary} ${s.action}`}>
+          {t("people.payslipShort", { month })}
+        </a>
+      ) : (
+        <a href={hrefOf("time-off")}
+          className={`${b.btn} ${b.secondary} ${s.action}`}>
+          {t("people.seeTimeOff")}
+        </a>
+      )}
+      <MoreMenu items={[
+        { label: t("people.copyEmail"), onSelect: copy },
+        ...(pay ? [{ label: t("people.seeTimeOff"),
+          onSelect: () => navigate("time-off") }] : []),
+        { label: t("people.printProfile"), onSelect: () => print() },
+      ]} />
     </div>
   );
 }

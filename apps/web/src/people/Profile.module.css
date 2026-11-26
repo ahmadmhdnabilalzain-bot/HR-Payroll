@@ -11,8 +11,22 @@
 
 .whoText {
   display: grid;
+  flex: 1;
   gap: var(--space-1);
   min-inline-size: 0;
+}
+
+/* The person's actions, at the end of the name row. */
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: center;
+}
+
+.action {
+  text-decoration: none;
 }
 
 .sub {
@@ -383,5 +397,19 @@
 @media (max-width: 1000px) {
   .side {
     position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .who {
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    inline-size: 100%;
+  }
+
+  .action {
+    flex: 1;
   }
 }
