@@ -5,6 +5,8 @@
 }
 
 html {
+  /* Native radios and checkboxes: ink, never the browser's blue. */
+  accent-color: var(--color-text);
   -webkit-text-size-adjust: 100%;
   overscroll-behavior: none;
 }

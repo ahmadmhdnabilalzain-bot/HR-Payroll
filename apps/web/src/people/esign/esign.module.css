@@ -92,6 +92,33 @@
   font-size: var(--text-xs);
 }
 
+.rowCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.rowText {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.rowTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.fold summary {
+  cursor: pointer;
+}
+
 .preview {
   max-block-size: 40vh;
   max-block-size: 40dvh;
@@ -100,8 +127,9 @@
   padding: var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  background: var(--color-surface-2);
-  font-size: var(--text-sm);
+  background: var(--color-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
   line-height: 1.55;
   white-space: pre-wrap;
   overflow-wrap: anywhere;

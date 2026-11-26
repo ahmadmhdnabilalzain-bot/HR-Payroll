@@ -57,7 +57,7 @@ test("new hire registered, pack appears, signed on a phone, HR sees it",
     await sheet.getByLabel(/I confirm I have read this document/).check();
     await clean(page);
     await sheet.getByRole("button", { name: "Sign", exact: true }).click();
-    await expect(page.getByText(/Signed: Confidentiality agreement/))
+    await expect(page.getByRole("button", { name: "Undo" }).first())
       .toBeVisible();
     await expect(page.getByRole("button", { name: "Undo my signature" }))
       .toBeVisible();

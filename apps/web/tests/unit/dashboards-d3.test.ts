@@ -15,7 +15,8 @@ import { buildReportsSource } from "../../src/reports/source";
 const src = buildReportsSource();
 const demo = buildDemoSource();
 const words: IssueWords = (b) => ({ unit: "stop pay",
-  sub: `${b.checks} to check` });
+  sub: `${b.checks} to check`,
+  calm: { unit: "to check", sub: "nothing stops pay" } });
 const tile = (ts: TileModel[], id: string): TileModel =>
   ts.find((t) => t.id === id)!;
 const money = (t: TileModel): bigint =>

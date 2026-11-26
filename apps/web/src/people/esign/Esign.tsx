@@ -140,7 +140,7 @@ export function ToSign(p: { signer: Signer; title: string; lede: string }) {
           <ul className={s.cards}>
             {waiting.map((r) => (
               <li key={r.doc.id}><SignBlock docId={r.doc.id}
-                as={p.signer} /></li>))}
+                as={p.signer} compact /></li>))}
           </ul>)}
       </section>
       {others.length > 0 && (
@@ -149,7 +149,7 @@ export function ToSign(p: { signer: Signer; title: string; lede: string }) {
           <ul className={s.cards}>
             {others.map((r) => (
               <li key={r.doc.id}><SignBlock docId={r.doc.id}
-                as={p.signer} /></li>))}
+                as={p.signer} compact /></li>))}
           </ul>
         </section>)}
       {closed.length > 0 && (

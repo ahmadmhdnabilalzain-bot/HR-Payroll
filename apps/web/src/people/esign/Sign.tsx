@@ -115,7 +115,7 @@ function Signers(p: { row: EsignRow; fingerprint: string;
  * electronically" (secondary: the screen keeps its own primary).
  */
 export function SignBlock(p: { docId: string; as?: Signer;
-  heading?: boolean; level?: 2 | 3 }) {
+  heading?: boolean; level?: 2 | 3; compact?: boolean }) {
   const { data, state, dispatch } = useDemo();
   const { world, rows } = useEsign();
   const me = useSigner();
@@ -132,6 +132,31 @@ export function SignBlock(p: { docId: string; as?: Signer;
   const office = p.as === undefined && (state.role === "hr" ||
     state.role === "gm" || state.role === "it");
   const reminded = lastReminder(state.esignLog, row.doc.id);
+  const mayTap = row.progress.word === "Awaiting signature" && (office ||
+    row.progress.next?.personId === who.by);
+  // One row per paper nobody has signed yet: its name, one status
+  // word, who signs, and a short Sign button.
+  if (p.compact === true && row.progress.lines.every((l) =>
+    l.mark === null)) {
+    return (
+      <section className={s.rowCard}
+        aria-label={`E-signature: ${row.doc.title}`}>
+        <span className={s.rowText}>
+          <h3 className={s.rowTitle}>{row.doc.title}</h3>
+          <span className={s.muted}>
+            {row.progress.next?.personId === who.by ? E.youSign
+              : E.turnOf(row.progress.next?.name ?? "")}</span>
+          <Word word={row.progress.word} />
+        </span>
+        {mayTap && (
+          <button type="button" className={`${b.btn} ${b.secondary}`}
+            aria-label={`${E.sign}: ${row.doc.title}`}
+            onClick={() => setOpen(true)}>{E.signShort}</button>)}
+        {open && <SignSheet row={row} who={who} fingerprint={fp}
+          onClose={() => setOpen(false)} />}
+      </section>
+    );
+  }
   return (
     <section className={s.block} aria-label={`E-signature: ${row.doc.title}`}>
       <div className={s.blockHead}>
@@ -217,6 +242,9 @@ function Pad(p: { path: string; onChange(path: string): void }) {
   );
 }
 
+/** "3ee2...4d83": the first and last four of the fingerprint. */
+const fold = (hex: string): string => `${hex.slice(0, 4)}...${hex.slice(-4)}`;
+
 const same = (a: string, b: string): boolean =>
   a.trim().replace(/\s+/g, " ").toLowerCase() ===
     b.trim().replace(/\s+/g, " ").toLowerCase();
@@ -283,8 +311,7 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
     finish("signed");
   };
   return (
-    <Sheet open title={`${E.signTitle}: ${row.doc.title}`}
-      onClose={p.onClose}>
+    <Sheet open title={row.doc.title} onClose={p.onClose}>
       <div className={t.form}>
         <section className={s.section} aria-labelledby="es-order">
           <h3 id="es-order" className={s.sectionTitle}>{E.signers}</h3>
@@ -304,11 +331,16 @@ export function SignSheet(p: { row: EsignRow; who: Signer;
         </section>
         <section className={s.section} aria-labelledby="es-doc">
           <h3 id="es-doc" className={s.sectionTitle}>{E.preview}</h3>
-          <pre className={s.preview} tabIndex={0}
-            aria-label={row.doc.title}>{row.doc.lines.join("\n")}</pre>
-          <p className={s.muted}>{E.fingerprint}{" "}
-            <span className={s.hex}>{groupHex(p.fingerprint)}</span></p>
-          <p className={s.note}>{E.fingerprintHelp}</p>
+          <div className={s.preview} tabIndex={0} role="region"
+            aria-label={row.doc.title}>{row.doc.lines.join("\n")}</div>
+          <details className={s.fold}>
+            <summary className={s.muted}>{E.fingerprint}{" "}
+              <span className={s.hex}>{fold(p.fingerprint)}</span>
+            </summary>
+            <p className={s.muted}><span className={s.hex}>
+              {groupHex(p.fingerprint)}</span></p>
+            <p className={s.note}>{E.fingerprintHelp}</p>
+          </details>
         </section>
         {!myTurn ? (
           <p className={t.route} role="status">{listed ? E.notYourTurn

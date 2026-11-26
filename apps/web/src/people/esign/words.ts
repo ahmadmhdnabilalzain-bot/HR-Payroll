@@ -1,6 +1,8 @@
 /** D5 electronic signing: English words for the screens. */
 export const E = {
   sign: "Sign document electronically",
+  signShort: "Sign",
+  youSign: "You sign",
   signTitle: "Sign electronically",
   register: "E-signatures",
   registerLede: "Every paper that needs a signature, who signs it and " +
@@ -50,8 +52,8 @@ export const E = {
   declineSubmit: "Decline to sign",
   signed: "Signed",
   declined: "Declined",
-  signedToast: (title: string) => `Signed: ${title}.`,
-  declinedToast: (title: string) => `Declined: ${title}.`,
+  signedToast: (_title: string) => "Signed",
+  declinedToast: (_title: string) => "Declined",
   undo: "Undo my signature",
   undone: "Signature taken back.",
   fingerprint: "Fingerprint",

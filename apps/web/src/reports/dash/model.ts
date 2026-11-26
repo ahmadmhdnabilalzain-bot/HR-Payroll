@@ -80,14 +80,15 @@ function countTile(id: string, label: string, now: number, before: number,
 /** Fix's own words for the counts: the unit after the figure, and
  * the line under it ("stop pay", "6 to check"). */
 export type IssueWords = (b: BeforeApproval) => { unit: string;
-  sub: string };
+  sub: string; calm: { unit: string; sub: string } };
 
 function issuesTile(b: BeforeApproval, w: IssueWords): TileModel {
   const whole = b.stops + b.checks;
-  const { unit, sub } = w(b);
+  const words = w(b);
   // Nothing stops pay: the figure is what is left to check, so the
   // big number and the line under it never disagree ("6 to check").
-  const calm = b.stops === 0;
+  const calm = b.stops === 0 && b.checks > 0;
+  const { unit, sub } = calm ? words.calm : words;
   return { id: "before-approval", label: "Before sign-off",
     figure: { kind: "count", n: calm ? b.checks : b.stops, unit },
     change: null, sub,
