@@ -178,7 +178,7 @@ export interface DemoData {
   finish: FinishData;
   /** Electronic signing (esign-types.ts). */
   esign: EsignData;
-  /** Anomaly checks, cost of hire, report templates. */
+  /** Anomaly checks and report templates. */
   checks: ChecksData;
   /** Hiring budget (positions) and hiring requests. */
   hiring: HiringData;

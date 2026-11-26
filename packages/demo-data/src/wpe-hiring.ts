@@ -344,7 +344,7 @@ export function budgetAskSeeds(c: DemoCompany): BudgetAskSeed[] {
   const hr = c.employees.find((e) => e.jobKey === "hr-manager")!;
   return [{ id: "bask-001", budgetId: "bud-pos-014", grade: 7, steps: 6,
     reason: "Two candidates asked for more than the budget allows. " +
-      "Two more steps keep the strongest in the process.",
+      "Two more steps keep the strongest in the running.",
     askedById: hr.id, askedByName: hr.fullName,
     askedOn: shortDateOf("2026-10-24") }];
 }

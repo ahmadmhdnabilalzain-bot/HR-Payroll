@@ -105,7 +105,11 @@ export function inboxTasks(d: DemoData, s: DemoState): InboxTask[] {
     return { ...t, done: doneHere, doneHere, tone: doneHere ? "done"
       : TONE[t.urgency] };
   });
-  return [...rows.filter((t) => !t.done), ...hiring.filter((t) => !t.done),
+  // Overdue first, then hiring (a person waits on it), then the rest.
+  const open = rows.filter((t) => !t.done);
+  const late = open.filter((t) => t.urgency === "overdue");
+  return [...late, ...hiring.filter((t) => !t.done),
+    ...open.filter((t) => t.urgency !== "overdue"),
     ...rows.filter((t) => t.done), ...hiring.filter((t) => t.done)];
 }
 
