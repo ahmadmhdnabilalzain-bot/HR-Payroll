@@ -1,4 +1,4 @@
-import { fils } from "@payroll/engine";
+import { daysInMonth, fils } from "@payroll/engine";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { generateSif, type SifEmployee } from "../src/generate";
@@ -15,22 +15,25 @@ const employee = (y: number, m: number, i: number) =>
     .record({
       routing: digits(9, 9),
       account: fc.stringMatching(/^[A-Z0-9]{23}$/),
-      start: fc.integer({ min: 1, max: 28 }),
-      len: fc.integer({ min: 0, max: 27 }),
+      start: fc.integer({ min: 1, max: 31 }),
+      len: fc.integer({ min: 0, max: 30 }),
+      fullMonth: fc.boolean(),
       fixed: amount,
       variable: amount,
       evp: fc.boolean(),
       leave: fc.nat({ max: 31 }),
     })
     .map((r): SifEmployee => {
-      const end = Math.min(28, r.start + r.len);
+      const last = daysInMonth(y, m);
+      const start = r.fullMonth ? 1 : Math.min(r.start, last);
+      const end = r.fullMonth ? last : Math.min(last, start + r.len);
       const edr = {
         personId: String(i + 1),
         routingCode: r.routing,
         account: r.account,
-        payStart: `${y}-${pad2(m)}-${pad2(r.start)}`,
+        payStart: `${y}-${pad2(m)}-${pad2(start)}`,
         payEnd: `${y}-${pad2(m)}-${pad2(end)}`,
-        days: end - r.start + 1,
+        days: end - start + 1,
         fixed: r.fixed,
         variable: r.variable,
         unpaidLeaveDays: r.leave,

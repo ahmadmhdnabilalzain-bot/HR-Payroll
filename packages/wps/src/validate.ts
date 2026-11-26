@@ -115,7 +115,10 @@ export function validateSif(
   const scr = lastScr(ctx, parsed.records);
   if (scr !== null) {
     if (scr.month !== null) checkMonths(ctx, w.edrs, scr.month);
-    checkTotals(ctx, w, scr);
+    // An unknown record type may hide an EDR: do not guess the totals.
+    if (!parsed.findings.some((f) => f.code === "RECORD_TYPE")) {
+      checkTotals(ctx, w, scr);
+    }
   }
   return sortFindings(ctx.out);
 }

@@ -7,3 +7,5 @@ export * from "./generate";
 export * from "./iban";
 export * from "./parse";
 export * from "./validate";
+export * from "./routing-codes";
+export * from "./report";

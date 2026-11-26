@@ -1,6 +1,7 @@
 import { fils, isValidIsoDate, type Fils } from "@payroll/engine";
 import { makeFinding, type Finding } from "./findings";
 import type { SifLayout } from "./layout";
+import { lookupRouting } from "./routing-codes";
 import { fieldAt, type ParsedRecord } from "./parse";
 
 /** Shared state for one validation run. */
@@ -41,14 +42,22 @@ export function checkId(
   return null;
 }
 
+/** `lookup` is off for an EVP, whose code repeats the EDR above it. */
 export function checkRouting(
   ctx: Ctx,
   r: ParsedRecord,
   n: number,
+  lookup = true,
 ): string | null {
   const v = fieldAt(r, n);
   const len = ctx.layout.routingLength;
-  if (/^[0-9]+$/.test(v) && v.length === len) return v;
+  if (/^[0-9]+$/.test(v) && v.length === len) {
+    if (lookup && lookupRouting(v) === null) {
+      report(ctx, "ROUTING_UNKNOWN", "warning", r, n,
+        "Routing code is not in the bundled table (partial, 2016-era)");
+    }
+    return v;
+  }
   report(ctx, "ROUTING_FORMAT", "error", r, n,
     `Routing code must be ${len} digits`);
   return null;

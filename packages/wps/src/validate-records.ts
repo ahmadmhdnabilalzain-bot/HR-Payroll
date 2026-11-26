@@ -1,6 +1,7 @@
 import { parseIsoDate, type Fils } from "@payroll/engine";
 import { formatMonth } from "./format";
 import type { EdrInfo } from "./validate-edr";
+import { REFERENCE_MAX } from "./records";
 import { fieldAt, type ParsedRecord } from "./parse";
 import {
   checkAmount,
@@ -38,7 +39,7 @@ export function checkEvp(
   edr: EdrInfo | null,
 ): void {
   checkId(ctx, r, 2, ctx.layout.personIdLength);
-  checkRouting(ctx, r, 3);
+  checkRouting(ctx, r, 3, false);
   const sum = checkAmounts(ctx, r, 4, 10);
   if (!pairEvp(ctx, r, edr) || edr === null) return;
   edr.hasEvp = true;
@@ -83,6 +84,10 @@ export function checkScr(ctx: Ctx, r: ParsedRecord): ScrInfo {
   const month = checkMonth(ctx, r);
   const count = checkCount(ctx, r, 7);
   const total = checkAmount(ctx, r, 8);
+  if (fieldAt(r, 10).length > REFERENCE_MAX) {
+    report(ctx, "FIELD_TOO_LONG", "error", r, 10,
+      `Employer reference is longer than ${REFERENCE_MAX} characters`);
+  }
   if (fieldAt(r, 9) !== ctx.layout.currency) {
     report(ctx, "CURRENCY", "error", r, 9,
       `Currency must be ${ctx.layout.currency}`);

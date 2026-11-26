@@ -61,6 +61,8 @@ const CASES: readonly Case[] = [
   ["DATE_FORMAT", "error", set(4, 4, "26-01-2016"), 4, 4],
   ["DATE_FORMAT", "error", set(4, 5, "1160"), 4, 5],
   ["DATE_FORMAT", "error", set(4, 6, "01-2016"), 4, 6],
+  ["ROUTING_UNKNOWN", "warning", set(3, 3, "123456789"), 3, 3],
+  ["FIELD_TOO_LONG", "error", set(4, 10, "x".repeat(36)), 4, 10],
   ["PAY_START_TOO_EARLY", "error",
     set(4, 6, "092010", set(3, 5, "2010-09-01",
       set(3, 6, "2010-09-30", set(3, 7, "30")))).slice(2), 1, 5],
@@ -106,7 +108,8 @@ describe("validateSif finding codes", () => {
       "NEGATIVE_AMOUNT", "DUPLICATE_EMPLOYEE", "MONTH_MISMATCH",
       "EDR_COUNT_MISMATCH", "TOTAL_MISMATCH", "EVP_WITHOUT_EDR",
       "EVP_MISSING", "EVP_SUM_MISMATCH", "FUTURE_CREATION_DATE",
-      "NON_ASCII", "ZERO_PAY", "FIELD_HAS_SPACES",
+      "NON_ASCII", "ZERO_PAY", "FIELD_HAS_SPACES", "FIELD_TOO_LONG",
+      "ROUTING_UNKNOWN",
     ];
     const tested = new Set(CASES.map((c) => c[0]));
     expect(listed.filter((c) => !tested.has(c))).toEqual([]);
@@ -129,6 +132,20 @@ describe("validateSif details", () => {
     expect(fs.map((f) => f.code)).toEqual(["DATE_FORMAT"]);
     const amt = validateSif(text(set(3, 8, "abc")), L);
     expect(amt.map((f) => f.code)).toEqual(["AMOUNT_FORMAT"]);
+  });
+  it("accepts a 35 character employer reference", () => {
+    const fs = validateSif(text(set(4, 10, "x".repeat(35))), L);
+    expect(fs).toEqual([]);
+  });
+  it("does not add count or total errors for an unknown record type", () => {
+    const fs = validateSif(text(set(3, 1, "EDX")), L);
+    expect(fs.map((f) => f.code)).toEqual(["RECORD_TYPE"]);
+  });
+  it("still checks count and total when all record types are known", () => {
+    const fs = validateSif(text(set(4, 7, "5", set(4, 8, "1.00"))), L);
+    expect(fs.map((f) => f.code)).toEqual([
+      "EDR_COUNT_MISMATCH", "TOTAL_MISMATCH",
+    ]);
   });
   it("does not report NO_SCR when the SCR has a bad field count", () => {
     const fs = validateSif(text(set(4, 10, "a,b")), L);

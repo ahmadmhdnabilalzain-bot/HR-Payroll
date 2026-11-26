@@ -52,10 +52,29 @@ describe("parseSif", () => {
   });
 });
 
+const wild = (max: number): fc.Arbitrary<string> =>
+  fc.oneof(
+    fc.string({ unit: "binary", maxLength: max }),
+    fc.string({ unit: fc.constantFrom("\n", "\r", "\t", "\0", ",", " ",
+      "-", ".", "é", "\u20ac", "0", "1", "E", "D", "R", "S", "C", "V", "P"),
+      maxLength: max }),
+    fc.nat({ max: 3000 }).chain((n) =>
+      fc.constantFrom("x", ",", " ", "\n", "9").map((c) => c.repeat(n))),
+  );
+
 describe("never throws", () => {
+  it("generates the awkward characters it claims to", () => {
+    const seen = fc.sample(wild(400), { numRuns: 2000, seed: 7 }).join("");
+    for (const ch of ["\n", "\r", "\t", "\0", "\u00e9", "\u20ac"]) {
+      expect(seen).toContain(ch);
+    }
+    expect(/[^\x00-\x7f]/.test(seen)).toBe(true);
+    expect(fc.sample(wild(400), { numRuns: 2000, seed: 7 })
+      .some((t) => t.length >= 1000)).toBe(true);
+  });
   it("on arbitrary text", () => {
     fc.assert(
-      fc.property(fc.string({ maxLength: 400 }), (s) => {
+      fc.property(wild(400), (s) => {
         parseSif(s);
         validateSif(s, L, "2020-01-01");
       }),
@@ -66,7 +85,7 @@ describe("never throws", () => {
     const edit = fc.record({
       at: fc.nat({ max: base.length }),
       cut: fc.nat({ max: 5 }),
-      put: fc.string({ maxLength: 5 }),
+      put: wild(5),
     });
     fc.assert(
       fc.property(fc.array(edit, { maxLength: 6 }), (es) => {
@@ -75,7 +94,7 @@ describe("never throws", () => {
           const at = Math.min(e.at, s.length);
           s = s.slice(0, at) + e.put + s.slice(at + e.cut);
         }
-        validateSif(s, L);
+        validateSif(s, L, "2020-01-01");
       }),
       { numRuns: 500 },
     );
