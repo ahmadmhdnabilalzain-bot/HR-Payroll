@@ -94,8 +94,8 @@ export function Roster() {
             </li>
           ))}
         </ul>
+        <Footnote />
       </div>
-      <Footnote />
     </>
   );
 }
