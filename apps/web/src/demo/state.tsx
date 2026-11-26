@@ -148,6 +148,12 @@ import {
   type RuleChangeSlice,
 } from "../setup/rule-change/state";
 import {
+  POLICIES_INITIAL,
+  reducePolicies,
+  type PoliciesAction,
+  type PoliciesSlice,
+} from "./policies-state";
+import {
   ESIGN_INITIAL,
   reduceEsign,
   type EsignAction,
@@ -173,7 +179,7 @@ export interface DemoState
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     EidSlice, FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
     AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
-    AuditorSlice, FinishSlice, EsignSlice {
+    AuditorSlice, FinishSlice, EsignSlice, PoliciesSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -225,6 +231,7 @@ export type Action =
   | AuditorAction
   | FinishAction
   | EsignAction
+  | PoliciesAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -247,6 +254,7 @@ export const INITIAL: DemoState = {
   ...AUDITOR_INITIAL,
   ...FINISH_INITIAL,
   ...ESIGN_INITIAL,
+  ...POLICIES_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -385,6 +393,8 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "rule-change-step":
     case "rule-change-undo": return reduceRuleChange(s, a);
     case "esign": return reduceEsign(s, a);
+    case "policy-ack":
+    case "policy-unack": return reducePolicies(s, a);
   }
 }
 

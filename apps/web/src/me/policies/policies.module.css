@@ -1,0 +1,199 @@
+/* Ask about a policy: only what the shared styles do not give. */
+.ask {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+.ask label {
+  flex: 1 1 280px;
+}
+
+.ask button {
+  min-block-size: 44px;
+}
+
+.answer {
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: 720px;
+}
+
+.quote {
+  margin: 0;
+  padding: var(--space-4);
+  border-inline-start: 3px solid var(--color-text);
+  background: var(--color-surface);
+  border-radius: var(--radius-control);
+  line-height: 1.55;
+}
+
+.cite {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-underline-offset: 3px;
+}
+
+.also {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.meta dt {
+  display: inline;
+}
+
+.meta dd {
+  display: inline;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.sections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: 720px;
+}
+
+.section {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  scroll-margin-block-start: calc(var(--space-6) * 2);
+  outline: 2px solid transparent;
+  transition: outline-color var(--dur-base, 200ms) var(--ease-out);
+}
+
+.section[data-cited="true"] {
+  outline-color: var(--color-text);
+}
+
+.section h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.section p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.note summary {
+  display: flex;
+  align-items: center;
+  min-block-size: 44px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.note p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.row a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-underline-offset: 3px;
+}
+
+.tour {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-divider);
+}
+
+.tourSteps {
+  margin: 0;
+  padding-inline-start: 1.25em;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.tourSteps li {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  transition: background var(--dur-base, 200ms) var(--ease-out);
+}
+
+.tourSteps li[aria-current="step"] {
+  color: var(--color-text);
+  font-weight: 600;
+  outline: 2px solid var(--color-text);
+}
+
+.tourBar {
+  block-size: 4px;
+  border-radius: 2px;
+  background: var(--color-divider);
+  overflow: hidden;
+}
+
+.tourBar span {
+  display: block;
+  block-size: 100%;
+  background: var(--color-text);
+  transition: inline-size var(--dur-base, 200ms) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section,
+  .tourSteps li,
+  .tourBar span {
+    transition: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .ask button {
+    inline-size: 100%;
+  }
+}

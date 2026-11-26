@@ -8,6 +8,7 @@ import type { RequestsData } from "./requests-types";
 import type { FilesData } from "./files-types";
 import type { FinishData } from "./finish-types";
 import type { MoreData } from "./more-types";
+import type { PoliciesData } from "./policies-types";
 import type { VerifyData } from "./verify-types";
 import type { EsignData } from "./esign-types";
 import type { TalentData } from "./talent-types";
@@ -176,6 +177,8 @@ export interface DemoData {
   finish: FinishData;
   /** Electronic signing (esign-types.ts). */
   esign: EsignData;
+  /** The policy library and cited answers (policies-types.ts). */
+  policies: PoliciesData;
 }
 
 export type IbanAttempt = { ok: true } | { ok: false; reason: Localized };

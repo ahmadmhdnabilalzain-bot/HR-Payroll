@@ -26,6 +26,7 @@ import { AREAS as TIME } from "./time";
 import { AREAS as VERIFY } from "./verify";
 import { AREAS as TIME_FINISH } from "./time-finish";
 import { AREAS as ESIGN } from "./esign";
+import { AREAS as POLICIES } from "./policies";
 
 /**
  * Every area, from a fixed list of files: WP1's core plus one file per
@@ -56,6 +57,7 @@ export const ALL_AREAS: readonly Area[] = [
   ...ERP,
   ...VERIFY,
   ...ESIGN,
+  ...POLICIES,
   ...RULE_CHANGE,
   ...AUDIT_ROOM,
   ...TIME_FINISH,

@@ -11,6 +11,7 @@ import { MySign } from "../people/esign/Esign";
 import { MyLeave, MyRequests } from "./MyLeave";
 import { MyPayslips } from "./MyPayslips";
 import { MyProfile } from "./MyProfile";
+import { Policies } from "./policies/Policies";
 
 /**
  * `#/me/<page>`: the viewer's own pages (WP10, map rows E02 to E07):
@@ -28,6 +29,7 @@ export function Me(p: ViewProps) {
     case "cover": return <Cover />;
     case "expenses": return <MyExpenses />;
     case "timecard": return <MyTimeCard />;
+    case "policies": return <Policies rest={p.rest.slice(1)} />;
     case "kpis": return <MyKpis />;
     case "report-incident": return <ReportIncident />;
     case "team-reviews": return <TeamReviews />;

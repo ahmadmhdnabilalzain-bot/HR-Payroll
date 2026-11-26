@@ -172,7 +172,7 @@ const SEEDS: readonly PolicySeed[] = [
         "for client visits. Where a team has a uniform, wear it on duty."],
       ["1.2", "Behaviour", "Treat colleagues, clients and visitors " +
         "with respect. Harassment, threats and bullying are not allowed " +
-        "and lead to a disciplinary process."],
+        "and lead to disciplinary action."],
       ["2.1", "Confidential information", "Do not share customer or " +
         "colleague information outside work. Do not copy it to personal " +
         "devices or accounts."],

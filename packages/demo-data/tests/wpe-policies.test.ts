@@ -29,7 +29,8 @@ describe("WPE policy library", () => {
     expect(policyLibrary()).toEqual(policyLibrary());
     const text = asText(policyLibrary()) + POLICY_NOTE;
     expect(text).not.toMatch(BANNED_WORDS);
-    expect(text).not.toMatch(/\bAED\b|\d{1,3},\d{3}|complian|certified|certification/i);
+    expect(text).not.toMatch(/\bAED\b|\d{1,3},\d{3}|complian/i);
+    expect(text).not.toMatch(/certified|certification/i);
     expect(text).not.toMatch(/Zarqan|Keka/);
   });
   it("owners are job titles and notes say as we read it", () => {
