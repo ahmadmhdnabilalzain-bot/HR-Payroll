@@ -16,14 +16,11 @@ const MASK = "•".repeat(6);
  * masked when amounts are hidden. Screen readers get the plain text.
  */
 export function Money(p: { value: Fils; size?: Size; tween?: boolean;
-  /** Count up from zero once, on first show (the opening pass). */
-  countUp?: boolean;
   /** A change: "+" on a rise (a fall always reads "−AED"). */
   signed?: boolean }) {
   const { lang, t } = useLocale();
   const { state } = useDemo();
-  const shown = useTweenedBigint(p.value, p.countUp === true ? 800 : 600,
-    p.countUp === true ? 0n : undefined);
+  const shown = useTweenedBigint(p.value);
   const v = p.tween === false ? p.value : fils(shown);
   const size = p.size ?? "md";
   if (state.hideAmounts) {

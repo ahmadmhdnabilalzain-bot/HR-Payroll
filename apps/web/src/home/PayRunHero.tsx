@@ -1,17 +1,16 @@
 import { fils, type Fils } from "@payroll/engine";
 import { Suspense, useEffect, useState } from "react";
 import { ExplainLink, Explainable } from "../components/explain";
-import { reducedMotion, ROLL_MS } from "../demo/motion";
+import { reducedMotion } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
-import { Money } from "../ui/Money";
 import { NetTrend } from "./NetTrend";
 import { useRunApproval } from "../demo/actions";
 import type { Issue } from "../demo/data/types";
-import { RollDigits } from "../ui/RollDigits";
+import { ROLL_END_MS, RollDigits } from "../ui/RollDigits";
 import { CardIban } from "./CardIban";
 import { StatusAction, StatusSentence } from "./StatusLead";
 import { StepTracker } from "./StepTracker";
@@ -40,9 +39,9 @@ export function PayRunHero() {
         <div className={s.lead}>
           <StatusSentence />
           <div className={s.netCard}>
-            <p className={s.figure}>
+            <p className={s.figure} data-hero-figure="">
               <Explainable explanation={net}>
-                <Money value={h.netTotalFils} size="hero" countUp />
+                <RollDigits value={h.netTotalFils} size="hero" />
               </Explainable>
             </p>
             <p className={s.line}>
@@ -136,7 +135,7 @@ function HeldOut(p: { value: Fils }) {
   }
   useEffect(() => {
     if (!rolling) return undefined;
-    const h = setTimeout(() => setRolling(false), ROLL_MS + 150);
+    const h = setTimeout(() => setRolling(false), ROLL_END_MS + 60);
     return () => clearTimeout(h);
   }, [rolling]);
   const zero = p.value === 0n && !rolling;
