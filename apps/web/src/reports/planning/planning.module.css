@@ -42,6 +42,11 @@
   font-size: var(--text-sm);
 }
 
+.pools caption {
+  text-align: start;
+  padding-block-end: var(--space-2);
+}
+
 .pools th,
 .pools td {
   padding: var(--space-2) var(--space-3);

@@ -20,14 +20,14 @@ export function ForecastScreen() {
     const meta = b.months[i]!;
     return [x.label, x.kind === "estimate" ? "Estimate"
       : meta.paid ? "Actual, paid" : "Actual, waiting for sign-off",
-    m(x.budget), m(x.amount), overUnder(x.difference as Fils, signed),
+    m(x.budget), m(x.amount), overUnder(x.difference as Fils, m),
     changes(i)];
   });
   const end = (b.total.yearEnd - b.total.budgetYear) as Fils;
   return (
     <ReportPage title="Payroll forecast" period="Plan against actual, 2026"
       figure={{ label: "Year end, estimate (" +
-        overUnder(end, signed) + " against the plan)",
+        overUnder(end, m) + " against the plan)",
       value: <Money value={b.total.yearEnd} size="lg" tween={false} /> }}
       columns={[{ label: "Month" }, { label: "State" },
         { label: "Plan", end: true },

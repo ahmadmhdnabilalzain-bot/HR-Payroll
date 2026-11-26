@@ -8,17 +8,17 @@ import type { ViewProps } from "../../views";
 import { usePlanningSource } from "./load";
 import s from "./planning.module.css";
 
-/** "+AED 4.00 over", "AED 4.00 under" or "On budget". */
-export function overUnder(d: Fils, signed: (f: Fils) => string): string {
-  return d === 0n ? "On budget" : d > 0n ? `${signed(d)} over`
-    : `${signed(d)} under`;
+/** "AED 4.00 over", "AED 4.00 under" or "On budget". */
+export function overUnder(d: Fils, m: (f: Fils) => string): string {
+  return d === 0n ? "On budget" : d > 0n ? `${m(d)} over`
+    : `${m(-d as Fils)} under`;
 }
 
 /** X13: 2026 payroll against budget, by department and by month. */
 export function CostBudgetScreen(p: ViewProps) {
   const src = usePlanningSource();
   const b = src.budget;
-  const { m, signed } = useMoney();
+  const { m } = useMoney();
   const pick = p.rest[1];
   const one: BudgetRow | undefined = b.rows.find((r) =>
     r.departmentId === pick);
@@ -39,7 +39,7 @@ export function CostBudgetScreen(p: ViewProps) {
   if (one !== undefined) {
     const rows = one.months.map((x) => [x.label,
       x.kind === "actual" ? "Actual" : "Estimate", m(x.budget), m(x.amount),
-      overUnder(x.difference as Fils, signed)]);
+      overUnder(x.difference as Fils, m)]);
     return (
       <>
         <div className={s.wrap}>{nav}</div>
@@ -60,8 +60,8 @@ export function CostBudgetScreen(p: ViewProps) {
     const toDate = (r.actualToDate - r.budgetToDate) as Fils;
     const end = (r.yearEnd - r.budgetYear) as Fils;
     return [r.departmentText, m(r.budgetYear), m(r.budgetToDate),
-      m(r.actualToDate), overUnder(toDate, signed),
-      m(r.yearEnd) + " (estimate)", overUnder(end, signed)];
+      m(r.actualToDate), overUnder(toDate, m),
+      m(r.yearEnd) + " (estimate)", overUnder(end, m)];
   });
   return (
     <>

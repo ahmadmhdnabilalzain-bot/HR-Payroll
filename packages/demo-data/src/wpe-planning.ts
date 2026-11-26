@@ -214,8 +214,7 @@ export function meritPlan(c: DemoCompany): MeritPlan {
       basic: e.basicMonthly, guidelineSteps: steps, allowedSteps: allowed,
       noneReason, display: { basic: formatAed(e.basicMonthly),
         guideline: noneReason !== null ? noneReason
-          : `Up to ${plural(allowed, "step", "steps")}, ` +
-            formatAed(stepsToFils(allowed)) } };
+          : `Up to ${plural(allowed, "step", "steps")}` } };
   });
   const poolStepsOf = MERIT_GUIDELINE.find((g) =>
     g.rating === POOL_RATING)!.steps;
