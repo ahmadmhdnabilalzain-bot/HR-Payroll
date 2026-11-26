@@ -36,9 +36,21 @@ export async function seedBare(admin: Db, s: SeedCompany): Promise<void> {
   await member(admin, s.companyId, s.userId, "owner");
 }
 
+async function seedPeople(admin: Db, c: string): Promise<void> {
+  await admin.query(
+    `INSERT INTO departments (id, company_id, name, created_at)
+     VALUES ($1, $2, 'Finance', $3)`, [rowId(c, "d1"), c, AT]);
+  await admin.query(
+    `INSERT INTO employees (id, company_id, number, full_name, job_title,
+       nationality, worker_class, joining_date, created_at)
+     VALUES ($1, $2, 'E-1', 'Seed Person', 'Clerk', 'IN',
+       'expat-full-time', '2020-01-01', $3)`, [rowId(c, "f1"), c, AT]);
+}
+
 async function seedOne(admin: Db, s: SeedCompany): Promise<void> {
   const c = s.companyId;
   await seedBare(admin, s);
+  await seedPeople(admin, c);
   await admin.query(
     `INSERT INTO invites (id, company_id, token_hash, email, role,
        created_by, expires_at) VALUES ($1, $2, $3, $4, 'hr', $5, $6)`,

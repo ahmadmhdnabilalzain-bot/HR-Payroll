@@ -45,6 +45,15 @@ async function listUsers(ctx: ReqCtx) {
 async function inviteUser(ctx: ReqCtx<InviteRequest>) {
   const { deps, body } = ctx;
   const companyId = ctx.tenant!.companyId;
+  if (body.employeeId !== undefined) {
+    const e = await ctx.tx.query(
+      "SELECT 1 FROM employees WHERE company_id = $1 AND id = $2",
+      [companyId, body.employeeId]);
+    if (e.length === 0) {
+      throw new ApiError("NOT_FOUND", "No such employee",
+        { fields: ["body.employeeId"] });
+    }
+  }
   const setupToken = `${companyId}.${newSecret(deps)}`;
   const now = deps.now();
   const expiresAt = new Date(now.getTime() + INVITE_MS).toISOString();

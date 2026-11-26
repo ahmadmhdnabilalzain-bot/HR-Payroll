@@ -6,6 +6,8 @@ import { ApiError, toErrorResponse } from "./http/errors";
 import { logRequest } from "./http/log";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerCompanyRoutes } from "./routes/company";
+import { registerDepartmentRoutes } from "./routes/departments";
+import { registerEmployeeRoutes } from "./routes/employees";
 import { registerUserRoutes } from "./routes/users";
 
 function internalLine(err: unknown): Record<string, unknown> {
@@ -57,5 +59,7 @@ export function createApp(deps: AppDeps): App {
   registerAuthRoutes(app, deps);
   registerCompanyRoutes(app, deps);
   registerUserRoutes(app, deps);
+  registerEmployeeRoutes(app, deps);
+  registerDepartmentRoutes(app, deps);
   return app;
 }
