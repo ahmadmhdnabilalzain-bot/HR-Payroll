@@ -50,6 +50,9 @@ describe("pay runs and payslips", () => {
       expect(ok.body.status).toBe("approved");
       expect((await as(s.owner, "POST", `/v1/pay-runs/${runId}/approve`))
         .body.error.code).toBe("RUN_NOT_DRAFT");
+      const v = await as(s.hr, "POST", `/v1/pay-runs/${runId}/void`);
+      expect(v.status).toBe(409);
+      expect(v.body.error.code).toBe("RUN_NOT_DRAFT");
     });
 
   it("the creator cannot approve their own run", async () => {

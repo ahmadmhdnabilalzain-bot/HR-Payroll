@@ -389,7 +389,7 @@ while building (`docs/superpowers/plans/plan-5-build-report.md`).
   `Date` and the other globals (a message said "Date must be ..."); it
   still reads import strings.
 
-## 10. Rulings made during the Plan 3 build (Claude's calls)
+## 11. Rulings made during the Plan 3 build (Claude's calls)
 
 The owner can overrule any of these. Full list with reasons:
 `docs/superpowers/plans/plan-3-build-report-1.md`.
@@ -418,3 +418,20 @@ The owner can overrule any of these. Full list with reasons:
 - Migrations were renumbered: 003 single-use TOTP, 004 security
   hardening, 005 people, 006 leave and attendance, 007 payroll, 008
   SIF.
+- Review fixes (2026-11-26, money review of Task 7 and data-protection
+  review of Tasks 5 and 6; full list in the build report): a leaver's
+  unpaid leave over service is required; SIF files use the bank
+  details and labour ids frozen in the approved run (live changes are
+  reported, never used); a run lists who changed since the last
+  approved run; salary and bank writes need MFA and nobody but an
+  owner edits their own; nobody decides their own leave or one they
+  filed; leave reasons are sealed; salary and bank cipher text is
+  bound to its version; one user per employee record; manager cycles
+  refused; attendance corrections at most 24 hours and not in the
+  future, lists at most 366 days; runs with nobody in the period are
+  refused; amounts above the wire cap are problems; the real-
+  PostgreSQL suite runs inside `pnpm check` when a server binary is
+  installed. Costs: a sole owner linked to an employee needs an hr
+  user to approve their leave; cipher text from before migrations 010
+  and 012 is unreadable (no real data existed).
+

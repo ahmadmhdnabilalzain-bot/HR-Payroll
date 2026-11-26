@@ -38,9 +38,10 @@ source-cited, with an open API and Arabic from the start.
   whole-branch money and law review found nothing Critical (READY AFTER
   FIXES); its Important findings and most Minor ones are fixed (LEDGER
   section 10, Rulings B7 to B13). Open: review items M1, M5, M10, M11.
-- **Plan 3 (backend) is built** on a worktree branch (Tasks 1 to 8 plus
-  the security review's fixes), not yet merged into
-  `claude/quirky-wozniak-b7xkvr`. `packages/contract` (zod schemas, 50
+- **Plan 3 (backend) is built and merged** into
+  `claude/quirky-wozniak-b7xkvr` (merge `08ec440`); the fixes for the
+  money review (Task 7) and the data-protection review (Tasks 5 and 6)
+  are on the worktree branch, not yet merged. `packages/contract` (zod schemas, 50
   routes, error codes, OpenAPI) and `packages/api` (Hono over
   PostgreSQL with row-level security, sealed salary and bank fields,
   hash-chained audit log, pay runs, payslips and SIF files).
@@ -158,7 +159,7 @@ engine refuses to run without an explicit value.
 
 | Area | Files |
 |---|---|
-| Database, migrations, tenancy | `src/db/`, `migrations/001` to `008` |
+| Database, migrations, tenancy | `src/db/`, `migrations/001` to `013` |
 | HTTP plumbing (one transaction per request) | `src/app.ts`, `src/http/` |
 | Sign-in, sessions, TOTP, guards | `src/auth/` |
 | Field encryption | `src/crypto/keyring.ts` |
@@ -179,6 +180,10 @@ engine refuses to run without an explicit value.
   (an invite can be accepted by whoever holds the token), anyone can
   lock an account for 15 minutes with five wrong passwords, no rate
   limiting, no pay-run corrections. Real payroll waits for the owner.
+  The pay-run `input_hash` is an unkeyed hash over salary amounts and
+  `pay_runs.gross` is in clear (make the hash an HMAC before real
+  data). No warning yet when a leaver gets both a leave-encashment
+  one-off and a settlement.
 
 - The gratuity pack applies to leavers on or after 2022-02-02 (Decree-Law 33
   of 2021). Earlier leavers throw `NO_PACK_FOR_DATE` (old law not modelled).

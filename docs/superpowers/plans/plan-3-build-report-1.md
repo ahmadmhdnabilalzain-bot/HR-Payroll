@@ -212,7 +212,7 @@ with the security review of Tasks 2 to 4 fixed first.
 | `c4b5e5a` | feat(api): pay runs and traced payslips (Task 7) |
 | `05fd215` | feat(api): SIF files, conformance, handover (Task 8) |
 | `afb5911` | fix(api): repeated codes in a pay-run entry; enrolment check on lock |
-| (final) | test(api): whole-API flow on real PostgreSQL; report |
+| `cb17dfd` | test(api): whole-API flow on real PostgreSQL; report |
 
 ### Tests
 
@@ -402,3 +402,207 @@ All are in `packages/contract`. Breaking ones are marked.
   rows and section 10. Ruling 3 says a five-method `Db`; the code has
   four (`query`, `exec`, `transaction`, `close`).
 - The throwaway PostgreSQL server in `/tmp/pgplan3` was stopped.
+
+
+## Review fixes after the merge (money review of Task 7, data-protection review of Tasks 5 and 6)
+
+Date: 2026-11-26. The branch first merged `claude/quirky-wozniak-b7xkvr`
+(merge `755e72b`, which includes Plan 3's own merge `08ec440`).
+
+### `main` was red before I started
+
+`pnpm check` on the merged main branch failed in `apps/web`: the web
+app did not typecheck against the merged contract (`sifFileId`, the
+error `detail` type), and three web tests failed: MFA without a
+password, pay-run problems as JSON strings, and texts missing for new
+error codes. `apps/web` belongs to Plan 4. I made the smallest
+changes that make it green in `8b3a02b fix(web): ...`, plus EN and AR
+texts for every new error code in later commits. The Arabic is
+marked for native review, as before.
+
+### Commits
+
+| Commit | Fix |
+|---|---|
+| `8b3a02b` | fix(web): adapt to the Plan 3 contract changes |
+| `383a39e` | fix(api): test runs fit the shared memory limit (2 packages at a time, 3 api workers) |
+| `2230f3d` | fix(api): a leaver's unpaid leave over service is required (money I-1) |
+| `c92673e` | fix(api): pay-run guards: draft-only payslips, caps, empty runs (money M-2, M-1, M-8, M-7) |
+| `4899334` | fix(api): real-PostgreSQL suite runs inside pnpm check (money M-5) |
+| `380e981` | fix(api): pay-run snapshots share-lock the employee rows (money M-3) |
+| `e309c96` | fix(api): employee field crypto: versions in AAD, per-row errors (data M-3, M-4, M-5) |
+| `3e75804` | fix(api): SIF files use the approved bank details, not live rows (money SIF risk; data I-1 "changed since last run") |
+| `eca5b90` | fix(api): salary and bank writes need MFA; no self-edits (data I-1) |
+| `7b077af` | fix(api): leave separation of duties, balance recheck, sealed reasons (data M-1, M-2, M-9) |
+| `5f5ba33` | fix(api): attendance correction and list limits, scope in SQL (data M-6, M-10, I-2) |
+| `84a0324` | fix(api): one user per employee, no manager cycles, PATCH clears (data M-7, M-8) |
+| `8172302` | test(api): leak test with a distinct sentinel per employee and field (data I-3) |
+| (final) | docs: review fixes; void-after-approve test |
+
+The money review's M-4 (repeated codes) was already fixed in
+`afb5911` before the review arrived.
+
+### Tests
+
+The final `pnpm check` passes. Results: contract 81, engine 539 (3
+skipped), wps 173, web 88, api 221 with none skipped. The
+real-PostgreSQL suite (19 tests) now runs inside `pnpm check`: a
+Vitest global setup starts a throwaway PostgreSQL 16 when the binary
+is installed, and no temp cluster is left behind. Each fix was written
+test-first and its main new test was seen red.
+
+These new tests passed at their first run, so they guard behaviour
+but were never seen red:
+- the attendance manager-scoping test (repaired; it then passed on
+  the existing code);
+- the leak test rewrite;
+- the 200-day worked example (an entered value was already passed
+  through);
+- the true mid-month leaver case;
+- `idempotent_replay_after_change`;
+- the real-PostgreSQL payslip-trigger case;
+- the void-after-approve check.
+
+The scoping and leak tests were checked by mutation instead.
+
+`sif.test.ts` was red before the SIF fix, but its first failing
+assertion was the 422 caused by a labour id nulled in the same test
+(the old code read live rows). So it did not show the redirected IBAN
+by itself.
+
+Mutations, each reverted with `git checkout --` afterwards:
+- **Attendance scoping removed** (the reviewer's mutation, in both
+  the SQL and the in-memory filter): `attendance.test.ts` fails
+  (manager saw 4 employees, not 3).
+- **`ids = true` in `toEmployeeView` alone:** the leak test still
+  passes, because fields a viewer may not see are now never
+  decrypted (`wantFor`). `redact.test.ts` fails, 6 cases.
+- **That mutation plus decrypting every field for everyone:** the
+  leak test fails (manager receives labour ids and Emirates IDs).
+- **The own-payslip check removed:** the leak test and
+  `pay-runs.test.ts` fail (manager reads a report's payslip).
+- **The approve race, on the old code:** the real-PG test failed. An
+  approval passed while a salary change committed before it.
+
+### Decisions
+
+1. **serviceUnpaidLeaveDays** is required for a leaver, like
+   unusedLeaveDays. This follows the plan text: rule 5 and Ruling 13.
+   The ledger row that said "passes 0" is superseded by a new row. The
+   contract constant `SERVICE_UNPAID_LEAVE_NOT_ENTERED` stays exported
+   but is deprecated and no longer emitted.
+2. **Money cap:**
+   - `MONEY_MAX_FILS` (999,999,999.99) lives in the contract.
+   - A payslip gross, settlement total or run gross above it is a
+     `VALIDATION_FAILED` problem: `gross`, `settlement` or `runGross`
+     (the run gross is reported on the last employee).
+   - Both leave-day inputs are capped at 36,600, as an input sanity
+     limit, not a statutory value.
+3. **New error codes:**
+   - `RUN_EMPTY` 422: nobody in the period.
+   - `EMPLOYEE_DATA_UNREADABLE` 422: a pay-run problem and a bank
+     reveal.
+   - `EMPLOYEE_ALREADY_LINKED` 409.
+   - `MANAGER_CYCLE` 422.
+4. **Pay-run audit data is flat:** `year`, `month`, `employeeCount`,
+   `inputHash`, as the current plan specifies. Plans 6 to 11 do not
+   read it.
+5. **Approve race:** building a snapshot (create and approve) share-locks
+   every employee row in id order. Salary, bank and leave decision or
+   cancel writes lock the employee row, so they wait.
+6. **Bank details in the snapshot:**
+   - The run snapshot (sealed) holds routing, IBAN and labour person id
+     per employee.
+   - The clear `input_hash` covers the IBAN and labour id only as HMAC
+     fingerprints, under a key derived from the company DEK.
+   - A bank change between create and approve refuses the approval
+     (`RUN_INPUTS_CHANGED`).
+   - After approval the SIF uses the snapshot, and live values that
+     differ are reported in `SifFile.bankChangedSinceApproval` (ids
+     only, stored in `sif_files.bank_drift`).
+   - A run refuses employees without bank details or a labour id
+     (`EMPLOYEE_BANK_MISSING` problem at create), because an approved
+     run cannot be voided.
+7. **"Changed since last run":**
+   - `PayRun.changedSinceLastRun` lists employees who are new, or whose
+     salary, bank or labour id changed since the last approved run.
+     It holds field names only and is computed at create.
+   - Salary and bank writes now need MFA. Only an owner may change
+     their own salary or bank (`SOD_VIOLATION`).
+8. **Employee crypto:**
+   - Each company DEK is unwrapped once per request.
+   - Salary and bank AADs end in `:v<version>`; `bank_version` is new.
+   - Routing code and IBAN are sealed together. The clear
+     `bank_routing` and `iban_last4` are dropped (migration 010).
+   - The GCM tag is pinned to 16 bytes.
+   - Cipher text written before migrations 010 and 012 cannot be read,
+     and there is no re-encryption path (there was no real data).
+9. **Per-row errors:**
+   - Lists and reads filter by scope in SQL and open only the fields
+     the caller may see.
+   - A field that fails to decrypt is null, with
+     `EmployeeView.unreadable` naming it.
+   - It is logged as `decrypt.failed` with table, column and row id;
+     no value is logged.
+10. **Leave:**
+    - Nobody decides their own request or one they filed, whatever
+      their role. Nobody adjusts their own balance.
+    - Cost: a sole owner linked to an employee record needs an hr user
+      to approve their leave.
+    - Approval rechecks the balance.
+    - Reasons and decision notes are sealed (migration 012).
+11. **Attendance limits:** corrections may not be in the future or
+    span more than 24 hours, and lists span at most 366 days. These
+    are decisions, not law.
+12. **Employee links:**
+    - One user per employee record: a partial unique index (migration
+      013), and invites refuse a linked employee or one with an open
+      invite.
+    - Manager cycles are refused by walking up the chain.
+    - PATCH accepts `null` to clear optional fields.
+13. **Migrations added:** 009 payroll guards, 010 employee crypto, 011
+    run changes, 012 leave reasons, 013 one user per employee.
+
+### Contract changes for the web app (this round)
+
+- **Breaking:** `putEmployeeSalary` and `putEmployeeBank` are MFA routes.
+- **Behaviour:**
+  - A leaver entry must include `serviceUnpaidLeaveDays`.
+  - A run refuses employees without bank details or a labour id
+    (`EMPLOYEE_BANK_MISSING` problem).
+  - A run with nobody in the period is refused (`RUN_EMPTY`).
+- **Additive:**
+  - `PayRun.changedSinceLastRun?`
+  - `SifFile.bankChangedSinceApproval?`
+  - `EmployeeView.unreadable?`
+  - `EmployeeUpdate` fields accept `null`
+  - `MONEY_MAX_FILS`
+  - day-input maxima
+  - error codes `RUN_EMPTY`, `EMPLOYEE_DATA_UNREADABLE`,
+    `EMPLOYEE_ALREADY_LINKED`, `MANAGER_CYCLE`
+
+### Not done, or decided against
+
+- **Money M-6:** `input_hash` is still an unkeyed hash over salary
+  amounts, and `pay_runs.gross` is still in clear. Only the IBAN and
+  labour id are fingerprinted. Make the hash an HMAC before real data.
+- **Leave pay counted twice:** no warning yet when a leaver has a
+  `leaveEncashment` one-off and a computed settlement.
+- **hr correcting their own attendance** is not separated.
+  `attendance.note` is not sealed.
+- **Defence in depth:** a mutation of `wantFor` alone, or of the
+  redaction alone, is caught only by its own unit test or not at all.
+  The other layer still blocks the leak, and the leak test covers the
+  combination.
+- **`changedSinceLastRun` is computed at create.** Approval refuses
+  any change since create, so it is not recomputed.
+- **Unique violations as 500s:** a concurrent duplicate employee
+  number, or a parallel accept that links one employee twice, still
+  stops at a unique index with a 500.
+- **Cancelling own leave:** an hr user can still cancel their own
+  approved leave.
+- **Leave and attendance locks** have no real-PostgreSQL test (the
+  reviewer showed them working there).
+- **Manager-cycle query** has run only on pglite.
+- The `LEDGER.md` heading for Plan 3 is renumbered to 11, because
+  Plan 5's section also used 10.
