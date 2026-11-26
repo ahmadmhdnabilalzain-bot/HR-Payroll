@@ -61,6 +61,12 @@ import {
   type RequestsSlice,
 } from "./requests-state";
 import {
+  FILES_INITIAL,
+  reduceFiles,
+  type FilesOp,
+  type FilesSlice,
+} from "./files-state";
+import {
   PAY_INITIAL,
   reducePay,
   type PayAction,
@@ -83,7 +89,8 @@ export type Resolution = "reviewed" | "renewal";
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
-    TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice {
+    TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
+    FilesSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -121,6 +128,7 @@ export type Action =
   | PayAction
   | SafetyAction
   | RequestsAction
+  | { type: "files"; op: FilesOp }
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -131,6 +139,7 @@ export const INITIAL: DemoState = {
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL, ...TEAM_INITIAL,
   ...MOVES_INITIAL, ...PAY_INITIAL, ...SAFETY_INITIAL, ...REQUESTS_INITIAL,
+  ...FILES_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -187,6 +196,7 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "ending-undo":
     case "staff-move-new":
     case "staff-move-undo": return reduceMoves(s, a);
+    case "files": return reduceFiles(s, a.op);
     case "task-done": return s.tasksDone.includes(a.id) ? s
       : { ...s, tasksDone: [...s.tasksDone, a.id] };
     case "task-undone":

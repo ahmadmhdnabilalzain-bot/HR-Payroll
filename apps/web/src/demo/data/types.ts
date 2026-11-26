@@ -5,6 +5,7 @@ import type { HomeData } from "./home-types";
 import type { PeopleData } from "./people-types";
 import type { SafetyData } from "./safety-types";
 import type { RequestsData } from "./requests-types";
+import type { FilesData } from "./files-types";
 import type { TalentData } from "./talent-types";
 import type { TeamData } from "./team-types";
 
@@ -151,6 +152,8 @@ export interface DemoData {
   safety: SafetyData;
   /** Profile changes, travel, help desk, access (requests-types.ts). */
   requests: RequestsData;
+  /** Exit interviews, signatures, files, leave pay (files-types.ts). */
+  files: FilesData;
   /** Hiring, joining and leaving (moves-types.ts). */
   moves: MovesData;
   /** Home and Me: tasks, notices, the IT view (home-types.ts). */
