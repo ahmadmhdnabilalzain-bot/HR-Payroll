@@ -33,3 +33,4 @@ export * from "./wp3";
 export * from "./wp2";
 export * from "./wp10";
 export * from "./wpd-structure";
+export * from "./wpd-templates";
