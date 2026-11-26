@@ -149,7 +149,7 @@ export interface DemoWarning { id: string; employeeId: string;
   deductionNote: string;
   display: { name: string; issuedBy: string; status: string } }
 
-const NO_DEDUCTION = "No deduction: the demo records warnings only; any " +
+const NO_DEDUCTION = "No deduction: warnings are recorded only; any " +
   "penalty is not computed.";
 
 /** Days someone arrived after 08:15, from the attendance records. */

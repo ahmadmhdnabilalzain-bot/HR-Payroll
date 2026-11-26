@@ -233,9 +233,10 @@ function loanCap(c: DemoCompany, e: DemoEmployee, s: DemoPayslip)
   const first = e.fullName.split(" ")[0] ?? e.fullName;
   return { ...base(c, `loan:${e.id}`, "Loan deduction, capped",
     e.fullName),
-  summary: `${first}'s loan instalment is more than the law lets an ` +
-    "employer take in one month: all deductions together may not be " +
-    "more than half of the wage. The rest moves to next month.",
+  summary: `${first}'s loan instalment is more than the deduction ` +
+    "limit allows in one month: all deductions together may not be " +
+    "more than half of the wage, as we read it. The rest moves to " +
+    "next month.",
   result: { label: "Deducted this month", value: money(d.taken) },
   inputs: [
     { label: "Wage earned this month", value:

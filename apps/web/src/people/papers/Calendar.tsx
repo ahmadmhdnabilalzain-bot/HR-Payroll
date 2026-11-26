@@ -40,7 +40,7 @@ export function Calendar() {
     .sort((a, b) => a.start.localeCompare(b.start));
   return (
     <div className={c.calWrap}>
-    <MonthCalendar title="Compliance calendar"
+    <MonthCalendar title="Due dates calendar"
       lede="Pay dates, document expiries and the booked
         steps of visa cases."
       month={month} monthLabel={`${MONTHS[Number(m) - 1] ?? ""} ${y ?? ""}`}

@@ -1,9 +1,9 @@
 /** English labels for demo content. Keys are shared with Arabic. */
 export const DEMO_LABELS_EN = {
   "company.name": "Zarqan Demo Bank",
-  "company.badge": "Fictional demo",
-  "company.fakeNotice": "Fictional demo: the bank, its branches, " +
-    "people, numbers and amounts are invented.",
+  "company.badge": "Demo: fictional data",
+  "company.fakeNotice": "Every person, number and amount here is " +
+    "invented.",
   "scope.rules": "Based on UAE mainland rules, as we read them",
   "dept.exec": "Executive office", "dept.retail": "Retail and branches",
   "dept.corp": "Corporate banking", "dept.ops": "Operations",
@@ -60,7 +60,8 @@ export const DEMO_LABELS_EN = {
   "expense.travel": "Taxi and parking, client visits",
   "issues.title": "Found before sign-off",
   "pension.title": "Not computed",
-  "nationality.label": "Sample data, regime for banks to be confirmed",
+  "nationality.label": "Headcount by nationality only. The rules for banks " +
+    "are not confirmed yet.",
 } as const;
 
 export type DemoLabelKey = keyof typeof DEMO_LABELS_EN;

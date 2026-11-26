@@ -33,8 +33,8 @@ export const home = {
   net: "Net pay",
   inSif: "In the salary file",
   held: "Held out (no IBAN)",
-  routingNote: "The demo bank's routing code is invented, so the file " +
-    "check cannot find it in its table.",
+  routingNote: "The bank's routing code is not in the code list, so this " +
+    "line is a note, not a problem.",
   preparedBy: "Prepared by {name}",
   checker: "{name} signs off",
   sources: "Sources",
@@ -42,7 +42,7 @@ export const home = {
   sourcesTitle: "Where these figures come from",
   basisEngine: "Totals are sums of the payslip lines, exactly.",
   progress: "Pay run progress",
-  sampleDates: "Sample dates",
+  sampleDates: "Planned dates",
   stepInputs: "Inputs close",
   stepBank: "Bank details",
   stepApprove: "Sign off",
@@ -75,7 +75,7 @@ export const home = {
   sDeferred: "Deductions are capped, so part of this month's instalment " +
     "moves to next month.",
   tSick: "{name}: unpaid sick day",
-  sSick: "Sick days during probation are unpaid. Tell them before payday.",
+  sSick: "This sick day is unpaid. Tell them before payday.",
   tDoc: "{name}: {document} expires {date}",
   sDoc: "Start the renewal with the PRO before it lapses.",
   tPension: "Pension: confirm the fund",

@@ -100,10 +100,11 @@ export function holidaysPage(): PageSpec {
     groups: [
       g("Public holidays",
         { key: "holidays:dates", label: "Holiday dates",
-          value: n === 0 ? `${sample.count} sample dates`
+          value: n === 0 ? `${sample.count} expected dates`
             : `${n} loaded`,
           help: n === 0 ? `${sample.note} ${sample.names}. Leave day ` +
-            "counts still skip weekends only." : "" }),
+            "counts skip the company weekend, Saturday and Sunday, which " +
+            "is a company choice." : "" }),
       g("Work on a holiday",
         r(TIME, "timeHolidayWorkCompensated", "Compensated"),
         r(PAY, "holidayUpliftBps", "Extra pay",
@@ -122,7 +123,7 @@ export function endOfServicePage(): PageSpec {
   return { title: "End-of-service rules",
     lede: "Gratuity, notice and the final settlement, for people who " +
       "are not UAE nationals. UAE nationals follow the pension rules, " +
-      "which this demo does not work out.",
+      "which are not computed.",
     groups: [
       g("Gratuity",
         r(EOS, "minServiceYears", "Due after"),
@@ -194,8 +195,7 @@ export function wpsPage(d: DemoData): PageSpec {
           help: "An IBAN that fails its check digits stops the pay run." },
         { key: "wps:routing", label: "Bank routing code",
           value: "Looked up in a bundled table",
-          help: "The demo bank's routing code is invented, so it is not " +
-            "found in that table." }),
+          help: "This bank's routing code is not in that table." }),
       g("Dates",
         r(DL, "wpsDueDayOfNextMonth", "Salary due"),
         r(DL, "wpsLateAlertDayOfNextMonth", "Late alert from"),
@@ -208,8 +208,7 @@ export function companyPage(d: DemoData): PageSpec {
   const people = d.people.people();
   const branches = new Set(people.map((p) => p.branch.en));
   return { title: "Company details",
-    lede: "How the company is set up in this demo. The company is " +
-      "fictional.",
+    lede: "How the company is set up.",
     groups: [
       g("Company",
         { key: "co:name", label: "Name", value: d.companyName.en },

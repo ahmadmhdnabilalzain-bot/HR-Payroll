@@ -23,7 +23,7 @@ const SHAPE = /^AE\d{21}$/;
 function withIban(e: DemoEmployee, iban: string): DemoEmployee {
   return { ...e, iban: { value: iban,
     masked: `AE** **** **** **** ***${iban.slice(-4)}`, fake: true,
-    note: "Entered in the demo" } };
+    note: "Entered by hand" } };
 }
 
 /**
@@ -38,7 +38,7 @@ export function applyIbanFix(demo: DemoCompany, employeeId: string,
   iban: string): IbanFixResult {
   const value = iban.replace(/\s+/g, "").toUpperCase();
   if (!demo.employees.some((e) => e.id === employeeId)) {
-    return { ok: false, reason: "There is no such employee in the demo.",
+    return { ok: false, reason: "There is no such employee.",
       findings: [] };
   }
   if (!SHAPE.test(value)) {

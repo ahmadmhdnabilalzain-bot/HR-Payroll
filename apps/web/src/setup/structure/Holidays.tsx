@@ -29,7 +29,7 @@ export function Holidays(p: { d: StructureData }) {
   return (
     <div>
       <MonthCalendar title="Public holidays"
-        lede="Sample dates, to follow the official announcement."
+        lede="Expected dates. The Cabinet announces the final ones."
         month={month} monthLabel={formatMonth(month, lang)}
         rows={[{ id: "hol", label: "Public holiday" }]} events={events}
         onMonth={step} />

@@ -9,7 +9,7 @@ export const reports = {
   csv: "Download CSV",
   print: "Print",
   hiddenCsv: "Show amounts to download",
-  foot: "{count} rows. {scope}. Fictional data.",
+  foot: "{count} rows. {scope}.",
   summaryTitle: "Payroll summary",
   summaryBlurb: "This month's totals beside last month's.",
   summaryNote: "Totals are sums of the payslips, exactly. {scope}.",
@@ -18,11 +18,11 @@ export const reports = {
   deptNote: "Cost is monthly gross pay from this run.",
   natTitle: "Headcount by nationality",
   natBlurb: "How many people of each nationality work here.",
-  natNote: "Headcount only, as of {date}. Sample data, regime for banks " +
-    "to be confirmed.",
+  natNote: "Headcount by nationality only, as of {date}. The rules for " +
+    "banks are not confirmed yet.",
   docTitle: "Documents expiring",
   docBlurb: "Residence visas, Emirates IDs and passports, soonest first.",
-  docNote: "Days left are counted from the demo's today.",
+  docNote: "Days left are counted from the report date.",
   filesTitle: "Salary file register",
   filesBlurb: "Every salary file made, with its people, amount and date.",
   filesNote: "The bank checks each file again when it is uploaded.",

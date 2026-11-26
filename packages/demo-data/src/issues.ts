@@ -100,10 +100,9 @@ function engineFlags(c: DemoCompany): DemoIssue[] {
     s.payslip.flags.flatMap((f) => flagIssue(c, s, f)));
 }
 
-/** The demo's wording for the overall cap (a ruling, not the law). */
-export const DEDUCTION_CAP_NOTE = "Deductions are limited to 50% of the " +
-  "wage in our rules (secondary-sourced; the 85% payment test is not " +
-  "applied in this demo).";
+/** The wording for the overall cap; its source status shows in Explain. */
+export const DEDUCTION_CAP_NOTE = "Deductions are kept to half of the " +
+  "wage.";
 
 function deferred(c: DemoCompany): DemoIssue[] {
   return c.payRun.payslips.flatMap((s) => s.payslip.deferred.map((d) =>
@@ -157,10 +156,9 @@ function sifFindings(c: DemoCompany): DemoIssue[] {
       sif: sifPlace(c, f), severity: f.severity };
     if (f.code === "ROUTING_UNKNOWN") {
       return issue({ ...at, code: f.code, kind: "note",
-        severity: "info", title: "Demo bank code",
-        en: "This demo uses an invented bank, so its routing code is " +
-          "not in the bank code list. A real bank's code is checked " +
-          "here." });
+        severity: "info", title: "Bank code not listed",
+        en: "The bank's routing code is not in the code list, so " +
+          "this line is a note, not a problem." });
     }
     if (f.code === "IBAN_CHECKSUM" && employeeId !== null) {
       return issue({ ...at, code: f.code,

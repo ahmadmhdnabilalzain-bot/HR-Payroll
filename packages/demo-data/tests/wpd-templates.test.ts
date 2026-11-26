@@ -127,7 +127,7 @@ describe("WPD holidays", () => {
     each((c) => {
       const h = holidays(c);
       expect(h.every((x) => x.display.note === HOLIDAY_NOTE)).toBe(true);
-      expect(HOLIDAY_NOTE).toMatch(/Sample dates/);
+      expect(HOLIDAY_NOTE).toMatch(/Expected dates/);
       const nd = h.find((x) => x.id === "hol-national-day")!;
       expect(holidayDates(nd)).toEqual(["2026-12-02", "2026-12-03"]);
       const notice = homeNoticesFor(c, "gm").find((n) =>

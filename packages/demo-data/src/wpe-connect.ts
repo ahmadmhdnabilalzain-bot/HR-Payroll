@@ -39,8 +39,7 @@ export interface ConnectPage {
 
 export const ON_OFF = ["On", "Off"] as const;
 
-const NOTICE = "Nothing is connected in this demo, which runs in your " +
-  "browser. No message is sent or received.";
+const NOTICE = "Nothing is connected yet. No message is sent or received.";
 
 const item = (key: string, label: string, value: string, help: string,
   choices: readonly string[] | null = null): ConnectItem =>
@@ -85,7 +84,7 @@ function whatsapp(c: DemoCompany): ConnectPage {
       ] },
       { title: "What the message says", items: [
         item("wa:sample", "Sample message", "Not sent", `${sample} ` +
-          "Built from a real request in this demo."),
+          "Built from a request on this page."),
         item("wa:record", "Every answer is recorded", "Always",
           "Who answered, in which role and when go in the audit trail, " +
           "as for an answer on screen."),
@@ -161,7 +160,7 @@ function calendar(c: DemoCompany): ConnectPage {
         feed("leave", "Team leave", leave, "managers and HR", "7c1d",
           "leave booked or waiting"),
         feed("holidays", "Public holidays", hols, "everyone",
-          "02ae", "upcoming sample holidays"),
+          "02ae", "upcoming holidays"),
         feed("documents", "Document renewals", docs, "HR only",
           "9b40", "visas, Emirates IDs and passports still valid"),
         feed("pay", "Pay dates", dates, "HR and the General manager",

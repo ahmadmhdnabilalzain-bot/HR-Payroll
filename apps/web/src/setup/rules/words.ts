@@ -107,15 +107,16 @@ const PLAIN: Record<string, string> = {
     "working day.",
   timeOvertimeMaxMinutesPerDay: "Overtime should not pass 2 hours a " +
     "day. More is flagged; pay is never cut.",
-  timeMaxMinutesPer3Weeks: "At most 144 hours of overtime in three " +
-    "weeks.",
+  timeMaxMinutesPer3Weeks: "Overtime and normal hours together: at " +
+    "most 144 hours in three weeks.",
   timeNightWindow: "Night work is between 10 pm and 4 am.",
   timeMaxConsecutiveRestDaysWorked: "No one may be asked to work more " +
     "than two rest days in a row.",
   timeMinWeeklyRestDays: "At least one paid rest day every week.",
   timeHolidayWorkCompensated: "Work on an official holiday earns a " +
     "rest day or extra pay.",
-  timeAnnualLeaveMinDays: "At least 30 days of annual leave a year.",
+  timeAnnualLeaveMinDays: "At least 30 days of annual leave a year. " +
+    "The leave form counts working days.",
   timeFirstYearDaysPerMonth: "Between six months and a year of " +
     "service: 2 days of leave for each month.",
   timeCarryOverMaxShareBps: "Up to half of the annual leave may be " +

@@ -341,7 +341,7 @@ export interface CalendarMark {
   display: { when: string; note: string };
 }
 
-const NOTE_SAMPLE = "Sample date.";
+const NOTE_SAMPLE = "Planned date.";
 
 /** The last working day of a month: the demo's payday. */
 function paydayOf(ym: string): string {

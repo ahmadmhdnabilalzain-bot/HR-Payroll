@@ -62,7 +62,7 @@ export function exitFlows(c: DemoCompany): ExitFlow[] {
     const inRun = c.payRun.payslips.some((p) => p.employeeId === e.id);
     const flags: ExitFlag[] = [
       flag("pay-by", days <= 7 ? "Check" : "Note", "Pay all dues in time",
-        `As we read it, the final dues are paid within ` +
+        `The final dues are paid within ` +
         `${plural(SETTLEMENT_DUE_DAYS, "day", "days")} of the last day, ` +
         `so by ${shortDateText(payBy)}. ` + (days < 0
           ? `That was ${plural(-days, "day", "days")} ago.`

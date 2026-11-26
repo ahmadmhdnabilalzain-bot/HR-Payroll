@@ -243,10 +243,9 @@ export function incidentsByMonth(c: DemoCompany,
 export type IloeStatus = "subscribed" | "due" | "exempt";
 
 export const ILOE_BASIS = "ILOE is the unemployment insurance scheme. " +
-  "These statuses are as we read the rules, and nothing here is sent to " +
-  "any authority. Subscribed or due follows the joining date; the sample " +
-  "stands in until subscriptions are loaded. No fees are shown.";
-export const ILOE_EXEMPT_NOTE = "As we read the rules, a few groups are " +
+  "Nothing here is sent to any authority. Subscribed or due follows " +
+  "the joining date, until subscriptions are loaded. No fees are shown.";
+export const ILOE_EXEMPT_NOTE = "A few groups are " +
   "exempt (for example people under 18 and domestic workers). Nobody at " +
   "the bank falls in one of them.";
 

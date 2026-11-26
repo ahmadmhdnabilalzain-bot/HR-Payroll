@@ -52,8 +52,7 @@ export function ParallelRun() {
         note={`${sample.note} Old system total ${m(r.theirsTotal)}. Each ` +
           "likely cause is the difference we get when we run " +
           "the person's month on the old system's assumption, as set up in " +
-          "this sample. Sample files made for the demo: nothing is " +
-          "imported."} />
+          "this sample. Nothing is imported."} />
     </>
   );
 }

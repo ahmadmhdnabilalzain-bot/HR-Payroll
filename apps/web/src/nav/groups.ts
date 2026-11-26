@@ -15,7 +15,7 @@ export const GROUPS: readonly Group[] = [
   g("people", "moves", "Joining and leaving", "الانضمام والمغادرة"),
   g("people", "requests", "Requests and letters", "الطلبات والخطابات"),
   g("people", "papers", "Documents and visas", "المستندات والتأشيرات"),
-  g("people", "compliance", "Compliance and safety", "الامتثال والسلامة"),
+  g("people", "compliance", "Papers and safety", "الوثائق والسلامة"),
   g("people", "growth", "Growth", "التطوير"),
   g("time", "leave", "Leave", "الإجازات"),
   g("time", "attendance", "Attendance", "الحضور"),

@@ -46,7 +46,7 @@ export function PayCalendar() {
   return (
     <MonthCalendar title="Pay calendar"
       lede={`The dates of the ${monthName(run)} pay run. The dates ` +
-        "are samples. The due date is the rule's, from a secondary source."}
+        "are planned. The due date is the rule's, from a secondary source."}
       month={month} monthLabel={monthName(month)}
       rows={steps.map((x) => ({ id: x.id,
         label: `${x.label}, ${formatDayMonth(x.on, lang)}` }))}

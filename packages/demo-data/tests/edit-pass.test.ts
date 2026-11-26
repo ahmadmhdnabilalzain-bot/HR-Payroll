@@ -54,7 +54,7 @@ describe("issue wording", () => {
     for (const t of ["Bank details missing", "Bank account number has " +
       "a typo", "Overtime above the daily limit", "Loan deduction capped",
     "Sick day in probation is unpaid", "Final settlement needs notice " +
-      "pay", "Pension: confirm the fund", "Demo bank code"]) {
+      "pay", "Pension: confirm the fund", "Bank code not listed"]) {
       expect(titles).toContain(t);
     }
   });

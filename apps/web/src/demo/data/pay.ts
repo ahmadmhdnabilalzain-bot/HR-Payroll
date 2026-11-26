@@ -150,8 +150,8 @@ function dueExplain(c: DemoCompany, s: ReturnType<
       from: "Employee record" }],
     rules: [{ text: `A final settlement is paid within ` +
       `${SETTLEMENT_DUE_DAYS} days after the last working day.`,
-    status: "convention", statusLabel: "as we read it",
-    citation: "Our reading of the UAE Labour Law, Decree-Law 33/2021" }],
+    status: "official", statusLabel: null,
+    citation: "Decree-Law 33/2021, Article 53" }],
     steps: [
       { text: "Last working day", value: text(s.display.lastDay) },
       { text: `Add ${SETTLEMENT_DUE_DAYS} days`,

@@ -359,8 +359,8 @@ const FINE = (n: number): FakeIdentifier => ({
 
 /** Fines on bank cars, waiting for a decision (fictional records). */
 export function trafficFines(c: DemoCompany): TrafficFine[] {
-  const note = "Recovering a fine from pay is not computed: the demo " +
-    "has no sourced rule for it, and any deduction would be checked " +
+  const note = "Recovering a fine from pay is not computed: there " +
+    "is no sourced rule for it, and any deduction would be checked " +
     "against the deduction limits.";
   return [["emp-013", "2026-10-09", 60000n, "Speeding, bank car"],
     ["emp-017", "2026-10-18", 40000n, "Parking, bank car"]].map(
@@ -422,7 +422,7 @@ const el = (code: string, label: string, type: PayElement["type"],
 export function payElements(): PayElement[] {
   return [
     el("basic", "Basic salary", "earning", "Contract, prorated by the " +
-      "engine", "Fixed pay"),
+      "payroll", "Fixed pay"),
     el("housing", "Housing allowance", "earning", "Contract", "Housing"),
     el("transport", "Transport allowance", "earning", "Contract",
       "Conveyance"),
@@ -432,8 +432,8 @@ export function payElements(): PayElement[] {
     el("overtime", "Overtime", "earning", "Computed by the payroll from " +
       "agreed hours", "Overtime"),
     el("loan", "Loan instalment", "deduction", "Entered; limited by the " +
-      "engine", "Taken from pay before the file"),
+      "deduction limits", "Taken from pay before the file"),
     el("traffic-fine", "Traffic fine recovery", "deduction", "Not " +
-      "computed in the demo", "Not in the file"),
+      "computed", "Not in the file"),
   ];
 }

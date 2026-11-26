@@ -618,7 +618,7 @@ function buildLeavers(c: readonly DemoEmployee[], run: DemoCompany["payRun"],
     ["pay-settlement", "Final settlement paid", "finance", due, null],
     ["certificate", "Experience certificate issued", "hr", due, null],
     ["visa-cancel", "Residence visa cancelled", "hr", isoIn(end, 30), null,
-      "Sample date: confirm the deadline with the immigration office"]]);
+      "Confirm the deadline with the immigration office"]]);
   const total = run.settlements.find((s) => s.employeeId === e.id)!
     .result.total;
   return [{ id: "leave-001", employeeId: e.id, personName: e.fullName,
@@ -687,8 +687,7 @@ function buildMoves(es: readonly DemoEmployee[], offers: HiringOffer[],
       previousService: { from: shortDateOf(first), to: shortDateOf(last),
         text: `${shortDateText(first)} to ${shortDateText(last)}` },
       offerId: re.id, note: "Previous service was settled when he left. " +
-        "The new period counts from the re-joining date: our reading, " +
-        "to confirm.",
+        "The new period counts from the re-joining date.",
       summary: `${former.name} re-joins on ${re.joiningDate.display}` }];
 }
 

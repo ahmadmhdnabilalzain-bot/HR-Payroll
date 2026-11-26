@@ -10,7 +10,7 @@ import { issuesOf } from "./issues";
 import type { DemoCompany } from "./types";
 
 export interface CalendarItem { key: string; label: string;
-  date: DisplayDate; basis: "sample date" | "our reading" }
+  date: DisplayDate; basis: "planned date" | "our reading" }
 
 export interface PayCalendar {
   asOf: string; cutOff: string; approveBy: string;
@@ -20,7 +20,7 @@ export interface PayCalendar {
   legalDueNote: string;
   /** The timeline in order, each with its display date. */
   items: CalendarItem[];
-  label: "sample dates";
+  label: "planned dates";
 }
 
 function settlementDueOf(c: DemoCompany): PayCalendar["settlementDue"] {
@@ -37,7 +37,7 @@ export function payCalendar(c: DemoCompany): PayCalendar {
   const due = settlementDueOf(c);
   const sample = (key: string, label: string, iso: string)
     : CalendarItem => ({ key, label, date: dateOf(iso),
-    basis: "sample date" });
+    basis: "planned date" });
   const items = [sample("cutOff", "Cut-off for changes", p.cutOff),
     sample("asOf", "Today", p.asOf),
     sample("approveBy", "Sign off by", p.approveBy),

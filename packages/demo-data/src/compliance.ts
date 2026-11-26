@@ -18,7 +18,7 @@ export function buildNationalities(employees: DemoEmployee[])
     counts.set(e.nationality, (counts.get(e.nationality) ?? 0) + 1);
   }
   return { asOf: AS_OF,
-    label: "sample data, regime for banks to be confirmed",
+    label: "The rules for banks are not confirmed yet",
     headcount: active.length,
     uaeNationals: active.filter((e) => e.nationality === "AE").length,
     byNationality: [...counts.entries()].map(([nationality, count]) =>

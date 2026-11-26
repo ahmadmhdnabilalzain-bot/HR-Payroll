@@ -333,7 +333,7 @@ export function leaveLiability(c: DemoCompany): LiabilityRow[] {
 
 export const LIABILITY_NOTE = "Unused annual days at one day of basic " +
   "salary each, the same sum as leave encashment. Air tickets are not " +
-  "set up in this demo, so none are counted.";
+  "set up, so none are counted.";
 
 /* ---------------------------------------------------------------- *
  * T11 Attendance corrections

@@ -39,7 +39,7 @@ export const payrun = {
   hint: "Tap a figure with a dotted line to see how it is worked out.",
   hintOk: "Got it",
   payLocked: "Pay opens once the General Manager signs off the run.",
-  footLine: "UAE mainland rules, as we read them. Fictional data.",
+  footLine: "Based on UAE mainland rules, as we read them.",
   everyone: "Everyone on this run",
   colName: "Name",
   colNet: "Net pay",
@@ -110,7 +110,8 @@ export const payrun = {
   allChecked: "Every check is marked reviewed.",
 
   payTitle: "Pay",
-  paySub: "The salary file for the bank's wage protection upload.",
+  paySub: "The salary file to upload to the bank under the Wage " +
+    "Protection System.",
   fileHeadline: "Salary file for {count} people, {amount}, to {bank}, " +
     "dated {date}",
   draft: "Draft: the file is final once the General Manager signs off.",

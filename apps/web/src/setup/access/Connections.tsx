@@ -122,7 +122,7 @@ export function HookRecord(p: { d: AccessData; id: string; tab: string;
                     {x.note} {x.attempts > 1
                       ? `${x.attempts} attempts.` : ""}
                     {again !== undefined && ` Sent again by ${
-                      stampText(again)} (the demo sends nothing outside
+                      stampText(again)} (nothing is sent outside
                       your browser).`}
                   </small>
                 </span>
@@ -134,8 +134,8 @@ export function HookRecord(p: { d: AccessData; id: string; tab: string;
                       onClick={() => {
                         dispatch({ type: "hook-resend", id: x.id,
                           stamp: actor.stamp() });
-                        toast.show("Queued to send again. The demo sends " +
-                          "nothing outside your browser.", () => dispatch(
+                        toast.show("Queued to send again. Nothing is sent " +
+                          "outside your browser.", () => dispatch(
                           { type: "hook-unresend", id: x.id }));
                       }}>Send again</button>
                   ) : (

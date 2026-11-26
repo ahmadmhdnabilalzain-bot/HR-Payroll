@@ -540,7 +540,7 @@ function noticesOf(c: DemoCompany): HomeNotice[] {
       "10:00. Use the stairs and meet at the car park.", [HQ]),
     n("notice-006", gm, "2026-10-20", "2026-12-03", false, "holiday",
       "UAE National Day holiday", "The dates follow the official " +
-      "announcement. Sample planning dates: 2 and 3 Dec 2026."),
+      "announcement. Expected dates: 2 and 3 Dec 2026."),
     n("notice-007", hr, "2026-10-20", move.effectiveOn.iso, false,
       "people", `${move.personName} moves branch`, `${move.summary}, ` +
       `from ${move.effectiveOn.display}.`,

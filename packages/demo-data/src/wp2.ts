@@ -239,7 +239,7 @@ export interface TeamData {
 }
 
 const GM_JOB = "general-manager";
-const BOARD_TEXT = "Board chair (outside this demo)";
+const BOARD_TEXT = "Board chair (outside the company)";
 
 const nameOf = (es: readonly DemoEmployee[], id: string | null): string =>
   id === null ? BOARD_TEXT : es.find((e) => e.id === id)!.fullName;
@@ -542,7 +542,7 @@ function probationOf(c: DemoCompany): ProbationEvaluationView[] {
           "the pay run)"]),
         `Decide by ${shortDateText(engine.employerNoticeDeadline!)}: ` +
         "after that the employer's notice period applies (Decree-Law " +
-        "33/2021 Art 9, as read in our notes)"] };
+        "33/2021 Art 9, as we read it)"] };
   });
 }
 

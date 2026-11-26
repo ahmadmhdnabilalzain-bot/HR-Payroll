@@ -125,7 +125,7 @@ export function elementReport(c: DemoCompany): ElementReport {
       .map((l) => l.amount)),
     note: "Each line of every payslip is put under its pay element. " +
       "Earnings add up to gross pay for each month. Traffic fine " +
-      "recovery is not computed in the demo." };
+      "recovery is not computed." };
 }
 
 /* ---------------------------------------------------------------- *
@@ -552,14 +552,14 @@ export function parallelCauses(c: DemoCompany, employeeId: string)
   if (deferred !== 0n) {
     out.push({ key: "loan-cap", kind: "rule", difference: deferred,
       text: "The old system takes the whole loan instalment. We take " +
-        "only what the deduction limit allows, as we read it, and carry " +
-        "the rest to next month." });
+        "only what the deduction limit allows and carry the rest to " +
+        "next month." });
   }
   if (i.overtime.some((o) => o.nightMinutes > 0)) {
     out.push({ key: "night-rate", kind: "rule", difference: diff(rerun(s, {
       ...i, overtime: i.overtime.map((o) => ({ ...o, nightMinutes: 0 }))
     })), text: "The old system pays night overtime at the daytime rate. " +
-      "We pay the higher night rate, as we read the law." });
+      "We pay the higher night rate." });
   }
   return out.filter((x) => x.difference !== 0n);
 }
@@ -804,5 +804,5 @@ export function customFields(): CustomField[] {
 /** Where a custom field can never show, said once. */
 export const CUSTOM_FIELD_LIMITS = "Extra fields never go in the salary " +
   "file and never change a payslip figure. They are kept with the " +
-  "employee record and can be added to reports. Sample fields: no " +
-  `values are held in the demo (as of ${reportDate(AS_OF)}).`;
+  "employee record and can be added to reports. No values " +
+  `are held yet (as of ${reportDate(AS_OF)}).`;
