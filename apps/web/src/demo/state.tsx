@@ -18,6 +18,12 @@ import {
   type RulesAction,
   type RulesSlice,
 } from "../setup/rules/state";
+import {
+  ACCESS_INITIAL,
+  reduceAccess,
+  type AccessAction,
+  type AccessSlice,
+} from "../setup/access/state";
 
 /** manager and employee: the team view and the self view. */
 export type Role = "hr" | "gm" | "manager" | "employee";
@@ -31,7 +37,8 @@ export type Verdict = "approve" | "decline";
 export type Resolution = "reviewed" | "renewal";
 
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
-export interface DemoState extends LeaveSlice, RulesSlice {
+export interface DemoState
+  extends LeaveSlice, RulesSlice, AccessSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -56,11 +63,13 @@ export type Action =
   | { type: "focus-issue"; id: string | null }
   | { type: "sources"; open: boolean }
   | LeaveAction
-  | RulesAction;
+  | RulesAction
+  | AccessAction;
 
 export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
+  ...ACCESS_INITIAL,
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -88,6 +97,14 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "restore-leave": return reduceLeave(s, a);
     case "rule-edit":
     case "rule-undo": return reduceRules(s, a);
+    case "access-keep":
+    case "access-unkeep":
+    case "access-signoff":
+    case "access-unsign":
+    case "key-revoke":
+    case "key-restore":
+    case "hook-resend":
+    case "hook-unresend": return reduceAccess(s, a);
   }
 }
 
