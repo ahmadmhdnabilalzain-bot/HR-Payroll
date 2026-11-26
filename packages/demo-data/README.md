@@ -123,3 +123,37 @@ the new hire (case `probation`) and the leaver (case `leaver`).
 - `hiringSummary`, `managerIdFor` (the line-manager rule, the same as
   the approval checker), `shortDateText` ("27 Oct 2026", unlike
   `displayDate`), `dueTextOf`.
+
+## WP2: team and growth (`src/wp2.ts`)
+
+Fictional org chart, seats, appraisals, goals and probation
+evaluations for the same 31 people. It builds on WP3 (`wp3.ts`) and,
+like it, derives every date and amount from the employee records.
+
+- Org chart (`orgChart`, `reportingLineOf`, `directReportsOf`): the
+  General Manager on top, heads of department, then staff; branch
+  staff report to their own branch manager. The rule is
+  `managerIdFor`, the same as the approval checker (a test compares
+  the two). The leaver is not on the chart.
+- Seats (`positionViews`, `positionsByDepartment`): one seat per
+  employee (30 filled, the leaver's vacant since 16 Oct 2026, linked to
+  its requisition) plus the new seats of the WP3 requisitions (two
+  vacant, one on hold). Pay bands are the bank's grade bands.
+- Overview (`peopleOverview`, `staffAcrossSites`, `costCentreViews`):
+  every figure is a count of a list; cost centres carry the run's own
+  gross per department.
+- Appraisals (`appraisalCycleViews`, `appraisalViews`): annual 2025
+  and mid-year 2026 finalised, annual 2026 open (self-assessment due
+  13 Nov 2026). Only people who joined before the cycle and had not
+  left are in it. Ratings follow a fixed pattern, not a random draw.
+  The back-pay case's AED 1,000 raise is the mid-year outcome,
+  effective 1 Sep 2026 (the existing back pay derivation); no other
+  pay change is recorded.
+- Goals (`goalViews`, `departmentPerformance`): three goals per
+  department, two per person (weights 60 and 40), two probation goals
+  for the new hire. Status is progress against the pace of the year.
+- Probation (`probationEvaluationViews`, `teamProbationOf`): one for
+  each employee with a probation end date; past ones confirmed, the
+  new hire's in progress with the engine's last notice day and notes
+  taken from the leave and attendance records. Skills, training and
+  surveys (P63 to P65) are not covered.
