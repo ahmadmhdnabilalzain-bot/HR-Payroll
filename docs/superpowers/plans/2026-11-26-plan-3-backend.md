@@ -92,7 +92,8 @@ Mergeable on its own; Plan 4 starts from this task's commit.
 - Create: `packages/contract/package.json` (`@payroll/contract`, exports
   `.` to `./src/index.ts`, dependency `zod` 4.6.7, script `openapi`
   = `tsx src/write-openapi.ts` writing `dist/openapi.json`),
-  `packages/contract/tsconfig.json` (engine's, but `types: []`)
+  `packages/contract/tsconfig.json` (engine's; dev dependency `@types/node`
+  22.20.7 for tests and `write-openapi.ts` only)
 - Create in `packages/contract/src/`: `primitives.ts`, `roles.ts`,
   `errors.ts`, `company.ts`, `user.ts`, `department.ts`, `employee.ts`,
   `leave.ts`, `attendance.ts`, `trace.ts`, `payroll.ts`, `sif.ts`,
@@ -165,7 +166,8 @@ Mergeable on its own; Plan 4 starts from this task's commit.
   Constraints, in that order), `PayRunEntry { employeeId;
   componentOverrides?: { code; amount: Money }[]; oneOffs?: { code;
   label; amount: Money; sifBucket: SifBucket excluding "fixed" }[];
-  unusedLeaveDays?: int >= 0 }`, `PayRunCreate { period: Period;
+  unusedLeaveDays?: int >= 0; serviceUnpaidLeaveDays?: int >= 0 }`
+  (the last two are required for a leaver), `PayRunCreate { period: Period;
   entries: PayRunEntry[] }`, `PayRunProblem { employeeId; code: ErrorCode;
   missing: string[] }`, `PayRun { id; period; status: "draft" |
   "approved" | "void"; createdBy; approvedBy: Id | null; createdAt;
@@ -192,7 +194,8 @@ Mergeable on its own; Plan 4 starts from this task's commit.
 - `routes.ts`: `RouteDef { id; method: "GET"|"POST"|"PUT"|"PATCH";
   path; auth: "public" | "user" | "tenant"; roles: readonly Role[];
   mfa: boolean; params?; query?; body?; headers?; response: ZodType;
-  status: 200 | 201 | 204; contentType?: "text/plain" }` and `ROUTES:
+  status: 200 | 201 | 204; altStatus?: 200 (pay-run and SIF create,
+  which replay); contentType?: "text/plain" }` and `ROUTES:
   readonly RouteDef[]` with exactly these entries (path, roles; mfa
   true where marked):
   - public: `POST /v1/signup` (`signup`), `POST /v1/auth/login`
@@ -229,10 +232,34 @@ Mergeable on its own; Plan 4 starts from this task's commit.
   route `id`; bearer security on non-public routes; `X-Company-Id`
   header parameter on tenant routes; every error status refers to
   `ApiErrorBody`).
+- Request and response schemas per route (lists are bare arrays, no
+  paging envelope except audit events): signup `SignupRequest` to
+  `LoginResponse`; login `LoginRequest` to `LoginResponse`;
+  acceptInvite `AcceptInviteRequest` to `LoginResponse`; health to
+  `{ ok: true }`; logout to 204; me to `Me`; mfa enrol to
+  `MfaEnrolResponse`; mfa confirm `MfaConfirmRequest` to `Me`; company
+  get and patch (`CompanyUpdate`) to `Company`; users list to
+  `(User & { role })[]`; invite `InviteRequest` to `InviteResponse`;
+  employees list to `EmployeeView[]`, get, create (`EmployeeCreate`),
+  patch (`EmployeeUpdate`), salary put (`SalaryUpdate`) and bank put
+  (`BankDetails`) to `EmployeeView`; bank get to `BankDetails`;
+  departments to `Department[]` / `Department`; leave types to
+  `LeaveType[]` / `LeaveType`; leave requests list (query `employeeId?,
+  status?, year?`) to `LeaveRequest[]`; create, approve, reject
+  (`LeaveDecision`), cancel to `LeaveRequest`; leave balances (query
+  `year`) to `LeaveBalance[]`; leave adjustments to `LeaveBalance`;
+  clock-in and clock-out (no body) and correction
+  (`AttendanceCorrection`) to `AttendanceRecord`; attendance list
+  (`AttendanceQuery`) to `AttendanceRecord[]`; pay runs create
+  (`PayRunCreate`), get, approve, void to `PayRun`, list to `PayRun[]`;
+  run payslips and me payslips to `Payslip[]`; payslip get to
+  `Payslip`; SIF create and get to `SifFile`; download to text; audit
+  events (query `before?: seq, limit?`) to `{ events: AuditEvent[];
+  nextBefore: int | null }`; verify to `AuditVerifyResult`.
 - `examples.ts`: `EXAMPLES: Record<string, unknown>` keyed by schema
   name, one valid example per response schema (Plan 4 uses them as
-  mocks); salary amount examples use `"7777.77"` and IBAN examples use
-  `"AE070331234567890123456"`, the sentinels Task 5's leak test greps.
+  mocks); amounts and IBANs in examples are obviously fake
+  (`"1234.00"`, `"AE070331234567890123456"`).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -442,9 +469,14 @@ fresh schema.
     `register(app, routeId, handler)` looks up the `RouteDef`, applies
     in order: request id, auth (`public` / `user` / `tenant`), role check
     from `def.roles`, MFA check from `def.mfa`, zod validation of
-    params, query, headers and body, then the handler; the handler
-    receives `ReqCtx { deps; user; session; tenant: { companyId; role;
-    employeeId } | null; params; query; body; headers }`.
+    params, query, headers and body, then the handler. Tenant routes
+    run the whole handler inside exactly one `withTenant` call (user
+    routes with `companyId: null`); the handler receives `ReqCtx {
+    deps; tx: Db; user; session; tenant: { companyId; role; employeeId }
+    | null; params; query; body; headers }` and never opens its own
+    transaction. Public routes get `ctx.enterTenant(companyId, fn)`
+    instead, which runs `fn(tx)` in one `withTenant` (signup,
+    accept-invite); login reads only the global `users` table.
   - `class ApiError { status; code: ErrorCode; detail? }`; error
     mapping: `ZodError` to 400 `VALIDATION_FAILED` with field paths
     (never values), `EngineError` to 422 `ENGINE_REFUSED` with only
@@ -481,9 +513,13 @@ fresh schema.
     gives 403 `FORBIDDEN`; MFA routes with `session.mfa = false` give
     403 `MFA_REQUIRED`, or `MFA_ENROLMENT_REQUIRED` when not enrolled;
     no or expired token gives 401 `UNAUTHENTICATED`.
-  - Invites: `POST /v1/users/invite` returns a setup token valid 72
-    hours (shown once, stored hashed); accept creates or links the user
-    and the membership; reuse gives 410 `INVITE_USED`.
+  - Invites: `POST /v1/users/invite` returns a setup token
+    `<companyId>.<32 random bytes base64url>` valid 72 hours (shown
+    once; only the SHA-256 of the secret part is stored). Accept parses
+    the company id from the token, enters that tenant, then looks the
+    invite up (a wrong company id finds nothing: 404
+    `INVITE_NOT_FOUND`); it creates or links the user and the
+    membership; reuse gives 410 `INVITE_USED`.
   - Every response carries `X-Request-Id`; `log` gets one line per
     request with `requestId, method, routeId, status, ms, companyId,
     userId` and never a body.
@@ -567,8 +603,14 @@ gives 410; `GET /v1/users` as `hr` is 403.
     `department.created`, `department.updated`.
   - `seed.ts`: `seedCompany(app, name)` returns tokens for an owner,
     hr, manager and employee user, the manager's direct report (the
-    employee), one more employee outside the manager's team, salaries
-    with amount `"7777.77"` and IBAN `"AE070331234567890123456"`.
+    employee), one more employee outside the manager's team. Each
+    employee gets a distinct sentinel basic amount and IBAN
+    (`SENTINELS: Record<employeeId, { amount; iban }>`, amounts
+    `"7777.01"`, `"7777.02"` and so on, IBANs
+    `"AE07033123456789012345"` plus a distinct last digit), so a test
+    can tell whose data leaked. `seedPayroll(app, seeded)` (Task 7)
+    creates and approves a run and returns its run and payslip ids;
+    `seedSif` (Task 8) adds a SIF file id.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -580,8 +622,8 @@ per the rules above.
 self and the report only; employee list contains only self; employee
 GET of another employee is 404; salary without `basic` is 422
 `BASIC_COMPONENT_REQUIRED`; salary update audit row's `data` JSON text
-does not contain `"7777.77"`; the `employees` row's `salary_enc` and
-`iban_enc` columns do not contain `7777.77` or `AE0703`; bank reveal
+contains no sentinel amount; the `employees` row's `salary_enc` and
+`iban_enc` columns contain no sentinel amount or IBAN; bank reveal
 without an MFA session is 403 `MFA_REQUIRED`, with one returns the IBAN
 and writes `employee.bank.revealed`; duplicate employee number is 409
 `EMPLOYEE_NUMBER_TAKEN`; company B's owner fetching A's employee id
@@ -590,9 +632,12 @@ with B's header gets 404.
 `leak.test.ts` (Review Focus 1): for every `GET` route in `ROUTES` with
 `auth: "tenant"` and every role of `seedCompany`, call it (fill `{id}`
 with seeded ids of the right type; query defaults per route); for
-pairs not in `MAY_SEE_SENSITIVE` (a table in the test: owner and hr on
-employee routes, self on own employee and own payslips), the body text
-contains neither `"7777.77"` nor `"AE070331234567890123456"`. Also for
+every employee whose data the caller may not see (`mayView(role,
+callerEmployeeId, employeeId, routeId)`, a table in the test: owner and
+hr see everyone on employee and payroll routes; anyone sees self on
+own employee and own payslips; nobody else), the body text contains
+neither that employee's sentinel amount nor sentinel IBAN. A manager
+response containing the report's amount fails the test. Also for
 company B's owner, every `{id}` route given company A's ids returns 404.
 Routes added by later tasks join this test automatically.
 
@@ -722,18 +767,22 @@ High risk (money): this task keeps per-task review.
     5. Leaver in the period (`lastWorkingDate` inside it): needs
        `unusedLeaveDays` in its entry, else problem
        `SETTLEMENT_INPUT_REQUIRED`. Calls `calculateSettlement({
-       gratuity: { joiningDate, lastWorkingDate, unpaidLeaveDays: 0,
-       lastBasicMonthly: <basic component>, workerClass },
-       unusedLeaveDays }, GRATUITY_PACKS)`. Success gives `Settlement`
-       `computed` with `explanation.en/ar` from `explainTrace` and
-       `includedInSif: false`; an `EngineError` gives `refused` with its
-       code and message (Review Focus 4). Settlement is not added to
-       `gross`. (Unpaid leave across the whole service is not stored
-       in M1; `unpaidLeaveDays: 0` is recorded in `notComputed` of the
-       settlement as "unpaid leave over service (not recorded yet)".)
+       gratuity: { joiningDate, lastWorkingDate, unpaidLeaveDays:
+       entry.serviceUnpaidLeaveDays, lastBasicMonthly: <the recurring
+       monthly `basic` component from the salary record, never an
+       override>, workerClass }, unusedLeaveDays }, GRATUITY_PACKS)`.
+       Both entry fields are HR-entered inputs; missing either gives
+       `SETTLEMENT_INPUT_REQUIRED` with `missing` naming it. Success
+       gives `Settlement` `computed` with `explanation.en/ar` from
+       `explainTrace` and `includedInSif: false`; an `EngineError`
+       gives `refused` with its code and message (Review Focus 4).
+       Settlement is not added to `gross`.
     6. `notComputed` on each payslip and the run = `NOT_COMPUTED_PAY`.
   - `createPayRun(ctx, key, body): Promise<{ status: 200 | 201; run:
-    PayRun }>`: builds the snapshot in the tenant transaction, computes,
+    PayRun }>`: first looks up a run with this key; if found, same
+    request hash gives 200 with that run (even if employees changed
+    since), other hash 409 `IDEMPOTENCY_KEY_REUSED`. Otherwise builds
+    the snapshot in the tenant transaction, computes,
     on any problem returns 422 `PAY_RUN_PROBLEMS` with `detail.problems`
     (codes and employee ids only); else
     `INSERT ... ON CONFLICT DO NOTHING RETURNING id` (no conflict
@@ -752,7 +801,7 @@ High risk (money): this task keeps per-task review.
     scope).
   - Payslip reads: owner and hr any; others own payslips of approved
     runs only (`GET /v1/me/payslips`, `GET /v1/payslips/{id}` else 404).
-  - Audit: `pay-run.created` (`data: { period, employeeCount,
+  - Audit: `pay-run.created` (`data: { year, month, employeeCount,
     inputHash }`), `pay-run.approved`, `pay-run.voided`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -776,7 +825,12 @@ High risk (money): this task keeps per-task review.
   `UNSUPPORTED_WORKER_CLASS` (or the code the engine throws, asserted
   by calling the engine in the test) and the payslip still exists.
 - `compute_leaver_needs_leave_days`: no `unusedLeaveDays` gives
-  `SETTLEMENT_INPUT_REQUIRED`.
+  `SETTLEMENT_INPUT_REQUIRED` with `missing` `["unusedLeaveDays"]`; no
+  `serviceUnpaidLeaveDays` gives `missing`
+  `["serviceUnpaidLeaveDays"]`.
+- `compute_midmonth_leaver_uses_recurring_basic`: left `2026-03-15`,
+  basic 4000.00, override basic 1935.48: the settlement equals the
+  engine's result for `lastBasicMonthly` 400000n, not 193548n.
 - `compute_uae_national_not_applicable`: `outcome "not-applicable"`,
   reason equals the engine's `UAE_NATIONAL_REASON`.
 - `compute_deterministic` (fast-check, 100 runs over 1 to 50 random
@@ -792,7 +846,10 @@ High risk (money): this task keeps per-task review.
 `{201, 200}` and the same `id`; `SELECT count(*)` is 1; the same key
 with another body gives 409 `IDEMPOTENCY_KEY_REUSED`; a new key for the
 same period gives 409 `RUN_EXISTS_FOR_PERIOD`; after `void`, a new key
-for the period gives 201; no header gives 400.
+for the period gives 201; no header gives 400;
+`idempotent_replay_after_change`: after a 201, change an employee's
+salary, resend the same key and body: 200 with the original `id` and
+`inputHash`.
 
 `pay-runs.test.ts`: hr creates, hr approve gives 403 `FORBIDDEN`;
 the owner who created approves gives 403 `SOD_VIOLATION` (owner B is
@@ -801,7 +858,7 @@ a second owner invited in the test); approve without MFA gives 403
 own payslip only after approval and 404 for a colleague's; payslip
 amounts equal `toMoney` of the computed lines; `pay-run.created` audit
 `data` JSON has no amount; the `payslips` table text has no
-`"7777.77"`; a 422 `PAY_RUN_PROBLEMS` body lists employee ids and codes
+sentinel amount; a 422 `PAY_RUN_PROBLEMS` body lists employee ids and codes
 and no amounts.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/api test`. Expected: FAIL.
@@ -816,7 +873,8 @@ and no amounts.
 
 **Files:**
 - Create: `packages/api/src/payroll/sif.ts`, `src/routes/sif.ts`,
-  `src/routes/audit.ts`, `src/main.ts`, `migrations/006_sif.sql`
+  `src/routes/audit.ts`, `src/config.ts`, `src/main.ts`,
+  `migrations/006_sif.sql`
 - Modify: root `package.json` (scripts `api:dev` = `tsx
   packages/api/src/main.ts`, `api:migrate`), `HANDOVER.md`, `LEDGER.md`
 - Test: `packages/api/tests/sif.test.ts`,
@@ -853,12 +911,17 @@ and no amounts.
     `sif.downloaded`.
   - `GET /v1/audit-events?before&limit` (newest first, limit 1..200,
     default 50) and `GET /v1/audit-events/verify`.
-  - `main.ts`: reads `DATABASE_URL`, `PAYROLL_MASTER_KEY` (base64, 32
-    bytes; refuse to start with exit code 1 and message
-    `PAYROLL_MASTER_KEY must be 32 bytes base64` otherwise), `PORT`
-    (default 8787); runs migrations as the connecting owner role, then
-    serves with `@hono/node-server`. No other file reads
-    `process.env`.
+  - `config.ts`: `loadConfig(env: Record<string, string | undefined>):
+    { databaseUrl; migrateUrl; masterKey: Uint8Array; port: number }`
+    reading `DATABASE_URL` (login role that is a member of
+    `payroll_app`, not table owner), `MIGRATE_DATABASE_URL` (owner
+    role, used only by `api:migrate`), `PAYROLL_MASTER_KEY` (base64,
+    32 bytes; else throws `PAYROLL_MASTER_KEY must be 32 bytes
+    base64`), `PORT` (default 8787).
+  - `main.ts`: `main.ts migrate` runs migrations on `migrateUrl`;
+    otherwise serves on `databaseUrl` with `@hono/node-server`, exit
+    code 1 on a config error. Only `main.ts` reads `process.env` and,
+    with `src/db/`, imports `src/db/pg`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -885,7 +948,7 @@ every error body in the suite's recorded responses parses with
 `audit-routes.test.ts`: after the Task 7 flow, `GET
 /v1/audit-events/verify` returns `ok: true`; manager gets 403; events
 list for company A never shows company B's events; no event `data`
-contains `"7777.77"` or `"AE0703"`.
+contains any sentinel amount or IBAN.
 
 `main.test.ts`: `loadConfig({})` throws with the master-key message;
 `loadConfig` with a 16-byte key throws; a valid env returns
@@ -958,9 +1021,10 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`.
 12. **Final settlement is shown on the leaver's payslip, not added to
     gross and not put in the SIF.** Whether gratuity travels through
     WPS is unsourced. Cost: HR pays settlement separately for now.
-13. **Unpaid leave over the whole service is not recorded in M1**; the
-    settlement passes 0 and says so. Cost: gratuity is overstated for
-    leavers with unpaid leave until leave history is imported.
+13. **Unpaid leave over the whole service is an HR-entered input** on
+    the leaver's pay-run entry (`serviceUnpaidLeaveDays`), because leave
+    history before the system is not stored. Cost: a typing error
+    changes the gratuity; the trace shows the entered value.
 14. **SIF buckets:** each salary component carries `sifBucket`; `fixed`
     goes to EDR fixed, the seven EVP categories to variable and EVP
     (field order from the bank guides in the WPS layout note). Cost: a
