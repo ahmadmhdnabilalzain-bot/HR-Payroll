@@ -40,3 +40,34 @@
 .next {
   color: var(--color-text-muted);
 }
+
+/* The status rail fills once per load (the hero's first reveal): the
+ * track is there, and the ink fills the steps behind and the one now
+ * in turn from the start edge. */
+:global([data-hero-first="true"]) .dots > li[data-state="done"],
+:global([data-hero-first="true"]) .dots > li[data-state="now"] {
+  position: relative;
+  background: var(--color-divider-strong);
+}
+
+:global([data-hero-first="true"]) .dots > li[data-state="done"]::after,
+:global([data-hero-first="true"]) .dots > li[data-state="now"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-accent);
+  transform-origin: 0 50%;
+  animation: step-fill 360ms var(--ease-out, ease-out) both;
+  animation-delay: calc(420ms + var(--n, 0) * 110ms);
+}
+
+:global([dir="rtl"]) .dots > li::after {
+  transform-origin: 100% 50%;
+}
+
+@keyframes step-fill {
+  from {
+    transform: scaleX(0);
+  }
+}

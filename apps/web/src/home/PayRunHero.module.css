@@ -1,16 +1,109 @@
+/* The one card with depth on Home: a hairline, a contact shadow and
+ * two soft ambient layers, so it sits a little above the page. */
 .hero {
   display: grid;
   gap: var(--space-4);
   padding: var(--space-5) var(--space-6) var(--space-4);
   border-radius: var(--radius-panel);
   background: var(--color-surface);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 4%,
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-shadow) 4%, transparent),
+    0 1px 2px color-mix(in srgb, var(--color-shadow) 5%, transparent),
+    0 6px 16px -4px color-mix(in srgb, var(--color-shadow) 7%,
       transparent),
-    0 8px 24px color-mix(in srgb, var(--color-shadow) 6%, transparent);
+    0 24px 48px -12px color-mix(in srgb, var(--color-shadow) 9%,
+      transparent);
 }
 
+/* Dark: depth from light, not shadow: a top edge catching the light
+ * and a quiet outline, over a deep ambient shadow. */
 :global([data-theme="dark"]) .hero {
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-text) 7%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-text) 7%, transparent),
+    0 24px 48px -12px color-mix(in srgb, var(--color-shadow) 60%,
+      transparent);
+}
+
+/* A slow, soft band of light crosses the card once per load (CSS,
+ * transform and opacity only; never over a click: no pointer events,
+ * and the bank flight's hit test sees through it). */
+.sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.sheen::before {
+  content: "";
+  position: absolute;
+  inset-block: -20%;
+  inset-inline-start: 0;
+  inline-size: 45%;
+  background: linear-gradient(90deg, transparent 0%,
+    color-mix(in srgb, var(--color-text) 3.5%, transparent) 45%,
+    color-mix(in srgb, var(--color-text) 5%, transparent) 50%,
+    color-mix(in srgb, var(--color-text) 3.5%, transparent) 55%,
+    transparent 100%);
+  opacity: 0;
+  transform: translateX(-110%) skewX(-16deg);
+  animation: sheen 1800ms var(--ease-in-out,
+    ease-in-out) 520ms 1 both;
+}
+
+:global([data-theme="dark"]) .sheen::before {
+  background: linear-gradient(90deg, transparent 0%,
+    color-mix(in srgb, var(--color-text) 5%, transparent) 45%,
+    color-mix(in srgb, var(--color-text) 8%, transparent) 50%,
+    color-mix(in srgb, var(--color-text) 5%, transparent) 55%,
+    transparent 100%);
+}
+
+@keyframes sheen {
+  0% {
+    opacity: 0;
+    transform: translateX(-110%) skewX(-16deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(240%) skewX(-16deg);
+  }
+}
+
+/* The card's content above the light. */
+.hero > :not(.sheen) {
+  position: relative;
+  z-index: 1;
+}
+
+/* The ready bar fills once per load, from the start edge. */
+.hero[data-hero-first="true"] .bar > span {
+  transform-origin: 0 50%;
+  animation: rail-fill 720ms var(--ease-out, ease-out)
+    260ms both;
+}
+
+.hero[data-hero-first="true"] .bar > .barHeld {
+  animation-delay: 620ms;
+}
+
+[dir="rtl"] .hero[data-hero-first="true"] .bar > span {
+  transform-origin: 100% 50%;
+}
+
+@keyframes rail-fill {
+  from {
+    transform: scaleX(0);
+  }
 }
 
 .top {
@@ -281,7 +374,8 @@
  * scroll sideways, then the chart (Home).
  */
 @media (max-width: 760px) {
-  .hero {
+  .hero,
+  :global([data-theme="dark"]) .hero {
     padding: 0;
     background: transparent;
     box-shadow: none;
@@ -297,6 +391,18 @@
     padding: var(--space-5) var(--space-4) var(--space-4);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
+    /* Lighter on a phone: a hairline and one soft layer. */
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-shadow) 4%, transparent),
+      0 8px 20px -8px color-mix(in srgb, var(--color-shadow) 10%,
+        transparent);
+  }
+
+  :global([data-theme="dark"]) .netCard {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--color-text) 7%,
+        transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-text) 7%, transparent);
   }
 
   .netCard .figure {

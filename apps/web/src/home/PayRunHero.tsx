@@ -9,6 +9,7 @@ import { Icon } from "../ui/Icon";
 import { NetTrend } from "./NetTrend";
 import { useRunApproval } from "../demo/actions";
 import type { Issue } from "../demo/data/types";
+import { useFirstReveal } from "../ui/firstReveal";
 import { RollDigits } from "../ui/RollDigits";
 import { CardIban } from "./CardIban";
 import { StatusAction, StatusSentence } from "./StatusLead";
@@ -47,10 +48,17 @@ export function PayRunHero() {
   // Phones: the chart moves below the strip (Home) and a short
   // "Waiting for you" list joins the first screen.
   const phone = usePhone();
+  // Once per load: a slow soft light crosses the card and the rails
+  // fill; after that the card is simply there.
+  const first = useFirstReveal("home-hero");
   return (
     <>
     <StatusSentence />
-    <section className={s.hero} aria-labelledby="run-title" data-card="">
+    <section className={s.hero} aria-labelledby="run-title" data-card=""
+      data-hero-first={first}>
+      {first && !phone && (
+        <span className={s.sheen} aria-hidden="true" />
+      )}
       <div className={s.top}>
         <div className={s.lead}>
           <div className={s.netCard}>
