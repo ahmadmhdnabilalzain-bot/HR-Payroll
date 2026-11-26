@@ -17,6 +17,7 @@ import {
   type DemoCompany,
   type DemoIssue,
 } from "@payroll/demo-data";
+import { adaptMoves } from "./moves";
 import { adaptPeople } from "./people";
 import type {
   Approval,
@@ -106,6 +107,7 @@ export function adapt(c: DemoCompany): DemoData {
     runPeople: () => ({ makerId: run.makerEmployeeId,
       checkerId: run.checkerEmployeeId }),
     people: adaptPeople(c),
+    moves: adaptMoves(c),
   };
 }
 

@@ -3,6 +3,7 @@ import { useDemo } from "../demo/state";
 import { canSee, personFor } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
 import type { ViewProps } from "../views";
+import { Moves } from "./moves/Moves";
 import { Payslip } from "./Payslip";
 import { PeopleList } from "./PeopleList";
 import { Profile } from "./Profile";
@@ -18,6 +19,7 @@ export function People(p: ViewProps) {
   const { data, state } = useDemo();
   const me = personFor(data, state.role);
   const [id, sub] = p.rest;
+  if (id === "moves") return <Moves rest={p.rest} />;
   const who = id ?? (state.role === "employee" ? me : undefined);
   if (who === undefined) return <PeopleList />;
   if (data.people.person(who) === null) {

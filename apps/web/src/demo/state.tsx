@@ -7,6 +7,12 @@ import {
 } from "react";
 import type { DemoData, DemoSource } from "./data/types";
 import {
+  MOVES_INITIAL,
+  reduceMoves,
+  type MovesAction,
+  type MovesSlice,
+} from "./moves-state";
+import {
   LEAVE_INITIAL,
   reduceLeave,
   type LeaveAction,
@@ -25,7 +31,7 @@ export type Verdict = "approve" | "decline";
 export type Resolution = "reviewed" | "renewal";
 
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
-export interface DemoState extends LeaveSlice {
+export interface DemoState extends LeaveSlice, MovesSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -49,11 +55,13 @@ export type Action =
   | { type: "undecide"; id: string }
   | { type: "focus-issue"; id: string | null }
   | { type: "sources"; open: boolean }
-  | LeaveAction;
+  | LeaveAction
+  | MovesAction;
 
 export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL,
+  ...MOVES_INITIAL,
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -79,6 +87,12 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "request-leave":
     case "withdraw-leave":
     case "restore-leave": return reduceLeave(s, a);
+    case "move-step":
+    case "move-undo":
+    case "ending-new":
+    case "ending-undo":
+    case "staff-move-new":
+    case "staff-move-undo": return reduceMoves(s, a);
   }
 }
 
