@@ -11,6 +11,7 @@ import { toMoney } from "../db/money";
 import { Reply, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import { computePayRun } from "./compute";
+import { problemsError } from "./problems";
 import { storePayslips } from "./payslips";
 import {
   buildSnapshot,
@@ -84,11 +85,6 @@ async function liveRunExists(tx: Db, companyId: string, b: PayRunCreate) {
   return r.length > 0;
 }
 
-function problemsError(ps: ReturnType<typeof computePayRun>["problems"]) {
-  return new ApiError("PAY_RUN_PROBLEMS", "The run cannot be computed yet",
-    { problems: ps.map((p) => ({ employeeId: p.employeeId, code: p.code,
-      missing: p.missing })) });
-}
 
 /** No conflict target: the key and the one-live-run index both count. */
 const INSERT_RUN = `INSERT INTO pay_runs (id, company_id, year, month,

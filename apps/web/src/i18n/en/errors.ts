@@ -68,4 +68,6 @@ export const errors = {
   SALARY_MISSING: "An employee in this period has no salary.",
   LAST_OWNER: "The company needs at least one owner.",
   RUN_EMPTY: "Nobody is employed in this month, so there is no run.",
+  EMPLOYEE_DATA_UNREADABLE: "Some stored employee details could not be " +
+    "read. Report this with the reference below.",
 } satisfies EnNamespace;

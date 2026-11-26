@@ -101,5 +101,11 @@ export const EmployeeView = z.object({
   bank: BankMasked.nullable(),
   labourPersonId: PersonId.nullable(),
   emiratesIdNumber: z.string().nullable(),
+  /**
+   * Protected fields whose stored value could not be decrypted (shown
+   * as null). Absent when everything the caller may see was readable.
+   */
+  unreadable: z.array(z.enum(["salary", "bank", "labourPersonId",
+    "emiratesIdNumber"])).optional(),
 });
 export type EmployeeView = z.infer<typeof EmployeeView>;

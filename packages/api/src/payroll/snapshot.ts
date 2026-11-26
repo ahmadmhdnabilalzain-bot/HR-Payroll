@@ -1,4 +1,4 @@
-import type { PayRunCreate } from "@payroll/contract";
+import type { PayRunCreate, PayRunProblem } from "@payroll/contract";
 import { fils } from "@payroll/engine";
 import { canonicalJson, sha256Hex } from "../audit/canonical";
 import type { Db } from "../db/db";
@@ -6,6 +6,7 @@ import type { HandlerDeps } from "../deps";
 import { unpaidLeaveDaysIn } from "../leave/balances";
 import { listEmployees, sealerFor } from "../people/employees";
 import { inPeriod, type RunSnapshot, type SnapshotEmployee } from "./compute";
+import { problemsError } from "./problems";
 
 /**
  * Everything a run's arithmetic depends on, read in the request's
@@ -21,6 +22,7 @@ export async function buildSnapshot(tx: Db, deps: HandlerDeps,
     ORDER BY id FOR SHARE`, [companyId]);
   const rows = await listEmployees(tx, deps, companyId);
   const employees: SnapshotEmployee[] = [];
+  const unreadable: PayRunProblem[] = [];
   for (const r of rows) {
     const e: SnapshotEmployee = { employeeId: r.id, name: r.fullName,
       joiningDate: r.joiningDate, lastWorkingDate: r.lastWorkingDate,
@@ -29,10 +31,15 @@ export async function buildSnapshot(tx: Db, deps: HandlerDeps,
         label: c.label, amount: c.amount, sifBucket: c.sifBucket })),
       unpaidLeaveDays: 0 };
     if (!inPeriod(e, body.period)) continue;
+    if (r.unreadable.length > 0) {
+      unreadable.push({ employeeId: r.id, code: "EMPLOYEE_DATA_UNREADABLE",
+        missing: [...r.unreadable] });
+    }
     e.unpaidLeaveDays = await unpaidLeaveDaysIn(tx, companyId, r.id,
       body.period);
     employees.push(e);
   }
+  if (unreadable.length > 0) throw problemsError(unreadable);
   return { period: body.period, employees, entries: body.entries };
 }
 
