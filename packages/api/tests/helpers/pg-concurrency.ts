@@ -73,7 +73,17 @@ export function pgConcurrencyCases(open: () => Promise<DbPair>): void {
         `/v1/users/${b.body.user.id}`, { role: "hr" }),
       call(ctx.app, tb, a.companyId, "PATCH", `/v1/users/${a.userId}`,
         { role: "hr" })]);
-    expect(statuses(rs)).toEqual([200, 409]);
+    // The loser either sees one owner left (409 LAST_OWNER) or, when
+    // the winner committed first, is no longer an owner (403).
+    const [win, lose] = statuses(rs);
+    expect(win).toBe(200);
+    expect([403, 409]).toContain(lose);
+    const winner = rs.find((r) => r.status === 200)!;
+    const tokenOf = winner === rs[0] ? ta : tb;
+    const users = await call(ctx.app, tokenOf, a.companyId, "GET",
+      "/v1/users");
+    expect(users.body.items.filter((u: { role: string }) =>
+      u.role === "owner").length).toBe(1);
   });
 
   it("20 parallel audit appends: seq 1 to 20, chain verifies", async () => {
