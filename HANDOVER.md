@@ -45,6 +45,17 @@ source-cited, with an open API and Arabic from the start.
   PostgreSQL with row-level security, sealed salary and bank fields,
   hash-chained audit log, pay runs, payslips and SIF files).
   Build report: `docs/superpowers/plans/plan-3-build-report-1.md`.
+- **Plan 8 (hiring, onboarding, task manager, the one exit flow) is
+  built** on worktree branch `api-plan-8`, not merged (Task 1, the
+  engine `ae-employment` pack, was already merged). 45 HR routes in
+  `HR_ROUTES` (95 in all): task manager, requisitions, candidates,
+  applications, scorecards, interviews, offers with owner MFA
+  approval, offer to hire with onboarding tasks and engine probation
+  dates, the exit flow (engine notice, clearance tasks, final
+  settlement from `calculateSettlement` with its not-computed list and a
+  flag-only list that is never deducted, document and access hooks,
+  close) and goals. Build report:
+  `docs/superpowers/plans/plan-8-build-report.md`.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -145,7 +156,8 @@ engine refuses to run without an explicit value.
 |---|---|
 | Primitives, roles, errors | `src/primitives.ts`, `src/roles.ts`, `src/errors.ts` |
 | Schemas by family | `src/company.ts`, `user.ts`, `department.ts`, `employee.ts`, `leave.ts`, `attendance.ts`, `trace.ts`, `payroll.ts`, `sif.ts`, `audit.ts`, `lists.ts` |
-| Routes (50) | `src/route-def.ts`, `src/routes*.ts` |
+| Routes (50 core + 45 HR) | `src/route-def.ts`, `src/routes*.ts` (`routes-hr.ts` joins Plan 8's) |
+| Plan 8 schemas | `src/tasks.ts`, `hiring.ts`, `offers.ts`, `onboarding.ts`, `exits.ts`, `goals.ts`, `errors-hr.ts`, `registry-hr.ts`, `examples-hr.ts` |
 | Registry, examples, OpenAPI | `src/registry.ts`, `src/examples*.ts`, `src/openapi.ts`, `src/write-openapi.ts` |
 
 ## API layout (`packages/api`)
@@ -161,6 +173,10 @@ engine refuses to run without an explicit value.
 | Leave and attendance | `src/leave/`, `src/attendance/`, `src/time/dubai.ts` |
 | Pay runs (pure compute), payslips, SIF | `src/payroll/` |
 | Entry and config | `src/main.ts`, `src/config.ts`, `src/deps.ts` |
+| Plan 8: tasks, approvals, ports | `src/tasks/`, `src/approvals/decide.ts`, `src/ports/` (calendar, documents, access), `migrations/801` to `807` |
+| Plan 8: hiring, onboarding, exits, goals | `src/hiring/`, `src/onboarding/`, `src/exits/`, `src/goals/`, `src/routes/hr.ts` |
+| Plan 8 audit keys | `src/audit/hr-allowlist.ts`, `src/audit/hr-audit.ts` |
+| Engine employment pack (Plan 8 Task 1) | `packages/engine/src/employment/`, `src/rules/employment-pack.ts` |
 
 ## Known limits and open questions
 
@@ -174,6 +190,23 @@ engine refuses to run without an explicit value.
   lock an account for 15 minutes with five wrong passwords, no rate
   limiting, no pay-run corrections. Real payroll waits for the owner.
 
+- Plan 8 limits: no web screens; the calendar, document and external
+  access ports are "not configured"; no scheduler (reminders and
+  deadlines are dated tasks, overdue computed on read). The exit
+  settlement never deducts loans, tickets, bonds, claims, cards or
+  other deductions (flag-only list). Conventions, not law: notice runs
+  from the day after notice; probation end = joining date + months,
+  clamped, minus one day; the settlement due date counts 14 days from
+  the last working date; exits without notice give zero days with a
+  counsel flag (Articles 44 and 45 not modelled); agreed reductions
+  only for resignation and termination. Joiners before 2022-02-02 can
+  only get zero-month terms. "No login" means no membership is linked
+  to the employee record; an unlinked login of the same person is not
+  revoked. Ruled out (Plan 8 Ruling 32): cost-of-hire, referral and
+  agency ledgers, permit and visa deadlines, ticket, loan, bond and card
+  balances, exit interview forms, candidate data retention, job posts,
+  resume parsing, email resignations, notice during leave, job-search
+  day tracking, the probation-once check, part-time workers.
 - The gratuity pack applies to leavers on or after 2022-02-02 (Decree-Law 33
   of 2021). Earlier leavers throw `NO_PACK_FOR_DATE` (old law not modelled).
   Open question for counsel: service accrued before that date for people
@@ -260,6 +293,9 @@ Review Plan 3 (whole branch, plus Tasks 5 and 7 for data protection and
 money), merge it into `claude/quirky-wozniak-b7xkvr`, then finish Plan 4
 (web app) against `packages/contract`. The owner wants no technical
 questions: decide, record a ruling, continue.
+
+Plan 8: review Task 6 (exit and settlement) and Task 7 (revocation),
+then the whole branch, then merge `api-plan-8` after Plan 3.
 
 ## Tooling (25 Nov 2026)
 

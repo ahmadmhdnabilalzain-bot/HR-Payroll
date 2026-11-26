@@ -101,6 +101,17 @@ export async function hrFlow(hit: Hitter, f: HrFlowCtx): Promise<void> {
   const offerId = await offers(hit, f, h.applicationId, days);
   f.otherEmployeeId = await onboarding(hit, f, offerId, days);
   await exits(hit, f);
+  await goals(hit, f);
+}
+
+async function goals(hit: Hitter, f: HrFlowCtx) {
+  const g = await hit("createGoal", f.owner, f.c, {},
+    { title: "Close the books", employeeId: f.otherEmployeeId });
+  const id = g.body.id as string;
+  await hit("listGoals", f.owner, f.c);
+  await hit("getGoal", f.owner, f.c, { id });
+  await hit("addGoalCheckIn", f.owner, f.c, { id }, { progress: 25 });
+  await hit("updateGoal", f.owner, f.c, { id }, { status: "achieved" });
 }
 
 /** The employee resigns; owner2 approves; settlement; a withdrawal. */

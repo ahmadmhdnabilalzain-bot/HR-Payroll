@@ -77,6 +77,40 @@ them apart is deliberate.
 | 2026-11-26 | Supersedes Plan 3 ruling 9 in part: the keyring derives separate HKDF subkeys for wrapping company keys and for global values, and cipher text names the master key (`v1.<keyId>.<data>`). KMS and rotation are still deferred. | Security review (M-5). |
 | 2026-11-26 | Adds to Plan 3 rulings 2 and 4: production uses two database roles, a migration role that owns the tables and a runtime role (no superuser, no BYPASSRLS, owns nothing) granted `payroll_app WITH SET TRUE`; the server refuses to start otherwise. | Security review (I-2): PostgreSQL 16 role semantics and superuser bypass. |
 | 2026-11-26 | Supersedes Plan 3 ruling 8 in part: MFA enrolment and confirmation need the password, confirmation no longer upgrades the session, and other sessions are revoked; TOTP codes are single-use. | Security review (I-4) and coordinator instruction. |
+| 2026-11-26 | Plan 8 Ruling 1: API and contract only; no web screens (Plan 4's web app builds against `HR_ROUTES` later). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 2: statutory values live in the engine pack `ae-employment` with `emp`-prefixed keys and five `DL33_ART*` source ids. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 3: `official` only where the research note quotes the value as READ (6 months, 14 days, one month, 30 to 90 days, reducible by agreement, job-search day, 14 days). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 4: exits without notice (Articles 44, 45) give zero notice as a `convention` with a counsel flag; no grounds are encoded. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 5: settlement due date is 14 days (`official`, Article 53) counted from the last working date (`convention`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 6: notice counts from the day after written notice; last working day = notice date + notice days (`convention`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 7: probation end = joining date plus months, clamped to month end, minus one day (`convention`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 8: a contract notice outside 30 to 90 days is refused, not raised to 30. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 9: agreed notice reductions apply only to resignation and termination (43(2)); probation notices cannot be reduced. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 10: the exit kind never changes the settlement (resignation rules NOT FOUND in Decree-Law 33 of 2021). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 11: the engine's `notComputed` list is shown verbatim; loans, tickets, bonds, claims, cards and deductions are flag-only and never deducted. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 12: unused leave days and unpaid service days are HR-entered at settlement time. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 13: the exit settlement is a pure API function that calls the engine, cross-checked against Plan 3's payslip settlement. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 14: no scheduler; reminders and deadlines are dated tasks, overdue is computed on read (Dubai date), changed terms cancel and recreate reminders with a comment. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 15: one shared approval rule (`assertDecidable`: role, pending status, separation of duties); no generic approvals table yet. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 16: MFA on offer approval and access revocation only. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 17: interview scheduling is a `CalendarPort`, default "not connected"; interviews are stored locally. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 18: document generation is a `DocumentPort`, default "not configured", given ids only. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 19: access revocation = in-app membership revoke plus an external port; sessions are kept for other companies; the last owner cannot be revoked; a new invite restores access. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 20: ports run inside the handler's transaction; a throwing port is recorded as failed and never rolls back. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 21: hire idempotency by a claim row (`offer_hires`, `ON CONFLICT DO NOTHING`) before the employee is created. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 22: candidates have no login; HR records offer responses; no e-signature. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 23: one template per kind per company, versioned; defaults labelled "product default, not law"; the visa cancellation task has no due rule. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 24: only the system links tasks to flows; nothing is deleted (items removed, tasks cancelled, comments append only). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 25: goals are simple records: no ratings, no pay links, no AI. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 26: employment trace ids are not added to the explain catalog; raw trace lines with rule status are returned. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 27: Plan 8 audit action names avoid a hyphen in the first segment (`template.updated`, `terms.updated`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 28: Plan 8 migrations use the range 801 to 807. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 29: Plan 3 functions consumed but not named there are exported with the planned signatures (built as `src/people/employee-actions.ts`; Plan 3's salary check is `checkSalary`). | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 30: employees may resign (and give the probation notices that are theirs) for themselves; managers cannot open exits; interviewers must be owner, hr or manager. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 31: product bounds (headcount 1 to 50, criteria 1 to 10, offsets -60 to 365, interviewers 1 to 5) are product choices, not law. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 32: ruled out, each a visible gap in the handover: cost-of-hire and hiring-plan cost, referral and agency ledger, permit/MOHRE/WPS setup deadlines, labour card and visa cancellation deadlines, ticket/loan/bond/card balances, exit interview forms, candidate data retention (PDPL), job posts and careers page, resume parsing and AI screening, email-in resignations, notice during leave, job-search day tracking, the probation-once check, part-time workers. | Plan 8 build. |
+| 2026-11-26 | Plan 8 Ruling 33: per-task review of Tasks 1, 6 and 7 plus one whole-branch review; no pause for plan review. | Plan 8 build. |
+| 2026-11-26 | Plan 8 build calls (builder's decisions; full list in `docs/superpowers/plans/plan-8-build-report.md`): joiners before 2022-02-02 get zero-month terms only; terms check the contract notice on the later of joining date and today; revoking access closes the leaver's unused invites; audit keys for Plan 8 are a separate allowlist file spread into Plan 3's; list responses are `{ items }`. | Plan 8 build. |
 
 ## 4. Future plan (current)
 

@@ -85,6 +85,14 @@ export async function seedHrRows(admin: Db, c: string, user: string,
        status, at) VALUES ($1, $2, $3, 'documents',
        'experience-certificate', 'not-configured', $4)`,
     [rowId(c, "7d"), c, rowId(c, "7c"), AT]);
+  await admin.query(
+    `INSERT INTO goals (id, company_id, employee_id, title, status,
+       created_by, created_at) VALUES ($1, $2, $3, 'Seed goal', 'active',
+       $4, $5)`, [rowId(c, "7e"), c, emp, user, AT]);
+  await admin.query(
+    `INSERT INTO goal_check_ins (id, company_id, goal_id, seq,
+       author_user_id, progress, at) VALUES ($1, $2, $3, 1, $4, 10, $5)`,
+    [rowId(c, "7f"), c, rowId(c, "7e"), user, AT]);
 }
 
 async function seedOnboarding(admin: Db, c: string, user: string,

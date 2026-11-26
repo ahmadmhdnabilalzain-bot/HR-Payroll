@@ -22,6 +22,8 @@ export const HR_ID_KIND: Record<string, string | null> = {
   getEmploymentTerms: "employee",
   listExits: null,
   getExit: "exit",
+  listGoals: null,
+  getGoal: "goal",
 };
 
 const FIXTURE: Record<string, keyof HrSeeded> = {
@@ -30,6 +32,7 @@ const FIXTURE: Record<string, keyof HrSeeded> = {
   application: "applicationId",
   offer: "offerId",
   exit: "exitId",
+  goal: "goalId",
 };
 
 export const HR_KINDS = Object.keys(FIXTURE);
@@ -48,7 +51,9 @@ export function hrVisible(role: Role, kind: string): boolean {
   if (kind === "task") return role === "employee";
   // The seeded requisition's hiring manager is the manager user.
   // The seeded exit is of report2, the manager's direct report.
-  if (["requisition", "application", "offer", "exit"].includes(kind)) {
+  // The seeded goal is report2's too.
+  const managers = ["requisition", "application", "offer", "exit", "goal"];
+  if (managers.includes(kind)) {
     return role === "manager";
   }
   return false;

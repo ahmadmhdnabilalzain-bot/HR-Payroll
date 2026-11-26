@@ -22,6 +22,8 @@ export interface HrSeeded {
   exitId: string;
   /** Leaver employee id to the settlement `total` string. */
   settlementSentinels: Record<string, string>;
+  /** A goal of report2 (the manager's report; not the employee's). */
+  goalId: string;
 }
 
 async function must(p: Promise<{ status: number; text: string; body: any }>,
@@ -126,5 +128,7 @@ export async function seedHr(ctx: Ctx, s: Seeded): Promise<HrSeeded> {
   await terms(ctx, s);
   return { taskId: task.id, ...hired, offerId,
     hiredEmployeeId: h.employee.id, onboardingFlowId: h.flowId,
-    ...await exit(ctx, s) };
+    ...await exit(ctx, s), goalId: (await must(call(ctx.app, s.hr.token,
+      s.companyId, "POST", "/v1/goals", { title: "Close the books",
+        employeeId: s.emp.report2 }), 201)).id };
 }

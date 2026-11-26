@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import * as exits from "./exits";
+import * as goals from "./goals";
 import * as hiring from "./hiring";
 import * as offers from "./offers";
 import * as onboarding from "./onboarding";
@@ -23,6 +24,8 @@ export const HR_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
   ...pick(exits, ["ExitCreate", "SettlementInputs", "ExitSettlement",
     "ExitDocument", "Exit", "ExitList", "DocumentsRequest",
     "AccessResult"]),
+  ...pick(goals, ["GoalCreate", "GoalUpdate", "CheckInCreate", "CheckIn",
+    "Goal", "GoalList"]),
 };
 
 function pick(

@@ -23,6 +23,8 @@ const HR_ROUTE_IDS = [
   "computeExitSettlement", "withdrawExit",
   // Task 7: exit hooks and closing
   "generateExitDocuments", "revokeExitAccess", "closeExit",
+  // Task 8: goals
+  "listGoals", "createGoal", "getGoal", "updateGoal", "addGoalCheckIn",
 ];
 
 /** Plan 8 routes that need an MFA session (Ruling 16). */
@@ -31,6 +33,10 @@ const HR_MFA: string[] = ["decideOffer", "revokeExitAccess"];
 describe("HR_ROUTES", () => {
   it("ids are exactly the planned list, in order", () => {
     expect(HR_ROUTES.map((r) => r.id)).toEqual(HR_ROUTE_IDS);
+  });
+  it("final counts: 45 HR routes, 95 in all (Plan 3 has 50)", () => {
+    expect(HR_ROUTES.length).toBe(45);
+    expect(ROUTES.length).toBe(95);
   });
   it("every HR route is a tenant route", () => {
     for (const r of HR_ROUTES) expect(r.auth, r.id).toBe("tenant");

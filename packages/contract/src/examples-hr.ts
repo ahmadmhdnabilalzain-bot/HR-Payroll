@@ -14,6 +14,8 @@ export const HR_IDS = {
   offer: "00000000-0000-4000-8000-000000000809",
   flow: "00000000-0000-4000-8000-00000000080a",
   exit: "00000000-0000-4000-8000-00000000080b",
+  goal: "00000000-0000-4000-8000-00000000080c",
+  checkIn: "00000000-0000-4000-8000-00000000080d",
 } as const;
 
 const AT = "2026-03-01T08:00:00Z";
@@ -154,6 +156,16 @@ const exit = {
   closedAt: null, createdAt: AT,
 };
 
+const goal = {
+  id: HR_IDS.goal, employeeId: IDS.employee,
+  title: "Close the month in five working days", description: null,
+  measure: "working days to close", target: "5", dueDate: "2026-06-30",
+  status: "active", createdBy: IDS.user, createdAt: AT,
+  lastCheckIn: { progress: 40, at: AT },
+  checkIns: [{ id: HR_IDS.checkIn, authorUserId: IDS.user, progress: 40,
+    note: null, at: AT }],
+};
+
 /** One example per Plan 8 response schema. */
 export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   TaskSummary: taskSummary,
@@ -176,4 +188,6 @@ export const HR_EXAMPLES: Readonly<Record<string, unknown>> = {
   ExitList: { items: [exit] },
   AccessResult: { inApp: "revoked", external: "not-configured",
     beforeLastDay: true, at: AT },
+  Goal: goal,
+  GoalList: { items: [{ ...goal, checkIns: [] }] },
 };
