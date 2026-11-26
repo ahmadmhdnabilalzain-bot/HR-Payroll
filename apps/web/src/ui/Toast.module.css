@@ -33,11 +33,12 @@
   }
 }
 
+/* Out in 160 ms: quicker than it came, as things that are done go. */
 .toast[data-leaving="true"] {
   opacity: 0;
   transform: translateY(8px) scale(0.98);
   pointer-events: none;
-  transition-duration: var(--dur-base, 200ms);
+  transition-duration: 160ms;
   transition-timing-function: var(--ease-in-out);
 }
 

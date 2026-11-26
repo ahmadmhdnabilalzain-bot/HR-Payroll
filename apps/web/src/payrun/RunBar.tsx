@@ -96,7 +96,7 @@ export function RunBar(p: { step: StepId; go: Go }) {
   return (
     <>
       <div ref={sentinel} className={s.sentinel} aria-hidden="true" />
-      <div ref={row} className={s.bar} data-stuck={stuck} data-vt="steps">
+      <div ref={row} className={s.bar} data-stuck={stuck}>
         <div className={s.inner}>
           <div className={s.titleBox}>
             <h1 className={s.title}>

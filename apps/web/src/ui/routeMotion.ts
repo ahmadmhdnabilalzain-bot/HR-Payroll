@@ -75,8 +75,8 @@ function settled(): Promise<void> {
 
 /**
  * Pace: "page" slides 24 to 32 px, out over --dur-base, in over
- * --dur-slow. "quick" (pay run steps, role switch) slides 8 px, out
- * over 120 ms and in over 200 ms, overlapped, so no frame is empty.
+ * --dur-slow. "quick" (the role switch) fades out over 120 ms and in
+ * over 200 ms, overlapped, so no frame is empty.
  */
 type Pace = "page" | "quick";
 
@@ -110,9 +110,9 @@ export function canMove(): boolean {
 }
 
 /**
- * A quick move inside one place (a pay run step, a role switch): the
- * top bar and the step bar hold still, the page fades through, 8 px
- * the way of travel (`dir` 1, -1, or 0 for none). `change` makes the
+ * A quick move inside one place (the role switch): the top bar holds
+ * still and the page fades through, 8 px the way of travel (`dir` 1,
+ * -1, or 0 for none, in place). `change` makes the
  * change; `ready` resolves once the new page is on screen (the old
  * one stays until then, so no blank frame shows). Without the View
  * Transitions API, or with reduced motion, it just changes.

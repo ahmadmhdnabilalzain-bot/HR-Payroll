@@ -89,13 +89,8 @@ html[data-route-motion] [data-vt="phone"] {
   view-transition-name: shell-phone;
 }
 
-/* The pay run's step bar holds still between steps (its pill moves). */
-html[data-route-motion] [data-vt="steps"] {
-  view-transition-name: shell-steps;
-}
-
-/* Page pace by default; "quick" (steps, role switch): 8 px, 120 ms
- * out and 200 ms in, overlapped. */
+/* Page pace by default; "quick" (the role switch): 120 ms out and
+ * 200 ms in, overlapped, in place. */
 html[data-route-motion] {
   --route-out: var(--dur-base, 200ms);
   --route-in: var(--dur-slow, 320ms);
@@ -112,8 +107,7 @@ html[data-route-motion][data-route-pace="quick"] {
 
 html[data-route-motion]::view-transition-group(shell-bar),
 html[data-route-motion]::view-transition-group(shell-tabs),
-html[data-route-motion]::view-transition-group(shell-phone),
-html[data-route-motion]::view-transition-group(shell-steps) {
+html[data-route-motion]::view-transition-group(shell-phone) {
   animation: none;
 }
 
@@ -121,16 +115,14 @@ html[data-route-motion]::view-transition-group(shell-steps) {
  * come or go): it slides and fades with the page. */
 html[data-route-motion]::view-transition-old(shell-bar):not(:only-child),
 html[data-route-motion]::view-transition-old(shell-tabs):not(:only-child),
-html[data-route-motion]::view-transition-old(shell-phone):not(:only-child),
-html[data-route-motion]::view-transition-old(shell-steps):not(:only-child) {
+html[data-route-motion]::view-transition-old(shell-phone):not(:only-child) {
   animation: none;
   opacity: 0;
 }
 
 html[data-route-motion]::view-transition-new(shell-bar):not(:only-child),
 html[data-route-motion]::view-transition-new(shell-tabs):not(:only-child),
-html[data-route-motion]::view-transition-new(shell-phone):not(:only-child),
-html[data-route-motion]::view-transition-new(shell-steps):not(:only-child) {
+html[data-route-motion]::view-transition-new(shell-phone):not(:only-child) {
   animation: none;
 }
 

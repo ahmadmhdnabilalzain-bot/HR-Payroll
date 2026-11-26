@@ -65,7 +65,7 @@ export function ToastProvider(p: { children: ReactNode }) {
   useEffect(() => {
     if (item !== null) setLast(item);
   }, [item]);
-  const exit = usePresence(item !== null, 220);
+  const exit = usePresence(item !== null, 180);
   const view = item ?? (exit.mounted ? last : null);
   const value = useMemo(() => ({ show }), [show]);
   return (

@@ -1,9 +1,9 @@
 import { Suspense, useState } from "react";
+import { reducedMotion } from "../demo/motion";
 import { hrefOf, navigate } from "../demo/route";
 import { Footnote } from "../components/explain";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
-import { moveWithin } from "../ui/routeMotion";
 import type { ViewProps } from "../views";
 import { isPayArea, PayArea } from "../pay/PayArea";
 import { ApproveStep } from "./ApproveStep";
@@ -14,25 +14,36 @@ import { ReviewStep } from "./ReviewStep";
 import { RunBar } from "./RunBar";
 import s from "./PayRun.module.css";
 
+/** Leaving takes 200 ms; the next step slides in from the travel side. */
+const LEAVE_MS = 200;
+
 export type Go = (to: StepId) => void;
 
 /**
- * Moves to a step in the direction of travel (forward or back), as one
- * overlapped move (ui/routeMotion.ts, "quick"): the old step fades and
- * slides 8 px out over 120 ms while the new one comes 8 px in over
- * 200 ms. The old step stays on screen until the new one has rendered,
- * so no frame is blank; the step bar holds still and its ring slides.
- * Without view transitions, the new step slides in on its own (CSS).
+ * Moves to a step in the direction of travel (forward or back). The
+ * step being left fades out first; `toward` names the step the stepper
+ * ring should already be sliding to, so it starts with the tap.
  */
-export function useGoStep(at: StepId): [1 | -1, Go] {
+export function useGoStep(at: StepId): [boolean, 1 | -1, Go, StepId] {
+  const [leaving, setLeaving] = useState(false);
   const [dir, setDir] = useState<1 | -1>(1);
+  const [toward, setToward] = useState<StepId | null>(null);
   const go: Go = (to) => {
     const d = STEPS.indexOf(to) >= STEPS.indexOf(at) ? 1 : -1;
     setDir(d);
-    moveWithin(d, () => navigate("pay-run", to), () =>
-      document.querySelector(`[data-step="${to}"]`) !== null);
+    if (reducedMotion()) {
+      navigate("pay-run", to);
+      return;
+    }
+    setToward(to);
+    setLeaving(true);
+    setTimeout(() => {
+      navigate("pay-run", to);
+      setLeaving(false);
+      setToward(null);
+    }, LEAVE_MS);
   };
-  return [dir, go];
+  return [leaving, dir, go, toward ?? at];
 }
 
 /**
@@ -48,14 +59,15 @@ export function PayRun(p: ViewProps) {
 function RunSteps(p: ViewProps) {
   const { t } = useLocale();
   const step = stepOf(p.rest);
-  const [dir, go] = useGoStep(step);
+  const [leaving, dir, go, toward] = useGoStep(step);
   const at = STEPS.indexOf(step);
   const prev = STEPS[at - 1];
   return (
     <>
-    <RunBar step={step} go={go} />
+    <RunBar step={toward} go={go} />
     <div className={s.page}>
-      <div key={step} className={s.swap} data-step={step} data-dir={dir}>
+      <div key={step} className={s.swap} data-leaving={leaving}
+        data-dir={dir}>
         <Suspense fallback={<p className={s.loading}>
           {t("payrun.loading")}</p>}>
           {step === "review" && <ReviewStep />}

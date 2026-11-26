@@ -23,12 +23,14 @@
   animation-name: swap-in-back;
 }
 
-/* With view transitions a step change is one overlapped move
- * (ui/routeMotion.ts); the step's own entrance is only the fallback. */
-@supports (view-transition-name: none) {
-  .swap {
-    animation: none;
-  }
+.swap[data-leaving="true"] {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+
+.swap[data-leaving="true"][data-dir="-1"] {
+  transform: translateX(24px);
 }
 
 [dir="rtl"] .swap {

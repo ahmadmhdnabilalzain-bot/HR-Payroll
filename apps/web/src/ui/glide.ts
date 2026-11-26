@@ -6,7 +6,8 @@ import { reducedMotion } from "../demo/motion";
  * container) draws the chosen tab's background, or its underline, as
  * one shape of its own (a ::before, styles in theme/shell-motion.css),
  * and that shape glides from the old tab to the new one: a transform
- * only (FLIP, translate and scale), on the --spring timing (420 ms).
+ * only (FLIP, translate and scale), 250 ms on the --ease-spring curve
+ * (quicker than a sheet: a tab answers a tap).
  *
  * - The chosen tab is whichever child says so: aria-current="page",
  *   aria-selected="true" or aria-pressed="true". A change of that
@@ -26,6 +27,8 @@ const CHOSEN = ":is([aria-current='page'], [aria-selected='true'], " +
   "[aria-pressed='true'])";
 const WATCH = ["aria-current", "aria-selected", "aria-pressed"];
 const LINE = 2;
+/** The glide's length; reduced motion takes the token to 0.01ms. */
+const GLIDE_MS = 250;
 
 interface Box { x: number; y: number; w: number; h: number }
 
@@ -123,7 +126,7 @@ export function useGlide(ref: RefObject<HTMLElement | null>,
         { transform: `translate(${from.x}px, ${from.y}px) ` +
           `scale(${sx}, ${sy})` },
         { transform: `translate(${next.x}px, ${next.y}px)` },
-      ], { duration: tokenMs("--dur-spring", 420),
+      ], { duration: Math.min(GLIDE_MS, tokenMs("--dur-spring", 420)),
         easing: tokenEase("--ease-spring", "cubic-bezier(0.22,1.2,0.36,1)"),
         pseudoElement: "::before" });
     };
