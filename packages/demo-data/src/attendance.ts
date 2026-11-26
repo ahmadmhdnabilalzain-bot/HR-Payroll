@@ -26,6 +26,13 @@ const hhmm = (minutes: number): string =>
 const stamp = (date: string, minutes: number): string =>
   `${date}T${hhmm(minutes)}:00+04:00`;
 
+/** Planted late arrivals (minutes after 08:00), for the time screens. */
+export const LATE_ARRIVALS = [
+  { employeeId: "emp-008", date: "2026-10-05", minutes: 38 },
+  { employeeId: "emp-008", date: "2026-10-13", minutes: 25 },
+  { employeeId: "emp-008", date: "2026-10-21", minutes: 47 },
+];
+
 function onLeave(e: DemoEmployee, date: string,
   reqs: DemoLeaveRequest[]): boolean {
   return reqs.some((r) => r.employeeId === e.id &&
@@ -51,7 +58,12 @@ function dayOf(e: DemoEmployee, date: string, rng: Rng,
   const list = e.cases.includes("overtime") ? OVERTIME
     : e.cases.includes("night-overtime") ? NIGHT_OVERTIME : [];
   const ot = list.find((o) => o.date === date)?.minutes ?? 0;
-  const start = 8 * 60 + rng.int(0, 20);
+  // Most people arrive between 07:50 and 08:10; a few days are late.
+  const jitter = rng.int(0, 20);
+  const late = LATE_ARRIVALS.find((x) => x.employeeId === e.id &&
+    x.date === date);
+  const start = late !== undefined ? 8 * 60 + late.minutes
+    : 8 * 60 - 10 + jitter;
   // Night work (IT upgrade): back on site from 22:00, out after.
   const night = list === NIGHT_OVERTIME && ot > 0;
   const end = night ? 22 * 60 + ot : start + 9 * 60 + ot;
