@@ -51,12 +51,12 @@ record time; figures below are examples and must be re-read from the screen.
 | 7 | 3:00 to 3:25 | The salary file | "Then the salary file. Checked in plain English. The layout matches published bank guides; we will confirm it with the authority." | HR manager, reports files: generate the file, open the plain-English check report, download. | A file you can read before you send it | Peak, then softer |
 | 8 | 3:25 to 3:50 | Gratuity, explained | "When someone leaves, the end-of-service figure shows its working, step by step, with sources." | HR manager, people, a leaver's settlement: the figure lifts into its working (cinematic moment 3 if approved). | End of service, with the working shown | Soft |
 | 9 | 3:50 to 4:10 | Employees, on a phone | "Employees ask for leave and see payslips on their own phone. Managers decide in one tap." | Phone capture (390x844): Employee role asks for leave; cut to manager approving; payslip view. Real phone frame is a plain device outline, no brand. | Made for the phone in your pocket | Light |
-| 10 | 4:10 | IT and controls (10 s inside this block) | "IT sees who can do what, and a log nobody can quietly edit." | IT manager, setup: roles and access, audit log, auditor access. | Access you can see, a log you can trust | Light |
+| 10 | 4:10 to 4:20 | IT and controls | "IT sees who can do what, and a log nobody can quietly edit." | IT manager, setup: roles and access, audit log, auditor access. | Access you can see, a log you can trust | Light |
 | 11 | 4:20 to 4:30 | Close | "MubinFlow. Pay people correctly, and show how." | Paper-on-ink wordmark, line "Request a walkthrough" (no URL until hosting is decided). | MubinFlow | Resolve, hold, fade |
 
 Timing note: scene 10 runs 4:10 to 4:20 and the close 4:20 to 4:30; scenes
 3 to 9 hold the story spine and can lose 10 to 15 seconds each if the cut
-runs long. Optional 20-second montage between 3:50 and 4:10 if time allows,
+runs long. Optional montage (only if scenes 3 to 9 are trimmed to make room),
 drawn only from live rows: documents and letters with verifiable codes,
 Emiratisation report, time and leave policies, expenses, privacy and
 retention register, payroll forecast. Pick at most four.
