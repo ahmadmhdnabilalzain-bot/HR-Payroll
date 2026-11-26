@@ -147,6 +147,19 @@ importers:
         specifier: 22.20.7
         version: 22.20.7
 
+  packages/demo-data:
+    dependencies:
+      '@payroll/engine':
+        specifier: workspace:*
+        version: link:../engine
+      '@payroll/wps':
+        specifier: workspace:*
+        version: link:../wps
+    devDependencies:
+      '@types/node':
+        specifier: 22.20.7
+        version: 22.20.7
+
   packages/engine:
     dependencies:
       zod:
