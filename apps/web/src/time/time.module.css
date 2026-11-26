@@ -338,3 +338,12 @@
     padding-inline: var(--space-3);
   }
 }
+
+/* Touch: a plain link in running content gets a 44 px tap area. */
+@media (pointer: coarse) {
+  .tapLink {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+  }
+}

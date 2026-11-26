@@ -156,3 +156,14 @@
   gap: var(--space-2);
   line-height: 1.5;
 }
+
+/* Phones and touch: 16 px inputs so Safari does not zoom on focus. */
+@media (max-width: 760px), (pointer: coarse) {
+  .reply textarea,
+  .field textarea,
+  .field input,
+  .field select,
+  .search {
+    font-size: max(16px, 1em);
+  }
+}

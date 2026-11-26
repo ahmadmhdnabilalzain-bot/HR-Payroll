@@ -157,6 +157,9 @@
   background: var(--color-surface);
   color: var(--color-text);
   touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   cursor: crosshair;
 }
 
@@ -286,4 +289,21 @@
 .big {
   margin: 0;
   font-size: var(--text-lg);
+}
+
+/* Touch: the whole label is the tap area; the box keeps its size. */
+@media (pointer: coarse) {
+  .choice,
+  .consent {
+    min-block-size: 44px;
+    padding-block: var(--space-2);
+  }
+
+  .consent {
+    align-items: center;
+  }
+
+  .choice input {
+    margin: 0;
+  }
 }

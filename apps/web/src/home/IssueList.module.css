@@ -231,4 +231,22 @@
     min-block-size: 44px;
     min-inline-size: 44px;
   }
+
+  .input {
+    min-block-size: 44px;
+    font-size: max(16px, var(--text-md));
+  }
+}
+
+/* With the keyboard up, the field and its buttons stay clear of the
+   fixed top and bottom bars. */
+@media (max-width: 760px) {
+  .input {
+    min-block-size: 44px;
+    scroll-margin-block: 100px 160px;
+  }
+
+  .formFoot {
+    scroll-margin-block-end: 90px;
+  }
 }

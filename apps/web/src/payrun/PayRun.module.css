@@ -1099,3 +1099,12 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Touch: the inline "How this is worked out" link has a 44 px tap area. */
+@media (pointer: coarse) {
+  .reason .rowLink {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+  }
+}

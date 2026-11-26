@@ -92,7 +92,8 @@ export function Board() {
             }
             if (st === "offer") {
               return (
-                <a href={hrefOf("people", "moves", "offers",
+                <a className={s.tapLink}
+                  href={hrefOf("people", "moves", "offers",
                   ...(c.offerId === null ? [] : [c.offerId]))}>
                   {c.offerId === null ? "Offers" : "Open offer"}
                 </a>
