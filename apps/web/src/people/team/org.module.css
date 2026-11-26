@@ -66,76 +66,233 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The tree: no panel of its own; the cards are the surfaces. */
 .card {
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  border-radius: var(--radius-panel);
-  background: var(--color-surface);
+  min-inline-size: 0;
 }
 
 .tree,
-.nested {
+.nested,
+.level1 {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* The guide: one hairline down the toggle's centre, a tick per row. */
-.nested {
-  margin-inline-start: 21px;
-  border-inline-start: 1px solid var(--color-divider-strong);
+/* ---- The head: the General manager, centred, a stem below ---- */
+
+.node[data-depth="0"] {
+  display: grid;
+  justify-items: center;
 }
 
-.nested > .node {
+.node[data-depth="0"] > .row,
+.node[data-depth="1"] > .row {
+  display: block;
+}
+
+.node[data-depth="0"] > .row,
+.node[data-depth="0"] > .foot {
+  inline-size: min(100%, 340px);
+  background: var(--color-surface);
+}
+
+.node[data-depth="0"] > .row {
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  box-shadow: inset 0 3px 0 var(--color-text);
+}
+
+.node[data-depth="0"] > .foot {
+  padding: 0 var(--space-4) var(--space-3);
+  border-radius: 0 0 var(--radius-panel) var(--radius-panel);
+}
+
+/* ---- The people under them: cards under one line ---- */
+
+.level1 {
   position: relative;
-  padding-inline-start: 14px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-3);
+  align-items: start;
+  inline-size: 100%;
+  margin-block-start: var(--space-7);
 }
 
-.nested > .node::before {
+/* The stem from the head, and the line the first row hangs from. */
+.level1::before {
   content: "";
   position: absolute;
-  inset-block-start: 28px;
-  inset-inline-start: 0;
-  inline-size: 14px;
+  inset-block-start: calc(-1 * var(--space-7));
+  inset-inline-start: 50%;
+  inline-size: 1px;
+  block-size: calc(var(--space-7) / 2);
+  background: var(--color-divider-strong);
+}
+
+.level1::after {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(-1 * var(--space-7) / 2);
+  inset-inline: 10%;
   block-size: 1px;
   background: var(--color-divider-strong);
 }
 
-.nested > .node:last-child::after {
+.level1 > .node {
+  position: relative;
+  display: grid;
+  min-inline-size: 0;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  /* The department's grey edge along the top. */
+  box-shadow: inset 0 3px 0 var(--edge, var(--color-grey-300));
+}
+
+.level1 > .node:nth-child(-n + 5)::before {
   content: "";
   position: absolute;
-  inset-block: 29px 0;
-  inset-inline-start: -1px;
-  inline-size: 2px;
-  background: var(--color-surface);
+  inset-block-start: calc(-1 * var(--space-7) / 2);
+  inset-inline-start: 50%;
+  inline-size: 1px;
+  block-size: calc(var(--space-7) / 2);
+  background: var(--color-divider-strong);
+}
+
+.level1 > .node[data-tone="1"] { --edge: var(--color-grey-700); }
+.level1 > .node[data-tone="2"] { --edge: var(--color-grey-500); }
+.level1 > .node[data-tone="3"] { --edge: var(--color-grey-300); }
+.level1 > .node[data-tone="4"] { --edge: var(--color-grey-200); }
+
+.level1 > .node > .row {
+  padding: var(--space-4) var(--space-3) var(--space-1);
+}
+
+.node[data-depth="0"] .person,
+.level1 > .node > .row .person {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  text-align: center;
+}
+
+.node[data-depth="0"] > .row .who,
+.level1 > .node > .row .who {
+  justify-items: center;
+  inline-size: 100%;
+}
+
+.level1 > .node > .row .name,
+.level1 > .node > .row .title {
+  max-inline-size: 100%;
+}
+
+.level1 > .node > .row .title {
+  white-space: normal;
+  min-block-size: 2.7em;
+}
+
+.level1 > .node > .foot {
+  border-block-start: 1px solid var(--color-divider);
+  margin-inline: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1) var(--space-2);
+  min-block-size: 44px;
+  padding: 0 var(--space-2) var(--space-2) var(--space-3);
+}
+
+.node[data-depth="0"] > .foot {
+  justify-content: center;
+}
+
+.dept,
+.solo {
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.who > .dept {
+  margin-block-start: var(--space-1);
+}
+
+/* Deeper levels: an indented list inside the card. */
+.level1 > .node > .nested {
+  margin: 0 var(--space-2) var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-divider);
+  border-inline-start: 0;
+}
+
+.nested .nested {
+  margin-inline-start: 21px;
+  border-inline-start: 1px solid var(--color-divider-strong);
+}
+
+.nested .nested > .node {
+  position: relative;
+  padding-inline-start: 10px;
 }
 
 .row {
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  min-block-size: 56px;
+  min-block-size: 48px;
 }
 
 .toggle,
 .spacer {
   flex: none;
-  inline-size: 44px;
+  min-inline-size: 44px;
   block-size: 44px;
 }
 
+.spacer {
+  inline-size: 44px;
+}
+
 .toggle {
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding-inline: var(--space-2);
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
   touch-action: manipulation;
+}
+
+.toggle[aria-expanded="true"] {
+  color: var(--color-text);
+}
+
+.toggleText {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .toggle:hover:not(:disabled) {
   background: var(--color-surface-2);
   color: var(--color-text);
+}
+
+.toggle:disabled {
+  opacity: 0.6;
 }
 
 .toggle:focus-visible,
@@ -150,8 +307,8 @@
   flex: 1;
   gap: var(--space-3);
   min-inline-size: 0;
-  min-block-size: 52px;
-  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  min-block-size: 44px;
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-control);
   color: var(--color-text);
   text-decoration: none;
@@ -173,11 +330,6 @@
   flex: none;
 }
 
-.node[data-depth="0"] > .row .avatar {
-  inline-size: 44px;
-  block-size: 44px;
-}
-
 .who {
   display: grid;
   flex: 1;
@@ -188,13 +340,18 @@
 .name {
   overflow: hidden;
   font-size: var(--text-md);
-  font-weight: 500;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .node[data-depth="0"] > .row .name {
   font-size: var(--text-lg);
+}
+
+.node[data-depth="2"] .name {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .title {
@@ -210,6 +367,24 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1180px) {
+  .level1 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .level1 > .node:nth-child(-n + 5)::before {
+    content: none;
+  }
+
+  .level1 > .node:nth-child(-n + 3)::before {
+    content: "";
+  }
+
+  .level1::after {
+    inset-inline: 16.6%;
+  }
 }
 
 .empty {
@@ -247,19 +422,108 @@
     margin-inline-start: 0;
   }
 
-  .team {
+  /* One indented list in one white card. */
+  .card {
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  .node[data-depth="0"] {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    justify-items: stretch;
+  }
+
+  .node[data-depth="0"] > .row .avatar {
+    inline-size: 44px;
+    block-size: 44px;
+    font-size: 15px;
+  }
+
+  .node[data-depth="0"] > .level1 {
+    grid-column: 1 / -1;
+  }
+
+  .node[data-depth="0"] > .row,
+  .node[data-depth="0"] > .foot {
+    inline-size: auto;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .node[data-depth="0"] .person,
+  .level1 > .node > .row .person {
+    flex-direction: row;
+    align-items: center;
+    text-align: start;
+  }
+
+  .node[data-depth="0"] > .row .who,
+  .level1 > .node > .row .who {
+    justify-items: start;
+  }
+
+  .node[data-depth="0"] > .foot {
+    min-block-size: 0;
+  }
+
+  .level1 {
+    display: block;
+    margin: var(--space-1) 0 0 21px;
+    border-inline-start: 1px solid var(--color-divider-strong);
+  }
+
+  .level1::before,
+  .level1::after,
+  .level1 > .node:nth-child(n)::before {
+    content: none;
+  }
+
+  .level1 > .node {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding-inline-start: 8px;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .level1 > .node > .row {
+    padding: 0;
+  }
+
+  .level1 > .node > .row .title {
+    min-block-size: 0;
+    white-space: nowrap;
+  }
+
+  .level1 > .node > .foot {
+    padding: 0;
+  }
+
+  .level1 > .node > .foot .solo,
+  .who > .dept,
+  .toggleText {
     display: none;
   }
 
-  .nested {
-    margin-inline-start: 21px;
+  .level1 > .node > .foot {
+    margin: 0;
+    border: 0;
   }
 
-  .nested > .node {
-    padding-inline-start: 8px;
+  .level1 > .node > .nested {
+    grid-column: 1 / -1;
+    margin: 0 0 var(--space-1) 21px;
+    padding: 0;
+    border-block-start: 0;
+    border-inline-start: 1px solid var(--color-divider-strong);
   }
 
-  .nested > .node::before {
-    inline-size: 8px;
+  .team {
+    display: none;
   }
 }

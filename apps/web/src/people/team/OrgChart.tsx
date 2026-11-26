@@ -1,4 +1,6 @@
-import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { gsap } from "gsap";
+import { useId, useLayoutEffect, useMemo, useRef, useState,
+  type KeyboardEvent, type RefObject } from "react";
 import type { OrgChartNode } from "../../demo/data/team-types";
 import { useDemo } from "../../demo/state";
 import b from "../../ui/button.module.css";
@@ -97,6 +99,8 @@ export function OrgChart() {
       }
     }
   };
+  const depts = [...new Set(root.children.map((k) => k.departmentText))];
+  const tone = (d: string): number => (depts.indexOf(d) % 4) + 1;
   const w = W.org;
   const withKids = [...all.values()].filter((x) =>
     x.node.children.length > 0).map((x) => x.node.employeeId);
@@ -133,7 +137,7 @@ export function OrgChart() {
           role="group" aria-label={w.tree}>
           <ul className={s.tree}>
             <Branch node={root} depth={0} parentPlace={null} keep={keep}
-              hit={hit} isOpen={isOpen} toggle={toggle}
+              hit={hit} isOpen={isOpen} toggle={toggle} tone={tone}
               lead={words.length > 0} />
           </ul>
         </div>
@@ -152,52 +156,99 @@ interface BranchProps {
   isOpen(id: string): boolean;
   toggle(id: string): void;
   lead: boolean;
+  /** Department name to grey tone (1 to 4), fixed per chart. */
+  tone(dept: string): number;
 }
 
+/** The person: face, name, title (and place when it changes). */
+function Person(p: { n: OrgChartNode; depth: number; place: string | null;
+  match: boolean }) {
+  const { n } = p;
+  return (
+    <a className={s.person} href={profileHref(n.employeeId)}
+      data-person={n.employeeId} data-match={p.match ? "true" : undefined}>
+      <Avatar id={n.employeeId} name={n.name} className={s.avatar}
+        size={p.depth === 0 ? "lg" : p.depth === 1 ? "md" : "sm"} />
+      <span className={s.who}>
+        <span className={s.name}>{n.name}</span>
+        <span className={s.title}>
+          {n.title}{p.place === null || p.depth === 0 ? ""
+            : `, ${p.place}`}
+        </span>
+        {p.depth === 1 && <span className={s.dept}>{n.departmentText}</span>}
+      </span>
+    </a>
+  );
+}
+
+/**
+ * A team opening: its people settle in (240 ms, 30 ms apart), once per
+ * opening. Under reduced motion they are simply there.
+ */
+function useOpening(ref: RefObject<HTMLUListElement | null>,
+  open: boolean): void {
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el === null || !open) return undefined;
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.from(el.children, { opacity: 0, y: -6, duration: 0.24,
+        ease: "power2.out", stagger: 0.03, clearProps: "all" });
+    });
+    return () => mm.revert();
+  }, [ref, open]);
+}
+
+/**
+ * One person and, when open, their team. The General manager is a card
+ * at the head; the people reporting to them are cards in a row under
+ * one connecting line, each with its department as a grey edge and the
+ * team's size on the button that opens it; deeper levels open inside
+ * the card as an indented list. On a phone it all reads as one
+ * indented list. The DOM is one nested list either way.
+ */
 function Branch(p: BranchProps) {
   const n = p.node;
   const { keep } = p;
-  if (keep !== null && !keep.has(n.employeeId)) return null;
   const kids = n.children.filter((k) => keep === null ||
     keep.has(k.employeeId));
   const expanded = kids.length > 0 && p.isOpen(n.employeeId);
+  const list = useRef<HTMLUListElement>(null);
+  useOpening(list, expanded);
+  if (keep !== null && !keep.has(n.employeeId)) return null;
   const team = sizeOf(n) - 1;
   const w = W.org;
   const place = p.parentPlace !== n.locationText ? n.locationText : null;
+  const size = team === 1 ? w.one : fill(w.people, { n: team });
+  const toggle = kids.length > 0 ? (
+    <button type="button" className={s.toggle}
+      aria-expanded={expanded} aria-controls={`team-${n.employeeId}`}
+      disabled={keep !== null}
+      aria-label={fill(expanded ? w.close : w.open, { name: n.name })}
+      onClick={() => p.toggle(n.employeeId)}>
+      {p.depth <= 1 && <span className={s.toggleText}>{size}</span>}
+      <Icon name={expanded ? "chevronDown" : "chevronEnd"} size={16} />
+    </button>
+  ) : null;
   return (
-    <li className={s.node} data-depth={Math.min(p.depth, 2)}>
+    <li className={s.node} data-depth={Math.min(p.depth, 2)}
+      data-tone={p.depth === 1 ? p.tone(n.departmentText) : undefined}>
       <div className={s.row}>
-        {kids.length > 0 ? (
-          <button type="button" className={s.toggle}
-            aria-expanded={expanded} aria-controls={`team-${n.employeeId}`}
-            disabled={keep !== null}
-            aria-label={fill(expanded ? w.close : w.open,
-              { name: n.name })}
-            onClick={() => p.toggle(n.employeeId)}>
-            <Icon name={expanded ? "chevronDown" : "chevronEnd"}
-              size={16} />
-          </button>
-        ) : <span className={s.spacer} aria-hidden="true" />}
-        <a className={s.person} href={profileHref(n.employeeId)}
-          data-person={n.employeeId}
-          data-match={p.lead && p.hit(n) ? "true" : undefined}>
-          <Avatar id={n.employeeId} name={n.name} className={s.avatar} />
-          <span className={s.who}>
-            <span className={s.name}>{n.name}</span>
-            <span className={s.title}>
-              {n.title}{place === null || p.depth === 0 ? ""
-                : `, ${place}`}
-            </span>
-          </span>
-          {team > 0 && (
-            <span className={s.team}>
-              {team === 1 ? w.one : fill(w.people, { n: team })}
-            </span>
-          )}
-        </a>
+        {p.depth >= 2 && (toggle ?? (
+          <span className={s.spacer} aria-hidden="true" />))}
+        <Person n={n} depth={p.depth} place={place}
+          match={p.lead && p.hit(n)} />
+        {p.depth >= 2 && team > 0 && <span className={s.team}>{size}</span>}
       </div>
+      {p.depth <= 1 && (
+        <div className={s.foot}>
+          {toggle ?? (team === 0 && p.depth === 1 && (
+            <span className={s.solo}>{W.org.noTeam}</span>))}
+        </div>
+      )}
       {expanded && (
-        <ul className={s.nested} id={`team-${n.employeeId}`}>
+        <ul className={p.depth === 0 ? s.level1 : s.nested} ref={list}
+          id={`team-${n.employeeId}`}>
           {kids.map((k) => (
             <Branch key={k.employeeId} {...p} node={k}
               depth={p.depth + 1} parentPlace={n.locationText} />
