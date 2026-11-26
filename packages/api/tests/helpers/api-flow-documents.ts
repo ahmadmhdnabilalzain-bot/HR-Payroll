@@ -31,7 +31,8 @@ async function vault(hit: Hitter, f: DocFlow): Promise<void> {
   await hit("employeeDocumentGet", owner, c, { id });
   const v = await hit("employeeDocumentVersionAdd", owner, c, { id },
     { expiryDate: "2031-12-20", fileId: await file(hit, owner, c) });
-  await hit("employeeDocumentVerify", owner, c, { id });
+  await hit("employeeDocumentVerify", owner, c, { id },
+    { versionId: v.body.current.id });
   await hit("employeeDocumentDownload", f.emp, c, { id,
     versionId: v.body.current.id });
   await hit("documentAlerts", owner, c);
