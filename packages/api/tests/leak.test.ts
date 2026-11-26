@@ -28,7 +28,7 @@ type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
 
 type Kind = "employee" | "payslip" | "payRun" | "sifFile" |
-  "timesheet" | null;
+  "timesheet" | "leaveType" | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
 const ID_KIND: Record<string, Kind> = {
   getCompany: null, listUsers: null, listEmployees: null,
@@ -73,6 +73,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   let sifId: string;
   const slips = {} as Record<Target, string>;
   let sheets = {} as Record<Target, string>;
+  let leaveTypeId = "";
   beforeAll(async () => {
     ctx = await makeApp();
     s = await seedCompany(ctx, "leak");
@@ -91,6 +92,9 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     sifId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
       `/v1/pay-runs/${runId}/sif`)).body.id;
     sheets = await sheetFixtures(ctx, s);
+    leaveTypeId = (await call(ctx.app, s.hr.token, s.companyId, "POST",
+      "/v1/leave-types", { name: "Type A", paid: true, annualDays: 30 }))
+      .body.id;
   });
   /** Every `{id}` to try for a route, with the record it belongs to. */
   const idsFor = (kind: Kind): [Target | null, string | null][] =>
@@ -99,6 +103,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     : kind === "payRun" ? [[null, runId]]
     : kind === "sifFile" ? [[null, sifId]]
     : kind === "timesheet" ? TARGETS.map((t) => [t, sheets[t]])
+    : kind === "leaveType" ? [[null, leaveTypeId]]
     : [[null, null]];
   const path = (r: RouteDef, id: string | null) =>
     (id === null ? r.path : r.path.replace("{id}", id)) +
@@ -150,7 +155,7 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
     const b = await signup(ctx.app, "other");
     const mfa = await enableMfa(ctx.app, ctx.clock, b);
     const kinds: Kind[] = ["employee", "payslip", "payRun", "sifFile",
-      "timesheet"];
+      "timesheet", "leaveType"];
     const allIds = kinds.flatMap((k) => idsFor(k).map(([, id]) => id!));
     for (const r of getRoutes.filter((x) => x.path.includes("{id}"))) {
       for (const id of allIds) {

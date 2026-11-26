@@ -21,23 +21,24 @@ async function employeesIn(tx: Db, companyId: string, first: string,
     lastWorkingDate: r.last_working_date }));
 }
 
-/** Approved leave of `kind` in [from, to], as half-day counts. */
+/** Approved leave dates of `kind` in [from, to], with their halves. */
 async function halvesOf(tx: Db, companyId: string, ids: string[],
   from: string, to: string, kind: string) {
-  if (to < from) return new Map<string, Set<string>>();
+  if (to < from) return new Map<string, Map<string, number>>();
   const kinds = await leaveTypeKinds(tx, companyId);
   const m = await leaveMap(tx, companyId, ids, from, to);
-  const out = new Map<string, Set<string>>();
+  const out = new Map<string, Map<string, number>>();
   for (const [emp, days] of m) {
-    const dates = [...days].filter(([, l]) =>
-      kinds.get(l.leaveTypeId)?.payrollKind === kind).map(([d]) => d);
-    out.set(emp, new Set(dates));
+    out.set(emp, new Map([...days].filter(([, l]) =>
+      kinds.get(l.leaveTypeId)?.payrollKind === kind)
+      .map(([d, l]) => [d, l.halves])));
   }
   return out;
 }
 
 /** Days of the unbroken run of dates ending the day before `first`. */
-function runBefore(dates: Set<string> | undefined, first: string) {
+function runBefore(dates: Map<string, number> | undefined,
+  first: string) {
   let n = 0;
   for (let d = addDays(first, -1); dates?.has(d); d = addDays(d, -1)) n++;
   return n;
@@ -73,7 +74,8 @@ export async function loadPayInputSource(tx: Db, companyId: string,
     addDays(first, -1), "maternity");
   return { year, month, employees, timesheets, leaveDates,
     sickHalvesBefore: Object.fromEntries(ids.map((id) =>
-      [id, 2 * (sick.get(id)?.size ?? 0)])),
+      [id, [...(sick.get(id)?.values() ?? [])].reduce((a, b) => a + b,
+        0)])),
     maternityRunBefore: Object.fromEntries(ids.map((id) =>
       [id, runBefore(mat.get(id), first)])) };
 }

@@ -77,8 +77,8 @@ async function seedTime(admin: Db, c: string, emp: string): Promise<void> {
        created_at) VALUES ($1, $2, 'Annual', true, 30, $3)`, [lt, c, AT]);
   await admin.query(
     `INSERT INTO leave_requests (id, company_id, employee_id, leave_type_id,
-       start_date, end_date, days, status, created_by, created_at)
-     VALUES ($1, $2, $3, $4, '2026-03-02', '2026-03-03', 2, 'pending', $3,
+       start_date, end_date, half_units, status, created_by, created_at)
+     VALUES ($1, $2, $3, $4, '2026-03-02', '2026-03-03', 4, 'pending', $3,
        $5)`, [rowId(c, "a2"), c, emp, lt, AT]);
   await admin.query(
     `INSERT INTO leave_adjustments (id, company_id, employee_id,

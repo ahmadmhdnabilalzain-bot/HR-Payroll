@@ -50,7 +50,22 @@ const sheetDay = { date: "2026-03-02", kind: "work", shift: { start:
   earlyLeaveMinutes: 0, overtimeMinutes: 0, overtimeNightMinutes: 0,
   restDayWorkMinutes: 0, decision: null, flags: [], trace: [], wfh: null };
 
+const blackout = { id: id(11), name: "Test period", from: "2026-12-01",
+  to: "2026-12-10", leaveTypeIds: [], departmentId: null, mode: "warn",
+  status: "active" };
+
 const ROSTER_EXAMPLES = {
+  LeavePolicy: { leaveTypeId: id(12), payrollKind: "annual",
+    accrual: "upfront", joiningYearProRata: false, dayCount: "calendar",
+    halfDays: false, carryOverMaxDays: null, carryOverExpiresMonths: null,
+    minNoticeDays: 0, maxConsecutiveDays: null, allowNegative: false,
+    isDefault: true, warnings: [] },
+  LeaveBlackout: blackout,
+  LeaveBlackoutList: { items: [blackout] },
+  LeavePreview: { days: 1, dates: [{ date: "2026-03-02", part: "full" }],
+    skipped: [], balanceAfter: null, warnings: [], blocked: null },
+  CarryOverResult: { fromYear: 2026, toYear: 2027, rows: [],
+    alreadyRun: false },
   TimesheetSummaryList: { items: [summary] },
   Timesheet: { ...summary, days: [sheetDay] },
   PayInputs: { year: 2026, month: 3, statement: PAY_INPUTS_STATEMENT,

@@ -5,6 +5,7 @@ import * as rosters from "./time-rosters";
 import * as clock from "./time-clock";
 import * as sheets from "./time-timesheets";
 import * as pay from "./time-pay-inputs";
+import * as lp from "./time-leave-policy";
 
 function named(mod: Record<string, unknown>, names: readonly string[]) {
   const out: Record<string, z.ZodType> = {};
@@ -38,4 +39,7 @@ export const TIME_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
     "OvertimeDecisionInput", "TimesheetNote"]),
   ...named(pay, ["PayInputOvertime", "PayInputRestDayWork",
     "PayInputAbsence", "ManualItem", "PayInputEmployee", "PayInputs"]),
+  ...named(lp, ["LeavePolicy", "LeavePolicyPut", "LeaveBlackout",
+    "LeaveBlackoutList", "LeaveBlackoutCreate", "LeaveBlackoutUpdate",
+    "LeaveWarning", "LeavePreview", "CarryOverRun", "CarryOverResult"]),
 };

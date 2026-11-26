@@ -6,8 +6,7 @@ import type { Db } from "../db/db";
 import type { Tenant } from "../auth/guard";
 import { ApiError } from "../http/errors";
 import { inScope, viewerScope } from "../people/redact";
-import { balanceFor, loadLeaveType } from "./balances";
-import { leaveDays } from "./days";
+import { planRequest, type RequestPlan } from "./preview";
 
 export interface RequestRow {
   id: string;
@@ -15,7 +14,9 @@ export interface RequestRow {
   leave_type_id: string;
   start_date: string;
   end_date: string;
-  days: number;
+  half_units: number;
+  start_part: "full" | "am" | "pm";
+  end_part: "full" | "am" | "pm";
   status: LeaveRequest["status"];
   reason: string | null;
   decided_by: string | null;
@@ -24,9 +25,9 @@ export interface RequestRow {
 
 export const toLeaveRequest = (r: RequestRow): LeaveRequest => ({
   id: r.id, employeeId: r.employee_id, leaveTypeId: r.leave_type_id,
-  startDate: r.start_date, endDate: r.end_date, days: r.days,
+  startDate: r.start_date, endDate: r.end_date, days: r.half_units / 2,
   status: r.status, reason: r.reason, decidedBy: r.decided_by,
-  decidedAt: r.decided_at });
+  decidedAt: r.decided_at, startPart: r.start_part, endPart: r.end_part });
 
 /** The employee's id and manager, for scope checks; 404 when absent. */
 export async function employeeRef(tx: Db, companyId: string, id: string) {
@@ -58,8 +59,7 @@ async function subject(tx: Db, t: Tenant, b: LeaveRequestCreate) {
   return id;
 }
 
-async function checkDates(tx: Db, companyId: string, employeeId: string,
-  b: LeaveRequestCreate): Promise<number> {
+function checkDates(b: LeaveRequestCreate): void {
   if (b.endDate < b.startDate) {
     throw new ApiError("VALIDATION_FAILED", "endDate is before startDate",
       { fields: ["body.endDate"] });
@@ -67,35 +67,50 @@ async function checkDates(tx: Db, companyId: string, employeeId: string,
   if (b.startDate.slice(0, 4) !== b.endDate.slice(0, 4)) {
     throw new ApiError("LEAVE_CROSSES_YEAR");
   }
-  // Lock the employee row: parallel requests for one person queue.
-  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
-    "id = $2 FOR UPDATE", [companyId, employeeId]);
-  const overlap = await tx.query(
-    `SELECT 1 FROM leave_requests WHERE company_id = $1
-     AND employee_id = $2 AND status IN ('pending', 'approved')
-     AND start_date <= $4 AND end_date >= $3`,
-    [companyId, employeeId, b.startDate, b.endDate]);
-  if (overlap.length > 0) throw new ApiError("LEAVE_OVERLAP");
-  return leaveDays(b.startDate, b.endDate);
 }
 
-export async function createRequest(tx: Db, t: Tenant, userId: string,
-  ids: { id: string; at: string }, b: LeaveRequestCreate) {
+/** Plans a request for its subject (dates, policy, warnings). */
+export async function planFor(tx: Db, t: Tenant, b: LeaveRequestCreate,
+  today: string) {
   const employeeId = await subject(tx, t, b);
-  const type = await loadLeaveType(tx, t.companyId, b.leaveTypeId);
-  const days = await checkDates(tx, t.companyId, employeeId, b);
-  if (type.annual_days !== null) {
-    const bal = await balanceFor(tx, t.companyId, employeeId, type.id,
-      Number(b.startDate.slice(0, 4)));
-    if (bal.remainingDays < days) throw new ApiError("INSUFFICIENT_BALANCE");
-  }
+  checkDates(b);
+  // Lock the employee row: parallel requests for one person queue.
+  await tx.query("SELECT 1 FROM employees WHERE company_id = $1 AND " +
+    "id = $2 FOR UPDATE", [t.companyId, employeeId]);
+  return { employeeId, plan: await planRequest(tx, t, employeeId, b,
+    today) };
+}
+
+async function insertRequest(tx: Db, t: Tenant, userId: string,
+  ids: { id: string; at: string }, emp: string, b: LeaveRequestCreate,
+  plan: RequestPlan) {
   await tx.query(
     `INSERT INTO leave_requests (id, company_id, employee_id, leave_type_id,
-       start_date, end_date, days, status, reason, created_by, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10)`,
-    [ids.id, t.companyId, employeeId, type.id, b.startDate, b.endDate,
-      days, b.reason ?? null, userId, ids.at]);
-  return loadRequest(tx, t.companyId, ids.id);
+       start_date, end_date, half_units, start_part, end_part, status,
+       reason, created_by, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10, $11, $12)`,
+    [ids.id, t.companyId, emp, b.leaveTypeId, b.startDate, b.endDate,
+      plan.count.halves, b.startPart ?? "full", b.endPart ?? "full",
+      b.reason ?? null, userId, ids.at]);
+  for (const d of plan.count.dates) {
+    await tx.query(
+      `INSERT INTO leave_request_dates (company_id, request_id, date,
+         halves, part) VALUES ($1, $2, $3, $4, $5)`,
+      [t.companyId, ids.id, d.date, d.halves, d.part]);
+  }
+}
+
+/** Creates the request; the plan's first blocking problem is thrown. */
+export async function createRequest(tx: Db, t: Tenant, userId: string,
+  ids: { id: string; at: string; today: string }, b: LeaveRequestCreate) {
+  const { employeeId, plan } = await planFor(tx, t, b, ids.today);
+  if (plan.blocked !== null) {
+    throw new ApiError(plan.blocked.code, undefined,
+      plan.blocked.dates.length > 0 ? { dates: plan.blocked.dates }
+        : undefined);
+  }
+  await insertRequest(tx, t, userId, ids, employeeId, b, plan);
+  return { row: await loadRequest(tx, t.companyId, ids.id), plan };
 }
 
 /** Approve or reject: pending only; a manager only for direct reports

@@ -61,4 +61,30 @@ async function seedRosterRows(admin: Db, c: string, emp: string) {
     `INSERT INTO overtime_decisions (company_id, timesheet_id, date,
        approved_minutes, approved_night_minutes, decided_by, decided_at)
      VALUES ($1, $2, '2026-01-05', 0, 0, $3, $4)`, [c, sheet, emp, AT]);
+  await seedLeaveRows(admin, c, emp);
+}
+
+async function seedLeaveRows(admin: Db, c: string, emp: string) {
+  const lt = rowId(c, "a1");
+  await admin.query(
+    `INSERT INTO leave_policies (company_id, leave_type_id, payroll_kind,
+       accrual, joining_year_pro_rata, day_count, half_days,
+       min_notice_days, allow_negative, updated_at) VALUES ($1, $2,
+       'annual', 'upfront', false, 'calendar', false, 0, false, $3)`,
+    [c, lt, AT]);
+  await admin.query(
+    `INSERT INTO leave_request_dates (company_id, request_id, date, halves,
+       part) VALUES ($1, $2, '2026-03-02', 2, 'full')`, [c, rowId(c, "a2")]);
+  await admin.query(
+    `INSERT INTO leave_blackouts (id, company_id, name, from_date, to_date,
+       leave_type_ids, mode, status) VALUES ($1, $2, 'Test period',
+       '2026-12-01', '2026-12-02', '{}', 'warn', 'active')`,
+    [rowId(c, "98"), c]);
+  await admin.query(
+    `INSERT INTO leave_carryovers (company_id, employee_id, leave_type_id,
+       to_year, halves, created_at) VALUES ($1, $2, $3, 2026, 0, $4)`,
+    [c, emp, lt, AT]);
+  await admin.query(
+    `INSERT INTO leave_carryover_runs (company_id, from_year, created_at)
+     VALUES ($1, 2025, $2)`, [c, AT]);
 }

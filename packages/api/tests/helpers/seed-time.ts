@@ -9,6 +9,8 @@ export interface TimeSeed {
   holidayId: string;
   siteId: string;
   shiftId: string;
+  annualTypeId: string;
+  sickTypeId: string;
 }
 
 async function must(p: Promise<{ status: number; text: string; body: any }>,
@@ -55,7 +57,36 @@ export async function seedTime(ctx: Ctx, s: Seeded): Promise<TimeSeed> {
       wfhTracked: false, shiftWorker: false }), 200, "profile");
   }
   const shiftId = await seedRoster(ctx, s);
-  return { holidayId: h.id, siteId: site.id, shiftId };
+  return { holidayId: h.id, siteId: site.id, shiftId,
+    ...await seedLeaveTypes(ctx, s) };
+}
+
+/**
+ * "Type A" (annual, 30 days, monthly accrual) and "Type S" (sick; its
+ * name is the health-type leak sentinel).
+ */
+async function seedLeaveTypes(ctx: Ctx, s: Seeded) {
+  const as = asUser(ctx, s);
+  const a = await must(as(s.hr, "POST", "/v1/leave-types", {
+    name: "Type A", paid: true, annualDays: 30 }), 201, "type a");
+  await must(as(s.hr, "PUT", `/v1/leave-types/${a.id}/policy`,
+    policy({ payrollKind: "annual", accrual: "monthly" })), 200, "pol a");
+  const sk = await must(as(s.hr, "POST", "/v1/leave-types", {
+    name: SICK_SENTINEL, paid: true, annualDays: null }), 201, "type s");
+  await must(as(s.hr, "PUT", `/v1/leave-types/${sk.id}/policy`,
+    policy({ payrollKind: "sick" })), 200, "pol s");
+  return { annualTypeId: a.id as string, sickTypeId: sk.id as string };
+}
+
+export const SICK_SENTINEL = "SickTypeSentinel";
+
+/** A full policy body: Plan 9's defaults, then the overrides. */
+export function policy(o: Record<string, unknown> = {}) {
+  return { payrollKind: "other-paid", accrual: "upfront",
+    joiningYearProRata: false, dayCount: "calendar", halfDays: false,
+    carryOverMaxDays: null, carryOverExpiresMonths: null,
+    minNoticeDays: 0, maxConsecutiveDays: null, allowNegative: false,
+    ...o };
 }
 
 /**

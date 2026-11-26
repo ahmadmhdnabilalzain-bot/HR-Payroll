@@ -18,6 +18,9 @@ const TIME_ROUTE_IDS = [
   "listTimesheets", "getTimesheet", "prepareTimesheet", "submitTimesheet",
   "decideOvertime", "approveTimesheet", "rejectTimesheet",
   "reopenTimesheet", "getPayInputs",
+  "getLeavePolicy", "putLeavePolicy", "listLeaveBlackouts",
+  "createLeaveBlackout", "updateLeaveBlackout", "previewLeaveRequest",
+  "runLeaveCarryOver",
 ];
 
 const FORBIDDEN_PATH =

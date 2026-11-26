@@ -126,6 +126,29 @@ async function timesheetFlow(f: TimeFlowCtx) {
   await hit("rejectTimesheet", owner, c, id, { note: "fix a day" });
 }
 
+async function leaveFlow(f: TimeFlowCtx) {
+  const { hit, owner, emp, c } = f;
+  const t = await hit("createLeaveType", owner, c, {}, { name: "Type C",
+    paid: true, annualDays: 30 });
+  const id = { id: t.body.id as string };
+  await hit("getLeavePolicy", emp, c, id);
+  await hit("putLeavePolicy", owner, c, id, { payrollKind: "annual",
+    accrual: "upfront", joiningYearProRata: false, dayCount: "calendar",
+    halfDays: true, carryOverMaxDays: 5, carryOverExpiresMonths: 3,
+    minNoticeDays: 0, maxConsecutiveDays: null, allowNegative: false });
+  const b = await hit("createLeaveBlackout", owner, c, {}, {
+    name: "Test period", from: "2026-12-01", to: "2026-12-02",
+    leaveTypeIds: [], departmentId: null, mode: "warn" });
+  await hit("updateLeaveBlackout", owner, c, { id: b.body.id },
+    { mode: "block" });
+  await hit("listLeaveBlackouts", emp, c, {}, undefined,
+    { query: "?year=2026" });
+  await hit("previewLeaveRequest", emp, c, {}, { leaveTypeId: id.id,
+    startDate: "2026-06-01", endDate: "2026-06-01", startPart: "am",
+    endPart: "am" });
+  await hit("runLeaveCarryOver", owner, c, {}, { fromYear: 2025 });
+}
+
 /** Every Plan 9 route, in task order. */
 export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await settingsFlow(f);
@@ -134,4 +157,5 @@ export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await swapFlow(f, p);
   await correctionFlow(f);
   await timesheetFlow(f);
+  await leaveFlow(f);
 }

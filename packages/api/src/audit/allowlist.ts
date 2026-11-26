@@ -42,7 +42,8 @@ const CHECKS: Record<string, Check> = {
   status: matches(WORD),
   version: isInt,
   count: isInt,
-  days: isInt,
+  // Whole days, or half days on a leave request (Plan 9).
+  days: (v) => typeof v === "number" && Number.isSafeInteger(v * 2),
   year: isInt,
   employeeCount: isInt,
   errorCount: isInt,

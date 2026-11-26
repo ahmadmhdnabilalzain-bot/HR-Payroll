@@ -1,7 +1,8 @@
 import type { LeaveBalance, LeaveType, Period } from "@payroll/contract";
 import type { Db } from "../db/db";
 import { ApiError } from "../http/errors";
-import { daysInPeriod, periodBounds } from "./days";
+import { periodBounds } from "./days";
+import { policyBalance } from "./policy-balance";
 
 interface TypeRow {
   id: string;
@@ -30,51 +31,37 @@ export async function listLeaveTypes(tx: Db, companyId: string) {
      WHERE company_id = $1 ORDER BY name, id`, [companyId]);
 }
 
-const int = (v: unknown) => Number(v ?? 0);
-
 /**
- * Entitled = the type's company-entered annualDays (no accrual, no
- * first-six-months rule); remaining = entitled + adjustments - taken
- * - pending. Requests never cross a year, so a request belongs to the
- * year of its start date.
+ * The balance under the type's policy (Plan 9 `policyBalance`), as of
+ * `asOf` (default: the year's last day; routes pass today in Dubai).
+ * Plan 3's numbers are unchanged for a type without a policy.
+ * Requests never cross a year: a request belongs to its start year.
  */
 export async function balanceFor(tx: Db, companyId: string,
-  employeeId: string, leaveTypeId: string, year: number)
-  : Promise<LeaveBalance> {
-  const t = await loadLeaveType(tx, companyId, leaveTypeId);
-  const [r] = await tx.query<{ taken: unknown; pending: unknown;
-    adj: unknown }>(
-    `SELECT
-       (SELECT sum(days) FROM leave_requests WHERE company_id = $1
-         AND employee_id = $2 AND leave_type_id = $3 AND status = 'approved'
-         AND extract(year FROM start_date) = $4) AS taken,
-       (SELECT sum(days) FROM leave_requests WHERE company_id = $1
-         AND employee_id = $2 AND leave_type_id = $3 AND status = 'pending'
-         AND extract(year FROM start_date) = $4) AS pending,
-       (SELECT sum(days) FROM leave_adjustments WHERE company_id = $1
-         AND employee_id = $2 AND leave_type_id = $3 AND year = $4) AS adj`,
-    [companyId, employeeId, leaveTypeId, year]);
-  const entitled = t.annual_days ?? 0;
-  const [taken, pending, adj] = [int(r?.taken), int(r?.pending),
-    int(r?.adj)];
-  return { leaveTypeId, year, entitledDays: entitled, adjustmentDays: adj,
-    takenDays: taken, pendingDays: pending,
-    remainingDays: entitled + adj - taken - pending,
-    dayCountRule: "calendar-days-inclusive" };
+  employeeId: string, leaveTypeId: string, year: number,
+  asOf = `${year}-12-31`): Promise<LeaveBalance> {
+  const { availableHalves: _a, ...b } = await policyBalance(tx, companyId,
+    employeeId, leaveTypeId, year, asOf);
+  return b;
 }
 
-/** Days of approved leave of unpaid types inside the month. */
+/**
+ * Days of approved leave of unpaid types inside the month: the counted
+ * half-days, rounded up, so a half day counts as 1 and the pay run
+ * treats the month as partial (Plan 9 Ruling 9).
+ */
 export async function unpaidLeaveDaysIn(tx: Db, companyId: string,
   employeeId: string, period: Period): Promise<number> {
   const { first, last } = periodBounds(period);
-  const rows = await tx.query<{ start_date: string; end_date: string }>(
-    `SELECT r.start_date, r.end_date FROM leave_requests r
+  const [r] = await tx.query<{ halves: unknown }>(
+    `SELECT sum(d.halves) AS halves FROM leave_request_dates d
+     JOIN leave_requests r ON r.company_id = d.company_id
+       AND r.id = d.request_id
      JOIN leave_types t ON t.company_id = r.company_id
        AND t.id = r.leave_type_id
-     WHERE r.company_id = $1 AND r.employee_id = $2
+     WHERE d.company_id = $1 AND r.employee_id = $2
        AND r.status = 'approved' AND NOT t.paid
-       AND r.start_date <= $4 AND r.end_date >= $3`,
+       AND d.date BETWEEN $3 AND $4`,
     [companyId, employeeId, first, last]);
-  return rows.reduce((n, r) =>
-    n + daysInPeriod(r.start_date, r.end_date, period), 0);
+  return Math.ceil(Number(r?.halves ?? 0) / 2);
 }

@@ -7,12 +7,13 @@ import { call } from "./test-app";
  * route missing here fails the test) and the query each one needs.
  */
 export const TIME_ID_KIND: Record<string, "employee" | "timesheet" |
-  null> = {
+  "leaveType" | null> = {
   getTimeSettings: null, listHolidays: null, listSpecialPeriods: null,
   listWorkSites: null, getTimeProfile: "employee",
   listShiftTemplates: null, getRoster: null, listSwapRequests: null,
   listCorrectionRequests: null, listTimesheets: null,
   getTimesheet: "timesheet", getPayInputs: null,
+  getLeavePolicy: "leaveType", listLeaveBlackouts: null,
 };
 
 export const TIME_QUERY: Record<string, string> = {
@@ -21,6 +22,7 @@ export const TIME_QUERY: Record<string, string> = {
   getRoster: "?from=2026-03-01&to=2026-03-31",
   listTimesheets: "?year=2026&month=3",
   getPayInputs: "?year=2026&month=3",
+  listLeaveBlackouts: "?year=2026",
 };
 
 type Target = keyof Seeded["emp"];
