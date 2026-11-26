@@ -23,6 +23,7 @@ export * from "./templates";
 export * from "./whatsapp";
 export * from "./whatsapp-actions";
 export * from "./inbound";
+export * from "./calendar";
 export * from "./lists";
 export * from "./routes";
 export { ALL_ROLES, DECIDERS, OWNER, PAYROLL } from "./route-def";

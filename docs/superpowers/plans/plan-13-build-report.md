@@ -177,3 +177,21 @@ In progress (updated after each task).
   receipt or claim without a person (owner or hr) accepting; accepted
   files go through Plan 6's size and magic-byte checks again; downloads
   are attachments with `nosniff` and `no-store`; no reply email.
+
+### Task 6: secret-URL calendar feeds
+
+- Plans 9 (holidays) and 11 (deadlines, `src/export/ics.ts`, `JobCtx`)
+  are not on this branch. `src/export/ics.ts` was created with only
+  `escapeIcsText` and `foldIcsLine`; holidays and deadlines come from
+  one seam (`calendar/sources.ts`) that returns none until those plans
+  merge, and the feed text is tested with fixture holidays and
+  deadlines. A `company-deadlines` feed is therefore empty for now.
+- Leave is read with one query in `calendar/sources.ts` (names and
+  type names joined) filtered by Plan 3's `viewerScope`/`inScope`;
+  `listLeaveInRange` was not added to Plan 3's file.
+- `TextReply` (text with headers) was added to `http/context.ts` for
+  the ICS response.
+- Without `PUBLIC_API_BASE_URL` creating a feed gives 409
+  `CHANNEL_NOT_CONFIGURED` (the URL could not be built).
+- `urlHint` shows "…" and the last 6 characters of the secret (the
+  token itself always ends in ".ics").

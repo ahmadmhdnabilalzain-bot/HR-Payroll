@@ -22,10 +22,19 @@ const item: InboundItem = { id: ID, status: "received", receivedAt: AT,
     fileName: "taxi.png", contentType: "image/png", size: 1024,
     status: "kept", skip: null }], rejectReason: null, decision: null };
 
-/** Task 5 examples (email-in). */
+const feed = { id: ID, scope: "my", status: "active", createdAt: AT,
+  lastFetchedAt: null, urlHint: "…AbCdEf" };
+
+/** Task 5 and 6 examples (email-in, calendar feeds). */
 export const INBOUND_EXAMPLES: Readonly<Record<string, unknown>> = {
   InboundSettings: settings,
   InboundItem: item,
   InboundItemList: { items: [item] },
   InboundAttachmentContent: "raw bytes",
+  CalendarFeed: feed,
+  CalendarFeedList: { items: [feed] },
+  CalendarFeedCreated: { ...feed, url: "https://api.example.com/v1/" +
+    "calendar/cal1.<company>.<feed>.<secret>.ics" },
+  CalendarFeedCreate: { scope: "my" },
+  IcsText: "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n",
 };

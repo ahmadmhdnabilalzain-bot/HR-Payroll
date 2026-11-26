@@ -60,6 +60,12 @@ export class Reply {
   constructor(readonly status: 200 | 201, readonly body: unknown) {}
 }
 
+/** A text body with its own headers (the ICS feed). */
+export class TextReply {
+  constructor(readonly text: string,
+    readonly headers: Record<string, string>) {}
+}
+
 /** A `text/plain` attachment (the SIF download). */
 export class FileReply {
   constructor(readonly text: string, readonly fileName: string) {}
@@ -97,6 +103,10 @@ const NO_ENTER: Enter = () => {
 function respond(c: Context<Env>, def: RouteDef, out: unknown) {
   if (out instanceof Refuse) throw out.error;
   if (out instanceof BinaryReply) return binary(c, out);
+  if (out instanceof TextReply) {
+    for (const [k, v] of Object.entries(out.headers)) c.header(k, v);
+    return c.body(out.text, 200);
+  }
   if (out instanceof FileReply) {
     c.header("Content-Disposition",
       `attachment; filename="${out.fileName}"`);

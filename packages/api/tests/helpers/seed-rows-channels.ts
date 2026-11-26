@@ -65,4 +65,9 @@ async function seedInbound(admin: Db, c: string, user: string) {
        file_name, size, status, skip)
      VALUES ($1, $2, $3, 0, 'x', 1, 'skipped', 'TOO_MANY')`,
     [rowId(c, "d6"), c, rowId(c, "d5")]);
+  await admin.query(
+    `INSERT INTO calendar_feeds (id, company_id, user_id, scope,
+       secret_hash, url_hint, status, created_at)
+     VALUES ($1, $2, $3, 'my', 'h', 'x', 'revoked', $4)`,
+    [rowId(c, "d7"), c, user, AT]);
 }

@@ -1,6 +1,7 @@
 import type { SubjectHandlers } from "./approvals/subjects";
 import type { AppDeps } from "./deps";
 import type { App } from "./http/context";
+import { registerCalendarRoutes } from "./routes/channels-calendar";
 import { registerInboundRoutes } from "./routes/channels-inbound";
 import { registerNotificationRoutes } from
   "./routes/channels-notifications";
@@ -17,4 +18,5 @@ export function registerChannelApp(app: App, deps: AppDeps,
   registerWhatsAppOptInRoutes(app, deps);
   registerWhatsAppHookRoutes(app, deps, handlers);
   registerInboundRoutes(app, deps);
+  registerCalendarRoutes(app, deps);
 }

@@ -32,6 +32,14 @@ import {
   InboundSettingsUpdate,
 } from "./inbound";
 import { IdParams } from "./primitives";
+import {
+  CalendarFeed,
+  CalendarFeedCreate,
+  CalendarFeedCreated,
+  CalendarFeedList,
+  CalendarTokenParams,
+  IcsText,
+} from "./calendar";
 import { TemplateInfoList } from "./templates";
 import {
   MyChannels,
@@ -123,6 +131,21 @@ const INBOUND: readonly RouteDef[] = [
     response: InboundItem }),
 ];
 
+/** Task 6: secret-URL calendar feeds. */
+const CALENDAR: readonly RouteDef[] = [
+  ten(ALL_ROLES, { id: "listCalendarFeeds", method: "GET",
+    path: "/v1/me/calendar-feeds", response: CalendarFeedList }),
+  ten(ALL_ROLES, { id: "createCalendarFeed", method: "POST",
+    path: "/v1/me/calendar-feeds", body: CalendarFeedCreate,
+    response: CalendarFeedCreated, status: 201 }),
+  ten(ALL_ROLES, { id: "revokeCalendarFeed", method: "POST",
+    path: "/v1/me/calendar-feeds/{id}/revoke", ...one,
+    response: CalendarFeed }),
+  pub({ id: "getCalendarFeed", method: "GET", path: "/v1/calendar/{token}",
+    params: CalendarTokenParams, response: IcsText,
+    contentType: "text/calendar" }),
+];
+
 /** Plan 13: channels and integrations (the last route group). */
 export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SETTINGS,
@@ -130,4 +153,5 @@ export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...OPT_IN,
   ...WA_HOOK,
   ...INBOUND,
+  ...CALENDAR,
 ];

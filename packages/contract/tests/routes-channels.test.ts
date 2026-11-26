@@ -19,6 +19,8 @@ const CHANNEL_ROUTE_IDS = [
   "getInboundSettings", "putInboundSettings", "rotateInboundAddress",
   "inboundEmailHook", "listInboundItems", "getInboundItem",
   "downloadInboundAttachment", "acceptInboundItem", "dismissInboundItem",
+  "listCalendarFeeds", "createCalendarFeed", "revokeCalendarFeed",
+  "getCalendarFeed",
 ];
 
 describe("CHANNEL_ROUTES", () => {

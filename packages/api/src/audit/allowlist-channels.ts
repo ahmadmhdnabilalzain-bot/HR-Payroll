@@ -27,4 +27,5 @@ export const CHANNEL_AUDIT_CHECKS: Record<string, Check> = {
   flags: listOf(["SENDER_UNVERIFIED", "ATTACHMENT_SKIPPED"]),
   as: oneOf(["receipt", "claim-draft"]),
   dismissReason: oneOf(["spam", "duplicate", "not-relevant", "other"]),
+  scope: oneOf(["my", "team", "company-deadlines"]),
 };

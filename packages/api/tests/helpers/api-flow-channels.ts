@@ -34,6 +34,16 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
   await optInFlow(_ctx, hit, u);
   await waHookFlow(hit);
   await inboundFlow(hit, u);
+  await calendarFlow(hit, u);
+}
+
+async function calendarFlow(hit: Hitter, u: FlowUsers) {
+  const c = u.company;
+  const f = await hit("createCalendarFeed", u.emp, c, {}, { scope: "my" });
+  await hit("listCalendarFeeds", u.emp, c);
+  const token = String(f.body.url).split("/v1/calendar/")[1]!;
+  await hit("getCalendarFeed", null, null, { token });
+  await hit("revokeCalendarFeed", u.emp, c, { id: f.body.id });
 }
 
 async function inboundFlow(hit: Hitter, u: FlowUsers) {
