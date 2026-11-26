@@ -35,4 +35,15 @@ describe("group tabs", () => {
     }
     expect(missing).toEqual([]);
   });
+
+  it("a-variance-month-keeps-the-variance-tabs", () => {
+    const c = { data: buildDemoData(), state: { ...INITIAL, role: "hr" as
+      const } };
+    const page = tabsAt("hr", c, "reports", ["variance"]);
+    const month = tabsAt("hr", c, "reports", ["variance", "2026-09"]);
+    expect(page?.at.id).toBe("reports.variance");
+    expect(month?.at.id).toBe("reports.variance");
+    expect(month?.tabs.map((a) => a.id))
+      .toEqual(page?.tabs.map((a) => a.id));
+  });
 });

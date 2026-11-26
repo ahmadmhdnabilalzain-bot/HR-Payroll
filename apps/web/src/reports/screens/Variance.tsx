@@ -47,8 +47,8 @@ export function Variance(props: { rest: string[] }) {
         next={at < keys.length - 1 ? keys[at + 1]! : null} />}
       figure={{ label: `Change in gross, ${percent(v.grossChange,
         v.grossBefore)}`, value: (
-        <Money value={v.grossChange} signed />),
-      explanation: v.explanation }}
+        <Money value={v.grossChange} signed tween={false} />),
+      explanation: v.explanation, swap: v.month }}
       explain={(r, c) => c !== 2 ? undefined
         : r < v.drivers.length ? v.driverExplain[v.drivers[r]!.key]
           : v.explanation}

@@ -237,12 +237,12 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   // The header figure stays hidden until the copy lands on it.
   el.animate([{ opacity: 0 }, { opacity: 0 }],
     { duration: FLIGHT_MS });
-  // The source steps back at once, so the copy leaving it never sits
-  // on a second full-ink figure.
-  // It comes back as the copy lands, so the page under the scrim
-  // keeps its full contrast while the working is read.
-  src.animate([{ opacity: 1 }, { opacity: DIM, offset: 60 / FLIGHT_MS },
-    { opacity: DIM, offset: 1 }], { duration: FLIGHT_MS });
+  // The source steps back in the copy's first frame (no ramp), so the
+  // copy leaving it never sits on a second full-ink figure. It comes
+  // back as the copy lands, so the page under the scrim keeps its full
+  // contrast while the working is read.
+  src.animate([{ opacity: DIM }, { opacity: DIM }],
+    { duration: FLIGHT_MS });
   src.animate([{ opacity: DIM }, { opacity: 1 }],
     { duration: CLOSE_MS, delay: FLIGHT_MS, easing: "ease-out" });
   const gone = (): void => wrap.remove();

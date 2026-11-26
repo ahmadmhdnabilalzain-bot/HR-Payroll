@@ -5,6 +5,19 @@ import type { Area, NavCtx } from "../nav/types";
 const keyOf = (section: string, rest: string[] = []): string =>
   [section, ...rest].join("/");
 
+/** Routes whose last segment sets the same page (Variance's month),
+ * not a record under it: they keep that page's tabs, so stepping the
+ * month never swaps the tabs for a breadcrumb (a jump of the head). */
+const SAME_PAGE = [/^(reports\/variance)\/[^/]+$/];
+
+const pageOf = (key: string): string => {
+  for (const re of SAME_PAGE) {
+    const m = re.exec(key);
+    if (m !== null) return m[1] ?? key;
+  }
+  return key;
+};
+
 /** The group last opened from a panel ("section/group"), if any. */
 let picked: string | null = null;
 
@@ -24,7 +37,7 @@ export function tabsAt(role: Role, c: NavCtx, section: string,
   rest: string[], prefer: string | null = picked)
   : { at: Area; tabs: Area[] } | null {
   const all = areasFor(role);
-  const here = keyOf(section, rest);
+  const here = pageOf(keyOf(section, rest));
   const hits = all.filter((a) => {
     const r = routeOf(a, c);
     return keyOf(r.section, r.rest) === here;

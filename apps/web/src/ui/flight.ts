@@ -9,11 +9,12 @@ import { reducedMotion } from "../demo/motion";
  *
  * - Travel: 420 ms on a spring (stiffness 300, damping 30, mass 1;
  *   about 0.87 of critical damping, so a hair of settle, no bounce).
- * - Then it hands over: the clone shrinks to 0.6 and fades over 120
- *   ms towards the target's end edge, while the target takes the new
- *   value in the same frame (call `onLand` to start its roll there)
- *   with a hair of give (1.03 to 1 over 280 ms). Two legible amounts
- *   are never cross-faded on top of each other.
+ * - Then it hands over: the target takes a hair of give (1.03 to 1
+ *   over 280 ms) as the clone shrinks to 0.6 and fades over 120 ms
+ *   towards its end edge (most of the ink goes in the first 30 ms).
+ *   Only once the clone is gone does `onLand` run (start the target's
+ *   roll there), so the chip, the old total and the new digits are
+ *   never legible in the same frame.
  * - Reduced motion: no travel. The target fades in over 120 ms and
  *   `onLand` runs at once.
  */
@@ -61,7 +62,8 @@ export interface FlyOptions {
   to: Place;
   /** What travels: a node to clone (the source figure or a chip). */
   content: Node;
-  /** Called when it lands (start the target's roll here). */
+  /** Called once the clone has landed and faded (start the target's
+   * roll here). */
   onLand?: () => void;
   /** Line the clone up on the target's end edge (figures) rather than
    * its centre. Default: centre. */
@@ -126,22 +128,28 @@ export function fly(o: FlyOptions): () => void {
   // work blocks the main thread, the clone still fades on time rather
   // than parking on the target.
   const total = FLIGHT_MS + LAND_FADE_MS;
+  // The hand-over eases out: the chip drops below a legible ink in
+  // about 30 ms, so it is barely read over the old total.
   const fade = inner.animate([
     { opacity: 1, transform: "scale(1)" },
-    { opacity: 1, transform: "scale(1)", offset: FLIGHT_MS / total },
+    { opacity: 1, transform: "scale(1)", offset: FLIGHT_MS / total,
+      easing: "cubic-bezier(0.2, 0, 0, 1)" },
     { opacity: 0, transform: "scale(0.6)" },
   ], { duration: total, easing: "linear", fill: "forwards" });
   const done = (): void => {
     clone.remove();
   };
-  fade.onfinish = done;
+  // The chip is gone before the roll's first changed frame.
+  fade.onfinish = () => {
+    done();
+    land();
+  };
   travel.onfinish = () => {
     // The target takes the chip: a hair of give, then home. Scheduled
     // from the travel's end, on the same clock as the flight.
     target?.animate([{ transform: "scale(1.03)" },
       { transform: "scale(1)" }], { duration: RECEIVE_MS,
       easing: "cubic-bezier(0.2, 0, 0, 1)" });
-    land();
   };
   return () => {
     travel.cancel();

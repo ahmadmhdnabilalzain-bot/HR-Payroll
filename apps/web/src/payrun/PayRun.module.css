@@ -340,8 +340,30 @@
 }
 
 .rowForm {
+  display: grid;
   grid-column: 1 / -1;
+  grid-template-rows: 1fr;
   margin-block-start: var(--space-2);
+}
+
+.rowForm > * {
+  min-block-size: 0;
+}
+
+/* Saved: the form folds away on the row's height while the chip
+ * leaves (FixStep.tsx), so the rows under it rise in step, never in
+ * one frame. Its ink goes first, then the space. */
+.rowForm[data-closing="true"] {
+  grid-template-rows: 0fr;
+  margin-block-start: 0;
+  opacity: 0;
+  transition: grid-template-rows var(--dur-slow) var(--ease-in-out),
+    margin-block-start var(--dur-slow) var(--ease-in-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.rowForm[data-closing="true"] > * {
+  overflow: hidden;
 }
 
 /* The working, as a quiet link at the end of the advice line. */
@@ -1100,6 +1122,10 @@
 
   .swap[data-leaving="true"] {
     transform: none;
+  }
+
+  .rowForm[data-closing="true"] {
+    transition: none;
   }
 }
 

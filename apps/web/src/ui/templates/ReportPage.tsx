@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Explainable } from "../../components/explain/Explain";
 import type { Explanation } from "../../components/explain/types";
 import { useDemo } from "../../demo/state";
@@ -8,10 +8,12 @@ import { toCsv as csvOf, type Cell } from "../../lib/csv";
 import { downloadText } from "../../lib/download";
 import { amountsHidden, maskMoney, useMaskText } from "../mask";
 import { Money } from "../Money";
-import { useEntrance, useReveal } from "./listEnter";
+import { dur, easeOut, reduced, useEntrance, useReveal, veil }
+  from "./listEnter";
 import { MoreMenu } from "./Menu";
 import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
+import "./motion.module.css";
 import s from "./templates.module.css";
 
 export type { Cell } from "../../lib/csv";
@@ -59,7 +61,11 @@ export function ReportPage(p: {
   title: string;
   period: string;
   figure?: { label: string; value: ReactNode;
-    explanation?: Explanation | undefined };
+    explanation?: Explanation | undefined;
+    /** What the figure is of (a month): when it changes, the label
+     * and the figure change together in one frame and come in under
+     * a short veil (pass the figure's Money with tween false). */
+    swap?: string };
   chart?: ReactNode;
   columns: ReportColumn[];
   rows: Cell[][];
@@ -102,6 +108,46 @@ export function ReportPage(p: {
   const page = useRef<HTMLElement>(null);
   useEntrance(page, ":scope > table > tbody > tr", { scope: "report" });
   useReveal(page, ":scope > :not(header), [data-reveal-part]");
+  const fig = useRef<HTMLDivElement>(null);
+  const swap = p.figure?.swap;
+  const swapWas = useRef(swap);
+  // Render phase, on a swap: where each section is drawn now and how
+  // tall, so nothing under a chart that grows or shrinks jumps.
+  const tops = useRef<DOMRect[] | null>(null);
+  if (swapWas.current !== swap && page.current !== null) {
+    tops.current = [...page.current.children].map((c) =>
+      c.getBoundingClientRect());
+  }
+  useLayoutEffect(() => {
+    if (swapWas.current === swap) return;
+    swapWas.current = swap;
+    const was = tops.current;
+    tops.current = null;
+    if (fig.current === null || page.current === null || reduced()) return;
+    veil(fig.current, { duration: dur("--dur-fast"), easing: easeOut() });
+    const root = getComputedStyle(document.documentElement);
+    const z = Number(root.getPropertyValue("zoom")) || 1;
+    const inOut = root.getPropertyValue("--ease-in-out").trim() ||
+      "cubic-bezier(0.4, 0, 0.2, 1)";
+    const timing = { duration: dur("--dur-slow"), easing: inOut };
+    // A section that grew (the chart) opens on its height, so what is
+    // under it is pushed down in step; what moved up (under a section
+    // that shrank) glides up from where it was, never across it.
+    [...page.current.children].forEach((c, i) => {
+      const old = was?.[i];
+      if (old === undefined) return;
+      const now = c.getBoundingClientRect();
+      const dy = (old.top - now.top) / z;
+      if (dy > 0.5) {
+        c.animate([{ transform: `translateY(${dy}px)` },
+          { transform: "none" }], timing);
+      }
+      if (c.tagName !== "TABLE" && now.height - old.height > 0.5) {
+        c.animate([{ height: `${old.height / z}px`, overflow: "hidden" },
+          { height: `${now.height / z}px`, overflow: "hidden" }], timing);
+      }
+    });
+  }, [swap]);
   return (
     <article className={`${s.page} ${s.report}`} ref={page}
       aria-labelledby={p.id ?? "report-title"} data-record-head="">
@@ -113,7 +159,7 @@ export function ReportPage(p: {
           { label: t("tpl.print"), onSelect: () => print() }]} /></>
         )} />
       {p.figure !== undefined && (
-        <div className={s.figure}>
+        <div className={s.figure} ref={fig}>
           <span>{p.figure.label}</span>
           <strong>
             {p.figure.explanation === undefined ? p.figure.value : (
