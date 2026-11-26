@@ -7,3 +7,5 @@ Built test-first, one commit per task, `pnpm check` green before each.
 
 - Task 1 `payroll-packs`: FAIL, `Cannot find module
   '../src/payroll/params'` (Test Files 1 failed, no tests ran).
+- Task 2 `payroll-validate`: FAIL, `Cannot find module
+  '../src/payroll/validate'` (Test Files 1 failed, no tests ran).
