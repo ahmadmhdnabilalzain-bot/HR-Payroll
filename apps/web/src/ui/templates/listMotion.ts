@@ -147,7 +147,9 @@ export function changeRoute(oldUrl: string, render: () => void): void {
   const vt = doc.startViewTransition(async () => {
     clearOld();
     swap();
-    const parts = await until(back ? () => rowParts(from) : recordParts);
+    // The list renders at once: look once (a decided row may have left
+    // its filter). A record may still be loading: wait a moment for it.
+    const parts = back ? rowParts(from) : await until(recordParts);
     // The name travels only into a title that carries it ("Rafiq
     // Hossain, 26 October"); otherwise only the face moves.
     const [row, rec] = back ? [parts, old] : [old, parts];

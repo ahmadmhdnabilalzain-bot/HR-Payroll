@@ -127,6 +127,10 @@
   color: var(--color-text-muted);
 }
 
+.label + .enter {
+  margin-inline-start: auto;
+}
+
 .item[aria-selected="true"] .enter {
   visibility: visible;
 }
