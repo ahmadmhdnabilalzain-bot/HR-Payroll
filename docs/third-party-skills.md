@@ -60,3 +60,16 @@ party. Only four of its generic skills were installed (risky-changes,
 decisions, adr-verbatim, file-tree). Its other skills need the Cloudroom
 runtime, a third-party search service key (deepapi), or scan the host
 machine (malware-scan), so they were skipped.
+
+## Batch 3 (2026-11-26)
+
+| Repo | Commit | Installed as | Licence | Notes |
+|---|---|---|---|---|
+| Leonxlnx/earshot | 7a7f7c5 | skills `earshot`, `real-sound`; CLI `earshot` in `~/.earshot-venv` | MIT | Makes and judges sound (922 designs, no network, no model). Core dependencies only; the listening models (torch) are not installed. No MCP server, no hooks. |
+| magicuidesign/magicui | a54d9ed | skill `magic-ui` | MIT | Targets React with Tailwind and the shadcn registry; our web app uses CSS modules, so use it for ideas and port by hand. Nothing is added to the product. |
+| romainsimon/uisfx | 9950fe6 | reference copy in `~/vendor/uisfx` | MIT code, CC0 audio | UI sound effects (78 cues, 12 packs, 12 kB runtime). Not added to the product: sound in a bank demo is a decision for the owner. |
+| IanLunn/Hover | eb8629d | reference copy in `~/vendor/Hover` | Free only for personal or open-source use; a paid commercial licence is required otherwise | **Do not use in the product without buying the commercial licence.** Our hover and press states are written in our own CSS. |
+
+Verified: `earshot make "a soft interface confirmation tick"` renders a
+clean 0.36 s file offline. Skill files were read for hooks, downloads and
+eval calls: none found.
