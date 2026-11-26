@@ -1,3 +1,12 @@
+# render.live.yaml: the REAL web build for hr-payroll-demo-site.
+#
+# !! WARNING !! Copying this file over render.yaml and syncing the
+# Blueprint DEPLOYS IMMEDIATELY. A Blueprint sync deploys by itself even
+# with autoDeployTrigger "off". Do not copy it until the owner has
+# approved the previews in chat (LEDGER section 14).
+# Steps: docs/demo/go-live-runbook.md. render.yaml stays the placeholder
+# (and is the rollback). Same rules as render.yaml: only
+# hr-payroll-* resources, never manar-erp, create_new, never adopt.
 # Render Blueprint for the HR payroll platform demo.
 # Rules (LEDGER section 14): every resource is named hr-payroll-*; this
 # file must never reuse the name of any other resource in the workspace
@@ -9,7 +18,7 @@ projects:
     environments:
       - name: demo
         services:
-          # Demo site (free static site). Currently the plain placeholder.
+          # Demo site (free static site). The real apps/web build.
           # NOTE: applying a Blueprint change triggers a deploy by itself
           # even with autoDeployTrigger off, so the real demo build
           # (apps/web) is only switched in AFTER the owner has approved
@@ -18,8 +27,8 @@ projects:
           - type: web
             name: hr-payroll-demo-site
             runtime: static
-            buildCommand: echo "static placeholder, nothing to build"
-            staticPublishPath: ./deploy/render/demo-placeholder
+            buildCommand: corepack enable && corepack prepare pnpm@10.28.0 --activate && pnpm install --frozen-lockfile --filter "@payroll/web..." && pnpm --filter @payroll/web build
+            staticPublishPath: ./apps/web/dist
             autoDeployTrigger: "off"
             envVars:
               - key: NODE_VERSION
@@ -38,3 +47,12 @@ projects:
               - path: /*
                 name: Referrer-Policy
                 value: no-referrer
+              - path: /assets/*
+                name: Cache-Control
+                value: public, max-age=31536000, immutable
+              - path: /index.html
+                name: Cache-Control
+                value: no-cache
+              - path: /
+                name: Cache-Control
+                value: no-cache
