@@ -1,7 +1,7 @@
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
 import { useExtras } from "../../demo/data/payroll-extras-load";
-import { useMoney } from "../fmt";
+import { useCellMoney as useMoney } from "../../pay/gate/cell-money";
 
 /** X06: October by pay element, against September. */
 export function Elements() {

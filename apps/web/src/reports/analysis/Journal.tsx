@@ -2,7 +2,7 @@ import { useDemo } from "../../demo/state";
 import { useExtras } from "../../demo/data/payroll-extras-load";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
-import { useMoney } from "../fmt";
+import { useCellMoney as useMoney } from "../../pay/gate/cell-money";
 
 /**
  * X08: October's pay as debits and credits, a view for the finance

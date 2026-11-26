@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useExtras } from "../../demo/data/payroll-extras-load";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
-import { useMoney } from "../../reports/fmt";
+import { useCellMoney as useMoney } from "../../pay/gate/cell-money";
 import s from "../../pay/gate/gate.module.css";
 
 /**

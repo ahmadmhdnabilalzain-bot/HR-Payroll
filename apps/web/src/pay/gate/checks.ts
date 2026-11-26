@@ -45,33 +45,30 @@ export function gateChecks(g: GateInput): GateCheck[] {
   return [
     { id: "iban", label: "Bank details for everyone paid",
       pass: g.blocked.length === 0, to: ["pay-run", "fix"],
-      detail: g.blocked.length === 0 ? `All ${g.filePeople} people in ` +
-        "the salary file have an IBAN that passes its check."
-        : `${g.list(g.blocked)}: no IBAN, or one that fails its check. ` +
-          "The whole run waits for them." },
+      detail: g.blocked.length === 0 ? `All ${g.filePeople} IBANs pass ` +
+        "their check." : `${g.list(g.blocked)}: IBAN missing or ` +
+        "mistyped." },
     { id: "variance", label: "Changes over the usual limit",
       pass: unexplained.length === 0, to: ["pay-run", "review"],
       detail: big.length === 0 ? "No one's net pay moved more than " +
         `${g.limitText}.` : unexplained.length === 0
-        ? `${people(big.length)} moved more than ${g.limitPct}% or are ` +
-          "new, each with a reason on Review."
-        : `${g.list(unexplained.map((p) => p.name))}: moved more than ` +
-          `${g.limitPct}% with no reason recorded.` },
+        ? `${people(big.length)} over ${g.limitPct}% or new; each has ` +
+          "a reason."
+        : `${g.list(unexplained.map((p) => p.name))}: over ` +
+          `${g.limitPct}% with no reason.` },
     { id: "corrections", label: "Open pay corrections",
       pass: g.correctionsWaiting === 0, to: ["pay-run", "corrections"],
-      detail: g.correctionsWaiting === 0 ? "None waiting for a " +
-        `decision. ${g.correctionsBooked} agreed earlier are paid in ` +
-        `${g.nextRun}.` : `${g.correctionsWaiting} waiting for a ` +
-        "decision. Decide them, or move them to the next run." },
+      detail: g.correctionsWaiting === 0 ? "None waiting. " +
+        `${g.correctionsBooked} agreed earlier are paid in ${g.nextRun}.`
+        : `${g.correctionsWaiting} waiting for a decision.` },
     { id: "contracts", label: "Pay matches each contract",
       pass: mism.length === 0, to: ["people"],
-      detail: mism.length === 0 ? `${g.contracts.checked} payslips ` +
-        "checked: basic and allowances as in each contract, basic " +
-        "inside the grade band." : mism.map((m) => `${m.name}: ${m.text}`)
-        .join(" ") },
+      detail: mism.length === 0 ? `All ${g.contracts.checked} payslips ` +
+        "match their contract and grade band." : mism.map((m) =>
+        `${m.name}: ${m.text}`).join(" ") },
     { id: "holds", label: "Salary holds", pass: true,
       to: ["pay-run", "gate", "holds"],
       detail: g.holds === 0 ? "No salary is held." : `${people(g.holds)} ` +
-        "held by choice: kept out of the bank advice until released." },
+        "held by choice, marked do not pay." },
   ];
 }

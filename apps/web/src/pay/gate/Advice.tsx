@@ -4,7 +4,7 @@ import { formatDate, formatList } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
-import { useMoney } from "../../reports/fmt";
+import { useCellMoney as useMoney } from "./cell-money";
 
 /**
  * R12: the payment advice behind the salary file, one line per person,
