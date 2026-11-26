@@ -57,6 +57,7 @@ const ID_KIND: Record<string, Kind> = {
   getInboundItem: "inboundItem", downloadInboundAttachment: "inboundItem",
   listCalendarFeeds: null, getSsoSettings: null,
   listWebhookEndpoints: null, listWebhookDeliveries: null,
+  listApiKeys: null,
 };
 
 /** Query strings a route needs. */

@@ -82,7 +82,8 @@ export async function viewFor(tx: Db, companyId: string,
 
 async function members(tx: Db, companyId: string) {
   const rows = await tx.query<{ user_id: string; role: Role }>(
-    "SELECT user_id, role FROM memberships WHERE company_id = $1",
+    `SELECT m.user_id, m.role FROM memberships m JOIN users u
+     ON u.id = m.user_id WHERE m.company_id = $1 AND u.kind = 'human'`,
     [companyId]);
   return rows.map((m) => ({ userId: m.user_id, role: m.role }));
 }

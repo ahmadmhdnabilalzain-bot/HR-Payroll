@@ -35,7 +35,13 @@ const del = { id: ID, endpointId: ID, eventId: `evt_${ID}`,
     at: AT, statusCode: 200, error: null, durationMs: 120 }],
   nextAttemptAt: null, createdAt: AT };
 
-/** Task 5 to 8 examples. */
+const key = { id: ID, name: "Accounting sync",
+  prefix: "hrk_0123456789abcdef", scopes: ["employees:read"],
+  rateLimitPerMinute: 120, status: "active", createdAt: AT,
+  expiresAt: null, lastUsedAt: null, rotatedAt: null,
+  previousValidUntil: null };
+
+/** Task 5 to 9 examples. */
 export const INBOUND_EXAMPLES: Readonly<Record<string, unknown>> = {
   InboundSettings: settings,
   InboundItem: item,
@@ -51,6 +57,10 @@ export const INBOUND_EXAMPLES: Readonly<Record<string, unknown>> = {
   WebhookEndpointCreated: { ...ep, secret: "whsec_EXAMPLE" },
   WebhookDelivery: del,
   WebhookDeliveryList: { items: [del] },
+  ApiKey: key,
+  ApiKeyList: { items: [key] },
+  ApiKeyCreated: { key, secret: "hrk_0123456789abcdef_" +
+    "EXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEX" },
   SsoStartResponse: { authorizeUrl: "https://accounts.google.com/o/" +
     "oauth2/v2/auth?state=...", expiresAt: AT },
   SsoIdentityList: { items: [{ id: ID, provider: "google",

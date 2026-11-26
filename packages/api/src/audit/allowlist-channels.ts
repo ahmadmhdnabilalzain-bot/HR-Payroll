@@ -34,4 +34,7 @@ export const CHANNEL_AUDIT_CHECKS: Record<string, Check> = {
     "expense-claim.decided"]),
   pausedReason: oneOf(["manual", "failing", "gone"]),
   graceHours: isInt,
+  scopes: listOf(["employees:read", "employees:write", "leave:read",
+    "leave:write", "attendance:read", "payroll:read", "expenses:read"]),
+  rateLimitPerMinute: isInt,
 };

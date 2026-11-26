@@ -5,6 +5,8 @@ import type { EmployeeRow } from "./employees";
 export interface Viewer {
   role: Role;
   employeeId: string | null;
+  /** API key callers: salary, bank and ids need `payroll:read`. */
+  apiScopes?: readonly string[];
 }
 
 export type Scope =
@@ -49,8 +51,10 @@ function salaryOut(r: EmployeeRow): SalaryComponent[] | null {
  */
 export function toEmployeeView(r: EmployeeRow, v: Viewer,
   today: string): EmployeeView {
-  const money = payroll(v) || isSelf(v, r);
-  const ids = payroll(v);
+  const keyBlind = v.apiScopes !== undefined &&
+    !v.apiScopes.includes("payroll:read");
+  const money = !keyBlind && (payroll(v) || isSelf(v, r));
+  const ids = !keyBlind && payroll(v);
   return {
     id: r.id, number: r.number, fullName: r.fullName,
     fullNameAr: r.fullNameAr, email: r.email,

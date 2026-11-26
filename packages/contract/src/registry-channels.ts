@@ -8,6 +8,7 @@ import * as inbound from "./inbound";
 import * as calendar from "./calendar";
 import * as sso from "./sso";
 import * as webhooks from "./webhooks";
+import * as apiKeys from "./api-keys";
 
 /** Plan 13's named schemas (OpenAPI components and EXAMPLES keys). */
 const NAMES: [Record<string, unknown>, string[]][] = [
@@ -31,6 +32,8 @@ const NAMES: [Record<string, unknown>, string[]][] = [
     "WebhookEndpointList", "WebhookEndpointCreated",
     "WebhookEndpointUpdate", "WebhookSecretRotate", "WebhookDelivery",
     "WebhookDeliveryList"]],
+  [apiKeys, ["ApiKeyCreate", "ApiKey", "ApiKeyList", "ApiKeyCreated",
+    "ApiKeyUpdate", "ApiKeyRotate"]],
 ];
 
 export const CHANNEL_SCHEMAS: Readonly<Record<string, z.ZodType>> =

@@ -15,6 +15,8 @@ export interface Tenant {
   companyId: string;
   role: Role;
   employeeId: string | null;
+  /** Set for API key callers: what the key may see (Task 9). */
+  apiScopes?: readonly string[];
 }
 
 const BEARER = /^Bearer ([A-Za-z0-9_-]{16,200})$/;

@@ -93,4 +93,10 @@ async function seedWebhooks(admin: Db, c: string, user: string) {
   await admin.query(
     `INSERT INTO webhook_attempts (company_id, delivery_id, n, at,
        duration_ms) VALUES ($1, $2, 1, $3, 1)`, [c, rowId(c, "f8"), AT]);
+  await admin.query(
+    `INSERT INTO api_keys (id, company_id, key_id, name, service_user_id,
+       scopes, rate_limit_per_minute, status, secret_hash, created_by,
+       created_at) VALUES ($1, $2, $3, 'seed', $4, '{}', 10, 'revoked',
+       'h', $4, $5)`,
+    [rowId(c, "a9"), c, c.replace(/-/g, "").slice(-16), user, AT]);
 }

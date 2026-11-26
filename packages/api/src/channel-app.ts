@@ -5,6 +5,7 @@ import { registerCalendarRoutes } from "./routes/channels-calendar";
 import { registerInboundRoutes } from "./routes/channels-inbound";
 import { registerSsoRoutes } from "./routes/channels-sso";
 import { registerWebhookRoutes } from "./routes/channels-webhooks";
+import { registerApiKeyRoutes } from "./routes/channels-apikeys";
 import { registerNotificationRoutes } from
   "./routes/channels-notifications";
 import { registerChannelSettingsRoutes } from "./routes/channels-settings";
@@ -23,4 +24,5 @@ export function registerChannelApp(app: App, deps: AppDeps,
   registerCalendarRoutes(app, deps);
   registerSsoRoutes(app, deps);
   registerWebhookRoutes(app, deps);
+  registerApiKeyRoutes(app, deps);
 }

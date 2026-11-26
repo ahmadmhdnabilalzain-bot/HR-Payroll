@@ -100,7 +100,8 @@ type Outcome =
 async function check(tx: Db, deps: HandlerDeps, b: LoginRequest)
   : Promise<Outcome> {
   const u = await lockUser(tx, { email: b.email });
-  if (u === null) {
+  // API key service users never sign in with a password.
+  if (u === null || u.kind === "service") {
     await verifyPassword(b.password, await dummyHash(deps));
     return { kind: "fail" };
   }

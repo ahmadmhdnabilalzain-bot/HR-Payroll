@@ -39,6 +39,14 @@ import {
   WebhookEndpointUpdate,
   WebhookSecretRotate,
 } from "./webhooks";
+import {
+  ApiKey,
+  ApiKeyCreate,
+  ApiKeyCreated,
+  ApiKeyList,
+  ApiKeyRotate,
+  ApiKeyUpdate,
+} from "./api-keys";
 import { HookAck, HookChallenge, WhatsAppHookQuery } from
   "./whatsapp-actions";
 import {
@@ -218,6 +226,23 @@ const WEBHOOKS: readonly RouteDef[] = [
     response: WebhookDelivery, status: 201 }),
 ];
 
+/** Task 9: API keys (owner with MFA for every change). */
+const API_KEYS: readonly RouteDef[] = [
+  ten(PAYROLL, { id: "listApiKeys", method: "GET", path: "/v1/api-keys",
+    response: ApiKeyList }),
+  ten(OWNER, { id: "createApiKey", method: "POST", path: "/v1/api-keys",
+    body: ApiKeyCreate, response: ApiKeyCreated, mfa: true, status: 201 }),
+  ten(OWNER, { id: "updateApiKey", method: "PATCH",
+    path: "/v1/api-keys/{id}", ...one, body: ApiKeyUpdate,
+    response: ApiKey, mfa: true }),
+  ten(OWNER, { id: "rotateApiKey", method: "POST",
+    path: "/v1/api-keys/{id}/rotate", ...one, body: ApiKeyRotate,
+    response: ApiKeyCreated, mfa: true }),
+  ten(OWNER, { id: "revokeApiKey", method: "POST",
+    path: "/v1/api-keys/{id}/revoke", ...one, response: ApiKey,
+    mfa: true }),
+];
+
 /** Plan 13: channels and integrations (the last route group). */
 export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SETTINGS,
@@ -228,4 +253,5 @@ export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...CALENDAR,
   ...SSO,
   ...WEBHOOKS,
+  ...API_KEYS,
 ];

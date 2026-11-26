@@ -26,6 +26,7 @@ export * from "./inbound";
 export * from "./calendar";
 export * from "./sso";
 export * from "./webhooks";
+export * from "./api-keys";
 export * from "./lists";
 export * from "./routes";
 export { ALL_ROLES, DECIDERS, OWNER, PAYROLL } from "./route-def";

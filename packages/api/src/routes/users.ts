@@ -35,7 +35,8 @@ async function listUsers(ctx: ReqCtx) {
     `SELECT m.user_id, u.email, u.display_name, m.role, m.employee_id,
        u.mfa_enrolled
      FROM memberships m JOIN users u ON u.id = m.user_id
-     WHERE m.company_id = $1 ORDER BY u.email`, [companyId]);
+     WHERE m.company_id = $1 AND u.kind = 'human'
+     ORDER BY u.email`, [companyId]);
   return { items: rows.map((r) => ({ userId: r.user_id, email: r.email,
     displayName: r.display_name, role: r.role, employeeId: r.employee_id,
     mfaEnrolled: r.mfa_enrolled })) };

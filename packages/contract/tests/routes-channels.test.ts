@@ -24,7 +24,8 @@ const CHANNEL_ROUTE_IDS = [
   "listSsoIdentities", "unlinkSsoIdentity", "getSsoSettings",
   "putSsoSettings", "listWebhookEndpoints", "createWebhookEndpoint",
   "updateWebhookEndpoint", "rotateWebhookSecret", "testWebhookEndpoint",
-  "listWebhookDeliveries", "redeliverWebhook",
+  "listWebhookDeliveries", "redeliverWebhook", "listApiKeys",
+  "createApiKey", "updateApiKey", "rotateApiKey", "revokeApiKey",
 ];
 
 describe("CHANNEL_ROUTES", () => {

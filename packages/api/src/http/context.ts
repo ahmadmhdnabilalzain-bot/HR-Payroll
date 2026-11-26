@@ -11,6 +11,7 @@ import {
 import type { Db } from "../db/db";
 import { UUID, withTenant, type TenantCtx } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
+import { authenticateApiKey, type KeyAuth } from "../apikeys/auth";
 import { checkSsoEnforced } from "../sso/settings";
 import { routeBodyLimit } from "./body-limit";
 import { ApiError, asError } from "./errors";
@@ -156,6 +157,10 @@ function base(c: Context<Env>, deps: AppDeps, v: Validated) {
 
 async function run(c: Context<Env>, def: RouteDef, deps: AppDeps,
   handler: Handler): Promise<unknown> {
+  const authz = c.req.header("authorization") ?? "";
+  if (authz.startsWith("Bearer hrk_")) {
+    return runWithKey(c, def, deps, handler, authz.slice(7));
+  }
   if (def.auth === "public") {
     // Read once: Hono caches it, so the JSON parse below reuses it.
     const rawBody = def.rawBody ? await c.req.text() : undefined;
@@ -188,6 +193,42 @@ async function inTenant(c: Context<Env>, def: RouteDef, deps: AppDeps,
       const v = await validate(c, def);
       return handler({ ...base(c, deps, v), ...auth, tenant, tx,
         enter: NO_ENTER });
+    });
+}
+
+function rateHeaders(c: Context<Env>, k: KeyAuth, now: Date): void {
+  const reset = Math.max(0, Math.ceil((k.rate.resetAt.getTime() -
+    now.getTime()) / 1000));
+  c.header("RateLimit-Limit", String(k.rate.limit));
+  c.header("RateLimit-Remaining", String(k.rate.remaining));
+  c.header("RateLimit-Reset", String(reset));
+  if (!k.rate.allowed) {
+    c.header("Retry-After", String(reset));
+    throw new ApiError("RATE_LIMITED");
+  }
+}
+
+/**
+ * API key callers (Task 9): default-deny route check, key, scope and
+ * rate first (committed on their own), then the handler as the key's
+ * service user with role hr. No SSO enforcement, never MFA.
+ */
+async function runWithKey(c: Context<Env>, def: RouteDef, deps: AppDeps,
+  handler: Handler, bearer: string): Promise<unknown> {
+  const { db: _db, ...hd } = deps;
+  const k = await authenticateApiKey((t, fn) => withTenant(deps.db, t, fn),
+    hd, def, bearer, c.req.header("x-company-id"));
+  rateHeaders(c, k, deps.now());
+  c.set("userId", k.user.id);
+  c.set("companyId", k.companyId);
+  return withTenant(deps.db, { companyId: k.companyId, userId: k.user.id },
+    async (tx) => {
+      const tenant: Tenant = { companyId: k.companyId, role: "hr",
+        employeeId: null, apiScopes: k.scopes };
+      checkRole(def, tenant);
+      const v = await validate(c, def);
+      return handler({ ...base(c, deps, v), user: k.user,
+        session: k.session, tenant, tx, enter: NO_ENTER });
     });
 }
 

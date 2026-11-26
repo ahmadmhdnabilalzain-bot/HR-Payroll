@@ -11,6 +11,8 @@ export interface UserRow {
   failed_logins: number;
   locked_until: string | null;
   mfa_last_step: bigint | null;
+  /** "service" for API key users (Task 9). */
+  kind?: "human" | "service";
 }
 
 export function toUser(r: UserRow): User {

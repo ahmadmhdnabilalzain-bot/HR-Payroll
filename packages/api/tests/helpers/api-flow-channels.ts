@@ -39,6 +39,19 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
   await calendarFlow(hit, u);
   await ssoFlow(_ctx, hit, u);
   await webhookFlow(_ctx, hit, u);
+  await apiKeyFlow(hit, u);
+}
+
+async function apiKeyFlow(hit: Hitter, u: FlowUsers) {
+  const c = u.company;
+  const k = await hit("createApiKey", u.owner, c, {}, { name: "Sync",
+    scopes: ["employees:read"] });
+  await hit("listApiKeys", u.owner, c);
+  await hit("updateApiKey", u.owner, c, { id: k.body.key.id },
+    { rateLimitPerMinute: 60 });
+  await hit("rotateApiKey", u.owner, c, { id: k.body.key.id },
+    { graceHours: 0 });
+  await hit("revokeApiKey", u.owner, c, { id: k.body.key.id });
 }
 
 async function webhookFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {

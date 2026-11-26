@@ -249,3 +249,27 @@ In progress (updated after each task).
   bodies are never stored; secrets sealed and shown once; the URL is
   never audited; bodies carry ids only (sentinels tested); HMAC over
   `id.timestamp.body`, two values during a rotation grace.
+
+### Task 9: scoped API keys with rate limits
+
+- The key path branches at the top of the request pipeline
+  (`runWithKey` in `http/context.ts`) for any bearer starting `hrk_`,
+  so public and user routes refuse a key too (403
+  `API_KEY_ROUTE_NOT_ALLOWED`). `apikeys/auth.ts` does the checks in
+  the plan's order inside its own transaction (rate counter commits
+  even when the handler fails), then the handler runs as the key's
+  service user with role hr; `RateLimit-*` headers on every key
+  response, `Retry-After` on 429.
+- A key for another company, a wrong, revoked, expired or
+  past-grace secret: one 401 `UNAUTHENTICATED` (a malformed
+  `X-Company-Id` is also 401 on this path).
+- Redaction: `Tenant.apiScopes` reaches `toEmployeeView` (the tenant
+  is the viewer everywhere), so list, read and write responses drop
+  salary, bank, labour id and Emirates ID without `payroll:read`
+  (write response tested).
+- Service users: password login refused, `listUsers` omits them, the
+  approval spine's chain members and notification recipients are
+  human users only. The "service user never approver" test of the
+  plan was not written (the code path is the member query).
+- The leak test was not extended with a key caller; `apikeys.test.ts`
+  checks the sentinels on the key's employee list instead.
