@@ -84,6 +84,36 @@ check and are masked. Labour and employer ids start with 99. E-mails
 end in `.test`. Arabic labels are NEEDS NATIVE REVIEW
 (`DEMO_AR_REVIEWED = false`, so the UI can hide them).
 
+## Work packages (one file each, `src/<package>.ts`)
+
+- **WP6 Pay (`pay.ts`).** `pastRuns` (June to September 2026, each
+  payslip from the engine, as paid), `payTrend` (June to October, net
+  and change), `runChanges(c, month)` (who changed and why),
+  `salaryRevisions` (basic only; the late one's arrears are the
+  engine's back pay), `loans` (an active loan cut by the deduction
+  limit, a closed one repaid June to August, an advance starting in
+  November; balances from the engine), `payCorrections` (July unpaid
+  days recorded in error, September overtime not paid: the engine's
+  difference, to pay in November), `trafficFines` (to decide; recovery
+  not computed), `finalSettlements`, and read-only `payGroups` and
+  `payElements`. Every record has display strings (no raw dates).
+- **WP5 Time (`time.ts`).** `shifts` (templates with display hours),
+  `rosterPlan` (9 to 22 November, first week published, leave shown,
+  the engine's roster checks), `attendanceAgainstShifts` (October,
+  engine day sheets: overtime, night overtime, late arrivals past a
+  sample 15-minute grace; three planted late days), `attendanceToday`,
+  `punches` and `unmatchedPunches` (an unassigned badge, an out with no
+  in), `overtimeClaims` (October's, paid, valued as the engine's
+  difference; two pending for November as estimates) and
+  `overtimePreApprovals` (operations at month-end, engine estimate).
+- **WP4 Papers (`papers.ts`).** `letters` (salary certificates quote
+  the contract salary, summed; an NOC; the leaver's experience letter
+  in draft), `staffRequests` (the HR queue; the missing-IBAN person's
+  bank-details request links to `enter-iban`), `visaCases` (the visa
+  and Emirates ID near expiry, the new hire's completed visa; fees not
+  shown), `warnings` (a draft written warning built from the three
+  late days in the attendance records; no deduction computed).
+
 ## Tests
 
 `pnpm exec vitest run --maxWorkers=1 --testTimeout=60000`: lines sum
