@@ -159,3 +159,24 @@ html[data-route-motion]::view-transition-new(shell-tabs):only-child {
       var(--route-shift-in, 32px)));
   }
 }
+
+/* The role menu, closed at the click, leaves as its own layer: its old
+ * image fades out over --dur-fast with the page, and the page under it
+ * never shows a menu that is no longer there. */
+html[data-route-motion][data-route-pace="quick"] [data-vt="role-menu"] {
+  view-transition-name: role-menu;
+}
+
+html[data-route-motion]::view-transition-group(role-menu) {
+  animation: none;
+}
+
+html[data-route-motion]::view-transition-old(role-menu) {
+  animation: route-out var(--dur-fast, 120ms)
+    var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+
+html[data-route-motion]::view-transition-new(role-menu) {
+  animation: none;
+  opacity: 0;
+}

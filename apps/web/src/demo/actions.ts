@@ -48,15 +48,14 @@ export function useRunApproval(): RunApproval {
  * goes to its top before the old frame is taken, so no scrolled list
  * ghosts over the new Home.
  */
-export function useSwitchRole(): (role: Role, at?: string) => void {
+export function useSwitchRole(): (role: Role) => void {
   const { dispatch } = useDemo();
-  return (role, at) => {
+  return (role) => {
     // The new role's Home opens at its top, status sentence in view.
     // A page the new role may not open gives way to its Home, so a
-    // switch never lands on "outside your view". Decided at the click
-    // (`at`, the page then, when the switch waits for a menu to
-    // close): a navigation made meanwhile is left alone.
-    const from = at ?? location.hash;
+    // switch never lands on "outside your view". Decided at the click:
+    // a navigation made while the crossfade starts is left alone.
+    const from = location.hash;
     const away = !mayOpen(role, parseHash(from));
     const run = (): void => {
       if (away && location.hash === from) {
