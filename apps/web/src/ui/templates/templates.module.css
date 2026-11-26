@@ -1,56 +1,180 @@
 /* Shared by the six screen templates: one page frame, one rhythm. */
 .page {
+  /* Template type sizes (lane 1 may promote these to tokens). */
+  --text-title: 34px;
+  --text-title-lh: 40px;
+  --text-figure: 48px;
+  --text-figure-lh: 52px;
   display: grid;
   gap: var(--space-5);
   max-inline-size: var(--container);
   margin-inline: auto;
-  padding: var(--space-5) var(--page-pad) var(--space-8);
+  padding: 40px var(--page-pad) var(--space-8);
 }
 
+/* The head: breadcrumb row (44, always there), then the h1, so the
+ * h1 top is 88 px under the bar on every page. */
 .head {
   display: grid;
-  gap: var(--space-1);
+  gap: 0;
 }
 
-.back {
-  display: inline-flex;
+.crumbs {
+  display: flex;
   align-items: center;
-  justify-self: start;
   min-block-size: 44px;
-  margin-block: -10px;
+  margin-block-end: var(--space-1);
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  text-decoration: none;
+  font-size: 13px;
+  line-height: 18px;
 }
 
-.back:hover {
-  color: var(--color-text);
-}
-
-.headRow {
+.crumbs ol {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crumbs li {
+  display: inline-flex;
+  align-items: center;
+}
+
+.crumbs a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--color-text);
+}
+
+.sep {
+  padding-inline: var(--space-2);
+  color: var(--color-text-faint);
+}
+
+/* Actions are centred on the h1's line box and never push it down. */
+.headRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-3) var(--space-5);
+  min-block-size: var(--text-title-lh);
+}
+
+.titleWrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
 }
 
 .title {
-  font-size: var(--text-3xl);
+  font-size: var(--text-title);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  letter-spacing: -0.4px;
+  line-height: var(--text-title-lh);
 }
 
 .lede {
+  max-inline-size: 72ch;
+  margin-block-start: var(--space-2);
   color: var(--color-text-muted);
-  font-size: var(--text-md);
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.meta {
+  margin-block-start: var(--space-3);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-2);
+  min-block-size: var(--text-title-lh);
+  margin-block: calc((var(--text-title-lh) - 44px) / 2);
+}
+
+/* The "..." menu: secondary page actions. */
+.menuWrap {
+  position: relative;
+}
+
+.moreBtn {
+  display: inline-grid;
+  place-items: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-button-secondary);
+  color: var(--color-text);
+}
+
+.moreBtn:hover,
+.moreBtn[aria-expanded="true"] {
+  background: var(--color-button-secondary-hover);
+}
+
+.menu {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+  min-inline-size: 220px;
+  margin: 0;
+  padding: var(--space-1);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-pop);
+  list-style: none;
+  animation: menu-in var(--dur-fast) var(--ease-out);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.menu button {
+  display: grid;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  text-align: start;
+}
+
+.menu button:hover:not(:disabled),
+.menu button:focus-visible {
+  background: var(--color-surface-secondary);
+}
+
+.menu button:disabled {
+  color: var(--color-disabled-text);
+}
+
+.menu small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
 }
 
 /* LF: toolbar, segmented filter, fixed 48 px rows. */
@@ -571,6 +695,11 @@ a.row:hover {
 
 @media (max-width: 760px) {
   .page {
+    --text-title: 28px;
+    --text-title-lh: 34px;
+    --text-figure: 40px;
+    --text-figure-lh: 44px;
+    padding-block-start: var(--space-4);
     padding-block-end: calc(var(--space-8) + 56px +
       env(safe-area-inset-bottom));
   }

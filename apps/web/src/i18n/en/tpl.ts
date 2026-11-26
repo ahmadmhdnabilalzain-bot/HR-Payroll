@@ -18,4 +18,12 @@ export const tpl = {
   print: "Print",
   changes: "Changes",
   noChanges: "No changes yet.",
+  more: "More actions",
+  hiddenCsv: "Show amounts to download",
+  sources: "Fictional demo data. Rules as we read them.",
+  next: "Next",
+  history: "History",
+  summary: "Summary",
+  open: "Open",
+  axisFrom: "Axis starts at {v}",
 } satisfies EnNamespace;

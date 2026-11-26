@@ -1,4 +1,5 @@
 import { ReportPage } from "../../ui/templates";
+import { useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 
 const days = (n: number): string => n === 0 ? "-" : String(n);
@@ -6,11 +7,12 @@ const days = (n: number): string => n === 0 ? "-" : String(n);
 /** Leave and absence this year: who has taken or is waiting on days. */
 export function Leave() {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const rows = src.leave.map((x) => [x.name, x.department,
     String(x.annualLeft), days(x.annualTaken), days(x.sickDays),
     days(x.unpaidDays), days(x.waitingDays)]);
   return (
-    <ReportPage title="Leave and absence" period="2026 so far"
+    <ReportPage crumbs={crumbs} title="Leave and absence" period="2026 so far"
       figure={{ label: "Annual leave left across everyone",
         value: `${src.annualLeftTotal} days` }}
       columns={[{ label: "Person" }, { label: "Department" },

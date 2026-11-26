@@ -1,11 +1,12 @@
 import { fils } from "@payroll/engine";
 import { ReportPage } from "../../ui/templates";
-import { hours, plural, useMoney } from "../fmt";
+import { hours, plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 
 /** Overtime cost by month, with who earned it in the latest month. */
 export function Overtime() {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const { m } = useMoney();
   const rows = src.months.map((x) => [x.label,
     x.overtimePeople === 0 ? "None"
@@ -22,7 +23,8 @@ export function Overtime() {
   const who = src.overtime.filter((l) => l.month === last).map((l) =>
     `${l.name} ${hours(l.minutes)} hours (${m(l.amount)})`);
   return (
-    <ReportPage title="Overtime cost" period={`${src.months[0]!.label} ` +
+    <ReportPage crumbs={crumbs}
+      title="Overtime cost" period={`${src.months[0]!.label} ` +
       `to ${src.months.at(-1)!.label}`}
     figure={{ label: "Overtime paid this year",
       value: m(total) }}

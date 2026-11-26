@@ -4,7 +4,7 @@ import { money, text, type Explanation }
 import { hrefOf } from "../../demo/route";
 import { Icon } from "../../ui/Icon";
 import { ReportPage } from "../../ui/templates";
-import { percent, plural, useMoney } from "../fmt";
+import { percent, plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import type { VarianceView } from "../types";
 import p from "../Pick.module.css";
@@ -55,6 +55,7 @@ function Stepper(p2: { prev: string | null;
 
 export function Variance(props: { rest: string[] }) {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const { m, signed } = useMoney();
   const keys = src.months.map((x) => x.month);
   const asked = keys.indexOf(props.rest[1] ?? "");
@@ -64,11 +65,12 @@ export function Variance(props: { rest: string[] }) {
     signed(d.amount)]), ["Change in gross", headcountText(v.headcountChange),
     signed(v.grossChange)]];
   return (
-    <>
+    <ReportPage crumbs={crumbs} meta={(
       <Stepper label={`${v.monthLabel} against ` +
-        `${v.againstLabel}`} prev={at > 1 ? keys[at - 1]! : null}
-      next={at < keys.length - 1 ? keys[at + 1]! : null} />
-      <ReportPage title="Variance against last month"
+            `${v.againstLabel}`} prev={at > 1 ? keys[at - 1]! : null}
+          next={at < keys.length - 1 ? keys[at + 1]! : null} />
+        )}
+        title="Variance against last month"
         period={`${v.monthLabel} against ${v.againstLabel}`}
         figure={{ label: `Change in gross, ${percent(v.grossChange,
           v.grossBefore)}`, value: (
@@ -82,7 +84,6 @@ export function Variance(props: { rest: string[] }) {
         note={`${m(v.grossBefore)} became ${m(v.grossNow)}. Net pay ` +
           `changed by ${signed(v.netChange)}. The causes are read from ` +
           "each person's record and add up to the change."} />
-    </>
   );
 }
 

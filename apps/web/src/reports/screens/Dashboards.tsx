@@ -1,7 +1,8 @@
 import { pendingApprovals } from "../../demo/derive";
 import { useDemo } from "../../demo/state";
 import { ReportPage } from "../../ui/templates";
-import { hours, percent, plural, share, useMoney } from "../fmt";
+import { hours, percent, plural, share, useMoney, useReportCrumbs }
+  from "../fmt";
 import { useReportsSource } from "../load";
 
 const COLUMNS = [{ label: "Measure" }, { label: "Now", end: true },
@@ -10,6 +11,7 @@ const COLUMNS = [{ label: "Measure" }, { label: "Now", end: true },
 /** HR dashboard: people, papers and what is waiting, in one table. */
 export function DashboardHr() {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const { data, state } = useDemo();
   const last = src.months.at(-1)!;
   const sum = (k: "start" | "joined" | "departed" | "now"): number =>
@@ -41,7 +43,8 @@ export function DashboardHr() {
     "Working days taken in the run month"],
   ];
   return (
-    <ReportPage title="HR dashboard" period={`As of the demo date, ` +
+    <ReportPage crumbs={crumbs}
+      title="HR dashboard" period={`As of the demo date, ` +
       `${last.label} run`}
     figure={{ label: "Open items that stop pay", value: String(stops) }}
     columns={COLUMNS} rows={rows} csvName="hr-dashboard-2026-10.csv"
@@ -53,6 +56,7 @@ export function DashboardHr() {
 /** Executive dashboard: the run, what moved it, and what it costs. */
 export function DashboardExec() {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const { data, state } = useDemo();
   const { m, signed } = useMoney();
   const now = src.months.at(-1)!;
@@ -83,7 +87,8 @@ export function DashboardExec() {
       top === undefined ? "-" : top.name.en, "Gross cost for the month"],
   ];
   return (
-    <ReportPage title="Executive dashboard"
+    <ReportPage crumbs={crumbs}
+      title="Executive dashboard"
       period={`${now.label} run against ${before.label}`}
       figure={{ label: "Net pay for the run", value: m(head.netTotalFils) }}
       columns={COLUMNS} rows={rows}

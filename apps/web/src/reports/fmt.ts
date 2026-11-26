@@ -1,7 +1,9 @@
 import type { Fils } from "@payroll/engine";
+import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { formatMoney } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import type { Crumb } from "../ui/templates";
 
 const MASK = "AED ••••••";
 
@@ -49,4 +51,10 @@ export function changeText(diff: bigint, before: bigint,
   const pct = percent(diff, before);
   const tiny = /^[+-]0\.0%$/.test(pct);
   return tiny ? signed(diff as Fils) : `${signed(diff as Fils)} (${pct})`;
+}
+
+/** The breadcrumb every report page carries: Reports. */
+export function useReportCrumbs(): Crumb[] {
+  const { t } = useLocale();
+  return [{ label: t("shell.navReports"), href: hrefOf("reports") }];
 }

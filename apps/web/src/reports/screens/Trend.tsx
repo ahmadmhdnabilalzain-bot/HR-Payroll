@@ -1,11 +1,12 @@
 import { fils } from "@payroll/engine";
 import { ReportPage } from "../../ui/templates";
-import { changeText, plural, useMoney } from "../fmt";
+import { changeText, plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 
 /** Payroll trend, January to October: one row per month. */
 export function Trend() {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const { m, signed } = useMoney();
   const rows = src.months.map((x, i) => {
     const before = src.months[i - 1];
@@ -17,7 +18,7 @@ export function Trend() {
   });
   const total = fils(src.months.reduce((n, x) => n + x.gross, 0n));
   return (
-    <ReportPage title="Payroll trend"
+    <ReportPage crumbs={crumbs} title="Payroll trend"
       period={`${src.months[0]!.label} to ${src.months.at(-1)!.label}`}
       figure={{ label: "Gross pay, January to October",
         value: m(total) }}

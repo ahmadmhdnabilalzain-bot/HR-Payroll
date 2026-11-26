@@ -6,9 +6,9 @@ import { useRunDetail } from "../demo/useRunDetail";
 import { formatNumber } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { downloadText } from "../lib/download";
-import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
-import b from "../ui/button.module.css";
+import { MoreMenu, PageHead } from "../ui/templates";
+import tp from "../ui/templates/templates.module.css";
 import type { ViewProps } from "../views";
 import { toCsv, type Cell } from "./csv";
 import {
@@ -58,11 +58,9 @@ export function Reports(p: ViewProps) {
     );
   }
   return (
-    <div className={s.page}>
-      <Suspense fallback={loading}>
-        {id === undefined ? <Catalogue /> : <Report id={id} />}
-      </Suspense>
-    </div>
+    <Suspense fallback={loading}>
+      {id === undefined ? <Catalogue /> : <Report id={id} />}
+    </Suspense>
   );
 }
 
@@ -72,24 +70,6 @@ function useEnv(): Env {
   const d = useRunDetail();
   const a = useRunApproval();
   return { d, data, lang, t, approved: a.phase === "file" };
-}
-
-function Crumbs(p: { title?: string }) {
-  const { lang, t } = useLocale();
-  const { data } = useDemo();
-  return (
-    <nav aria-label={t("shell.breadcrumb")} className={s.crumbs}>
-      <span>{data.companyName[lang]}</span>
-      <span aria-hidden="true" className={s.sep}>/</span>
-      {p.title === undefined
-        ? <span aria-current="page">{t("shell.navReports")}</span>
-        : <>
-          <a href={hrefOf("reports")}>{t("shell.navReports")}</a>
-          <span aria-hidden="true" className={s.sep}>/</span>
-          <span aria-current="page">{p.title}</span>
-        </>}
-    </nav>
-  );
 }
 
 function CellView(p: { c: Cell }) {
@@ -113,24 +93,15 @@ function Report(p: { id: ReportId }) {
     ".csv", toCsv([table.columns.map((c) => c.label), ...table.rows]),
   "text/csv;charset=utf-8");
   return (
-    <article className={s.report} aria-labelledby="report-title">
-      <header className={s.header}>
-        <Crumbs title={title} />
-        <h1 id="report-title" className={s.title}>{title}</h1>
-        <p className={s.sub}>{t(BLURB[p.id])}</p>
-        <div className={s.actions}>
-          <button type="button" className={`${b.btn} ${b.primary} ${s.act}`}
-            onClick={csv} disabled={state.hideAmounts}
-            title={state.hideAmounts ? t("reports.hiddenCsv") : undefined}>
-            {t("reports.csv")}
-          </button>
-          <button type="button" className={`${b.btn} ${b.secondary} ${s.act}`}
-            onClick={() => print()}>{t("reports.print")}</button>
-        </div>
-        {table.note !== undefined && (
-          <p className={s.note}>{table.note}</p>
-        )}
-      </header>
+    <article className={`${tp.page} ${s.report}`}
+      aria-labelledby="report-title">
+      <PageHead id="report-title" title={title} lede={t(BLURB[p.id])}
+        crumbs={[{ label: t("shell.navReports"), href: hrefOf("reports") }]}
+        actions={<MoreMenu items={[{ label: t("reports.csv"), onSelect: csv,
+          disabled: state.hideAmounts, hint: t("reports.hiddenCsv") },
+        { label: t("reports.print"), onSelect: () => print() }]} />}
+        meta={table.note === undefined ? undefined
+          : <p className={s.note}>{table.note}</p>} />
       <table className={s.table}>
         <thead>
           <tr>

@@ -1,5 +1,5 @@
 import { ReportPage } from "../../ui/templates";
-import { share } from "../fmt";
+import { share, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import type { DeptHeads } from "../types";
 
@@ -12,6 +12,7 @@ const list = (names: string[]): string => names.length === 0 ? "nobody"
 /** Headcount and turnover for the year so far, by department. */
 export function Headcount() {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const sum = (k: "start" | "joined" | "departed" | "now"): number =>
     src.departments.reduce((n, d) => n + d[k], 0);
   const total: DeptHeads = { name: "Everyone", start: sum("start"),
@@ -20,7 +21,7 @@ export function Headcount() {
     String(d.start), String(d.joined), String(d.departed), String(d.now),
     turnover(d)]);
   return (
-    <ReportPage title="Headcount and turnover"
+    <ReportPage crumbs={crumbs} title="Headcount and turnover"
       period="1 January 2026 to the demo date"
       figure={{ label: "Turnover this year", value: turnover(total) }}
       columns={[{ label: "Department" }, { label: "1 January", end: true },

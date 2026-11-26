@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
-import b from "../button.module.css";
-import { PageHead } from "./PageHead";
+import { MoreMenu } from "./Menu";
+import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
 
 export interface ReportColumn {
@@ -33,6 +33,9 @@ export function ReportPage(p: {
   bars?: number[];
   note?: string;
   csvName: string;
+  /** A line under the period (a month stepper). */
+  meta?: ReactNode;
+  crumbs?: Crumb[];
 }) {
   const { t } = useLocale();
   const download = (): void => {
@@ -46,14 +49,11 @@ export function ReportPage(p: {
   };
   return (
     <div className={s.page}>
-      <PageHead title={p.title} lede={p.period} actions={(
-        <>
-          <button type="button" className={`${b.btn} ${b.secondary}`}
-            onClick={download}>{t("tpl.csv")}</button>
-          <button type="button" className={`${b.btn} ${b.quiet}`}
-            onClick={() => print()}>{t("tpl.print")}</button>
-        </>
-      )} />
+      <PageHead title={p.title} lede={p.period} meta={p.meta}
+        crumbs={p.crumbs} actions={(
+          <MoreMenu items={[{ label: t("tpl.csv"), onSelect: download },
+            { label: t("tpl.print"), onSelect: () => print() }]} />
+        )} />
       {p.figure !== undefined && (
         <div className={s.figure}>
           <span>{p.figure.label}</span>
