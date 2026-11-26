@@ -104,11 +104,11 @@ describe("users and roles", () => {
   });
 
   it("the audit log's actors had the permission for what they did", () => {
-    const need: Record<string, string> = { "payrun.approved":
+    const need: Record<string, string> = { "payrun.signed-off":
       "pay.approve", "payrun.submitted": "pay.prepare",
     "wps.file-created": "pay.prepare", "wps.file-sent": "pay.export-sif",
-    "leave.approved": "leave.approve", "leave.rejected": "leave.approve",
-    "expense.approved": "expense.approve", "salary.approved":
+    "leave.signed-off": "leave.approve", "leave.declined": "leave.approve",
+    "expense.signed-off": "expense.approve", "salary.signed-off":
       "pay.approve", "salary.revised": "pay.prepare",
     "settlement.prepared": "pay.prepare", "employee.created":
       "people.edit", "employee.resignation-recorded": "people.edit",
@@ -196,7 +196,7 @@ describe("users and roles", () => {
     for (const x of c.expenses) {
       const r = expenseRoute(x.amount);
       const decider = x.status === "approved"
-        ? auditEvents(c).find((e) => e.action === "expense.approved" &&
+        ? auditEvents(c).find((e) => e.action === "expense.signed-off" &&
           e.subject.id === x.id)!.actorId!
         : c.approvals.find((a) => a.subjectId === x.id)!
           .checkerEmployeeId;

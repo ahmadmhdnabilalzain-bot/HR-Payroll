@@ -1,12 +1,9 @@
 import {
   addDays,
-  calculatePayslip,
-  DEFAULT_PAYROLL_PACKS,
   fils,
   formatAed,
   parseIsoDate,
   type Fils,
-  type PayslipInput,
 } from "@payroll/engine";
 import {
   AS_OF,
@@ -15,9 +12,7 @@ import {
   workingDaysBetween,
 } from "./calendar";
 import { DEMO_LABELS, isDemoLabelKey } from "./labels";
-import { payslipWithoutPension } from "./pension";
-import { employedIn } from "./payroll";
-import { payslipInput } from "./pay-inputs";
+import { HISTORY_SICK, pastMonthSlips, type PastPayslip } from "./pay";
 import { BACK_PAY_RAISE } from "./roster";
 import { employeeById } from "./selectors";
 import type { DemoCompany, DemoEmployee } from "./types";
@@ -131,8 +126,8 @@ export interface AuditEvent {
 export const AUDIT_CHAIN_NOTE = "Demo only: each entry's fingerprint " +
   "(SHA-256) is worked out from the entry and the one before it when " +
   "the demo loads, so a changed or removed entry shows up when the " +
-  "chain is checked. It shows the idea; it is not a certified or legal " +
-  "proof, and a real system would keep the chain on a server.";
+  "chain is checked. It shows the idea; it is not a legal proof, and " +
+  "a real system would keep the chain on a server.";
 
 const GENESIS = "0".repeat(64);
 
@@ -159,7 +154,7 @@ export const ACCESS_FACTS = {
       name: "Finance dashboard (read only)" }],
   webhooks: [
     { id: "hook-001", on: "2026-04-20", at: "15:30", by: "emp-030",
-      name: "Pay run approved, to the finance system" },
+      name: "Pay run signed off, to the finance system" },
     { id: "hook-002", on: "2026-07-08", at: "14:05", by: "emp-030",
       name: "New starter, to the IT service desk" }],
   review: { on: "2026-09-30", by: "emp-001", checked: 12, narrowed: 1 },
@@ -220,11 +215,12 @@ function leaveDrafts(c: DemoCompany): Draft[] {
       summary: `${nameOf(c, r.employeeId)} asked for ${what}` }];
     if (decided !== null && r.status !== "pending") {
       const by = deciderOf(c, r.employeeId);
-      const verb = r.status === "approved" ? "approved" : "rejected";
+      // Internal sign-offs: "signed off" or "declined", never "approved".
+      const ok = r.status === "approved";
       out.push({ at: decided, actorId: by,
-        action: `leave.${verb}`, area: "time", subject,
-        summary: `${nameOf(c, by)} ${verb} ${nameOf(c, r.employeeId)}'s ` +
-          what });
+        action: ok ? "leave.signed-off" : "leave.declined", area: "time",
+        subject, summary: `${nameOf(c, by)} ${ok ? "signed off"
+          : "declined"} ${nameOf(c, r.employeeId)}'s ${what}` });
     }
     return out;
   });
@@ -242,8 +238,8 @@ function expenseDrafts(c: DemoCompany): Draft[] {
     if (x.status === "pending") return [asked];
     const by = deciderOf(c, x.employeeId);
     return [asked, { at: at(addDays(x.date, 1), "09:40"), actorId: by,
-      action: "expense.approved", area: "pay", subject,
-      summary: `${nameOf(c, by)} approved ${who}'s claim of ` +
+      action: "expense.signed-off", area: "pay", subject,
+      summary: `${nameOf(c, by)} signed off ${who}'s claim of ` +
         formatAed(x.amount) }];
   });
 }
@@ -253,20 +249,20 @@ function payRunDrafts(c: DemoCompany): Draft[] {
   const gm = nameOf(c, "emp-001");
   const out: Draft[] = [];
   for (const m of run.slice(0, 9)) {
-    const approved = lastWorkingDayBefore(`${m.month}-27`);
+    const signed = lastWorkingDayBefore(`${m.month}-27`);
     const subject = { kind: "pay-run", id: `run-${m.month}`,
       label: `Pay run ${reportMonth(m.month)}` };
     const figures = `net ${formatAed(m.net)}, ${m.headcount} people`;
     out.push(
-      { at: at(lastWorkingDayBefore(approved), "16:10"),
+      { at: at(lastWorkingDayBefore(signed), "16:10"),
         actorId: "emp-028", action: "payrun.submitted", area: "pay",
         subject, summary: `Pay run for ${reportMonth(m.month)} sent to ` +
-          `${gm} for approval: ${figures}` },
-      { at: at(approved, "11:20"), actorId: "emp-001",
-        action: "payrun.approved", area: "pay", subject,
-        summary: `${gm} approved the pay run for ` +
+          `${gm} for sign-off: ${figures}` },
+      { at: at(signed, "11:20"), actorId: "emp-001",
+        action: "payrun.signed-off", area: "pay", subject,
+        summary: `${gm} signed off the pay run for ` +
           `${reportMonth(m.month)}: ${figures}` },
-      { at: at(nextWorkingDay(approved), "10:05"), actorId: "emp-028",
+      { at: at(nextWorkingDay(signed), "10:05"), actorId: "emp-028",
         action: "wps.file-sent", area: "pay", subject,
         summary: `Salary file for ${reportMonth(m.month)} marked as ` +
           `sent to the bank` });
@@ -290,7 +286,7 @@ function payRunDrafts(c: DemoCompany): Draft[] {
     { at: at(AS_OF, "09:42"), actorId: ap.makerEmployeeId,
       action: "payrun.submitted", area: "pay", subject: octSubject,
       summary: `Pay run for ${reportMonth(octSubject.id.slice(4))} ` +
-        `sent to ${nameOf(c, ap.checkerEmployeeId)} for approval` });
+        `sent to ${nameOf(c, ap.checkerEmployeeId)} for sign-off` });
   return out;
 }
 
@@ -306,8 +302,9 @@ function peopleDrafts(c: DemoCompany): Draft[] {
     s.employeeId === leaver.id)!;
   return [
     { at: at("2026-08-26", "10:15"), actorId: "emp-001",
-      action: "salary.approved", area: "people", subject: person(raised),
-      summary: `${nameOf(c, "emp-001")} approved a raise of ${raise} to ` +
+      action: "salary.signed-off", area: "people",
+      subject: person(raised),
+      summary: `${nameOf(c, "emp-001")} signed off a raise of ${raise} to ` +
         `${raised.fullName}'s basic salary, from ${reportDate(
           "2026-09-01")}` },
     { at: at("2026-09-18", "09:05"), actorId: "emp-029",
@@ -323,7 +320,7 @@ function peopleDrafts(c: DemoCompany): Draft[] {
       action: "settlement.prepared", area: "pay", subject: person(leaver),
       summary: `Final settlement drafted for ${leaver.fullName}: ` +
         `${formatAed(settle.result.total)}, outside the pay run` },
-    { at: at("2026-10-19", "11:40"), actorId: "emp-028",
+    { at: at("2026-10-05", "11:40"), actorId: "emp-028",
       action: "salary.revised", area: "people", subject: person(raised),
       summary: `${raised.fullName}'s basic salary raised by ${raise} ` +
         `from ${reportDate("2026-09-01")}, entered late; back pay of ` +
@@ -450,33 +447,6 @@ export function auditRows(c: DemoCompany, filter: { area?: AuditArea;
  * Monthly payroll history, January to October 2026
  * ---------------------------------------------------------------- */
 
-type Overtime = PayslipInput["overtime"][number];
-
-/**
- * Overtime before October, planned on working days, within the
- * 2-hour daily limit. It goes through the engine, so its pay is the
- * engine's. Keyed by employee id (17 operations; 30 IT night work).
- */
-export const HISTORY_OVERTIME: Record<string, Overtime[]> = {
-  "emp-017": [
-    { date: "2026-03-10", minutes: 90, nightMinutes: 0 },
-    { date: "2026-06-16", minutes: 120, nightMinutes: 0 },
-    { date: "2026-08-11", minutes: 60, nightMinutes: 0 }],
-  "emp-030": [{ date: "2026-07-14", minutes: 60, nightMinutes: 60 }],
-};
-
-/**
- * Paid sick days before October, [employee, first day, last day].
- * They go through the engine too; sick pay is full pay here, so gross
- * does not move. None overlaps an approved request in the leave data.
- */
-export const HISTORY_SICK: readonly [string, string, string][] = [
-  ["emp-007", "2026-02-17", "2026-02-18"],
-  ["emp-020", "2026-05-12", "2026-05-12"],
-  ["emp-025", "2026-06-23", "2026-06-24"],
-  ["emp-006", "2026-08-04", "2026-08-04"],
-];
-
 export interface HistoryLine { employeeId: string; gross: Fils;
   net: Fils; overtimeMinutes: number; overtimeAmount: Fils;
   /** Back pay inside this month's gross (October only). */
@@ -503,25 +473,11 @@ export interface MonthlyPayroll {
 const sumF = (xs: readonly bigint[]): Fils => fils(xs.reduce((n, x) =>
   n + x, 0n));
 
-function lineOf(e: DemoEmployee, month: number): {
-  line: HistoryLine; deductions: Fils } {
-  const key = monthKey(2026, month);
-  const old = e.cases.includes("back-pay")
-    ? { basic: fils(e.basicMonthly - BACK_PAY_RAISE) } : {};
-  const sick = HISTORY_SICK.filter(([id]) => id === e.id)
-    .flatMap(([, from, to]) => workingDaysBetween(from, to))
-    .filter((d) => d.startsWith(key));
-  const input: PayslipInput = { ...payslipInput(e, { year: 2026, month,
-    ...old }), overtime: (HISTORY_OVERTIME[e.id] ?? []).filter((o) =>
-    o.date.startsWith(key)), absences: sick.map((date) =>
-    ({ date, kind: "sick" as const })) };
-  const p = (e.workerClass === "uae-national"
-    ? payslipWithoutPension(input)
-    : calculatePayslip(input, DEFAULT_PAYROLL_PACKS)).value;
-  const ot = p.earnings.filter((l) => l.kind === "overtime");
-  return { deductions: p.totalDeductions, line: { employeeId: e.id,
-    gross: p.gross, net: p.net, overtimeMinutes: input.overtime
-      .reduce((n, o) => n + o.minutes, 0),
+function lineOf(s: PastPayslip): { line: HistoryLine; deductions: Fils } {
+  const ot = s.payslip.earnings.filter((l) => l.kind === "overtime");
+  return { deductions: s.payslip.totalDeductions, line: {
+    employeeId: s.employeeId, gross: s.payslip.gross, net: s.payslip.net,
+    overtimeMinutes: s.input.overtime.reduce((n, o) => n + o.minutes, 0),
     overtimeAmount: sumF(ot.map((l) => l.amount)), backPay: fils(0n) } };
 }
 
@@ -574,8 +530,7 @@ export function payrollHistory(c: DemoCompany): MonthlyPayroll[] {
   const hit = historyCache.get(c);
   if (hit !== undefined) return hit;
   const past = Array.from({ length: 9 }, (_, i) => i + 1).map((m) => {
-    const made = c.employees.filter((e) => employedIn(e, 2026, m))
-      .map((e) => lineOf(e, m));
+    const made = pastMonthSlips(c, m).map(lineOf);
     return rowOf(c, monthKey(2026, m), "paid", made.map((x) => x.line),
       sumF(made.map((x) => x.deductions)));
   });
