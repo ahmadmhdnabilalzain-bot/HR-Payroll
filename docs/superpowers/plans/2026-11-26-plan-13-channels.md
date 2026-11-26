@@ -94,18 +94,13 @@ another plan that its own Interfaces blocks do not name exactly, the
 executor exports it from the named file under the name given here,
 renaming only at the export (the pattern of Plan 10).
 
-| Task | Needs merged first |
+Tasks run in order, 1 to 10, each on the previous one's commit.
+
+| Task | Needs merged first (besides the earlier tasks) |
 |---|---|
 | 1 | Plan 3 Tasks 1 to 8 |
-| 2 | Task 1 |
-| 3 | Task 2 |
-| 4 | Task 3; Plan 6 Tasks 2 and 5 |
-| 5 | Task 3; Plan 6 Tasks 3 and 5 |
-| 6 | Task 1; Plan 9 Task 3 (holidays); Plan 11 Task 5 (deadlines) |
-| 7 | Task 2 |
-| 8 | Task 3 |
-| 9 | Task 1 |
-| 10 | Tasks 1 to 9 |
+| 2 to 5, 7 to 10 | Plan 6 Tasks 2, 3 and 5 (spine, receipts, claims) |
+| 6 | Plan 9 Task 3 (holidays); Plan 11 Task 5 (deadlines) |
 
 Signatures consumed from other plans (exact; exported as named):
 
@@ -120,6 +115,11 @@ Signatures consumed from other plans (exact; exported as named):
   Promise<{ id: string; employeeId: string; leaveTypeId: string;
   startDate: string; endDate: string; status: "pending" | "approved"
   }[]>` (pending and approved only).
+- Plan 3 `src/routes/auth.ts`: `consumeInvite(tx: Db, deps: AppDeps,
+  setupToken: string, user: { email: string; displayName: string;
+  passwordHash: string | null }): Promise<{ userId: string; companyId:
+  string; role: Role }>` (the accept-invite logic: create or link the
+  user, add the membership, mark the invite used).
 - Plan 6 `src/approvals/requests.ts` and `decide.ts`: `openRequest`,
   `viewFor(tx: Db, approvalId: string): Promise<ApprovalView>`,
   `decide(ctx: ReqCtx, handlers: SubjectHandlers, approvalId: string,
@@ -179,8 +179,10 @@ Signatures consumed from other plans (exact; exported as named):
   records `languageFallback: true` (HANDOVER rule; Ruling 12).
 - Provider facts the research did not READ are labelled in code with
   `// UNVERIFIED: <what>` and kept inside one adapter file each: Meta
-  Cloud API send and webhook shapes, Postmark send endpoint, Google and
-  Entra issuer formats and discovery URLs. Tests assert the port with
+  Cloud API send and webhook shapes, the Postmark send endpoint, the
+  Postmark inbound field names beyond those READ, its SPF and DKIM
+  header formats and Basic credentials on its hook, and the Google
+  and Entra issuer formats and discovery URLs. Tests assert the port with
   fakes, never a provider's wire format as fact.
 - No WhatsApp price, verification lead time, messaging tier or TDRA
   rule appears in code, constants, defaults or copy. Every limit here is
@@ -230,7 +232,8 @@ Signatures consumed from other plans (exact; exported as named):
 4. Leaks outside GET bodies: sentinel amounts and IBANs never appear in
    fake provider outboxes, webhook bodies or ICS text, and no webhook
    reaches a private address or follows a redirect (Task 8
-   `webhook_no_leak_no_ssrf`, Task 3 `outbox_has_no_sentinels`).
+   `webhook_no_leak_no_ssrf`, Task 3 `outbox_has_no_sentinels`, Task 6
+   `feed_no_sentinels`).
 5. Email-in from a spoofed allow-listed sender (SPF fail, DKIM fail), an
    attachment declared PDF whose bytes are HTML, and the same message
    posted twice by the provider: one item at most, nothing stored for
@@ -261,7 +264,7 @@ packages/api/src/channels/                ports, audit, actor, rate,
                                           dispatch, adapters
 packages/api/src/whatsapp/                opt-in, token (pure), actions,
                                           inbound
-packages/api/src/inbound/                 auth-results (pure), mailbox,
+packages/api/src/inbound/                 auth-decision (pure), mailbox,
                                           intake, review
 packages/api/src/calendar/                feed-token, feed (pure), push
 packages/api/src/sso/                     pkce, id-token, identity,
@@ -369,10 +372,14 @@ HANDOVER.md, LEDGER.md                    updated in Task 10
       boolean; verifySignature(rawBody: string, header: string |
       undefined): boolean; challenge(q: Record<string, string>): string
       | null; parse(json: unknown): WaInboundEvent[] }`.
-    - `InboundEmail { messageId: string; from: string; mailboxHash:
-      string; subject: string; text: string; headers: { name: string;
-      value: string }[]; attachments: { name: string; contentType:
-      string; bytes: Uint8Array }[] }`; `interface InboundEmailAdapter
+    - `AuthVerdictT = "pass" | "fail" | "softfail" | "neutral" |
+      "none" | "unknown"`; `InboundEmail { messageId: string; from:
+      string; mailboxHash: string; subject: string; text: string;
+      auth: { spf: AuthVerdictT; dkim: AuthVerdictT; dmarc:
+      AuthVerdictT }; attachments: { name: string; contentType:
+      string; bytes: Uint8Array }[] }` (the adapter reads the
+      provider's SPF, DKIM and DMARC results; core code only judges
+      them); `interface InboundEmailAdapter
       { readonly configured: boolean; authenticate(authorization:
       string | undefined): boolean; parse(json: unknown): InboundEmail
       }` (parse throws `INBOUND_PAYLOAD_INVALID`).
@@ -481,7 +488,10 @@ HANDOVER.md, LEDGER.md                    updated in Task 10
   "public routes are the four plus the listed channel ids"
   (`PUBLIC_CHANNEL_IDS` literal, empty in this task, appended by Tasks
   4 to 10; other plans' public ids such as `verifyPayslip` stay in the
-  allowed list when present); `"owner-only routes are the four"` and
+  allowed list when present); `"mfa routes are tenant routes"` keeps
+  its first check and its exact list becomes a subset check (the
+  three Plan 3 ids present; every channel `mfa` route is `tenant`);
+  `"owner-only routes are the four"` and
   `"only the SIF download is text/plain"` keep their Plan 3 ids as a
   subset check.
 
@@ -1158,7 +1168,7 @@ Security task: fresh per-task review.
       pending or `currentStep !== step_order`: action `void`, reply
       `stale`. Pre-check with Plan 6's pure `mayDecide` for the
       recipient; not `"ok"`: action `void`, audit
-      `whatsapp.action-refused` (`data: { code }`), reply `refused`.
+      `whatsapp.action-refused` (`data: { errorCode }`), reply `refused`.
       Decision `a`: `decide(actorCtx(recipient, "whatsapp"), handlers,
       approvalId, "approve", { stepOrder })`, action `used`, audit
       `whatsapp.action-used` (`data: { decision: "approve",
@@ -1168,7 +1178,7 @@ Security task: fresh per-task review.
       If `decide` throws, the transaction rolls back (nothing is
       caught inside it); a second `enterTenant` then marks the message
       seen, the action `void`, audits `whatsapp.action-refused` with
-      the error code, and replies `refused` or `stale`.
+      `data: { errorCode }`, and replies `refused` or `stale`.
     - `text`: trimmed upper case `STOP`:
       `withdraw_whatsapp_by_phone(hash, now)`, actions of that phone
       in `awaiting-reason` become `expired`, reply `stopped`.
@@ -1224,7 +1234,8 @@ secret; an expense claim of E awaiting manager M, M opted in with
   6. A two-step chain where M is eligible for steps 1 and 2 and no
      one else is for step 2: tapping approve gives
      `APPROVER_NEEDED_LATER` from `mayDecide`, action `void`, audit
-     `whatsapp.action-refused` with `data.code`, approval unchanged.
+     `whatsapp.action-refused` with `data.errorCode`, approval
+     unchanged.
   7. A forged token (signed with another key) and an expired token:
      ignored, no reply, no change.
 - `wa_not_approvable_subject_has_no_buttons`: an approval of a subject
@@ -1273,7 +1284,7 @@ Untrusted input task: fresh per-task review.
 - Modify: `packages/contract/src/routes-channels.ts`, `src/errors.ts`,
   `src/registry.ts`, `src/examples.ts`, `src/index.ts`
 - Create: `packages/api/migrations/1305_email_in.sql`,
-  `src/inbound/auth-results.ts` (pure), `src/inbound/sender.ts`
+  `src/inbound/auth-decision.ts` (pure), `src/inbound/sender.ts`
   (pure), `src/inbound/mailbox.ts`, `src/inbound/postmark-inbound.ts`,
   `src/inbound/intake.ts`, `src/inbound/review.ts`,
   `src/routes/channels-inbound.ts`
@@ -1283,8 +1294,9 @@ Untrusted input task: fresh per-task review.
   `src/channels/wire.ts`; `tests/helpers/fake-channels.ts`
   (`postmarkPayload(...)` builder); Plan 6 `tests/fs-blob.test.ts`
   (an `inbound` key is accepted, `other` still refused)
-- Test: `packages/api/tests/auth-results.test.ts`,
-  `tests/inbound-sender.test.ts`, `tests/email-in.test.ts`,
+- Test: `packages/api/tests/auth-decision.test.ts`,
+  `tests/postmark-inbound.test.ts`, `tests/inbound-sender.test.ts`,
+  `tests/email-in.test.ts`,
   `tests/email-in-review.test.ts`
 
 **Interfaces:**
@@ -1367,12 +1379,8 @@ Untrusted input task: fresh per-task review.
     when not configured. Rotation replaces the secret at once (the old
     address is refused from then on) and audits
     `inbound.address-rotated`.
-  - `auth-results.ts` (pure): `readSenderAuth(headers: { name; value
-    }[]): SenderAuth`: from every `Authentication-Results` header,
-    tokens `spf=<v>`, `dkim=<v>`, `dmarc=<v>` (case-insensitive; the
-    first of each kind wins); else `Received-SPF: <Verdict>` for spf;
-    missing gives `none`; unrecognised words give `unknown`.
-    `senderAuthDecision(a: SenderAuth): "reject" | "flag" | "pass"`:
+  - `auth-decision.ts` (pure): `senderAuthDecision(a: SenderAuth):
+    "reject" | "flag" | "pass"`:
     `reject` when `spf` is `fail`, `dmarc` is `fail`, or `dkim` is
     `fail` while `spf` is not `pass`; `pass` when `dmarc` is `pass`, or
     both `spf` and `dkim` are `pass`; else `flag`.
@@ -1383,14 +1391,22 @@ Untrusted input task: fresh per-task review.
     address or an `@domain` entry equal to the address's domain gives
     `allowed` with no employee; else not allowed.
   - `postmark-inbound.ts`: `postmarkInbound(cfg: { basicAuth: string
-    }): InboundEmailAdapter` (field names READ in the research's
-    Postmark inbound page: `From`, `FromFull.Email`, `MailboxHash`,
-    `Subject`, `TextBody`, `MessageID`, `Headers[{Name,Value}]`,
-    `Attachments[{Name, Content, ContentType, ContentLength}]`):
-    `authenticate` compares `Authorization: Basic <base64(user:pass)>`
-    in constant time; `parse` validates with a zod schema (shell
-    side), decodes base64 attachments, throws `INBOUND_PAYLOAD_INVALID`
-    on any mismatch.
+    }): InboundEmailAdapter`. The research READ that the payload has
+    `From`, `Subject`, `TextBody`, `HtmlBody`, base64 attachments,
+    headers with SPF, DKIM and spam results, and `MailboxHash`. These
+    are `// UNVERIFIED` and labelled so in the file: the exact names
+    `FromFull.Email`, `MessageID`, `Headers[{Name, Value}]`,
+    `Attachments[{Name, Content, ContentType, ContentLength}]`, the
+    `Authentication-Results` and `Received-SPF` header formats, and
+    Basic credentials on the hook URL. `authenticate` compares
+    `Authorization: Basic <base64(user:pass)>` in constant time;
+    `parse` validates with a zod schema, decodes base64 attachments
+    and fills `auth` with `readAuthHeaders(headers)` (exported for
+    tests: from every `Authentication-Results` header the tokens
+    `spf=<v>`, `dkim=<v>`, `dmarc=<v>`, case-insensitive, the first of
+    each kind wins; else `Received-SPF: <Verdict>` for spf; missing
+    gives `none`; unrecognised words give `unknown`); any mismatch
+    throws `INBOUND_PAYLOAD_INVALID`.
   - `intake.ts`: `intakeEmail(deps, provider, rawBody, authorization):
     Promise<200>`. Status codes follow the research's READ retry rule
     (non-200 is retried for hours; 403 stops retries): adapter not
@@ -1404,7 +1420,7 @@ Untrusted input task: fresh per-task review.
     2. Settings `enabled` false: item `rejected` `DISABLED`.
     3. `consumeRate("inbound", "all", 200, 86400)` refused (product
        default): `rejected` `RATE_LIMITED`.
-    4. `senderAuthDecision(readSenderAuth(headers))` `reject`:
+    4. `senderAuthDecision(email.auth)` `reject`:
        `rejected` `SENDER_AUTH_FAILED`.
     5. `matchSender` not allowed: `rejected` `SENDER_NOT_ALLOWED`.
        Rejected items store only status, reason, `auth` and
@@ -1431,9 +1447,8 @@ Untrusted input task: fresh per-task review.
     items and submits; nothing is submitted or approved here); status
     `accepted`; audit `inbound.accepted` (`data: { as, receiptCount
     }`). `dismissItem(ctx, id, body)`: same status rule; audit
-    `inbound.dismissed` (`data: { reason }`; the reason is an enum
-    value, allowed by `channelAudit` because the key is
-    `dismissReason`).
+    `inbound.dismissed` (`data: { dismissReason }`, an enum value;
+    the key `reason` itself is refused by `channelAudit`).
   - Download: decrypted bytes, `Content-Type` the sniffed type,
     `Content-Disposition: attachment; filename="inbound-<id>-<index>.
     <ext>"`, `X-Content-Type-Options: nosniff`, `Cache-Control:
@@ -1441,15 +1456,19 @@ Untrusted input task: fresh per-task review.
 
 - [ ] **Step 1: Write the failing tests**
 
-`auth-results.test.ts`:
-- `Authentication-Results: mx.example; spf=pass smtp.mailfrom=a.test;
-  dkim=pass header.d=a.test; dmarc=pass` gives all `pass` and
-  decision `pass`.
-- `spf=fail` alone gives `reject`; `dkim=fail` with `spf=pass` gives
-  `flag`; `dkim=fail` with `spf=none` gives `reject`; `dmarc=fail`
-  with both others `pass` gives `reject`.
-- No headers give all `none` and `flag`; `Received-SPF: Pass (...)`
-  gives `spf "pass"`; `spf=weird` gives `unknown`.
+`auth-decision.test.ts`: all `pass` gives `pass`; `spf fail` alone
+gives `reject`; `dkim fail` with `spf pass` gives `flag`; `dkim fail`
+with `spf none` gives `reject`; `dmarc fail` with both others `pass`
+gives `reject`; `dmarc pass` with the others `none` gives `pass`; all
+`none` gives `flag`; fast-check: any input with `spf "fail"` gives
+`reject`.
+
+`postmark-inbound.test.ts` (adapter only): `Authentication-Results:
+mx.example; spf=pass smtp.mailfrom=a.test; dkim=pass header.d=a.test;
+dmarc=pass` gives all `pass`; no headers give all `none`;
+`Received-SPF: Pass (...)` gives `spf "pass"`; `spf=weird` gives
+`unknown`; wrong Basic credentials make `authenticate` false; a
+payload missing `MailboxHash` throws `INBOUND_PAYLOAD_INVALID`.
 
 `inbound-sender.test.ts`: `Sara@Acme.test` matches employee email
 `sara@acme.test`; `ap@vendor.test` matches allow-list entry
@@ -1459,12 +1478,12 @@ is not allowed; an employee with `email: null` never matches.
 `email-in.test.ts` (fake inbound adapter with Basic credentials; the
 company has inbound enabled and an employee `sara@acme.test`):
 - `email_in_happy_path`: a payload to the company's address from Sara
-  with `dkim=pass` and a PNG attachment gives 200, one `received`
-  item with `matchedEmployee` Sara, one kept attachment, an
+  with `auth.dkim` and `auth.spf` `"pass"` and a PNG attachment gives
+  200, one `received` item with `matchedEmployee` Sara, one kept attachment, an
   `inbound-received` notification for owner and hr, and audit
   `inbound.received` without any address or subject.
 - `email_in_spoof_retry_and_review` (Review Focus 5):
-  1. From Sara with `spf=fail`: 200, item `rejected`
+  1. From Sara with `auth.spf "fail"`: 200, item `rejected`
      `SENDER_AUTH_FAILED`, no attachment row, no blob written.
   2. An attachment declared `application/pdf` whose bytes are
      `<html><script>`: kept count 0, skip `TYPE_NOT_ALLOWED`; an
@@ -1505,8 +1524,8 @@ company has inbound enabled and an employee `sara@acme.test`):
 - `inbound_at_rest_encrypted`: the `inbound_items` table text contains
   neither the sender address nor the subject.
 
-- [ ] **Step 2: Run** `pnpm --filter @payroll/api test auth-results
-  inbound-sender email-in`. Expected: FAIL.
+- [ ] **Step 2: Run** `pnpm --filter @payroll/api test auth-decision
+  postmark-inbound inbound-sender email-in`. Expected: FAIL.
 - [ ] **Step 3: Implement** the files above; append the public id to
   `PUBLIC_CHANNEL_IDS`; conformance rows; `mayView` owner and hr.
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
@@ -1813,7 +1832,12 @@ Security task: fresh per-task review.
     provider's keys, client id and the state's nonce (any
     `IdTokenError` gives 401 `SSO_FAILED` with `detail.reason`); build
     the identity; then by intent:
-    - `link`: identity already linked to another user 409
+    - `link`: the callback must carry the bearer session of the user
+      who started it (`Authorization` read by the handler even though
+      the route is public); no session, an expired one, or another
+      user's gives 400 `SSO_STATE_INVALID` and links nothing (so a
+      leaked authorize URL cannot attach someone else's identity).
+      Identity already linked to another user 409
       `SSO_IDENTITY_IN_USE`; else link it to the state's user,
       `emitEvent` `sso.linked` in each company of the user; return a
       new session for that user.
@@ -1900,6 +1924,10 @@ token for a scripted code):
 - `sso_enforced`: with `enforceSso` on, a password session of an hr
   member gets 403 `SSO_REQUIRED` on `GET /v1/employees`; the owner's
   password session still works; an SSO session of the hr member works.
+- `sso_link_bound_to_session`: user U starts a link; the callback
+  sent with no bearer, or with user V's session, gives 400
+  `SSO_STATE_INVALID` and `sso_identities` has no row; the same flow
+  with U's session links the identity to U.
 - `sso_unlink_last_method`: a JIT user (no password) with one identity
   gets 409 `LAST_SIGN_IN_METHOD`.
 - `sso_not_configured`: `ssoStart` with an unconfigured provider gives
@@ -2418,7 +2446,10 @@ conformance test covers both.
   FAIL.
 - [ ] **Step 3: Implement** the files above.
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS, with
-  `CHANNEL_ROUTE_IDS` holding all 49 channel route ids in task order.
+  `CHANNEL_ROUTE_IDS` holding all 48 channel route ids in task order
+  (8 public: `whatsAppHookVerify`, `whatsAppHook`, `inboundEmailHook`,
+  `getCalendarFeed`, `ssoStart`, `ssoCallback`, `getOpenApi`,
+  `getDeveloperGuide`).
 - [ ] **Step 5: Update `HANDOVER.md`** (state: the ten feature names;
   `pnpm` commands including `main.ts jobs`; package layout rows for
   `channels`, `whatsapp`, `inbound`, `calendar`, `sso`, `webhooks`,
@@ -2431,3 +2462,183 @@ conformance test covers both.
   **append to `LEDGER.md`** section 3 every ruling below with today's
   date.
 - [ ] **Step 6: Commit** `feat(api): developer surface and handover`.
+
+---
+
+## Rulings
+
+Claude's calls under the owner's "decide, don't ask" instruction. Each
+says what it costs if wrong. The executor appends them to `LEDGER.md`.
+
+1. **Channels are capability 8 (UQ21, UQ22, UQ7's feed) plus parity
+   F21 and F22.** The brief named "UQ8"; in the master list UQ8 is the
+   cost and budget view, which this plan does not touch. Cost if
+   wrong: none in code; the progress count uses the ten names at the
+   top.
+2. **Every outside service is a port with a fake and a
+   not-configured default; tests never touch the network.** A source
+   scan keeps network modules in two files. Cost: the real adapters'
+   wire formats are untested until someone runs them against a
+   provider sandbox; each is one file.
+3. **Transactional outbox, sent by `main.ts jobs` under an external
+   scheduler (none set up).** Events become notifications, deliveries
+   and webhook deliveries in the business transaction. Cost: nothing
+   leaves the system until a scheduler runs the job (minutes of
+   delay at best).
+4. **Claim, send, record in separate steps with a lease (120 s for
+   notifications, 60 s for webhooks): at least once.** No network call
+   holds a database transaction. Cost: a crash after sending and
+   before recording sends the message twice; webhook consumers dedupe
+   by `X-Webhook-Id`, people may see a duplicate notice.
+5. **In-app notices are the source of truth; email is on by default;
+   WhatsApp is off until the person opts in and verifies the number.**
+   Cost: fewer WhatsApp users at first.
+6. **No new dependency.** ID token checks use `node:crypto`
+   (`createPublicKey` from JWK, RS256 only) and HTTP uses
+   `node:https` with a pinned address. The research did not vet any
+   OIDC or SAML library, and versions were not checked with `npm
+   view` in this session. Cost: hand-written security code, so Task 7
+   has a per-task review; moving to a vetted library later means
+   replacing `id-token.ts` and `oidc-http.ts` only.
+7. **WhatsApp through Meta's Cloud API directly, one sender number
+   for the service, no BSP.** The research recommends skipping a BSP
+   at first. Cost: every company's messages come from one business
+   name; per-company numbers need embedded signup later.
+8. **WhatsApp decides only approval-spine steps of `expense-claim`.**
+   Pay-run approval, pay corrections, bank reveal and SIF download
+   stay in the app with MFA. Cost: fewer one-tap approvals; adding a
+   subject type is one list entry plus a review.
+9. **Action tokens: HMAC-signed (key derived from the master key by
+   HKDF), one row per message, one use, 48-hour expiry (product
+   default), bound to the recipient's verified phone, and checked with
+   the spine's own `mayDecide` before `decide` runs.** Cost: a token
+   leaked together with the approver's phone is still bounded by the
+   spine's rules; approvers must act within 48 hours or use the app.
+10. **Reject from WhatsApp needs a typed reason within 10 minutes**
+    (product default), because the spine refuses a reject without a
+    note. Cost: two messages to reject; an unanswered reject changes
+    nothing and the approver uses the app.
+11. **Messages carry names, dates, a period and fixed terms only; no
+    amounts, rules, ids or links with tokens.** UQ21's "engine's
+    effect and cited rule" is not claimed. Cost: approvers open the
+    app to see amounts.
+12. **Unreviewed Arabic is never sent; English goes out and the
+    delivery records `languageFallback`.** HANDOVER forbids showing
+    unreviewed Arabic to employees. Cost: Arabic-preferring users read
+    English until a native speaker signs the copy off.
+13. **Opt-in is the person's own act in the app, versioned consent
+    text naming the company and Meta, a WhatsApp code to prove the
+    number, withdrawal in one tap or by STOP (which withdraws in every
+    company).** Follows PDPL Art 6 (clear, provable, easy to withdraw)
+    and Meta's opt-in rule (EXCERPT). Cost: a person who meant to stop
+    for one company opts in again elsewhere.
+14. **Email fallback when WhatsApp is not delivered and no email
+    delivery exists for that notice,** even if the person turned email
+    off for that kind. Cost: an email the person did not ask for; the
+    alternative was a silently lost approval request.
+15. **Limits are product defaults, not provider limits:** WhatsApp 20
+    per person per hour and 200 per company per day, 5 opt-in starts
+    per person per day, 10 bad action taps per phone per hour, 200
+    inbound emails per company per day, 120 API calls per key per
+    minute, 10 webhook endpoints per company, 5 calendar feeds per
+    person. Meta's published tiers (EXCERPT) are not copied into code.
+    Cost: a busy company reaches a cap and the owner raises it.
+16. **Quiet hours use UAE time, hold rather than drop, and never hold
+    security notices or verification codes.** Default 22:00 to 07:00.
+    Cost: an approval request sent at night waits until morning.
+17. **Email-in uses Postmark inbound behind a port, with Basic
+    credentials, and answers 200, 401, 403, 500 or 503 according to
+    the READ retry rule (403 stops retries).** Postmark inbound needs
+    a paid plan (QUERY, not full text). Cost: one paid provider; SES
+    in Bahrain is a
+    second adapter later if residency in the region matters.
+18. **The inbound address is `in+<company id>.<80-bit secret>@
+    <domain>`; rotation kills the old address at once.** Cost: a
+    leaked address accepts mail only from allowed senders; staff must
+    learn the new address after a rotation.
+19. **Email-in creates only receipts and empty draft claims, and only
+    after a person accepts.** No resignation or visa intake, no OCR,
+    no malware scan, no auto-reply, no owner digest. Cost: HR types
+    claim items; files are type-sniffed and never rendered inline, but
+    not scanned.
+20. **Sender checks: SPF, DKIM and DMARC fail rejects (the allow-list
+    cannot override a fail); unknown or missing results are flagged
+    for review; the allow-list matches exact addresses or exact
+    domains.** Cost: an honest sender with broken mail settings is
+    rejected and must fix them or use the app.
+21. **Calendar: read-only secret-URL ICS feeds; team feeds say "Away"
+    without the leave type; Google and Microsoft push are interfaces
+    reporting not configured; no OAuth scope is requested.** The
+    research rates the ICS feed cheapest and approval-free. Cost: no
+    events written into calendars; a leaked URL shows its events until
+    revoked.
+22. **SSO identity is keyed by Google `sub` or Microsoft `tid:oid`,
+    never by email; a Microsoft email claim is treated as unverified;
+    the Microsoft app uses the `organizations` endpoint.** Cost:
+    someone who changes Google account must link again.
+23. **No automatic linking or provisioning except one case: an
+    `employee` account for an existing employee record, in exactly one
+    company that turned it on, from an allowed domain and an allowed
+    Google Workspace domain or Entra tenant.** Invitations accepted by
+    SSO keep the role the owner chose. No owner, hr or manager is ever
+    created by sign-in. Cost: more steps for admins; linking needs a
+    password login first.
+24. **SAML, generic OIDC and Okta come later, on customer demand.**
+    The research advises OIDC first and SAML through a maintained
+    library. Cost: F22 is partly delivered (no Okta).
+25. **SSO enforcement never applies to owners (break-glass), and SSO
+    never counts as MFA.** Cost: owner passwords remain an attack
+    surface, limited by MFA on payroll actions.
+26. **Webhooks: thin events (ids only); HMAC-SHA256 over
+    `id.timestamp.body`; consumers told to reject after 300 seconds and
+    dedupe by id; 8 attempts over about 45 hours; pause after 5 failed
+    deliveries or a 410; no redirects; every resolved address must be
+    public and the request is pinned to it.** Cost: consumers call the
+    API for details; an attacker's DNS that answers public then private
+    between two attempts still meets the pin check each time.
+27. **No statement about TDRA rules.** The research found TDRA text
+    on marketing SMS only and nothing on WhatsApp; this plan neither
+    claims nor denies a rule and asks counsel. Cost: none in code.
+28. **API keys: one service user per key with role `hr`, a
+    default-deny scope map, no salary, bank, pay-run, SIF, approval or
+    MFA routes, salary and identity fields only with `payroll:read`,
+    SHA-256 of a 256-bit secret, rotation grace up to 72 hours,
+    fixed one-minute windows.** Cost: fixed windows allow a burst of
+    up to twice the limit across a window edge; writes are audited
+    under the key's service user, not a person.
+29. **Service users never approve, never get notices and are not
+    listed as users.** Cost: one filter in three queries.
+30. **OpenAPI is served live from the contract and the developer
+    guide is data; the web page is a spec for Plan 4.** Cost: no
+    screens until a web plan builds them.
+31. **PDPL: email-in is off by default and needs an owner's
+    acknowledgement that mail passes a provider whose storage location
+    was not verified; the cross-border basis (Art 22, 23) is for
+    counsel.** Cost: owners must switch it on knowingly.
+32. **WhatsApp prices for the UAE and Meta's verification lead time
+    stay unknown (NOT FOUND in the research); nothing in code or copy
+    estimates them.** Cost: the owner budgets without numbers until a
+    person reads Meta's AED rate file or asks a BSP.
+33. **Migrations 1301 to 1309; `CHANNEL_ROUTES` joined last (as the
+    last `ROUTE_GROUPS` group when that list exists).** Plan 3's
+    whole-list route counts become membership checks. Cost: a merge
+    conflict in `routes.ts` with plans drafted in parallel, resolved
+    by keeping every list.
+34. **Functions consumed but not named by Plans 3, 6, 9 and 11**
+    (`listLeaveInRange`, `storeReceiptBytes`, `createClaim`,
+    `listHolidays`, `deadlinesBetween`, `escapeIcsText`,
+    `foldIcsLine`, `consumeInvite`) are exported from the named files
+    with the signatures in the Prerequisites section. Cost: small
+    refactors of those plans' code.
+35. **Review:** fresh per-task reviews after Tasks 4, 5, 7, 8 and 9
+    (security), one whole-branch review at the end (speed ruling); no
+    pause for plan review (ledger, 2026-11-25). Cost: a slipped bug in
+    Tasks 1, 2, 3, 6 or 10 is caught at the end.
+36. **Ruled out, each with its cost:** SMS; push notifications to a
+    phone app; an owner digest; WhatsApp self-service (leave balance,
+    payslip questions); two-way calendar sync; SCIM provisioning;
+    per-company WhatsApp numbers; inbound malware scanning; OCR on
+    inbound attachments; retention periods for notifications, inbound
+    mail and delivery logs (PDPL retention not decided); webhook
+    payloads with full records. Cost: each is a visible gap in the
+    handover.
