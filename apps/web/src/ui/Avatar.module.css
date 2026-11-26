@@ -17,13 +17,13 @@
 .avatar[data-size="xs"] {
   inline-size: 24px;
   block-size: 24px;
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .avatar[data-size="sm"] {
   inline-size: 28px;
   block-size: 28px;
-  font-size: 11px;
+  font-size: var(--text-2xs);
 }
 
 .avatar[data-size="lg"] {

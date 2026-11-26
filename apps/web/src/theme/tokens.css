@@ -95,10 +95,12 @@
   --text-3xl: 28px;
   --text-hero: 56px;
   /* Template type: a page title and a report's lead figure. */
-  --text-title: 34px;
-  --text-title-lh: 40px;
-  --text-figure: 48px;
-  --text-figure-lh: 52px;
+  --text-title: 28px;
+  --text-title-lh: 34px;
+  --text-figure: 56px;
+  --text-figure-lh: 60px;
+  /* The currency and fils beside a figure (Money in a figure). */
+  --text-figure-unit: 22px;
 
   --radius-control: 8px;
   --radius-panel: 12px;
@@ -200,11 +202,11 @@
   :root {
     --text-md: 17px;
     --text-base: 17px;
-    --text-hero: 48px;
-    --text-title: 28px;
-    --text-title-lh: 34px;
-    --text-figure: 40px;
-    --text-figure-lh: 44px;
+    --text-title: 22px;
+    --text-title-lh: 28px;
+    --text-figure: 28px;
+    --text-figure-lh: 34px;
+    --text-figure-unit: 15px;
     --page-pad: 16px;
   }
 }

@@ -282,7 +282,7 @@
   min-inline-size: 0;
   border: 0;
   background: transparent;
-  font-size: max(16px, var(--text-md));
+  font-size: var(--text-md);
   outline: none;
 }
 
@@ -873,7 +873,7 @@ li + li.actRow > .row {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-surface);
-  font-size: max(16px, var(--text-md));
+  font-size: var(--text-md);
   font-weight: 400;
 }
 
@@ -1109,11 +1109,11 @@ li + li.actRow > .row {
 
 .figure strong [class*="cur"],
 .figure strong [class*="frac"] {
-  font-size: 0.6em;
+  font-size: var(--text-figure-unit);
 }
 
 .figure strong [class*="masked"] > span:last-child {
-  font-size: 0.6em;
+  font-size: var(--text-figure-unit);
 }
 
 .chart {
@@ -1308,7 +1308,7 @@ li + li.actRow > .row {
       transparent),
     0 12px 32px color-mix(in srgb, var(--color-shadow) 8%, transparent);
   color: var(--color-text);
-  font-size: 16px;
+  font-size: var(--text-md);
   line-height: 26px;
 }
 
@@ -1425,7 +1425,7 @@ li + li.actRow > .row {
     box-shadow: none;
     background: Canvas;
     color: CanvasText;
-    font-size: 12pt;
+    font-size: 15px;
   }
 }
 

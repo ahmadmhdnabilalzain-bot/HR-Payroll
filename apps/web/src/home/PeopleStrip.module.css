@@ -73,7 +73,7 @@
 }
 
 .value {
-  font-size: 34px;
+  font-size: var(--text-3xl);
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1;

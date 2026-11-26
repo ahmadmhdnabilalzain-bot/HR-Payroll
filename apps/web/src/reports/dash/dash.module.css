@@ -94,8 +94,8 @@ a.tileIn:focus-visible {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  font-size: 34px;
-  line-height: 40px;
+  font-size: var(--text-3xl);
+  line-height: 34px;
   font-weight: 600;
   letter-spacing: -0.6px;
   font-variant-numeric: tabular-nums;
@@ -110,7 +110,7 @@ a.tileIn:focus-visible {
 .tileFigure [class*="cur"],
 .tileFigure [class*="frac"],
 .tileFigure [class*="masked"] > span:last-child {
-  font-size: 0.56em;
+  font-size: var(--text-md);
 }
 
 .tileFigure > .tileUnit {
@@ -522,7 +522,7 @@ a.tileIn:focus-visible {
 .pointFigure [class*="cur"],
 .pointFigure [class*="frac"],
 .pointFigure [class*="masked"] > span:last-child {
-  font-size: 0.56em;
+  font-size: var(--text-md);
 }
 
 .pointText {

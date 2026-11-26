@@ -164,6 +164,6 @@
   .field input,
   .field select,
   .search {
-    font-size: max(16px, 1em);
+    font-size: var(--text-lg);
   }
 }
