@@ -1,4 +1,5 @@
 import type { Fils } from "@payroll/engine";
+import type { Explanation } from "../../components/explain/types";
 import type { Localized } from "./types";
 
 /**
@@ -85,30 +86,6 @@ export interface PayslipView {
   rulesScope: Localized;
 }
 
-/** One rule behind a figure, as a person reads it. */
-export interface ExplainRule {
-  /** A plain name for the rule's key, e.g. "proration basis". */
-  name: string;
-  /** "convention", "law", ... as the pack states it. */
-  status: string;
-  /** Where it comes from, the pack's own note; null if none. */
-  source: string | null;
-}
-
-/** Everything the explain panel shows for one payslip figure. */
-export interface ExplainedFigure {
-  payslipId: string;
-  traceId: string;
-  label: string;
-  /** The engine's sentence for the figure, both languages. */
-  text: Localized;
-  /** The figure itself in fils, or null ("not computed"). */
-  amountFils: Fils | null;
-  formula: string;
-  rules: ExplainRule[];
-  rulesScope: Localized;
-}
-
 export interface DocumentView {
   id: string;
   employeeId: string;
@@ -164,7 +141,10 @@ export interface AnnualBalance {
   accruedHalves: number;
   takenHalves: number;
   pendingHalves: number;
-  availableHalves: number;
+  /** What the screens show; at exit the settlement's own figure. */
+  availableDays: number;
+  /** How a leaver's days are counted (the package's words), or null. */
+  basis: string | null;
 }
 
 export interface DayCount {
@@ -189,7 +169,9 @@ export interface PeopleData {
   person(id: string): Person | null;
   departments(): DepartmentOption[];
   payslip(employeeId: string): PayslipView | null;
-  explain(payslipId: string, traceId: string): ExplainedFigure;
+  /** One payslip figure for the shared explain panel. */
+  explain(payslipId: string, traceId: string, label: string,
+    lang: "en" | "ar"): Explanation;
   documentsOf(employeeId: string): DocumentView[];
   leaveTypes(): LeaveTypeView[];
   reasons(): ReasonOption[];

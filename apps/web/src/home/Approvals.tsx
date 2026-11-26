@@ -4,7 +4,7 @@ import type { Approval, ApprovalKind } from "../demo/data/types";
 import { pendingApprovals, personOf } from "../demo/derive";
 import { useFlip, useTweenedNumber } from "../demo/motion";
 import { useDemo, type Verdict } from "../demo/state";
-import { formatDayMonth } from "../i18n/format";
+import { formatDayMonth, formatList } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
@@ -67,10 +67,9 @@ function ApprovalRow(p: { a: Approval }) {
     toast.show(t("home.decided", { title: `${t(KIND[a.kind])} · ${who}` }),
       () => dispatch({ type: "undecide", id: a.id }));
   };
-  const why = isRun && blocked ? t("home.approveWaits", {
-    count: run.blockedBy.length,
-    name: data.employee(run.blockedBy[0] ?? a.makerId).name[lang] })
-    : undefined;
+  const why = isRun && blocked && run.blockedBy.length > 0
+    ? t("home.approveWaits", { names: formatList(run.blockedBy.map((id) =>
+      data.employee(id).name[lang]), lang) }) : undefined;
   return (
     <li className={s.row} data-flip={a.id} id={`approval-${a.id}`}>
       <div className={s.main}>

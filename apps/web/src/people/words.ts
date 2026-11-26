@@ -132,3 +132,11 @@ export function initials(name: string): string {
   const w = name.split(" ").filter((x) => x.length > 2);
   return [w[0], w.at(-1)].map((x) => x?.[0] ?? "").join("");
 }
+
+/** A day count that may be fractional (a leaver's 18.71 days). */
+export function dayCountText(days: number, t: T, lang: Lang): string {
+  if (Number.isInteger(days * 2)) return daysText(days * 2, t, lang);
+  const n = new Intl.NumberFormat(LOCALE[lang], {
+    maximumFractionDigits: 2 }).format(days);
+  return t("people.days", { count: days, n });
+}

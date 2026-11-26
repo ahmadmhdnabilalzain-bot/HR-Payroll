@@ -56,13 +56,19 @@ export function runApprovalId(d: DemoData): string | null {
 }
 
 /**
- * Who still holds the run back: the real API refuses a whole run while
- * any payslip has no bank account, so the demo never implies a partial
- * run. Approve stays disabled, with this reason, until it is empty.
+ * Who still holds the run back: a payslip with no bank account (the
+ * real API refuses the whole run) or an IBAN that fails its check
+ * digits (the bank would reject it). The demo never implies a partial
+ * run, so Approve stays disabled, with this reason, until it is empty.
  */
 export function approvalBlockedBy(d: DemoData, _s: DemoState)
   : string[] {
-  return d.heldIds();
+  return [...new Set([...d.heldIds(), ...d.badIbanIds()])];
+}
+
+/** The open issue that blocks approval for one person, if any. */
+export function isBlocking(i: Issue): boolean {
+  return i.code === "SIF_HELD_NO_IBAN" || i.code === "IBAN_CHECKSUM";
 }
 
 export type RunPhase = "bank-details" | "approve" | "file";

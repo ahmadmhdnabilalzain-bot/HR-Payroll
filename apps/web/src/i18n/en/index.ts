@@ -1,7 +1,7 @@
 import { common } from "./common";
 import { errors } from "./errors";
-import { home } from "./home";
 import { explain } from "./explain";
+import { home } from "./home";
 import { people } from "./people";
 import { shell } from "./shell";
 import { timeoff } from "./timeoff";

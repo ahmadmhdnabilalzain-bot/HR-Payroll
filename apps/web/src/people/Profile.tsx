@@ -20,6 +20,7 @@ import { Money } from "../ui/Money";
 import { shortBranch } from "./filter";
 import {
   countryName,
+  dayCountText,
   dayText,
   daysText,
   expiryWord,
@@ -286,9 +287,12 @@ function Leave(q: { person: Person }) {
           <dt>{t("people.annualLeft")}</dt>
           <dd>
             <span className={`${s.big} tabular`}>
-              {bal === null ? "–" : daysText(bal.availableHalves, t, lang)}
+              {bal === null ? "–" : dayCountText(bal.availableDays, t, lang)}
             </span>
-            {bal !== null && (
+            {bal !== null && bal.basis !== null && (
+              <span className={s.factSub}>{bal.basis}</span>
+            )}
+            {bal !== null && bal.basis === null && (
               <span className={s.factSub}>
                 {t("people.annualOf", {
                   taken: daysText(bal.takenHalves, t, lang),

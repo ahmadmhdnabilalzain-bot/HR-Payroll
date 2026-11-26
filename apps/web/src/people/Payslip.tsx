@@ -1,4 +1,4 @@
-import { Explainable } from "../components/explain/Explain";
+import { Explainable } from "../components/explain";
 import type { PayslipLineView, PayslipView } from "../demo/data/people-types";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
@@ -53,16 +53,40 @@ export function Payslip(q: { id: string }) {
   );
 }
 
+/** The shared panel's explanation for one line of this payslip. */
+function useExplained(slip: PayslipView, traceId: string, label: string) {
+  const { lang } = useLocale();
+  const { data } = useDemo();
+  return data.people.explain(slip.id, traceId, label, lang);
+}
+
 function Line(q: { slip: PayslipView; line: PayslipLineView }) {
   const { t } = useLocale();
   const label = lineLabel(q.line, t);
+  const ex = useExplained(q.slip, q.line.traceId, label);
   return (
     <div className={s.line}>
       <dt>{label}</dt>
       <dd>
-        <Explainable target={{ kind: "payslip-line",
-          payslipId: q.slip.id, traceId: q.line.traceId, label }}>
+        <Explainable explanation={ex}>
           <Money value={q.line.amountFils} tween={false} />
+        </Explainable>
+      </dd>
+    </div>
+  );
+}
+
+/** A national's pension: not computed, said where the line would be. */
+function Pension(q: { slip: PayslipView; traceId: string }) {
+  const { t } = useLocale();
+  const label = t("people.pensionNote");
+  const ex = useExplained(q.slip, q.traceId, label);
+  return (
+    <div className={s.line}>
+      <dt>{label}</dt>
+      <dd>
+        <Explainable explanation={ex}>
+          <span className={s.notComputed}>{t("people.notComputed")}</span>
         </Explainable>
       </dd>
     </div>
@@ -71,12 +95,12 @@ function Line(q: { slip: PayslipView; line: PayslipLineView }) {
 
 function Total(q: { slip: PayslipView; traceId: string; label: string;
   value: PayslipView["netFils"]; strong?: boolean }) {
+  const ex = useExplained(q.slip, q.traceId, q.label);
   return (
     <div className={s.total} data-strong={q.strong === true}>
       <dt>{q.label}</dt>
       <dd>
-        <Explainable target={{ kind: "payslip-line",
-          payslipId: q.slip.id, traceId: q.traceId, label: q.label }}>
+        <Explainable explanation={ex}>
           <Money value={q.value} size={q.strong === true ? "lg" : "md"}
             tween={false} />
         </Explainable>
@@ -112,18 +136,7 @@ function Slip(q: { slip: PayslipView }) {
             <Line key={l.traceId} slip={slip} line={l} />
           ))}
           {slip.pension !== null && (
-            <div className={s.line}>
-              <dt>{t("people.pensionNote")}</dt>
-              <dd>
-                <Explainable target={{ kind: "payslip-line",
-                  payslipId: slip.id, traceId: slip.pension.traceId,
-                  label: t("people.pensionNote") }}>
-                  <span className={s.notComputed}>
-                    {t("people.notComputed")}
-                  </span>
-                </Explainable>
-              </dd>
-            </div>
+            <Pension slip={slip} traceId={slip.pension.traceId} />
           )}
           {deductions.length === 0 && slip.pension === null && (
             <p className={s.none}>{t("people.noDeductions")}</p>

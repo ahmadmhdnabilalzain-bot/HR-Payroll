@@ -1,173 +1,229 @@
 import {
-  createContext,
-  useCallback,
-  useContext,
   useEffect,
-  useMemo,
+  useId,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
-import type { ExplainRule } from "../../demo/data/people-types";
+import { createPortal } from "react-dom";
 import { DUR, reducedMotion } from "../../demo/motion";
-import { useDemo } from "../../demo/state";
 import type { MessageKey } from "../../i18n/t";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Icon } from "../../ui/Icon";
 import { Money } from "../../ui/Money";
 import type {
-  ExplainApi,
-  ExplainableProps,
-  ExplainPanelProps,
-  ExplainTarget,
+  ExplainValue,
+  Explanation,
+  SourceStatus,
 } from "./types";
 import s from "./Explain.module.css";
 
-/*
- * TEMP implementation of the explain contract (types.ts), made by the
- * People builder because none existed on demo-web. The provider and
- * <Explainable> are the stable parts; ExplainPanel can be swapped for
- * the Explain builder's panel without touching the screens.
- */
-
-const ExplainContext = createContext<ExplainApi | null>(null);
-
-export function ExplainProvider(p: { children: ReactNode }) {
-  const [current, setCurrent] = useState<ExplainTarget | null>(null);
-  const from = useRef<HTMLElement | null>(null);
-  const open = useCallback((t: ExplainTarget, el?: HTMLElement | null) => {
-    from.current = el ?? null;
-    setCurrent(t);
-  }, []);
-  const close = useCallback(() => {
-    setCurrent(null);
-    from.current?.focus({ preventScroll: true });
-  }, []);
-  const api = useMemo(() => ({ open, close, current }),
-    [open, close, current]);
-  return (
-    <ExplainContext.Provider value={api}>
-      {p.children}
-      <ExplainPanel target={current} onClose={close} />
-    </ExplainContext.Provider>
-  );
-}
-
-export function useExplain(): ExplainApi {
-  const v = useContext(ExplainContext);
-  if (v === null) throw new Error("useExplain outside ExplainProvider");
-  return v;
-}
-
-/** A figure that opens its explanation when pressed. */
-export function Explainable(p: ExplainableProps) {
-  const { t } = useLocale();
-  const api = useExplain();
-  const on = api.current?.traceId === p.target.traceId &&
-    api.current.payslipId === p.target.payslipId;
-  return (
-    <button type="button" className={`${s.figure} ${p.className ?? ""}`}
-      aria-haspopup="dialog" aria-expanded={on}
-      aria-label={t("explain.open", { label: p.target.label })}
-      onClick={(e) => api.open(p.target, e.currentTarget)}>
-      {p.children}
-    </button>
-  );
-}
-
-const STATUS: Record<string, MessageKey> = {
-  official: "explain.statusOfficial", secondary: "explain.statusSecondary",
-  convention: "explain.statusConvention",
-  hypothetical: "explain.statusHypothetical",
-  unsourced: "explain.statusUnsourced",
+const STATUS: Record<SourceStatus, MessageKey> = {
+  official: "explain.official",
+  secondary: "explain.secondary",
+  convention: "explain.convention",
+  unsourced: "explain.unsourced",
 };
 
-const sentence = (x: string): string =>
-  x.length === 0 ? x : x[0]!.toUpperCase() + x.slice(1);
+function Value(p: { v: ExplainValue; size?: "lg" | "md" }) {
+  return p.v.kind === "money"
+    ? <Money value={p.v.fils} size={p.size ?? "md"} tween={false} />
+    : <span className={s.textValue}>{p.v.text}</span>;
+}
 
-function Rule(p: { r: ExplainRule }) {
+/**
+ * Any figure in the demo, made explainable: the figure itself is the
+ * button (no hover-only affordance; a quiet dotted rule says it can be
+ * opened), and it opens the explain panel beside the page.
+ */
+export function Explainable(p: { explanation: Explanation | undefined;
+  children: ReactNode; className?: string }) {
   const { t } = useLocale();
-  const key = STATUS[p.r.status];
+  const [open, setOpen] = useState(false);
+  const btn = useRef<HTMLButtonElement>(null);
+  if (p.explanation === undefined) return <>{p.children}</>;
   return (
-    <li className={s.rule}>
-      <span className={s.ruleName}>{sentence(p.r.name)}</span>
-      <span className={s.ruleStatus}>
-        {key === undefined ? p.r.status : t(key)}
-      </span>
-      <span className={s.ruleSource}>{p.r.source ?? t("explain.noSource")}
-      </span>
-    </li>
+    <>
+      <button ref={btn} type="button" aria-haspopup="dialog"
+        className={`${s.trigger} ${p.className ?? ""}`}
+        onClick={() => setOpen(true)}>
+        {p.children}
+        <span className="visually-hidden">
+          {t("explain.open", { title: p.explanation.title })}
+        </span>
+      </button>
+      {open && (
+        <ExplainPanel explanation={p.explanation} onClose={() => {
+          setOpen(false);
+          btn.current?.focus({ preventScroll: true });
+        }} />
+      )}
+    </>
   );
 }
 
-/** A side sheet on wide screens, a bottom sheet on phones. */
-export function ExplainPanel(p: ExplainPanelProps) {
-  const { lang, t } = useLocale();
-  const { data } = useDemo();
-  const ref = useRef<HTMLDialogElement>(null);
-  const [shown, setShown] = useState<ExplainTarget | null>(p.target);
+/** A text link that opens an explanation ("How this is worked out"). */
+export function ExplainLink(p: { explanation: Explanation | undefined;
+  children: ReactNode; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const btn = useRef<HTMLButtonElement>(null);
+  if (p.explanation === undefined) return null;
+  return (
+    <>
+      <button ref={btn} type="button" aria-haspopup="dialog"
+        className={`${s.link} ${p.className ?? ""}`}
+        onClick={() => setOpen(true)}>
+        {p.children}
+      </button>
+      {open && (
+        <ExplainPanel explanation={p.explanation} onClose={() => {
+          setOpen(false);
+          btn.current?.focus({ preventScroll: true });
+        }} />
+      )}
+    </>
+  );
+}
+
+const FOCUSABLE = "button, [href], input, [tabindex]:not([tabindex='-1'])";
+
+/**
+ * The explain-why panel: what went in and where it came from, the
+ * rules with their source and status, the working step by step, the
+ * result, and what is left out. A side panel on wide screens, a sheet
+ * from the bottom on phones. Escape or the scrim closes it.
+ */
+export function ExplainPanel(p: { explanation: Explanation;
+  onClose(): void }) {
+  const { t, dir } = useLocale();
+  const e = p.explanation;
+  const id = useId();
+  const panel = useRef<HTMLDivElement>(null);
   const [leaving, setLeaving] = useState(false);
-  useEffect(() => {
-    const d = ref.current;
-    if (d === null) return undefined;
-    if (p.target !== null) {
-      setShown(p.target);
-      setLeaving(false);
-      if (!d.open) d.showModal();
-      return undefined;
-    }
-    if (!d.open) return undefined;
+  const close = (): void => {
     if (reducedMotion()) {
-      d.close();
-      return undefined;
+      p.onClose();
+      return;
     }
     setLeaving(true);
-    const h = setTimeout(() => {
-      d.close();
-      setLeaving(false);
-    }, DUR.base);
-    return () => clearTimeout(h);
-  }, [p.target]);
-  const x = shown === null ? null
-    : data.people.explain(shown.payslipId, shown.traceId);
-  return (
-    <dialog ref={ref} className={s.sheet} data-leaving={leaving}
-      aria-labelledby="explain-title" aria-describedby="explain-text"
-      onCancel={(e) => {
-        e.preventDefault();
-        p.onClose();
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) p.onClose();
-      }}>
-      {x !== null && shown !== null && (
-        <div className={s.body}>
-          <header className={s.head}>
-            <h2 id="explain-title" className={s.title}>{shown.label}</h2>
-            <button type="button" className={s.close}
-              aria-label={t("explain.close")} onClick={p.onClose}>
-              <Icon name="x" size={20} />
-            </button>
-          </header>
-          <div className={s.amount}>
-            {x.amountFils === null
-              ? <span className={s.none}>{t("explain.notComputed")}</span>
-              : <Money value={x.amountFils} size="lg" tween={false} />}
+    setTimeout(p.onClose, DUR.base);
+  };
+  useEffect(() => {
+    panel.current?.querySelector<HTMLElement>("[data-close]")
+      ?.focus({ preventScroll: true });
+    const html = document.documentElement;
+    const was = html.style.overflow;
+    html.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = was;
+    };
+  }, []);
+  const onKey = (ev: ReactKeyboardEvent): void => {
+    if (ev.key === "Escape") {
+      ev.stopPropagation();
+      close();
+      return;
+    }
+    if (ev.key !== "Tab" || panel.current === null) return;
+    const all = [...panel.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
+    const first = all[0];
+    const last = all[all.length - 1];
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault();
+      last?.focus();
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault();
+      first?.focus();
+    }
+  };
+  return createPortal(
+    <div className={s.layer} data-leaving={leaving} dir={dir}
+      onKeyDown={onKey}>
+      <div className={s.scrim} onClick={close} aria-hidden="true" />
+      <div ref={panel} className={s.panel} role="dialog" aria-modal="true"
+        aria-labelledby={`${id}-t`}>
+        <header className={s.head}>
+          <div className={s.headText}>
+            <p className={s.subject}>{e.subject}</p>
+            <h2 id={`${id}-t`} className={s.title}>{e.title}</h2>
           </div>
-          <p id="explain-text" className={s.text}>{x.text[lang]}</p>
-          <section aria-labelledby="explain-rules" className={s.rules}>
-            <h3 id="explain-rules" className={s.rulesTitle}>
-              {t("explain.rules")}
-            </h3>
-            {x.rules.length === 0
-              ? <p className={s.muted}>{t("explain.noRules")}</p>
-              : <ul className={s.ruleList}>
-                {x.rules.map((r) => <Rule key={r.name} r={r} />)}
-              </ul>}
+          <button type="button" className={s.close} data-close=""
+            aria-label={t("explain.close")} onClick={close}>
+            <Icon name="x" size={20} />
+          </button>
+        </header>
+        <div className={s.body}>
+          <div className={s.result}>
+            <span className={s.resultLabel}>{e.result.label}</span>
+            <Value v={e.result.value} size="lg" />
+          </div>
+          <p className={s.summary}>{e.summary}</p>
+          <section aria-labelledby={`${id}-w`} className={s.section}>
+            <h3 id={`${id}-w`} className={s.h3}>{t("explain.working")}</h3>
+            <ol className={s.steps}>
+              {e.steps.map((x, i) => (
+                <li key={i} className={s.step}>
+                  <span className={s.stepText}>{x.text}</span>
+                  {x.value !== undefined && (
+                    <span className={s.stepValue}><Value v={x.value} /></span>
+                  )}
+                </li>
+              ))}
+            </ol>
           </section>
-          <p className={s.scope}>{x.rulesScope[lang]}</p>
+          {e.inputs.length > 0 && (
+            <section aria-labelledby={`${id}-i`} className={s.section}>
+              <h3 id={`${id}-i`} className={s.h3}>{t("explain.inputs")}</h3>
+              <dl className={s.inputs}>
+                {e.inputs.map((x) => (
+                  <div key={x.label} className={s.input}>
+                    <dt>
+                      <span className={s.inputLabel}>{x.label}</span>
+                      <span className={s.from}>{x.from}</span>
+                    </dt>
+                    <dd><Value v={x.value} /></dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+          {e.rules.length > 0 && (
+            <section aria-labelledby={`${id}-r`} className={s.section}>
+              <h3 id={`${id}-r`} className={s.h3}>{t("explain.rules")}</h3>
+              <ul className={s.rules}>
+                {e.rules.map((r) => (
+                  <li key={r.text} className={s.rule}>
+                    <p className={s.ruleText}>{r.text}</p>
+                    <p className={s.ruleMeta}>
+                      <span className={s.status} data-status={r.status}>
+                        <span className={s.dot} aria-hidden="true" />
+                        {t(STATUS[r.status])}
+                      </span>
+                      {r.citation !== null && (
+                        <span className={s.cite}>{r.citation}</span>
+                      )}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {e.notComputed.length > 0 && (
+            <section aria-labelledby={`${id}-n`}
+              className={`${s.section} ${s.notBox}`}>
+              <h3 id={`${id}-n`} className={s.h3}>{t("explain.notDone")}</h3>
+              <ul className={s.notList}>
+                {e.notComputed.map((x) => <li key={x}>{x}</li>)}
+              </ul>
+            </section>
+          )}
+          <p className={s.scope}>
+            {t("explain.scope", { scope: e.scope })}
+          </p>
         </div>
-      )}
-    </dialog>
+      </div>
+    </div>,
+    document.body,
   );
 }

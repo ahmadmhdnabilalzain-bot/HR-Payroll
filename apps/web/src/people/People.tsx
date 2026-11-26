@@ -1,4 +1,3 @@
-import { ExplainProvider } from "../components/explain/Explain";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { canSee, personFor } from "../demo/time-off";
@@ -25,11 +24,7 @@ export function People(p: ViewProps) {
     return <Outside text="notFound" />;
   }
   if (!canSee(data, state, who)) return <Outside text="notVisible" />;
-  return (
-    <ExplainProvider>
-      {sub === "payslip" ? <Payslip id={who} /> : <Profile id={who} />}
-    </ExplainProvider>
-  );
+  return sub === "payslip" ? <Payslip id={who} /> : <Profile id={who} />;
 }
 
 function Outside(p: { text: "notFound" | "notVisible" }) {

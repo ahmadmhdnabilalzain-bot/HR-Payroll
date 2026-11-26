@@ -10,4 +10,5 @@
 
 .main {
   min-block-size: calc(100vh - 82px);
+  min-block-size: calc(100dvh - 82px);
 }

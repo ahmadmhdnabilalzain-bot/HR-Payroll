@@ -4,17 +4,15 @@ import type { EnNamespace } from "../types";
 export const home = {
   dateLine: "{date} · {company}",
   statusBank: { one: "{month} pay is ready except {name}'s bank details.",
-    other: "{month} pay is ready except bank details for {count} " +
-      "people." },
+    other: "{month} pay is ready except bank details for {names}." },
   statusApprove: "{month} pay is ready for {name}'s approval.",
   statusApproveYou: "{month} pay is ready for your approval.",
   statusFile: "{month} pay has its approval. The salary file is next.",
   statusDeclined: "{month} pay went back to HR with a decision.",
   primaryIban: "Enter bank details",
   primaryApprove: "Approve {month} pay",
-  approveWaits: { one: "Approve waits for {name}'s bank details. A pay " +
-    "run is never paid in part.", other: "Approve waits for bank " +
-    "details for {count} people. A pay run is never paid in part." },
+  approveWaits: "Approve waits for bank details for {names}: a " +
+    "missing or mistyped IBAN. A pay run is never paid in part.",
   netTo: { one: "Net pay to {count} person", other: "Net pay to {count} " +
     "people" },
   paysOn: "pays on {date}",

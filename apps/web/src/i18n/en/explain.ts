@@ -1,17 +1,17 @@
 import type { EnNamespace } from "../types";
 
-/** The explain-why panel (src/components/explain). */
+/** The explain-why panel. */
 export const explain = {
-  title: "How this was worked out",
-  open: "Explain {label}",
+  open: "How this is worked out: {title}",
   close: "Close",
-  rules: "Rules behind it",
-  noRules: "A sum of the lines above; no rule of its own.",
-  statusOfficial: "Official source",
-  statusSecondary: "Secondary source",
-  statusConvention: "Engine convention, not law",
-  statusHypothetical: "Assumption, to confirm",
-  statusUnsourced: "No source yet, to confirm",
-  noSource: "No written source.",
-  notComputed: "Not computed",
+  working: "How it is worked out",
+  inputs: "What went in",
+  rules: "Rules used",
+  notDone: "Not worked out here",
+  official: "Official",
+  secondary: "Secondary source",
+  convention: "Convention",
+  unsourced: "No source",
+  scope: "{scope}. Fictional data.",
+  how: "How this is worked out",
 } satisfies EnNamespace;

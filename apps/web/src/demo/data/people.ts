@@ -17,11 +17,11 @@ import {
   type DemoCompany,
   type DemoEmployee,
 } from "@payroll/demo-data";
+import { toExplanation } from "./people-explain";
 import type { Localized } from "./types";
 import type {
   AnnualBalance,
   DayCount,
-  ExplainedFigure,
   LeaveRequestView,
   LeaveTypeId,
   LeaveUse,
@@ -123,21 +123,17 @@ function payslipOf(c: DemoCompany, employeeId: string)
   rulesScope: label("scope.rules") };
 }
 
-/** "prorationBasis" to "proration basis". */
-const words = (key: string): string =>
-  key.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
-
-function explainOf(c: DemoCompany, payslipId: string, traceId: string)
-  : ExplainedFigure {
+function explainOf(c: DemoCompany, payslipId: string, traceId: string,
+  title: string, lang: "en" | "ar") {
   const x = explainPayslipLine(c, payslipId, traceId);
-  const numeric = /^-?\d+$/.test(x.line.result);
-  return { payslipId, traceId, label: x.line.label,
-    text: { en: x.text.en, ar: x.text.ar },
-    amountFils: numeric ? fils(BigInt(x.line.result)) : null,
-    formula: x.line.formula,
-    rules: x.rules.map((r) => ({ name: words(r.key), status: r.status,
-      source: r.source?.note ?? null })),
-    rulesScope: label("scope.rules") };
+  const slip = c.payRun.payslips.find((p) => p.id === payslipId);
+  const who = c.employees.find((e) => e.id === slip?.employeeId);
+  const pension = traceId === slip?.pension?.traceId;
+  return toExplanation(`payslip:${payslipId}:${traceId}`, x, {
+    label: title, subject: who === undefined ? "" : lang === "ar"
+      ? who.fullNameAr ?? who.fullName : who.fullName, lang,
+    scope: label("scope.rules")[lang],
+    notComputed: pension ? PENSION_NOT_COMPUTED[lang] : null });
 }
 
 function requestsOf(c: DemoCompany): LeaveRequestView[] {
@@ -161,6 +157,13 @@ function balanceOf(c: DemoCompany, employeeId: string, uses: LeaveUse[])
   : AnnualBalance | null {
   const e = c.employees.find((x) => x.id === employeeId);
   if (e === undefined || e.joiningDate > c.asOf) return null;
+  const pkg = c.leaveBalances.find((b) => b.employeeId === employeeId);
+  if (pkg !== undefined && pkg.availableHalves === null) {
+    // At exit the package gives one figure (the settlement's): use it.
+    return { employeeId, year: pkg.year, accruedHalves: pkg.accruedHalves,
+      takenHalves: pkg.takenHalves, pendingHalves: pkg.pendingHalves,
+      availableDays: pkg.availableDays, basis: pkg.basis };
+  }
   const asOf = e.leavingDate !== null && e.leavingDate < c.asOf
     ? e.leavingDate : c.asOf;
   const mine = uses.filter((u) => u.employeeId === employeeId &&
@@ -175,7 +178,7 @@ function balanceOf(c: DemoCompany, employeeId: string, uses: LeaveUse[])
     pendingHalves: pending, asOf });
   return { employeeId, year: 2026, accruedHalves: accrued,
     takenHalves: b.takenHalves, pendingHalves: pending,
-    availableHalves: b.availableHalves };
+    availableDays: b.availableHalves / 2, basis: null };
 }
 
 /** The engine's working-day count; the demo's weekend is Sat and Sun. */
@@ -214,7 +217,8 @@ export function adaptPeople(c: DemoCompany): PeopleData {
     departments: () => c.departments.map((d) => ({ id: d.id,
       name: label(d.labelKey) })),
     payslip: (id) => payslipOf(c, id),
-    explain: (payslipId, traceId) => explainOf(c, payslipId, traceId),
+    explain: (payslipId, traceId, title, lang) =>
+      explainOf(c, payslipId, traceId, title, lang),
     documentsOf: (id) => c.documents.filter((d) => d.employeeId === id)
       .map((d) => ({ id: d.id, employeeId: d.employeeId,
         kind: label(`doc.${d.kind}`), numberMasked: d.number.masked,

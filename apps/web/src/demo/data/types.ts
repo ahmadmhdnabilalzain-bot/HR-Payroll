@@ -16,6 +16,8 @@ export interface Headline {
   /** `YYYY-MM`, the month being paid. */
   runMonth: string;
   netTotalFils: Fils;
+  /** Shown on the net figure itself: what it does not include. */
+  netNote: Localized;
   grossTotalFils: Fils;
   deductionsFils: Fils;
   employerCostFils: Fils;
@@ -120,6 +122,9 @@ export interface DemoData {
   issues(): Issue[];
   /** Employees whose pay is held out of the salary file (no IBAN). */
   heldIds(): string[];
+  /** Employees whose IBAN fails its check digits (the bank would
+   * reject the payment). */
+  badIbanIds(): string[];
   approvalsInbox(): Approval[];
   employee(employeeId: string): Employee;
   employees(): Employee[];
