@@ -6,7 +6,7 @@ import {
   type Explanation,
 } from "../components/explain";
 import type { PersonRow } from "../demo/data/run-types";
-import { useTweenedNumber } from "../demo/motion";
+import { Count } from "../ui/Count";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -30,7 +30,6 @@ export function ReviewStep() {
   const listId = useId();
   const pm = d.prevMonth;
   const month = monthName(pm, lang);
-  const people = useTweenedNumber(d.totals.headcount);
   const flagged = (p: PersonRow): boolean =>
     p.significant || p.prevNet === null || !p.inFile || typos.has(p.id);
   // Held and mistyped first (they stop or risk pay), then the largest
@@ -74,7 +73,7 @@ export function ReviewStep() {
           <dd className={s.count}>
             <Explainable explanation={d.explain["run:people"]}
               className={s.plainFig}>
-              <span className="tabular">{people}</span>
+              <Count value={d.totals.headcount} />
             </Explainable>
           </dd>
           <dd><CountChange now={d.totals.headcount}
