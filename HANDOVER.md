@@ -100,6 +100,10 @@ source-cited, with an open API and Arabic from the start.
   Build report: `docs/superpowers/plans/plan-6-build-report.md`.
   Tasks 2, 3 and 6 (approvals, untrusted files, money) await their
   security review.
+- **Demo data is built** on branch `demo-data` (not pushed):
+  `packages/demo-data`, one fictional "Demo company" whose payslips,
+  SIF and reports all come from the engine and `packages/wps`. See
+  "Demo data" below.
 - Branch: `claude/quirky-wozniak-b7xkvr`. No pull request.
 
 ## Run it
@@ -253,6 +257,25 @@ engine refuses to run without an explicit value.
 | Letter templates, merge, letters | `src/letters/`, `migrations/073`, `074` |
 | PDF rendering (Chrome port) | `src/pdf/` (`pnpm letters:sample` writes `out/letters/`) |
 | Emiratisation report | `src/emiratisation/`, `migrations/075` |
+
+## Demo data (`packages/demo-data`)
+
+`buildDemoCompany(seed = 2026)` returns the whole demo company: 48
+employees, the October 2026 pay run (every payslip from
+`calculatePayslip`, with trace and rule ids), the SIF and its
+validation report (47 `IBAN_CHECKSUM` warnings: the fake IBANs fail
+mod 97 on purpose), leave, attendance, approvals, documents, goals,
+Emiratisation and GPSSA. Selectors: `headlineTotals`,
+`costByDepartment`, `issuesOf` (each with its reason),
+`explainPayslipLine` (EN/AR text plus each rule's source).
+`serializeDemo` is the canonical JSON (bigint as strings). The web
+mock builds its seed in-process, so the demo stays an import: no JSON
+under `apps/web/public/demo/`. Decisions are in `LEDGER.md` section 14
+and `packages/demo-data/README.md`.
+
+Headline totals (seed 2026): 47 payslips, gross AED 746,214.39,
+deductions AED 7,005.00, net AED 739,209.39 (= SIF total), employer
+GPSSA AED 11,731.25, leaver settlement AED 70,028.77 (outside the SIF).
 
 ## Known limits and open questions
 

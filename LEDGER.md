@@ -535,3 +535,30 @@ The owner can overrule any of these. Full list with reasons:
   summaries only; the legislation portal blocks automated browsers and
   the MOHRE pages did not load). Day-16 condition sources disagree;
   nothing is encoded as official. Counsel item.
+
+## 14. Demo data and demo environment (2026-11-26)
+
+- Owner (via the coordinator): a clickable demo with fake data only,
+  hosted later as a static site; then "a database of demo data so
+  clients can actually browse and see how the features work". The
+  demo data must also seed a real demo database behind the real API.
+- Rulings (Claude's calls) for `packages/demo-data`:
+  - One seed (default 2026) drives every variation; the finished month
+    is October 2026, the draft month November 2026, "today" in the
+    demo is 2026-10-31.
+  - Fake identifiers: IBANs with check digits 00 or 01 (never issued)
+    that also fail mod 97; Emirates IDs whose check digit fails Luhn;
+    labour and employer ids starting 99; `.test` emails. The SIF report
+    therefore shows one `IBAN_CHECKSUM` warning per line, on purpose.
+  - `gpssaContributionSalaryBase` is unsourced: the demo passes
+    "basic" as an override for nationals and lists it as an
+    assumption (each national's payslip carries `OVERRIDE_USED`).
+  - Back pay has no engine earning kind: the amount is owed minus paid
+    gross from two engine payslips for September, carried in October
+    as an `other` allowance with code `back-pay`.
+  - The missing-IBAN case joins on 2026-12-01, so it has no October
+    payslip and the SIF still sums to the run total; it is an issue.
+  - The leaver's gratuity and leave pay come from
+    `calculateSettlement` and stay outside the run total and the SIF.
+  - No JSON snapshots in `apps/web/public/demo/`: the web mock builds
+    its seed in-process, so the demo data stays a TypeScript import.
