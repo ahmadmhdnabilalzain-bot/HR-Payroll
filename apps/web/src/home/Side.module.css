@@ -102,10 +102,22 @@
   font-weight: 500;
 }
 
+.lede {
+  padding-block-start: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
 .empty {
   padding-block: var(--space-4);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+}
+
+.why {
+  flex-basis: 100%;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
 }
 
 .waitingFor {

@@ -1,84 +1,45 @@
 .page {
   display: grid;
-  gap: var(--space-7);
-  max-inline-size: 1240px;
+  gap: var(--space-5);
+  max-inline-size: 1280px;
   margin-inline: auto;
-  padding: var(--space-6) var(--space-6) var(--space-8);
-  animation: enter var(--dur-base) var(--ease-out);
-}
-
-@keyframes enter {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-}
-
-.header {
-  display: grid;
-  gap: var(--space-1);
-  margin-block-end: calc(var(--space-7) * -1 + var(--space-5));
-}
-
-.crumbs {
-  display: flex;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.crumbs [aria-current] {
-  color: var(--color-text);
-}
-
-.sep {
-  color: var(--color-text-faint);
-}
-
-.title {
-  margin-block-start: var(--space-2);
-  font-size: var(--text-3xl);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.date {
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
+  padding: var(--space-5) var(--space-6) var(--space-8);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr);
-  gap: var(--space-7);
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+  gap: var(--space-6);
   align-items: start;
+  margin-block-start: var(--space-2);
 }
 
-.side {
+.below {
   display: grid;
-  gap: var(--space-7);
-  min-inline-size: 0;
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+  margin-block-start: var(--space-6);
+}
+
+@media (min-width: 1680px) {
+  .page {
+    max-inline-size: 1520px;
+    gap: var(--space-6);
+  }
 }
 
 @media (max-width: 1000px) {
-  .grid {
+  .grid,
+  .below {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 760px) {
   .page {
-    gap: var(--space-6);
-    padding: var(--space-5) var(--space-4)
+    gap: var(--space-5);
+    padding: var(--space-4) var(--space-4)
       calc(var(--space-8) + 40px + env(safe-area-inset-bottom));
-  }
-
-  .header {
-    margin-block-end: calc(var(--space-6) * -1 + var(--space-4));
-  }
-
-  .title {
-    font-size: var(--text-2xl);
   }
 }

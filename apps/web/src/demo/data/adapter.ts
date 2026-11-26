@@ -1,4 +1,5 @@
 import {
+  applyIbanFix,
   approvalsInbox,
   buildDemoCompany,
   costByDepartment,
@@ -6,17 +7,20 @@ import {
   DEMO_LABELS,
   documents,
   employeeById,
+  fakeIban,
   headline,
   isDemoLabelKey,
   issuesOf,
   payCalendar,
   PENSION_NOT_COMPUTED,
+  sifSummary,
   type DemoCompany,
   type DemoIssue,
 } from "@payroll/demo-data";
 import type {
   Approval,
   DemoData,
+  DemoSource,
   Employee,
   Issue,
   Localized,
@@ -28,19 +32,23 @@ function label(key: string): Localized {
   return { en: DEMO_LABELS.en[key], ar: DEMO_LABELS.ar[key] };
 }
 
+/** English stands in where the package has no Arabic yet. */
+const both = (en: string, ar = ""): Localized =>
+  ({ en, ar: ar === "" ? en : ar });
+
 function toIssue(x: DemoIssue, n: number): Issue {
   return { id: `${x.code}:${x.subjectId ?? x.employeeId ?? n}`,
-    code: x.code, employeeId: x.employeeId, severity: x.severity,
-    fixKind: x.fixKind, count: x.count, plainReason: x.plainReason,
-    suggestedFix: x.suggestedFix };
+    code: x.code, kind: x.kind, severity: x.severity,
+    employeeId: x.employeeId, subjectId: x.subjectId, fixKind: x.fixKind,
+    title: both(x.title), reason: both(x.plainReason.en, x.plainReason.ar),
+    suggestedFix: both(x.suggestedFix.en, x.suggestedFix.ar) };
 }
 
 function toEmployee(c: DemoCompany, id: string): Employee {
   const e = employeeById(c, id);
   const dept = c.departments.find((d) => d.id === e.departmentId);
   return { id, name: { en: e.fullName, ar: e.fullNameAr ?? e.fullName },
-    department: dept === undefined ? { en: "", ar: "" }
-      : label(dept.labelKey),
+    department: dept === undefined ? both("") : label(dept.labelKey),
     role: label(`job.${e.jobKey}`) };
 }
 
@@ -50,7 +58,7 @@ function payRunApproval(c: DemoCompany) {
   return a;
 }
 
-/** The screens' view of one built demo company. */
+/** The screens' view of one state of the demo company. */
 export function adapt(c: DemoCompany): DemoData {
   const issues = issuesOf(c).map(toIssue);
   const approvals: Approval[] = approvalsInbox(c).map((a) => ({ id: a.id,
@@ -66,17 +74,21 @@ export function adapt(c: DemoCompany): DemoData {
       runMonth: `${c.payRun.year}-${String(c.payRun.month)
         .padStart(2, "0")}`,
       netTotalFils: h.net, grossTotalFils: h.gross,
-      deductionsFils: h.deductions, employerCostFils:
-        c.payRun.totals.employerCost, sifTotalFils: h.sifTotal,
-      heldNetFils: h.heldNet, headcount: h.payslips,
+      deductionsFils: h.deductions,
+      employerCostFils: c.payRun.totals.employerCost,
+      sifTotalFils: h.sifTotal, heldNetFils: h.heldNet,
+      headcount: h.payslips, sifPeople: sifSummary(c).employees,
       issuesOpen: h.issues, needsConfirmation: h.needsConfirmation,
       approvalsPending: h.pendingApprovals }),
     departments: () => costByDepartment(c).map((d) => ({
       id: d.departmentId, name: label(d.labelKey),
       headcount: d.headcount, costFils: d.gross })),
     issues: () => issues,
+    heldIds: () => c.payRun.payslips.filter((s) => !s.sif.included)
+      .map((s) => s.employeeId),
     approvalsInbox: () => approvals,
     employee: (id) => toEmployee(c, id),
+    employees: () => c.employees.map((e) => toEmployee(c, e.id)),
     documents: () => documents(c).map((d) => ({ ...d,
       kind: label(`doc.${d.kind}`) })),
     payCalendar: () => {
@@ -85,13 +97,43 @@ export function adapt(c: DemoCompany): DemoData {
         sifDue: p.sifDue, payday: p.payday };
     },
     basis: () => ({ ruleSet: label("scope.rules"),
-      pension: { en: PENSION_NOT_COMPUTED.en,
-        ar: PENSION_NOT_COMPUTED.ar } }),
+      pension: both(PENSION_NOT_COMPUTED.en, PENSION_NOT_COMPUTED.ar) }),
     runPeople: () => ({ makerId: run.makerEmployeeId,
       checkerId: run.checkerEmployeeId }),
   };
 }
 
+/** The company after the IBANs entered, each through applyIbanFix. */
+function withIbans(base: DemoCompany,
+  ibans: Readonly<Record<string, string>>): DemoCompany {
+  return Object.entries(ibans).reduce((c, [id, iban]) => {
+    const r = applyIbanFix(c, id, iban);
+    return r.ok ? r.demo : c;
+  }, base);
+}
+
+export function buildDemoSource(): DemoSource {
+  const base = buildDemoCompany();
+  const cache = new Map<string, DemoData>();
+  return {
+    at: (ibans) => {
+      const key = JSON.stringify(Object.entries(ibans).sort());
+      const hit = cache.get(key);
+      if (hit !== undefined) return hit;
+      const view = adapt(withIbans(base, ibans));
+      cache.set(key, view);
+      return view;
+    },
+    tryIban: (ibans, employeeId, iban) => {
+      const r = applyIbanFix(withIbans(base, ibans), employeeId, iban);
+      return r.ok ? { ok: true } : { ok: false, reason: both(r.reason) };
+    },
+    bankLetterIban: (employeeId) =>
+      fakeIban(Number(employeeId.replace(/\D/g, ""))).value,
+  };
+}
+
+/** One state for tests and tools: the company as built. */
 export function buildDemoData(): DemoData {
   return adapt(buildDemoCompany());
 }

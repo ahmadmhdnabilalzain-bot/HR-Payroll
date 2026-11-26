@@ -2,31 +2,44 @@ import { useEffect, useState } from "react";
 import type { Section } from "./state";
 
 /**
- * Hash routing (`#/home`): a static host serves index.html for every
- * visit, so no rewrite rule is needed. Unknown hashes show Home.
+ * Hash routing: `#/section/rest/of/path`. A static host serves
+ * index.html for every visit and the offline file works on file://,
+ * so no rewrite rule is needed. Unknown sections show Home.
  */
-const SECTIONS: readonly Section[] = ["home", "pay-run", "people",
+export const SECTIONS: readonly Section[] = ["home", "pay-run", "people",
   "time-off", "reports"];
 
-/** Sections built in this demo build; the others are inert in nav. */
-export const BUILT: ReadonlySet<Section> = new Set<Section>(["home"]);
-
-function read(): Section {
-  const raw = location.hash.replace(/^#\/?/, "");
-  const hit = SECTIONS.find((x) => x === raw);
-  return hit !== undefined && BUILT.has(hit) ? hit : "home";
+export interface Route {
+  section: Section;
+  /** Path parts after the section, e.g. `["emp-001"]`. */
+  rest: string[];
 }
 
-export function useSection(): Section {
-  const [section, setSection] = useState<Section>(read);
+export function parseHash(hash: string): Route {
+  const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean)
+    .map(decodeURIComponent);
+  const hit = SECTIONS.find((x) => x === parts[0]);
+  return hit === undefined ? { section: "home", rest: [] }
+    : { section: hit, rest: parts.slice(1) };
+}
+
+export function useRoute(): Route {
+  const [route, setRoute] = useState<Route>(() => parseHash(location.hash));
   useEffect(() => {
-    const on = (): void => setSection(read());
+    const on = (): void => {
+      setRoute(parseHash(location.hash));
+      scrollTo({ top: 0 });
+    };
     addEventListener("hashchange", on);
     return () => removeEventListener("hashchange", on);
   }, []);
-  return section;
+  return route;
 }
 
-export function hrefOf(s: Section): string {
-  return `#/${s}`;
+export function hrefOf(s: Section, ...rest: string[]): string {
+  return `#/${[s, ...rest].map(encodeURIComponent).join("/")}`;
+}
+
+export function navigate(s: Section, ...rest: string[]): void {
+  location.hash = hrefOf(s, ...rest);
 }

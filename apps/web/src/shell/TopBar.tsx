@@ -1,15 +1,18 @@
 import { PRODUCT_NAME } from "../brand";
-import { BUILT, hrefOf } from "../demo/route";
+import { hrefOf } from "../demo/route";
 import { useDemo, type Section } from "../demo/state";
 import { showArabic } from "../demo/flags";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useTheme } from "../theme/ThemeProvider";
 import { Icon, type IconName } from "../ui/Icon";
+import { VIEWS } from "../views";
 import { RoleMenu } from "./RoleMenu";
 import { Wordmark } from "./Wordmark";
 import s from "./TopBar.module.css";
 
+/** Every section in order; only those with a view are shown. Reports
+ * is not in the phone bar (at most four there, plus search). */
 const NAV: [Section, MessageKey, IconName][] = [
   ["home", "shell.navHome", "home"],
   ["pay-run", "shell.navPayRun", "wallet"],
@@ -37,7 +40,7 @@ export function TopBar(p: { section: Section; onSearch(): void }) {
         <a className={s.brand} href={hrefOf("home")}>
           <Wordmark label={PRODUCT_NAME[lang]} />
         </a>
-        <Nav section={p.section} />
+        <Nav section={p.section} onSearch={p.onSearch} />
         <div className={s.tools}>
           <button type="button" className={s.search} onClick={p.onSearch}
             title={t("shell.searchHint")}
@@ -57,23 +60,24 @@ export function TopBar(p: { section: Section; onSearch(): void }) {
   );
 }
 
-function Nav(p: { section: Section }) {
+function Nav(p: { section: Section; onSearch(): void }) {
   const { t } = useLocale();
   return (
     <nav className={s.nav} aria-label={t("shell.sections")}>
-      {NAV.map(([id, key, icon]) => BUILT.has(id) ? (
+      {NAV.filter(([id]) => VIEWS[id] !== undefined).map(([id, key,
+        icon]) => (
         <a key={id} href={hrefOf(id)} className={s.navItem}
+          data-phone={id === "reports" ? "no" : undefined}
           aria-current={p.section === id ? "page" : undefined}>
-          <Icon name={icon} size={18} />
+          <Icon name={icon} size={20} />
           <span>{t(key)}</span>
         </a>
-      ) : (
-        <span key={id} className={s.navItem} aria-disabled="true"
-          title={t("shell.notInDemo")}>
-          <Icon name={icon} size={18} />
-          <span>{t(key)}</span>
-        </span>
       ))}
+      <button type="button" className={`${s.navItem} ${s.navSearch}`}
+        onClick={p.onSearch}>
+        <Icon name="search" size={20} />
+        <span>{t("shell.search")}</span>
+      </button>
     </nav>
   );
 }

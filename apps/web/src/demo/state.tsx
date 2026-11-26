@@ -5,24 +5,26 @@ import {
   useReducer,
   type ReactNode,
 } from "react";
-import type { DemoData } from "./data/types";
+import type { DemoData, DemoSource } from "./data/types";
 
 export type Role = "hr" | "gm";
 export type Section = "home" | "pay-run" | "people" | "time-off" |
   "reports";
 
-/** How an issue was settled; the label shown names the choice. */
 export type Verdict = "approve" | "decline";
 
-export type Resolution = "iban" | "reviewed" | "renewal";
+/** How a non-IBAN issue was settled; IBANs settle through the check. */
+export type Resolution = "reviewed" | "renewal";
 
 export interface DemoState {
   role: Role;
   hideAmounts: boolean;
+  /** Employee id to the IBAN a person entered (re-checked live). */
+  ibans: Record<string, string>;
   resolved: Record<string, Resolution>;
   /** Approval id to the decision recorded for it. */
   decided: Record<string, Verdict>;
-  /** Issue id to open and focus (from the palette). */
+  /** Issue id to open and focus (from the palette or primary action). */
   focusIssue: string | null;
   sourcesOpen: boolean;
 }
@@ -30,6 +32,8 @@ export interface DemoState {
 export type Action =
   | { type: "role"; role: Role }
   | { type: "toggle-amounts" }
+  | { type: "iban"; employeeId: string; value: string }
+  | { type: "unset-iban"; employeeId: string }
   | { type: "resolve"; id: string; how: Resolution }
   | { type: "reopen"; id: string }
   | { type: "decide"; id: string; verdict: Verdict }
@@ -38,32 +42,40 @@ export type Action =
   | { type: "sources"; open: boolean };
 
 export const INITIAL: DemoState = {
-  role: "hr", hideAmounts: false, resolved: {}, decided: {},
+  role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false,
 };
+
+function without<T>(r: Record<string, T>, key: string): Record<string, T> {
+  const { [key]: _gone, ...rest } = r;
+  return rest;
+}
 
 export function reduce(s: DemoState, a: Action): DemoState {
   switch (a.type) {
     case "role": return { ...s, role: a.role };
     case "toggle-amounts": return { ...s, hideAmounts: !s.hideAmounts };
+    case "iban":
+      return { ...s, ibans: { ...s.ibans, [a.employeeId]: a.value } };
+    case "unset-iban": return { ...s, ibans: without(s.ibans, a.employeeId) };
     case "resolve":
       return { ...s, resolved: { ...s.resolved, [a.id]: a.how } };
-    case "reopen": {
-      const { [a.id]: _gone, ...rest } = s.resolved;
-      return { ...s, resolved: rest };
-    }
+    case "reopen": return { ...s, resolved: without(s.resolved, a.id) };
     case "decide":
       return { ...s, decided: { ...s.decided, [a.id]: a.verdict } };
-    case "undecide": {
-      const { [a.id]: _gone, ...rest } = s.decided;
-      return { ...s, decided: rest };
-    }
+    case "undecide": return { ...s, decided: without(s.decided, a.id) };
     case "focus-issue": return { ...s, focusIssue: a.id };
     case "sources": return { ...s, sourcesOpen: a.open };
   }
 }
 
-interface Demo {
+/**
+ * The demo store. `data` is the company as the state makes it (IBANs
+ * entered re-run the salary file check); `source` answers "would this
+ * IBAN pass?"; `state` holds every choice made; `dispatch` changes it.
+ */
+export interface Demo {
+  source: DemoSource;
   data: DemoData;
   state: DemoState;
   dispatch(a: Action): void;
@@ -72,10 +84,13 @@ interface Demo {
 const DemoContext = createContext<Demo | null>(null);
 
 /** Demo state lives in memory only: a reload starts the story again. */
-export function DemoProvider(p: { data: DemoData; children: ReactNode }) {
+export function DemoProvider(p: { source: DemoSource;
+  children: ReactNode }) {
   const [state, dispatch] = useReducer(reduce, INITIAL);
-  const value = useMemo(() => ({ data: p.data, state, dispatch }),
-    [p.data, state]);
+  const data = useMemo(() => p.source.at(state.ibans),
+    [p.source, state.ibans]);
+  const value = useMemo(() => ({ source: p.source, data, state,
+    dispatch }), [p.source, data, state]);
   return (
     <DemoContext.Provider value={value}>{p.children}</DemoContext.Provider>
   );

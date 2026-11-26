@@ -1,24 +1,37 @@
-/* The one button vocabulary: primary, secondary, quiet. */
+/* The one button vocabulary: primary, secondary, quiet; two sizes. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-block-size: 32px;
-  padding-inline: var(--space-3);
+  min-block-size: 36px;
+  padding-inline: var(--space-4);
   border: 1px solid transparent;
   border-radius: var(--radius-control);
   font-size: var(--text-sm);
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
+  touch-action: manipulation;
   transition: background-color var(--dur-fast) ease,
     border-color var(--dur-fast) ease, color var(--dur-fast) ease,
-    transform var(--dur-fast) var(--ease-out);
+    transform var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) ease;
 }
 
-.btn:active {
+.btn:active:not(:disabled) {
   transform: scale(0.97);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.large {
+  min-block-size: 48px;
+  padding-inline: var(--space-5);
+  font-size: var(--text-md);
 }
 
 .primary {
@@ -26,7 +39,7 @@
   color: var(--color-on-accent);
 }
 
-.primary:hover {
+.primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
 }
 
@@ -36,7 +49,7 @@
   color: var(--color-text);
 }
 
-.secondary:hover {
+.secondary:hover:not(:disabled) {
   border-color: var(--color-border);
 }
 
@@ -46,13 +59,13 @@
   color: var(--color-text-muted);
 }
 
-.quiet:hover {
+.quiet:hover:not(:disabled) {
   background: var(--color-surface-2);
   color: var(--color-text);
 }
 
-@media (max-width: 760px) {
+@media (pointer: coarse) {
   .btn {
-    min-block-size: 40px;
+    min-block-size: 44px;
   }
 }
