@@ -5,16 +5,17 @@ import { HR_ROUTES } from "./routes-hr";
 import { EXPENSE_ROUTES } from "./routes-expenses";
 import { PAY_ROUTES } from "./routes-pay";
 import { PEOPLE_ROUTES } from "./routes-people";
-import { TIME_ROUTES } from "./routes-time";
+import { LEAVE_ATTENDANCE_ROUTES, TIME_ROUTES } from "./routes-time";
 
 export type { Auth, Method, RouteDef } from "./route-def";
 export { DOCUMENT_ROUTES };
+export { LEAVE_ATTENDANCE_ROUTES, TIME_ROUTES } from "./routes-time";
 
-/** Plan 3's routes. */
+/** Plan 3's and Plan 6's routes. */
 export const CORE_ROUTES: readonly RouteDef[] = [
   ...ACCOUNT_ROUTES,
   ...PEOPLE_ROUTES,
-  ...TIME_ROUTES,
+  ...LEAVE_ATTENDANCE_ROUTES,
   ...PAY_ROUTES,
   ...EXPENSE_ROUTES,
 ];
@@ -23,7 +24,7 @@ export { HR_ROUTES };
 
 /** Every HTTP route of the API. The server registers exactly these. */
 export const ROUTES: readonly RouteDef[] = [...CORE_ROUTES, ...HR_ROUTES,
-  ...DOCUMENT_ROUTES];
+  ...DOCUMENT_ROUTES, ...TIME_ROUTES];
 
 export function routeById(id: string): RouteDef {
   const r = ROUTES.find((x) => x.id === id);

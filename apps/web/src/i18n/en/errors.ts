@@ -1,4 +1,5 @@
 import type { EnNamespace } from "../types";
+import { timeErrors } from "./errors-time";
 
 /** One message per API error code, plus client-only codes. */
 export const errors = {
@@ -105,6 +106,7 @@ export const errors = {
     "tomorrow or ask HR to raise the limit.",
   EXCLUDED_CLAIM_INVALID: "Only approved claims waiting for payment can " +
     "be left out of a run.",
+  ...timeErrors,
   // Plan 8 (hiring, onboarding, tasks, exits, goals).
   TASK_TRANSITION: "This task cannot move to that status.",
   REQUISITION_NOT_OPEN: "This requisition is not open.",

@@ -22,6 +22,15 @@ import {
   LeaveTypeList,
 } from "./lists";
 import { IdParams } from "./primitives";
+import { TIME_SETTINGS_ROUTES } from "./routes-time-settings";
+import { TIME_ROSTER_ROUTES } from "./routes-time-rosters";
+import { TIME_CLOCK_ROUTES } from "./routes-time-clock";
+import { TIME_TIMESHEET_ROUTES } from "./routes-time-timesheets";
+import { TIME_LEAVE_ROUTES } from "./routes-time-leave";
+import { TIME_WFH_ROUTES } from "./routes-time-wfh";
+import { TIME_CALENDAR_ROUTES } from "./routes-time-calendar";
+import { TIME_WFH_DATA_ROUTES } from "./routes-time-wfh-data";
+import { ClockBody } from "./time-clock";
 import {
   ALL_ROLES,
   DECIDERS,
@@ -66,10 +75,12 @@ const LEAVE: readonly RouteDef[] = [
 
 const ATTENDANCE: readonly RouteDef[] = [
   ten(ALL_ROLES, { id: "clockIn", method: "POST",
-    path: "/v1/attendance/clock-in", response: AttendanceRecord,
+    path: "/v1/attendance/clock-in", body: ClockBody.optional(),
+    response: AttendanceRecord,
     status: 201 }),
   ten(ALL_ROLES, { id: "clockOut", method: "POST",
-    path: "/v1/attendance/clock-out", response: AttendanceRecord }),
+    path: "/v1/attendance/clock-out", body: ClockBody.optional(),
+    response: AttendanceRecord }),
   ten(ALL_ROLES, { id: "listAttendance", method: "GET",
     path: "/v1/attendance", query: AttendanceQuery,
     response: AttendanceRecordList }),
@@ -78,4 +89,18 @@ const ATTENDANCE: readonly RouteDef[] = [
     response: AttendanceRecord }),
 ];
 
-export const TIME_ROUTES: readonly RouteDef[] = [...LEAVE, ...ATTENDANCE];
+/** Plan 3's leave and attendance routes. */
+export const LEAVE_ATTENDANCE_ROUTES: readonly RouteDef[] = [...LEAVE,
+  ...ATTENDANCE];
+
+/** Plan 9's routes (time, attendance, leave policies, WFH), in order. */
+export const TIME_ROUTES: readonly RouteDef[] = [
+  ...TIME_SETTINGS_ROUTES,
+  ...TIME_ROSTER_ROUTES,
+  ...TIME_CLOCK_ROUTES,
+  ...TIME_TIMESHEET_ROUTES,
+  ...TIME_LEAVE_ROUTES,
+  ...TIME_CALENDAR_ROUTES,
+  ...TIME_WFH_ROUTES,
+  ...TIME_WFH_DATA_ROUTES,
+];

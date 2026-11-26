@@ -14,6 +14,7 @@ import { registerPayRunRoutes } from "./routes/pay-runs";
 import { registerSifRoutes } from "./routes/sif";
 import { registerAuditRoutes } from "./routes/audit";
 import { registerUserRoutes } from "./routes/users";
+import { registerTimeRoutes } from "./routes/time-index";
 import { registerHrRoutes } from "./routes/hr";
 import { registerExpenseApp, type ExpenseAppOpts } from "./expense-app";
 import { registerDocumentApp } from "./document-app";
@@ -67,6 +68,7 @@ export function createApp(deps: AppDeps, opts: ExpenseAppOpts = {}): App {
   registerPayRunRoutes(app, deps);
   registerSifRoutes(app, deps);
   registerAuditRoutes(app, deps);
+  registerTimeRoutes(app, deps);
   registerHrRoutes(app, deps);
   registerExpenseApp(app, deps, opts);
   registerDocumentApp(app, deps);

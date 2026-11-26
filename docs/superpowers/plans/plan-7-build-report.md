@@ -65,6 +65,38 @@ Resolutions:
 7. Plan 8's exit-document port (`src/ports/documents.ts`) is still
    "not configured"; wiring it to Plan 7's letters is later work.
 
+### Third merge (Plan 9)
+
+`claude/quirky-wozniak-b7xkvr` with Plan 9 (time, migrations 901 to
+908) merged again, keeping both sides:
+
+1. `ROUTES` is `CORE_ROUTES` (with Plan 3's leave and attendance routes,
+   now `LEAVE_ATTENDANCE_ROUTES`), `HR_ROUTES`, `DOCUMENT_ROUTES` and
+   `TIME_ROUTES`, side by side. Plan 8's route test counts 121 without
+   the document and time lists and checks every list is a subset of
+   `ROUTES`.
+2. Audit allowlist: Plan 9's `TIME_CHECKS` beside Plan 7's; the
+   collision test now also covers Plan 9's keys (none collide).
+3. Seed rows, contract index, `package.json` scripts
+   (`letters:sample` and `api:purge-wfh`), `main.ts` (Plan 9's
+   purge command and Plan 7's renderer) and the handover limits keep
+   both sides.
+4. Plan 9's forbidden-column test (no table may hold titles, URLs,
+   contents and so on) flagged `library_documents.title` and
+   `title_ar`; both are added to its allowlist as a library document's
+   title, not captured data.
+5. Migrations in order: 001 to 013, 070 to 075 (Plan 7's reserved
+   block; the coordinator's message said 701 to 7xx, but the plan and
+   brief reserve 070 to 079 and the runner sorts three-digit names, so
+   they stay 070 to 075), 601 to 605, 801 to 807, 901 to 908. The RLS
+   catalog and tenancy tests pass with every table seeded.
+6. Results: api 847 of 847, contract 141, engine 584, wps 173, web 103;
+   typecheck (all packages and `deploy/`), line checks, `lines:test`
+   and `ops:test` pass.
+7. Commits from here on carry the `Claude Sonnet 5.5` trailer, as the
+   coordinator asked; earlier ones keep the Opus line (history is not
+   rewritten during the security review).
+
 ## Progress
 
 | Task | Commit message | State |

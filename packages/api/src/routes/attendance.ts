@@ -1,13 +1,12 @@
 import type {
   AttendanceCorrection,
   AttendanceQuery,
+  ClockBody,
 } from "@payroll/contract";
-import { appendAudit } from "../audit/audit";
 import {
   clockIn,
   clockOut,
-  correct,
-  loadRecord,
+  correctAttendance,
   toRecord,
   type AttendanceRow,
 } from "../attendance/attendance";
@@ -16,6 +15,7 @@ import type { AppDeps } from "../deps";
 import { register, type App, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 import { inScope, viewerScope } from "../people/redact";
+import { clockFacts } from "../time/clock-geofence";
 
 const co = (ctx: ReqCtx) => ctx.tenant!.companyId;
 
@@ -48,25 +48,23 @@ async function list(ctx: ReqCtx<unknown, AttendanceQuery>) {
     { id: r.employee_id, managerId: r.manager_id })).map(toRecord) };
 }
 
-/** HR correction; the audit row keeps the old and new times. */
+/** HR correction (Plan 3), now refused on a locked day. */
 async function fix(ctx: ReqCtx<AttendanceCorrection, unknown,
   { id: string }>) {
-  const old = await loadRecord(ctx.tx, co(ctx), ctx.params.id);
-  const r = await correct(ctx.tx, co(ctx), old, ctx.body, ctx.deps.now());
-  const data: Record<string, string> = { oldClockIn: old.clock_in,
-    newClockIn: r.clock_in };
-  if (old.clock_out !== null) data.oldClockOut = old.clock_out;
-  if (r.clock_out !== null) data.newClockOut = r.clock_out;
-  await appendAudit(ctx.tx, { companyId: co(ctx),
-    at: ctx.deps.now().toISOString(), actorUserId: ctx.user!.id,
-    action: "attendance.corrected", entityType: "attendance",
-    entityId: r.id, data });
-  return toRecord(r);
+  return correctAttendance(ctx, ctx.params.id, ctx.body);
+}
+
+async function inNow(ctx: ReqCtx<ClockBody | undefined>) {
+  const t = ctx.tenant!;
+  if (t.employeeId === null) throw new ApiError("NO_EMPLOYEE_LINK");
+  const facts = await clockFacts(ctx.tx, t.companyId, t.employeeId,
+    ctx.body);
+  return toRecord(await clockIn(ctx.tx, t, ctx.deps.newId(),
+    ctx.deps.now(), facts));
 }
 
 export function registerAttendanceRoutes(app: App, deps: AppDeps): void {
-  register(app, deps, "clockIn", async (ctx) => toRecord(await clockIn(
-    ctx.tx, ctx.tenant!, ctx.deps.newId(), ctx.deps.now())));
+  register(app, deps, "clockIn", inNow);
   register(app, deps, "clockOut", async (ctx) => toRecord(await clockOut(
     ctx.tx, ctx.tenant!, ctx.deps.now())));
   register(app, deps, "listAttendance", list);

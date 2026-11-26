@@ -4,6 +4,7 @@ import {
   DOCUMENT_ROUTES,
   HR_ROUTES,
   ROUTES,
+  TIME_ROUTES,
 } from "../src/index";
 
 /** Plan 8's route ids, in order; each task appends its own. */
@@ -43,15 +44,21 @@ describe("HR_ROUTES", () => {
   });
   it("final counts: 46 HR routes, 121 in all (core 75)", () => {
     expect(HR_ROUTES.length).toBe(46);
-    // Plan 7 (merged later) adds its 35 DOCUMENT_ROUTES.
-    expect(ROUTES.length - DOCUMENT_ROUTES.length).toBe(121);
+    // Plan 7's DOCUMENT_ROUTES and Plan 9's TIME_ROUTES join
+    // ROUTES too; each plan counts its own.
+    expect(ROUTES.filter((r) => !TIME_ROUTES.includes(r) &&
+      !DOCUMENT_ROUTES.includes(r)).length).toBe(121);
   });
   it("every HR route is a tenant route", () => {
     for (const r of HR_ROUTES) expect(r.auth, r.id).toBe("tenant");
   });
-  it("ROUTES joins the core and HR lists", () => {
+  it("ROUTES joins the core, HR, document and time lists", () => {
     expect(ROUTES.length).toBe(CORE_ROUTES.length + HR_ROUTES.length +
-      DOCUMENT_ROUTES.length);
+      DOCUMENT_ROUTES.length + TIME_ROUTES.length);
+    for (const r of [...CORE_ROUTES, ...HR_ROUTES, ...DOCUMENT_ROUTES,
+      ...TIME_ROUTES]) {
+      expect(ROUTES, r.id).toContain(r);
+    }
   });
   it("no (method, path) pair repeats across both lists", () => {
     const keys = ROUTES.map((r) => `${r.method} ${r.path}`);

@@ -1,5 +1,6 @@
 import { CodedError } from "../coded-error";
 import { DOCUMENT_AUDIT_CHECKS } from "./allowlist-documents";
+import { ISO_DATE, TIME_CHECKS } from "./allowlist-time";
 import { HR_CHECKS } from "./hr-allowlist";
 import { EXPENSE_AUDIT_CHECKS } from "./allowlist-expenses";
 
@@ -38,12 +39,14 @@ const period: Check = (v) => {
 const CHECKS: Record<string, Check> = {
   changed: (v) => Array.isArray(v) && v.every(matches(FIELD)),
   role: matches(WORD),
-  from: matches(WORD),
-  to: matches(WORD),
+  // A role word (role changes) or a date (roster ranges).
+  from: (v) => matches(WORD)(v) || matches(ISO_DATE)(v),
+  to: (v) => matches(WORD)(v) || matches(ISO_DATE)(v),
   status: matches(WORD),
   version: isInt,
   count: isInt,
-  days: isInt,
+  // Whole days, or half days on a leave request (Plan 9).
+  days: (v) => typeof v === "number" && Number.isSafeInteger(v * 2),
   year: isInt,
   month: isInt,
   employeeCount: isInt,
@@ -60,6 +63,7 @@ const CHECKS: Record<string, Check> = {
   oldClockOut: matches(TIME),
   newClockIn: matches(TIME),
   newClockOut: matches(TIME),
+  ...TIME_CHECKS,
   ...HR_CHECKS,
   ...EXPENSE_AUDIT_CHECKS,
   ...DOCUMENT_AUDIT_CHECKS,

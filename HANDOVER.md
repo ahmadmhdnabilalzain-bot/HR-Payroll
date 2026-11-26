@@ -64,6 +64,19 @@ source-cited, with an open API and Arabic from the start.
   PostgreSQL with row-level security, sealed salary and bank fields,
   hash-chained audit log, pay runs, payslips and SIF files).
   Build report: `docs/superpowers/plans/plan-3-build-report-1.md`.
+- **Plan 9 API (time, attendance, leave policies, work-from-home) is
+  built and merged** (commit a038a5e; review fixes C1, I1-I5 applied;
+  a scoped re-review is running; minors M4-M13 are listed in
+  `plan-9-build-report.md`; engine parts merged earlier). 66 routes
+  in `TIME_ROUTES`, migrations 901 to 908, the `@payroll/time-client`
+  package (sampler, indicator model, desktop agent interface).
+  Work-from-home tracking is exactly the owner's decision: no
+  screenshots, no keystroke logging (no route, column, setting or
+  capability), location once an hour, category-level activity, the
+  employee sees and pauses own data, consent after notice. Build
+  report: `docs/superpowers/plans/plan-9-build-report.md`. The
+  per-task reviews of Tasks 6, 9 and 10 and the whole-branch review
+  have not been run yet.
 - **Plan 8 (hiring, onboarding, task manager, the one exit flow) is
   built** on worktree branch `api-plan-8`, not merged (Task 1, the
   engine `ae-employment` pack, was already merged). 45 HR routes in
@@ -213,6 +226,10 @@ engine refuses to run without an explicit value.
 | Leave and attendance | `src/leave/`, `src/attendance/`, `src/time/dubai.ts` |
 | Pay runs (pure compute), payslips, SIF | `src/payroll/` |
 | Entry and config | `src/main.ts`, `src/config.ts`, `src/deps.ts` |
+| Plan 9 time: settings, calendar, rosters, swaps, clock, corrections, timesheets, pay inputs, calendar, flags | `src/time/`, `src/routes/time-*.ts`, `migrations/901` to `906` |
+| Plan 9 leave policies, half days, blackouts, carry-over | `src/leave/policy*.ts`, `preview.ts`, `carry-over.ts` |
+| Plan 9 work-from-home (consent, pause, uploads, views, retention) | `src/wfh/`, `src/routes/wfh*.ts`, `src/db/wfh-purge-all.ts`, `migrations/907`, `908` |
+| Phone and browser tracking client (pure, ports) | `packages/time-client` |
 | Plan 8: tasks, approvals, ports | `src/tasks/`, `src/approvals/decide.ts`, `src/ports/` (calendar, documents, access), `migrations/801` to `807` |
 | Plan 8: hiring, onboarding, exits, goals | `src/hiring/`, `src/onboarding/`, `src/exits/`, `src/goals/`, `src/routes/hr.ts` |
 | Plan 8 audit keys | `src/audit/hr-allowlist.ts`, `src/audit/hr-audit.ts` |
@@ -251,6 +268,21 @@ engine refuses to run without an explicit value.
   secondary and the 2026 fine is unresolved; retention has no default
   and deletes nothing; unclaimed uploads and orphan blobs are not
   cleaned up; no web screens yet.
+
+- Plan 9 limits: no web or phone screen shows the tracking indicator
+  yet, so tracking cannot honestly run in production before a screen
+  renders it; the desktop agent is an interface only; there is no
+  scheduler (WFH retention runs on every `/v1/wfh/` call and by
+  `pnpm api:purge-wfh`, which operations should run daily); the
+  geofence and the indicator flag are evidence for review, not
+  enforcement (the client supplies both); holidays and Ramadan dates are company
+  entered (no built-in list); the PDPL executive regulations appear
+  unissued; the notice wording needs counsel and Arabic needs a native
+  review; background location on phones is an app-store review risk.
+  The engine day-sheet fix in progress (break double-count, 8-hour
+  limit on shift days) will change timesheet overtime numbers; the
+  API consumes whatever the engine returns. `apps/web` typecheck was
+  already red against the merged Plan 3 contract and is not fixed here.
 
 - Plan 3 limits: nothing on `NOT_COMPUTED_PAY` is computed (proration
   for partial months, overtime premiums, unpaid leave deductions,

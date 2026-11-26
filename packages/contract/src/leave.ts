@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Id, IsoDate, Name, Timestamp } from "./primitives";
+import { DayPart, HalfDays, LeaveWarning } from "./time-leave-policy";
 
 export const LeaveType = z.object({
   id: Id,
@@ -35,11 +36,16 @@ export const LeaveRequest = z.object({
   leaveTypeId: Id,
   startDate: IsoDate,
   endDate: IsoDate,
-  days: z.number().int().min(1),
+  /** Half-day steps (Plan 9 Ruling 6 widening). */
+  days: HalfDays.min(0.5),
   status: LeaveStatus,
   reason: z.string().nullable(),
   decidedBy: Id.nullable(),
   decidedAt: Timestamp.nullable(),
+  startPart: DayPart.optional(),
+  endPart: DayPart.optional(),
+  /** On create only: informational, never blocking. */
+  warnings: z.array(LeaveWarning).optional(),
 });
 export type LeaveRequest = z.infer<typeof LeaveRequest>;
 
@@ -49,6 +55,10 @@ export const LeaveRequestCreate = z.object({
   startDate: IsoDate,
   endDate: IsoDate,
   reason: z.string().max(1000).optional(),
+  startPart: DayPart.optional(),
+  endPart: DayPart.optional(),
+  /** Owner or hr only: book through a blocking blackout (audited). */
+  overrideBlackout: z.boolean().optional(),
 });
 export type LeaveRequestCreate = z.infer<typeof LeaveRequestCreate>;
 
@@ -85,10 +95,15 @@ export const LeaveBalance = z.object({
   year: z.number().int(),
   entitledDays: z.number().int(),
   adjustmentDays: z.number().int(),
-  takenDays: z.number().int(),
-  pendingDays: z.number().int(),
-  remainingDays: z.number().int(),
-  dayCountRule: z.literal("calendar-days-inclusive"),
+  takenDays: z.number().multipleOf(0.5),
+  pendingDays: z.number().multipleOf(0.5),
+  remainingDays: z.number().multipleOf(0.5),
+  dayCountRule: z.enum(["calendar-days-inclusive", "working-days"]),
+  accrual: z.enum(["upfront", "monthly"]).optional(),
+  accruedToDate: z.number().multipleOf(0.5).optional(),
+  carriedDays: z.number().multipleOf(0.5).optional(),
+  carriedExpiresOn: IsoDate.nullable().optional(),
+  expiredDays: z.number().multipleOf(0.5).optional(),
 });
 export type LeaveBalance = z.infer<typeof LeaveBalance>;
 
