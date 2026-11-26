@@ -14,16 +14,62 @@ export function formatMoney(f: Fils, lang: Lang): string {
   return open + formatAed(f) + close;
 }
 
+export interface MoneyParts {
+  sign: "" | "-";
+  currency: "AED";
+  /** Grouped whole dirhams, "612,430". */
+  whole: string;
+  /** Two-digit fils, "50". */
+  frac: string;
+}
+
+/**
+ * The same amount as formatMoney, split so the fils can be set
+ * smaller. Built from formatAed's own output, so there is still one
+ * formatter.
+ */
+export function moneyParts(f: Fils): MoneyParts {
+  const text = formatAed(f);
+  const sign = text.startsWith("-") ? "-" : "";
+  const [whole = "0", frac = "00"] = text.replace(/^-?AED /, "")
+    .split(".");
+  return { sign, currency: "AED", whole, frac };
+}
+
+function civil(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(Date.UTC(y ?? 0, (m ?? 1) - 1, d ?? 1));
+}
+
 /** A civil date (`YYYY-MM-DD`) as "26 November 2026"; no zone shift. */
 export function formatDate(iso: string, lang: Lang): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const at = new Date(Date.UTC(y ?? 0, (m ?? 1) - 1, d ?? 1));
   return new Intl.DateTimeFormat(LOCALE[lang], {
     timeZone: "UTC",
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(at);
+  }).format(civil(iso));
+}
+
+/** "26 Nov": day and short month, for dense rows. */
+export function formatDayMonth(iso: string, lang: Lang): string {
+  return new Intl.DateTimeFormat(LOCALE[lang], {
+    timeZone: "UTC", day: "numeric", month: "short",
+  }).format(civil(iso));
+}
+
+/** "Monday 23 November": the weekday too, for the page date. */
+export function formatLongDay(iso: string, lang: Lang): string {
+  return new Intl.DateTimeFormat(LOCALE[lang], {
+    timeZone: "UTC", weekday: "long", day: "numeric", month: "long",
+  }).format(civil(iso));
+}
+
+/** A pay month (`YYYY-MM`) as "November 2026". */
+export function formatMonth(ym: string, lang: Lang): string {
+  return new Intl.DateTimeFormat(LOCALE[lang], {
+    timeZone: "UTC", month: "long", year: "numeric",
+  }).format(civil(`${ym}-01`));
 }
 
 /** A timestamp's clock time in Dubai, `HH:MM`, 24-hour. */

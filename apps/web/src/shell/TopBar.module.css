@@ -1,0 +1,348 @@
+.ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  block-size: 26px;
+  padding-inline: var(--space-4);
+  background: var(--color-ribbon);
+  color: var(--color-on-ribbon);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.bar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  border-block-end: 1px solid var(--color-divider);
+  backdrop-filter: saturate(1.2) blur(8px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  max-inline-size: 1240px;
+  block-size: 56px;
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius-control);
+}
+
+.wordmark {
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.wmStrong {
+  font-weight: 600;
+}
+
+.wmLight {
+  font-weight: 300;
+  color: var(--color-text-muted);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.navItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  block-size: 32px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast)
+    ease;
+}
+
+.navItem svg {
+  display: none;
+}
+
+a.navItem:hover {
+  color: var(--color-text);
+}
+
+.navItem[aria-current="page"] {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.navItem[aria-disabled="true"] {
+  color: var(--color-text-faint);
+  cursor: default;
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+.search {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  block-size: 34px;
+  min-inline-size: 200px;
+  padding-inline: var(--space-3) var(--space-2);
+  border: 1px solid var(--color-divider-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  transition: border-color var(--dur-fast) ease;
+}
+
+.search:hover {
+  border-color: var(--color-border);
+}
+
+.searchText {
+  margin-inline-end: auto;
+}
+
+.kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--color-divider-strong);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+
+.iconBtn,
+.langBtn {
+  display: inline-grid;
+  place-items: center;
+  block-size: 34px;
+  min-inline-size: 34px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-muted);
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast)
+    ease;
+}
+
+.langBtn {
+  padding-inline: var(--space-2);
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.iconBtn:hover,
+.langBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.iconBtn:active,
+.langBtn:active,
+.search:active {
+  transform: scale(0.97);
+}
+
+/* Two icons stacked; the active one fades and turns in. */
+.swap {
+  display: grid;
+}
+
+.swap > svg {
+  grid-area: 1 / 1;
+  transition: opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out),
+    filter var(--dur-base) var(--ease-out);
+}
+
+.swap > svg:last-child,
+.swap[data-on="true"] > svg:first-child {
+  opacity: 0;
+  transform: rotate(-30deg) scale(0.7);
+  filter: blur(2px);
+}
+
+.swap[data-on="true"] > svg:last-child {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.role {
+  position: relative;
+}
+
+.roleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  block-size: 34px;
+  padding-inline: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.roleBtn:hover {
+  background: var(--color-surface-2);
+}
+
+.roleBtn > svg {
+  color: var(--color-text-muted);
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.menu {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 30;
+  min-inline-size: 240px;
+  padding: var(--space-1);
+  border: 1px solid var(--color-divider-strong);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-pop);
+  transform-origin: top right;
+  animation: pop var(--dur-fast) var(--ease-out);
+}
+
+[dir="rtl"] .menu {
+  transform-origin: top left;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.menuHead {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  text-align: start;
+}
+
+.menuItem:hover {
+  background: var(--color-surface-2);
+}
+
+.menuItem > svg {
+  color: var(--color-accent);
+}
+
+.menuText {
+  display: grid;
+  margin-inline-end: auto;
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.menuSub {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+@media (max-width: 1080px) {
+  .search {
+    min-inline-size: 0;
+  }
+
+  .searchText,
+  .kbd {
+    display: none;
+  }
+}
+
+/* Phone: sections move to a bottom bar; the top keeps the tools. */
+@media (max-width: 760px) {
+  .inner {
+    gap: var(--space-2);
+    padding-inline: var(--space-4);
+  }
+
+  .roleText {
+    display: none;
+  }
+
+  .nav {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 20;
+    justify-content: space-around;
+    gap: 0;
+    padding: var(--space-1) var(--space-2)
+      calc(var(--space-1) + env(safe-area-inset-bottom));
+    border-block-start: 1px solid var(--color-divider);
+    background: var(--color-bg);
+  }
+
+  .navItem {
+    flex-direction: column;
+    gap: 2px;
+    block-size: auto;
+    min-inline-size: 64px;
+    padding: var(--space-2) var(--space-1);
+    font-size: var(--text-2xs);
+  }
+
+  .navItem svg {
+    display: block;
+  }
+
+  .navItem[aria-current="page"] {
+    background: transparent;
+    color: var(--color-accent);
+  }
+}

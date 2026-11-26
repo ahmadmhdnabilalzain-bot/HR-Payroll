@@ -1,0 +1,63 @@
+.money {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  unicode-bidi: isolate;
+}
+
+.cur {
+  font-size: 0.62em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.frac {
+  font-size: 0.6em;
+  color: var(--color-text-muted);
+}
+
+.hero {
+  font-size: var(--text-hero);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.hero .cur {
+  font-size: 0.3em;
+  letter-spacing: 0.06em;
+  align-self: flex-start;
+  margin-block-start: 0.35em;
+}
+
+.hero .frac {
+  font-size: 0.42em;
+  letter-spacing: -0.01em;
+}
+
+.lg {
+  font-size: var(--text-xl);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.md {
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.sm {
+  font-size: var(--text-sm);
+}
+
+.masked {
+  color: var(--color-text-muted);
+}
+
+.masked > span:last-child {
+  letter-spacing: 0.12em;
+}

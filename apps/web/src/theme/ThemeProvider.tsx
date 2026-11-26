@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { flushSync } from "react-dom";
 import { loadPrefs, savePrefs, type ThemePref } from "../lib/prefs";
 
 export type { ThemePref };
@@ -19,6 +20,21 @@ interface Theme {
 
 const ThemeContext = createContext<Theme | null>(null);
 const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+/**
+ * The theme switch crossfades the whole page (200 ms, view
+ * transitions) where the browser supports it and motion is allowed;
+ * otherwise it switches at once.
+ */
+function crossfade(update: () => void): void {
+  const reduce = typeof matchMedia === "function" &&
+    matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const doc = document as Document & {
+    startViewTransition?: (cb: () => void) => unknown;
+  };
+  if (reduce || typeof doc.startViewTransition !== "function") update();
+  else doc.startViewTransition(update);
+}
 
 function systemDark(): boolean {
   return typeof matchMedia === "function" && matchMedia(DARK_QUERY).matches;
@@ -45,7 +61,12 @@ export function ThemeProvider(p: { children: ReactNode }) {
     pref, resolved,
     setPref: (next) => {
       savePrefs({ ...loadPrefs(), theme: next });
-      setPrefState(next);
+      crossfade(() => {
+        const r: Resolved = next === "system"
+          ? (systemDark() ? "dark" : "light") : next;
+        document.documentElement.dataset["theme"] = r;
+        flushSync(() => setPrefState(next));
+      });
     },
   }), [pref, resolved]);
   return (
