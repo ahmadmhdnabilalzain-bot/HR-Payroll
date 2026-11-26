@@ -30,6 +30,12 @@ import {
   type AccessAction,
   type AccessSlice,
 } from "../setup/access/state";
+import {
+  PAPERS_INITIAL,
+  reducePapers,
+  type PapersAction,
+  type PapersSlice,
+} from "./papers-state";
 
 /** manager and employee: the team view and the self view. */
 export type Role = "hr" | "gm" | "manager" | "employee";
@@ -44,7 +50,7 @@ export type Resolution = "reviewed" | "renewal";
 
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
-  extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice {
+  extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -71,12 +77,13 @@ export type Action =
   | LeaveAction
   | RulesAction
   | AccessAction
-  | TimeAction;
+  | TimeAction
+  | PapersAction;
 
 export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
-  ...ACCESS_INITIAL, ...TIME_INITIAL,
+  ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL,
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -116,6 +123,10 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "time-undo":
     case "punch-match":
     case "punch-unmatch": return reduceTime(s, a);
+    case "paper-step":
+    case "paper-undo":
+    case "request-new":
+    case "letter-new": return reducePapers(s, a);
   }
 }
 
