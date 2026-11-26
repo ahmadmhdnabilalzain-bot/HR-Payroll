@@ -38,7 +38,8 @@ export function FilterList<T>(p: {
   /** Words a search should match for this row. */
   searchText?(row: T): string;
   segments?: ListSegment<T>[];
-  rowHref?(row: T): string;
+  /** The row's record; undefined leaves that row unlinked. */
+  rowHref?(row: T): string | undefined;
   empty: string;
   actions?: ReactNode;
 }) {

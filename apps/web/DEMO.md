@@ -40,7 +40,8 @@ returns:
   pay, issues and the pay-run amount all follow.
 - `source: DemoSource`: `tryIban(ibans, employeeId, iban)` (would it
   pass, with the plain reason if not), `bankLetterIban(employeeId)`.
-- `state: DemoState`: `role` ("hr" | "gm"), `hideAmounts`, `ibans`,
+- `state: DemoState`: `role` ("hr" | "gm" | "manager" | "employee" |
+  "it"), `hideAmounts`, `ibans`, `tasksDone`, `notesRead`,
   `resolved` (issue id to "reviewed" | "renewal"), `decided`
   (approval id to "approve" | "decline"), `focusIssue`, `sourcesOpen`.
 - `dispatch(action)`: `role`, `toggle-amounts`, `iban` / `unset-iban`,
@@ -318,6 +319,28 @@ the explain panel. Severity words: "Stops pay" and "Check".
   bottom (dvh, safe-area padding). Targets are 44 px and inputs 17 px.
   Verified in Chromium emulation of iPhone 13, 15 and 15 Pro sizes.
   WebKit is not installed.
+
+## Home inbox, Me and the IT manager (WP10, Claude's calls)
+
+- **IT manager** (`role: "it"`): bar Home, People, Reports, Setup.
+  Sees the directory but no one's pay (`canSeePay`); a typed
+  `#/pay-run` shows Home. Every Setup area HR reaches is IT's too
+  (`roleAllows` in `nav/registry.ts`); People and Reports areas must
+  list "it" themselves. IT Home: connections, access review, import,
+  and the audit chain checked on demand (the one action).
+- **Data:** `data.home` (`demo/data/home.ts`) wraps the package's
+  wp10, wp9 and wp7 selectors. Package text with "approved" is
+  reworded to "signed off" there (`clean`).
+- **Inbox** (`home/inbox/model.ts`): tasks and notifications with the
+  demo's actions laid over them. Decisions and bank details keep their
+  own rows, so the to-do list leaves them out. Pay-run notes wait while
+  bank details hold the run back ("not sent yet"). A target opens only
+  when the registry says its area is reachable for the role; otherwise
+  the row has no link. Mark done and Mark all as read have an undo.
+- **Me** (`#/me/payslips|documents|leave|requests|profile`) and
+  Requests (Waiting for you, My requests) for the manager and the
+  employee. Past months come from the package's payroll history (net
+  only); October opens the full payslip.
 
 ## Pay run, explain panel and reports (Claude's calls)
 

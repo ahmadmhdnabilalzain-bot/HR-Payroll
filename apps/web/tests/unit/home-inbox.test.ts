@@ -106,6 +106,12 @@ describe("home inbox (WP10)", () => {
     expect(targetHref("nowhere/at/all", hr)).toBeNull();
     const it = { data: d, state: as("it") };
     expect(targetHref("pay/this-month", it)).toBeNull();
+    const emp = { data: d, state: as("employee") };
+    expect(targetHref("people/papers", emp)).toBe("#/me/documents");
+    expect(targetHref("me/documents/doc-001", emp)).toBe("#/me/documents");
+    expect(targetHref("me/payslips", emp)).toBe("#/me/payslips");
+    expect(barFor("employee")).toEqual(["home", "pay", "time", "requests",
+      "me"]);
     for (const r of ROLES) {
       for (const x of inboxTasks(d, as(r))) {
         if (x.href !== null) expect(x.href).toMatch(/^#\//);

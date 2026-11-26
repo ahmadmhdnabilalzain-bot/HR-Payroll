@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { Section } from "./demo/state";
 import { Home } from "./home/Home";
+import { Me } from "./me/Me";
 import { PayRun } from "./payrun/PayRun";
 import { People } from "./people/People";
 import { Reports } from "./reports/Reports";
@@ -27,4 +28,5 @@ export const VIEWS: Partial<Record<Section, ComponentType<ViewProps>>> = {
   reports: Reports,
   setup: Setup,
   s: SectionPage,
+  me: Me,
 };
