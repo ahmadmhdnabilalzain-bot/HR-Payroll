@@ -65,6 +65,11 @@ export const SOURCES: Record<string, RuleSource> = deepFreeze({
     url: "https://x0pa.com/calculators/end-of-service-gratuity/",
     note: "Secondary vendor calculator",
   },
+  RESEARCH_EMIRATISATION: {
+    url: "",
+    note: "docs/research/2026-11-25-gpssa-emiratisation-nafis.md, " +
+      "snippet level; primary MOHRE text not read",
+  },
   ENGINE_CONVENTION: {
     url: "",
     note: "engine convention, not law",
