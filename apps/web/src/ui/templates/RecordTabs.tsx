@@ -1,8 +1,14 @@
-import { isValidElement, useRef, useState, type ReactNode }
-  from "react";
+import {
+  isValidElement,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { reducedMotion } from "../../demo/motion";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { Avatar } from "../Avatar";
-import { useGlide } from "../glide";
+import { tokenEase, tokenMs, useGlide } from "../glide";
 import { StatusPill, type StatusTone } from "./StatusPill";
 import { PageFoot } from "./PageFoot";
 import { maskNode, useMaskText } from "../mask";
@@ -131,11 +137,72 @@ export function RecordTabs(p: {
   );
 }
 
+/** Whether the panel can move here (no: reduced motion, unit tests). */
+const panelMoves = (): boolean => typeof Element !== "undefined" &&
+  typeof Element.prototype.animate === "function" && !reducedMotion();
+
+/**
+ * The tab row and its panel. The underline glides (ui/glide.ts); the
+ * panel goes with it: the old content slides 8 px against the way of
+ * travel and fades out over --dur-fast, then the new one comes 8 px
+ * from the way of travel and fades in over --dur-base. The panel's id
+ * and label follow the chosen tab at once; only its content waits.
+ * Without motion the content changes at once.
+ */
 function Tabbed(p: { tabs: RecordTab[]; current: RecordTab | undefined;
   onTab(id: string): void }) {
   const current = p.current;
   const row = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   useGlide(row, "line");
+  const [shownId, setShownId] = useState(current?.id);
+  const moves = panelMoves();
+  const shown = moves
+    ? p.tabs.find((x) => x.id === shownId) ?? current : current;
+  const want = useRef(current?.id);
+  want.current = current?.id;
+  const out = useRef<Animation | null>(null);
+  const into = useRef<Animation | null>(null);
+  const dir = useRef(0);
+  const shownNow = useRef(shownId);
+  shownNow.current = shownId;
+  const bringIn = (): void => {
+    const el = panel.current;
+    const a = out.current;
+    if (a === null || el === null) return;
+    out.current = null;
+    a.cancel();
+    into.current = el.animate([
+      { opacity: 0, transform: `translateX(${8 * dir.current}px)` },
+      { opacity: 1, transform: "none" }],
+    { duration: tokenMs("--dur-base", 200),
+      easing: tokenEase("--ease-out", "cubic-bezier(0.2, 0, 0, 1)") });
+  };
+  const at = (id: string | undefined): number =>
+    p.tabs.findIndex((x) => x.id === id);
+  // The chosen tab changed: the old content leaves, then swaps.
+  useLayoutEffect(() => {
+    const el = panel.current;
+    if (!moves || current?.id === shownId) return;
+    if (el === null) {
+      setShownId(current?.id);
+      return;
+    }
+    if (out.current !== null) return; // already leaving: swaps to want
+    into.current?.cancel();
+    const rtl = getComputedStyle(el).direction === "rtl" ? -1 : 1;
+    dir.current = Math.sign(at(current?.id) - at(shownId)) * rtl;
+    const a = el.animate([{ opacity: 1, transform: "none" },
+      { opacity: 0, transform: `translateX(${-8 * dir.current}px)` }],
+    { duration: tokenMs("--dur-fast", 120), fill: "forwards",
+      easing: tokenEase("--ease-in-out", "cubic-bezier(0.4, 0, 0.2, 1)") });
+    out.current = a;
+    // Back on the tab already shown: it simply comes back in.
+    a.onfinish = () => want.current === shownNow.current ? bringIn()
+      : setShownId(want.current);
+  }, [current?.id, shownId, moves]);
+  // The new content is in: it arrives, and the leaving fill goes.
+  useLayoutEffect(bringIn, [shownId]);
   return (
     <>
       <div className={s.tabs} role="tablist" ref={row}>
@@ -149,9 +216,9 @@ function Tabbed(p: { tabs: RecordTab[]; current: RecordTab | undefined;
         ))}
       </div>
       {current !== undefined && (
-        <div role="tabpanel" id={`tabpanel-${current.id}`}
+        <div role="tabpanel" id={`tabpanel-${current.id}`} ref={panel}
           aria-labelledby={`tab-${current.id}`} className={s.tabPanel}>
-          {current.render()}
+          {shown?.render()}
         </div>
       )}
     </>

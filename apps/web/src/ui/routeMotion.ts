@@ -75,8 +75,9 @@ function settled(): Promise<void> {
 
 /**
  * Pace: "page" slides 24 to 32 px, out over --dur-base, in over
- * --dur-slow. "quick" (the role switch) fades out over 120 ms and in
- * over 200 ms, overlapped, so no frame is empty.
+ * --dur-slow. "quick" (the role switch) fades out over 120 ms, then
+ * in over 200 ms: no frame holds both pages, and the faint stretch
+ * between them is a frame or two.
  */
 type Pace = "page" | "quick";
 

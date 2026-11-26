@@ -64,6 +64,7 @@ export function RoleMenu() {
       </button>
       {menu.mounted && (
         <div className={s.menu} role="menu" data-leaving={menu.leaving}
+          data-vt="role-menu"
           inert={menu.leaving} aria-hidden={menu.leaving || undefined}
           aria-label={t("shell.viewingAs")}>
           <div className={s.phoneOnly} role="group"
@@ -106,8 +107,12 @@ export function RoleMenu() {
               <button key={r} type="button" role="menuitemradio"
                 aria-checked={state.role === r} className={s.menuItem}
                 onClick={() => {
-                  switchRole(r);
+                  // Closed first: the switch's old frame holds the
+                  // menu as its own layer, which fades out over
+                  // --dur-fast while the page fades out (audit 2,
+                  // item 7), and the new page has none.
                   setOpen(false);
+                  switchRole(r);
                 }}>
                 <Avatar id={who.id} name={who.name.en} size="sm" />
                 <span className={s.menuText}>

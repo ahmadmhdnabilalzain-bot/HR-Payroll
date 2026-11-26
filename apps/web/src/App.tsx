@@ -10,6 +10,7 @@ import { GroupTabs } from "./shell/GroupTabs";
 import { Outside } from "./shell/Outside";
 import { PhoneTabs, TopBar } from "./shell/TopBar";
 import { mayOpen } from "./nav/registry";
+import { startPrefetch } from "./demo/prefetch";
 import { VIEWS } from "./views";
 import { markOpeningSeen, opensAtFirstLoad, useWelcome }
   from "./welcome/route";
@@ -36,6 +37,10 @@ export function App() {
     return () => removeEventListener("hashchange", end);
   }, [first]);
   const welcome = atWelcome || first;
+  /* Report and pay run chunks load ahead, once the opening is over. */
+  useEffect(() => {
+    if (!welcome && import.meta.env.MODE !== "test") startPrefetch();
+  }, [welcome]);
   /* The one route guard: a deep link the role may not open. */
   const allowed = mayOpen(state.role, route);
   const shown = route.section;

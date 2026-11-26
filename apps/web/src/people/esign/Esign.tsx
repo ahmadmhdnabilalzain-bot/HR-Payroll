@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useFlip } from "../../demo/motion";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { FilterList, PageHead } from "../../ui/templates";
@@ -126,39 +128,50 @@ export function ToSign(p: { signer: Signer; title: string; lede: string }) {
   const others = rest.filter((r) =>
     r.progress.word === "Awaiting signature");
   const closed = rest.filter((r) => !others.includes(r));
+  // A paper just signed moves from "waiting" to "finished": the cards
+  // and headings slide to their new places instead of jumping. The
+  // signed one is new in its list (its stamp lands there), so it does
+  // not travel over the others.
+  const page = useRef<HTMLDivElement>(null);
+  useFlip(page, [rows]);
   return (
-    <div className={`${t.page} ${s.page}`}>
+    <div className={`${t.page} ${s.page}`} ref={page}>
       <header className={s.section}>
         <h1 className={s.title}>{p.title}</h1>
         <p className={s.lede}>{p.lede}</p>
         <p className={s.note}>{data.esign.note}</p>
       </header>
       <section className={s.section} aria-labelledby="ts-wait">
-        <h2 id="ts-wait" className={s.sectionTitle}>
+        <h2 id="ts-wait" className={s.sectionTitle} data-flip="h-wait">
           {E.waitingYou(waiting.length)}</h2>
         {waiting.length === 0 ? <p className={s.note}>{E.nothing}</p> : (
           <ul className={s.cards}>
             {waiting.map((r) => (
-              <li key={r.doc.id}><SignBlock docId={r.doc.id}
-                as={p.signer} compact /></li>))}
+              <li key={r.doc.id} data-flip={r.doc.id}>
+                <SignBlock docId={r.doc.id}
+                  as={p.signer} compact /></li>))}
           </ul>)}
       </section>
       {others.length > 0 && (
         <section className={s.section} aria-labelledby="ts-others">
-          <h2 id="ts-others" className={s.sectionTitle}>{E.others}</h2>
+          <h2 id="ts-others" className={s.sectionTitle}
+            data-flip="h-others">{E.others}</h2>
           <ul className={s.cards}>
             {others.map((r) => (
-              <li key={r.doc.id}><SignBlock docId={r.doc.id}
-                as={p.signer} compact /></li>))}
+              <li key={r.doc.id} data-flip={r.doc.id}>
+                <SignBlock docId={r.doc.id}
+                  as={p.signer} compact /></li>))}
           </ul>
         </section>)}
       {closed.length > 0 && (
         <section className={s.section} aria-labelledby="ts-done">
-          <h2 id="ts-done" className={s.sectionTitle}>{E.finished}</h2>
+          <h2 id="ts-done" className={s.sectionTitle}
+            data-flip="h-done">{E.finished}</h2>
           <ul className={s.cards}>
             {closed.map((r) => (
-              <li key={r.doc.id}><SignBlock docId={r.doc.id}
-                as={p.signer} /></li>))}
+              <li key={r.doc.id} data-flip={`done:${r.doc.id}`}>
+                <SignBlock docId={r.doc.id}
+                  as={p.signer} /></li>))}
           </ul>
         </section>)}
     </div>

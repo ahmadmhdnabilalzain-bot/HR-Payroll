@@ -43,8 +43,8 @@ export function useRunApproval(): RunApproval {
 
 /**
  * Switches role as a quick fade-through of the page (ui/routeMotion:
- * the page fades out over 120 ms and the new one in over 200 ms; the
- * top bar holds still), or at once when motion is reduced. The page
+ * the page fades out over 120 ms, then the new one in over 200 ms;
+ * the top bar holds still), or at once when motion is reduced. The page
  * goes to its top before the old frame is taken, so no scrolled list
  * ghosts over the new Home.
  */
