@@ -334,13 +334,17 @@ function runNet(c: DemoCompany): Explanation {
       from: "October payroll" }],
     rules: [],
     steps: [
-      { text: `Gross pay of ${n} people`, value: money(t.gross) },
-      { text: "Less deductions", value: money(t.deductions) },
-      { text: "Net pay", value: money(t.net) },
+      { text: `Gross pay of ${n} people`, value: money(t.gross),
+        op: "add" },
+      { text: "Less deductions", value: money(t.deductions), op: "less" },
+      { text: "Net pay", value: money(t.net), op: "total" },
       { text: `In the salary file (${n - held} people)`,
-        value: money(c.sif.total) },
+        value: money(c.sif.total), op: "add" },
       { text: held === 0 ? "Held out: nobody" : `Held out, no IBAN ` +
-        `(${plural(held, "person", "people")})`, value: money(t.heldNet) },
+        `(${plural(held, "person", "people")})`, value: money(t.heldNet),
+      op: "add" },
+      { text: "Salary file and held pay together", value: money(t.net),
+        op: "total" },
     ],
     notComputed: [PENSION_NOT_COMPUTED.en] };
 }

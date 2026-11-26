@@ -1,4 +1,5 @@
 import { fils } from "@payroll/engine";
+import type { Explanation } from "../components/explain/types";
 import type { DemoData } from "../demo/data/types";
 import type { RunDetail } from "../demo/data/run-types";
 import { formatDate, formatMonth } from "../i18n/format";
@@ -34,6 +35,8 @@ export interface Table {
   bars?: number[];
   /** A line said with the table (a label it must carry). */
   note?: string;
+  /** The working behind a cell, by row and column, if it has one. */
+  explain?: (row: number, col: number) => Explanation | undefined;
 }
 
 export interface Env {
@@ -69,6 +72,8 @@ function summary(e: Env): Table {
       [t("reports.peopleInFile"), d.file.people, "", ""],
     ],
     note: t("reports.summaryNote", { scope: d.scope }),
+    explain: (r, c) => c !== 1 ? undefined : d.explain[["run:gross",
+      "run:deductions", "run:net", "run:people", "run:file"][r] ?? ""],
   };
 }
 
@@ -86,6 +91,8 @@ function departments(e: Env): Table {
         : `${(Number((r.costFils * 1000n) / total) / 10).toFixed(1)}%`]),
     bars: perMille(rows.map((r) => r.costFils)),
     note: e.t("reports.deptNote"),
+    explain: (r, c) => c === 2 ? e.d.explain[
+      `dept-cost:${rows[r]?.id ?? ""}`] : undefined,
   };
 }
 
@@ -97,6 +104,8 @@ function nationality(e: Env): Table {
     rows: [...n.rows.map((r) => [r.name, r.count] as Cell[]),
       [e.t("reports.total"), n.total]],
     bars: [...perMille(n.rows.map((r) => BigInt(r.count))), 0],
+    explain: (r, c) => c !== 1 ? undefined : e.d.explain[
+      `nationality:${n.rows[r]?.name ?? "total"}`],
     note: e.t("reports.natNote", { date: formatDate(n.asOf, e.lang) }),
   };
 }

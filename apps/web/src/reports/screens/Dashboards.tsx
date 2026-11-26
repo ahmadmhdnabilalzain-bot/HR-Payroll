@@ -1,5 +1,7 @@
 import { pendingApprovals } from "../../demo/derive";
+import { useLiveExplain } from "../../demo/live-explain-load";
 import { useDemo } from "../../demo/state";
+import { useRunDetail } from "../../demo/useRunDetail";
 import { ReportPage } from "../../ui/templates";
 import { hours, percent, plural, share, useMoney } from "../fmt";
 import { useReportsSource } from "../load";
@@ -10,15 +12,23 @@ const COLUMNS = [{ label: "Measure" }, { label: "Now", end: true },
 /** HR dashboard: people, papers and what is waiting, in one table. */
 export function DashboardHr() {
   const src = useReportsSource();
+  const live = useLiveExplain();
+  const { scope } = useRunDetail();
   const { data, state } = useDemo();
   const last = src.months.at(-1)!;
   const sum = (k: "start" | "joined" | "departed" | "now"): number =>
-    src.departments.reduce((n, d) => n + d[k], 0);
+    src.heads[k];
   const docs = data.documents();
   const soon = docs.filter((d) => d.daysLeft >= 0 && d.daysLeft <= 30);
   const gone = docs.filter((d) => d.daysLeft < 0);
   const stops = data.headline().issuesOpen;
-  const waiting = pendingApprovals(data, state).length;
+  const list = pendingApprovals(data, state);
+  const waiting = list.length;
+  const stopsWhy = live.issuesExplain(data, scope);
+  const why = [stopsWhy, src.explain["headcount:now"], undefined, undefined,
+    src.explain["turnover:total"], live.docsExplain(data, soon,
+      "Papers expiring in 30 days", "ends in the next 30 days", scope),
+    live.waitingExplain(data, list, scope)];
   const rows = [
     ["Open items that stop pay", String(stops), "-", "Fix these " +
       "before the run can be approved"],
@@ -43,7 +53,9 @@ export function DashboardHr() {
   return (
     <ReportPage title="HR dashboard" period={`As of the demo date, ` +
       `${last.label} run`}
-    figure={{ label: "Open items that stop pay", value: String(stops) }}
+    figure={{ label: "Open items that stop pay", value: String(stops),
+      explanation: stopsWhy }}
+    explain={(r, c) => c === 1 ? why[r] : undefined}
     columns={COLUMNS} rows={rows} csvName="hr-dashboard-2026-10.csv"
     note={"Each row comes from the same data as the headcount, leave " +
       "and documents reports and the approvals inbox."} />
@@ -53,6 +65,8 @@ export function DashboardHr() {
 /** Executive dashboard: the run, what moved it, and what it costs. */
 export function DashboardExec() {
   const src = useReportsSource();
+  const live = useLiveExplain();
+  const run = useRunDetail();
   const { data, state } = useDemo();
   const { m, signed } = useMoney();
   const now = src.months.at(-1)!;
@@ -62,7 +76,17 @@ export function DashboardExec() {
     a.costFils < b.costFils ? 1 : -1)[0];
   const v = src.variance(now.month, before.month);
   const main = v.drivers[0];
-  const waiting = pendingApprovals(data, state).length;
+  const list = pendingApprovals(data, state);
+  const waiting = list.length;
+  const why = [[src.explain[`trend:${now.month}`],
+    src.explain[`trend:${before.month}`]],
+  [main === undefined ? undefined : v.driverExplain[main.key]],
+  [run.explain["run:people"]],
+  [src.explain[`overtime:${now.month}`],
+    src.explain[`overtime:${before.month}`]],
+  [run.explain["run:held"]],
+  [live.waitingExplain(data, list, run.scope)],
+  [top === undefined ? undefined : run.explain[`dept-cost:${top.id}`]]];
   const rows = [
     ["Gross pay", m(now.gross), m(before.gross),
       `${signed(v.grossChange)} (${percent(v.grossChange,
@@ -85,7 +109,9 @@ export function DashboardExec() {
   return (
     <ReportPage title="Executive dashboard"
       period={`${now.label} run against ${before.label}`}
-      figure={{ label: "Net pay for the run", value: m(head.netTotalFils) }}
+      figure={{ label: "Net pay for the run", value: m(head.netTotalFils),
+        explanation: run.explain["run:net"] }}
+      explain={(r, c) => c === 0 ? undefined : why[r]?.[c - 1]}
       columns={COLUMNS} rows={rows}
       csvName="executive-dashboard-2026-10.csv"
       note={"Figures are the run as it stands today, including the pay " +

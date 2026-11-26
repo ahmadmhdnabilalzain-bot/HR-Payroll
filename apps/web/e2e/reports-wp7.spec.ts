@@ -7,8 +7,8 @@ test("reports-home-to-variance-to-audit-chain", async ({ page }) => {
   await page.getByRole("link", { name: /^Variance/ }).first().click();
   await expect(page.getByRole("heading", { level: 1,
     name: "Variance against last month" })).toBeVisible();
-  await expect(page.getByRole("cell", { name: "Leaver (part month)" }))
-    .toBeVisible();
+  await expect(page.getByRole("cell", { name: "Leaver (part month)",
+    exact: true })).toBeVisible();
   await page.goto("/#/reports/audit");
   await page.getByRole("button", { name: "Check the chain" }).click();
   await expect(page.getByText("all 58 entries fit")).toBeVisible();

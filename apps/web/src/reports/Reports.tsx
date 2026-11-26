@@ -1,4 +1,5 @@
-import { Suspense, type ComponentType } from "react";
+import { Suspense, type ComponentType, type ReactNode } from "react";
+import type { Explanation } from "../components/explain/types";
 import { useRunApproval } from "../demo/actions";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
@@ -6,6 +7,7 @@ import { useRunDetail } from "../demo/useRunDetail";
 import { formatNumber } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { downloadText } from "../lib/download";
+import { Explainable } from "../components/explain";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
 import b from "../ui/button.module.css";
@@ -109,6 +111,12 @@ function CellView(p: { c: Cell }) {
   return <Money value={p.c.fils} size="sm" tween={false} />;
 }
 
+/** A cell with a working behind it is its own trigger. */
+function Why(p: { e: Explanation | undefined; children: ReactNode }) {
+  return p.e === undefined ? <>{p.children}</>
+    : <Explainable explanation={p.e}>{p.children}</Explainable>;
+}
+
 function Report(p: { id: ReportId }) {
   const { lang, t } = useLocale();
   const env = useEnv();
@@ -157,7 +165,8 @@ function Report(p: { id: ReportId }) {
                 const label = col?.label ?? "";
                 return j === 0 ? (
                   <th key={j} scope="row" className={s.first}>
-                    <span><CellView c={c} /></span>
+                    <span><Why e={table.explain?.(i, j)}>
+                      <CellView c={c} /></Why></span>
                     {table.bars !== undefined && (table.bars[i] ?? 0) > 0 && (
                       <span className={s.bar} aria-hidden="true">
                         <span className={s.fill} style={{
@@ -170,7 +179,8 @@ function Report(p: { id: ReportId }) {
                   <td key={j} data-label={label}
                     className={col?.end === true ? s.end : undefined}>
                     {c === "" ? <span className={s.none}>{"–"}</span>
-                      : <CellView c={c} />}
+                      : <Why e={table.explain?.(i, j)}>
+                        <CellView c={c} /></Why>}
                   </td>
                 );
               })}
@@ -181,6 +191,7 @@ function Report(p: { id: ReportId }) {
       <p className={s.foot}>
         {t("reports.foot", { scope: env.d.scope,
           count: formatNumber(table.rows.length, lang) })}
+        {table.explain !== undefined && ` ${t("tpl.explainHint")}`}
       </p>
     </article>
   );

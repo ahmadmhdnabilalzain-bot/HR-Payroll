@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { Explainable } from "../../components/explain/Explain";
+import type { Explanation } from "../../components/explain/types";
 import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../button.module.css";
 import { PageHead } from "./PageHead";
@@ -23,18 +25,25 @@ export function toCsv(columns: ReportColumn[], rows: string[][]): string {
  * RP, report: title, period, one figure, one table (with optional bars
  * in per mille of the largest), CSV download and print. Cells are text
  * already formatted by the builder (money through formatMoney).
+ * A figure or a cell with an explanation becomes its own trigger (the
+ * dotted rule), and the page's one note then says so once.
  */
 export function ReportPage(p: {
   title: string;
   period: string;
-  figure?: { label: string; value: ReactNode };
+  figure?: { label: string; value: ReactNode;
+    explanation?: Explanation | undefined };
   columns: ReportColumn[];
   rows: string[][];
+  /** The working behind a cell, by row and column, if it has one. */
+  explain?: (row: number, col: number) => Explanation | undefined;
   bars?: number[];
   note?: string;
   csvName: string;
 }) {
   const { t } = useLocale();
+  const hinted = p.figure?.explanation !== undefined ||
+    p.explain !== undefined;
   const download = (): void => {
     const url = URL.createObjectURL(new Blob([toCsv(p.columns, p.rows)],
       { type: "text/csv;charset=utf-8" }));
@@ -57,7 +66,12 @@ export function ReportPage(p: {
       {p.figure !== undefined && (
         <div className={s.figure}>
           <span>{p.figure.label}</span>
-          <strong>{p.figure.value}</strong>
+          <strong>
+            {p.figure.explanation === undefined ? p.figure.value : (
+              <Explainable explanation={p.figure.explanation}>
+                {p.figure.value}
+              </Explainable>)}
+          </strong>
         </div>
       )}
       <table className={s.table}>
@@ -73,7 +87,7 @@ export function ReportPage(p: {
               {r.map((v, j) => (
                 <td key={j} data-end={p.columns[j]?.end === true}
                   data-label={p.columns[j]?.label}>
-                  {v}
+                  <Cell e={p.explain?.(i, j)}>{v}</Cell>
                   {j === 0 && p.bars?.[i] !== undefined && (
                     <span className={s.bar} aria-hidden="true"
                       style={{ inlineSize: `${(p.bars[i] ?? 0) / 10}%` }} />
@@ -84,7 +98,17 @@ export function ReportPage(p: {
           ))}
         </tbody>
       </table>
-      {p.note !== undefined && <p className={s.note}>{p.note}</p>}
+      {(p.note !== undefined || hinted) && (
+        <p className={s.note}>
+          {[p.note, hinted ? t("tpl.explainHint") : undefined]
+            .filter((x) => x !== undefined).join(" ")}
+        </p>
+      )}
     </div>
   );
+}
+
+function Cell(p: { e: Explanation | undefined; children: string }) {
+  return p.e === undefined ? <>{p.children}</>
+    : <Explainable explanation={p.e}>{p.children}</Explainable>;
 }

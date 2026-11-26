@@ -1,4 +1,5 @@
 import type { Fils } from "@payroll/engine";
+import type { Explanation } from "../components/explain/types";
 
 /**
  * What the new report screens read: plain data worked out once from
@@ -42,6 +43,10 @@ export interface VarianceView {
   netChange: Fils;
   headcountChange: number;
   drivers: DriverRow[];
+  /** Why gross moved: the causes add up to the change. */
+  explanation: Explanation;
+  /** Each cause, person by person, by driver key. */
+  driverExplain: Readonly<Record<string, Explanation>>;
 }
 
 export interface AuditView {
@@ -103,4 +108,13 @@ export interface ReportsSource {
   leaveOthers: number;
   /** Annual leave left across everyone, in days. */
   annualLeftTotal: number;
+  /** Gross and overtime, January to October, as the pages show them. */
+  grossTotal: Fils;
+  overtimeTotal: Fils;
+  /** Every department added up: the "Everyone" row. */
+  heads: DeptHeads;
+  /** Turnover for the year so far, as the page shows it ("3.3%"). */
+  turnover: string;
+  /** The working behind each figure, by id ("trend:2026-10", ...). */
+  explain: Readonly<Record<string, Explanation>>;
 }

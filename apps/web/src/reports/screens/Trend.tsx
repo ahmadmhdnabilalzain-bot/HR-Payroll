@@ -1,4 +1,3 @@
-import { fils } from "@payroll/engine";
 import { ReportPage } from "../../ui/templates";
 import { changeText, plural, useMoney } from "../fmt";
 import { useReportsSource } from "../load";
@@ -15,12 +14,16 @@ export function Trend() {
       before === undefined || diff === null ? "First month shown"
         : changeText(diff, before.gross, signed)];
   });
-  const total = fils(src.months.reduce((n, x) => n + x.gross, 0n));
   return (
     <ReportPage title="Payroll trend"
       period={`${src.months[0]!.label} to ${src.months.at(-1)!.label}`}
       figure={{ label: "Gross pay, January to October",
-        value: m(total) }}
+        value: m(src.grossTotal), explanation: src.explain["trend:total"] }}
+      explain={(r, c) => {
+        const k = src.months[r]?.month ?? "";
+        return c === 3 ? src.explain[`trend:${k}`]
+          : c === 4 ? src.explain[`trend-net:${k}`] : undefined;
+      }}
       columns={[{ label: "Month" }, { label: "State" },
         { label: "People paid" }, { label: "Gross", end: true },
         { label: "Net", end: true },

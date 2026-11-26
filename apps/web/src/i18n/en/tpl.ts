@@ -17,5 +17,7 @@ export const tpl = {
   csv: "Download CSV",
   print: "Print",
   changes: "Changes",
+  explainHint: "Figures with a dotted line open how they are " +
+    "worked out.",
   noChanges: "No changes yet.",
 } satisfies EnNamespace;

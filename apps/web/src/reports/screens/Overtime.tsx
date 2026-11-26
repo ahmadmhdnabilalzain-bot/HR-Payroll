@@ -1,4 +1,3 @@
-import { fils } from "@payroll/engine";
 import { ReportPage } from "../../ui/templates";
 import { hours, plural, useMoney } from "../fmt";
 import { useReportsSource } from "../load";
@@ -16,8 +15,6 @@ export function Overtime() {
     ? x.overtimeAmount : a, 0n);
   const bars = src.months.map((x) => max === 0n ? 0
     : Number(x.overtimeAmount * 1000n / max));
-  const total = fils(src.months.reduce((n, x) => n + x.overtimeAmount,
-    0n));
   const last = src.months.at(-1)!.month;
   const who = src.overtime.filter((l) => l.month === last).map((l) =>
     `${l.name} ${hours(l.minutes)} hours (${m(l.amount)})`);
@@ -25,7 +22,9 @@ export function Overtime() {
     <ReportPage title="Overtime cost" period={`${src.months[0]!.label} ` +
       `to ${src.months.at(-1)!.label}`}
     figure={{ label: "Overtime paid this year",
-      value: m(total) }}
+      value: m(src.overtimeTotal), explanation: src.explain["overtime:total"] }}
+    explain={(r, c) => c === 3
+      ? src.explain[`overtime:${src.months[r]?.month ?? ""}`] : undefined}
     columns={[{ label: "Month" }, { label: "People" },
       { label: "Hours", end: true }, { label: "Cost", end: true }]}
     rows={rows} bars={bars} csvName="overtime-cost-2026.csv"
