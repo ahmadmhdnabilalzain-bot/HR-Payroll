@@ -106,6 +106,8 @@ export const ExpenseClaim = z.object({
   policyVersion: z.number().int().min(0).nullable(),
   approval: ApprovalView.nullable(),
   vatRecoverability: VatRecoverability,
+  /** Always the fixed VAT_STATEMENT text (owner decision, M-5). */
+  vatStatement: z.literal(VAT_STATEMENT),
 });
 export type ExpenseClaim = z.infer<typeof ExpenseClaim>;
 

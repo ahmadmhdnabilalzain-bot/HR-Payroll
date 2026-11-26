@@ -47,10 +47,13 @@ export async function summaryReport(ctx: ReqCtx<unknown, SummaryQuery>)
        count(DISTINCT c.id)::int AS claims, count(*)::int AS items,
        sum(i.amount) AS total, sum(i.vat_amount) AS vat
      ${ITEMS_FROM}
-     WHERE i.company_id = $1 AND ${PAID} AND i.date BETWEEN $2 AND $3
-       AND ($4::uuid IS NULL OR c.pay_run_id = $4::uuid)
+     WHERE i.company_id = $1
+       AND ($5::text IS NULL AND ${PAID} OR c.status = $5::text)
+       AND ($4::uuid IS NULL AND i.date BETWEEN $2 AND $3
+         OR c.pay_run_id = $4::uuid)
      GROUP BY 1, 2 ORDER BY 2, 1`,
-    [ctx.tenant!.companyId, q.from, q.to, q.payRunId ?? null]);
+    [ctx.tenant!.companyId, q.from, q.to, q.payRunId ?? null,
+      q.status ?? null]);
   const total = rows.reduce((n, r) => n + BigInt(r.total), 0n);
   const vat = rows.reduce((n, r) => n + BigInt(r.vat), 0n);
   return { rows: rows.map((r) => ({ key: r.key, label: r.label,

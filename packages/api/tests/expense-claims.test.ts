@@ -1,3 +1,4 @@
+import { VAT_STATEMENT } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   createClaim,
@@ -32,7 +33,8 @@ describe("expense claims: drafts, edits, visibility", () => {
     expect(r.status, r.text).toBe(201);
     expect(r.body).toMatchObject({ status: "draft",
       employeeId: s.emp.report, createdBy: s.employee.userId,
-      vatRecoverability: "not-assessed", approval: null, payRunId: null,
+      vatRecoverability: "not-assessed", vatStatement: VAT_STATEMENT,
+      approval: null, payRunId: null,
       total: "135.50", vatTotal: "2.17" });
     expect(r.body.items[0]).toMatchObject({ kind: "mileage",
       amount: "90.00", vatAmount: "0.00", rateApplied: "0.75",

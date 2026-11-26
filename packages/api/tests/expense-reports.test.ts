@@ -83,6 +83,13 @@ describe("expense reports", () => {
     const r = await get(`/v1/expense-reports/summary?${Q}&groupBy=status` +
       `&payRunId=${runId}`);
     expect(r.body.total).toBe("240.00");
+    // By run, the item-date range is ignored (money review M-6).
+    const narrow = await get("/v1/expense-reports/summary?from=2026-01-01" +
+      `&to=2026-01-02&groupBy=status&payRunId=${runId}`);
+    expect(narrow.body.total).toBe("240.00");
+    const drafts = await get(`/v1/expense-reports/summary?${Q}` +
+      "&groupBy=status&status=draft");
+    expect(drafts.body.total).toBe("999.00");
     const p = await get(`/v1/expense-reports/payouts?payRunId=${runId}`);
     expect(p.status, p.text).toBe(200);
     expect(p.body).toMatchObject({ payRunId: runId, runStatus: "draft",
@@ -121,8 +128,9 @@ describe("expense reports", () => {
   it("aging_report", async () => {
     const c = await submitted(w.ctx, w.s.employee, w.s, [meal(w.cats,
       "14.00")]);
-    await w.ctx.deps.db.query("UPDATE approval_requests SET created_at = " +
-      "'2026-03-10T08:00:00Z' WHERE id = $1", [c.approval.id]);
+    // Aged from the claim's submission (money review M-6).
+    await w.ctx.deps.db.query("UPDATE expense_claims SET submitted_at = " +
+      "'2026-03-10T08:00:00Z' WHERE id = $1", [c.id]);
     const r = await get("/v1/expense-reports/aging");
     expect(r.status, r.text).toBe(200);
     expect(r.body.items.find((x: { claimId: string }) =>

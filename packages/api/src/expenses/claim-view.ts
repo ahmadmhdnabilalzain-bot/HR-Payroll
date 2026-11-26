@@ -1,10 +1,11 @@
-import type {
-  ApprovalView,
-  ClaimFlag,
-  ClaimStatus,
-  ExpenseClaim,
-  ExpenseItem,
-  ExpenseKind,
+import {
+  VAT_STATEMENT,
+  type ApprovalView,
+  type ClaimFlag,
+  type ClaimStatus,
+  type ExpenseClaim,
+  type ExpenseItem,
+  type ExpenseKind,
 } from "@payroll/contract";
 import { fils } from "@payroll/engine";
 import { viewFor } from "../approvals/requests";
@@ -147,7 +148,7 @@ export function toClaimView(r: ClaimRow, items: ItemRow[],
     vatTotal: money(r.vat_total), flags: r.flags, createdBy: r.created_by,
     submittedAt: r.submitted_at, decidedAt: r.decided_at,
     payRunId: r.pay_run_id, policyVersion: r.policy_version, approval,
-    vatRecoverability: "not-assessed" };
+    vatRecoverability: "not-assessed", vatStatement: VAT_STATEMENT };
 }
 
 export async function claimView(ctx: ReqCtx, r: ClaimRow)

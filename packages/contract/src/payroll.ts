@@ -23,6 +23,11 @@ export const NOT_COMPUTED_PAY = [
 export const SERVICE_UNPAID_LEAVE_NOT_ENTERED =
   "unpaid leave over service (not entered)";
 
+/** Shown on payslips, runs and payouts that carry reimbursements. */
+export const REIMBURSEMENT_WPS_NOTE = "Reimbursements are not in the " +
+  "WPS salary file. Pay them by separate transfer. Whether they must " +
+  "go through WPS is not sourced.";
+
 export const PayRunEntry = z.object({
   employeeId: Id,
   componentOverrides: z
@@ -86,6 +91,8 @@ export const PayRun = z.object({
   claimCount: z.number().int().min(0),
   /** Submitted, undecided claims of in-scope employees at creation. */
   pendingClaimCount: z.number().int().min(0),
+  /** REIMBURSEMENT_WPS_NOTE when the run pays claims, else null. */
+  reimbursementNote: z.literal(REIMBURSEMENT_WPS_NOTE).nullable(),
   /**
    * For the approver: employees who are new, or whose salary, bank
    * details or labour id changed, since the last approved run (field
@@ -141,11 +148,6 @@ export const Settlement = z.discriminatedUnion("status", [
   SettlementRefused,
 ]);
 export type Settlement = z.infer<typeof Settlement>;
-
-/** Shown on payslips, runs and payouts that carry reimbursements. */
-export const REIMBURSEMENT_WPS_NOTE = "Reimbursements are not in the " +
-  "WPS salary file. Pay them by separate transfer. Whether they must " +
-  "go through WPS is not sourced.";
 
 /** One approved expense claim: outside gross, inside net. */
 export const ReimbursementLine = z.object({

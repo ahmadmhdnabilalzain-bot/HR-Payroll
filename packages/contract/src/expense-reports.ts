@@ -11,7 +11,10 @@ export const SummaryQuery = z.object({
   from: IsoDate,
   to: IsoDate,
   groupBy: z.enum(["category", "employee", "department", "status"]),
+  /** With a run: that run's claims, whatever their item dates. */
   payRunId: Id.optional(),
+  /** Default: approved and reimbursed claims. */
+  status: ClaimStatus.optional(),
   format: ReportFormat.optional(),
 });
 export type SummaryQuery = z.infer<typeof SummaryQuery>;

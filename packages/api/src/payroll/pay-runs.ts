@@ -1,5 +1,6 @@
 import {
   NOT_COMPUTED_PAY,
+  REIMBURSEMENT_WPS_NOTE,
   type PayRun,
   type PayRunCreate,
 } from "@payroll/contract";
@@ -66,7 +67,8 @@ export const toPayRun = (r: RunRow): PayRun => ({
   gross: toMoney(fils(BigInt(r.gross))), notComputed: [...NOT_COMPUTED_PAY],
   sifFileId: r.sif_file_id, changedSinceLastRun: r.changes,
   reimbursementTotal: toMoney(fils(BigInt(r.reimbursement_total))),
-  claimCount: r.claim_count, pendingClaimCount: r.pending_claim_count });
+  claimCount: r.claim_count, pendingClaimCount: r.pending_claim_count,
+  reimbursementNote: r.claim_count > 0 ? REIMBURSEMENT_WPS_NOTE : null });
 
 export async function loadRun(tx: Db, companyId: string, id: string,
   lock = false): Promise<RunRow> {

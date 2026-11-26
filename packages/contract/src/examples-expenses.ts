@@ -88,6 +88,7 @@ const claim = {
   policyVersion: 1,
   approval,
   vatRecoverability: "not-assessed",
+  vatStatement: VAT_STATEMENT,
 };
 
 const summary = {

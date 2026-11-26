@@ -19,11 +19,12 @@ interface AgingDb { approval_id: string; claim_id: string;
   full_name: string; total: bigint; step_order: number;
   approver: ApproverSpec; created_at: string }
 
-/** Pending expense steps, oldest first, aged in Dubai days. */
+/** Pending expense steps, oldest first, aged in Dubai days from the
+ * claim's submission. */
 export async function agingReport(ctx: ReqCtx): Promise<AgingRow[]> {
   const rows = await ctx.tx.query<AgingDb>(
     `SELECT r.id AS approval_id, c.id AS claim_id, e.full_name, c.total,
-       s.step_order, s.approver, r.created_at
+       s.step_order, s.approver, c.submitted_at AS created_at
      FROM approval_requests r
      JOIN approval_steps s ON s.company_id = r.company_id
        AND s.request_id = r.id AND s.status = 'pending'
@@ -32,7 +33,7 @@ export async function agingReport(ctx: ReqCtx): Promise<AgingRow[]> {
      JOIN employees e ON e.company_id = c.company_id AND e.id = c.employee_id
      WHERE r.company_id = $1 AND r.status = 'pending'
        AND r.subject_type = 'expense-claim'
-     ORDER BY r.created_at, r.id`, [ctx.tenant!.companyId]);
+     ORDER BY c.submitted_at, r.id`, [ctx.tenant!.companyId]);
   const today = dubaiDate(ctx.deps.now());
   return rows.map((r) => ({ approvalId: r.approval_id,
     claimId: r.claim_id, employeeName: r.full_name, total: money(r.total),
