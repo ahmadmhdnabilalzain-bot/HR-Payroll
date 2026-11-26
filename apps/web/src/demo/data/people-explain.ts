@@ -89,6 +89,9 @@ function stepsOf(line: TraceLine): ExplainStep[] {
 const STATUSES: readonly SourceStatus[] = ["official", "secondary",
   "convention", "unsourced"];
 
+/** A flag as the pack carries it: a boolean or "true". */
+const yes = (v: string | number | boolean): boolean =>
+  v === true || v === "true";
 const pct = (bps: unknown): string => `${Number(bps) / 100}%`;
 const mins = (m: unknown): string => hours(Number(m));
 
@@ -108,20 +111,20 @@ const SENTENCES: Record<string, (v: string | number | boolean)
     "The limit on deductions is worked out on the wage earned.",
   deductionOverallCapBps: (v) =>
     `Deductions may take at most ${pct(v)} of the wage.`,
-  loanConsentRequired: (v) => v === true
+  loanConsentRequired: (v) => yes(v)
     ? "A loan is taken from pay only with the employee's consent." : null,
   deductionOrder: () => "Deductions are taken in a set order, loans last.",
   sickFullPayDays: (v) => `Sick leave is paid in full for ${v} days.`,
   sickHalfPayDays: (v) => `Then at half pay for the next ${v} days.`,
   sickMaxDays: (v) => `Sick leave counts for at most ${v} days a year.`,
-  sickPaidInProbation: (v) => v === false
+  sickPaidInProbation: (v) => !yes(v)
     ? "Sick leave in the probation period is unpaid." : null,
   overtimeUpliftBps: (v) =>
     `Overtime is paid at ${100 + Number(v) / 100}% of the hourly rate.`,
   dailyDivisor: (v) =>
     `A day's pay is the monthly wage divided by ${v}.`,
-  shiftWorkersNightExcluded: (v) => v === true
-    ? "Shift workers do not get night overtime for their own shifts."
+  shiftWorkersNightExcluded: (v) => yes(v)
+    ? "Night overtime does not apply to shift workers."
     : null,
   overtimeMaxMinutesPerDay: (v) =>
     `Overtime counts for at most ${mins(v)} a day.`,
