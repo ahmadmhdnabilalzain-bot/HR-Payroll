@@ -1,5 +1,5 @@
-import { Suspense, useEffect, useRef, useState, type RefObject }
-  from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState,
+  type RefObject } from "react";
 import { loadRunSource } from "../demo/data/run-load";
 import { loadLiveExplain } from "../demo/live-explain-load";
 import { dur, easeOut } from "../ui/templates/listEnter";
@@ -24,11 +24,14 @@ export type Go = (to: StepId) => void;
  * The step being left, as a drawn copy over the page: it fades out
  * (--dur-fast) and drifts 24 px against the travel while the next step,
  * already mounted with its data, slides in (--dur-base). There is never
- * a blank page between steps.
+ * a blank page between steps. The copy is taken at the click but only
+ * drawn (`place`) in the commit that swaps the step, before that
+ * frame paints: the live old step and its copy are never on screen
+ * together.
  */
-function leaveCopy(swap: HTMLElement, d: 1 | -1): void {
+function leaveCopy(swap: HTMLElement, d: 1 | -1): (() => void) | null {
   const page = swap.parentElement;
-  if (page === null) return;
+  if (page === null) return null;
   const copy = swap.cloneNode(true) as HTMLElement;
   copy.removeAttribute("class");
   copy.setAttribute("aria-hidden", "true");
@@ -41,15 +44,18 @@ function leaveCopy(swap: HTMLElement, d: 1 | -1): void {
     : swap.offsetLeft;
   Object.assign(copy.style, { insetBlockStart: `${swap.offsetTop}px`,
     insetInlineStart: `${start}px`, inlineSize: `${swap.offsetWidth}px` });
-  page.appendChild(copy);
-  const fast = dur("--dur-fast");
-  // Opacity on the copy itself (a veil would paint paper over the step
-  // coming in underneath); the copy is hidden from assistive tech.
-  const dx = -24 * d * (rtl ? -1 : 1);
-  copy.animate([{ opacity: 1, transform: "none" },
-    { opacity: 0, transform: `translateX(${dx}px)` }],
-  { duration: fast, easing: easeOut(), fill: "forwards" })
-    .onfinish = () => copy.remove();
+  return () => {
+    page.appendChild(copy);
+    const fast = dur("--dur-fast");
+    // Opacity on the copy itself (a veil would paint paper over the
+    // step coming in underneath); the copy is hidden from assistive
+    // tech.
+    const dx = -24 * d * (rtl ? -1 : 1);
+    copy.animate([{ opacity: 1, transform: "none" },
+      { opacity: 0, transform: `translateX(${dx}px)` }],
+    { duration: fast, easing: easeOut(), fill: "forwards" })
+      .onfinish = () => copy.remove();
+  };
 }
 
 /**
@@ -59,12 +65,17 @@ function leaveCopy(swap: HTMLElement, d: 1 | -1): void {
 export function useGoStep(at: StepId, swap: RefObject<HTMLElement | null>)
   : [1 | -1, Go] {
   const [dir, setDir] = useState<1 | -1>(1);
+  const pending = useRef<(() => void) | null>(null);
+  // The step has swapped in this commit: draw the copy before paint.
+  useLayoutEffect(() => {
+    pending.current?.();
+    pending.current = null;
+  }, [at]);
   const go: Go = (to) => {
     const d = STEPS.indexOf(to) >= STEPS.indexOf(at) ? 1 : -1;
     setDir(d);
-    if (!reducedMotion() && swap.current !== null) {
-      leaveCopy(swap.current, d);
-    }
+    pending.current = to !== at && !reducedMotion() &&
+      swap.current !== null ? leaveCopy(swap.current, d) : null;
     navigate("pay-run", to);
   };
   return [dir, go];
