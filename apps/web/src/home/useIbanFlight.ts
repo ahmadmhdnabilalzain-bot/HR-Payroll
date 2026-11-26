@@ -3,7 +3,7 @@ import { reducedMotion } from "../demo/motion";
 import { useDemo } from "../demo/state";
 import { formatMoney } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
-import { fly, LAND_FADE_MS } from "../ui/flight";
+import { fly } from "../ui/flight";
 import s from "./PayRunHero.module.css";
 
 /**
@@ -25,9 +25,10 @@ function fileTotal(): Element | null {
 /**
  * The bank moment on Home, for the top card and the issue list alike:
  * when an IBAN passes, the pay it releases leaves the IBAN field as a
- * chip and flies into the salary-file total (ui/flight: 420 ms on a
- * spring, then a 160 ms fade); only then is the IBAN saved, so the
- * total rolls as the chip melts into it and "held out" drops. Nothing
+ * chip and flies onto the salary-file total's end edge (ui/flight:
+ * 420 ms on a spring); as it lands the IBAN is saved, so the total
+ * starts its roll in the same frame as the chip shrinks and fades
+ * (120 ms) and "held out" drops. Nothing
  * travels when the total would not change, while amounts are hidden,
  * or when the total is out of sight; then `finish` runs at once (or
  * after `wait` ms, for a form fading out). Reduced motion: at once.
@@ -53,7 +54,6 @@ export function useIbanFlight(): (o: { from: Element | null;
     const chip = document.createElement("span");
     chip.className = s.flyer ?? "";
     chip.textContent = `+${formatMoney(fils(delta), lang)}`;
-    fly({ from, to, content: chip,
-      onLand: () => setTimeout(o.finish, LAND_FADE_MS) });
+    fly({ from, to, content: chip, align: "end", onLand: o.finish });
   };
 }

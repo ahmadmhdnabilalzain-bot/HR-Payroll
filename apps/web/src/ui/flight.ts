@@ -9,17 +9,19 @@ import { reducedMotion } from "../demo/motion";
  *
  * - Travel: 420 ms on a spring (stiffness 300, damping 30, mass 1;
  *   about 0.87 of critical damping, so a hair of settle, no bounce).
- * - Then the clone fades over 160 ms while the target takes the new
- *   value (call `onLand` to start the target's own roll there), with
- *   a hair of give as it receives it (1.03 to 1 over 280 ms).
+ * - Then it hands over: the clone shrinks to 0.6 and fades over 120
+ *   ms towards the target's end edge, while the target takes the new
+ *   value in the same frame (call `onLand` to start its roll there)
+ *   with a hair of give (1.03 to 1 over 280 ms). Two legible amounts
+ *   are never cross-faded on top of each other.
  * - Reduced motion: no travel. The target fades in over 120 ms and
  *   `onLand` runs at once.
  */
 
 /** The flight's travel time. */
 export const FLIGHT_MS = 420;
-/** The clone's fade once it has landed. */
-export const LAND_FADE_MS = 160;
+/** The hand-over once it has landed: the clone shrinks and fades. */
+export const LAND_FADE_MS = 120;
 
 /** The target's give as it receives the chip. */
 export const RECEIVE_MS = 280;
@@ -94,7 +96,14 @@ export function fly(o: FlyOptions): () => void {
   clone.setAttribute("aria-hidden", "true");
   clone.dataset["flight"] = "";
   if (o.className !== undefined) clone.className = o.className;
-  clone.appendChild(o.content.cloneNode(true));
+  // The content sits in its own box, so the hand-over can shrink it
+  // towards the landing edge while the outer box carries the travel.
+  const inner = document.createElement("div");
+  inner.style.display = "inline-block";
+  inner.style.transformOrigin = o.align === "end" ? "100% 50%"
+    : "50% 50%";
+  inner.appendChild(o.content.cloneNode(true));
+  clone.appendChild(inner);
   Object.assign(clone.style, {
     position: "fixed", left: "0px", top: "0px", margin: "0",
     zIndex: "60", pointerEvents: "none", whiteSpace: "nowrap",
@@ -117,10 +126,10 @@ export function fly(o: FlyOptions): () => void {
   // work blocks the main thread, the clone still fades on time rather
   // than parking on the target.
   const total = FLIGHT_MS + LAND_FADE_MS;
-  const fade = clone.animate([
-    { opacity: 1 },
-    { opacity: 1, offset: FLIGHT_MS / total },
-    { opacity: 0 },
+  const fade = inner.animate([
+    { opacity: 1, transform: "scale(1)" },
+    { opacity: 1, transform: "scale(1)", offset: FLIGHT_MS / total },
+    { opacity: 0, transform: "scale(0.6)" },
   ], { duration: total, easing: "linear", fill: "forwards" });
   const done = (): void => {
     clone.remove();
