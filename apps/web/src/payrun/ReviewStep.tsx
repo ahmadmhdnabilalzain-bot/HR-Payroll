@@ -8,6 +8,7 @@ import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
+import { initials } from "../people/words";
 import { ChangeNote, CountChange, monthName, SignedMoney } from "./Change";
 import { ExplainHint } from "./ExplainHint";
 import { RollMoney } from "./Roll";
@@ -33,8 +34,15 @@ export function ReviewStep() {
   const rest = d.people.filter((p) => !flagged(p));
   return (
     <section aria-labelledby="step-title" className={s.step}>
-      <h2 id="step-title" className={s.stepTitle}>{t("payrun.reviewTitle")}</h2>
-      <p className={s.stepSub}>{t("payrun.reviewSub", { month })}</p>
+      <div className={s.stepHead}>
+        <div>
+          <h2 id="step-title" className={s.stepTitle}>
+            {t("payrun.reviewTitle")}
+          </h2>
+          <p className={s.stepSub}>{t("payrun.reviewSub", { month })}</p>
+        </div>
+        <ExplainHint />
+      </div>
       <dl className={s.totals}>
         <div className={`${s.total} ${s.totalLead}`}>
           <dt>{t("payrun.net")}</dt>
@@ -42,7 +50,6 @@ export function ReviewStep() {
             <Explainable explanation={d.explain["run:net"]}>
               <RollMoney value={d.totals.net} size="hero" />
             </Explainable>
-            <ExplainHint />
           </dd>
           <dd><ChangeNote now={d.totals.net} prev={d.prev.net} month={pm} />
           </dd>
@@ -106,19 +113,18 @@ function PersonLine(p: { p: PersonRow; i: number; typo: boolean;
   const flag = !r.inFile ? t("payrun.held") : p.typo ? t("payrun.ibanTypo")
     : null;
   return (
-    <li className={s.row} style={{ "--i": Math.min(p.i, 8) } as object}>
-      <span className={s.dotCol}>
-        {flag !== null && (
-          <span className={s.dot8} data-tone={r.inFile ? "warn" : "bad"} />
-        )}
-      </span>
+    <li className={`${s.row} ${s.faceRow}`}
+      style={{ "--i": Math.min(p.i, 8) } as object}>
+      <span className={s.face} aria-hidden="true">{initials(r.name)}</span>
       <span className={s.rowMain}>
         <span className={s.name}>{r.name}</span>
         <span className={s.reason}>
           {r.significant ? r.reasons.join("; ") : r.department}
         </span>
         {flag !== null && (
-          <span className={s.flag} data-tone={r.inFile ? "warn" : "bad"}>
+          <span className={s.flag}>
+            <span className={s.dot8} data-tone={r.inFile ? "warn" : "bad"}
+              aria-hidden="true" />
             {flag}
           </span>
         )}

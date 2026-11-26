@@ -53,10 +53,33 @@ function useFlow(held: Fils): { amount: Fils; n: number } | null {
   return flow;
 }
 
+type Kind = "stops" | "check" | "confirm" | "fixed";
+
+const KIND_WORD = {
+  stops: "payrun.kindStops", check: "payrun.kindCheck",
+  confirm: "payrun.kindConfirm", fixed: "payrun.kindFixed",
+} as const;
+
+/** The row's kind: an 8 px dot that carries the colour, and a word. */
+function KindTag(p: { kind: Kind }) {
+  const { t } = useLocale();
+  return (
+    <span className={s.kind}>
+      {p.kind === "fixed"
+        ? <span className={s.kindIcon}><Icon name="check" size={14} /></span>
+        : <span className={s.dot8} aria-hidden="true" data-tone={
+          p.kind === "stops" ? "bad" : p.kind === "check" ? "warn"
+            : "info"} />}
+      {t(KIND_WORD[p.kind])}
+    </span>
+  );
+}
+
 /**
- * Step 2: one grouped list. "Stops pay" first (bank details: entering
- * an IBAN re-runs the real salary file check and the held pay flows
- * into the file), then "Check", then setup to confirm.
+ * Step 2: one grouped list. What stops pay comes first (bank details:
+ * entering an IBAN re-runs the real salary file check and the held pay
+ * flows into the file), then what to check, then setup to confirm.
+ * Each row says its kind once, as a dot and a word.
  */
 export function FixStep() {
   const { lang, t } = useLocale();
@@ -95,21 +118,23 @@ export function FixStep() {
 
       <section aria-labelledby="tofix-title" className={s.block}>
         <h3 id="tofix-title" className={s.groupTitle}>
-          {t("payrun.toFixTitle")}
-          <span className={s.groupCount}>{blockers.length}</span>
+          {t("payrun.fixListTitle")}
+          <span className={s.groupCount}>
+            {t("payrun.fixCount", { stops: blockers.length,
+              checks: checks.length })}
+          </span>
         </h3>
-        <p className={s.blockSub}>{t("payrun.toFixSub")}</p>
         <ul className={s.group}>
           {blockers.map((i) => (
             <BlockerRow key={i.id} issue={i} canFix={isHr} />
           ))}
           {fixed.map((id) => (
             <li key={`fixed-${id}`} className={s.row} data-done="true">
-              <span className={s.dotCol}>
-                <Icon name="check" size={16} />
-              </span>
               <span className={s.rowMain}>
-                <span className={s.name}>{t("payrun.fixedTitle")}</span>
+                <KindTag kind="fixed" />
+                <span className={s.name}>{t("payrun.fixedTitle")}
+                  <span className={s.who}> · {data.employee(id)
+                    .name[lang]}</span></span>
                 <span className={s.reason}>{t("payrun.fixedIban",
                   { name: data.employee(id).name[lang] })}</span>
               </span>
@@ -117,45 +142,25 @@ export function FixStep() {
           ))}
           {blockers.length === 0 && fixed.length === 0 && (
             <li className={s.row}>
-              <span className={s.reason}>{t("payrun.nothingToFix")}</span>
+              <span className={s.rowMain}>
+                <span className={s.reason}>{t("payrun.nothingToFix")}</span>
+              </span>
             </li>
           )}
-        </ul>
-      </section>
-
-      <section aria-labelledby="checks-title" className={s.block}>
-        <h3 id="checks-title" className={s.groupTitle}>
-          {t("payrun.checksTitle")}
-          <span className={s.groupCount}>{checks.length}</span>
-        </h3>
-        <p className={s.blockSub}>{t("payrun.checksSub")}</p>
-        <ul className={s.group}>
           {checks.map((i, n) => (
             <CheckRow key={i.id} issue={i} canAct={isHr} index={n} />
           ))}
+          {setup.map((i) => (
+            <li key={i.id} className={s.row}>
+              <span className={s.rowMain}>
+                <KindTag kind="confirm" />
+                <span className={s.name}>{i.title[lang]}</span>
+                <span className={s.reason}>{i.reason[lang]}</span>
+              </span>
+            </li>
+          ))}
         </ul>
       </section>
-
-      {setup.length > 0 && (
-        <section aria-labelledby="setup-title" className={s.block}>
-          <h3 id="setup-title" className={s.groupTitle}>
-            {t("payrun.setupTitle")}
-          </h3>
-          <ul className={s.group}>
-            {setup.map((i) => (
-              <li key={i.id} className={s.row}>
-                <span className={s.dotCol}>
-                  <span className={s.dot8} data-tone="info" />
-                </span>
-                <span className={s.rowMain}>
-                  <span className={s.name}>{i.title[lang]}</span>
-                  <span className={s.reason}>{i.reason[lang]}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </section>
   );
 }
@@ -170,10 +175,8 @@ function BlockerRow(p: { issue: Issue; canFix: boolean }) {
     : data.employee(i.employeeId).name[lang];
   return (
     <li className={s.row} id={`fix-${i.id}`} data-open={open}>
-      <span className={s.dotCol}>
-        <span className={s.dot8} data-tone="bad" />
-      </span>
       <span className={s.rowMain}>
+        <KindTag kind="stops" />
         <span className={s.name}>{i.title[lang]}
           <span className={s.who}> · {name}</span></span>
         <span className={s.reasonMain}>{plainOnly(i.reason[lang])}</span>
@@ -214,11 +217,8 @@ function CheckRow(p: { issue: Issue; canAct: boolean; index: number }) {
   return (
     <li className={s.row} data-done={done !== undefined}
       style={{ "--i": Math.min(p.index, 8) } as object}>
-      <span className={s.dotCol}>
-        {done !== undefined ? <Icon name="check" size={16} />
-          : <span className={s.dot8} data-tone="warn" />}
-      </span>
       <span className={s.rowMain}>
+        <KindTag kind={done !== undefined ? "fixed" : "check"} />
         <span className={s.name}>{i.title[lang]}
           {name !== "" && <span className={s.who}> · {name}</span>}</span>
         <span className={s.reasonMain}>{plainOnly(i.reason[lang])}</span>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { EXPLAIN_OPEN } from "../components/explain";
 import { useLocale } from "../i18n/LocaleProvider";
 import s from "./PayRun.module.css";
 
@@ -16,8 +17,18 @@ function seen(): boolean {
   }
 }
 
+function remember(): void {
+  try {
+    sessionStorage.setItem(KEY, "1");
+  } catch {
+    // Shows again next time; nothing else depends on it.
+  }
+}
+
 /**
- * Teaches the dotted line once per visit, beside the first figure
+ * Teaches the dotted line once per visit: a small tooltip in the step
+ * header, out of the figures' way (it never covers or moves one), and
+ * gone after the first explanation is opened
  * (session storage, so a laptop shows it again at each showing;
  * `?reset=1` brings it back at once). A convenience, so storage
  * failing only means it shows again.
@@ -25,18 +36,23 @@ function seen(): boolean {
 export function ExplainHint() {
   const { t } = useLocale();
   const [open, setOpen] = useState(() => !seen());
+  useEffect(() => {
+    if (!open) return undefined;
+    const done = (): void => {
+      remember();
+      setOpen(false);
+    };
+    addEventListener(EXPLAIN_OPEN, done);
+    return () => removeEventListener(EXPLAIN_OPEN, done);
+  }, [open]);
   if (!open) return null;
   return (
-    <span className={s.hint} role="note">
+    <p className={s.hint} role="note">
       <span>{t("payrun.hint")}</span>
       <button type="button" className={s.hintBtn} onClick={() => {
-        try {
-          sessionStorage.setItem(KEY, "1");
-        } catch {
-          // Shows again next time; nothing else depends on it.
-        }
+        remember();
         setOpen(false);
       }}>{t("payrun.hintOk")}</button>
-    </span>
+    </p>
   );
 }

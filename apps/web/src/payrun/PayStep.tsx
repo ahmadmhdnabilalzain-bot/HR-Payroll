@@ -50,25 +50,46 @@ export function PayStep() {
         </button>
       </div>
 
-      <dl className={s.facts}>
-        <div>
-          <dt>{t("payrun.fileName")}</dt>
-          <dd className={s.mono}>{f.fileName}</dd>
-        </div>
-        <div>
-          <dt>{t("payrun.lines")}</dt>
-          <dd>{t("payrun.linesValue", {
-            total: formatNumber(f.lines.total, lang),
-            salary: formatNumber(f.lines.salary, lang),
-            allowance: formatNumber(f.lines.allowance, lang),
-            control: formatNumber(f.lines.control, lang) })}</dd>
-        </div>
-        <div>
-          <dt>{t("payrun.heldOut")}</dt>
-          <dd>{f.heldOut === 0 ? t("payrun.nobody")
-            : t("payrun.fileLine", { count: f.heldOut })}</dd>
-        </div>
-      </dl>
+      <section aria-labelledby="summary-title" className={s.block}>
+        <h3 id="summary-title" className={s.blockTitle}>
+          {t("payrun.summaryTitle")}
+        </h3>
+        <dl className={`${s.group} ${s.summary}`}>
+          <div className={s.sumLine}>
+            <dt>{t("payrun.sumPeople")}</dt>
+            <dd className="tabular">{formatNumber(f.people, lang)}</dd>
+          </div>
+          <div className={s.sumLine}>
+            <dt>{t("payrun.sumAmount")}</dt>
+            <dd><Money value={f.total} tween={false} /></dd>
+          </div>
+          <div className={s.sumLine}>
+            <dt>{t("payrun.sumBank")}</dt>
+            <dd>{f.bank}</dd>
+          </div>
+          <div className={s.sumLine}>
+            <dt>{t("payrun.sumDated")}</dt>
+            <dd>{formatDate(f.dated, lang)}</dd>
+          </div>
+          <div className={s.sumLine}>
+            <dt>{t("payrun.fileName")}</dt>
+            <dd className={s.mono}>{f.fileName}</dd>
+          </div>
+          <div className={s.sumLine}>
+            <dt>{t("payrun.lines")}</dt>
+            <dd>{t("payrun.linesValue", {
+              total: formatNumber(f.lines.total, lang),
+              salary: formatNumber(f.lines.salary, lang),
+              allowance: formatNumber(f.lines.allowance, lang),
+              control: formatNumber(f.lines.control, lang) })}</dd>
+          </div>
+          <div className={s.sumLine}>
+            <dt>{t("payrun.heldOut")}</dt>
+            <dd>{f.heldOut === 0 ? t("payrun.nobody")
+              : t("payrun.fileLine", { count: f.heldOut })}</dd>
+          </div>
+        </dl>
+      </section>
 
       <section aria-labelledby="findings-title" className={s.block}>
         <h3 id="findings-title" className={s.blockTitle}>
@@ -84,10 +105,12 @@ export function PayStep() {
           <ul className={s.group}>
             {issues.map((x) => (
               <li key={x.id} className={s.row}>
-                <span className={s.dotCol}>
-                  <span className={s.dot8} data-tone="bad" />
-                </span>
                 <span className={s.rowMain}>
+                  <span className={s.kind}>
+                    <span className={s.dot8} data-tone="bad"
+                      aria-hidden="true" />
+                    {t("payrun.needsFix")}
+                  </span>
                   <span className={s.name}>{x.title}</span>
                   <span className={s.reasonMain}>{x.text}</span>
                 </span>

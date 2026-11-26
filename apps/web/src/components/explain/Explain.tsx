@@ -32,6 +32,13 @@ function Value(p: { v: ExplainValue; size?: "hero" | "lg" | "md" }) {
     : <span className={s.textValue}>{p.v.text}</span>;
 }
 
+/** Fired on window whenever an explanation opens (first-time hints). */
+export const EXPLAIN_OPEN = "mubinflow:explain-open";
+
+function announce(): void {
+  dispatchEvent(new Event(EXPLAIN_OPEN));
+}
+
 /**
  * Any figure in the demo, made explainable: the figure itself is the
  * button (no hover-only affordance; a quiet dotted rule says it can be
@@ -51,6 +58,7 @@ export function Explainable(p: { explanation: Explanation | undefined;
         onClick={() => {
           origin.current = btn.current?.getBoundingClientRect() ?? null;
           setOpen(true);
+          announce();
         }}>
         {p.children}
         <span className="visually-hidden">
@@ -82,6 +90,7 @@ export function ExplainLink(p: { explanation: Explanation | undefined;
         onClick={() => {
           origin.current = btn.current?.getBoundingClientRect() ?? null;
           setOpen(true);
+          announce();
         }}>
         {p.children}
       </button>
