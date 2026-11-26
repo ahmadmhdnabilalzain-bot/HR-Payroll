@@ -148,6 +148,18 @@ import {
   type RuleChangeSlice,
 } from "../setup/rule-change/state";
 import {
+  BONUS_INITIAL,
+  reduceBonus,
+  type BonusAction,
+  type BonusSlice,
+} from "./bonus-state";
+import {
+  COMMISSION_INITIAL,
+  reduceCommission,
+  type CommissionAction,
+  type CommissionSlice,
+} from "./commission-state";
+import {
   ESIGN_INITIAL,
   reduceEsign,
   type EsignAction,
@@ -173,7 +185,7 @@ export interface DemoState
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     EidSlice, FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
     AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
-    AuditorSlice, FinishSlice, EsignSlice {
+    AuditorSlice, FinishSlice, EsignSlice, BonusSlice, CommissionSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -225,6 +237,8 @@ export type Action =
   | AuditorAction
   | FinishAction
   | EsignAction
+  | BonusAction
+  | CommissionAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -247,6 +261,8 @@ export const INITIAL: DemoState = {
   ...AUDITOR_INITIAL,
   ...FINISH_INITIAL,
   ...ESIGN_INITIAL,
+  ...BONUS_INITIAL,
+  ...COMMISSION_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -385,6 +401,16 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "rule-change-step":
     case "rule-change-undo": return reduceRuleChange(s, a);
     case "esign": return reduceEsign(s, a);
+    case "bonus-new":
+    case "bonus-remove":
+    case "bonus-send":
+    case "bonus-unsend":
+    case "bonus-decide":
+    case "bonus-undecide": return reduceBonus(s, a);
+    case "commission-prepare":
+    case "commission-unprepare":
+    case "commission-decide":
+    case "commission-undecide": return reduceCommission(s, a);
   }
 }
 

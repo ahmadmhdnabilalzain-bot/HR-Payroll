@@ -1,6 +1,7 @@
 import type { AuditAddition } from "./audit-state";
 import type { Approval, DemoData } from "./data/types";
 import { approvalItems } from "./approvals";
+import { bonusIdFor } from "./bonus-state";
 import type { Action, DemoState } from "./state";
 import { personFor } from "./time-off";
 
@@ -69,12 +70,69 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
     case "plan-signoff": return make("pay.plan-signed-off", "pay",
       { kind: "plan", id: "pay-plan", label: "Pay plan" },
       `${who} signed off the pay plan.`);
+    case "bonus-new":
+    case "bonus-remove":
+    case "bonus-send":
+    case "bonus-unsend":
+    case "bonus-decide":
+    case "bonus-undecide": return bonus(a, s, make, who);
+    case "commission-prepare":
+    case "commission-unprepare":
+    case "commission-decide":
+    case "commission-undecide": return commission(a, make, who);
     default: return null;
   }
 }
 
 type Make = (action: string, area: AuditAddition["area"],
   subject: AuditAddition["subject"], summary: string) => AuditAddition;
+
+/** Bonus runs: one entry per step and per undo; never an amount. */
+function bonus(a: Extract<Action, { type: `bonus-${string}` }>,
+  s: DemoState, make: Make, who: string): AuditAddition {
+  const id = a.type === "bonus-new" ? bonusIdFor(s) : a.id;
+  const label = a.type === "bonus-new" ? a.draft.label
+    : s.bonusRuns.find((r) => r.id === id)?.label ?? "Bonus run";
+  const subject = { kind: "bonus-run", id, label };
+  const [code, text] = ((): [string, string] => {
+    switch (a.type) {
+      case "bonus-new": return ["bonus-prepared", "prepared"];
+      case "bonus-remove": return ["bonus-removed", "removed the draft of"];
+      case "bonus-send": return ["bonus-sent", "sent for sign off"];
+      case "bonus-unsend": return ["bonus-send-taken-back",
+        "took back from sign off"];
+      case "bonus-decide": return a.decision.verdict === "signed"
+        ? ["bonus-signed-off", "signed off"] : ["bonus-declined",
+          "declined"];
+      case "bonus-undecide": return ["bonus-decision-undone",
+        "took back the decision on"];
+    }
+  })();
+  return make(`pay.${code}`, "pay", subject,
+    `${who} ${text} the bonus run: ${label}.`);
+}
+
+/** Commission statements: one entry per step and per undo. */
+function commission(a: Extract<Action, { type: `commission-${string}` }>,
+  make: Make, who: string): AuditAddition {
+  const subject = { kind: "commission-month", id: a.month,
+    label: "Sales commission statements" };
+  const [code, text] = ((): [string, string] => {
+    switch (a.type) {
+      case "commission-prepare": return ["commission-prepared",
+        "prepared"];
+      case "commission-unprepare": return ["commission-unprepared",
+        "took back"];
+      case "commission-decide": return a.decision.verdict === "signed"
+        ? ["commission-signed-off", "signed off"]
+        : ["commission-declined", "declined"];
+      case "commission-undecide": return ["commission-decision-undone",
+        "took back the decision on"];
+    }
+  })();
+  return make(`pay.${code}`, "pay", subject,
+    `${who} ${text} the sales commission statements.`);
+}
 
 const CODES: Record<string, [string, string, string, string]> = {
   "pay-run": ["payrun", "signed off", "the pay run", "pay"],
