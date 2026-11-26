@@ -382,7 +382,7 @@
   min-block-size: 56px;
   padding: 14px var(--space-4);
   animation: row-in var(--dur-slow) var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 90ms);
+  animation-delay: calc(min(var(--i, 0), 8) * 28ms);
 }
 
 .row + .row::before,

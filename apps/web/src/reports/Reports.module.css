@@ -20,7 +20,7 @@
 .list li {
   border-block-end: 1px solid var(--color-divider);
   animation: row-in var(--dur-slow) var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 90ms);
+  animation-delay: calc(min(var(--i, 0), 8) * 28ms);
 }
 
 @keyframes row-in {
