@@ -13,8 +13,10 @@ import { assertTimeDecidable } from "../time/decide";
 import { dubaiDate } from "../time/dubai";
 import {
   checkDecisions,
+  misfits,
   saveDecisions,
   undecided,
+  voidDecisions,
 } from "../time/overtime-decisions";
 import { buildPayInputs } from "../time/pay-inputs";
 import { loadPayInputSource } from "../time/pay-inputs-load";
@@ -86,6 +88,11 @@ async function submit(ctx: IdCtx) {
        submitted_at = $5, submitted_by = $6 WHERE company_id = $1
        AND id = $2`, [co(ctx), r.id, JSON.stringify(freeze(b.days)),
       b.hash, nowIso(ctx), ctx.user!.id]);
+  // Decisions made on the draft that no longer fit the frozen day.
+  const bad = misfits(b.days);
+  if (bad.length > 0) {
+    await voidDecisions(ctx.tx, co(ctx), r.id, nowIso(ctx), bad);
+  }
   return setStatus(ctx, r, "submitted", "submitted");
 }
 
@@ -108,7 +115,13 @@ async function approve(ctx: IdCtx) {
   const r = await loadSheet(ctx.tx, co(ctx), ctx.params.id, true);
   await assertTimeDecidable(ctx, decidable(r), "submitted",
     "TIMESHEET_TRANSITION");
-  const open = undecided((await view(ctx, r)).days);
+  const days = (await view(ctx, r)).days;
+  const bad = misfits(days);
+  if (bad.length > 0) {
+    throw new ApiError("OVERTIME_DECISION_INVALID", undefined,
+      { dates: bad });
+  }
+  const open = undecided(days);
   if (open.length > 0) {
     throw new ApiError("OVERTIME_UNDECIDED", undefined, { dates: open });
   }
@@ -124,6 +137,7 @@ function back(from: "submitted" | "approved", action: string) {
     const r = await loadSheet(ctx.tx, co(ctx), ctx.params.id, true);
     await assertTimeDecidable(ctx, decidable(r), from,
       "TIMESHEET_TRANSITION");
+    await voidDecisions(ctx.tx, co(ctx), r.id, nowIso(ctx), null);
     return setStatus(ctx, r, "draft", action, ", days_json = NULL, " +
       "source_hash = NULL, approved_at = NULL, approved_by = NULL");
   };

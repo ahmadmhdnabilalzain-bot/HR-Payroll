@@ -157,6 +157,37 @@ describe("timesheets and overtime review", () => {
     expect(put.status, put.text).toBe(200);
   });
 
+  it("draft_decision_then_correction_voided", async () => {
+    const before = await as(s.hr, "GET", `${T}/${sheetId}`);
+    const ot = day(before.body, "2026-03-02").overtimeMinutes;
+    expect(ot).toBeGreaterThan(0);
+    const d = await as(s.manager, "POST", `${T}/${sheetId}/overtime`, {
+      days: [{ date: "2026-03-02", approvedMinutes: ot,
+        approvedNightMinutes: 0 }] });
+    expect(d.status, d.text).toBe(200);
+    const put = await as(s.hr, "PUT", `/v1/attendance/${recordId}`, {
+      clockIn: "2026-03-02T05:00:00.000Z",
+      clockOut: "2026-03-02T13:00:00.000Z", note: "no overtime" });
+    expect(put.status, put.text).toBe(200);
+    const sub = await as(s.employee, "POST", `${T}/${sheetId}/submit`);
+    expect(sub.status, sub.text).toBe(200);
+    expect(day(sub.body, "2026-03-02").decision).toBeNull();
+    const ok = await as(s.manager, "POST", `${T}/${sheetId}/approve`);
+    expect(ok.status, ok.text).toBe(200);
+    const pay = await as(s.hr, "GET", "/v1/time/pay-inputs?year=2026&month=3");
+    const mine = pay.body.employees.find((e: { employeeId: string }) =>
+      e.employeeId === s.emp.report);
+    expect(mine.overtime).toEqual([]);
+  });
+
+  it("decisions_voided_on_reopen", async () => {
+    const r = await as(s.owner, "POST", `${T}/${sheetId}/reopen`,
+      { note: "check again" });
+    expect(r.status, r.text).toBe(200);
+    expect(r.body.days.every((x: { decision: unknown }) =>
+      x.decision === null)).toBe(true);
+  });
+
   it("wfh_hidden_from_peers", async () => {
     const peer = await linkUser(ctx, s, s.emp.outsider, "tshpeer");
     const r = await as(peer, "GET", `${T}/${sheetId}`);

@@ -55,7 +55,7 @@ export async function loadDecisions(tx: Db, companyId: string,
     compensation: "pay" | "day-off" | null; decided_by: string;
     decided_at: string }>(
     `SELECT * FROM overtime_decisions WHERE company_id = $1
-     AND timesheet_id = $2`, [companyId, sheetId]);
+     AND timesheet_id = $2 AND voided_at IS NULL`, [companyId, sheetId]);
   return new Map(rows.map((r) => [r.date, {
     approvedMinutes: r.approved_minutes,
     approvedNightMinutes: r.approved_night_minutes,

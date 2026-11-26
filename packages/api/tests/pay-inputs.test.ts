@@ -69,6 +69,24 @@ describe("buildPayInputs (pure)", () => {
       compensation: "pay" }]);
   });
 
+  it("decision_beyond_the_day_is_clipped_and_listed", () => {
+    const s = src([d("2026-03-02", { overtimeMinutes: 30,
+      overtimeNightMinutes: 10, decision: ot(120, 60) })]);
+    expect(one(s).overtime).toEqual([{ date: "2026-03-02", minutes: 30,
+      nightMinutes: 10 }]);
+    expect(codes(s)).toEqual(["DECISION_CLIPPED"]);
+    const none = src([d("2026-03-02", { decision: ot(120) })]);
+    expect(one(none).overtime).toEqual([]);
+    expect(codes(none)).toEqual(["DECISION_CLIPPED"]);
+  });
+
+  it("rest_day_turned_work_day_drops_rest_day_work", () => {
+    const s = src([d("2026-03-04", { kind: "work", decision: { ...ot(0),
+      restDayWork: { approved: true, compensation: "pay" } } })]);
+    expect(one(s).restDayWork).toEqual([]);
+    expect(codes(s)).toEqual(["DECISION_CLIPPED"]);
+  });
+
   it("half_day_absence_manual", () => {
     const s = src([], { leaveDates: [{ employeeId: E, date: "2026-03-03",
       halves: 1, payrollKind: "unpaid" }] });
@@ -77,7 +95,8 @@ describe("buildPayInputs (pure)", () => {
   });
 
   it("work_on_absence_removed", () => {
-    const s = src([d("2026-03-03", { decision: ot(30) })], { leaveDates: [
+    const s = src([d("2026-03-03", { overtimeMinutes: 30,
+      decision: ot(30) })], { leaveDates: [
       { employeeId: E, date: "2026-03-03", halves: 2,
         payrollKind: "sick" }] });
     expect(one(s).overtime).toEqual([]);
@@ -86,7 +105,8 @@ describe("buildPayInputs (pure)", () => {
   });
 
   it("outside_service_removed", () => {
-    const s = src([d("2026-03-02", { decision: ot(30) })], { employees: [{
+    const s = src([d("2026-03-02", { overtimeMinutes: 30,
+      decision: ot(30) })], { employees: [{
       employeeId: E, joiningDate: "2026-03-10", lastWorkingDate: null }] });
     expect(one(s).overtime).toEqual([]);
     expect(codes(s)).toEqual(["DATE_OUTSIDE_SERVICE"]);
@@ -112,7 +132,8 @@ describe("buildPayInputs (pure)", () => {
       `2026-03-${String(n).padStart(2, "0")}`);
     const dayArb = fc.record({ date, ot: fc.integer({ min: 0, max: 200 }),
       rest: fc.boolean() }).map((x) => d(x.date, {
-      kind: x.rest ? "rest" : "work", decision: { ...ot(x.ot),
+      kind: x.rest ? "rest" : "work", overtimeMinutes: x.ot,
+      decision: { ...ot(x.ot),
         restDayWork: x.rest ? { approved: true, compensation: "pay" }
           : null } }));
     const leaveArb = fc.record({ date, halves: fc.constantFrom(1, 2),

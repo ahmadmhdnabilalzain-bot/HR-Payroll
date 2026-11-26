@@ -33,6 +33,9 @@ CREATE TABLE overtime_decisions (
   compensation text CHECK (compensation IN ('pay', 'day-off')),
   decided_by uuid NOT NULL,
   decided_at timestamptz NOT NULL,
+  -- Set when the decision no longer fits the day (reopen, reject, or
+  -- a submit whose frozen day is smaller). No deletes (Ruling 20).
+  voided_at timestamptz,
   PRIMARY KEY (timesheet_id, date),
   FOREIGN KEY (company_id, timesheet_id)
     REFERENCES timesheets (company_id, id)

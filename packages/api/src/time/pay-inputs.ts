@@ -31,13 +31,35 @@ const ABSENT = new Set(["unpaid", "sick", "maternity"]);
 const item = (date: string | null, code: ManualItem["code"],
   note: string): ManualItem => ({ date, code, note });
 
+/**
+ * Backstop: a decision never pays more than the frozen day shows, and
+ * rest-day work only on a rest day or holiday; either fix is listed.
+ */
+function decided(s: Sheet, manual: ManualItem[]) {
+  const overtime = [];
+  for (const d of s.days.filter((x) => x.decision !== null)) {
+    const want = d.decision!;
+    const minutes = Math.min(want.approvedMinutes, d.overtimeMinutes);
+    const night = Math.min(want.approvedNightMinutes,
+      d.overtimeNightMinutes, minutes);
+    const restBad = want.restDayWork?.approved === true && d.kind === "work";
+    if (minutes < want.approvedMinutes ||
+      night < want.approvedNightMinutes || restBad) {
+      manual.push(item(d.date, "DECISION_CLIPPED", "The decision was " +
+        "larger than the frozen day; review it"));
+    }
+    if (minutes > 0) {
+      overtime.push({ date: d.date, minutes, nightMinutes: night });
+    }
+  }
+  return overtime;
+}
+
 function arrays(s: Sheet, leave: PayInputSource["leaveDates"]) {
   const manual: ManualItem[] = [];
-  const overtime = s.days.filter((d) => (d.decision?.approvedMinutes ?? 0)
-    > 0).map((d) => ({ date: d.date, minutes: d.decision!.approvedMinutes,
-    nightMinutes: d.decision!.approvedNightMinutes }));
-  const restDayWork = s.days.filter((d) => d.decision?.restDayWork
-    ?.approved === true).map((d) => ({ date: d.date,
+  const overtime = decided(s, manual);
+  const restDayWork = s.days.filter((d) => d.kind !== "work" &&
+    d.decision?.restDayWork?.approved === true).map((d) => ({ date: d.date,
     kind: d.kind === "holiday" ? "holiday" as const : "rest-day" as const,
     compensation: d.decision!.restDayWork!.compensation }));
   const absences: PayInputAbsence[] = [];

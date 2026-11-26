@@ -32,7 +32,7 @@ export const ManualItem = z.object({
   date: IsoDate.nullable(),
   code: z.enum(["HALF_DAY_ABSENCE", "WORK_ON_ABSENCE_DATE",
     "DATE_OUTSIDE_SERVICE", "SICK_COUNTER_HAS_HALF_DAYS",
-    "TIMESHEET_STALE"]),
+    "TIMESHEET_STALE", "DECISION_CLIPPED"]),
   note: z.string(),
 });
 export type ManualItem = z.infer<typeof ManualItem>;

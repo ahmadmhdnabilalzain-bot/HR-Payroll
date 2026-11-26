@@ -7,7 +7,7 @@ import { ApiError } from "../http/errors";
 
 type In = OvertimeDecisionInput["days"][number];
 
-function valid(d: TimesheetDay | undefined, x: In): boolean {
+export function valid(d: TimesheetDay | undefined, x: In): boolean {
   if (d === undefined) return false;
   if (x.approvedMinutes > d.overtimeMinutes) return false;
   if (x.approvedNightMinutes > Math.min(x.approvedMinutes,
@@ -49,9 +49,28 @@ export async function saveDecisions(tx: Db, companyId: string,
        ON CONFLICT (timesheet_id, date) DO UPDATE SET
          approved_minutes = $4, approved_night_minutes = $5,
          rest_day_approved = $6, compensation = $7, decided_by = $8,
-         decided_at = $9`,
+         decided_at = $9, voided_at = NULL`,
       [companyId, sheetId, x.date, x.approvedMinutes,
         x.approvedNightMinutes, x.restDayWork?.approved ?? null,
         x.restDayWork?.compensation ?? null, by, at]);
   }
+}
+
+/** Voids decisions (all, or those of `dates`); they stop counting. */
+export async function voidDecisions(tx: Db, companyId: string,
+  sheetId: string, at: string, dates: string[] | null): Promise<void> {
+  await tx.query(
+    `UPDATE overtime_decisions SET voided_at = $3 WHERE company_id = $1
+     AND timesheet_id = $2 AND voided_at IS NULL
+     AND ($4::date[] IS NULL OR date = ANY($4::date[]))`,
+    [companyId, sheetId, at, dates]);
+}
+
+/** Days whose stored decision no longer fits the day. */
+export function misfits(days: TimesheetDay[]): string[] {
+  return days.filter((d) => d.decision !== null && !valid(d, {
+    date: d.date, approvedMinutes: d.decision.approvedMinutes,
+    approvedNightMinutes: d.decision.approvedNightMinutes,
+    ...(d.decision.restDayWork === null ? {}
+      : { restDayWork: d.decision.restDayWork }) })).map((d) => d.date);
 }
