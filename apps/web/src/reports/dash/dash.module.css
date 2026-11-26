@@ -566,3 +566,11 @@ a.tileIn:focus-visible {
   font-weight: 500;
   letter-spacing: 0;
 }
+
+/* A line that belongs to the figure above it (Trend's change). */
+.lift {
+  margin: calc(-1 * var(--space-4)) 0 0;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 20px;
+}
