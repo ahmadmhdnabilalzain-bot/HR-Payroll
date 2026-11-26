@@ -178,4 +178,7 @@ export const home: ArOf<typeof en> = {
     ...all("{count} يحتاجون بيانات بنكية"),
     one: "موظف واحد يحتاج بيانات بنكية",
   },
+  inFile: "في ملف الرواتب",
+  heldOutLabel: "محجوز",
+  heldNone: "لا شيء",
 };

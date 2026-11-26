@@ -147,4 +147,7 @@ export const home = {
   readyBar: "{ready} ready",
   heldBar: { one: "{count} needs bank details",
     other: "{count} need bank details" },
+  inFile: "In the salary file",
+  heldOutLabel: "Held out",
+  heldNone: "None",
 } satisfies EnNamespace;

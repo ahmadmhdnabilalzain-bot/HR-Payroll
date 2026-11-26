@@ -1,6 +1,7 @@
 import { useRunApproval } from "../demo/actions";
 import { isBlocking, openIssues } from "../demo/derive";
 import { hrefOf } from "../demo/route";
+import type { Issue } from "../demo/data/types";
 import { useDemo } from "../demo/state";
 import {
   formatList,
@@ -45,7 +46,7 @@ export function StatusSentence() {
  * bank details; the General Manager approves (disabled, with its
  * reason, while a payslip has no bank account).
  */
-export function StatusAction() {
+export function StatusAction(p: { onIban?(issue: Issue): void }) {
   const { lang, t } = useLocale();
   const { data, state, dispatch } = useDemo();
   const run = useRunApproval();
@@ -94,8 +95,9 @@ export function StatusAction() {
       )}
       {!run.isChecker && firstHeld !== undefined && (
         <button type="button" className={`${b.btn} ${b.primary}
-          ${b.large}`} onClick={() => dispatch({ type: "focus-issue",
-            id: firstHeld.id })}>
+          ${b.large}`} onClick={() => p.onIban !== undefined
+            ? p.onIban(firstHeld)
+            : dispatch({ type: "focus-issue", id: firstHeld.id })}>
           {t("home.primaryIban")}
         </button>
       )}

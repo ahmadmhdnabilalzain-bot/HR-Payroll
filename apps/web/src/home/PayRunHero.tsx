@@ -10,6 +10,9 @@ import { Icon } from "../ui/Icon";
 import { Money } from "../ui/Money";
 import { NetTrend } from "./NetTrend";
 import { useRunApproval } from "../demo/actions";
+import type { Issue } from "../demo/data/types";
+import { RollDigits } from "../ui/RollDigits";
+import { CardIban } from "./CardIban";
 import { StatusAction, StatusSentence } from "./StatusLead";
 import { StepTracker } from "./StepTracker";
 import nt from "./NetTrend.module.css";
@@ -30,8 +33,9 @@ export function PayRunHero() {
   const h = data.headline();
   const cal = data.payCalendar();
   const net = run.explain["run:net"];
+  const [editing, setEditing] = useState<Issue | null>(null);
   return (
-    <section className={s.hero} aria-labelledby="run-title">
+    <section className={s.hero} aria-labelledby="run-title" data-card="">
       <h2 id="run-title" className="visually-hidden">{t("home.net")}</h2>
       <div className={s.top}>
         <div className={s.lead}>
@@ -51,11 +55,16 @@ export function PayRunHero() {
               {t("home.whyNumber")}
             </ExplainLink>
           </p>
-          <ReadyBar total={h.headcount} held={h.heldNetFils} />
-          <div className={s.act}>
-            <StatusAction />
-            <StepTracker />
-          </div>
+          <ReadyBar total={h.headcount} file={h.sifTotalFils}
+            held={h.heldNetFils} />
+          {editing !== null ? (
+            <CardIban issue={editing} onDone={() => setEditing(null)} />
+          ) : (
+            <div className={s.act}>
+              <StatusAction onIban={setEditing} />
+              <StepTracker />
+            </div>
+          )}
           <p className={s.caveat}>{h.netNote[lang]}</p>
         </div>
         <Suspense fallback={<div className={nt.placeholder} />}>
@@ -71,7 +80,7 @@ export function PayRunHero() {
  * (counts from the run's own blockers), with the amount held out of
  * the salary file beside it.
  */
-function ReadyBar(p: { total: number; held: Fils }) {
+function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
   const { t } = useLocale();
   const run = useRunApproval();
   const blocked = run.blockedBy.length;
@@ -94,8 +103,17 @@ function ReadyBar(p: { total: number; held: Fils }) {
             {t("home.heldBar", { count: blocked })}
           </span>
         )}
-        <HeldOut value={p.held} />
       </p>
+      <dl className={s.totals}>
+        <div data-fly-target="">
+          <dt>{t("home.inFile")}</dt>
+          <dd><RollDigits value={p.file} size="lg" /></dd>
+        </div>
+        <div>
+          <dt>{t("home.heldOutLabel")}</dt>
+          <dd><HeldOut value={p.held} /></dd>
+        </div>
+      </dl>
     </div>
   );
 }
@@ -123,12 +141,8 @@ function HeldOut(p: { value: Fils }) {
   const zero = p.value === 0n && !rolling;
   return (
     <span className={s.held} data-zero={zero}>
-      {zero ? t("home.allInFile") : (
-        <>
-          <Money value={fils(p.value)} size="sm" />
-          {" "}{t("home.heldOut")}
-        </>
-      )}
+      {zero ? t("home.heldNone")
+        : <RollDigits value={fils(p.value)} size="lg" />}
     </span>
   );
 }
