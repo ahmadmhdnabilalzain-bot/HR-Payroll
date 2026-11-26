@@ -13,6 +13,8 @@ import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { PageHead } from "../ui/templates";
+import { AskName, AskProvider } from "../me/ask/AskLine";
+import type { LineRef } from "../me/ask/line";
 import { dayText, lineLabel } from "./words";
 import p from "./page.module.css";
 import s from "./Payslip.module.css";
@@ -79,10 +81,12 @@ export function Payslip(q: { id: string }) {
       ) : slip === null ? (
         <p className={p.empty}>{t("people.noPayslip", { month })}</p>
       ) : (
-        <div className={s.layout}>
-          <Slip slip={slip} />
-          <Aside slip={slip} />
-        </div>
+        <AskProvider slip={slip}>
+          <div className={s.layout}>
+            <Slip slip={slip} />
+            <Aside slip={slip} />
+          </div>
+        </AskProvider>
       )}
       <Footnote />
     </div>
@@ -170,9 +174,12 @@ function Line(q: { slip: PayslipView; line: PayslipLineView }) {
   const label = lineLabel(q.line, t);
   const ex = useExplained(q.slip, q.line.traceId, label);
   const derived = DERIVED.has(q.line.kind) || DERIVED.has(q.line.code ?? "");
+  const ref: LineRef = { traceId: q.line.traceId, label,
+    kind: q.line.code ?? q.line.kind, group: q.line.group,
+    amountFils: q.line.amountFils };
   return (
     <div className={s.line}>
-      <dt>{label}</dt>
+      <dt><AskName line={ref} /></dt>
       <dd>
         <Explainable explanation={ex}
           className={derived ? undefined : s.plain}>
@@ -201,11 +208,14 @@ function Pension(q: { slip: PayslipView; traceId: string }) {
 }
 
 function Total(q: { slip: PayslipView; traceId: string; label: string;
-  value: PayslipView["netFils"]; strong?: boolean }) {
+  value: PayslipView["netFils"]; kind: "gross" | "deductions" | "net";
+  strong?: boolean }) {
   const ex = useExplained(q.slip, q.traceId, q.label);
+  const ref: LineRef = { traceId: q.traceId, label: q.label, kind: q.kind,
+    group: q.kind, amountFils: q.value };
   return (
     <div className={s.total} data-strong={q.strong === true}>
-      <dt>{q.label}</dt>
+      <dt><AskName line={ref} /></dt>
       <dd>
         <Explainable explanation={ex}>
           <Money value={q.value} size={q.strong === true ? "lg" : "md"}
@@ -261,7 +271,8 @@ function Slip(q: { slip: PayslipView }) {
         <dl className={s.lines}>
           {earnings.map((l) => <Line key={l.traceId} slip={slip} line={l} />)}
           <Total slip={slip} traceId={slip.grossTraceId}
-            label={t("people.gross")} value={slip.grossFils} />
+            label={t("people.gross")} value={slip.grossFils}
+            kind="gross" />
         </dl>
       </section>
       <section aria-labelledby="slip-ded">
@@ -280,12 +291,12 @@ function Slip(q: { slip: PayslipView }) {
           )}
           <Total slip={slip} traceId={slip.deductionsTraceId}
             label={t("people.totalDeductions")}
-            value={slip.deductionsFils} />
+            value={slip.deductionsFils} kind="deductions" />
         </dl>
       </section>
       <dl className={s.netBlock}>
         <Total slip={slip} traceId={slip.netTraceId}
-          label={t("people.net")} value={slip.netFils} strong />
+          label={t("people.net")} value={slip.netFils} kind="net" strong />
       </dl>
       {(slip.pension !== null || slip.held !== null) && (
         <footer className={s.foot}>
