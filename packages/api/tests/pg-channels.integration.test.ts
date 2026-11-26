@@ -9,7 +9,7 @@ import {
 } from "./helpers/expense-fixtures";
 import { ADMIN_URL, closeAll, freshPgPair } from "./helpers/pg-env";
 import { seedCompany } from "./helpers/seed";
-import { seedTwoCompanies } from "./helpers/test-db";
+import { COMPANY_A, seedTwoCompanies } from "./helpers/test-db";
 import { call, makeApp } from "./helpers/test-app";
 
 /**
@@ -64,7 +64,9 @@ describe.skipIf(!ADMIN_URL)("Plan 13 jobs on real PostgreSQL", () => {
       UPDATE sso_settings SET body =
         '{"jitEmployees":true,"allowedDomains":["acme.test"]}';
       UPDATE employees SET email = 'e@acme.test';
-      UPDATE memberships SET employee_id = NULL;`);
+      UPDATE memberships SET employee_id = NULL;
+      UPDATE sso_domains SET status = 'verified'
+        WHERE company_id = '${COMPANY_A}';`);
     const q = (sql: string, args: unknown[] = []) => withTenant(db,
       { companyId: null, userId: null }, (tx) =>
         tx.query<Record<string, unknown>>(sql, args));
@@ -75,9 +77,10 @@ describe.skipIf(!ADMIN_URL)("Plan 13 jobs on real PostgreSQL", () => {
       [now])).length).toBe(1);
     expect(two(await q("SELECT * FROM due_webhook_deliveries($1, 10)",
       [now]))).toBe(2);
-    expect(two(await q(
-      "SELECT * FROM sso_jit_candidates('e@acme.test', 'acme.test')")))
-      .toBe(2);
+    // Only the company that verified the domain (review I4).
+    expect(await q(
+      "SELECT * FROM sso_jit_candidates('e@acme.test', 'acme.test')"))
+      .toEqual([{ company_id: COMPANY_A }]);
     expect(await q("SELECT expire_awaiting_by_phone('hx') AS n"))
       .toEqual([{ n: 2 }]);
     expect(await q("SELECT withdraw_whatsapp_by_phone('hx', $1) AS n",
@@ -100,5 +103,23 @@ describe.skipIf(!ADMIN_URL)("Plan 13 jobs on real PostgreSQL", () => {
       const hb = await call(ctx.app, b.hr.token, b.companyId, "GET",
         "/v1/me/channels");
       expect(hb.body.whatsapp.status).toBe("active");
+    });
+
+  it("I4: a domain verified in A cannot be claimed by B (tenant tx)",
+    async () => {
+      const { db } = await freshPgPair(2);
+      const ctx = await makeApp({ db, start: EXPENSE_START });
+      const a = await seedCompany(ctx, "pgda");
+      const b = await seedCompany(ctx, "pgdb");
+      const add = await call(ctx.app, a.owner.token, a.companyId, "POST",
+        "/v1/sso-settings/domains", { domain: "pg.test" });
+      const d = add.body.domains[0];
+      ctx.fakes.txt.set(d.txtName, [d.txtValue]);
+      const ok = await call(ctx.app, a.owner.token, a.companyId, "POST",
+        "/v1/sso-settings/domains/verify", { domain: "pg.test" });
+      expect(ok.status, ok.text).toBe(200);
+      const claim = await call(ctx.app, b.owner.token, b.companyId, "POST",
+        "/v1/sso-settings/domains", { domain: "pg.test" });
+      expect(claim.body.error.code).toBe("SSO_DOMAIN_CLAIMED");
     });
 });

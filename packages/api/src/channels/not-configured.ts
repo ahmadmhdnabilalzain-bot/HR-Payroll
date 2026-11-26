@@ -43,6 +43,7 @@ export function notConfiguredPorts(base: { publicApiBaseUrl: string |
     calendarPush: [notConfiguredCalendarPush("google"),
       notConfiguredCalendarPush("microsoft")],
     resolveHost: async () => [],
+    resolveTxt: async () => [],
     publicApiBaseUrl: base.publicApiBaseUrl,
     publicAppBaseUrl: base.publicAppBaseUrl,
     inboundEmailDomain: null,

@@ -643,3 +643,22 @@ Important, 9 Minor). One commit per item, test first.
   enforced company. Tests: personal Gmail and foreign tenant refused
   at link, own tenant accepted, a personal identity linked before
   enforcement cannot sign in past it, enforcement with no domain 400.
+- I4 (any company could claim another's domain for JIT): migration
+  `1312` adds `sso_domains` (forced RLS, tenant policy, job-scan read
+  policy) with a pending/verified state and a random challenge, a
+  partial unique index so one company at most holds a verified domain,
+  `sso_domain_taken` (SECURITY DEFINER, readable from a tenant
+  transaction), and replaces `sso_jit_candidates` so it needs the email
+  domain verified by the same company. New owner+MFA routes
+  `addSsoDomain` and `verifySsoDomain`; `getSsoSettings` lists the
+  domains with the TXT name and value to publish
+  (`_hr-payroll-challenge.<domain>` =
+  `hr-payroll-verify=<token>`). A `resolveTxt` port (fake in tests;
+  `nodeResolveTxt` in `channels/dns.ts`, UNVERIFIED against real DNS)
+  does the check. JIT and enforcement use only verified domains
+  (`effective`), so a Microsoft JIT also needs the email domain
+  verified. New codes `SSO_DOMAIN_NOT_VERIFIED` (422) and
+  `SSO_DOMAIN_CLAIMED` (409), with web texts. Tests: an unproven domain
+  gives no JIT account and no enforcement pass, the attacker-company
+  scenario, the claim refusal (also on real PostgreSQL). Not done: more
+  than one JIT candidate is still a plain 401, not a security event.

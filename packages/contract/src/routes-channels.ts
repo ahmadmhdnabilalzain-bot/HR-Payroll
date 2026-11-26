@@ -20,6 +20,7 @@ import {
 } from "./route-def";
 import {
   SsoCallbackRequest,
+  SsoDomainRequest,
   SsoIdentityList,
   SsoProviderParams,
   SsoSettings,
@@ -200,6 +201,12 @@ const SSO: readonly RouteDef[] = [
     path: "/v1/sso-settings", response: SsoSettings }),
   ten(OWNER, { id: "putSsoSettings", method: "PUT",
     path: "/v1/sso-settings", body: SsoSettingsUpdate,
+    response: SsoSettings, mfa: true }),
+  ten(OWNER, { id: "addSsoDomain", method: "POST",
+    path: "/v1/sso-settings/domains", body: SsoDomainRequest,
+    response: SsoSettings, mfa: true }),
+  ten(OWNER, { id: "verifySsoDomain", method: "POST",
+    path: "/v1/sso-settings/domains/verify", body: SsoDomainRequest,
     response: SsoSettings, mfa: true }),
 ];
 

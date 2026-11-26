@@ -29,7 +29,7 @@ const NAMES: [Record<string, unknown>, string[]][] = [
     "CalendarFeedCreate", "IcsText"]],
   [sso, ["SsoStartRequest", "SsoStartResponse", "SsoCallbackRequest",
     "SsoIdentity", "SsoIdentityList", "SsoSettingsBody", "SsoSettings",
-    "SsoSettingsUpdate"]],
+    "SsoSettingsUpdate", "SsoDomain", "SsoDomainRequest"]],
   [webhooks, ["WebhookEvent", "WebhookEndpointCreate", "WebhookEndpoint",
     "WebhookEndpointList", "WebhookEndpointCreated",
     "WebhookEndpointUpdate", "WebhookSecretRotate", "WebhookDelivery",

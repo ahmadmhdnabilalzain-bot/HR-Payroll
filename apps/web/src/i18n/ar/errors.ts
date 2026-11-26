@@ -152,6 +152,8 @@ export const errors: ArOf<typeof en> = {
   SSO_IDENTITY_IN_USE: "هذا الحساب مرتبط بمستخدم آخر.",
   SSO_REQUIRED: "تشترط شركتك تسجيل الدخول الموحّد.",
   SSO_IDENTITY_NOT_ALLOWED: "لا تقبل شركتك هنا إلا حسابات العمل الخاصة بها.",
+  SSO_DOMAIN_NOT_VERIFIED: "لم يُعثر على سجل DNS لهذا النطاق بعد. حاول لاحقاً.",
+  SSO_DOMAIN_CLAIMED: "تحققت شركة أخرى من هذا النطاق من قبل.",
   LAST_SIGN_IN_METHOD: "أبقِ طريقة واحدة على الأقل لتسجيل الدخول.",
   INVITE_EMAIL_MISMATCH: "بريد هذا الحساب لا يطابق الدعوة.",
   WEBHOOK_URL_NOT_ALLOWED: "هذا العنوان غير مسموح للربط الآلي.",

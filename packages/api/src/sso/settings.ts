@@ -1,6 +1,7 @@
 import {
   SSO_NOTE,
   SsoSettingsBody,
+  type SsoDomainRequest,
   type SsoSettings,
   type SsoSettingsUpdate,
 } from "@payroll/contract";
@@ -8,6 +9,13 @@ import { channelAudit } from "../channels/audit";
 import type { Db } from "../db/db";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
+import {
+  addDomain,
+  verifyDomain as verifyDomainOf,
+  domainViews,
+  effective,
+  verifiedDomains,
+} from "./domains";
 import { orgAccepted } from "./identity";
 
 const DEFAULTS: SsoSettingsBody = { allowedDomains: [],
@@ -28,6 +36,7 @@ export async function getSsoSettings(ctx: ReqCtx): Promise<SsoSettings> {
   const st = (on: boolean) => on ? "configured" : "not-configured";
   const o = ctx.deps.channels.oidc;
   return { ...s.body, version: s.version, note: SSO_NOTE,
+    domains: await domainViews(ctx.tx, ctx.tenant!.companyId),
     providers: { google: st(o.configured("google")),
       microsoft: st(o.configured("microsoft")) } };
 }
@@ -66,8 +75,9 @@ export async function checkSsoEnforced(tx: Db, companyId: string,
   role: string, session: { authMethod?: string; ssoOrg?: string | null })
   : Promise<void> {
   if (role === "owner") return;
-  const s = (await ssoBody(tx, companyId)).body;
-  if (!s.enforceSso) return;
+  const raw = (await ssoBody(tx, companyId)).body;
+  if (!raw.enforceSso) return;
+  const s = effective(raw, await verifiedDomains(tx, companyId));
   if (!orgAccepted(s, session.authMethod ?? "password", session.ssoOrg)) {
     throw new ApiError("SSO_REQUIRED");
   }
@@ -101,4 +111,16 @@ export async function unlinkIdentity(ctx: ReqCtx<unknown, unknown,
      WHERE id = $1 AND user_id = $2`, [ctx.params.id, me.id,
       ctx.deps.now().toISOString()]);
   return listIdentities(ctx);
+}
+
+export async function addSsoDomain(ctx: ReqCtx<SsoDomainRequest>)
+  : Promise<SsoSettings> {
+  await addDomain(ctx);
+  return getSsoSettings(ctx);
+}
+
+export async function verifySsoDomain(ctx: ReqCtx<SsoDomainRequest>)
+  : Promise<SsoSettings> {
+  await verifyDomainOf(ctx);
+  return getSsoSettings(ctx);
 }

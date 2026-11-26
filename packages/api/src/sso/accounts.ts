@@ -13,6 +13,7 @@ import {
   orgOf,
   type Identity,
 } from "./identity";
+import { effective, verifiedDomains } from "./domains";
 import { ssoBody } from "./settings";
 
 const NO_TENANT = { companyId: null, userId: null };
@@ -58,8 +59,9 @@ async function checkLinkAllowed(ctx: ReqCtx, p: SsoProvider, id: Identity,
   companies: { company_id: string; role: string }[]): Promise<void> {
   for (const c of companies.filter((x) => x.role !== "owner")) {
     const s = await ctx.enter({ companyId: c.company_id, userId: null },
-      (tx) => ssoBody(tx, c.company_id));
-    if (s.body.enforceSso && !orgAccepted(s.body, `sso:${p}`, orgOf(id))) {
+      async (tx) => effective((await ssoBody(tx, c.company_id)).body,
+        await verifiedDomains(tx, c.company_id)));
+    if (s.enforceSso && !orgAccepted(s, `sso:${p}`, orgOf(id))) {
       throw new ApiError("SSO_IDENTITY_NOT_ALLOWED");
     }
   }
@@ -122,7 +124,8 @@ async function jitIn(ctx: ReqCtx, p: SsoProvider, id: Identity,
            WHERE m.company_id = e.company_id AND m.employee_id = e.id)`,
       [companyId, id.email]);
     const ok = jitEligible({ identity: id, provider: p,
-      settings: (await ssoBody(tx, companyId)).body,
+      settings: effective((await ssoBody(tx, companyId)).body,
+        await verifiedDomains(tx, companyId)),
       employeeMatch: e !== undefined,
       userWithEmailExists: await userByEmail(tx, id.email!) !== null });
     if (!ok) return null;

@@ -78,6 +78,11 @@ async function ssoFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {
   await hit("putSsoSettings", u.owner, c, {}, { allowedDomains: [],
     googleHostedDomains: [], microsoftTenantIds: [], jitEmployees: false,
     enforceSso: false, expectedVersion: s.body.version });
+  const d = await hit("addSsoDomain", u.owner, c, {},
+    { domain: "flow.test" });
+  const dom = d.body.domains[0] as { txtName: string; txtValue: string };
+  ctx.fakes.txt.set(dom.txtName, [dom.txtValue]);
+  await hit("verifySsoDomain", u.owner, c, {}, { domain: "flow.test" });
   const oidc = ctx.deps.channels.oidc as FakeOidc;
   await hit("ssoLinkStart", u.owner, null, { provider: "google" });
   const code = (st: { nonce: string }) => {

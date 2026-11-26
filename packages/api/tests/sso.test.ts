@@ -48,6 +48,19 @@ async function setSso(ctx: Ctx, s: Seeded, over = {}) {
   if (r.status !== 200) throw new Error(r.text);
 }
 
+/** Proves `domain` for the company through the fake TXT resolver. */
+async function proveDomain(ctx: Ctx, s: Seeded, domain = "acme.test",
+  publish = true) {
+  const a = await call(ctx.app, s.owner.token, s.companyId, "POST",
+    "/v1/sso-settings/domains", { domain });
+  if (a.status !== 200) return a;
+  const d = a.body.domains.find((x: { domain: string }) =>
+    x.domain === domain);
+  if (publish) ctx.fakes.txt.set(d.txtName, [d.txtValue]);
+  return call(ctx.app, s.owner.token, s.companyId, "POST",
+    "/v1/sso-settings/domains/verify", { domain });
+}
+
 const db = (ctx: Ctx, sql: string, args: unknown[] = []) =>
   withTenant(ctx.deps.db, { companyId: null, userId: null },
     (tx) => tx.query<Record<string, unknown>>(sql, args));
@@ -112,6 +125,10 @@ describe("SSO with OpenID Connect", () => {
     const off = await sso(ctx, "google", google("g-e", "e@acme.test"));
     expect(off.status).toBe(401);
     await setSso(ctx, s);
+    // Review I4: an unproven domain gives no just-in-time account.
+    const unproven = await sso(ctx, "google", google("g-e", "e@acme.test"));
+    expect(unproven.body.error.code).toBe("SSO_NOT_LINKED");
+    expect((await proveDomain(ctx, s)).status).toBe(200);
     const r = await sso(ctx, "google", google("g-e", "e@acme.test"));
     expect(r.status, r.text).toBe(200);
     expect(r.body.memberships).toEqual([expect.objectContaining({
@@ -166,6 +183,10 @@ describe("SSO with OpenID Connect", () => {
     expect(ok.status, ok.text).toBe(200);
     expect(ok.body.memberships[0].role).toBe("hr");
     await setSso(ctx, s, { jitEmployees: false, enforceSso: true });
+    // Review I4: an unproven hosted domain does not satisfy enforcement.
+    expect((await call(ctx.app, ok.body.token, s.companyId, "GET",
+      "/v1/employees")).body.error.code).toBe("SSO_REQUIRED");
+    expect((await proveDomain(ctx, s)).status).toBe(200);
     const pw = await call(ctx.app, s.hr.token, s.companyId, "GET",
       "/v1/employees");
     expect(pw.body.error.code).toBe("SSO_REQUIRED");
@@ -219,6 +240,36 @@ describe("SSO with OpenID Connect", () => {
           microsoftTenantIds: [], jitEmployees: false, enforceSso: true,
           expectedVersion: cur.body.version });
       expect(bad.status).toBe(400);
+    });
+
+  it("I4: domain ownership by DNS TXT, one company per domain",
+    async () => {
+      const ctx = await makeApp();
+      const victim = await seedCompany(ctx, "ssovic");
+      const evil = await seedCompany(ctx, "ssoevil");
+      const noTxt = await proveDomain(ctx, evil, "acme.test", false);
+      expect(noTxt.status).toBe(422);
+      expect(noTxt.body.error.code).toBe("SSO_DOMAIN_NOT_VERIFIED");
+      // The attacker's company sets up JIT for the victim's domain.
+      await call(ctx.app, evil.hr.token, evil.companyId, "PATCH",
+        `/v1/employees/${evil.emp.outsider}`, { email: "v@acme.test" });
+      await setSso(ctx, evil);
+      const r = await sso(ctx, "google", google("g-v", "v@acme.test"));
+      expect(r.body.error.code).toBe("SSO_NOT_LINKED");
+      // The real owner proves it; the attacker can no longer claim it.
+      expect((await proveDomain(ctx, victim)).status).toBe(200);
+      const claim = await call(ctx.app, evil.owner.token, evil.companyId,
+        "POST", "/v1/sso-settings/domains/verify", { domain: "acme.test" });
+      expect(claim.body.error.code).toBe("SSO_DOMAIN_CLAIMED");
+      const add = await call(ctx.app, evil.owner.token, evil.companyId,
+        "POST", "/v1/sso-settings/domains", { domain: "acme.test" });
+      expect(add.body.error.code).toBe("SSO_DOMAIN_CLAIMED");
+      const view = await call(ctx.app, victim.owner.token,
+        victim.companyId, "GET", "/v1/sso-settings");
+      expect(view.body.domains).toEqual([expect.objectContaining({
+        domain: "acme.test", status: "verified" })]);
+      const again = await sso(ctx, "google", google("g-v", "v@acme.test"));
+      expect(again.body.error.code).toBe("SSO_NOT_LINKED");
     });
 
   it("sso_not_configured and settings need owner MFA", async () => {

@@ -142,6 +142,8 @@ export interface ChannelPorts {
   oidc: OidcClient;
   calendarPush: readonly CalendarPushAdapter[];
   resolveHost: (host: string) => Promise<string[]>;
+  /** TXT strings at a DNS name (none on failure; review I4). */
+  resolveTxt: (name: string) => Promise<string[]>;
   /** https base URLs without a trailing slash; null when not set. */
   publicApiBaseUrl: string | null;
   publicAppBaseUrl: string | null;

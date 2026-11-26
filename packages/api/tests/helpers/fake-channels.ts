@@ -41,6 +41,8 @@ export interface FakeChannels {
   failNext(channel: "email" | "whatsapp", outcome: SendOutcome): void;
   http: FakeHttp;
   dns: Map<string, string[]>;
+  /** TXT records by name (review I4). */
+  txt: Map<string, string[]>;
 }
 
 type Queue = Record<"email" | "whatsapp", SendOutcome[]>;
@@ -72,6 +74,7 @@ export function fakeChannels(opts: Partial<FakeOpts> = {}): FakeChannels {
   const outbox: FakeChannels["outbox"] = { email: [], whatsapp: [] };
   const queue: Queue = { email: [], whatsapp: [] };
   const dns = new Map<string, string[]>();
+  const txt = new Map<string, string[]>();
   const http = fakeHttp();
   const base = notConfiguredPorts({ publicApiBaseUrl: FAKE_API_BASE,
     publicAppBaseUrl: FAKE_APP_BASE });
@@ -98,7 +101,8 @@ export function fakeChannels(opts: Partial<FakeOpts> = {}): FakeChannels {
       : base.inboundEmail,
     inboundEmailDomain: o.inboundEmail ? "in.test.example" : null,
     oidc: o.oidc ? fakeOidc() : base.oidc,
-    resolveHost: async (host) => dns.get(host) ?? [] };
-  return { ports, outbox, http, dns,
+    resolveHost: async (host) => dns.get(host) ?? [],
+    resolveTxt: async (name) => txt.get(name) ?? [] };
+  return { ports, outbox, http, dns, txt,
     failNext: (ch, out) => queue[ch].push(out) };
 }

@@ -73,6 +73,10 @@ async function seedInbound(admin: Db, c: string, user: string) {
   await admin.query(
     `INSERT INTO sso_settings (company_id, version, body, updated_by,
        updated_at) VALUES ($1, 1, '{}', $2, $3)`, [c, user, AT]);
+  await admin.query(
+    `INSERT INTO sso_domains (company_id, domain, token, status,
+       created_at) VALUES ($1, 'acme.test', 'tok', 'pending', $2)`,
+  [c, AT]);
   await seedWebhooks(admin, c, user);
 }
 

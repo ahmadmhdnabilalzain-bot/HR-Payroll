@@ -159,6 +159,9 @@ export const errors = {
   SSO_REQUIRED: "Your company requires single sign-on.",
   SSO_IDENTITY_NOT_ALLOWED:
     "Your company accepts only its own work accounts here.",
+  SSO_DOMAIN_NOT_VERIFIED:
+    "The DNS record for this domain was not found yet. Try again later.",
+  SSO_DOMAIN_CLAIMED: "Another company has already verified this domain.",
   LAST_SIGN_IN_METHOD: "Keep at least one way to sign in.",
   INVITE_EMAIL_MISMATCH: "That account's email does not match the invite.",
   WEBHOOK_URL_NOT_ALLOWED: "That address is not allowed for webhooks.",

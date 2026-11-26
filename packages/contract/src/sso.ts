@@ -55,8 +55,24 @@ export const SSO_NOTE = "Sign-in with Google or Microsoft does not " +
   "replace the authenticator code needed for payroll approvals. Owners " +
   "can always sign in with a password.";
 
+/**
+ * Review I4: a domain is used for JIT and enforcement only once the
+ * company proved it owns it with a DNS TXT record
+ * (`txtName` holding `txtValue`); one company per verified domain.
+ */
+export const SsoDomain = z.object({
+  domain: Domain,
+  status: z.enum(["pending", "verified"]),
+  txtName: z.string(),
+  txtValue: z.string(),
+  verifiedAt: Timestamp.nullable(),
+});
+export const SsoDomainRequest = z.object({ domain: Domain });
+export type SsoDomainRequest = z.infer<typeof SsoDomainRequest>;
+
 export const SsoSettings = SsoSettingsBody.extend({
   version: z.number().int().min(0),
+  domains: z.array(SsoDomain),
   providers: z.object({ google: ProviderState, microsoft: ProviderState }),
   note: z.literal(SSO_NOTE),
 });
