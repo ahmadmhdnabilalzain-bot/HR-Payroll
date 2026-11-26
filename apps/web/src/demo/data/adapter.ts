@@ -21,6 +21,7 @@ import { adaptPapers } from "./papers";
 import { adaptMoves } from "./moves";
 import { adaptHome } from "./home";
 import { adaptPeople } from "./people";
+import { adaptTalent } from "./talent";
 import { adaptTeam } from "./team";
 import type {
   Approval,
@@ -112,6 +113,7 @@ export function adapt(c: DemoCompany): DemoData {
     people: adaptPeople(c),
     papers: adaptPapers(c),
     team: adaptTeam(c),
+    talent: adaptTalent(c),
     moves: adaptMoves(c),
     home: adaptHome(c),
   };
