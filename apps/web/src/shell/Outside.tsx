@@ -9,12 +9,14 @@ import t from "../ui/templates/templates.module.css";
  * shell's route guard, nav/registry.ts `mayOpen`): plain words and a
  * way back to the role's Home.
  */
-export function Outside(p: { missing?: boolean } = {}) {
+export function Outside(p: { missing?: boolean;
+  back?: { label: string; href: string } } = {}) {
   const { t: tr } = useLocale();
   return (
     <div className={t.page}>
       <PageHead
         title={tr(p.missing ? "shell.missingTitle" : "shell.outsideTitle")}
+        back={p.back}
         lede={tr(p.missing ? "shell.missingHelp" : "shell.outsideHelp")} />
       <p>
         <a className={`${b.btn} ${b.secondary}`} href={hrefOf("home")}>
