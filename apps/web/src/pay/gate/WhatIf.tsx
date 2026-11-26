@@ -28,8 +28,9 @@ function Row(p: { label: string; before: Fils; after: Fils }) {
         <Money value={p.before} size="sm" tween={false} /></td>
       <td data-label="With the change">
         <Money value={p.after} size="sm" tween={false} /></td>
-      <td data-label="Difference">{diff === 0n ? <span className={s.muted}>No change</span>
-        : <Money value={diff} size="sm" tween={false} signed />}</td>
+      <td data-label="Difference">
+        {diff === 0n ? <span className={s.muted}>No change</span>
+          : <Money value={diff} size="sm" tween={false} signed />}</td>
     </tr>
   );
 }
