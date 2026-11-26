@@ -47,3 +47,4 @@ export * from "./wpe-payroll-extras";
 export * from "./wpe-more";
 export * from "./wpe-erp";
 export * from "./wpe-privacy";
+export * from "./wpe-verify";

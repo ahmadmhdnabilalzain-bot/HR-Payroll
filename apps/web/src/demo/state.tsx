@@ -91,6 +91,12 @@ import {
   type MoreSlice,
 } from "./more-state";
 import {
+  reduceVerify,
+  VERIFY_INITIAL,
+  type VerifyAction,
+  type VerifySlice,
+} from "./verify-state";
+import {
   PAY_INITIAL,
   reducePay,
   type PayAction,
@@ -121,7 +127,7 @@ export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
-    PrivacySlice {
+    PrivacySlice, VerifySlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -165,6 +171,7 @@ export type Action =
   | PriorAction
   | HoldAction
   | MoreAction
+  | VerifyAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -180,6 +187,7 @@ export const INITIAL: DemoState = {
   ...HOLD_INITIAL,
   ...MORE_INITIAL,
   ...PRIVACY_INITIAL,
+  ...VERIFY_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -237,6 +245,10 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "staff-move-new":
     case "staff-move-undo": return reduceMoves(s, a);
     case "files": return reduceFiles(s, a.op);
+    case "verify-withdraw":
+    case "verify-restore":
+    case "verify-intake":
+    case "verify-unintake": return reduceVerify(s, a);
     case "task-done": return s.tasksDone.includes(a.id) ? s
       : { ...s, tasksDone: [...s.tasksDone, a.id] };
     case "task-undone":

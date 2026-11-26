@@ -20,6 +20,7 @@ import { AREAS as SETUP_STRUCTURE } from "./setup-structure";
 import { AREAS as SWEEP_PAY } from "./sweep-pay";
 import { AREAS as SWEEP_PEOPLE } from "./sweep-people";
 import { AREAS as TIME } from "./time";
+import { AREAS as VERIFY } from "./verify";
 
 /**
  * Every area, from a fixed list of files: WP1's core plus one file per
@@ -47,4 +48,5 @@ export const ALL_AREAS: readonly Area[] = [
   ...EXIT_FILES,
   ...SWEEP_PEOPLE,
   ...ERP,
+  ...VERIFY,
 ];
