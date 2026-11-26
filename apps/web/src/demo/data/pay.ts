@@ -1,7 +1,9 @@
 import {
   buildDemoCompany,
+  demoLabel,
   displayDate,
   finalSettlements,
+  isDemoLabelKey,
   loans,
   payCalendar,
   payCorrections,
@@ -167,6 +169,11 @@ export function payViewOf(c: DemoCompany): PayView {
     paidNet: x.paidNet, correctNet: x.correctNet, amount: x.amount,
     payIn: x.payIn, explanation: correctionExplain(c, x) }));
   return {
+    expenses: c.expenses.map((x) => ({ id: x.id, employeeId: x.employeeId,
+      name: nameOf(c, x.employeeId), title: isDemoLabelKey(x.titleKey)
+        ? demoLabel(x.titleKey, "en") : x.titleKey,
+      date: displayDate(x.date), amount: x.amount, vat: x.vat,
+      receipt: x.receipt, settled: x.status !== "pending" })),
     deductions: deductionsOf(c),
     loans: loans(c).map((l) => ({ ref: l.ref, employeeId: l.employeeId,
       name: l.display.name, kind: l.kind,

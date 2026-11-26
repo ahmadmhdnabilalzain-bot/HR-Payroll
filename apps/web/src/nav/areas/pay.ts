@@ -47,6 +47,14 @@ export const AREAS: readonly Area[] = [
     status: "live", archetype: "FA", roles: HR_GM, route: pay("revisions"),
     count: (c) => waitingOf(c.state, ["revision"]),
     keywords: "raise increment revise basic back pay arrears promotion" },
+  { id: "pay.expenses", section: "pay", group: "changes",
+    label: { en: "Expense claims", ar: "مطالبات المصروفات" },
+    status: "live", archetype: "FA", roles: HR_GM, route: pay("expenses"),
+    count: withPay((c, v) => v.expenses.filter((x) => !x.settled &&
+      c.data.approvalsInbox().some((a) => a.kind === "expense" &&
+        a.employeeId === x.employeeId && c.state.decided[a.id] ===
+        undefined)).length),
+    keywords: "expense claim receipt reimburse vat" },
   { id: "pay.fines", section: "pay", group: "changes",
     label: { en: "Traffic fines to decide", ar: "المخالفات المرورية" },
     status: "live", archetype: "LF", roles: HR_GM, route: pay("fines"),

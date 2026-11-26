@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import { useDemo } from "../demo/state";
 import { canSeePayRecords } from "./derive";
 import { CorrectionRecord, Corrections } from "./Corrections";
+import { ExpenseRecord, Expenses } from "./Expenses";
 import { FineRecord, Fines } from "./Fines";
 import { Deductions, OffCycle } from "./Ledger";
 import { LoanRecord, Loans } from "./Loans";
@@ -18,7 +19,7 @@ import { SettlementRecord, Settlements } from "./Settlements";
  */
 export const PAY_AREAS = ["loans", "revisions", "corrections",
   "settlements", "runs", "fines", "groups", "elements", "deductions",
-  "off-cycle"] as const;
+  "off-cycle", "expenses"] as const;
 export type PayAreaId = (typeof PAY_AREAS)[number];
 
 export const isPayArea = (x: string | undefined): x is PayAreaId =>
@@ -40,6 +41,8 @@ function screen(area: PayAreaId, id: string | undefined): ReactNode {
     case "elements": return <PayElements />;
     case "deductions": return <Deductions />;
     case "off-cycle": return <OffCycle />;
+    case "expenses": return id === undefined ? <Expenses />
+      : <ExpenseRecord id={id} />;
   }
 }
 

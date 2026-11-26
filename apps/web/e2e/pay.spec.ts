@@ -58,3 +58,14 @@ test("pay-records-are-outside-an-employees-view", async ({ page }) => {
     name: "Outside your view" })).toBeVisible();
   await expect(page.getByText("Ayesha Siddiqui")).toHaveCount(0);
 });
+
+test("expense-claim-is-decided-through-the-inbox-id", async ({ page }) => {
+  await page.goto("/#/pay-run/expenses/exp-002");
+  await page.getByRole("button", { name: "View as General Manager" })
+    .click();
+  await page.getByRole("button", { name: "Agree", exact: true }).click();
+  await expect(page.getByText(/^Agreed by /)).toBeVisible();
+  await page.getByRole("link", { name: "Expense claims" }).click();
+  await expect(page.getByRole("link", { name: /Rashid Al Falasi/ }))
+    .toContainText("Agreed");
+});

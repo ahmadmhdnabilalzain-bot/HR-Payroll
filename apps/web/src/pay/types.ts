@@ -154,7 +154,21 @@ export interface DeductionLine {
   ref: string | null;
 }
 
+export interface ExpenseView {
+  id: string;
+  employeeId: string;
+  name: string;
+  title: string;
+  date: string;
+  amount: Fils;
+  vat: Fils;
+  receipt: string;
+  /** Decided before the demo (the package's own record). */
+  settled: boolean;
+}
+
 export interface PayView {
+  expenses: ExpenseView[];
   /** Every deduction line in the pay runs, June to October. */
   deductions: DeductionLine[];
   loans: LoanView[];
