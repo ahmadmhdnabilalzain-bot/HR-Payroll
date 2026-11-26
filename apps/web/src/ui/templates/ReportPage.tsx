@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { Explainable } from "../../components/explain/Explain";
 import type { Explanation } from "../../components/explain/types";
 import { useDemo } from "../../demo/state";
@@ -8,6 +8,7 @@ import { toCsv as csvOf, type Cell } from "../../lib/csv";
 import { downloadText } from "../../lib/download";
 import { amountsHidden, maskMoney, useMaskText } from "../mask";
 import { Money } from "../Money";
+import { useEntrance, useReveal } from "./listEnter";
 import { MoreMenu } from "./Menu";
 import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
@@ -96,9 +97,14 @@ export function ReportPage(p: {
     p.explain !== undefined;
   const note = [p.note, hinted ? t("tpl.explainHint") : undefined]
     .filter((x) => x !== undefined).join(" ");
+  // Rows in view rise in once; sections below the fold rise in as
+  // they scroll into view (listEnter.ts).
+  const page = useRef<HTMLElement>(null);
+  useEntrance(page, ":scope > table > tbody > tr", { scope: "report" });
+  useReveal(page, ":scope > :not(header), [data-reveal-part]");
   return (
-    <article className={`${s.page} ${s.report}`}
-      aria-labelledby={p.id ?? "report-title"}>
+    <article className={`${s.page} ${s.report}`} ref={page}
+      aria-labelledby={p.id ?? "report-title"} data-record-head="">
       <PageHead id={p.id ?? "report-title"} title={p.title}
         lede={p.period} meta={p.meta} crumbs={p.crumbs} actions={(
           <>{p.actions}<MoreMenu items={[{ label: t("tpl.csv"),
@@ -109,7 +115,7 @@ export function ReportPage(p: {
       {p.figure !== undefined && (
         <div className={s.figure}>
           <span>{p.figure.label}</span>
-          <strong>
+          <strong data-card-target="">
             {p.figure.explanation === undefined ? p.figure.value : (
               <Explainable explanation={p.figure.explanation}>
                 {p.figure.value}

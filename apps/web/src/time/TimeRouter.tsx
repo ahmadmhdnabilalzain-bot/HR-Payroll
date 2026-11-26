@@ -14,6 +14,7 @@ import { SLUG_ROLES } from "./routes";
 import { Today } from "./Today";
 import { loadTimeSource } from "../demo/data/time-load";
 import { W } from "./words";
+import { Loading } from "../ui/templates";
 
 // Start loading the Time data at app start; it is its own chunk.
 void loadTimeSource();
@@ -51,8 +52,7 @@ export function TimeRouter(p: ViewProps) {
     return <Outside />;
   }
   return (
-    <Suspense fallback={<p role="status" className="visually-hidden">
-      {W.loading}</p>}>
+    <Suspense fallback={<Loading label={W.loading} />}>
       <Page rest={p.rest} />
     </Suspense>
   );

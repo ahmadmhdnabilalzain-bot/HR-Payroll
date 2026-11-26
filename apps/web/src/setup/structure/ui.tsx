@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { PageHead } from "../../ui/templates";
+import { Loading as Skeleton, PageHead } from "../../ui/templates";
 import { useDemo } from "../../demo/state";
 import { useLocale } from "../../i18n/LocaleProvider";
 import s from "./structure.module.css";
@@ -48,7 +48,7 @@ export function Rows(p: { label: string; rows: RowSpec[];
 
 export function Loading() {
   const { t } = useLocale();
-  return <p className={s.loading} role="status">{t("reports.loading")}</p>;
+  return <Skeleton label={t("reports.loading")} page={false} />;
 }
 
 /** IT opens Setup but never sees anyone's pay (DEMO.md, WP10). */

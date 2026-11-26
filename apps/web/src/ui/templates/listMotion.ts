@@ -6,6 +6,13 @@
  * with the list's search and filter kept. Without the View Transitions
  * API, or with reduced motion, the page dissolves in over 120 ms.
  *
+ * A dashboard tile or a Home card that opens a report works the same
+ * way: its figure travels into the report's figure when the two say
+ * the same thing (`a[data-card]` in a `[data-card-box]`, the figure
+ * `[data-card-figure]`, landing on `[data-card-target]`). A report
+ * opened from the reports list takes its title along (the list row is
+ * an `a[data-row]` too, and the report carries `[data-record-head]`).
+ *
  * The seam is the hash change: the DOM still shows the old page when it
  * fires, so a click, Enter on a row, the back link and the browser's
  * Back button all take the same path.
@@ -31,8 +38,10 @@ interface Parts {
   name: HTMLElement | null;
 }
 
+type Kind = "row" | "card";
+
 /** The last list-to-record trip, so Back can return along it. */
-let trail: { list: string; record: string } | null = null;
+let trail: { list: string; record: string; kind: Kind } | null = null;
 /** Scroll positions by list address. */
 const scrolls = new Map<string, number>();
 
@@ -52,6 +61,32 @@ function exactText(root: HTMLElement, text: string): HTMLElement | null {
       el.textContent?.trim() === text) hit = el;
   });
   return hit;
+}
+
+/** A tile or card's figure, for the card that opens `record`. Only
+ * reports take a figure along (other pages have nowhere to land it). */
+function cardParts(record: string): Parts | null {
+  if (!record.startsWith("#/reports")) return null;
+  const a = [...document.querySelectorAll<HTMLAnchorElement>(
+    "a[data-card]")].find((x) => x.getAttribute("href") === record);
+  if (a === undefined) return null;
+  const box = a.closest<HTMLElement>("[data-card-box]") ?? a;
+  return { face: null,
+    name: box.querySelector<HTMLElement>("[data-card-figure]") };
+}
+
+/** The report's figure, where a card's figure lands. */
+function targetParts(): Parts | null {
+  const el = document.querySelector<HTMLElement>("[data-card-target]");
+  return el === null ? null : { face: null, name: el };
+}
+
+/** The source on the list side: a row, else a card. */
+function sourceParts(record: string): { kind: Kind; parts: Parts } | null {
+  const row = rowParts(record);
+  if (row !== null) return { kind: "row", parts: row };
+  const card = cardParts(record);
+  return card === null ? null : { kind: "card", parts: card };
 }
 
 /** A list row's face and name, for the row that opens `record`. */
@@ -120,15 +155,20 @@ export function changeRoute(oldUrl: string, render: () => void): void {
   const from = hashOf(oldUrl);
   const to = location.hash;
   scrolls.set(from, scrollY);
-  const forward = rowParts(to) !== null;
+  const src = sourceParts(to);
+  const forward = src !== null;
+  const kind: Kind = src?.kind ?? trail?.kind ?? "row";
+  const dest = kind === "card" ? targetParts : recordParts;
+  const list = (href: string): Parts | null =>
+    kind === "card" ? cardParts(href) : rowParts(href);
   const back = !forward && trail !== null && trail.record === from &&
-    trail.list === to && recordParts() !== null;
+    trail.list === to && (kind === "card" || recordParts() !== null);
   if (!forward && !back) {
     render();
     scrollTo({ top: 0 });
     return;
   }
-  if (forward) trail = { list: from, record: to };
+  if (forward) trail = { list: from, record: to, kind };
   const top = back ? scrolls.get(to) ?? 0 : 0;
   const swap = (): void => {
     render();
@@ -141,7 +181,7 @@ export function changeRoute(oldUrl: string, render: () => void): void {
     return;
   }
   const html = document.documentElement;
-  const old = forward ? rowParts(to) : recordParts();
+  const old = forward ? src.parts : dest();
   const clearOld = nameParts(old);
   let clearNew = (): void => undefined;
   html.dataset["listMotion"] = back ? "back" : "open";
@@ -150,15 +190,19 @@ export function changeRoute(oldUrl: string, render: () => void): void {
     swap();
     // The list renders at once: look once (a decided row may have left
     // its filter). A record may still be loading: wait a moment for it.
-    const parts = back ? rowParts(from) : await until(recordParts);
+    const parts = back ? list(from)
+      : await until(dest, kind === "card" ? 240 : 400);
     // The name travels only into a title that carries it ("Rafiq
     // Hossain, 26 October"); otherwise only the face moves.
     const [row, rec] = back ? [parts, old] : [old, parts];
     const said = row?.name?.textContent?.trim() ?? "";
     const same = said !== "" &&
       (rec?.name?.textContent ?? "").includes(said);
+    // A face travels only when both ends have one.
+    const face = (row?.face ?? null) !== null &&
+      (rec?.face ?? null) !== null;
     clearNew = nameParts(parts === null ? null
-      : { face: parts.face, name: same ? parts.name : null });
+      : { face: face ? parts.face : null, name: same ? parts.name : null });
   });
   // A transition skipped by the next one rejects `ready`; nothing waits.
   vt.ready?.catch(() => undefined);

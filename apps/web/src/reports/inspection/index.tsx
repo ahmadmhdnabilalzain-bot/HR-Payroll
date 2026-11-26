@@ -3,13 +3,13 @@ import type { ViewProps } from "../../views";
 import { Inspection } from "./Inspection";
 import { RemediesScreen } from "./Remedies";
 import { Room } from "./Room";
-import s from "./audit.module.css";
+import { Loading } from "../../ui/templates";
 
 /** Loads the chunk behind one quiet line, then the screen. */
 const wrap = (V: ComponentType<ViewProps>): ComponentType<ViewProps> => {
   function Wrapped(p: ViewProps) {
     return (
-      <Suspense fallback={<p className={s.loading}>Working it out…</p>}>
+      <Suspense fallback={<Loading label="Working it out…" />}>
         <V {...p} />
       </Suspense>
     );

@@ -33,24 +33,10 @@
   }
 }
 
+/* The entrance is in Tiles.tsx (listEnter.ts): movement only, a tile
+ * is never shown faded. */
 .tile {
   min-inline-size: 0;
-  animation: rise 420ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 50ms);
-}
-
-/* Movement only: a tile is never shown faded (its figures must read
- * at full contrast from the first frame). */
-@keyframes rise {
-  from {
-    transform: translateY(8px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tile {
-    animation: none;
-  }
 }
 
 .tileIn {

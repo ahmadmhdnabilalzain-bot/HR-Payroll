@@ -94,18 +94,19 @@ function Card(p: { href: string; label: string; value: number;
   const n = useTweenedNumber(p.value);
   return (
     <li>
-      <div className={s.card}>
+      <div className={s.card} data-card-box="">
         <span className={s.head}>
           {p.none !== undefined && p.value === 0
             ? <span className={s.none}>{p.none}</span>
             : (
-              <span className={`${s.value} tabular`}>
+              <span className={`${s.value} tabular`} data-card-figure="">
                 <Explainable explanation={p.why} className={s.why}>
                   {n}
                 </Explainable>
               </span>
             )}
-          <a className={s.label} href={p.href} onClick={p.onClick}>
+          <a className={s.label} href={p.href} onClick={p.onClick}
+            data-card="">
             {p.label}</a>
         </span>
         {p.children}

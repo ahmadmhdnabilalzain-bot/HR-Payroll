@@ -4,13 +4,13 @@ import { Register } from "./Register";
 import { RequestRecord, Requests } from "./Requests";
 import { Run } from "./Run";
 import { Settings } from "./Settings";
-import s from "./privacy.module.css";
+import { Loading } from "../../ui/templates";
 
 /** `#/setup/privacy/<page>`: privacy and retention (S26, WP23). */
 export function SetupPrivacy(p: ViewProps) {
   const [, page = "", id] = p.rest;
   return (
-    <Suspense fallback={<p className={s.loading} role="status">Loading…</p>}>
+    <Suspense fallback={<Loading label="Loading…" page={false} />}>
       {page === "register" ? <Register />
         : page === "requests" ? (id === undefined ? <Requests />
           : <RequestRecord id={id} />)

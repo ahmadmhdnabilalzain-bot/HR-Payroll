@@ -6,7 +6,8 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
 import b from "../ui/button.module.css";
 import { useToast } from "../ui/Toast";
-import { PageHead, RowDecision } from "../ui/templates";
+import { Loading as Skeleton, PageHead, RowDecision }
+  from "../ui/templates";
 import { dayMonth, requestState, type RequestState, whoIs } from "./derive";
 import type { PayRequest } from "./pay-state";
 import s from "./pay.module.css";
@@ -51,10 +52,7 @@ export function NotFound(p: { what: string; back: { label: string;
   );
 }
 
-export const Loading = () => (
-  <div className={s.page}><p className={s.loading}>Loading pay records</p>
-  </div>
-);
+export const Loading = () => <Skeleton label="Loading pay records" />;
 
 /** "Agreed by Khalid Al Nuaimi, General manager, 27 October". */
 function decidedLine(st: RequestState, who: string, date: string): string {

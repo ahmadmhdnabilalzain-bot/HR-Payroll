@@ -4,13 +4,13 @@ import { CompensationScreen } from "./Compensation";
 import { CostBudgetScreen } from "./CostBudget";
 import { ForecastScreen } from "./Forecast";
 import { WorkforceScreen } from "./Workforce";
-import s from "./planning.module.css";
+import { Loading } from "../../ui/templates";
 
 /** Loads the planning chunk behind one quiet line, then the screen. */
 const wrap = (V: ComponentType<ViewProps>): ComponentType<ViewProps> => {
   function Planning(p: ViewProps) {
     return (
-      <Suspense fallback={<p className={s.loading}>Working it out…</p>}>
+      <Suspense fallback={<Loading label="Working it out…" />}>
         <V {...p} />
       </Suspense>
     );

@@ -6,7 +6,7 @@ import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatNumber } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
-import { ReportPage } from "../ui/templates";
+import { Loading, ReportPage } from "../ui/templates";
 import type { ViewProps } from "../views";
 import {
   BLURB,
@@ -32,7 +32,6 @@ import { Leave } from "./screens/Leave";
 import { Overtime } from "./screens/Overtime";
 import { Trend } from "./screens/Trend";
 import { Variance } from "./screens/Variance";
-import s from "./Reports.module.css";
 
 /** The newer reports, each on its own template page (WP7). */
 const SCREENS: Record<string, { view: ComponentType<ViewProps>;
@@ -55,7 +54,7 @@ export function Reports(p: ViewProps) {
   const { t } = useLocale();
   const id = REPORTS.find((x) => x === p.rest[0]);
   const screen = SCREENS[p.rest[0] ?? ""];
-  const loading = <p className={s.loading}>{t("reports.loading")}</p>;
+  const loading = <Loading label={t("reports.loading")} />;
   if (screen !== undefined) {
     return (
       <Suspense fallback={loading}>

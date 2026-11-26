@@ -2,7 +2,9 @@ import { Explainable } from "../../components/explain";
 import type { Explanation } from "../../components/explain/types";
 import { formatNumber, MINUS } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { useRef } from "react";
 import { Money } from "../../ui/Money";
+import { useEntrance } from "../../ui/templates/listEnter";
 import type { Change, Figure, TileModel } from "./model";
 import { Sparkline } from "./Sparkline";
 import s from "./dash.module.css";
@@ -11,7 +13,7 @@ import s from "./dash.module.css";
 export function FigureView(p: { f: Figure }) {
   const { lang } = useLocale();
   return (
-    <span className={s.tileFigure}>
+    <span className={s.tileFigure} data-card-figure="">
       {p.f.kind === "money"
         ? <Money value={p.f.fils} tween={false} />
         : <span className="tabular">{formatNumber(p.f.n, lang)}</span>}
@@ -96,15 +98,20 @@ function Body(p: { t: TileModel; why?: Explanation | undefined }) {
 export function Tiles(p: { tiles: TileModel[]; label: string;
   /** The working behind a tile's figure, by tile id. */
   explain?: Readonly<Record<string, Explanation | undefined>> }) {
+  // The tiles rise in once per route, 40 ms apart; movement only, so
+  // their figures read at full contrast from the first frame.
+  const list = useRef<HTMLUListElement>(null);
+  useEntrance(list, ":scope > li", { scope: "tiles", fade: false });
   return (
-    <ul className={s.tiles} aria-label={p.label}>
-      {p.tiles.map((t, i) => (
+    <ul className={s.tiles} aria-label={p.label} ref={list}>
+      {p.tiles.map((t) => (
         <li key={t.id} className={s.tile} data-tile={t.id}
           data-money={t.figure.kind === "money"}
-          style={{ "--i": i } as object}>
+          data-card-box="">
           {t.href === undefined ? <div className={s.tileIn}>
             <Body t={t} why={p.explain?.[t.id]} /></div> : (
-            <a className={s.tileIn} href={t.href}><Body t={t} /></a>
+            <a className={s.tileIn} href={t.href} data-card="">
+              <Body t={t} /></a>
           )}
         </li>
       ))}
