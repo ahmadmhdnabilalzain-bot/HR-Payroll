@@ -14,14 +14,20 @@
 import { verifyChain } from "../packages/api/src/audit/audit";
 import { openPg } from "../packages/api/src/db/pg";
 
+/** All companies, or the given ones; an unknown id is a setup error. */
 async function companyIds(
   db: Awaited<ReturnType<typeof openPg>>,
   given: string[],
 ): Promise<string[]> {
-  if (given.length > 0) return given;
   const rows = await db.query<{ id: string }>(
-    "SELECT id FROM companies ORDER BY created_at, id");
-  return rows.map((r) => r.id);
+    "SELECT id::text AS id FROM companies ORDER BY created_at, id");
+  const all = rows.map((r) => r.id);
+  if (given.length === 0) return all;
+  const unknown = given.filter((id) => !all.includes(id.toLowerCase()));
+  if (unknown.length > 0) {
+    throw new Error(`unknown company id(s): ${unknown.join(", ")}`);
+  }
+  return given.map((id) => id.toLowerCase());
 }
 
 async function main(argv: string[]): Promise<number> {

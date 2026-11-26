@@ -91,7 +91,9 @@ services:
   verify:
     <<: *api-image
     profiles: ["tools"]
-    command: ["verify-audit"]
+    # Arguments after `run --rm verify` are company ids (default: all).
+    entrypoint: ["/app/deploy/entrypoint.sh", "verify-audit"]
+    command: []
     restart: "no"
     environment:
       VERIFY_DATABASE_URL: "postgres://payroll_backup:\
