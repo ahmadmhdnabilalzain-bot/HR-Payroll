@@ -253,8 +253,22 @@ export function useChartMotion(root: RefObject<Element | null>,
     }
     lastKey.current = dataKey;
   });
+  // Read after the frame, not in it: getBBox forces a layout, and on a
+  // page's first render (inside the route transition, which paints
+  // nothing until the render is done) that held the first answer.
+  // The next data change commits later, so it still tweens from here.
+  const pending = useRef(0);
   useLayoutEffect(() => {
     const el = root.current;
-    if (el !== null && ready) geo.current = snapshot(el);
+    if (el === null || !ready) return;
+    if (typeof requestAnimationFrame !== "function") {
+      geo.current = snapshot(el);
+      return;
+    }
+    cancelAnimationFrame(pending.current);
+    pending.current = requestAnimationFrame(() => {
+      if (root.current !== null) geo.current = snapshot(root.current);
+    });
   });
+  useLayoutEffect(() => () => cancelAnimationFrame(pending.current), []);
 }
