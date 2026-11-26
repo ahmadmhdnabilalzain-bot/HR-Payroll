@@ -1,0 +1,33 @@
+export interface Config {
+  /** Runtime login role: no superuser, no BYPASSRLS, owns no table. */
+  databaseUrl: string;
+  /** Migration (table owner) role; defaults to databaseUrl. */
+  migrateUrl: string;
+  masterKey: Uint8Array;
+  port: number;
+}
+
+const KEY_MESSAGE = "PAYROLL_MASTER_KEY must be 32 bytes base64";
+
+function masterKey(text: string | undefined): Uint8Array {
+  const ok = text !== undefined && /^[A-Za-z0-9+/]+={0,2}$/.test(text);
+  const key = ok ? Buffer.from(text, "base64") : Buffer.alloc(0);
+  if (key.length !== 32) throw new Error(KEY_MESSAGE);
+  return new Uint8Array(key);
+}
+
+/** Pure: the environment is passed in (only main.ts reads it). */
+export function loadConfig(env: Record<string, string | undefined>)
+  : Config {
+  const key = masterKey(env.PAYROLL_MASTER_KEY);
+  const databaseUrl = env.DATABASE_URL;
+  if (databaseUrl === undefined || databaseUrl === "") {
+    throw new Error("DATABASE_URL is required");
+  }
+  const port = Number(env.PORT ?? "8787");
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error("PORT must be a whole number from 1 to 65535");
+  }
+  return { databaseUrl, migrateUrl: env.MIGRATE_DATABASE_URL ?? databaseUrl,
+    masterKey: key, port };
+}

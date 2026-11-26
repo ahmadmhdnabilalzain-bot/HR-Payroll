@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { test } from "node:test";
 import {
   findLongLines,
+  isChecked,
   listFiles,
   ROOTS,
 } from "./check-line-length.mjs";
@@ -49,4 +50,9 @@ test("covers the apps folder", () => {
 
 test("a missing root lists nothing", () => {
   assert.deepEqual(listFiles(join(tmpdir(), "no-such-dir-xyz")), []);
+});
+
+test("checks SQL migrations and skips lockfiles", () => {
+  assert.equal(isChecked("001_tenancy.sql"), true);
+  assert.equal(isChecked("pnpm-lock.yaml"), false);
 });

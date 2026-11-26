@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const MAX = 80;
 export const ROOTS = ["packages", "scripts", "apps"];
 const EXTENSIONS = new Set([
-  ".ts", ".tsx", ".css", ".html", ".json", ".mjs", ".md",
+  ".ts", ".tsx", ".css", ".html", ".json", ".mjs", ".md", ".sql",
 ]);
 const SKIP_DIRS = new Set([
   "node_modules", "dist", ".superpowers", "test-results",
@@ -39,7 +39,7 @@ export function listFiles(dir) {
   return out;
 }
 
-function isChecked(name) {
+export function isChecked(name) {
   return !SKIP_FILES.has(name) && EXTENSIONS.has(extname(name));
 }
 

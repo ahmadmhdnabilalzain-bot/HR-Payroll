@@ -21,10 +21,12 @@ export const ERROR_STATUS = {
   MFA_ENROLMENT_REQUIRED: 403,
   SOD_VIOLATION: 403,
   NOT_FOUND: 404,
+  INVITE_NOT_FOUND: 404,
   EMAIL_TAKEN: 409,
   ALREADY_MEMBER: 409,
   MFA_ALREADY_ENROLLED: 409,
   MFA_NOT_STARTED: 409,
+  LAST_OWNER: 409,
   EMPLOYEE_NUMBER_TAKEN: 409,
   LEAVE_OVERLAP: 409,
   LEAVE_NOT_PENDING: 409,
@@ -35,6 +37,7 @@ export const ERROR_STATUS = {
   RUN_EXISTS_FOR_PERIOD: 409,
   RUN_NOT_DRAFT: 409,
   RUN_NOT_APPROVED: 409,
+  RUN_INPUTS_CHANGED: 409,
   INVITE_USED: 410,
   INVITE_EXPIRED: 410,
   BASIC_COMPONENT_REQUIRED: 422,
@@ -46,10 +49,12 @@ export const ERROR_STATUS = {
   EMPLOYEE_NOT_IN_PERIOD: 422,
   ENTERED_AMOUNTS_REQUIRED: 422,
   SETTLEMENT_INPUT_REQUIRED: 422,
+  SALARY_MISSING: 422,
   COMPANY_WPS_SETTINGS_MISSING: 422,
   EMPLOYEE_BANK_MISSING: 422,
   SIF_GENERATION_FAILED: 422,
   ENGINE_REFUSED: 422,
+  PAYLOAD_TOO_LARGE: 413,
   ACCOUNT_LOCKED: 423,
   INTERNAL: 500,
 } as const;
@@ -63,14 +68,26 @@ export const ERROR_CODES = Object.keys(ERROR_STATUS) as [
 
 export const ErrorCodeSchema = z.enum(ERROR_CODES);
 
+const Strings = z.union([z.string(), z.array(z.string())]);
+
+/**
+ * Error detail: strings, string lists, or lists of flat objects of
+ * strings and string lists (e.g. `problems` of a PAY_RUN_PROBLEMS
+ * body: `[{ employeeId, code, missing: ["basic"] }]`). Never values a
+ * caller may not see (salary amounts, IBANs, ids of protected data).
+ */
+export const ErrorDetail = z.record(
+  z.string(),
+  z.union([Strings, z.array(z.record(z.string(), Strings))]),
+);
+export type ErrorDetail = z.infer<typeof ErrorDetail>;
+
 export const ApiErrorBody = z.object({
   error: z.object({
     code: ErrorCodeSchema,
     message: z.string(),
     requestId: z.string(),
-    detail: z
-      .record(z.string(), z.union([z.string(), z.array(z.string())]))
-      .optional(),
+    detail: ErrorDetail.optional(),
   }),
 });
 export type ApiErrorBody = z.infer<typeof ApiErrorBody>;

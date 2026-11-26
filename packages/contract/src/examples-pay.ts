@@ -55,6 +55,7 @@ const payRun = {
   employeeCount: 1,
   gross: SALARY_SENTINEL,
   notComputed,
+  sifFileId: null,
 };
 
 const sifFile = {

@@ -55,6 +55,8 @@ export type LeaveRequestCreate = z.infer<typeof LeaveRequestCreate>;
 export const LeaveRequestQuery = z.object({
   employeeId: Id.optional(),
   status: LeaveStatus.optional(),
+  /** Requests starting in this calendar year (query text, coerced). */
+  year: z.coerce.number().int().min(2000).max(2100).optional(),
 });
 
 export const LeaveDecision = z.object({

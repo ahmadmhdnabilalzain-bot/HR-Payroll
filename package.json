@@ -9,6 +9,8 @@
     "web": "pnpm --filter @payroll/web dev",
     "web:build": "pnpm --filter @payroll/web build",
     "e2e": "pnpm --filter @payroll/web e2e",
+    "api:dev": "tsx packages/api/src/main.ts",
+    "api:migrate": "tsx packages/api/src/main.ts migrate",
     "lines": "node scripts/check-line-length.mjs",
     "lines:test": "node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r --if-present typecheck",

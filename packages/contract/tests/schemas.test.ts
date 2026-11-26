@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  ApiErrorBody,
+  AuditData,
+  PAY_TRACE_RESULT,
+  PAY_TRACE_RESULT_EXAMPLE,
+  PayRun,
+  PayRunEntry,
+  SERVICE_UNPAID_LEAVE_NOT_ENTERED,
+  LeaveRequestQuery,
+  RoleChange,
+  AuditEvent,
   EXAMPLES,
   ERROR_CODES,
   ERROR_STATUS,
@@ -84,6 +94,81 @@ describe("Settlement", () => {
     expect(computed.status).toBe("computed");
     expect(Settlement.safeParse({ ...computed, includedInSif: true })
       .success).toBe(false);
+  });
+});
+
+describe("AuditEvent.action", () => {
+  const PLAN_ACTIONS = ["company.created", "company.updated",
+    "user.invited", "invite.accepted", "employee.created",
+    "employee.updated", "employee.salary.updated", "employee.bank.updated",
+    "employee.bank.revealed", "department.created", "department.updated",
+    "leave-type.created", "leave-type.updated", "leave.requested",
+    "leave.approved", "leave.rejected", "leave.cancelled", "leave.adjusted",
+    "attendance.corrected", "pay-run.created", "pay-run.approved",
+    "pay-run.voided", "sif.generated", "sif.downloaded"];
+  const action = AuditEvent.shape.action;
+  it.each(PLAN_ACTIONS)("accepts %s", (a) => {
+    expect(action.safeParse(a).success).toBe(true);
+  });
+  it.each(["company", "Company.created", "-x.y", "x-.y", "x..y"])(
+    "rejects %s", (a) => {
+      expect(action.safeParse(a).success).toBe(false);
+    });
+});
+
+describe("additions after Task 1", () => {
+  it("error detail carries pay-run problems as objects", () => {
+    const body = { error: { code: "PAY_RUN_PROBLEMS", message: "m",
+      requestId: "r", detail: { problems: [{ employeeId: "e1",
+        code: "ENTERED_AMOUNTS_REQUIRED", missing: ["basic"] }] } } };
+    expect(ApiErrorBody.safeParse(body).success).toBe(true);
+  });
+  it("audit data carries a nested period", () => {
+    expect(AuditData.safeParse({ period: { year: 2026, month: 3 },
+      employeeCount: 2 }).success).toBe(true);
+    expect(AuditData.safeParse({ deep: { a: { b: 1 } } }).success)
+      .toBe(false);
+  });
+  it("PayRun has a nullable sifFileId", () => {
+    const run = EXAMPLES.PayRun as Record<string, unknown>;
+    expect(run).toHaveProperty("sifFileId", null);
+    const { sifFileId: _, ...without } = run;
+    expect(PayRun.safeParse(without).success).toBe(false);
+  });
+  it("pay trace results are integer fils strings", () => {
+    expect(PAY_TRACE_RESULT.safeParse("777777").success).toBe(true);
+    expect(PAY_TRACE_RESULT.safeParse("7777.77").success).toBe(false);
+    expect(PAY_TRACE_RESULT_EXAMPLE).toEqual({ amount: "7777.77",
+      result: "777777" });
+    const slip = EXAMPLES.Payslip as { trace: { id: string;
+      result: string }[] };
+    for (const l of slip.trace.filter((t) => t.id.startsWith("pay."))) {
+      expect(PAY_TRACE_RESULT.safeParse(l.result).success).toBe(true);
+    }
+  });
+  it("PayRunEntry takes serviceUnpaidLeaveDays", () => {
+    const id = "00000000-0000-4000-8000-000000000001";
+    expect(PayRunEntry.safeParse({ employeeId: id,
+      serviceUnpaidLeaveDays: 12 }).success).toBe(true);
+    expect(PayRunEntry.safeParse({ employeeId: id,
+      serviceUnpaidLeaveDays: -1 }).success).toBe(false);
+  });
+  it("LeaveRequestQuery filters by year (query text)", () => {
+    expect(LeaveRequestQuery.parse({ year: "2026" })).toEqual(
+      { year: 2026 });
+  });
+  it("INVITE_NOT_FOUND is an API code", () => {
+    expect(ERROR_STATUS.INVITE_NOT_FOUND).toBe(404);
+  });
+  it("pay-run codes and the settlement note exist", () => {
+    expect(ERROR_STATUS.RUN_INPUTS_CHANGED).toBe(409);
+    expect(ERROR_STATUS.SALARY_MISSING).toBe(422);
+    expect(SERVICE_UNPAID_LEAVE_NOT_ENTERED).toBe(
+      "unpaid leave over service (not entered)");
+  });
+  it("RoleChange accepts a role only", () => {
+    expect(RoleChange.safeParse({ role: "hr" }).success).toBe(true);
+    expect(RoleChange.safeParse({ role: "boss" }).success).toBe(false);
   });
 });
 

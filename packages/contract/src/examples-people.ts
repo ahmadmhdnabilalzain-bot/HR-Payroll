@@ -35,6 +35,14 @@ const membership = {
   role: "owner",
   employeeId: null,
 };
+const companyUser = {
+  userId: IDS.user,
+  email: "owner@example.com",
+  displayName: "Sample Owner",
+  role: "owner",
+  employeeId: null,
+  mfaEnrolled: true,
+};
 const company = {
   id: IDS.company,
   name: "Sample Trading LLC",
@@ -120,9 +128,8 @@ export const PEOPLE_EXAMPLES: Record<string, unknown> = {
     otpauthUrl: "otpauth://totp/Payroll:owner%40example.com" +
       "?secret=JBSWY3DPEHPK3PXP&issuer=Payroll" },
   Company: company,
-  CompanyUserList: { items: [{ userId: IDS.user,
-    email: "owner@example.com", displayName: "Sample Owner",
-    role: "owner", employeeId: null, mfaEnrolled: true }] },
+  CompanyUser: companyUser,
+  CompanyUserList: { items: [companyUser] },
   InviteResponse: { setupToken: "sample-setup-token",
     expiresAt: "2026-03-04T08:00:00Z" },
   EmployeeView: employee,

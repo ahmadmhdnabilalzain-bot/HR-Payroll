@@ -66,10 +66,25 @@ export const MfaEnrolResponse = z.object({
 });
 export type MfaEnrolResponse = z.infer<typeof MfaEnrolResponse>;
 
+/** Enrolment needs the current password (a stolen token is not enough). */
+export const MfaEnrolRequest = z.object({
+  password: z.string().min(1).max(200),
+});
+export type MfaEnrolRequest = z.infer<typeof MfaEnrolRequest>;
+
+/**
+ * Confirming needs the password too. It does not make the current
+ * session an MFA session: sign in again with a code for that.
+ */
 export const MfaConfirmRequest = z.object({
   code: z.string().regex(/^\d{6}$/),
+  password: z.string().min(1).max(200),
 });
 export type MfaConfirmRequest = z.infer<typeof MfaConfirmRequest>;
+
+/** `PATCH /v1/users/{id}` (id is the user id): owner only, MFA. */
+export const RoleChange = z.object({ role: Role });
+export type RoleChange = z.infer<typeof RoleChange>;
 
 /** A member of the company, as `GET /v1/users` lists it. */
 export const CompanyUser = z.object({

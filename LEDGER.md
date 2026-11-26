@@ -72,6 +72,11 @@ them apart is deliberate.
 | 2026-11-26 | Speed ruling (owner: "we are moving extremely slow"): from Plan 3 on, tasks are bigger, per-task review is dropped for low-risk work in favour of one whole-branch review per plan, and independent plans are built in parallel in separate git worktrees. Names for the app are decided last and do not block building. | Keeps quality gates where risk is (money, law, security) and removes them where tests already cover it. Costs more rework if a bug slips past, caught by the final review. |
 | 2026-11-25 | Superseded: the HR-and-payroll-only fence and the F17 expense cut are reversed. New order: core first, HR-adjacent next, finance modules last. | Cards and payments need licensed partners, so they come last and depend on partnerships. |
 | 2026-11-25 | Correction: Zoho People includes leave management from its second plan and attendance from its third, at low per-user prices. The earlier "Zoho gates leave and attendance" differentiator is withdrawn. | Read from Zoho's own pricing page. |
+| 2026-11-26 | Plan 3 rulings 1 to 25 (Hono, pglite for tests and `pg` in production, plain SQL behind a small `Db`, RLS on `app.company_id` via `withTenant`, `X-Company-Id`, opaque 8-hour sessions, scrypt and own TOTP, MFA at three actions, per-company AES-GCM keys, narrow separation of duties, entered pay components, settlement shown but not paid through WPS, calendar-day leave, fixed UTC+4, two-decimal money strings, hash-chained audit, no build step, generated OpenAPI, leave and attendance in M1, the deferred list, parallel build with Plan 4, review plan, pinned versions) are adopted as written in `docs/superpowers/plans/2026-11-26-plan-3-backend.md`, with the changes in section 10. | Plan 3 build. |
+| 2026-11-26 | Supersedes Plan 3 ruling 13: the leaver's unpaid leave over service is an optional pay-run input (`serviceUnpaidLeaveDays`); when not entered the settlement passes 0 and says "unpaid leave over service (not entered)". | Web app request; the gratuity input is now enterable. |
+| 2026-11-26 | Supersedes Plan 3 ruling 9 in part: the keyring derives separate HKDF subkeys for wrapping company keys and for global values, and cipher text names the master key (`v1.<keyId>.<data>`). KMS and rotation are still deferred. | Security review (M-5). |
+| 2026-11-26 | Adds to Plan 3 rulings 2 and 4: production uses two database roles, a migration role that owns the tables and a runtime role (no superuser, no BYPASSRLS, owns nothing) granted `payroll_app WITH SET TRUE`; the server refuses to start otherwise. | Security review (I-2): PostgreSQL 16 role semantics and superuser bypass. |
+| 2026-11-26 | Supersedes Plan 3 ruling 8 in part: MFA enrolment and confirmation need the password, confirmation no longer upgrades the session, and other sessions are revoked; TOTP codes are single-use. | Security review (I-4) and coordinator instruction. |
 
 ## 4. Future plan (current)
 
@@ -91,6 +96,10 @@ Each item gets its own plan under `docs/superpowers/plans/`.
    intranet and chat), then finance modules (accounts payable, spend,
    cards, project billing) which need licensed partners.
 6. The master feature list (`docs/superpowers/specs/2026-11-25-master-feature-list.md`, 31 unique items) is the gate to Plan 1; approved by the owner.
+7. 2026-11-26: Plan 3 (data model, API, tenancy, security baseline) is
+   built on a worktree branch, Tasks 1 to 8, with the security review's
+   fixes; not yet merged or pushed. Plan 4 builds against
+   `packages/contract`.
 
 ## 5. Open items
 
@@ -375,3 +384,36 @@ while building (`docs/superpowers/plans/plan-5-build-report.md`).
   proration, 30 for overtime and caps), M11 (WPS fixed can be 0 when
   deductions take all of basic; half-pay days are not in
   `unpaidLeaveDays`).
+- Task 6: the purity scanner ignores words inside string literals for
+  `Date` and the other globals (a message said "Date must be ..."); it
+  still reads import strings.
+
+## 10. Rulings made during the Plan 3 build (Claude's calls)
+
+The owner can overrule any of these. Full list with reasons:
+`docs/superpowers/plans/plan-3-build-report-1.md`.
+
+- Contract: list responses are `{ items }`; audit events page with
+  `nextBefore`. Error detail and audit data allow one level of nested
+  objects (pay-run problems, period). Pay trace results are integer
+  fils strings (`PAY_TRACE_RESULT`). Additive after Task 1: role change
+  route, `PayRun.sifFileId`, `serviceUnpaidLeaveDays`, a leave year
+  filter, MFA password fields (breaking), new error codes.
+- Tenancy: one transaction per request; handlers get `ctx.tx` and never
+  the raw database; inside a tenant, the "my companies" policy arm is
+  off. Foreign keys carry `company_id`.
+- Security: sign-in locks the user row and counts failures in one
+  UPDATE; TOTP steps are claimed by one conditional UPDATE; audit data
+  is an allowlist of keys and safe shapes; scrypt N = 2^16; 1 MiB body
+  limit; TRUNCATE of the audit log is blocked.
+- Pay runs: every problem is returned (including SALARY_MISSING); an
+  idempotency key is looked up before computing, and a key reused
+  after a void returns the void run; approval re-hashes the inputs and
+  refuses a changed draft (RUN_INPUTS_CHANGED); the leaver's gratuity
+  uses the stored basic, never a run override.
+- SIF: one file per approved run; the text and findings are sealed;
+  finding values that look like IBANs, amounts or ids are hidden on
+  the metadata route (no MFA); the download needs MFA and is audited.
+- Migrations were renumbered: 003 single-use TOTP, 004 security
+  hardening, 005 people, 006 leave and attendance, 007 payroll, 008
+  SIF.

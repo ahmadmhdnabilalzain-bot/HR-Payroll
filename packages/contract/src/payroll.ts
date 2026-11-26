@@ -15,6 +15,13 @@ export const NOT_COMPUTED_PAY = [
   "notice pay",
 ] as const;
 
+/**
+ * Listed in a computed settlement's notComputed when the entry gave no
+ * serviceUnpaidLeaveDays (the gratuity then assumes none).
+ */
+export const SERVICE_UNPAID_LEAVE_NOT_ENTERED =
+  "unpaid leave over service (not entered)";
+
 export const PayRunEntry = z.object({
   employeeId: Id,
   componentOverrides: z
@@ -31,6 +38,12 @@ export const PayRunEntry = z.object({
     .max(30)
     .optional(),
   unusedLeaveDays: z.number().int().min(0).optional(),
+  /**
+   * Leavers only: unpaid leave days over the whole service, passed to
+   * the gratuity calculation. Omitted means 0 and the settlement lists
+   * SERVICE_UNPAID_LEAVE_NOT_ENTERED under notComputed.
+   */
+  serviceUnpaidLeaveDays: z.number().int().min(0).optional(),
 });
 export type PayRunEntry = z.infer<typeof PayRunEntry>;
 
@@ -61,6 +74,8 @@ export const PayRun = z.object({
   employeeCount: z.number().int().min(0),
   gross: Money,
   notComputed: z.array(z.string()),
+  /** The run's SIF file once generated (one per run), else null. */
+  sifFileId: Id.nullable(),
 });
 export type PayRun = z.infer<typeof PayRun>;
 
