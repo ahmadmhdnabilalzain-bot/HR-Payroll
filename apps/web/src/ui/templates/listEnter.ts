@@ -213,7 +213,7 @@ interface Spot {
 }
 
 /** The live list and its rows (never a leaving copy). */
-const UL = ":scope > ul:not([data-ghost])";
+const UL = ":scope > :is(ul, ol):not([data-ghost])";
 const ROWS = `${UL} > li[data-key]`;
 
 /** The key of the whole list's copy, kept while the list empties. */
@@ -251,6 +251,9 @@ function ghostOf(el: HTMLElement, at: Spot, z: number): HTMLElement {
   el.setAttribute("aria-hidden", "true");
   el.setAttribute("inert", "");
   el.dataset["ghost"] = "";
+  // A copy never replays its row's own entrance.
+  el.removeAttribute("data-reveal");
+  el.style.animation = "none";
   el.querySelectorAll("[id]").forEach((x) => x.removeAttribute("id"));
   el.querySelectorAll("[data-row]").forEach((x) => {
     x.removeAttribute("data-row");

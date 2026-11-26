@@ -12,11 +12,13 @@
 /* Leaving rows never draw past the list's new end (clip, not hidden:
  * the sticky column headers still stick). An emptied list fades as
  * one over the empty state, unclipped. */
-.host:has(> ul:not([data-ghost])) {
+.host:has(> :is(ul, ol):not([data-ghost])) {
   overflow: clip;
+  /* Room for a list's own shadow. */
+  overflow-clip-margin: 6px;
 }
 
-.host > :global(ul[data-ghost]) {
+.host > :global(:is(ul, ol)[data-ghost]) {
   margin: 0;
 }
 
@@ -25,6 +27,13 @@
   position: relative;
   z-index: 1;
   background: var(--color-surface);
+}
+
+/* A leaving copy never replays the entrances inside it. */
+:global([data-ghost]) *,
+:global([data-ghost]) *::before {
+  animation: none !important;
+  transition: none !important;
 }
 
 .host > :global(li[data-ghost]) {

@@ -4,6 +4,7 @@
  * Figures are right-aligned and tabular.
  */
 .page {
+  position: relative;
   max-inline-size: var(--container);
   margin-inline: auto;
   /* The title is in the sticky row above (RunBar); the step starts
@@ -14,23 +15,31 @@
   overflow-x: clip;
 }
 
-/* Steps move 24 px in the direction of travel, with opacity. */
+/* Steps move 24 px in the direction of travel, with opacity; the step
+ * left fades over it as a drawn copy (PayRun.tsx), so the two overlap
+ * and the page is never blank. */
 .swap {
-  animation: swap-in 280ms var(--ease-out) both;
+  animation: swap-in var(--dur-base, 200ms) var(--ease-out,
+    cubic-bezier(0.2, 0, 0, 1)) both;
+}
+
+.leaving {
+  position: absolute;
+  z-index: 1;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* A drawn copy never replays the entrances inside it. */
+.leaving *,
+.leaving *::before,
+.leaving *::after {
+  animation: none !important;
+  transition: none !important;
 }
 
 .swap[data-dir="-1"] {
   animation-name: swap-in-back;
-}
-
-.swap[data-leaving="true"] {
-  opacity: 0;
-  transform: translateX(-24px);
-  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
-}
-
-.swap[data-leaving="true"][data-dir="-1"] {
-  transform: translateX(24px);
 }
 
 [dir="rtl"] .swap {

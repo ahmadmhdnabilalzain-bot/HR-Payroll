@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { openIssues } from "../demo/derive";
 import { figures } from "../demo/figures";
-import {
-  reducedMotion,
-  useFlip,
-  useTweenedNumber,
-} from "../demo/motion";
+import { reducedMotion } from "../demo/motion";
+import { useListFlip, useSwapIn } from "../ui/templates/listEnter";
+import m from "../ui/templates/motion.module.css";
 import { useDemo } from "../demo/state";
 import { formatMonthName } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -32,11 +30,16 @@ export function IssueList() {
   }, [at]);
   const shown = all || at >= FIRST ? open : open.slice(0, FIRST);
   const more = open.length - shown.length;
-  const box = useRef<HTMLOListElement>(null);
-  useFlip(box, [shown.map((i) => i.id).join()]);
+  // A settled issue fades where it stood while the rows below slide up
+  // over it (listEnter.ts); the counts swap whole, never through
+  // numbers that were not true.
+  const host = useRef<HTMLDivElement>(null);
+  useListFlip(host, shown.map((i) => i.id));
   const fig = figures(data, state);
-  const blocking = useTweenedNumber(fig.blocking);
-  const review = useTweenedNumber(fig.toReview);
+  const blocking = fig.blocking;
+  const review = fig.toReview;
+  const countRef = useRef<HTMLSpanElement>(null);
+  useSwapIn(countRef, `${blocking}-${review}-${open.length}`);
   const counts = [blocking > 0 ? t("home.blockCount", { count: blocking })
     : "", review > 0 ? t("home.reviewCount", { count: review }) : ""]
     .filter(Boolean).join(" · ");
@@ -52,7 +55,8 @@ export function IssueList() {
           {fig.signedOff ? t("home.signedOffTitle")
             : t("home.blockersTitle")}
         </h2>
-        <span className={`${s.count} tabular`} data-zero={open.length === 0}>
+        <span className={`${s.count} tabular`} data-zero={open.length === 0}
+          ref={countRef}>
           {open.length === 0 ? t("home.noIssues") : counts}
         </span>
       </header>
@@ -60,10 +64,11 @@ export function IssueList() {
         <p className={s.sub}>{t("home.signedOffNote", { month:
           formatMonthName(data.headline().runMonth, lang) })}</p>
       ) : state.role === "gm" && <p className={s.sub}>{t("home.gmNote")}</p>}
+      <div className={m.host} ref={host}>
       {open.length === 0 ? (
         <p className={s.clear}>{t("home.allClear")}</p>
       ) : (
-        <ol className={s.list} ref={box}>
+        <ol className={s.list}>
           {shown.map((i, n) => (
             <IssueRow key={i.id} issue={i}
               delay={opening ? n * 90 + 150
@@ -71,6 +76,7 @@ export function IssueList() {
           ))}
         </ol>
       )}
+      </div>
       {(more > 0 || (all && open.length > FIRST)) && (
         <button type="button" className={s.more}
           aria-expanded={all} onClick={() => setAll(!all)}>
