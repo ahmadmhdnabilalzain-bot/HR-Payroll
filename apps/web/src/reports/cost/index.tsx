@@ -3,13 +3,13 @@ import type { ViewProps } from "../../views";
 import { EmployerCostScreen } from "./Employer";
 import { GratuityProvisionScreen } from "./Gratuity";
 import { GratuityLiabilityScreen } from "./Liability";
-import s from "./cost.module.css";
+import { Loading } from "../../ui/templates";
 
 /** Loads the cost chunk behind one quiet line, then the screen. */
 const wrap = (V: ComponentType): ComponentType<ViewProps> => {
   function Cost() {
     return (
-      <Suspense fallback={<p className={s.loading}>Working it out…</p>}>
+      <Suspense fallback={<Loading label="Working it out…" />}>
         <V />
       </Suspense>
     );

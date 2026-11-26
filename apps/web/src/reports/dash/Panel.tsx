@@ -7,7 +7,7 @@ import s from "./dash.module.css";
 export function Panel(p: { id: string; title: string; note?: string;
   children: ReactNode; wide?: boolean }) {
   return (
-    <section className={s.panel} aria-labelledby={p.id}
+    <section className={s.panel} aria-labelledby={p.id} data-reveal-part=""
       style={p.wide === true ? { gridColumn: "1 / -1" } : undefined}>
       <div className={s.panelHead}>
         <h2 id={p.id} className={s.panelTitle}>{p.title}</h2>

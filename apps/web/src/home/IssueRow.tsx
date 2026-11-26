@@ -65,7 +65,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null;
   const mask = useMaskText();
   const canAct = state.role === "hr" && i.employeeId !== null;
   return (
-    <li className={s.row} data-flip={i.id} ref={row} tabIndex={-1}
+    <li className={s.row} data-key={i.id} ref={row} tabIndex={-1}
       data-reveal={p.delay !== null ? "" : undefined}
       style={p.delay !== null ? { animationDelay: `${p.delay}ms` }
         : undefined}>

@@ -16,6 +16,8 @@ import b from "../ui/button.module.css";
 import { fly } from "../ui/flight";
 import { RollDigits } from "../ui/RollDigits";
 import { RollMoney, shortFade } from "./Roll";
+import { useListFlip } from "../ui/templates/listEnter";
+import m from "../ui/templates/motion.module.css";
 import s from "./PayRun.module.css";
 
 /** Which explanation an issue points at, when there is one. */
@@ -123,6 +125,11 @@ export function FixStep() {
   // check" (Home, the dashboards, the brief and this step).
   const count = beforeApproval(data, state);
   const open = count.checks;
+  const list = useRef<HTMLDivElement>(null);
+  useListFlip(list, [...blockers.map((i) => i.id),
+    ...fixed.map((id) => `fixed-${id}`),
+    ...(blockers.length === 0 && fixed.length === 0 ? ["none"] : []),
+    ...checks.map((i) => i.id), ...setup.map((i) => i.id)]);
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>
@@ -155,13 +162,17 @@ export function FixStep() {
               : t("payrun.fixChecks", { count: open })}
           </span>
         </h3>
+        {/* A fixed row fades where it stood while the rows below slide
+          * up over it (listEnter.ts). */}
+        <div className={m.host} ref={list}>
         <ul className={s.group}>
           {blockers.map((i) => (
             <BlockerRow key={i.id} issue={i} canFix={isHr}
               target={figure} busy={busy} setBusy={setBusy} />
           ))}
           {fixed.map((id) => (
-            <li key={`fixed-${id}`} className={s.row} data-done="true">
+            <li key={`fixed-${id}`} className={s.row} data-done="true"
+              data-key={`fixed-${id}`}>
               <span className={s.rowMain}>
                 <KindTag kind="fixed" />
                 <span className={s.name}>{t("payrun.fixedTitle")}
@@ -173,7 +184,7 @@ export function FixStep() {
             </li>
           ))}
           {blockers.length === 0 && fixed.length === 0 && (
-            <li className={s.row}>
+            <li className={s.row} data-key="none">
               <span className={s.rowMain}>
                 <span className={s.reason}>{t("payrun.nothingToFix")}</span>
               </span>
@@ -183,7 +194,7 @@ export function FixStep() {
             <CheckRow key={i.id} issue={i} canAct={isHr} index={n} />
           ))}
           {setup.map((i) => (
-            <li key={i.id} className={s.row}>
+            <li key={i.id} className={s.row} data-key={i.id}>
               <span className={s.rowMain}>
                 <KindTag kind="confirm" />
                 <span className={s.name}>{i.title[lang]}</span>
@@ -192,6 +203,7 @@ export function FixStep() {
             </li>
           ))}
         </ul>
+        </div>
       </section>
     </section>
   );
@@ -214,7 +226,8 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
   const name = i.employeeId === null ? ""
     : data.employee(i.employeeId).name[lang];
   return (
-    <li ref={row} className={s.row} id={`fix-${i.id}`} data-open={open}>
+    <li ref={row} className={s.row} id={`fix-${i.id}`} data-open={open}
+      data-key={i.id}>
       <span className={s.rowMain}>
         <KindTag kind="stops" />
         <span className={s.name}>{i.title[lang]}
@@ -266,7 +279,7 @@ function CheckRow(p: { issue: Issue; canAct: boolean; index: number }) {
   const name = i.employeeId === null ? ""
     : data.employee(i.employeeId).name[lang];
   return (
-    <li className={s.row} data-done={done !== undefined}
+    <li className={s.row} data-done={done !== undefined} data-key={i.id}
       style={{ "--i": Math.min(p.index, 8) } as object}>
       <span className={s.rowMain}>
         <KindTag kind={done !== undefined ? "fixed" : "check"} />

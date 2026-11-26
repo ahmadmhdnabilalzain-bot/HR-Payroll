@@ -6,9 +6,11 @@ import { useGlide } from "../glide";
 import b from "../button.module.css";
 import { PageFoot } from "./PageFoot";
 import { lastRecord, saveView, savedView } from "./listMotion";
+import { useEntrance, useListFlip } from "./listEnter";
 import { maskNode, useMaskText } from "../mask";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
+import m from "./motion.module.css";
 
 export interface ListColumn<T> {
   key: string;
@@ -130,6 +132,11 @@ export function FilterList<T>(p: {
   const many = (p.segments?.length ?? 0) > 4;
   const segRow = useRef<HTMLDivElement>(null);
   useGlide(segRow, "seg");
+  // Rows rise in once per route; a filter, a search or a decision
+  // slides them to their new places (listEnter.ts).
+  const host = useRef<HTMLDivElement>(null);
+  useEntrance(host, ":scope > ul > li[data-key]", { scope: "rows" });
+  useListFlip(host, shown.map(p.rowKey));
   return (
     <div className={s.page}>
       <PageHead title={p.title} lede={p.lede} actions={p.actions}
@@ -176,40 +183,43 @@ export function FilterList<T>(p: {
           {t("tpl.shown", { n: shown.length, total: p.rows.length })}
         </span>
       </div>
-      {shown.length === 0 ? (
-        <div className={s.emptyState}>
-          {p.rows.length > 0 && (q !== "" || active !== p.segments?.[0]) ? (
-            <>
-              <p>{t("tpl.noMatch")}</p>
-              <button type="button" className={`${b.btn} ${b.secondary}`}
-                onClick={() => {
-                  setQRaw("");
-                  setSegRaw(p.segments?.[0]?.id ?? "");
-                  saveView(key, { q: "", seg: p.segments?.[0]?.id ?? "" });
-                }}>{t("tpl.clearAll")}</button>
-            </>
-          ) : (
-            <>
-              <p>{p.empty}</p>
-              {p.emptyAction}
-            </>
-          )}
-        </div>
-      ) : (
-        <ul className={s.list} aria-label={p.title}
-          data-avatar={p.avatar !== undefined}>
-          <li className={p.rowActions === undefined ? undefined
-            : s.actRow} aria-hidden="true">
-            <span className={s.listHead}>
-              {p.columns.map((c) => (
-                <span key={c.key} data-end={c.end === true}>{c.label}</span>
-              ))}
-            </span>
-            {p.rowActions !== undefined && <span className={s.headActs} />}
-          </li>
-          {shown.map((r) => <Row key={p.rowKey(r)} p={p} r={r} />)}
-        </ul>
-      )}
+      <div className={m.host} ref={host}>
+        {shown.length === 0 ? (
+          <div className={s.emptyState}>
+            {p.rows.length > 0 && (q !== "" || active !== p.segments?.[0]) ? (
+              <>
+                <p>{t("tpl.noMatch")}</p>
+                <button type="button" className={`${b.btn} ${b.secondary}`}
+                  onClick={() => {
+                    setQRaw("");
+                    setSegRaw(p.segments?.[0]?.id ?? "");
+                    saveView(key, { q: "", seg: p.segments?.[0]?.id ?? "" });
+                  }}>{t("tpl.clearAll")}</button>
+              </>
+            ) : (
+              <>
+                <p>{p.empty}</p>
+                {p.emptyAction}
+              </>
+            )}
+          </div>
+        ) : (
+          <ul className={s.list} aria-label={p.title}
+            data-avatar={p.avatar !== undefined}>
+            <li className={p.rowActions === undefined ? undefined
+              : s.actRow} aria-hidden="true">
+              <span className={s.listHead}>
+                {p.columns.map((c) => (
+                  <span key={c.key} data-end={c.end === true}>{c.label}</span>
+                ))}
+              </span>
+              {p.rowActions !== undefined && <span className={s.headActs} />}
+            </li>
+            {shown.map((r) => <Row key={p.rowKey(r)} k={p.rowKey(r)}
+              p={p} r={r} />)}
+          </ul>
+        )}
+      </div>
       <PageFoot />
     </div>
   );
@@ -218,7 +228,7 @@ export function FilterList<T>(p: {
 type RowProps<T> = Pick<Parameters<typeof FilterList<T>>[0],
   "columns" | "rowHref" | "avatar" | "rowActions">;
 
-function Row<T>(q: { p: RowProps<T>; r: T }) {
+function Row<T>(q: { p: RowProps<T>; r: T; k: string }) {
   const { p, r } = q;
   const mask = useMaskText();
   const href = p.rowHref?.(r);
@@ -238,9 +248,9 @@ function Row<T>(q: { p: RowProps<T>; r: T }) {
     : <a className={s.row} href={href} data-row=""
       aria-current={href === lastRecord() ? "true" : undefined}
       data-row-name={who?.name}>{cells}</a>;
-  if (p.rowActions === undefined) return <li>{row}</li>;
+  if (p.rowActions === undefined) return <li data-key={q.k}>{row}</li>;
   return (
-    <li className={s.actRow}>
+    <li className={s.actRow} data-key={q.k}>
       {row}
       <span className={s.rowActs}>{p.rowActions(r)}</span>
     </li>

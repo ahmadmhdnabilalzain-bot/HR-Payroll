@@ -4,13 +4,13 @@ import { BoardPackScreen } from "./Board";
 import { OwnerBriefScreen } from "./Brief";
 import { ItDashboardScreen } from "./It";
 import { LoansReportScreen } from "./LoansReport";
-import s from "../cost/cost.module.css";
+import { Loading } from "../../ui/templates";
 
 /** Loads the chunk behind one quiet line, then the screen. */
 const wrap = (V: ComponentType): ComponentType<ViewProps> => {
   function More() {
     return (
-      <Suspense fallback={<p className={s.loading}>Working it out…</p>}>
+      <Suspense fallback={<Loading label="Working it out…" />}>
         <V />
       </Suspense>
     );

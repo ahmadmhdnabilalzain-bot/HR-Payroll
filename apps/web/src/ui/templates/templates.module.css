@@ -1743,11 +1743,13 @@ li + li.actRow > .row {
   display: none;
 }
 
-/* List to record (listMotion.ts): the face and the name travel, 280 ms
- * on the sheet curve; the rest of the page crossfades under them. */
+/* List to record (listMotion.ts): the face and the name travel on an
+ * in-out curve (no long tail, so they land on their row exactly when
+ * the trip ends); the rest of the page crossfades under them. */
 :global(html[data-list-motion])::view-transition-group(*) {
-  animation-duration: 280ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  animation-duration: var(--dur-slow, 320ms);
+  animation-timing-function: var(--ease-in-out,
+    cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 /* The old page leaves quickly, so two pages never read as one. */
@@ -1761,21 +1763,69 @@ li + li.actRow > .row {
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* The name keeps its proportions: it scales from its start edge. */
+/* The name keeps its proportions: it scales from its start edge. The
+ * two sizes of type swap early (a row's weight is not a title's), so
+ * the name never reads double on the way. */
 :global(html[data-list-motion])::view-transition-old(list-name),
 :global(html[data-list-motion])::view-transition-new(list-name) {
   block-size: 100%;
   inline-size: auto;
   object-fit: contain;
   object-position: left center;
-  animation-duration: 280ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  animation-duration: var(--dur-fast, 120ms);
 }
 
 :global(html[data-list-motion])::view-transition-old(list-face),
 :global(html[data-list-motion])::view-transition-new(list-face) {
   block-size: 100%;
-  animation-duration: 280ms;
+  animation-duration: var(--dur-slow, 320ms);
+}
+
+/* A card grows into its report: the frame moves and resizes, clipped,
+ * while each side keeps its own size (no stretched type). */
+:global(html[data-list-motion])::view-transition-image-pair(list-card) {
+  overflow: clip;
+  border-radius: var(--radius-panel, 12px);
+}
+
+:global(html[data-list-motion])::view-transition-old(list-card),
+:global(html[data-list-motion])::view-transition-new(list-card) {
+  inline-size: auto;
+  block-size: auto;
+  object-fit: none;
+  object-position: left top;
+}
+
+/* Out of the card: the frame leaves fast (ease-out), the card fades
+ * at once and the report comes in. */
+:global(html[data-list-motion])::view-transition-group(list-card) {
+  animation-timing-function: var(--ease-out, cubic-bezier(0.2, 0, 0, 1));
+}
+
+:global(html[data-list-motion])::view-transition-old(list-card) {
+  animation-duration: var(--dur-fast, 120ms);
+}
+
+:global(html[data-list-motion])::view-transition-new(list-card) {
+  animation-duration: var(--dur-base, 200ms);
+}
+
+/* Back into the card: the report holds while the frame shrinks, and
+ * the card appears only once the frame is nearly its size (never a
+ * card drawn at the report's corner). */
+:global(html[data-list-motion="back"])::view-transition-group(list-card) {
+  animation-timing-function: var(--ease-in-out,
+    cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+:global(html[data-list-motion="back"])::view-transition-old(list-card) {
+  animation-duration: var(--dur-slow, 320ms);
+}
+
+:global(html[data-list-motion="back"])::view-transition-new(list-card) {
+  animation-duration: var(--dur-fast, 120ms);
+  animation-delay: calc(var(--dur-slow, 320ms) - var(--dur-fast, 120ms));
+  animation-fill-mode: both;
 }
 
 /* The axis break: two slanted gaps cut through each total bar near its

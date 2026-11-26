@@ -5,6 +5,7 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import type { MessageKey } from "../../i18n/t";
 import type { Stamp } from "./state";
 import { useAccess } from "./useAccess";
+import { Loading as Skeleton } from "../../ui/templates";
 import s from "./access.module.css";
 
 export type Tone = "ok" | "warn" | "danger" | "none";
@@ -42,5 +43,5 @@ export const stampText = (x: Stamp): string =>
 
 export function Loading() {
   const { t } = useLocale();
-  return <p className={s.loading} role="status">{t("reports.loading")}</p>;
+  return <Skeleton label={t("reports.loading")} page={false} />;
 }

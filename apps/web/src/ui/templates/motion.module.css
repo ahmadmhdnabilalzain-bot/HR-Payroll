@@ -1,0 +1,182 @@
+/* List motion (listEnter.ts): reflow, reveal and the loading skeleton.
+ * Transform and opacity only. Tokens from the theme's motion sheet,
+ * with the agreed values inline until it lands. Ink, paper and grey. */
+
+/* The host of a list and its empty state: leaving rows are drawn in
+ * it, at the place they left. */
+.host {
+  position: relative;
+  min-inline-size: 0;
+}
+
+/* Leaving rows never draw past the list's new end (clip, not hidden:
+ * the sticky column headers still stick). An emptied list fades as
+ * one over the empty state, unclipped. */
+.host:has(> :is(ul, ol):not([data-ghost])) {
+  overflow: clip;
+  /* Room for a list's own shadow. */
+  overflow-clip-margin: 6px;
+}
+
+.host > :global(:is(ul, ol)[data-ghost]) {
+  margin: 0;
+}
+
+/* A row sliding to its new place covers a row that leaves under it. */
+.host :global(li[data-moving]) {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface);
+}
+
+/* A leaving copy never replays the entrances inside it. */
+:global([data-ghost]) *,
+:global([data-ghost]) *::before {
+  animation: none !important;
+  transition: none !important;
+}
+
+.host > :global(li[data-ghost]) {
+  list-style: none;
+  background: var(--color-surface);
+}
+
+/* The veil (listEnter.ts): a layer in the colour behind the element,
+ * over it; only its opacity animates. */
+:global([data-veil]) {
+  position: relative;
+}
+
+:global([data-veil])::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--veil, var(--color-surface));
+  pointer-events: none;
+  content: "";
+}
+
+/* Reveal: a section below the fold waits, then rises in once. */
+:global([data-reveal="wait"]) {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+@media print {
+  :global([data-reveal]) {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global([data-reveal="wait"]) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Loading: a skeleton in the shape of a page ------------------ */
+
+.skeleton {
+  display: grid;
+  gap: var(--space-4);
+  padding-block: var(--space-6);
+  /* Quick chunks never flash it: it shows after 120 ms. */
+  animation: skel-in var(--dur-base, 200ms) var(--ease-out,
+    cubic-bezier(0.2, 0, 0, 1)) 120ms both;
+}
+
+@keyframes skel-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.bone {
+  position: relative;
+  display: block;
+  block-size: 14px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  overflow: hidden;
+}
+
+.bone[data-w="title"] {
+  inline-size: min(320px, 60%);
+  block-size: 28px;
+  border-radius: 8px;
+}
+
+.bone[data-w="lede"] {
+  inline-size: min(440px, 80%);
+}
+
+.bone[data-w="row"] {
+  inline-size: 100%;
+  block-size: 44px;
+  border-radius: 10px;
+}
+
+/* The shimmer: a soft band of paper crossing each bone (moved by
+ * transform, never by background-position). */
+.bone::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent,
+    color-mix(in srgb, var(--color-surface) 55%, transparent),
+    transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1400ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  content: "";
+}
+
+.rows {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+}
+
+.rows > :nth-child(2)::after {
+  animation-delay: 80ms;
+}
+
+.rows > :nth-child(3)::after {
+  animation-delay: 160ms;
+}
+
+.rows > :nth-child(4)::after {
+  animation-delay: 240ms;
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+:global([dir="rtl"]) .bone::after {
+  animation-name: shimmer-rtl;
+}
+
+@keyframes shimmer-rtl {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+
+  .bone::after {
+    animation: none;
+    opacity: 0;
+  }
+}

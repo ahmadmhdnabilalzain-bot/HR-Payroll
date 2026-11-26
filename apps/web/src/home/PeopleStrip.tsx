@@ -93,7 +93,7 @@ function Card(p: { href: string; label: string; value: number;
   none?: string | undefined }) {
   return (
     <li>
-      <div className={s.card}>
+      <div className={s.card} data-card-box="">
         <span className={s.head}>
           {p.none !== undefined && p.value === 0
             ? <span className={s.none}>{p.none}</span>
@@ -104,7 +104,8 @@ function Card(p: { href: string; label: string; value: number;
                 </Explainable>
               </span>
             )}
-          <a className={s.label} href={p.href} onClick={p.onClick}>
+          <a className={s.label} href={p.href} onClick={p.onClick}
+            data-card="">
             {p.label}</a>
         </span>
         {p.children}
