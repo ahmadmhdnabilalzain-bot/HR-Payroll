@@ -141,6 +141,16 @@ export function usedHalves(rows: RequestRow[], id: string,
 
 /** The demo's new requests as approvals, for Home's inbox. */
 export function sessionApprovals(d: DemoData, s: DemoState): Approval[] {
+  const claims: Approval[] = s.claims.filter((c) => !c.withdrawn)
+    .map((c) => ({ id: c.approvalId, kind: "expense", employeeId:
+      c.employeeId, title: { en: `Expense claim: ${c.kind}`,
+        ar: `Expense claim: ${c.kind}` }, requestedOn: c.requestedOn,
+    amountFils: c.amount, makerId: c.employeeId,
+    checkerId: c.checkerId }));
+  return [...claims, ...sessionLeave(d, s)];
+}
+
+function sessionLeave(d: DemoData, s: DemoState): Approval[] {
   return s.requests.filter((r) => !r.withdrawn).map((r) => ({
     id: r.approvalId, kind: "leave", employeeId: r.employeeId,
     title: d.people.leaveApprovalTitle, requestedOn: r.requestedOn,

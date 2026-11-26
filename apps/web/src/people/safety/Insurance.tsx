@@ -1,4 +1,4 @@
-import type { CoverRow } from "../../demo/data/safety-types";
+import type { InsuranceCoverRow } from "../../demo/data/safety-types";
 import b from "../../ui/button.module.css";
 import { FilterList, KeyValues, RecordTabs } from "../../ui/templates";
 import { History } from "../papers/History";
@@ -9,10 +9,10 @@ import { fill, T } from "./words";
 
 const W = T.insurance;
 
-type View = { word: string; card: string; status: CoverRow["status"] };
+type View = { word: string; card: string; status: InsuranceCoverRow["status"] };
 
 /** A row as it reads once this visit's card marks are laid over it. */
-function viewOf(r: CoverRow, p: Safety): View {
+function viewOf(r: InsuranceCoverRow, p: Safety): View {
   const m = p.marks[`card:${r.employeeId}`];
   if (r.status === "card-pending" && m !== undefined) {
     return { word: W.covered, card: W.issuedNow, status: "covered" };
@@ -21,7 +21,7 @@ function viewOf(r: CoverRow, p: Safety): View {
     status: r.status };
 }
 
-const tone = (s: CoverRow["status"]) =>
+const tone = (s: InsuranceCoverRow["status"]) =>
   s === "covered" ? "ok" as const : s === "ended" ? "quiet" as const
     : "warn" as const;
 
@@ -58,7 +58,7 @@ export function Insurance(p: { rest: string[] }) {
   );
 }
 
-function Cover(p: { row: CoverRow | null; sf: Safety }) {
+function Cover(p: { row: InsuranceCoverRow | null; sf: Safety }) {
   const r = p.row;
   if (r === null) return <Outside />;
   const key = `card:${r.employeeId}`;

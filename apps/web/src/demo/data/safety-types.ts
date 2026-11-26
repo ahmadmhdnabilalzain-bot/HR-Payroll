@@ -1,6 +1,6 @@
 import type {
   AckRow,
-  CoverRow,
+  InsuranceCoverRow,
   IloeRow,
   IncidentAction,
   IncidentMonth,
@@ -16,7 +16,7 @@ import type {
  */
 export type {
   AckRow,
-  CoverRow,
+  InsuranceCoverRow,
   IloeRow,
   IncidentAction,
   IncidentMonth,
@@ -25,7 +25,7 @@ export type {
 };
 
 export interface SafetyData {
-  cover(): CoverRow[];
+  cover(): InsuranceCoverRow[];
   insurer: string;
   insuranceBasis: string;
   incidents(): IncidentView[];
