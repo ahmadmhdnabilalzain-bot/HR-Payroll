@@ -1,4 +1,5 @@
 import type { ViewProps } from "../views";
+import { AuditorAccess } from "./auditor/AuditorAccess";
 import { SetupAccess } from "./access/SetupAccess";
 import { SetupMore } from "./more";
 import { SetupRules } from "./rules/SetupRules";
@@ -11,6 +12,7 @@ import { SetupStructure } from "./structure/SetupStructure";
  * prefixes (`access`, `connections`, `data`).
  */
 export function Setup(p: ViewProps) {
+  if (p.rest[0] === "auditor") return <AuditorAccess />;
   if (p.rest[0] === "more") return <SetupMore {...p} />;
   if (p.rest[0] === "structure") return <SetupStructure {...p} />;
   if (p.rest[0] === "migration") return <SetupMigration {...p} />;

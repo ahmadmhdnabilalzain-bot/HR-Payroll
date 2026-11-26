@@ -3,6 +3,7 @@ import b from "../../ui/button.module.css";
 import { useToast } from "../../ui/Toast";
 import { FilterList } from "../../ui/templates";
 import type { AccessData } from "./data";
+import { useExternalUsers } from "../auditor/useExternal";
 import { Status, stampText, useActor } from "./ui";
 import s from "./access.module.css";
 
@@ -12,8 +13,10 @@ export function Review(p: { d: AccessData }) {
   const { state, dispatch } = useDemo();
   const actor = useActor();
   const toast = useToast();
+  const outside = useExternalUsers();
+  const people = [...d.users, ...outside];
   const kept = (id: string): boolean => state.accessKept[id] !== undefined;
-  const todo = d.users.filter((u) => !kept(u.id));
+  const todo = people.filter((u) => !kept(u.id));
   const signed = state.accessSignoff;
   const keep = (ids: string[], text: string): void => {
     dispatch({ type: "access-keep", ids, stamp: actor.stamp() });
@@ -29,7 +32,7 @@ export function Review(p: { d: AccessData }) {
     : `Look at each person's role, then sign off${actor.isGm ? "" :
       " (the General manager signs off)"}. ${d.review.text}`;
   return (
-    <FilterList title="Access review" lede={lede} rows={d.users}
+    <FilterList title="Access review" lede={lede} rows={people}
       rowKey={(u) => u.id} searchText={(u) => `${u.name} ${u.rolesText}`}
       segments={[{ id: "todo", label: "To check", match: (u) => !kept(u.id) },
         { id: "done", label: "Kept", match: (u) => kept(u.id) }]}

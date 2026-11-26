@@ -43,6 +43,12 @@ import {
   type AccessSlice,
 } from "../setup/access/state";
 import {
+  AUDITOR_INITIAL,
+  reduceAuditor,
+  type AuditorAction,
+  type AuditorSlice,
+} from "../setup/auditor/state";
+import {
   PAPERS_INITIAL,
   reducePapers,
   type PapersAction,
@@ -114,7 +120,8 @@ export type Resolution = "reviewed" | "renewal";
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
-    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice {
+    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
+    AuditorSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -157,6 +164,7 @@ export type Action =
   | PriorAction
   | HoldAction
   | MoreAction
+  | AuditorAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -171,6 +179,7 @@ export const INITIAL: DemoState = {
   ...CONNECT_INITIAL, ...PRIOR_INITIAL,
   ...HOLD_INITIAL,
   ...MORE_INITIAL,
+  ...AUDITOR_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -260,6 +269,13 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "more-cover":
     case "more-cover-withdraw":
     case "more-cover-restore": return reduceMore(s, a);
+    case "auditor-grant":
+    case "auditor-ungrant":
+    case "auditor-end-date":
+    case "auditor-end-date-undo":
+    case "auditor-end":
+    case "auditor-reinstate":
+    case "auditor-view": return reduceAuditor(s, a);
     case "pay-request":
     case "pay-withdraw":
     case "pay-restore":
