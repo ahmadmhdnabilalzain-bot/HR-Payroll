@@ -17,6 +17,7 @@ import {
   encodeBase64,
   isStrictBase64,
 } from "./base64";
+import { checkQuota } from "./quota";
 import { readSuggestion } from "./reader";
 import { sniffContentType } from "./sniff";
 
@@ -94,25 +95,33 @@ async function storeBytes(ctx: ReqCtx, id: string, key: string,
   await ctx.deps.blobs.put(key, new TextEncoder().encode(cipher));
 }
 
-/** POST /v1/receipts. */
+const INSERT = `INSERT INTO receipts (id, company_id, employee_id,
+    uploaded_by, file_name, content_type, size, sha256, blob_key,
+    suggestion, uploaded_at)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
+
+/**
+ * POST /v1/receipts. The row is inserted before the blob is written,
+ * so a refused row never leaves a file; a blob written by a request
+ * that then fails is deleted again (`onFailure`).
+ */
 export async function uploadReceipt(ctx: ReqCtx<ReceiptUpload>)
   : Promise<Receipt> {
   const c = ctx.tenant!.companyId;
   const employeeId = await targetEmployee(ctx, ctx.body.employeeId);
   const { bytes, type } = checkedFile(ctx.body);
+  await checkQuota(ctx);
   const id = ctx.deps.newId();
   const key = `${c}/receipts/${id}`;
   const suggestion = await readSuggestion(ctx.deps.receiptReader, bytes,
     type, ctx.deps.log, ctx.requestId);
-  await storeBytes(ctx, id, key, bytes);
   const at = ctx.deps.now().toISOString();
-  await ctx.tx.query(
-    `INSERT INTO receipts (id, company_id, employee_id, uploaded_by,
-       file_name, content_type, size, sha256, blob_key, suggestion,
-       uploaded_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-    [id, c, employeeId, ctx.user!.id, ctx.body.fileName, type, bytes.length,
-      createHash("sha256").update(bytes).digest("hex"), key,
-      JSON.stringify(suggestion), at]);
+  await ctx.tx.query(INSERT, [id, c, employeeId, ctx.user!.id,
+    ctx.body.fileName, type, bytes.length,
+    createHash("sha256").update(bytes).digest("hex"), key,
+    JSON.stringify(suggestion), at]);
+  ctx.onFailure(() => ctx.deps.blobs.delete(key));
+  await storeBytes(ctx, id, key, bytes);
   await appendAudit(ctx.tx, { companyId: c, at, actorUserId: ctx.user!.id,
     action: "receipt.uploaded", entityType: "receipt", entityId: id,
     data: { contentType: type, size: bytes.length } });

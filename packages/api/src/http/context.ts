@@ -21,8 +21,12 @@ export interface Env {
     routeId: string | null;
     companyId: string | null;
     userId: string | null;
+    cleanups: Cleanup[];
   };
 }
+
+/** Undoes a side effect outside the database (a written blob). */
+export type Cleanup = () => Promise<void>;
 
 export type App = Hono<Env>;
 
@@ -49,6 +53,11 @@ export interface ReqCtx<B = any, Q = any, P = any, H = any> {
   query: Q;
   body: B;
   headers: H;
+  /**
+   * Registers an undo for a side effect outside the transaction (a
+   * blob written); it runs only if the request fails (rollback).
+   */
+  onFailure: (undo: Cleanup) => void;
 }
 
 /** Overrides the route's declared success status (e.g. a 200 replay). */
@@ -100,6 +109,7 @@ function respond(c: Context<Env>, def: RouteDef, out: unknown) {
   if (out instanceof BinaryReply) return binary(c, out);
   if (out instanceof CsvReply) return csv(c, out);
   if (out instanceof FileReply) {
+    downloadHeaders(c);
     c.header("Content-Disposition",
       `attachment; filename="${out.fileName}"`);
     return c.text(out.text, 200);
@@ -111,18 +121,25 @@ function respond(c: Context<Env>, def: RouteDef, out: unknown) {
   return c.json(body as object, status);
 }
 
+/** Defence in depth for every download (never rendered, never framed). */
+function downloadHeaders(c: Context<Env>) {
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("Content-Security-Policy", "sandbox; default-src 'none'");
+  c.header("Cross-Origin-Resource-Policy", "same-origin");
+}
+
 function csv(c: Context<Env>, out: CsvReply) {
+  downloadHeaders(c);
   c.header("Content-Type", "text/csv; charset=utf-8");
   c.header("Content-Disposition", `attachment; filename="${out.fileName}"`);
-  c.header("X-Content-Type-Options", "nosniff");
   c.header("Cache-Control", "no-store");
   return c.body(out.text, 200);
 }
 
 function binary(c: Context<Env>, out: BinaryReply) {
+  downloadHeaders(c);
   c.header("Content-Type", out.contentType);
   c.header("Content-Disposition", `attachment; filename="${out.fileName}"`);
-  c.header("X-Content-Type-Options", "nosniff");
   c.header("Cache-Control", "no-store");
   return c.body(out.bytes as Uint8Array<ArrayBuffer>, 200);
 }
@@ -139,17 +156,32 @@ export function register(app: App, deps: AppDeps, routeId: string,
   if (def.bodyLimit !== undefined) app.use(path, routeBodyLimit(def));
   app.on(def.method, path, async (c) => {
     c.set("routeId", def.id);
+    c.set("cleanups", []);
     try {
       return respond(c, def, await run(c, def, deps, handler));
     } catch (e) {
+      await runCleanups(c, deps);
       throw asError(e);
     }
   });
 }
 
+/** The request failed: undo its outside side effects, best effort. */
+async function runCleanups(c: Context<Env>, deps: AppDeps) {
+  for (const undo of c.get("cleanups") ?? []) {
+    try {
+      await undo();
+    } catch {
+      deps.log({ requestId: c.get("requestId"), event: "cleanup.failed" });
+    }
+  }
+}
+
 function base(c: Context<Env>, deps: AppDeps, v: Validated) {
   const { db: _db, ...handlerDeps } = deps;
-  return { deps: handlerDeps, requestId: c.get("requestId"), ...v };
+  const onFailure = (undo: Cleanup) => c.get("cleanups").push(undo);
+  return { deps: handlerDeps, requestId: c.get("requestId"), onFailure,
+    ...v };
 }
 
 async function run(c: Context<Env>, def: RouteDef, deps: AppDeps,

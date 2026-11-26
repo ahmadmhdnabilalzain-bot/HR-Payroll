@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Id, listOf, Money, Timestamp } from "./primitives";
+import { Id, listOf, Money, text, Timestamp } from "./primitives";
 
 /**
  * The shared approval spine: chains of amount tiers per subject type,
@@ -94,13 +94,13 @@ export const ApprovalTaskList = listOf(ApprovalTask);
 /** `stepOrder` is the step the approver saw (a stale one is refused). */
 export const ApprovalDecision = z.object({
   stepOrder: z.number().int().min(1),
-  note: z.string().trim().min(1).max(500).optional(),
+  note: text(1, 500).optional(),
 });
 export type ApprovalDecision = z.infer<typeof ApprovalDecision>;
 
 export const ApprovalDecisionWithNote = z.object({
   stepOrder: z.number().int().min(1),
-  note: z.string().trim().min(3).max(500),
+  note: text(3, 500),
 });
 export type ApprovalDecisionWithNote = z.infer<
   typeof ApprovalDecisionWithNote>;

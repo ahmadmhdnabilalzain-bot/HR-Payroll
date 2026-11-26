@@ -101,6 +101,8 @@ export const errors = {
     "rows.",
   CANCEL_NOTE_REQUIRED: "Add a note to cancel an approved claim.",
   CLAIM_PROBLEMS: "The claim has problems. Fix the marked items.",
+  RECEIPT_QUOTA_EXCEEDED: "Too many receipts uploaded today. Try again " +
+    "tomorrow or ask HR to raise the limit.",
   EXCLUDED_CLAIM_INVALID: "Only approved claims waiting for payment can " +
     "be left out of a run.",
 } satisfies EnNamespace;

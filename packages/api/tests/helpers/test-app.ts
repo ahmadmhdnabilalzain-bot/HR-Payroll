@@ -8,7 +8,7 @@ import type { Db } from "../../src/db/db";
 import type { AppDeps } from "../../src/deps";
 import type { ReceiptReader } from "../../src/receipts/reader";
 import { nullReceiptReader } from "../../src/receipts/reader";
-import { memoryBlobStore } from "../../src/storage/blob";
+import { memoryBlobStore, type BlobStore } from "../../src/storage/blob";
 import { createTestDb } from "./test-db";
 
 export const TEST_KEK = new Uint8Array(32).fill(7);
@@ -30,6 +30,8 @@ export interface MakeAppOpts {
   subjects?: SubjectHandler[];
   /** Receipt reader (default: the null reader). */
   reader?: ReceiptReader;
+  /** Blob store (default: a fresh memory store). */
+  blobs?: BlobStore;
 }
 
 export async function makeApp(opts: MakeAppOpts = {}) {
@@ -50,7 +52,7 @@ export async function makeApp(opts: MakeAppOpts = {}) {
     keyring: keyringFromKey(TEST_KEK, rand),
     log: (line) => logs.push(line),
     passwordCost: { N: 1024 },
-    blobs: memoryBlobStore(),
+    blobs: opts.blobs ?? memoryBlobStore(),
     receiptReader: opts.reader ?? nullReceiptReader,
   };
   const app = createApp(deps, opts.subjects === undefined ? {}

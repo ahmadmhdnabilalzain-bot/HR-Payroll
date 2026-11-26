@@ -57,6 +57,7 @@ const policy = {
   mileageRates: [{ code: "car", label: "Own car", perKm: "0.75",
     effectiveFrom: "2026-01-01" }],
   perDiemRates: [],
+  receiptQuota: { perUserPerDay: 50, perCompanyPerDay: 1000 },
 };
 
 const claim = {

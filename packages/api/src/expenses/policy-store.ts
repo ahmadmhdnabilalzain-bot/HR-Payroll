@@ -1,6 +1,7 @@
-import type {
-  ExpensePolicy,
-  ExpensePolicyUpdate,
+import {
+  RECEIPT_QUOTA_DEFAULT,
+  type ExpensePolicy,
+  type ExpensePolicyUpdate,
 } from "@payroll/contract";
 import { appendAudit } from "../audit/audit";
 import type { Db } from "../db/db";
@@ -8,7 +9,8 @@ import { parseAed } from "../db/money";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
 
-type Body = Pick<ExpensePolicy, "limits" | "mileageRates" | "perDiemRates">;
+type Body = Pick<ExpensePolicy, "limits" | "mileageRates" | "perDiemRates">
+  & { receiptQuota?: ExpensePolicy["receiptQuota"] };
 
 interface PolicyRow {
   version: number;
@@ -24,10 +26,13 @@ export async function getPolicy(tx: Db, companyId: string)
      WHERE company_id = $1`, [companyId]);
   if (r === undefined) {
     return { version: 0, claimWindowDays: null, limits: [],
-      mileageRates: [], perDiemRates: [] };
+      mileageRates: [], perDiemRates: [],
+      receiptQuota: RECEIPT_QUOTA_DEFAULT };
   }
   return { version: r.version, claimWindowDays: r.claim_window_days,
-    ...r.body };
+    limits: r.body.limits, mileageRates: r.body.mileageRates,
+    perDiemRates: r.body.perDiemRates,
+    receiptQuota: r.body.receiptQuota ?? RECEIPT_QUOTA_DEFAULT };
 }
 
 function duplicates<T>(rows: T[], key: (r: T) => string, path: string,
@@ -86,8 +91,9 @@ export async function putPolicy(ctx: ReqCtx<ExpensePolicyUpdate>)
     throw new ApiError("POLICY_INVALID", undefined, { paths });
   }
   const at = ctx.deps.now().toISOString();
+  const quota = b.receiptQuota ?? (await getPolicy(ctx.tx, c)).receiptQuota;
   const body: Body = { limits: b.limits, mileageRates: b.mileageRates,
-    perDiemRates: b.perDiemRates };
+    perDiemRates: b.perDiemRates, receiptQuota: quota };
   const rows = await ctx.tx.query<{ version: number }>(
     b.expectedVersion === 0 ? INSERT : UPDATE,
     [c, b.expectedVersion, b.claimWindowDays, JSON.stringify(body),
