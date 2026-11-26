@@ -38,5 +38,7 @@ export * from "./time/intervals";
 export * from "./time/types";
 export * from "./time/day-sheet";
 export * from "./time/roster-checks";
+export * from "./time/leave-count";
+export * from "./time/leave-accrual";
 export * from "./explain/catalog";
 export * from "./explain/explain";

@@ -57,3 +57,60 @@ export interface RosterCheckInput {
   employeeId: string;
   days: RosterDayInput[];
 }
+
+/** Leave counts are whole half-days ("halves"), so no fractions. */
+export type DayPart = "full" | "am" | "pm";
+
+export interface LeaveSpan {
+  start: string;
+  end: string;
+  startPart: DayPart;
+  endPart: DayPart;
+}
+
+export type DayBasis = "calendar" | "working";
+
+export interface LeaveCalendar {
+  restDates: ReadonlySet<string>;
+  holidayDates: ReadonlySet<string>;
+}
+
+export interface LeaveCount {
+  halves: number;
+  dates: { date: string; halves: 1 | 2; part: DayPart }[];
+  skipped: { date: string; why: "rest-day" | "holiday" }[];
+}
+
+export interface LeaveAccrualPolicy {
+  accrual: "upfront" | "monthly";
+  annualDays: number;
+  joiningYearProRata: boolean;
+}
+
+export interface BalanceInput {
+  accruedHalves: number;
+  carriedHalves: number;
+  carriedExpiresOn: string | null;
+  adjustmentHalves: number;
+  taken: { date: string; halves: number }[];
+  pendingHalves: number;
+  asOf: string;
+}
+
+export interface BalanceResult {
+  takenHalves: number;
+  carriedUsedHalves: number;
+  expiredHalves: number;
+  availableHalves: number;
+}
+
+export type LeavePayrollKind = "annual" | "sick" | "maternity" |
+  "unpaid" | "other-paid";
+
+export interface LeavePolicyFacts {
+  payrollKind: LeavePayrollKind;
+  annualDays: number | null;
+  accrual: LeaveAccrualPolicy["accrual"];
+  dayCount: DayBasis;
+  carryOverMaxDays: number | null;
+}
