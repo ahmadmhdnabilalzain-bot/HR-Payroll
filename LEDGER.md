@@ -703,3 +703,9 @@ The owner can overrule any of these. Full list with reasons:
   owner checks once on a real iPhone. Hosting the approved demo is
   needed for the clients' phones (a link or QR code) and happens only
   after the owner's yes.
+- Owner's process for the client demo (2026-11-26): (1) owner approves the
+  interface and UI; (2) I share the list of features not built
+  (`docs/demo/pending-features.md`); (3) owner decides how much more to
+  build before the demo; (4) I run a full browser check as if I were the
+  client and fix every bug found; (5) the owner sends the client the
+  live link tonight, and meets them tomorrow 15:00 Dubai time.

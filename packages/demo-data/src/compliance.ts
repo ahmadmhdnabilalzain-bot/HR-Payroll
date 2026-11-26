@@ -11,7 +11,7 @@ const activeOn = (e: DemoEmployee, d: string) => e.joiningDate <= d &&
  * it is unconfirmed, so the bank demo shows no target, status or fine.
  */
 export function buildNationalities(employees: DemoEmployee[])
-  : NationalityHeadcount {
+  : Omit<NationalityHeadcount, "headcountText"> {
   const active = employees.filter((e) => activeOn(e, AS_OF));
   const counts = new Map<string, number>();
   for (const e of active) {

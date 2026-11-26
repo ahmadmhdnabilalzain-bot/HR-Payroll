@@ -28,8 +28,8 @@ export const PENSION_NOT_COMPUTED = {
   code: "PENSION_NOT_COMPUTED",
   en: "Pension for UAE nationals employed in Abu Dhabi may fall under " +
     "the Abu Dhabi pension fund rather than the federal fund; the rate " +
-    "is confirmed with the fund before payroll. Not included in this " +
-    "figure.",
+    "must be confirmed with the fund before payroll. Not included in " +
+    "this figure.",
   // NEEDS NATIVE REVIEW
   ar: "قد يخضع معاش المواطنين الإماراتيين العاملين في أبوظبي لصندوق " +
     "أبوظبي للمعاشات بدلًا من الصندوق الاتحادي؛ ويُؤكَّد المعدل مع " +
@@ -39,6 +39,10 @@ export const PENSION_NOT_COMPUTED = {
 
 /** The visible "not computed" trace line on a national's payslip. */
 export const PENSION_LINE_ID = "pension.not-computed";
+
+/** The employer side of the same: shown, never a silent 0.00. */
+export const EMPLOYER_PENSION_NOT_COMPUTED = "Employer pension " +
+  "contribution: not computed until the pension fund is confirmed.";
 
 const sum = (xs: { amount: Fils }[]): Fils =>
   fils(xs.reduce((s, x) => s + x.amount, 0n));
@@ -84,8 +88,11 @@ export function payslipWithoutPension(input: PayslipInput)
   const net = fils(gross - ded.total);
   total(t, "pay.net", "Net pay", "gross - total deductions",
     { gross: String(gross), deductions: String(ded.total) }, net);
-  total(t, "employer.total", "Employer cost on top of gross pay",
-    "sum of the employer lines", { lines: "0" }, fils(0n));
+  // Not a money result: "not computed", so it is never read as 0.00.
+  t.add({ id: "employer.total", label: "Employer cost on top of gross " +
+    "pay: not computed", formula: "not computed",
+  inputs: { reason: EMPLOYER_PENSION_NOT_COMPUTED },
+  result: "not computed", rules: [] });
   return { trace: t.lines(), value: { year: input.year,
     month: input.month, workerClass: e.workerClass, payStart: w.payStart,
     payEnd: w.payEnd, daysInPeriod: d.employedDays,

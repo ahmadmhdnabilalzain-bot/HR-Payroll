@@ -4,7 +4,7 @@ export const DEMO_LABELS_EN = {
   "company.badge": "Fictional demo",
   "company.fakeNotice": "Fictional demo: the bank, its branches, " +
     "people, numbers and amounts are invented.",
-  "scope.rules": "UAE mainland rules",
+  "scope.rules": "Based on UAE mainland rules, as we read them",
   "dept.exec": "Executive office", "dept.retail": "Retail and branches",
   "dept.corp": "Corporate banking", "dept.ops": "Operations",
   "dept.credit": "Credit and risk", "dept.compliance": "Compliance",
@@ -44,7 +44,7 @@ export const DEMO_LABELS_EN = {
   "case.leaver": "Leaving this month", "case.unpaid-leave": "Unpaid " +
     "leave this month", "case.overtime": "Overtime this month",
   "case.night-overtime": "Night work this month",
-  "case.back-pay": "Back pay for September",
+  "case.back-pay": "Back pay on basic salary (housing unchanged)",
   "case.missing-iban": "No IBAN on file",
   "case.iban-typo": "IBAN fails the check",
   "case.loan-over-cap": "Loan instalment above the cap",
@@ -58,7 +58,7 @@ export const DEMO_LABELS_EN = {
   "approval.leave": "Leave request",
   "expense.entertainment": "Client lunch (demo receipt)",
   "expense.travel": "Taxi and parking, client visits (demo receipt)",
-  "issues.title": "Caught before approval",
+  "issues.title": "Found before approval",
   "pension.title": "Needs confirmation",
   "nationality.label": "Sample data, regime for banks to be confirmed",
 } as const;
