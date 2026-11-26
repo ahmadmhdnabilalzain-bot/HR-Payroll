@@ -1,0 +1,211 @@
+/* The IT Home: four tiles, then the audit chain with its check. Ink
+ * and grey; colour only beside a word. */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  display: grid;
+  align-content: start;
+  min-inline-size: 0;
+  padding: 6px;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.tileHead {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  padding: 14px 14px 12px;
+  border-radius: calc(var(--radius-panel) - 4px);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a.tileHead {
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+a.tileHead:hover {
+  background: var(--color-surface-2);
+}
+
+a.tileHead:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.go {
+  position: absolute;
+  inset-block-start: 18px;
+  inset-inline-end: 16px;
+  color: var(--color-text-faint);
+}
+
+.label {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+.figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-2);
+  margin: 0;
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+}
+
+.unit {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.sub {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.meter {
+  display: block;
+  block-size: 6px;
+  margin-block: var(--space-2) var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-grey-200);
+  overflow: hidden;
+}
+
+.meter > span {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--color-text);
+}
+
+.hooks {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 14px 12px;
+  padding: var(--space-3) 0 0;
+  border-block-start: 1px solid var(--color-divider);
+  list-style: none;
+}
+
+.hooks > li {
+  display: grid;
+  gap: 2px;
+}
+
+.hookName {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* A state word with its dot. */
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.state::before {
+  content: "";
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--color-grey-500);
+}
+
+.state[data-tone="wait"]::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--color-grey-500);
+}
+
+.state[data-tone="bad"]::before {
+  background: var(--color-danger);
+}
+
+.state[data-tone="good"]::before {
+  background: var(--color-success);
+}
+
+/* The audit chain: the one action on the page. */
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.chainText {
+  display: grid;
+  gap: var(--space-1);
+  flex: 1 1 360px;
+  min-inline-size: 0;
+}
+
+.chainText > .sub {
+  max-inline-size: 60ch;
+}
+
+.check {
+  flex: none;
+  min-inline-size: 200px;
+}
+
+@media (max-width: 560px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .tile:first-child,
+  .tile:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .tileHead {
+    padding: 10px;
+  }
+
+  .figure {
+    font-size: 28px;
+    line-height: 34px;
+  }
+
+  .chain {
+    padding: var(--space-4);
+  }
+
+  .check {
+    inline-size: 100%;
+  }
+}

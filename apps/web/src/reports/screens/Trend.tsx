@@ -1,15 +1,26 @@
 import { fils } from "@payroll/engine";
 import { Money } from "../../ui/Money";
-import { BarChart, ReportPage, type Cell } from "../../ui/templates";
+import { ReportPage, type Cell } from "../../ui/templates";
+import { trendBars } from "../dash/model";
+import { Panel } from "../dash/Panel";
+import { TrendChart } from "../dash/TrendChart";
+import s from "../dash/dash.module.css";
+import { useRunWord } from "./Dashboards";
 import { changeText, plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 
-/** Payroll trend, January to October: a bar a month, then the table. */
+/**
+ * Payroll trend, January to October: this run's gross and its change
+ * on September, a bar a month from zero on a labelled axis with
+ * September (paid) and October (this run) marked, then the table.
+ */
 export function Trend() {
   const src = useReportsSource();
   const crumbs = useReportCrumbs();
   const { signed } = useMoney();
   const last = src.months.at(-1)!;
+  const prev = src.months.at(-2)!;
+  const runWord = useRunWord();
   const rows: Cell[][] = src.months.map((x, i) => {
     const before = src.months[i - 1];
     const diff = before === undefined ? null : x.gross - before.gross;
@@ -23,12 +34,22 @@ export function Trend() {
   return (
     <ReportPage crumbs={crumbs} title="Payroll trend"
       period={`${src.months[0]!.label} to ${last.label}`}
-      figure={{ label: `Gross pay, ${src.months[0]!.label} to ` +
-        last.label, value: <Money value={total} tween={false} /> }}
-      chart={<BarChart label={"Gross pay by month, " +
-        `${src.months[0]!.label} to ${last.label}`}
-      data={src.months.map((x) => ({ label: x.label.slice(0, 3),
-        value: x.gross, focus: x.month === last.month }))} />}
+      figure={{ label: `Gross pay, ${last.label}`,
+        value: <Money value={last.gross} tween={false} /> }}
+      chart={(
+        <div className={s.board}>
+          <p className={s.lift}>
+            {changeText(last.gross - prev.gross, prev.gross, signed)}
+            {` against ${prev.label}`}</p>
+          <Panel id="trend-chart" title="Gross pay by month"
+            note={`${src.months[0]!.label.slice(0, 3)} to ${last.label}, ` +
+              "from zero"}>
+            <TrendChart label={"Gross pay by month, January to October; " +
+              `September paid, October ${runWord.toLowerCase()}`}
+            bars={trendBars(src, runWord)} />
+          </Panel>
+        </div>
+      )}
       columns={[{ label: "Month" }, { label: "State" },
         { label: "People paid" }, { label: "Gross", end: true },
         { label: "Net", end: true },
