@@ -36,8 +36,15 @@
   font-weight: 500;
 }
 
+/* A wide table scrolls inside its own focusable region. */
+.scroll {
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
 .pools {
   inline-size: 100%;
+  min-inline-size: 480px;
   border-collapse: collapse;
   font-size: var(--text-sm);
 }

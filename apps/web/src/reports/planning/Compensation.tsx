@@ -148,6 +148,8 @@ export function CompensationScreen() {
         empty="No one matches. Clear the search to see everyone."
         actions={primary} />
       <div className={s.wrap}>
+        <div className={s.scroll} tabIndex={0} role="region"
+          aria-label="Pools by department">
         <table className={s.pools}>
           <caption className={s.basis}>Pools by department, in steps of{" "}
             {formatMoney(m.step, lang)} a month</caption>
@@ -180,6 +182,7 @@ export function CompensationScreen() {
             })}
           </tbody>
         </table>
+        </div>
         <p className={s.basis}>{m.basis}</p>
         {m.left.map((l) => (
           <p key={l.name} className={s.basis}>

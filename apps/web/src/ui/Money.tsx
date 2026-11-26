@@ -19,7 +19,7 @@ const LAST_SEEN = new Map<string, bigint>();
  * (formatMoney / moneyParts), tabular figures, left-to-right inside
  * Arabic, the fils set smaller, eased when the value changes, and
  * masked when amounts are hidden. Screen readers get the plain text.
- * While a figure is rolling its digits are dimmed, so a figure on the
+ * While a figure is rolling its digits are muted, so a figure on the
  * way to the total never reads as the total (reduced motion: no roll).
  */
 export function Money(p: { value: Fils; size?: Size; tween?: boolean;
