@@ -112,3 +112,17 @@ describe("dashboard tiles agree with their selectors", () => {
     expect(bars.map((b) => b.value)).toEqual(src.months.map((m) => m.gross));
   });
 });
+
+describe("the board pack summary reads rows that exist", () => {
+  it("finds every row it lifts a figure from", async () => {
+    const { buildMoreSource } = await import("../../src/reports/more/source");
+    const { board } = buildMoreSource();
+    for (const m of ["On the October payroll", "Gratuity", "Loans",
+      "Gross plus employer cost", "Problems before sign-off"]) {
+      expect(board.rows.some((r) => r.measure.startsWith(m))).toBe(true);
+    }
+    expect(Number(board.rows.find((r) => r.measure ===
+      "On the October payroll")?.text)).toBe(demo.at({}).headline()
+      .headcount);
+  });
+});
