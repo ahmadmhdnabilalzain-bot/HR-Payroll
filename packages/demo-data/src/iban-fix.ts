@@ -1,4 +1,5 @@
 import type { Finding } from "@payroll/wps";
+import { netNoteOf } from "./notes";
 import { totalsOf } from "./payroll";
 import { buildSif } from "./sif";
 import type { DemoCompany, DemoEmployee } from "./types";
@@ -56,7 +57,8 @@ export function applyIbanFix(demo: DemoCompany, employeeId: string,
       findings: sif.findings };
   }
   const approvals = demo.approvals.map((a) => a.kind === "pay-run"
-    ? { ...a, amount: payRun.totals.net } : a);
+    ? { ...a, amount: payRun.totals.net, amountNote: netNoteOf(payRun) }
+    : a);
   return { ok: true, findings: sif.findings,
     demo: { ...demo, employees, payRun, sif, approvals } };
 }
