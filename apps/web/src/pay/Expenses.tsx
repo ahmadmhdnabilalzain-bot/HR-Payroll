@@ -3,6 +3,7 @@ import type { Approval } from "../demo/data/types";
 import { personOf } from "../demo/derive";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
+import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { useToast } from "../ui/Toast";
@@ -12,7 +13,7 @@ import {
   RecordTabs,
   RowDecision,
 } from "../ui/templates";
-import { whoIs } from "./derive";
+import { dayMonth, whoIs } from "./derive";
 import { usePay } from "./load";
 import { NotFound, Status, type Tone } from "./parts";
 import s from "./pay.module.css";
@@ -99,9 +100,11 @@ export function ExpenseRecord(p: { id: string }) {
 
 function ClaimPage(p: { x: ExpenseView }) {
   const x = p.x;
+  const { lang } = useLocale();
   const { data, state, dispatch } = useDemo();
   const toast = useToast();
   const switchRole = useSwitchRole();
+  const [word, tone] = useClaimState(x);
   const a = useApproval(x);
   const verdict = a === undefined ? undefined : state.decided[a.id];
   const isChecker = a !== undefined &&
@@ -115,6 +118,13 @@ function ClaimPage(p: { x: ExpenseView }) {
   return (
     <RecordTabs title={x.name} lede={`${x.title}, ${x.date}`}
       avatar={{ id: x.employeeId, name: x.name }}
+      status={{ word, tone: tone === "check" ? "warn" : tone === "bad"
+        ? "stop" : tone }}
+      history={[{ when: x.date, what: `Sent by ${x.name}` },
+        ...(a === undefined || verdict === undefined ? [] : [{
+          when: dayMonth(data.payCalendar().asOf, lang),
+          what: `Claim ${verdict === "approve" ? "agreed" : "declined"} by ` +
+            whoIs(data, a.checkerId) }])]}
       back={{ label: "Expense claims", href: LIST }}
       actions={a !== undefined && verdict === undefined && isChecker ? (
         <>
@@ -131,7 +141,6 @@ function ClaimPage(p: { x: ExpenseView }) {
       tabs={[{ id: "details", label: "Details", render: () => (
         <div className={s.stack}>
           <KeyValues items={[
-            { label: "Status", value: <ClaimStatus x={x} /> },
             ...(a === undefined ? [] : [{ label: "Decides",
               value: whoIs(data, a.checkerId) }]),
             { label: "Receipt", value: x.receipt },

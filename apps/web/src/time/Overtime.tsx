@@ -143,15 +143,21 @@ export function OvertimeRecord(q: { id: string }) {
   if (c === undefined) return <Outside />;
   const phase = phaseOf(c, state);
   const decider = who.approverOf(c.employeeId);
-  const [word] = phaseWord(phase, who, decider);
+  const [word, tone] = waitWord(phase, who, decider, c.employeeId);
   const made = state.timeDecided[c.id];
   const mine = claimsFor(t, who).filter((x) => x.employeeId === c.employeeId);
   return (
     <RecordTabs title={`${who.name(c.employeeId)}, ${dayText(c.date,
-      who.lang)}`} lede={`${who.jobOf(c.employeeId)}. ${word}.`}
+      who.lang)}`} lede={`${who.jobOf(c.employeeId)}.`}
     back={{ label: "Overtime to decide", href: hrefOf("time-off",
       "overtime") }}
     avatar={{ id: c.employeeId, name: who.name(c.employeeId) }}
+    status={{ word, tone: tone === "danger" ? "stop" : tone === "info"
+      ? "neutral" : tone }}
+    history={[{ when: dayText(c.date, who.lang),
+      what: `Worked ${timeOf(c)} past the shift` },
+    ...(made === undefined ? [] : [{ when: dayText(t.asOf, who.lang),
+      what: decidedLine(made, who, dayText(t.asOf, who.lang)) }])]}
     actions={<Buttons id={c.id} text="The claim" phase={phase}
       allowed={who.canDecide(c.employeeId)} />}
     stats={[
@@ -208,6 +214,12 @@ export function Crew() {
       lede="Overtime a manager asks for before it is worked."
       rows={crewFor(t, who)} rowKey={(c) => c.id}
       rowHref={(c) => hrefOf("time-off", "overtime", "crew", c.id)}
+      avatar={(c) => ({ id: c.requestedBy, name: who.name(c.requestedBy) })}
+      rowActions={(c) => (
+        <RowButtons id={c.id} text="The request" phase={crewPhase(c, state)}
+          allowed={who.canDecide(c.requestedBy)}
+          decider={who.approverOf(c.requestedBy)} />
+      )}
       columns={[
         { key: "r", label: "Asked by", render: (c) =>
           who.name(c.requestedBy) },
@@ -217,8 +229,8 @@ export function Crew() {
         { key: "v", label: "Estimate", end: true, render: (c) =>
           <Money value={c.estimate} size="sm" /> },
         { key: "s", label: "Status", render: (c) => {
-          const [word, tone] = phaseWord(crewPhase(c, state), who,
-            who.approverOf(c.requestedBy));
+          const [word, tone] = waitWord(crewPhase(c, state), who,
+            who.approverOf(c.requestedBy), c.requestedBy);
           return <Status tone={tone}>{word}</Status>;
         } },
       ]}
