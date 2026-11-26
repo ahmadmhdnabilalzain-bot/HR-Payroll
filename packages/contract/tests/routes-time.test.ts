@@ -24,9 +24,11 @@ const TIME_ROUTE_IDS = [
   "getWfhSettings", "updateWfhSettings", "publishWfhNotice",
   "getCurrentWfhNotice", "recordWfhConsent", "withdrawWfhConsent",
   "getWfhStatus", "pauseWfh", "resumeWfh",
+  "postWfhActivity", "postWfhLocation", "getMyWfhDays", "exportMyWfhData",
+  "getWfhSummary", "listWfhLocations",
 ];
 
-const MFA_IDS = ["updateWfhSettings"];
+const MFA_IDS = ["listWfhLocations", "updateWfhSettings"];
 
 const FORBIDDEN_PATH =
   /screenshot|screen|keystroke|keylog|capture|webcam|camera|microphone/i;

@@ -27,10 +27,13 @@ export async function openRemoteRecord(tx: Db, companyId: string,
   return r ?? null;
 }
 
-/** Hourly location samples arrive with Task 10 (migration 908). */
-async function lastLocation(_tx: Db, _companyId: string,
-  _employeeId: string): Promise<string | null> {
-  return null;
+async function lastLocation(tx: Db, companyId: string, employeeId: string)
+  : Promise<string | null> {
+  const [r] = await tx.query<{ at: string }>(
+    `SELECT at FROM wfh_location_samples WHERE company_id = $1
+     AND employee_id = $2 ORDER BY at DESC LIMIT 1`,
+    [companyId, employeeId]);
+  return r?.at ?? null;
 }
 
 const plus = (ts: string, min: number) =>

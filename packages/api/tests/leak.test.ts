@@ -30,7 +30,7 @@ type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
 
 type Kind = "employee" | "payslip" | "payRun" | "sifFile" |
-  "timesheet" | "leaveType" | null;
+  "timesheet" | "leaveType" | "employeeQuery" | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
 const ID_KIND: Record<string, Kind> = {
   getCompany: null, listUsers: null, listEmployees: null,
@@ -104,16 +104,20 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
   });
   /** Every `{id}` to try for a route, with the record it belongs to. */
   const idsFor = (kind: Kind): [Target | null, string | null][] =>
-    kind === "employee" ? TARGETS.map((t) => [t, s.emp[t]])
+    kind === "employee" || kind === "employeeQuery"
+      ? TARGETS.map((t) => [t, s.emp[t]])
     : kind === "payslip" ? TARGETS.map((t) => [t, slips[t]])
     : kind === "payRun" ? [[null, runId]]
     : kind === "sifFile" ? [[null, sifId]]
     : kind === "timesheet" ? TARGETS.map((t) => [t, sheets[t]])
     : kind === "leaveType" ? [[null, leaveTypeId]]
     : [[null, null]];
+  /** `employeeQuery` routes take the id as `?employeeId=`. */
   const path = (r: RouteDef, id: string | null) =>
-    (id === null ? r.path : r.path.replace("{id}", id)) +
-    (QUERY[r.id] ?? "");
+    ID_KIND[r.id] === "employeeQuery"
+      ? `${r.path}?from=2026-03-01&to=2026-03-01&employeeId=${id}`
+      : (id === null ? r.path : r.path.replace("{id}", id)) +
+        (QUERY[r.id] ?? "");
 
   it("every GET tenant route has a fixture", () => {
     for (const r of getRoutes) expect(r.id in ID_KIND, r.id).toBe(true);

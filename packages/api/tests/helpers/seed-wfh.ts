@@ -25,6 +25,38 @@ async function must(p: Promise<{ status: number; text: string; body: any }>,
   return r.body;
 }
 
+export const WFH_SENTINEL = { lat: 1.234, lng: 1.432 };
+
+/** The next whole minute at or after `d`. */
+export const nextMinute = (d: Date) =>
+  new Date(Math.ceil(d.getTime() / 60_000) * 60_000);
+
+export const minutes = (start: Date, n: number, category = "documents") =>
+  Array.from({ length: n }, (_, i) => ({ at: new Date(start.getTime() +
+    i * 60_000).toISOString(), active: true, category }));
+
+/**
+ * Tracking on (retention 30), notice published, the report consents,
+ * clocks in remote, uploads 10 active minutes and one location at
+ * the sentinel. Returns the record and the first minute.
+ */
+export async function seedWfh(ctx: Ctx, s: Seeded) {
+  const as = asUser(ctx, s);
+  await enableWfh(ctx, s);
+  await must(as(s.employee, "POST", "/v1/wfh/consent", { noticeVersion: 1,
+    decision: "granted" }), 200, "consent");
+  const rec = await must(as(s.employee, "POST", "/v1/attendance/clock-in",
+    { method: "web", workLocation: "remote" }), 201, "clock-in");
+  const first = nextMinute(new Date(Date.parse(rec.clockIn)));
+  ctx.clock.now = new Date(first.getTime() + 15 * 60_000);
+  await must(as(s.employee, "POST", "/v1/wfh/activity", {
+    attendanceId: rec.id, minutes: minutes(first, 10) }), 200, "activity");
+  await must(as(s.employee, "POST", "/v1/wfh/location", {
+    attendanceId: rec.id, at: first.toISOString(), ...WFH_SENTINEL,
+    accuracyM: 20, source: "phone", indicatorShown: true }), 201, "loc");
+  return { attendanceId: rec.id as string, first };
+}
+
 /**
  * Tracking on (retention `days`, an attested assessment), notice
  * version 1 published. Consent is left to the test.

@@ -27,7 +27,8 @@ export interface SheetRow { id: string; employee_id: string; year: number;
 
 /** WFH day totals for a sheet (Task 10 plugs this in); none by default. */
 export type WfhSource = (tx: Db, companyId: string, employeeId: string,
-  from: string, to: string) => Promise<Map<string, WfhLite> | null>;
+  from: string, to: string, today: string)
+  => Promise<Map<string, WfhLite> | null>;
 
 export async function loadSheet(tx: Db, companyId: string, id: string,
   lock = false): Promise<SheetRow> {
@@ -72,7 +73,7 @@ export async function rebuild(tx: Db, companyId: string, r: SheetRow,
     r.month, today);
   const { first, last } = monthBounds(r.year, r.month);
   const w = wfh === null ? null
-    : await wfh(tx, companyId, r.employee_id, first, last);
+    : await wfh(tx, companyId, r.employee_id, first, last, today);
   const days = buildTimesheetDays(built, timeParams(first),
     await loadDecisions(tx, companyId, r.id), w);
   return { days, hash: sourceHash(built) };

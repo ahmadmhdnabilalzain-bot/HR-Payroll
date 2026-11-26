@@ -36,8 +36,12 @@ export async function eraseOnWithdraw(tx: Db, companyId: string,
   return eraseSamples(tx, companyId, employeeId);
 }
 
-/** Sample tables arrive with Task 10 (migration 908). */
-async function eraseSamples(_tx: Db, _companyId: string,
-  _employeeId: string): Promise<number> {
-  return 0;
+async function eraseSamples(tx: Db, companyId: string,
+  employeeId: string): Promise<number> {
+  let n = 0;
+  for (const t of ["wfh_activity_minutes", "wfh_location_samples"]) {
+    n += (await tx.query(`DELETE FROM ${t} WHERE company_id = $1 AND ` +
+      "employee_id = $2 RETURNING 1", [companyId, employeeId])).length;
+  }
+  return n;
 }

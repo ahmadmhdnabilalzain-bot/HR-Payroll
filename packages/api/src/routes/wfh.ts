@@ -1,6 +1,11 @@
 import type { WfhSettingsUpdate } from "@payroll/contract";
 import type { AppDeps } from "../deps";
-import { register, type App, type ReqCtx } from "../http/context";
+import {
+  register,
+  type App,
+  type Handler,
+  type ReqCtx,
+} from "../http/context";
 import { ApiError } from "../http/errors";
 import { audit, changedKeys, co, nowIso, selfEmployee } from "../time/ctx";
 import { dubaiDate } from "../time/dubai";
@@ -14,6 +19,7 @@ import {
   saveWfhSettings,
 } from "../wfh/settings";
 import { currentWfhState, publicStatus } from "../wfh/status";
+import { purged } from "./wfh-data";
 
 /** Changing any of these republishes the notice (consent again). */
 const NOTICE_KEYS = ["retentionDays", "activityCategories",
@@ -76,19 +82,21 @@ const status = async (ctx: ReqCtx) => publicStatus(await currentWfhState(
   ctx.tx, ctx.deps.now(), co(ctx), selfEmployee(ctx)));
 
 export function registerWfhRoutes(app: App, deps: AppDeps): void {
-  register(app, deps, "getWfhSettings", (ctx) =>
+  const reg = (id: string, h: Handler) => register(app, deps, id,
+    purged(h));
+  reg("getWfhSettings", (ctx) =>
     getWfhSettings(ctx.tx, co(ctx)));
-  register(app, deps, "updateWfhSettings", putSettings);
-  register(app, deps, "publishWfhNotice", newNotice);
-  register(app, deps, "getCurrentWfhNotice", notice);
-  register(app, deps, "recordWfhConsent", consent);
-  register(app, deps, "withdrawWfhConsent", withdraw);
-  register(app, deps, "getWfhStatus", status);
-  register(app, deps, "pauseWfh", async (ctx) => {
+  reg("updateWfhSettings", putSettings);
+  reg("publishWfhNotice", newNotice);
+  reg("getCurrentWfhNotice", notice);
+  reg("recordWfhConsent", consent);
+  reg("withdrawWfhConsent", withdraw);
+  reg("getWfhStatus", status);
+  reg("pauseWfh", async (ctx) => {
     await pause(ctx, selfEmployee(ctx));
     return status(ctx);
   });
-  register(app, deps, "resumeWfh", async (ctx) => {
+  reg("resumeWfh", async (ctx) => {
     await resume(ctx, selfEmployee(ctx));
     return status(ctx);
   });

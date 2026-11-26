@@ -7,7 +7,7 @@ import { call } from "./test-app";
  * route missing here fails the test) and the query each one needs.
  */
 export const TIME_ID_KIND: Record<string, "employee" | "timesheet" |
-  "leaveType" | null> = {
+  "leaveType" | "employeeQuery" | null> = {
   getTimeSettings: null, listHolidays: null, listSpecialPeriods: null,
   listWorkSites: null, getTimeProfile: "employee",
   listShiftTemplates: null, getRoster: null, listSwapRequests: null,
@@ -15,10 +15,13 @@ export const TIME_ID_KIND: Record<string, "employee" | "timesheet" |
   getTimesheet: "timesheet", getPayInputs: null,
   getLeavePolicy: "leaveType", listLeaveBlackouts: null,
   getWfhSettings: null, getCurrentWfhNotice: null, getWfhStatus: null,
+  getMyWfhDays: null, exportMyWfhData: null, getWfhSummary: null,
+  listWfhLocations: "employeeQuery",
 };
 
 /** Routes about the caller's own employee: owner and hr have none. */
-export const SELF_ROUTES = new Set(["getWfhStatus"]);
+export const SELF_ROUTES = new Set(["getWfhStatus", "getMyWfhDays",
+  "exportMyWfhData"]);
 
 /** Retention set and a WFH notice published (tracking stays off). */
 export async function wfhFixtures(ctx: { app: App }, s: Seeded) {
@@ -36,6 +39,8 @@ export const TIME_QUERY: Record<string, string> = {
   listTimesheets: "?year=2026&month=3",
   getPayInputs: "?year=2026&month=3",
   listLeaveBlackouts: "?year=2026",
+  getMyWfhDays: "?from=2026-03-01&to=2026-03-01",
+  getWfhSummary: "?from=2026-03-01&to=2026-03-01",
 };
 
 type Target = keyof Seeded["emp"];

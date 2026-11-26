@@ -20,6 +20,7 @@ export * from "./time-timesheets";
 export * from "./time-pay-inputs";
 export * from "./time-leave-policy";
 export * from "./time-wfh";
+export * from "./time-wfh-data";
 export { HolidayList, SpecialPeriodList, WorkSiteList }
   from "./routes-time-settings";
 export * from "./routes";

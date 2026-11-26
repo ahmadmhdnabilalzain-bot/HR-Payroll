@@ -163,11 +163,30 @@ async function wfhOn(f: TimeFlowCtx) {
   await hit("getCurrentWfhNotice", emp, c);
   await hit("recordWfhConsent", emp, c, {}, {
     noticeVersion: n.body.version, decision: "granted" });
-  await hit("clockIn", emp, c, {}, { method: "web",
+  const rec = await hit("clockIn", emp, c, {}, { method: "web",
     workLocation: "remote" });
   await hit("getWfhStatus", emp, c);
   await hit("pauseWfh", emp, c);
   await hit("resumeWfh", emp, c);
+  return rec.body as { id: string; clockIn: string };
+}
+
+async function wfhData(f: TimeFlowCtx, rec: { id: string;
+  clockIn: string }) {
+  const { hit, owner, emp, c, empId } = f;
+  const t = Math.ceil(Date.parse(rec.clockIn) / 60_000) * 60_000;
+  await hit("postWfhActivity", emp, c, {}, { attendanceId: rec.id,
+    minutes: [{ at: new Date(t).toISOString(), active: true,
+      category: "documents" }] });
+  await hit("postWfhLocation", emp, c, {}, { attendanceId: rec.id,
+    at: rec.clockIn, lat: 1.5, lng: 1.5, accuracyM: 10, source: "phone",
+    indicatorShown: true });
+  const day = { query: "?from=2026-03-01&to=2026-03-01" };
+  await hit("getMyWfhDays", emp, c, {}, undefined, day);
+  await hit("exportMyWfhData", emp, c);
+  await hit("getWfhSummary", emp, c, {}, undefined, day);
+  await hit("listWfhLocations", owner, c, {}, undefined, {
+    query: `?from=2026-03-01&to=2026-03-01&employeeId=${empId}` });
 }
 
 async function wfhOff(f: TimeFlowCtx) {
@@ -185,6 +204,6 @@ export async function timeFlow(f: TimeFlowCtx): Promise<void> {
   await correctionFlow(f);
   await timesheetFlow(f);
   await leaveFlow(f);
-  await wfhOn(f);
+  await wfhData(f, await wfhOn(f));
   await wfhOff(f);
 }

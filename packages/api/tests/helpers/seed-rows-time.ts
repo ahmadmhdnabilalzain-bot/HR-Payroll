@@ -109,4 +109,13 @@ async function seedWfhRows(admin: Db, c: string, emp: string) {
     `INSERT INTO wfh_pauses (id, company_id, employee_id, attendance_id,
        started_at, ended_at) VALUES ($1, $2, $3, $4, $5, $5)`,
     [rowId(c, "9a"), c, emp, rowId(c, "a4"), AT]);
+  await admin.query(
+    `INSERT INTO wfh_activity_minutes (company_id, employee_id,
+       attendance_id, at, active) VALUES ($1, $2, $3, $4, true)`,
+    [c, emp, rowId(c, "a4"), AT]);
+  await admin.query(
+    `INSERT INTO wfh_location_samples (id, company_id, employee_id,
+       attendance_id, at, lat_e3, lng_e3, source) VALUES ($1, $2, $3, $4,
+       $5, 1500, 1500, 'phone')`, [rowId(c, "9b"), c, emp, rowId(c, "a4"),
+      AT]);
 }

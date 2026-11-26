@@ -60,7 +60,24 @@ const collects = { activeTime: true, categories: true,
 const consent = { employeeId: TIME_IDS.employee, noticeVersion: 1,
   decision: "granted", at: "2026-03-01T08:00:00.000Z" };
 
+const point = { at: "2026-03-01T09:00:00.000Z", lat: 1.5, lng: 1.5,
+  source: "phone" };
+const totals = { activeMinutes: 10, idleMinutes: 0, pausedMinutes: 0,
+  categories: { documents: 10 } };
+const wfhDay = { date: "2026-03-01", attendanceIds: [id(13)], totals,
+  hours: [{ hour: "13", activeMinutes: 10, categories: { documents: 10 } }],
+  locations: [point] };
+
 const ROSTER_EXAMPLES = {
+  WfhActivityResult: { accepted: 10, duplicates: 0 },
+  WfhLocationPoint: point,
+  WfhLocationList: { items: [point] },
+  WfhDayList: { items: [wfhDay] },
+  WfhDaySummaryList: { items: [{ employeeId: TIME_IDS.employee,
+    date: "2026-03-01", totals, locationSamples: 1 }] },
+  WfhExport: { generatedAt: "2026-03-01T10:00:00.000Z",
+    employeeId: TIME_IDS.employee, consents: [consent], pauses: [],
+    days: [wfhDay] },
   WfhSettings: { enabled: false, retentionDays: null,
     activityCategories: true, locationHourly: true,
     maxTrackedMinutesPerRecord: 960,
