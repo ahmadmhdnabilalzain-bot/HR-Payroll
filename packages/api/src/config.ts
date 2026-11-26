@@ -11,6 +11,11 @@ export interface Config {
   chromePath: string | null;
   /** CHROME_NO_SANDBOX=1: Chrome's sandbox off (needed as root). */
   chromeNoSandbox: boolean;
+  /**
+   * JOBS_LIST_DATABASE_URL: a role that reads every company past RLS
+   * (payroll_backup), for jobs that visit every tenant.
+   */
+  jobsListUrl: string | null;
 }
 
 const KEY_MESSAGE = "PAYROLL_MASTER_KEY must be 32 bytes base64";
@@ -42,5 +47,8 @@ export function loadConfig(env: Record<string, string | undefined>)
     masterKey: key, port, receiptsDir,
     chromePath: env.CHROME_PATH === undefined || env.CHROME_PATH === ""
       ? null : env.CHROME_PATH,
-    chromeNoSandbox: env.CHROME_NO_SANDBOX === "1" };
+    chromeNoSandbox: env.CHROME_NO_SANDBOX === "1",
+    jobsListUrl: env.JOBS_LIST_DATABASE_URL === undefined ||
+      env.JOBS_LIST_DATABASE_URL === "" ? null
+      : env.JOBS_LIST_DATABASE_URL };
 }

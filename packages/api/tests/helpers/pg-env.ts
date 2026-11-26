@@ -58,7 +58,7 @@ export async function freshPgPair(runtimeMax = 10)
     `GRANT payroll_app TO ${RUNTIME} WITH INHERIT FALSE, SET TRUE`);
   const db = await openPg(urlFor(RUNTIME, schema), { max: runtimeMax });
   // The owner handle stays open for jobs that run as the owner role.
-  opened.push(owner, admin, db);
+  opened.push(admin, db, owner);
   return { db, admin, owner };
 }
 

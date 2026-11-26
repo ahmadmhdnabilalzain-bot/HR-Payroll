@@ -7,6 +7,7 @@ import {
 import type { Db } from "../db/db";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
+import { needsNativeReview } from "./arabic";
 import { validateTemplateBody } from "./merge";
 import { STARTERS_EN } from "./starters";
 import { STARTERS_AR } from "./starters-ar";
@@ -48,7 +49,10 @@ interface NewVersion {
   published: boolean;
 }
 
-/** Inserts a version (a new Arabic one always needs native review). */
+/**
+ * Inserts a version. A version with Arabic text (or of an Arabic
+ * template) always starts needing a native review.
+ */
 export async function insertTemplateVersion(tx: Db, id: string,
   v: NewVersion): Promise<void> {
   const { fields, usesSalary } = validateTemplateBody(v.body);
@@ -60,7 +64,7 @@ export async function insertTemplateVersion(tx: Db, id: string,
     [id, v.companyId, v.templateId, v.version,
       v.published ? "published" : "draft", JSON.stringify(v.body), fields,
       usesSalary, v.userId, v.at, v.published ? v.at : null,
-      v.lang === "ar" ? "needs-native-review" : null]);
+      needsNativeReview(v.lang, v.body) ? "needs-native-review" : null]);
 }
 
 export async function insertTemplate(tx: Db, t: TemplateRow & {
@@ -90,13 +94,16 @@ export async function seedStarterTemplates(tx: Db, companyId: string,
   }
 }
 
-export function toVersion(v: TVersionRow, lang: Lang): TemplateVersion {
+/** `nativeReview` is shown for every version that has a review state. */
+export function toVersion(v: TVersionRow, lang: Lang,
+  showReviewer = true): TemplateVersion {
   return { id: v.id, version: v.version, status: v.status, body: v.body,
     fields: v.fields, usesSalary: v.uses_salary, createdBy: v.created_by,
     createdAt: v.created_at, publishedAt: v.published_at,
-    nativeReview: lang === "en" ? null : {
+    nativeReview: lang === "en" && v.review_status === null ? null : {
       status: v.review_status ?? "needs-native-review",
-      reviewerName: v.reviewer_name, reviewedAt: v.reviewed_at } };
+      reviewerName: showReviewer ? v.reviewer_name : null,
+      reviewedAt: v.reviewed_at } };
 }
 
 export async function loadTemplate(ctx: ReqCtx, id: string)
@@ -124,9 +131,13 @@ export async function templateView(ctx: ReqCtx, t: TemplateRow,
   withVersions: boolean): Promise<LetterTemplate> {
   const vs = await templateVersions(ctx, t.id);
   const cur = publishedOf(vs);
+  // A reviewer's name is a person's name: owner and hr only.
+  const payroll = ["owner", "hr"].includes(ctx.tenant!.role);
   const view: LetterTemplate = { id: t.id, kind: t.kind, name: t.name,
     lang: t.lang, starter: t.starter,
-    current: cur === null ? null : toVersion(cur, t.lang) };
-  if (withVersions) view.versions = vs.map((v) => toVersion(v, t.lang));
+    current: cur === null ? null : toVersion(cur, t.lang, payroll) };
+  if (withVersions) {
+    view.versions = vs.map((v) => toVersion(v, t.lang, payroll));
+  }
   return view;
 }

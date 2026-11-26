@@ -21,7 +21,9 @@ describe("letter access (Review Focus 4)", () => {
     const { s } = w;
     const cert = await w.issue(s.manager, "salary-certificate", { ...CERT,
       employeeId: s.emp.report });
-    expect([cert.status, cert.body.error.code]).toEqual([403, "FORBIDDEN"]);
+    // 404, not the plan's 403: the review asked that a template of a
+    // kind the role may not issue is not revealed.
+    expect([cert.status, cert.body.error.code]).toEqual([404, "NOT_FOUND"]);
     const ok = await w.issue(s.manager, "warning", { ...WARN(),
       employeeId: s.emp.report });
     expect(ok.status, ok.text).toBe(201);
@@ -86,7 +88,7 @@ describe("letter access (Review Focus 4)", () => {
       ...CERT })).status).toBe(403);
   });
 
-  it("an issuer who loses hr loses their salary letters", async () => {
+  it("an issuer who loses hr loses the letters they issued", async () => {
     const { s } = w;
     const cert = await w.issue(s.hr, "salary-certificate", { ...CERT,
       employeeId: s.emp.outsider });
@@ -97,8 +99,9 @@ describe("letter access (Review Focus 4)", () => {
     expect(ch.status, ch.text).toBe(200);
     expect((await w.req(s.hr, "GET", `/v1/letters/${cert.body.id}`)).status)
       .toBe(404);
+    // Not the outsider's manager either (review I-4).
     expect((await w.req(s.hr, "GET", `/v1/letters/${noc.body.id}`)).status)
-      .toBe(200);
+      .toBe(404);
   });
 
   it("another company's owner gets 404", async () => {

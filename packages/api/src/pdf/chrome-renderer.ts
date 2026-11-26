@@ -45,29 +45,40 @@ async function print(browser: Browser, html: string, timeout: number)
 /**
  * Headless Chrome through puppeteer-core: one browser, launched on
  * first use and reused; JavaScript off and every request that is not
- * a `data:` URL aborted. A failure logs no content and is a 500.
+ * a `data:` URL aborted. A failure logs no content and is a 500; it
+ * closes only its own context (print's finally), so the shared browser
+ * stays for the renders running beside it.
  */
-export function chromeRenderer(o: ChromeOptions): ChromeRenderer {
-  let browser: Promise<Browser> | null = null;
-  const launch = () => browser ??= puppeteer.launch({
-    executablePath: o.executablePath, headless: true,
-    args: [...(o.noSandbox ? ["--no-sandbox"] : []),
+function launchChrome(o: ChromeOptions): Promise<Browser> {
+  return puppeteer.launch({ executablePath: o.executablePath,
+    headless: true, args: [...(o.noSandbox ? ["--no-sandbox"] : []),
       "--disable-dev-shm-usage", "--no-first-run",
       // Belt and braces: any request that escapes interception (a
       // subframe navigation does) goes to a dead proxy, loopback too.
       "--proxy-server=127.0.0.1:9", "--proxy-bypass-list=<-loopback>"] });
+}
+
+export function chromeRenderer(o: ChromeOptions): ChromeRenderer {
+  let browser: Promise<Browser> | null = null;
+  const launch = () => browser ??= launchChrome(o);
   const close = async () => {
     const b = browser;
     browser = null;
     if (b !== null) await b.then((x) => x.close(), () => undefined);
   };
+  /** Forget `b` only if it is still the current, and it has died. */
+  const forgetIfDead = async (b: Promise<Browser>) => {
+    const x = await b.catch(() => null);
+    if (browser === b && (x === null || !x.connected)) browser = null;
+  };
   const renderHtml = async (html: string) => {
+    const b = launch();
     try {
-      return await print(await launch(), html, o.timeoutMs);
+      return await print(await b, html, o.timeoutMs);
     } catch (e) {
       o.log({ event: "pdf.render.failed",
         error: String((e as { name?: unknown })?.name ?? "unknown") });
-      await close().catch(() => undefined);
+      await forgetIfDead(b);
       throw new ApiError("INTERNAL");
     }
   };

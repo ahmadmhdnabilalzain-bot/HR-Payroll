@@ -1,4 +1,5 @@
 import type {
+  DocumentVerify,
   DocumentVersionCreate,
   EmployeeDocument,
   EmployeeDocumentCreate,
@@ -7,7 +8,13 @@ import { appendAudit, type AuditData } from "../audit/audit";
 import { claimFile, companyKey, readFile } from "../files/files";
 import { BinaryReply, Reply, type ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
-import { accessOf, empBrief, viewAccess, writeAccess } from "./access";
+import {
+  accessOf,
+  empBrief,
+  isPayroll,
+  viewAccess,
+  writeAccess,
+} from "./access";
 import {
   loadVersions,
   numberAad,
@@ -27,7 +34,11 @@ async function audit(ctx: ReqCtx, action: string, id: string,
     entityType: "employee-document", entityId: id, data });
 }
 
-/** Claims the file and inserts version `n` of slot `docId`. */
+/**
+ * Claims the file and inserts version `n` of slot `docId`. Owner and
+ * hr are the verifiers, so their uploads are verified at once; anyone
+ * else's wait for owner or hr.
+ */
 async function insertVersion(ctx: ReqCtx, docId: string, n: number,
   b: DocumentVersionCreate): Promise<void> {
   const c = ctx.tenant!.companyId;
@@ -35,12 +46,15 @@ async function insertVersion(ctx: ReqCtx, docId: string, n: number,
   await claimFile(ctx, b.fileId, attachOf(id));
   const num = b.documentNumber === undefined ? null
     : (await companyKey(ctx)).encrypt(numberAad(c, id), b.documentNumber);
+  const at = ctx.deps.now().toISOString();
+  const by = isPayroll(ctx) ? ctx.user!.id : null;
   await ctx.tx.query(
     `INSERT INTO employee_document_versions (id, company_id, document_id,
        version, file_id, number_enc, issue_date, expiry_date, uploaded_by,
-       uploaded_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+       uploaded_at, verified_by, verified_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [id, c, docId, n, b.fileId, num, b.issueDate ?? null,
-      b.expiryDate ?? null, ctx.user!.id, ctx.deps.now().toISOString()]);
+      b.expiryDate ?? null, ctx.user!.id, at, by, by === null ? null : at]);
 }
 
 async function loadDoc(ctx: ReqCtx, id: string): Promise<DocRow> {
@@ -121,11 +135,19 @@ export async function listDocuments(ctx: ReqCtx<unknown, unknown, Id>)
   return { items };
 }
 
-/** POST /v1/employee-documents/{id}/verify: stamps the current one. */
-export async function verifyDocument(ctx: ReqCtx<unknown, unknown, Id>)
-  : Promise<EmployeeDocument> {
+/**
+ * POST /v1/employee-documents/{id}/verify: stamps the named version,
+ * which must be the current one (409 otherwise), under the slot lock
+ * that version adds take, so a newer upload cannot be stamped blind.
+ */
+export async function verifyDocument(ctx: ReqCtx<DocumentVerify, unknown,
+  Id>): Promise<EmployeeDocument> {
   const { d } = await visibleDoc(ctx, ctx.params.id);
+  await lockSlot(ctx, d.id);
   const cur = (await loadVersions(ctx, d.id)).at(-1)!;
+  if (cur.id !== ctx.body.versionId) {
+    throw new ApiError("VERSION_NOT_CURRENT");
+  }
   await ctx.tx.query(
     `UPDATE employee_document_versions SET verified_by = $3,
        verified_at = $4 WHERE company_id = $1 AND id = $2

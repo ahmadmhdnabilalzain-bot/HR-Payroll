@@ -11,7 +11,8 @@ import {
 import type { Db } from "../db/db";
 import { UUID, withTenant, type TenantCtx } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
-import { contentDisposition } from "../files/names";
+import { contentDisposition, nameForType } from "../files/names";
+import type { LetterPage } from "../pdf/renderer";
 import { routeBodyLimit } from "./body-limit";
 import { ApiError, asError } from "./errors";
 import { validate, type Validated } from "./validate";
@@ -87,6 +88,18 @@ export class CsvReply {
 }
 
 /**
+ * Render a letter outside the database transaction: the handler's
+ * transaction commits, `deps.pdf` renders `page` with no connection
+ * held, then `afterRender` runs in a second transaction (membership and role
+ * checked again) with the bytes.
+ */
+export class RenderThen {
+  constructor(readonly page: LetterPage,
+    readonly afterRender: (ctx: ReqCtx, bytes: Uint8Array) =>
+      Promise<unknown>) {}
+}
+
+/**
  * Commit the transaction, then answer with this error (e.g. a failed
  * password check whose failure counter must stick).
  */
@@ -141,7 +154,8 @@ function csv(c: Context<Env>, out: CsvReply) {
 function binary(c: Context<Env>, out: BinaryReply) {
   downloadHeaders(c);
   c.header("Content-Type", out.contentType);
-  c.header("Content-Disposition", contentDisposition(out.fileName));
+  c.header("Content-Disposition", contentDisposition(
+    nameForType(out.fileName, out.contentType)));
   c.header("Cache-Control", "no-store");
   return c.body(out.bytes as Uint8Array<ArrayBuffer>, 200);
 }
@@ -207,16 +221,25 @@ async function run(c: Context<Env>, def: RouteDef, deps: AppDeps,
 async function inTenant(c: Context<Env>, def: RouteDef, deps: AppDeps,
   auth: Authed, handler: Handler): Promise<unknown> {
   const companyId = resolveCompanyHeader(c.req.header("x-company-id"));
-  return withTenant(deps.db, { companyId, userId: auth.user.id },
-    async (tx) => {
+  // Read the whole body before a connection is taken: a slow or
+  // stalled upload must not hold a transaction (Hono caches it for
+  // validate()).
+  if (def.body !== undefined) await c.req.arrayBuffer().catch(() => null);
+  let v: Validated | null = null;
+  const step = (fn: (ctx: ReqCtx) => Promise<unknown>) =>
+    withTenant(deps.db, { companyId, userId: auth.user.id }, async (tx) => {
       const tenant = await resolveTenant(tx, auth, companyId);
       c.set("companyId", tenant.companyId);
       checkRole(def, tenant);
       checkMfa(def, auth);
-      const v = await validate(c, def);
-      return handler({ ...base(c, deps, v), ...auth, tenant, tx,
+      v ??= await validate(c, def);
+      return fn({ ...base(c, deps, v), ...auth, tenant, tx,
         enter: NO_ENTER });
     });
+  const out = await step(handler);
+  if (!(out instanceof RenderThen)) return out;
+  const bytes = await deps.pdf.render(out.page);
+  return step((ctx) => out.afterRender(ctx, bytes));
 }
 
 function resolveCompanyHeader(header: string | undefined): string {

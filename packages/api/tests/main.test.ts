@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../src/config";
+import { letterRenderer } from "../src/pdf/setup";
 
 const KEY = Buffer.alloc(32, 7).toString("base64");
 
@@ -46,5 +47,17 @@ describe("loadConfig", () => {
     expect(loadConfig({ ...base, CHROME_NO_SANDBOX: "1" }).chromeNoSandbox)
       .toBe(true);
     expect(loadConfig(base).chromeNoSandbox).toBe(false);
+  });
+  it("warns at start when Chrome's sandbox is off", async () => {
+    const base = { DATABASE_URL: "postgres://runtime@h/db",
+      PAYROLL_MASTER_KEY: KEY, RECEIPTS_DIR: "/r", CHROME_PATH: "/x" };
+    const logs: Record<string, unknown>[] = [];
+    const off = letterRenderer(loadConfig({ ...base,
+      CHROME_NO_SANDBOX: "1" }), (l) => logs.push(l));
+    expect(logs).toEqual([{ level: "warn", event: "chrome.sandbox.off" }]);
+    const on = letterRenderer(loadConfig(base), (l) => logs.push(l));
+    expect(logs.length).toBe(1);
+    await off.close();
+    await on.close();
   });
 });

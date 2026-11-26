@@ -20,7 +20,13 @@ import {
   storeFile,
   type FileCtx,
 } from "../files/files";
-import { BinaryReply, Reply, type ReqCtx } from "../http/context";
+import {
+  BinaryReply,
+  RenderThen,
+  Reply,
+  type ReqCtx,
+} from "../http/context";
+import { rateLimit, type Limit } from "../http/rate-limit";
 import { ApiError } from "../http/errors";
 import { dubaiDate } from "../time/dubai";
 import { prepareLetter, type PreparedLetter } from "./prepare";
@@ -51,30 +57,53 @@ async function audit(ctx: ReqCtx, action: string, id: string | null,
     entityType: "letter", entityId: id, data });
 }
 
-/** POST /v1/letters/preview: watermarked, nothing stored. */
-export async function previewLetter(ctx: ReqCtx<LetterRequest>)
-  : Promise<LetterPreview> {
-  const p = await prepareLetter(ctx, ctx.body, PREVIEW_WATERMARK);
-  const bytes = await ctx.deps.pdf.render(p.page);
-  await audit(ctx, "letter.previewed", null, { kind: p.template.kind,
-    lang: p.template.lang, templateVersion: p.version.version });
-  return { fileName: fileNameOf(p),
-    contentBase64: Buffer.from(bytes).toString("base64"),
-    watermark: PREVIEW_WATERMARK };
+/** Per minute; product defaults, not statutory. */
+const RENDER_LIMIT: Limit = { name: "letter-render", perUser: 20,
+  perCompany: 120 };
+
+function limitRenders(ctx: ReqCtx): void {
+  rateLimit(ctx.deps, ctx.tenant!.companyId, ctx.user!.id, RENDER_LIMIT);
 }
 
 /**
- * POST /v1/letters. Rendered before anything is written (a slow or
- * failed render holds no row or audit lock); then the PDF is stored,
- * claimed and recorded with its hash and encrypted merge values.
+ * POST /v1/letters/preview: watermarked, nothing stored. Rendered
+ * outside the transaction; the audit names whose letter it was.
+ */
+export async function previewLetter(ctx: ReqCtx<LetterRequest>)
+  : Promise<RenderThen> {
+  limitRenders(ctx);
+  const p = await prepareLetter(ctx, ctx.body, PREVIEW_WATERMARK);
+  return new RenderThen(p.page, async (ctx2, bytes)
+    : Promise<LetterPreview> => {
+    await audit(ctx2, "letter.previewed", null, { kind: p.template.kind,
+      lang: p.template.lang, templateVersion: p.version.version,
+      ...(p.employeeId === null ? {} : { employeeId: p.employeeId }) });
+    return { fileName: fileNameOf(p),
+      contentBase64: Buffer.from(bytes).toString("base64"),
+      watermark: PREVIEW_WATERMARK };
+  });
+}
+
+/**
+ * POST /v1/letters. Checked and merged in one transaction, rendered
+ * with no transaction open, then stored, claimed and recorded with
+ * its hash and encrypted merge values in a second one.
  */
 export async function issueLetter(ctx: ReqCtx<LetterRequest>)
-  : Promise<Reply> {
+  : Promise<RenderThen> {
+  limitRenders(ctx);
   const p = await prepareLetter(ctx, ctx.body, null);
-  if (p.template.lang === "ar" && p.version.review_status !== "reviewed") {
+  // The gate follows the text: any version holding Arabic is marked.
+  if (p.version.review_status === "needs-native-review" ||
+    (p.template.lang === "ar" && p.version.review_status !== "reviewed")) {
     throw new ApiError("ARABIC_NOT_REVIEWED");
   }
-  const bytes = await ctx.deps.pdf.render(p.page);
+  return new RenderThen(p.page, (ctx2, bytes) => recordLetter(ctx2, p,
+    bytes));
+}
+
+async function recordLetter(ctx: ReqCtx, p: PreparedLetter,
+  bytes: Uint8Array): Promise<Reply> {
   const c = ctx.tenant!.companyId;
   const ref = await storeFile(ctx, fileNameOf(p), bytes);
   await claimFile(ctx, ref.id, attachOf(p.letterId));
@@ -98,13 +127,18 @@ export async function issueLetter(ctx: ReqCtx<LetterRequest>)
 
 /**
  * Who may read letters, as SQL: owner and hr all; the named employee;
- * the issuer, but a salary letter only while they are owner or hr.
+ * the issuer of a salary-free letter only while they could issue it
+ * again: still a manager, and still the manager of its employee.
  */
 function visible(ctx: ReqCtx, first: number): { sql: string;
   args: unknown[] } {
-  return { sql: `($${first} OR employee_id = $${first + 1} OR
-    (issued_by = $${first + 2} AND NOT uses_salary))`,
-  args: [isPayroll(ctx), ctx.tenant!.employeeId, ctx.user!.id] };
+  const [all, own, user, mgr] = [first, first + 1, first + 2, first + 3];
+  return { sql: `($${all} OR employee_id = $${own} OR
+    ($${mgr} AND issued_by = $${user} AND NOT uses_salary AND EXISTS (
+      SELECT 1 FROM employees m WHERE m.company_id = letters.company_id
+        AND m.id = letters.employee_id AND m.manager_id = $${own})))`,
+  args: [isPayroll(ctx), ctx.tenant!.employeeId, ctx.user!.id,
+    ctx.tenant!.role === "manager"] };
 }
 
 async function visibleLetter(ctx: ReqCtx, id: string): Promise<LetterRow> {

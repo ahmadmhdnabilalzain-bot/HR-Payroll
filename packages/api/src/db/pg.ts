@@ -55,11 +55,19 @@ async function inTransaction<T>(
   }
 }
 
-export async function openPg(url: string, opts: { max?: number } = {})
-  : Promise<Db> {
+/**
+ * The API's own pool (`runtime: true`) cuts a statement after 30 s and
+ * a transaction left idle after 15 s, so a stalled request cannot hold
+ * a connection. Migrations and jobs run without these limits.
+ */
+const RUNTIME_LIMITS = { statement_timeout: 30_000,
+  idle_in_transaction_session_timeout: 15_000 };
+
+export async function openPg(url: string,
+  opts: { max?: number; runtime?: boolean } = {}): Promise<Db> {
   // isoTimestamp converts any session time zone offset to UTC.
   const pool = new pg.Pool({ connectionString: url, types: typeOverrides,
-    max: opts.max ?? 10 });
+    max: opts.max ?? 10, ...(opts.runtime === true ? RUNTIME_LIMITS : {}) });
   const run = (c: Client, sql: string, params?: unknown[]) =>
     c.query(sql, params);
   await run(pool, "SELECT 1");

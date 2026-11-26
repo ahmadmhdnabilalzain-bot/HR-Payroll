@@ -51,7 +51,7 @@ describe("employee documents (Review Focus 1 and 2)", () => {
     const mgr = await get(s.manager, `/v1/employee-documents/${id}`);
     expect(mgr.status).toBe(200);
     expect(mgr.body).toMatchObject({ current: null,
-      expiryDate: "2030-01-01", verified: false, versionCount: 1 });
+      expiryDate: "2030-01-01", verified: true, versionCount: 1 });
     expect(mgr.text).not.toContain("P7777001");
     expect(mgr.body.versions).toBeUndefined();
     const vId = self.body.current.id as string;
@@ -112,8 +112,9 @@ describe("employee documents (Review Focus 1 and 2)", () => {
     expect(c.status, c.text).toBe(201);
     expect(c.body.verified).toBe(false);
     const path = `/v1/employee-documents/${c.body.id}/verify`;
-    expect((await post(s.employee, path)).status).toBe(403);
-    const v = await post(s.hr, path);
+    const body = { versionId: c.body.current.id };
+    expect((await post(s.employee, path, body)).status).toBe(403);
+    const v = await post(s.hr, path, body);
     expect(v.status, v.text).toBe(200);
     expect(v.body.verified).toBe(true);
     expect(v.body.current.verifiedBy).toBe(s.hr.userId);

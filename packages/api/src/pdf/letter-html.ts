@@ -1,3 +1,4 @@
+import { RTL_LETTER } from "../letters/arabic";
 import type { Segment } from "../letters/merge";
 import type { LetterPage } from "./renderer";
 
@@ -12,8 +13,6 @@ const ENTITIES: Record<string, string> = { "&": "&amp;", "<": "&lt;",
 export function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ENTITIES[c]!);
 }
-
-const RTL_LETTER = /[\u0590-\u08ff\ufb1d-\ufdff\ufe70-\ufeff]/;
 
 /**
  * Escaped text. Isolated runs (dates, money) are one unit: left to

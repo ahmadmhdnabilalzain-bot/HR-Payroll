@@ -1,6 +1,7 @@
 import {
   AlertsQuery,
   DocumentSettings,
+  DocumentVerify,
   DocumentVersionCreate,
   EmployeeDocument,
   EmployeeDocumentCreate,
@@ -74,7 +75,7 @@ const VAULT: readonly RouteDef[] = [
     status: 201 }),
   ten(PAYROLL, { id: "employeeDocumentVerify", method: "POST",
     path: "/v1/employee-documents/{id}/verify", ...one,
-    response: EmployeeDocument }),
+    body: DocumentVerify, response: EmployeeDocument }),
   ten(ALL_ROLES, { id: "employeeDocumentDownload", method: "GET",
     path: "/v1/employee-documents/{id}/versions/{versionId}/download",
     params: VersionParams, response: FileContent, contentType: bin }),

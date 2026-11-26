@@ -145,6 +145,7 @@ export async function acknowledgeLibrary(ctx: ReqCtx<AckRequest, unknown,
   const d = await visibleLib(ctx, ctx.params.id);
   const v = await currentVersion(ctx, d.id);
   if (v.id !== ctx.body.versionId) throw new ApiError("VERSION_NOT_CURRENT");
+  if (!v.requires_ack) throw new ApiError("ACK_NOT_REQUIRED");
   const r = await stamp(ctx, v.id, true);
   await audit(ctx, "library.acknowledged", d.id, { documentId: d.id,
     version: v.version });

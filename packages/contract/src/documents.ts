@@ -81,7 +81,12 @@ export const ExpiryAlert = z.object({
   type: DocumentType,
   expiryDate: IsoDate,
   daysLeft: z.number().int(),
-  status: z.enum(["expired", "due"]),
+  /**
+   * expired or due: from the last verified version (or the only data
+   * when nothing is verified yet). renewal-unverified: the current
+   * version is not verified yet (`expiryDate` is its claim).
+   */
+  status: z.enum(["expired", "due", "renewal-unverified"]),
   stageDays: z.number().int().nullable(),
 });
 export type ExpiryAlert = z.infer<typeof ExpiryAlert>;
@@ -133,6 +138,10 @@ export const RetentionReport = z.object({
   notice: z.literal(RETENTION_NOTICE),
 });
 export type RetentionReport = z.infer<typeof RetentionReport>;
+
+/** Verify names the version it stamps (409 when not current). */
+export const DocumentVerify = z.object({ versionId: Id });
+export type DocumentVerify = z.infer<typeof DocumentVerify>;
 
 /** Employee document and version ids in a download path. */
 export const VersionParams = z.object({ id: Id, versionId: Id });

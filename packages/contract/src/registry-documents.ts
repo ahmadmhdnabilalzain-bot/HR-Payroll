@@ -9,7 +9,8 @@ import * as merge from "./merge-fields";
 /** Plan 7's named schemas (OpenAPI components and EXAMPLES keys). */
 const NAMES: [Record<string, unknown>, string[]][] = [
   [files, ["FileUpload", "FileRef", "FileContent"]],
-  [documents, ["DocumentVersionCreate", "EmployeeDocumentCreate",
+  [documents, ["DocumentVerify", "DocumentVersionCreate",
+    "EmployeeDocumentCreate",
     "DocumentVersion", "EmployeeDocument", "EmployeeDocumentList",
     "ExpiryAlert", "ExpiryAlertList", "RetentionRule", "DocumentSettings",
     "RetentionDueItem", "RetentionReport"]],

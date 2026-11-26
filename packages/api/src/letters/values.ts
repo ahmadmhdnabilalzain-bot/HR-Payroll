@@ -9,6 +9,8 @@ import type { EmployeeRow } from "../people/employees";
 
 type Lang = "en" | "ar";
 
+const BIDI_CONTROLS = /[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
+
 const group = (digits: string) =>
   digits.replace(/\B(?=(\d{3})+$)/g, ",");
 
@@ -90,8 +92,10 @@ export function buildMergeValues(s: MergeSource): Record<string, string> {
     all[k] = inputValue(k, v, s.lang);
   }
   const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(all)) {
-    if (v !== null && v !== "") out[k] = v;
+  for (const [k, raw] of Object.entries(all)) {
+    // Bidi controls could reorder the printed sentence around a value.
+    const v = raw === null ? null : raw.replace(BIDI_CONTROLS, "");
+    if (v !== null && v.trim() !== "") out[k] = v;
   }
   return out;
 }

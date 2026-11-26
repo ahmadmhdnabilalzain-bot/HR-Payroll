@@ -16,7 +16,8 @@ import {
   isStrictBase64,
 } from "../receipts/base64";
 import { sniffContentType } from "../receipts/sniff";
-import { safeFileName } from "./names";
+import { nameForType, safeFileName } from "./names";
+import { checkFileQuota } from "./quota";
 
 /** What file storage needs from a request. */
 export type FileCtx = Pick<ReqCtx, "tx" | "deps" | "tenant" | "user" |
@@ -84,7 +85,8 @@ export async function storeFile(ctx: FileCtx, name: string,
     `INSERT INTO files (id, company_id, name, mime, size, sha256,
        blob_key, uploaded_by, uploaded_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-    [id, c, safeFileName(name), mime, bytes.length, sha256(bytes), key,
+    [id, c, nameForType(safeFileName(name), mime), mime, bytes.length,
+      sha256(bytes), key,
       ctx.user!.id, ctx.deps.now().toISOString()]);
   const sealed = (await companyKey(ctx)).encryptBytes(aadOf(c, id), bytes);
   // A failed request (rolled back) removes the blob it wrote.
@@ -97,6 +99,7 @@ export async function storeFile(ctx: FileCtx, name: string,
 export async function uploadFile(ctx: ReqCtx<FileUpload>)
   : Promise<FileRef> {
   const bytes = decodeUpload(ctx.body.contentBase64);
+  await checkFileQuota(ctx);
   const ref = await storeFile(ctx, ctx.body.name, bytes);
   await appendAudit(ctx.tx, { companyId: ctx.tenant!.companyId,
     at: ref.uploadedAt, actorUserId: ctx.user!.id,
