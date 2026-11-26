@@ -79,7 +79,7 @@ const BAL: BalanceInput = {
 
 describe("balanceHalves", () => {
   it("balance_carried_first_then_expires", () => {
-    expect(balanceHalves(BAL)).toEqual({ takenHalves: 12,
+    expect(balanceHalves(BAL)).toMatchObject({ takenHalves: 12,
       carriedUsedHalves: 4, expiredHalves: 6, availableHalves: 50 });
     const march = balanceHalves({ ...BAL, asOf: "2026-03-01" });
     expect(march.expiredHalves).toBe(0);
@@ -91,9 +91,46 @@ describe("balanceHalves", () => {
     expect(r.expiredHalves).toBe(0);
   });
   it("carry_over_cap", () => {
-    expect(carryOverHalves(-4, 10)).toBe(0);
-    expect(carryOverHalves(7, 10)).toBe(7);
-    expect(carryOverHalves(30, 10)).toBe(10);
+    expect(carryOverHalves(-4, 10, P).carriedHalves).toBe(0);
+    expect(carryOverHalves(7, 10, P).carriedHalves).toBe(7);
+    expect(carryOverHalves(30, 10, P).carriedHalves).toBe(10);
+  });
+  it("excess_above_cap_returned_and_warned", () => {
+    const r = carryOverHalves(30, 10, P);
+    expect(r.excessHalves).toBe(20);
+    expect(r.flags.map((f) => f.code)).toEqual(["UNUSED_LEAVE_NOT_CARRIED"]);
+    const f = r.flags[0]!;
+    expect(f.rule?.key).toBe("timeCarryOverMaxShareBps");
+    expect(f.detail.excessHalves).toBe("20");
+    expect(f.detail.note).toContain("cash");
+    expect(f.detail.note).toContain("unsourced");
+    expect(carryOverHalves(10, 10, P)).toEqual({ carriedHalves: 10,
+      excessHalves: 0, flags: [] });
+    expect(carryOverHalves(-4, 10, P).excessHalves).toBe(0);
+  });
+  it("carry_over_refuses_fractions", () => {
+    expect(() => carryOverHalves(1.5, 10, P)).toThrow(
+      expect.objectContaining({ code: "INVALID_HALVES" }));
+    expect(() => carryOverHalves(5, -1, P)).toThrow(
+      expect.objectContaining({ code: "INVALID_HALVES" }));
+  });
+  it("expired_carried_leave_warned_as_unsourced", () => {
+    const r = balanceHalves(BAL);
+    expect(r.flags.map((f) => f.code)).toEqual(["CARRIED_LEAVE_EXPIRED"]);
+    expect(r.flags[0]!.rule).toBeNull();
+    expect(r.flags[0]!.detail.expiredHalves).toBe("6");
+    expect(r.flags[0]!.detail.note).toContain("not law");
+    expect(balanceHalves({ ...BAL, asOf: "2026-03-01" }).flags).toEqual([]);
+  });
+  it("balance_refuses_bad_halves", () => {
+    for (const bad of [{ pendingHalves: -1 }, { carriedHalves: 0.5 },
+      { accruedHalves: -2 }, { adjustmentHalves: 0.5 },
+      { taken: [{ date: "2026-02-10", halves: -1 }] }]) {
+      expect(() => balanceHalves({ ...BAL, ...bad })).toThrow(
+        expect.objectContaining({ code: "INVALID_HALVES" }));
+    }
+    expect(balanceHalves({ ...BAL, adjustmentHalves: -4 }).availableHalves)
+      .toBe(46);
   });
   it("balance_identity", () => {
     const arbTaken = fc.array(fc.record({

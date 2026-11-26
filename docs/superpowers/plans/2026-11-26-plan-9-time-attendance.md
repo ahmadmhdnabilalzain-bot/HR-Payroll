@@ -505,13 +505,22 @@ Law task: fresh per-task review.
     { date: string; halves: number }[]; pendingHalves: number; asOf:
     string }`; `balanceHalves(b): { takenHalves: number;
     carriedUsedHalves: number; expiredHalves: number; availableHalves:
-    number }`: `carriedUsed = min(carried, taken on or before
+    number; flags: TimeFlag[] }`: `carriedUsed = min(carried, taken on or before
     carriedExpiresOn, or all taken when null)`; `expired = carried -
     carriedUsed` when `asOf > carriedExpiresOn`, else 0; `available =
     accrued + carried - expired + adjustments - taken - pending`
-    (carried days are used first; convention).
-  - `carryOverHalves(remainingHalves: number, capHalves: number):
-    number` = `min(max(0, remaining), cap)`.
+    (carried days are used first; convention). Expiry of carried days
+    has no source in the note: when `expired > 0`, flag
+    `CARRIED_LEAVE_EXPIRED` (no rule, detail notes "company policy,
+    not law; unsourced; counsel to confirm"; review I4). Inputs are
+    whole halves (`INVALID_HALVES`; adjustments may be negative).
+  - `carryOverHalves(remainingHalves: number, capHalves: number, p:
+    TimeParams): { carriedHalves; excessHalves; flags }`:
+    `carried = min(max(0, remaining), cap)`, `excess = max(0,
+    remaining) - carried`; an excess gives `UNUSED_LEAVE_NOT_CARRIED`
+    (rule `timeCarryOverMaxShareBps`; detail notes that ER 19(1)
+    offers cash as the alternative and forfeiture is unsourced), so
+    nothing is dropped silently (review I4).
   - `LeavePolicyFacts { payrollKind: "annual" | "sick" | "maternity" |
     "unpaid" | "other-paid"; annualDays: number | null; accrual;
     dayCount: DayBasis; carryOverMaxDays: number | null }`;
@@ -558,8 +567,9 @@ Law task: fresh per-task review.
   expiring `2026-03-31`, taken 4 on `2026-02-10` and 8 on
   `2026-05-01`, pending 2: at `2026-06-01` carriedUsed 4, expired 6,
   available 50; at `2026-03-01` expired 0, available 56.
-- `carry_over_cap`: `carryOverHalves(-4, 10)` 0, `(7, 10)` 7, `(30,
-  10)` 10.
+- `carry_over_cap`: `carryOverHalves(-4, 10, p).carriedHalves` 0,
+  `(7, 10)` 7, `(30, 10)` 10 with `excessHalves` 20 and the
+  `UNUSED_LEAVE_NOT_CARRIED` warning.
 - `policy_warnings`: annual calendar 22 days gives
   `ANNUAL_BELOW_STATUTORY` with rule key `timeAnnualLeaveMinDays`;
   annual working 22 gives `ANNUAL_BASIS_NOT_COMPARED` only; monthly
@@ -1434,7 +1444,9 @@ of `src/wfh/`; `pay-inputs.ts` has no `Date`, `deps`, `tx` or `./db`.
     CONFLICT DO NOTHING`; when the row already existed it returns the
     stored rows with `alreadyRun: true`; else for every employee and
     type with `carryOverMaxDays` it stores `carryOverHalves(available
-    at 31 December, cap)` with `expiresOn` = last day of month
+    at 31 December, cap, p).carriedHalves`, and stores the
+    `excessHalves` with its warning for HR (cash or agreement; review
+    I4), with `expiresOn` = last day of month
     `carryOverExpiresMonths` of the next year (or `null`). Carried
     halves feed `policyBalance` of the next year.
   - Audit: `leave.policy.updated` (`data: { leaveTypeId, changed }`),

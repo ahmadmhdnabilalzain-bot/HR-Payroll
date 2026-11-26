@@ -95,6 +95,7 @@ export interface LeaveAccrualPolicy {
 export interface BalanceInput {
   accruedHalves: number;
   carriedHalves: number;
+  /** Company policy, not law (unsourced); counsel to confirm. */
   carriedExpiresOn: string | null;
   adjustmentHalves: number;
   taken: { date: string; halves: number }[];
@@ -107,6 +108,15 @@ export interface BalanceResult {
   carriedUsedHalves: number;
   expiredHalves: number;
   availableHalves: number;
+  /** `CARRIED_LEAVE_EXPIRED` when carried halves expired (unsourced). */
+  flags: TimeFlag[];
+}
+
+export interface CarryOverResult {
+  carriedHalves: number;
+  /** Above the cap: kept for HR (cash or agreement), never dropped. */
+  excessHalves: number;
+  flags: TimeFlag[];
 }
 
 export type LeavePayrollKind = "annual" | "sick" | "maternity" |

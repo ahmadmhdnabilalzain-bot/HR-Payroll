@@ -5,6 +5,7 @@ import type { TimeParams } from "./params";
 import type {
   BalanceInput,
   BalanceResult,
+  CarryOverResult,
   LeaveAccrualPolicy,
   LeavePolicyFacts,
   TimeFlag,
@@ -61,14 +62,55 @@ export function accruedHalves(
   return Math.floor(p.annualDays * 2 * credited / 12);
 }
 
+function halvesError(field: string, value: number): never {
+  throw new EngineError("INVALID_HALVES",
+    `${field} must be a whole number of halves`,
+    { field, value: String(value) });
+}
+
+/** Whole halves; at least 0 unless `signed`. */
+function checkHalves(field: string, value: number, signed = false): void {
+  if (!Number.isSafeInteger(value) || (!signed && value < 0)) {
+    halvesError(field, value);
+  }
+}
+
+function checkBalance(b: BalanceInput): void {
+  checkHalves("accruedHalves", b.accruedHalves);
+  checkHalves("carriedHalves", b.carriedHalves);
+  checkHalves("pendingHalves", b.pendingHalves);
+  checkHalves("adjustmentHalves", b.adjustmentHalves, true);
+  b.taken.forEach((t) => {
+    parseIsoDate(t.date, "taken.date");
+    checkHalves("taken.halves", t.halves);
+  });
+  if (b.carriedExpiresOn !== null) {
+    parseIsoDate(b.carriedExpiresOn, "carriedExpiresOn");
+  }
+  parseIsoDate(b.asOf, "asOf");
+}
+
+/** Expiry of carried days has no source in the labour law note. */
+export const CARRIED_EXPIRY_NOTE = "Expiry of carried leave is company" +
+  " policy, not law: the labour law note has no text for it" +
+  " (unsourced); counsel to confirm.";
+
+function expiryFlags(b: BalanceInput, expired: number): TimeFlag[] {
+  if (expired <= 0) return [];
+  return [{ code: "CARRIED_LEAVE_EXPIRED", dates: [b.asOf], rule: null,
+    detail: { expiredHalves: String(expired),
+      carriedExpiresOn: String(b.carriedExpiresOn),
+      note: CARRIED_EXPIRY_NOTE } }];
+}
+
 /**
  * Carried halves are used first (convention); what is unused expires
- * after `carriedExpiresOn`. Taken entries all count, whatever their date.
+ * after `carriedExpiresOn` (company policy, flagged as unsourced).
+ * Taken entries all count, whatever their date.
  */
 export function balanceHalves(b: BalanceInput): BalanceResult {
+  checkBalance(b);
   const exp = b.carriedExpiresOn;
-  if (exp !== null) parseIsoDate(exp, "carriedExpiresOn");
-  parseIsoDate(b.asOf, "asOf");
   const takenHalves = b.taken.reduce((s, t) => s + t.halves, 0);
   const beforeExpiry = exp === null ? takenHalves : b.taken
     .filter((t) => t.date <= exp).reduce((s, t) => s + t.halves, 0);
@@ -78,12 +120,32 @@ export function balanceHalves(b: BalanceInput): BalanceResult {
   const availableHalves = b.accruedHalves + b.carriedHalves -
     expiredHalves + b.adjustmentHalves - takenHalves - b.pendingHalves;
   return { takenHalves, carriedUsedHalves, expiredHalves,
-    availableHalves };
+    availableHalves, flags: expiryFlags(b, expiredHalves) };
 }
 
+/** ER 19(1) offers cash as the alternative; forfeiture is unsourced. */
+export const UNUSED_LEAVE_NOTE = "ER 19(1): the alternative to carrying" +
+  " forward is its equivalent in cash. Forfeiture of the excess is not" +
+  " in the sourced law (unsourced). HR decides on cash or an agreement.";
+
+/**
+ * Halves carried into the next year, capped; the excess is returned
+ * with an `UNUSED_LEAVE_NOT_CARRIED` warning, never dropped silently.
+ */
 export function carryOverHalves(remainingHalves: number,
-  capHalves: number): number {
-  return Math.min(Math.max(0, remainingHalves), capHalves);
+  capHalves: number, p: TimeParams): CarryOverResult {
+  checkHalves("remainingHalves", remainingHalves, true);
+  checkHalves("capHalves", capHalves);
+  const left = Math.max(0, remainingHalves);
+  const carriedHalves = Math.min(left, capHalves);
+  const excessHalves = left - carriedHalves;
+  const flags: TimeFlag[] = excessHalves === 0 ? [] : [{
+    code: "UNUSED_LEAVE_NOT_CARRIED", dates: [],
+    rule: p.carryOverMaxShareBps.rule,
+    detail: { excessHalves: String(excessHalves),
+      capHalves: String(capHalves), note: UNUSED_LEAVE_NOTE },
+  }];
+  return { carriedHalves, excessHalves, flags };
 }
 
 function warn(code: string, rule: TraceRule,
