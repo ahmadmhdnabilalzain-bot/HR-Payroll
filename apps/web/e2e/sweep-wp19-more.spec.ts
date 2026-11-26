@@ -72,3 +72,27 @@ test("the-new-pages-turn-away-an-employee", async ({ page }) => {
       name: "This page is outside your view." })).toBeVisible();
   }
 });
+
+test("prior-pay-is-entered-by-hr-and-checked-by-the-gm", async ({ page }) => {
+  await page.goto("/#/pay-run/more/prior");
+  await expect(page.getByRole("heading", { level: 1,
+    name: "Prior-employment pay" })).toBeVisible();
+  await expect(page.getByText("None entered").first()).toBeVisible();
+  await page.getByRole("button", { name: /Add record.*Kavya Iyer/ }).click();
+  await page.getByLabel("Earlier employer").fill("Gulf Trade Bank");
+  await page.getByLabel("From", { exact: true }).fill("2021-02-01");
+  await page.getByLabel("To", { exact: true }).fill("2026-09-30");
+  await page.getByLabel(/Last monthly pay/).fill("0");
+  await page.getByRole("button", { name: "Save the record" }).click();
+  await expect(page.getByRole("alert")).toContainText("amount in AED");
+  await page.getByLabel(/Last monthly pay/).fill("18500");
+  await page.getByRole("button", { name: "Save the record" }).click();
+  await expect(page.getByText(/Gulf Trade Bank/)).toBeVisible();
+  await expect(page.getByText(/Entered by .*HR manager/)).toBeVisible();
+  const bad = await new AxeBuilder({ page }).analyze();
+  expect(bad.violations).toEqual([]);
+  await asRole(page, "General manager");
+  await page.getByRole("button", { name: /Mark checked.*Kavya Iyer/ })
+    .click();
+  await expect(page.getByText(/Checked by Khalid Al Nuaimi/)).toBeVisible();
+});

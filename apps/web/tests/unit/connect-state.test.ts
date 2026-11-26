@@ -27,3 +27,29 @@ describe("connection choices", () => {
     expect(connectChoice(CONNECT_INITIAL.connectEdits, "x")).toBeNull();
   });
 });
+
+import {
+  PRIOR_INITIAL,
+  priorOf,
+  reducePrior,
+} from "../../src/pay/more/state";
+import { fils } from "@payroll/engine";
+
+describe("prior-employment records", () => {
+  const draft = { employeeId: "emp-031", employer: "Gulf Trade Bank",
+    from: "2021-02-01", to: "2026-09-30", lastMonthly: fils(1850000n),
+    evidence: "certificate", by: "emp-028", role: "hr",
+    on: "2026-10-27" };
+
+  it("adds, checks, unchecks and takes back", () => {
+    let s = reducePrior(PRIOR_INITIAL, { type: "prior-add", draft });
+    expect(priorOf(s.priorRecords, "emp-031")?.checked).toBeNull();
+    s = reducePrior(s, { type: "prior-check", id: 1, stamp: { by: "emp-001",
+      role: "gm", on: "2026-10-27" } });
+    expect(priorOf(s.priorRecords, "emp-031")?.checked?.role).toBe("gm");
+    s = reducePrior(s, { type: "prior-uncheck", id: 1 });
+    expect(priorOf(s.priorRecords, "emp-031")?.checked).toBeNull();
+    s = reducePrior(s, { type: "prior-undo", id: 1 });
+    expect(s.priorRecords).toEqual([]);
+  });
+});

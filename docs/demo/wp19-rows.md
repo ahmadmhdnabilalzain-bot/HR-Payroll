@@ -32,6 +32,17 @@ the earlier QA list (scratchpad/qa/coverage.md, from before wave 2).
 | 11 | X09 | Recharges between companies | Reports | RP | Finance |
 | 12 | S07 | Trades | Setup, People rules | ST | HR manager |
 
-Notes: P66 and X09 need data the demo does not hold (sales figures; a
-second company). They are built only if they can be derived without
-inventing figures; see the final report for the outcome.
+## Outcome
+
+Made live (9): X24, R34, X25, X11, X26, S32, S34, S33, R25.
+
+Not done (3):
+
+- P66 Sales commission statements: the demo holds no sales, targets or
+  commission rates. A statement needs figures that cannot be derived
+  from any existing selector, and typing them would be inventing pay.
+- X09 Recharges between companies: the demo is one company. A recharge
+  needs a second company and an allocation rule, neither of which exists.
+- S07 Trades: a trade (carpenter, electrician) is a job family for labour
+  staff. The demo bank has none, and the job catalogue (S01) already
+  carries the bank's own job families, so a Trades page would be empty.
