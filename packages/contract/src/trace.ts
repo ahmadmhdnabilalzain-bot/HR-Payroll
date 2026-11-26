@@ -23,7 +23,7 @@ export type TraceRule = z.infer<typeof TraceRule>;
 
 /**
  * Wire encoding of `TraceLine.result` on payslip `pay.*` lines (and on
- * the engine's money lines, e.g. `gratuity.amount`, `leave.pay`,
+ * the engine's money lines, e.g. `gratuity.total`, `leave.pay`,
  * `settlement.total`; not on `service.days` or `service.years`, whose
  * results are counts): the amount in integer fils as a
  * decimal string, no separators, no sign, as the engine writes it

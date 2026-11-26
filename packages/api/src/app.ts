@@ -10,6 +10,7 @@ import { registerDepartmentRoutes } from "./routes/departments";
 import { registerEmployeeRoutes } from "./routes/employees";
 import { registerLeaveRoutes } from "./routes/leave";
 import { registerAttendanceRoutes } from "./routes/attendance";
+import { registerPayRunRoutes } from "./routes/pay-runs";
 import { registerUserRoutes } from "./routes/users";
 
 function internalLine(err: unknown): Record<string, unknown> {
@@ -65,5 +66,6 @@ export function createApp(deps: AppDeps): App {
   registerDepartmentRoutes(app, deps);
   registerLeaveRoutes(app, deps);
   registerAttendanceRoutes(app, deps);
+  registerPayRunRoutes(app, deps);
   return app;
 }

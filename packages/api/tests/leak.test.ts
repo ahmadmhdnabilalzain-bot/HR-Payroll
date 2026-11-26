@@ -2,6 +2,9 @@ import { ROUTES, type RouteDef } from "@payroll/contract";
 import { beforeAll, describe, expect, it } from "vitest";
 import { enableMfa, call, makeApp, signup } from "./helpers/test-app";
 import {
+  addOwner,
+  march,
+  postRun,
   IBAN_SENTINEL,
   SALARY_SENTINEL,
   seedCompany,
@@ -20,16 +23,18 @@ type Target = keyof Seeded["emp"];
 const TARGETS: Target[] = ["manager", "report", "report2", "outsider"];
 
 /** Routes not built yet answer 404 before auth; later tasks shrink it. */
-const NOT_BUILT = new Set(["listMyPayslips", "getPayslip",
-  "listPayRuns", "getPayRun", "listPayRunPayslips", "getSifFile",
-  "downloadSifFile", "listAuditEvents", "verifyAuditChain"]);
+const NOT_BUILT = new Set(["getSifFile", "downloadSifFile",
+  "listAuditEvents", "verifyAuditChain"]);
 
+type Kind = "employee" | "payslip" | "payRun" | null;
 /** `{id}` kinds per route; a GET tenant route missing here fails. */
-const ID_KIND: Record<string, "employee" | null> = {
+const ID_KIND: Record<string, Kind> = {
   getCompany: null, listUsers: null, listEmployees: null,
   getEmployee: "employee", getEmployeeBank: "employee",
   listDepartments: null, listLeaveTypes: null, listLeaveRequests: null,
   getLeaveBalances: "employee", listAttendance: null,
+  listMyPayslips: null, getPayslip: "payslip", listPayRuns: null,
+  getPayRun: "payRun", listPayRunPayslips: "payRun",
 };
 
 /** Query strings a route needs. */
@@ -38,16 +43,17 @@ const QUERY: Record<string, string> = {
   getLeaveBalances: "?year=2026",
 };
 
-/** Which targets a role may open on an employee `{id}` route. */
-function visible(role: Role, t: Target): boolean {
+/** Which targets a role may open on an employee or payslip route. */
+function visible(role: Role, t: Target, kind: Kind): boolean {
   if (role === "owner" || role === "hr") return true;
-  if (role === "manager") return t !== "outsider";
-  return t === "report";
+  const own = role === "manager" ? "manager" : "report";
+  if (kind === "payslip") return t === own;
+  return role === "manager" ? t !== "outsider" : t === "report";
 }
 
 function expected(r: RouteDef, role: Role, t: Target | null): number {
   if (!r.roles.includes(role)) return 403;
-  if (t !== null && !visible(role, t)) return 404;
+  if (t !== null && !visible(role, t, ID_KIND[r.id] ?? null)) return 404;
   return r.status;
 }
 
@@ -57,10 +63,27 @@ const getRoutes = ROUTES.filter((r) => r.method === "GET" &&
 describe("no sensitive value leaks to a viewer who may not see it", () => {
   let ctx: Awaited<ReturnType<typeof makeApp>>;
   let s: Seeded;
+  let runId: string;
+  const slips = {} as Record<Target, string>;
   beforeAll(async () => {
     ctx = await makeApp();
     s = await seedCompany(ctx, "leak");
+    const owner2 = await addOwner(ctx, s);
+    runId = (await postRun(ctx, s.hr, s, "leak-1", march)).body.id;
+    await call(ctx.app, owner2.token, s.companyId, "POST",
+      `/v1/pay-runs/${runId}/approve`);
+    const all = await call(ctx.app, s.hr.token, s.companyId, "GET",
+      `/v1/pay-runs/${runId}/payslips`);
+    for (const t of TARGETS) {
+      slips[t] = all.body.items.find((p: { employeeId: string }) =>
+        p.employeeId === s.emp[t]).id;
+    }
   });
+  /** Every `{id}` to try for a route, with the record it belongs to. */
+  const idsFor = (kind: Kind): [Target | null, string | null][] =>
+    kind === "employee" ? TARGETS.map((t) => [t, s.emp[t]])
+    : kind === "payslip" ? TARGETS.map((t) => [t, slips[t]])
+    : kind === "payRun" ? [[null, runId]] : [[null, null]];
   const path = (r: RouteDef, id: string | null) =>
     (id === null ? r.path : r.path.replace("{id}", id)) +
     (QUERY[r.id] ?? "");
@@ -81,11 +104,10 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
         expect(res.status).toBe(404);
         return;
       }
-      const targets = ID_KIND[r.id] === "employee" ? TARGETS : [null];
       for (const role of ROLES) {
-        for (const t of targets) {
+        for (const [t, id] of idsFor(ID_KIND[r.id] ?? null)) {
           const res = await call(ctx.app, s[role].token, s.companyId,
-            "GET", path(r, t === null ? null : s.emp[t]));
+            "GET", path(r, id));
           const label = `${r.id} as ${role} on ${t}`;
           expect(res.status, `${label}: ${res.text}`)
             .toBe(expected(r, role, t));
@@ -107,16 +129,24 @@ describe("no sensitive value leaks to a viewer who may not see it", () => {
       const bank = await call(ctx.app, s.owner.token, s.companyId, "GET",
         `/v1/employees/${s.emp.outsider}/bank`);
       expect(bank.text).toContain(IBAN_SENTINEL);
+      const slips = await call(ctx.app, s.owner.token, s.companyId, "GET",
+        `/v1/pay-runs/${runId}/payslips`);
+      expect(slips.text).toContain(SALARY_SENTINEL);
+      const mine = await call(ctx.app, s.employee.token, s.companyId,
+        "GET", "/v1/me/payslips");
+      expect(mine.body.items.length).toBe(1);
     });
 
   it("company B's owner gets 404 for every A id", async () => {
     const b = await signup(ctx.app, "other");
     const mfa = await enableMfa(ctx.app, ctx.clock, b);
+    const kinds: Kind[] = ["employee", "payslip", "payRun"];
+    const allIds = kinds.flatMap((k) => idsFor(k).map(([, id]) => id!));
     for (const r of getRoutes.filter((x) => x.path.includes("{id}"))) {
-      for (const t of TARGETS) {
+      for (const id of allIds) {
         const res = await call(ctx.app, mfa.token, b.companyId, "GET",
-          path(r, s.emp[t]));
-        expect(res.status, `${r.id} ${t}`).toBe(404);
+          path(r, id));
+        expect(res.status, `${r.id} ${id}`).toBe(404);
       }
     }
   });

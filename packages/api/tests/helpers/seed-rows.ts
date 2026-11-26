@@ -46,6 +46,21 @@ async function seedPeople(admin: Db, c: string): Promise<void> {
      VALUES ($1, $2, 'E-1', 'Seed Person', 'Clerk', 'IN',
        'expat-full-time', '2020-01-01', $3)`, [rowId(c, "f1"), c, AT]);
   await seedTime(admin, c, rowId(c, "f1"));
+  await seedPay(admin, c, rowId(c, "f1"));
+}
+
+async function seedPay(admin: Db, c: string, emp: string): Promise<void> {
+  const run = rowId(c, "b1");
+  await admin.query(
+    `INSERT INTO pay_runs (id, company_id, year, month, status,
+       idempotency_key, request_hash, input_hash, snapshot_enc, gross,
+       employee_count, created_by, created_at)
+     VALUES ($1, $2, 2026, 1, 'draft', 'seed', $3, $3, 'x', 0, 1, $4, $5)`,
+    [run, c, H0, emp, AT]);
+  await admin.query(
+    `INSERT INTO payslips (id, company_id, pay_run_id, employee_id,
+       body_enc, created_at) VALUES ($1, $2, $3, $4, 'x', $5)`,
+    [rowId(c, "b2"), c, run, emp, AT]);
 }
 
 async function seedTime(admin: Db, c: string, emp: string): Promise<void> {

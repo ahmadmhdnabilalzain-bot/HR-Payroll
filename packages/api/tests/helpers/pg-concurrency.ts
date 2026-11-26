@@ -86,6 +86,33 @@ export function pgConcurrencyCases(open: () => Promise<DbPair>): void {
       u.role === "owner").length).toBe(1);
   });
 
+  it("one Idempotency-Key sent twice at once: one run, 201 and 200",
+    async () => {
+      const { db, admin } = await open();
+      const ctx = await makeApp({ db });
+      const a = await signup(ctx.app, "idem");
+      const e = await call(ctx.app, a.token, a.companyId, "POST",
+        "/v1/employees", { number: "E-1", fullName: "P", jobTitle: "C",
+          nationality: "IN", workerClass: "expat-full-time",
+          joiningDate: "2019-01-01" });
+      await call(ctx.app, a.token, a.companyId, "PUT",
+        `/v1/employees/${e.body.id}/salary`, { components: [{ code: "basic",
+          label: "B", labelAr: null, amount: "4000.00",
+          sifBucket: "fixed" }] });
+      const post = () => call(ctx.app, a.token, a.companyId, "POST",
+        "/v1/pay-runs", { period: { year: 2026, month: 3 }, entries: [] },
+        { "idempotency-key": "same" });
+      const rs = await Promise.all([post(), post()]);
+      expect(statuses(rs)).toEqual([200, 201]);
+      expect(rs[0]!.body.id).toBe(rs[1]!.body.id);
+      const n = await admin.query<{ n: bigint }>(
+        "SELECT count(*) AS n FROM pay_runs");
+      expect(n[0]?.n).toBe(1n);
+      const slips = await admin.query<{ n: bigint }>(
+        "SELECT count(*) AS n FROM payslips");
+      expect(slips[0]?.n).toBe(1n);
+    });
+
   it("20 parallel audit appends: seq 1 to 20, chain verifies", async () => {
     const { db, admin } = await open();
     await seedTwoBareCompanies(admin);

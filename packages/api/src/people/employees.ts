@@ -53,7 +53,8 @@ interface DbRow {
 }
 
 export type Column = "salary_enc" | "iban_enc" | "labour_person_id_enc" |
-  "emirates_id_enc";
+  "emirates_id_enc" | "snapshot_enc" | "body_enc" | "text_enc" |
+  "findings_enc";
 
 /** The field crypto for one company: AAD binds company, column, row. */
 export interface Sealer {
@@ -62,12 +63,12 @@ export interface Sealer {
 }
 
 export async function sealerFor(tx: Db, deps: HandlerDeps,
-  companyId: string): Promise<Sealer> {
+  companyId: string, table = "employees"): Promise<Sealer> {
   const [c] = await tx.query<{ dek_wrapped: string }>(
     "SELECT dek_wrapped FROM companies WHERE id = $1", [companyId]);
   if (c === undefined) throw new ApiError("NOT_FOUND");
   const aad = (col: Column, id: string) =>
-    `${companyId}:employees:${col}:${id}`;
+    `${companyId}:${table}:${col}:${id}`;
   return {
     seal: (col, id, plain) => plain === null ? null
       : deps.keyring.encrypt(c.dek_wrapped, aad(col, id), plain),

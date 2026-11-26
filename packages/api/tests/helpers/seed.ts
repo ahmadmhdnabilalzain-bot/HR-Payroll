@@ -83,6 +83,21 @@ async function member(ctx: Ctx, own: SeedUser, companyId: string,
   return { token: mfa.token, userId: acc.user.id, email };
 }
 
+/** A second owner (MFA): pay runs need an approver who did not create. */
+export function addOwner(ctx: Ctx, s: Seeded): Promise<SeedUser> {
+  return member(ctx, s.owner, s.companyId,
+    `owner2.${s.companyId.slice(-4)}@example.com`, "owner");
+}
+
+/** POST /v1/pay-runs with an idempotency key. */
+export function postRun(ctx: Ctx, who: SeedUser, s: Seeded, key: string,
+  body: unknown) {
+  return call(ctx.app, who.token, s.companyId, "POST", "/v1/pay-runs",
+    body, { "idempotency-key": key });
+}
+
+export const march = { period: { year: 2026, month: 3 }, entries: [] };
+
 /** A company with owner, hr, manager and employee users (all MFA). */
 export async function seedCompany(ctx: Ctx, name: string): Promise<Seeded> {
   const a = await signup(ctx.app, name);

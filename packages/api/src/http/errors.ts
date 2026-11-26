@@ -2,11 +2,12 @@ import {
   ERROR_STATUS,
   type ApiErrorBody,
   type ErrorCode,
+  type ErrorDetail,
 } from "@payroll/contract";
 import { EngineError } from "@payroll/engine";
 import { ZodError } from "zod";
 
-type Detail = Record<string, string | string[]>;
+type Detail = ErrorDetail;
 
 /** An error that becomes an HTTP response with a stable code. */
 export class ApiError extends Error {
