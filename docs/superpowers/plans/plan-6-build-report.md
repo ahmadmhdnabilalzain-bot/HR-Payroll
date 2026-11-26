@@ -470,3 +470,108 @@ including both real-PostgreSQL suites started by origin's
 worker was SIGKILLed twice, so the killed files were re-run on their
 own and pass). The keyring test failed once by chance (a random IV
 encoded to text containing "7777"); it is origin's and flaky by design.
+
+## Review fix round (money review T4-7, security review T2-3)
+
+Commits on top of the merge, each test-first (the new tests were seen
+failing before the fix, except where noted):
+
+| Commit | What |
+|---|---|
+| `3d65600` | Money I-1: `employee-left` only when no run can still pay the claim (last day before the month after the latest approved run), otherwise `final-run-pending`; `UnpaidReport` carries `UNPAID_NOTE` (cancel with a note to record a payment made outside payroll). |
+| `55e387d` | Money I-2, M-7; security I-3: migration 605, one set of database guards (below). |
+| `a3c2132` | Money I-3: `salaryNet = net - reimbursementTotal`; property test with net != gross. |
+| `63820ca` | Security I-1, M-1, M-3: makers, submitter and every linked user excluded at resolve and at decision; demoted approvers lose role steps. |
+| `343644a` | Security I-2, M-4, M-6, M-8: safe free text, row before blob with cleanup, upload quota, download headers, OpenAPI 413/415/429. |
+| `44d4bc4` | Security M-2: manager sees non-drafts only; approvers only reached or decided steps. |
+| `42ca030` | Owner decision M-5 (`vatStatement` on claims, `reimbursementNote` on runs); money M-6 (summary by run ignores dates, status filter, aging from submission). |
+| `d1c38f0` | Money M-1, M-8: claim total cap at save and submit; run net over the cap is a problem (it already was after the merge, now tested); reimbursement count check. |
+| `9af5053` | Money M-2, M-3: claimant role from the single linked membership; cross-employee duplicate receipts flagged `POSSIBLE_DUPLICATE`. |
+| `7ab1ada` | Money M-4: CSV quotes `;` cells; leading-space and full-width formula prefixes neutralised. |
+| `109e93a` | Money M-9 and security mutants: tests only. |
+
+### Database guards (migration 605)
+
+- Column-level UPDATE grants replace the table grants on every Plan 6
+  table: approval requests (status, current step, closed at), steps
+  (status, decider, time, note), claims (the columns transitions
+  write; never `employee_id`, `created_by`, `company_id`), items
+  (amount, rate, over-limit only). So approval key columns (eligible,
+  approver, submitter, claimant, subject, `excluded`) are immutable.
+- `expense_items` (insert and update) and `expense_item_receipts`
+  (insert) only while the parent claim is draft or returned.
+- `expense_claims`: total, VAT total, title, revision and editors are
+  frozen outside draft/returned; a claim joins only a draft run, leaves
+  only a void run, and becomes `reimbursed` only through an approved
+  run. The existing final-state trigger stays.
+- `CHECK (vat_amount <= amount)`; save refuses `VAT_EXCEEDS_AMOUNT`.
+- `approval_decider_guard`: the decider is never in the request's
+  `excluded` list, its submitter, its claimant user, or another step's
+  decider.
+- Proven as the app role on pglite and on real PostgreSQL (the new
+  `guardCases` run in both suites).
+
+### Decisions
+
+1. **"No run can still pay"** is read as "the leaver's last day is
+   before the first day of the month after the company's latest
+   approved run". Gaps before that month are treated as closed (no one
+   back-fills an old month); with no approved run at all, a leaver's
+   claim is `final-run-pending`.
+2. **Makers** are the creator plus every user who saved a revision
+   (`expense_claims.editors`). Only the creator and the claimant can
+   edit today, so editors adds defence in depth.
+3. **Excluded users are stored on the request** (`excluded uuid[]`, not
+   writable by the app), so the database trigger can enforce them.
+4. **Demoted approvers (revises Ruling 11):** a `role` step needs that
+   role at decision time (otherwise 403 `NOT_AN_APPROVER`, and the task
+   leaves the inbox). Named-user and line-manager steps name a person,
+   so their current role is not re-checked.
+5. **Safe text** refuses every C0 and C1 control character (newline
+   included) and the bidi embedding, override and isolate characters in
+   all Plan 6 free text. Notes are therefore single-line.
+6. **Upload quota:** 50 per user and 1000 per company per Dubai day,
+   `receiptQuota` in the expense policy (company-editable), a product
+   default against storage abuse, **not statutory**; 429
+   `RECEIPT_QUOTA_EXCEEDED` with `detail.scope`. A per-company advisory
+   lock makes the count exact under concurrency.
+7. **Blob cleanup:** `ReqCtx.onFailure` registers an undo that runs if
+   the request fails after the blob was written; `BlobStore.delete` was
+   added. A crash between commit and response cannot orphan a blob (it
+   is referenced); a process crash after `put` and before commit still
+   can, so the sweeper stays on the list.
+8. **Cross-employee duplicates** are flagged as `POSSIBLE_DUPLICATE` for
+   everyone (the flag never names the other person).
+9. **M-2 (two memberships per employee)** is already prevented by
+   origin's migration 013 (unique link); the code no longer guesses.
+
+### Skipped (with reason)
+
+- Security M-5, running the OCR reader outside the database
+  transaction: the handler only exists inside the request's single
+  transaction (Plan 3 rule), so moving the reader out needs a new
+  pre-transaction hook in `register()`. The default reader is a no-op
+  today; recorded for when a real reader is added.
+- Security M-5, sealing raw bytes instead of base64 text: needs a
+  keyring API change shared with Plan 3; left as is.
+- Mutant M2 as originally stated (drop only `submitted_by` at decision)
+  is now equivalent: the submitter is also in the stored `excluded`
+  list. The test kills the stronger mutant that drops both.
+
+### Mutants proven killed
+
+Applied one at a time with a script and restored: per-item and monthly
+limit `>`/`>=`, future date `>=`, reimbursed claims missing from the
+monthly limit, the two unpaid-report boundaries, reimbursed claims
+missing from the summary, the claimant role forced to `employee`, the
+final-state trigger disabled, and security M2, M10, M12, M15, M17, M18.
+Each failed at least one test.
+
+### Tests after the fix round (one package at a time)
+
+contract 101, engine 584, wps 173 (the round-trip test hit its 5 s
+timeout twice with the machine at load average 15 to 18 from other
+processes; it passes in 5.2 s with a longer timeout; wps is untouched
+here), web 103, api 394 (53 files, including both real-PostgreSQL
+suites started by `tests/global-pg.ts`). Line length, line-checker
+tests and every typecheck pass.
