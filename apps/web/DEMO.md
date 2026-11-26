@@ -636,5 +636,8 @@ e2e`. Screenshot, axe and recording scripts live outside the repo.
 - The offline single file grows from 2.56 MB to 3.14 MB (three.js is
   inlined, as the offline build has one chunk).
 - A window resized across the wide or tall line restarts the film.
+- Before the first film frame there is plain paper while the chunk
+  loads and the fonts settle (about 1 to 2 s locally; longer on a
+  hosted demo). Skip is not shown during that wait.
 - Headless Chromium logs "GPU stall due to ReadPixels" warnings from
   its own compositor; the page logs no errors.

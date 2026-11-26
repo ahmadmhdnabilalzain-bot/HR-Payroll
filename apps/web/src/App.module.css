@@ -18,3 +18,12 @@
 .shell {
   display: contents;
 }
+
+/* Paper over Home while the opening's chunk loads, so the product never
+ * flashes before the film. */
+.cover {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--color-cine-paper);
+}

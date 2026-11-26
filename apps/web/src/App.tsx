@@ -98,7 +98,7 @@ export function App() {
         <PhoneTabs route={route} />
       </div>
       {first && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<div className={s.cover} />}>
           <Welcome onDone={() => setFirst(false)} />
         </Suspense>
       )}
