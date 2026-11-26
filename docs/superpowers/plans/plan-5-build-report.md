@@ -15,3 +15,5 @@ Built test-first, one commit per task, `pnpm check` green before each.
   '../src/payroll/variable'` (Test Files 1 failed, no tests ran).
 - Task 5 `payroll-gpssa`: FAIL, `Cannot find module
   '../src/payroll/gpssa'` (Test Files 1 failed, no tests ran).
+- Task 6 `payroll-deductions`: FAIL, `Cannot find module
+  '../src/payroll/deductions'` (Test Files 1 failed, no tests ran).
