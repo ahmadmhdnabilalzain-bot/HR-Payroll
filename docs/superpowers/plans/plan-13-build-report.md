@@ -45,9 +45,10 @@ Nothing is pushed.
   with two arguments, but Plan 6 added a third (`blobs`). Plan 13
   adds an optional fourth (`channels`) and does not touch `deploy/`.
 
-## Status
+## Progress
 
-In progress (updated after each task).
+All ten tasks done; the final status, tests, decisions and concerns
+are at the end.
 
 ## Task log
 
@@ -273,3 +274,107 @@ In progress (updated after each task).
   plan was not written (the code path is the member query).
 - The leak test was not extended with a key caller; `apikeys.test.ts`
   checks the sentinels on the key's employee list instead.
+
+### Task 10: developer surface and handover
+
+- `DeveloperGuide` lives in `developer-guide-schema.ts` and the pure
+  builder in `developer-guide.ts`: one file would make an import cycle
+  (`routes` → `routes-channels` → guide → `routes`).
+- `/v1/openapi.json` and `/v1/developer/guide` answer through
+  `TextReply` (cached JSON text, `Cache-Control: public,
+  max-age=300`). OpenAPI marks key routes with both security entries
+  and `x-api-key-scope`, and lists one webhook per event type.
+- `HANDOVER.md` (API layout rows, Plan 13 limits) and `LEDGER.md`
+  (section 3: rulings 1 to 36 adopted by reference with this report's
+  changes) were updated. The developer page itself is a spec for a
+  web plan (no web code here).
+
+## Status
+
+All ten tasks are implemented and committed on `api-plan-13`.
+Channel routes: 48, 8 of them public (as the plan says). Migrations
+`1301` to `1309`.
+
+## Tests
+
+- `packages/contract`: 9 files, 116 tests, green.
+- `packages/api`: every task's own tests plus conformance, leak,
+  tenancy, RLS catalog and the real-PostgreSQL suites were run after
+  each task; the full suite was run after Tasks 1 to 5 and at the end.
+  Final full run: 70 files, 465 tests; one failure (a `Date.now()`
+  in `sso/oidc-http.ts`, caught by Plan 3's injected-clock scan; the
+  discovery cache now lives for the process) and three files killed
+  by memory pressure. After the fixes, `errors`, `url-guard`, `sso`,
+  `pg-channels.integration`, `wa-approvals`, `auth`, `email-in`,
+  `conformance` and `leak` were re-run: 9 files, 87 tests, green.
+- `packages/engine` 53 files, `packages/wps` 11 files green;
+  `lines:ops`, `lines:test`, `ops:test` green; `apps/web` 102 of 103
+  (only the baseline `every-error-code-has-text`). Runs used `--maxWorkers=1` or `2`: other
+  agents' test runs on this machine caused out-of-memory kills
+  (SIGKILL) of single workers several times; each killed file was
+  re-run alone and passed.
+- Root `pnpm typecheck` and `pnpm lines` green. The real-PostgreSQL
+  suite (throwaway server from `/usr/lib/postgresql`) ran, including
+  `pg-channels.integration.test.ts`.
+- Test-first: each task's tests were written before its code and run
+  red before the code was copied in. For Tasks 1, 2, 8 and 9 the
+  modules were drafted alongside the tests (`apikeys.test.ts` first ran
+  after the code existed), so not every test file was seen failing.
+- Final checks added after the advisor's review: all five other
+  SECURITY DEFINER functions are now exercised on real PostgreSQL
+  through the runtime role (both companies seen); IPv4-mapped IPv6 in
+  hex form (`::ffff:a00:5`) is judged as IPv4; SSO login refuses a
+  locked or service account with `SSO_NOT_LINKED` (tested).
+
+## Decisions
+
+No new dependency was added (versions unchanged).
+
+1. Commit trailers say `Co-Authored-By: Claude Opus 5.5` (the model
+   that did the work, as the session's attribution notice requires
+   and as Plan 3 did), not the brief's `Claude Sonnet 5.5`. Nothing is
+   pushed, so they can be rewritten.
+2. `PUBLIC_API_BASE_URL` and `PUBLIC_APP_BASE_URL` are optional (https
+   when set): making them required would break the existing
+   deployment files, which this plan does not own. Features that need
+   them refuse with `CHANNEL_NOT_CONFIGURED` / `SSO_NOT_CONFIGURED`.
+3. Cross-company jobs: SECURITY DEFINER functions plus job-scan RLS
+   policies keyed to the migrating owner role (Task 3).
+4. Jobs and public hooks open tenants through `Enter`; nothing outside
+   the request plumbing and `main.ts` calls `withTenant`.
+5. Every listed security hardening above (Tasks 4, 5, 7, 8, 9) beyond
+   the plan text.
+
+## Concerns
+
+- No separate security reviewer could be dispatched (the brief forbids
+  subagents); Tasks 4, 5, 7, 8 and 9 got a self-review only. A fresh
+  review of those tasks is still owed.
+- An owner or hr person invited through SSO has no password, so cannot
+  enrol MFA (enrolment re-checks the password) and so cannot use MFA
+  routes. No flow was invented for this.
+- Functions over 30 lines remain in `webhooks/deliver.ts` (`claim`,
+  `record`), `whatsapp/opt-in.ts` (`startOptIn`, `verifyOptIn`) and
+  `inbound/items.ts` (`keepItem`); all files are under 300 lines.
+- Not merged: the newer `origin/claude/quirky-wozniak-b7xkvr` (Plan 6
+  review fixes with migration 605, Plan 8, Plan 3 and engine fixes).
+  A trial merge shows 21 conflicting files (contract errors, examples,
+  payroll, routes and route tests; api app, allowlist, http/context,
+  pay-runs, snapshot, employees, receipts, routes/users, test helpers,
+  conformance and leak; HANDOVER; two web mocks). Not done for lack of
+  room in this session. After that merge, a WhatsApp approver who lost
+  the role should get `NOT_AN_APPROVER` through `verdictFor`/`decide`;
+  that test is still to write.
+- Plan 13 adds 28 error codes with no English text in `apps/web`
+  (`every-error-code-has-text` was already failing on 19 Plan 6
+  codes); web is out of scope here.
+- `due_webhook_deliveries` keeps returning pending deliveries of a
+  paused endpoint (the claim skips them), which uses up the batch
+  limit while many are parked.
+- `pnpm ops:typecheck` still fails on `deploy/serve.ts` (Plan 6
+  baseline, untouched).
+- Provider wire formats (Postmark send and inbound, Meta send and
+  webhook, Google and Entra endpoints and issuers) are UNVERIFIED and
+  tested only against their own fakes.
+- WhatsApp prices, Meta verification lead time and any TDRA position
+  remain unknown; Arabic copy is unreviewed and never sent.

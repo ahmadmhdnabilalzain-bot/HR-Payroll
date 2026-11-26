@@ -15,7 +15,8 @@ describe("webhook URL guard", () => {
   it("isPublicAddress", () => {
     for (const ip of ["10.1.2.3", "172.31.0.1", "192.168.1.1",
       "169.254.169.254", "100.64.0.1", "::1", "fd00::1", "fe80::1",
-      "::ffff:10.0.0.1", "0.0.0.0", "::"]) {
+      "::ffff:10.0.0.1", "0.0.0.0", "::", "::ffff:a00:5",
+      "::ffff:7f00:1"]) {
       expect(isPublicAddress(ip), ip).toBe(false);
     }
     expect(isPublicAddress("93.184.216.34")).toBe(true);

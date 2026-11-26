@@ -58,6 +58,9 @@ export const INBOUND_EXAMPLES: Readonly<Record<string, unknown>> = {
   WebhookDelivery: del,
   WebhookDeliveryList: { items: [del] },
   ApiKey: key,
+  OpenApiJson: { openapi: "3.1.0" },
+  DeveloperGuide: { baseUrl: "https://api.example.com", sections: [],
+    scopes: [], webhookEvents: [] },
   ApiKeyList: { items: [key] },
   ApiKeyCreated: { key, secret: "hrk_0123456789abcdef_" +
     "EXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEX" },

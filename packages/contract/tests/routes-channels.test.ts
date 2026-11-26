@@ -26,6 +26,7 @@ const CHANNEL_ROUTE_IDS = [
   "updateWebhookEndpoint", "rotateWebhookSecret", "testWebhookEndpoint",
   "listWebhookDeliveries", "redeliverWebhook", "listApiKeys",
   "createApiKey", "updateApiKey", "rotateApiKey", "revokeApiKey",
+  "getOpenApi", "getDeveloperGuide",
 ];
 
 describe("CHANNEL_ROUTES", () => {

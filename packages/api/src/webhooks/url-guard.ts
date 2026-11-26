@@ -59,6 +59,11 @@ export function isPublicAddress(ip: string): boolean {
   const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(low);
   if (mapped !== null) return publicV4(mapped[1]!);
   const w = expandV6(low);
+  // IPv4-mapped in hex form (::ffff:a00:5) is judged as IPv4 too.
+  if (w.slice(0, 5).every((x) => x === 0) && w[5] === 0xffff) {
+    return publicV4(`${w[6]! >> 8}.${w[6]! & 255}.${w[7]! >> 8}.` +
+      `${w[7]! & 255}`);
+  }
   if (w.every((x) => x === 0)) return false;
   if (w.slice(0, 7).every((x) => x === 0) && w[7] === 1) return false;
   const first = w[0]!;

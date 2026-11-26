@@ -8,7 +8,6 @@ const DISCOVERY: Record<SsoProvider, string> = {
   microsoft: "https://login.microsoftonline.com/organizations/v2.0/" +
     ".well-known/openid-configuration",
 };
-const CACHE_MS = 3600_000;
 
 type Creds = { clientId: string; clientSecret: string };
 interface Disc { authorization_endpoint: string; token_endpoint: string;
@@ -23,7 +22,8 @@ async function getJson(http: HttpClient, url: string): Promise<any> {
 
 export function httpOidcClient(http: HttpClient, cfg: Partial<Record<
   SsoProvider, Creds>>): OidcClient {
-  const cache = new Map<SsoProvider, { at: number; d: Disc }>();
+  // Discovery is cached for the process (no clock read outside deps).
+  const cache = new Map<SsoProvider, Disc>();
   const creds = (p: SsoProvider) => {
     const c = cfg[p];
     if (c === undefined) throw new ApiError("SSO_NOT_CONFIGURED");
@@ -31,9 +31,9 @@ export function httpOidcClient(http: HttpClient, cfg: Partial<Record<
   };
   const disc = async (p: SsoProvider): Promise<Disc> => {
     const hit = cache.get(p);
-    if (hit !== undefined && Date.now() - hit.at < CACHE_MS) return hit.d;
+    if (hit !== undefined) return hit;
     const d = await getJson(http, DISCOVERY[p]) as Disc;
-    cache.set(p, { at: Date.now(), d });
+    cache.set(p, d);
     return d;
   };
   const auth: Record<SsoProvider, string> = {

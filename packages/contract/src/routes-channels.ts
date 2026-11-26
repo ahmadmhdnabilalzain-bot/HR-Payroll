@@ -47,6 +47,8 @@ import {
   ApiKeyRotate,
   ApiKeyUpdate,
 } from "./api-keys";
+import { DeveloperGuide } from "./developer-guide-schema";
+import { OpenApiJson } from "./openapi-json";
 import { HookAck, HookChallenge, WhatsAppHookQuery } from
   "./whatsapp-actions";
 import {
@@ -243,6 +245,14 @@ const API_KEYS: readonly RouteDef[] = [
     mfa: true }),
 ];
 
+/** Task 10: the developer surface (public). */
+const DEVELOPER: readonly RouteDef[] = [
+  pub({ id: "getOpenApi", method: "GET", path: "/v1/openapi.json",
+    response: OpenApiJson }),
+  pub({ id: "getDeveloperGuide", method: "GET",
+    path: "/v1/developer/guide", response: DeveloperGuide }),
+];
+
 /** Plan 13: channels and integrations (the last route group). */
 export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SETTINGS,
@@ -254,4 +264,5 @@ export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SSO,
   ...WEBHOOKS,
   ...API_KEYS,
+  ...DEVELOPER,
 ];

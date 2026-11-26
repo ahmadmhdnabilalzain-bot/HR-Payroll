@@ -88,6 +88,10 @@ async function session(ctx: ReqCtx<SsoCallbackRequest>, userId: string,
   p: SsoProvider): Promise<LoginResponse> {
   return ctx.enter({ companyId: null, userId }, async (tx) => {
     const u = (await userById(tx, userId))!;
+    // A locked or service account gets the same answer as no link.
+    const locked = u.locked_until !== null &&
+      Date.parse(u.locked_until) > ctx.deps.now().getTime();
+    if (locked || u.kind === "service") throw new ApiError("SSO_NOT_LINKED");
     let mfa = false;
     if (ctx.body.totp !== undefined) {
       mfa = u.mfa_enrolled && await consumeTotp(tx, ctx.deps, u,

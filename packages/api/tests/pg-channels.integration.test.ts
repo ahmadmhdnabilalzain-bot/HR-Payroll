@@ -9,6 +9,7 @@ import {
 } from "./helpers/expense-fixtures";
 import { ADMIN_URL, closeAll, freshPgPair } from "./helpers/pg-env";
 import { seedCompany } from "./helpers/seed";
+import { seedTwoCompanies } from "./helpers/test-db";
 import { makeApp } from "./helpers/test-app";
 
 /**
@@ -49,4 +50,37 @@ describe.skipIf(!ADMIN_URL)("Plan 13 jobs on real PostgreSQL", () => {
         (tx) => tx.query("SELECT * FROM notification_deliveries"));
       expect(rows).toEqual([]);
     });
+
+  it("every cross-company function sees both companies", async () => {
+    const { db, admin } = await freshPgPair(2);
+    await seedTwoCompanies(admin);
+    const later = "2099-01-01T00:00:00.000Z";
+    await admin.exec(`
+      UPDATE channel_opt_ins SET phone_hash = 'hx', status = 'active';
+      UPDATE channel_actions SET phone_hash = 'hx',
+        status = 'awaiting-reason', reason_until = '${later}';
+      UPDATE webhook_deliveries SET status = 'pending',
+        next_attempt_at = '2026-01-01T00:00:00Z';
+      UPDATE sso_settings SET body =
+        '{"jitEmployees":true,"allowedDomains":["acme.test"]}';
+      UPDATE employees SET email = 'e@acme.test';
+      UPDATE memberships SET employee_id = NULL;`);
+    const q = (sql: string, args: unknown[] = []) => withTenant(db,
+      { companyId: null, userId: null }, (tx) =>
+        tx.query<Record<string, unknown>>(sql, args));
+    const now = "2026-03-01T08:00:00.000Z";
+    const two = (rows: Record<string, unknown>[]) =>
+      new Set(rows.map((r) => r.company_id)).size;
+    expect((await q("SELECT * FROM find_awaiting_reason('hx', $1)",
+      [now])).length).toBe(1);
+    expect(two(await q("SELECT * FROM due_webhook_deliveries($1, 10)",
+      [now]))).toBe(2);
+    expect(two(await q(
+      "SELECT * FROM sso_jit_candidates('e@acme.test', 'acme.test')")))
+      .toBe(2);
+    expect(await q("SELECT expire_awaiting_by_phone('hx') AS n"))
+      .toEqual([{ n: 2 }]);
+    expect(await q("SELECT withdraw_whatsapp_by_phone('hx', $1) AS n",
+      [now])).toEqual([{ n: 2 }]);
+  });
 });

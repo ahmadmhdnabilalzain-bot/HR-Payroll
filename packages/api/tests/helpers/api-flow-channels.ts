@@ -40,6 +40,8 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
   await ssoFlow(_ctx, hit, u);
   await webhookFlow(_ctx, hit, u);
   await apiKeyFlow(hit, u);
+  await hit("getOpenApi", null, null);
+  await hit("getDeveloperGuide", null, null);
 }
 
 async function apiKeyFlow(hit: Hitter, u: FlowUsers) {

@@ -72,6 +72,10 @@ describe("SSO with OpenID Connect", () => {
     ctx.clock.advance(30_000);
     const withCode = await sso(ctx, "google", google("g-1", a.email),
       { totp: m.code() });
+    await db(ctx, "UPDATE users SET locked_until = $2 WHERE id = $1",
+      [a.userId, "2099-01-01T00:00:00.000Z"]);
+    const locked = await sso(ctx, "google", google("g-1", a.email));
+    expect(locked.body.error.code).toBe("SSO_NOT_LINKED");
     const [r2] = await db(ctx, "SELECT mfa FROM sessions WHERE " +
       "token_hash = $1", [sha256Hex(withCode.body.token)]);
     expect(r2!.mfa).toBe(true);

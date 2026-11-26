@@ -186,8 +186,36 @@ engine refuses to run without an explicit value.
 | Leave and attendance | `src/leave/`, `src/attendance/`, `src/time/dubai.ts` |
 | Pay runs (pure compute), payslips, SIF | `src/payroll/` |
 | Entry and config | `src/main.ts`, `src/config.ts`, `src/deps.ts` |
+| Plan 13 channel platform, notifications, outbox | `src/channels/`, `src/channel-app.ts`, `migrations/1301` to `1303` |
+| Plan 13 WhatsApp opt-in and approvals | `src/whatsapp/`, `migrations/1304` |
+| Plan 13 email-in review inbox | `src/inbound/`, `migrations/1305` |
+| Plan 13 calendar feeds | `src/calendar/`, `src/export/ics.ts`, `migrations/1306` |
+| Plan 13 SSO (OIDC) | `src/sso/`, `migrations/1307` |
+| Plan 13 webhooks | `src/webhooks/`, `migrations/1308` |
+| Plan 13 API keys | `src/apikeys/`, `migrations/1309` |
+| Background jobs (`tsx src/main.ts jobs`) | `src/jobs/jobs.ts` |
 
 ## Known limits and open questions
+
+- Plan 13 (channels, branch `api-plan-13`): the ten features are
+  notifications (in-app, email, WhatsApp), preferences and quiet
+  hours, templates (Arabic NEEDS NATIVE REVIEW, never sent), WhatsApp
+  approvals, email-in, calendar feeds, SSO (Google, Entra), webhooks,
+  API keys and the developer surface (`/v1/openapi.json`,
+  `/v1/developer/guide`). Every provider is `not-configured` until its
+  environment group is complete: `POSTMARK_SERVER_TOKEN`, `EMAIL_FROM`;
+  `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`,
+  `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`,
+  `WHATSAPP_GRAPH_VERSION`; `INBOUND_EMAIL_DOMAIN`,
+  `INBOUND_EMAIL_BASIC_AUTH`; `GOOGLE_OIDC_CLIENT_ID`,
+  `GOOGLE_OIDC_CLIENT_SECRET`; `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`;
+  plus `PUBLIC_API_BASE_URL` and `PUBLIC_APP_BASE_URL` (https).
+  Limits: no scheduler runs `main.ts jobs`; no Meta business
+  verification started; WhatsApp UAE prices and verification lead time
+  unknown; Postmark inbound needs a paid plan; where inbound mail is
+  stored was not verified; no malware scan; SAML and Okta not built;
+  no TDRA position; provider wire formats are UNVERIFIED (one adapter
+  file each). See `docs/superpowers/plans/plan-13-build-report.md`.
 
 - Plan 3 limits: nothing on `NOT_COMPUTED_PAY` is computed (proration
   for partial months, overtime premiums, unpaid leave deductions,

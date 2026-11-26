@@ -59,6 +59,7 @@ them apart is deliberate.
 
 | Date | Call | Reason |
 |---|---|---|
+| 2026-11-26 | Plan 13 rulings 1 to 36 adopted as written in `docs/superpowers/plans/2026-11-26-plan-13-channels.md`, with the changes in `plan-13-build-report.md` (stricter email-in sender check, no WhatsApp reply after a withdrawal, SSO invites never link an existing account, job-scan RLS policies for the cross-company functions, holidays and deadlines empty until Plans 9 and 11 merge). | Recorded by reference, as for Plan 3. |
 | 2026-11-25 | Lawyer, bank and pilots become an optional verification track, not gates. | Follows the owner's decision above. |
 | 2026-11-25 | Every statutory value in code carries a source URL and a status (`sourced` or `unsourced`); unsourced values have no default. | With no lawyer, checkable sources replace sign-off. |
 | 2026-11-25 | Real customer payroll and any "verified compliant" claim wait until the rules are sourced. The owner decides when. | Wrong pay harms real employees. |
