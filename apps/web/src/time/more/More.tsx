@@ -6,6 +6,8 @@ import { Corrections } from "./Corrections";
 import { Encash } from "./Encash";
 import { LeaveFor } from "./LeaveFor";
 import { Liability, Wfh } from "./Reports";
+import { CompOff } from "../finish/CompOff";
+import { Grants } from "../finish/Grants";
 
 /**
  * `#/time-off/more/<screen>`: record leave for someone (T03), leave
@@ -25,6 +27,8 @@ export function More(p: ViewProps) {
     case "wfh": return <Wfh />;
     case "kiosk": return <Kiosk />;
     case "cover": return <Cover />;
+    case "comp-off": return <CompOff />;
+    case "grants": return <Grants />;
     default: return <Outside />;
   }
 }

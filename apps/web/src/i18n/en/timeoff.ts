@@ -58,7 +58,11 @@ export const timeoff = {
   weekendsSkipped: { one: "{count} weekend day not counted",
     other: "{count} weekend days not counted" },
   afterThis: "{days} left after this",
-  holidayNote: "Public holidays are not loaded in this demo.",
+  holidaysSkipped: { one: "{count} public holiday not counted",
+    other: "{count} public holidays not counted" },
+  holidayNote: "Days are counted on working days: weekends and the " +
+    "sample public holidays in Setup are skipped.",
+  legendRest: "Weekend or public holiday (not counted)",
   goesTo: "Goes to {name}, {role}",
   send: "Send request",
   cancel: "Cancel",

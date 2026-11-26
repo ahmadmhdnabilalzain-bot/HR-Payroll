@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { useDemo } from "../../demo/state";
+import { reportViews } from "../../time/finish/views";
 import { ReportPage } from "../../ui/templates";
 import type { ViewProps } from "../../views";
 import { T } from "./words";
@@ -12,7 +13,7 @@ function SafetyReport() {
   const closed = Object.entries(state.safetyMarks)
     .filter(([k, m]) => k.startsWith("inc:") && m.status === "closed")
     .map(([k]) => k.slice(4));
-  const months = data.safety.byMonth(closed);
+  const months = data.finish.byMonthWith(closed, reportViews(data, state));
   const total = months.reduce((n, m) => n + m.total, 0);
   const max = Math.max(1, ...months.map((m) => m.total));
   const first = months[0]?.monthText.split(" ")[0] ?? "";

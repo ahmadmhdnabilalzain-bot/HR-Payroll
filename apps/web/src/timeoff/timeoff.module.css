@@ -595,6 +595,11 @@
   border: 2px dashed var(--color-text-muted);
 }
 
+.key[data-on="rest"] {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-divider);
+}
+
 .offList {
   display: none;
   margin: 0;

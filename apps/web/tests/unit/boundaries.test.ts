@@ -65,6 +65,8 @@ describe("boundaries", () => {
       "src/demo/data/moves.ts",
       "src/demo/data/home-types.ts",
       "src/demo/data/home.ts",
+      "src/demo/data/finish-types.ts",
+      "src/demo/data/finish.ts",
       "src/demo/data/more-types.ts",
       "src/demo/data/more.ts",
       "src/demo/data/pay.ts",

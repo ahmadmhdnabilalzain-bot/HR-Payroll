@@ -51,3 +51,4 @@ export * from "./wpe-verify";
 export * from "./wpe-rule-change";
 export * from "./wpe-planning";
 export * from "./wpe-audit";
+export * from "./wpe-time-finish";

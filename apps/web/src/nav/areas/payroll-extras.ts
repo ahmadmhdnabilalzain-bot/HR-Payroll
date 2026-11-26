@@ -46,7 +46,7 @@ export const AREAS: readonly Area[] = [
     keywords: "X32 approval report who signed off declined waiting" },
   { id: "setup.parallel", section: "setup", group: "data",
     label: { en: "Parallel run compare", ar: "مقارنة التشغيل الموازي" },
-    status: "live", archetype: "RP", roles: HR_GM, notForIt: true,
+    status: "live", archetype: "RP", roles: HR_GM, noIt: true,
     route: mig("parallel"),
     keywords: "S38 parallel run compare keka old system migration" },
   { id: "setup.custom-fields", section: "setup", group: "people",
