@@ -28,6 +28,17 @@ import {
   SsoStartResponse,
 } from "./sso";
 import { LoginResponse } from "./user";
+import {
+  WebhookDelivery,
+  WebhookDeliveryList,
+  WebhookDeliveryQuery,
+  WebhookEndpoint,
+  WebhookEndpointCreate,
+  WebhookEndpointCreated,
+  WebhookEndpointList,
+  WebhookEndpointUpdate,
+  WebhookSecretRotate,
+} from "./webhooks";
 import { HookAck, HookChallenge, WhatsAppHookQuery } from
   "./whatsapp-actions";
 import {
@@ -182,6 +193,31 @@ const SSO: readonly RouteDef[] = [
     response: SsoSettings, mfa: true }),
 ];
 
+/** Task 8: outbound signed webhooks. */
+const WEBHOOKS: readonly RouteDef[] = [
+  ten(PAYROLL, { id: "listWebhookEndpoints", method: "GET",
+    path: "/v1/webhook-endpoints", response: WebhookEndpointList }),
+  ten(OWNER, { id: "createWebhookEndpoint", method: "POST",
+    path: "/v1/webhook-endpoints", body: WebhookEndpointCreate,
+    response: WebhookEndpointCreated, mfa: true, status: 201 }),
+  ten(OWNER, { id: "updateWebhookEndpoint", method: "PATCH",
+    path: "/v1/webhook-endpoints/{id}", ...one, body: WebhookEndpointUpdate,
+    response: WebhookEndpoint, mfa: true }),
+  ten(OWNER, { id: "rotateWebhookSecret", method: "POST",
+    path: "/v1/webhook-endpoints/{id}/rotate-secret", ...one,
+    body: WebhookSecretRotate, response: WebhookEndpointCreated,
+    mfa: true }),
+  ten(OWNER, { id: "testWebhookEndpoint", method: "POST",
+    path: "/v1/webhook-endpoints/{id}/test", ...one,
+    response: WebhookDelivery, status: 201 }),
+  ten(PAYROLL, { id: "listWebhookDeliveries", method: "GET",
+    path: "/v1/webhook-deliveries", query: WebhookDeliveryQuery,
+    response: WebhookDeliveryList }),
+  ten(OWNER, { id: "redeliverWebhook", method: "POST",
+    path: "/v1/webhook-deliveries/{id}/redeliver", ...one,
+    response: WebhookDelivery, status: 201 }),
+];
+
 /** Plan 13: channels and integrations (the last route group). */
 export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SETTINGS,
@@ -191,4 +227,5 @@ export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...INBOUND,
   ...CALENDAR,
   ...SSO,
+  ...WEBHOOKS,
 ];

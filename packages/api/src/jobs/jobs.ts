@@ -1,4 +1,5 @@
 import { dispatchDue } from "../channels/dispatch";
+import { deliverDueWebhooks } from "../webhooks/deliver";
 import type { HandlerDeps } from "../deps";
 import type { Enter } from "../http/context";
 
@@ -15,4 +16,6 @@ export interface Job {
 export const JOBS: readonly Job[] = [
   { name: "notification-dispatch", run: async (enter, deps) =>
     ({ ...await dispatchDue(enter, deps) }) },
+  { name: "webhook-delivery", run: async (enter, deps) =>
+    ({ ...await deliverDueWebhooks(enter, deps) }) },
 ];

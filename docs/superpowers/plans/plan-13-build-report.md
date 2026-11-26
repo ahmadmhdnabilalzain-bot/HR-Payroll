@@ -228,3 +228,24 @@ In progress (updated after each task).
   identity, membership unchanged); JIT only for employee role in
   exactly one company; link callbacks bound to the starting user's
   bearer session; SSO never counts as MFA unless a TOTP is given.
+
+### Task 8: signed outbound webhooks
+
+- `sign.ts` also holds the retry schedule and limits (`schedule.ts`
+  folded in); the domain-event fan-out is `webhooks/fanout.ts`, called
+  from `emitEvent`. Employee create and update emit
+  `employee.created` / `employee.updated`.
+- A 410 ends the delivery at once (no retries) and pauses the endpoint
+  `gone`. Deliveries of a paused endpoint are not sent (except
+  `ping`, which is sent even while paused, as the plan says).
+- The rotation test uses a 1-hour grace instead of 24 hours: the test
+  sessions expire after 8 hours.
+- The previous secret is opened with the AAD it was sealed under (the
+  rotation copies the cipher text; a bug found by the test).
+- Security self-review: https only, no credentials, port 443, no IP
+  literal or private suffix; every resolved address must be public
+  (IPv4 and IPv6 reserved ranges, IPv4-mapped IPv6) and the request is
+  pinned to the first one; redirects are never followed; response
+  bodies are never stored; secrets sealed and shown once; the URL is
+  never audited; bodies carry ids only (sentinels tested); HMAC over
+  `id.timestamp.body`, two values during a rotation grace.

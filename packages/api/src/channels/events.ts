@@ -1,6 +1,7 @@
 import type { Period, SubjectType } from "@payroll/contract";
 import { notify, type EventCtx } from "./notify";
 import { recipientsFor } from "./recipients";
+import { webhookFanOut } from "../webhooks/fanout";
 
 export type Outcome3 = "approved" | "rejected" | "returned";
 
@@ -30,4 +31,5 @@ export async function emitEvent(c: EventCtx, e: DomainEvent)
   for (const r of await recipientsFor(c.tx, c.companyId, e)) {
     await notify(c, r);
   }
+  await webhookFanOut(c, e);
 }

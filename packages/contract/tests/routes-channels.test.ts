@@ -22,7 +22,9 @@ const CHANNEL_ROUTE_IDS = [
   "listCalendarFeeds", "createCalendarFeed", "revokeCalendarFeed",
   "getCalendarFeed", "ssoStart", "ssoCallback", "ssoLinkStart",
   "listSsoIdentities", "unlinkSsoIdentity", "getSsoSettings",
-  "putSsoSettings",
+  "putSsoSettings", "listWebhookEndpoints", "createWebhookEndpoint",
+  "updateWebhookEndpoint", "rotateWebhookSecret", "testWebhookEndpoint",
+  "listWebhookDeliveries", "redeliverWebhook",
 ];
 
 describe("CHANNEL_ROUTES", () => {

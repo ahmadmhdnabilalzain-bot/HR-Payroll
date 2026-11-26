@@ -29,4 +29,9 @@ export const CHANNEL_AUDIT_CHECKS: Record<string, Check> = {
   dismissReason: oneOf(["spam", "duplicate", "not-relevant", "other"]),
   scope: oneOf(["my", "team", "company-deadlines"]),
   provider: oneOf(["google", "microsoft"]),
+  events: listOf(["employee.created", "employee.updated",
+    "leave.requested", "leave.decided", "pay-run.approved",
+    "expense-claim.decided"]),
+  pausedReason: oneOf(["manual", "failing", "gone"]),
+  graceHours: isInt,
 };

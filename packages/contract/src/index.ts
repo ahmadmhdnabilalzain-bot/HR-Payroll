@@ -25,6 +25,7 @@ export * from "./whatsapp-actions";
 export * from "./inbound";
 export * from "./calendar";
 export * from "./sso";
+export * from "./webhooks";
 export * from "./lists";
 export * from "./routes";
 export { ALL_ROLES, DECIDERS, OWNER, PAYROLL } from "./route-def";

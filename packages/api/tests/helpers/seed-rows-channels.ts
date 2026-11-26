@@ -73,4 +73,24 @@ async function seedInbound(admin: Db, c: string, user: string) {
   await admin.query(
     `INSERT INTO sso_settings (company_id, version, body, updated_by,
        updated_at) VALUES ($1, 1, '{}', $2, $3)`, [c, user, AT]);
+  await seedWebhooks(admin, c, user);
+}
+
+async function seedWebhooks(admin: Db, c: string, user: string) {
+  await admin.query(
+    `INSERT INTO webhook_endpoints (id, company_id, url, events, status,
+       secret_enc, secret_last4, created_by, created_at, updated_at)
+     VALUES ($1, $2, 'https://x.example.com', '{}', 'paused', 'x', 'abcd',
+       $3, $4, $4)`, [rowId(c, "d8"), c, user, AT]);
+  await admin.query(
+    `INSERT INTO webhook_events (id, company_id, type, entity_type,
+       entity_id, created_at) VALUES ($1, $2, 'ping', 'endpoint', $3, $4)`,
+    [rowId(c, "e8"), c, rowId(c, "d8"), AT]);
+  await admin.query(
+    `INSERT INTO webhook_deliveries (id, company_id, endpoint_id, event_id,
+       status, created_at) VALUES ($1, $2, $3, $4, 'failed', $5)`,
+    [rowId(c, "f8"), c, rowId(c, "d8"), rowId(c, "e8"), AT]);
+  await admin.query(
+    `INSERT INTO webhook_attempts (company_id, delivery_id, n, at,
+       duration_ms) VALUES ($1, $2, 1, $3, 1)`, [c, rowId(c, "f8"), AT]);
 }

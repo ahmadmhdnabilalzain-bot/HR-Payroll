@@ -38,6 +38,23 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
   await inboundFlow(hit, u);
   await calendarFlow(hit, u);
   await ssoFlow(_ctx, hit, u);
+  await webhookFlow(_ctx, hit, u);
+}
+
+async function webhookFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {
+  const c = u.company;
+  ctx.fakes.dns.set("hooks.example.com", ["93.184.216.34"]);
+  const ep = await hit("createWebhookEndpoint", u.owner, c, {}, {
+    url: "https://hooks.example.com/x", events: ["employee.created"] });
+  await hit("listWebhookEndpoints", u.owner, c);
+  await hit("updateWebhookEndpoint", u.owner, c, { id: ep.body.id },
+    { description: "ops" });
+  await hit("rotateWebhookSecret", u.owner, c, { id: ep.body.id },
+    { graceHours: 1 });
+  const t = await hit("testWebhookEndpoint", u.owner, c,
+    { id: ep.body.id });
+  await hit("listWebhookDeliveries", u.owner, c);
+  await hit("redeliverWebhook", u.owner, c, { id: t.body.id });
 }
 
 async function ssoFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {

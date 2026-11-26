@@ -26,7 +26,16 @@ const item: InboundItem = { id: ID, status: "received", receivedAt: AT,
 const feed = { id: ID, scope: "my", status: "active", createdAt: AT,
   lastFetchedAt: null, urlHint: "…AbCdEf" };
 
-/** Task 5 and 6 examples (email-in, calendar feeds). */
+const ep = { id: ID, url: "https://hooks.example.com/payroll",
+  description: "", events: ["employee.created"], status: "active",
+  pausedReason: null, secretHint: "whsec_…AbCd", consecutiveFailures: 0,
+  createdAt: AT };
+const del = { id: ID, endpointId: ID, eventId: `evt_${ID}`,
+  eventType: "employee.created", status: "succeeded", attempts: [{ n: 1,
+    at: AT, statusCode: 200, error: null, durationMs: 120 }],
+  nextAttemptAt: null, createdAt: AT };
+
+/** Task 5 to 8 examples. */
 export const INBOUND_EXAMPLES: Readonly<Record<string, unknown>> = {
   InboundSettings: settings,
   InboundItem: item,
@@ -37,6 +46,11 @@ export const INBOUND_EXAMPLES: Readonly<Record<string, unknown>> = {
   CalendarFeedCreated: { ...feed, url: "https://api.example.com/v1/" +
     "calendar/cal1.<company>.<feed>.<secret>.ics" },
   CalendarFeedCreate: { scope: "my" },
+  WebhookEndpoint: ep,
+  WebhookEndpointList: { items: [ep] },
+  WebhookEndpointCreated: { ...ep, secret: "whsec_EXAMPLE" },
+  WebhookDelivery: del,
+  WebhookDeliveryList: { items: [del] },
   SsoStartResponse: { authorizeUrl: "https://accounts.google.com/o/" +
     "oauth2/v2/auth?state=...", expiresAt: AT },
   SsoIdentityList: { items: [{ id: ID, provider: "google",
