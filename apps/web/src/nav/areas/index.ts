@@ -1,6 +1,8 @@
 import type { Area } from "../types";
 import { CORE_AREAS } from "./core";
+import { AREAS as AUDIT_ROOM } from "./audit-room";
 import { AREAS as COST } from "./cost";
+import { AREAS as ERP } from "./erp";
 import { AREAS as EXIT_FILES } from "./exit-files";
 import { AREAS as HOME_ME } from "./home-me";
 import { AREAS as PAY } from "./pay";
@@ -10,14 +12,19 @@ import { AREAS as PEOPLE_PAPERS } from "./people-papers";
 import { AREAS as PEOPLE_SAFETY } from "./people-safety";
 import { AREAS as PEOPLE_TALENT } from "./people-talent";
 import { AREAS as PEOPLE_TEAM } from "./people-team";
+import { AREAS as PRIVACY } from "./privacy";
+import { AREAS as PLANNING } from "./planning";
 import { AREAS as REPORTS } from "./reports";
 import { AREAS as REQUESTS } from "./requests";
+import { AREAS as RULE_CHANGE } from "./rule-change";
 import { AREAS as SETUP_ACCESS } from "./setup-access";
 import { AREAS as SETUP_RULES } from "./setup-rules";
 import { AREAS as SETUP_STRUCTURE } from "./setup-structure";
 import { AREAS as SWEEP_PAY } from "./sweep-pay";
 import { AREAS as SWEEP_PEOPLE } from "./sweep-people";
 import { AREAS as TIME } from "./time";
+import { AREAS as VERIFY } from "./verify";
+import { AREAS as TIME_FINISH } from "./time-finish";
 
 /**
  * Every area, from a fixed list of files: WP1's core plus one file per
@@ -38,9 +45,16 @@ export const ALL_AREAS: readonly Area[] = [
   ...SETUP_RULES,
   ...SETUP_ACCESS,
   ...SETUP_STRUCTURE,
+  ...PRIVACY,
   ...SWEEP_PAY,
   ...HOME_ME,
   ...REQUESTS,
   ...EXIT_FILES,
+  ...PLANNING,
   ...SWEEP_PEOPLE,
+  ...ERP,
+  ...VERIFY,
+  ...RULE_CHANGE,
+  ...AUDIT_ROOM,
+  ...TIME_FINISH,
 ];

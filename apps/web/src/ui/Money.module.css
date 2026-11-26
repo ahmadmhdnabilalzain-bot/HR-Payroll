@@ -7,9 +7,10 @@
   unicode-bidi: isolate;
 }
 
-/* The sign sits against the currency: "−AED 14,719.06". */
-.sign {
-  margin-inline-end: -0.28em;
+/* The sign sits before the currency: "−AED 1,180.64". */
+.lead {
+  display: inline-flex;
+  align-items: baseline;
 }
 
 .cur {
@@ -30,6 +31,10 @@
   letter-spacing: -0.03em;
   line-height: 1;
   color: var(--color-text);
+}
+
+.hero .lead {
+  align-self: flex-start;
 }
 
 .hero .cur {

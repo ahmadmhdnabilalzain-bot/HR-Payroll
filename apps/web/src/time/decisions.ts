@@ -25,15 +25,16 @@ export function phaseWord(p: Phase, who: Who, decider: string)
   : [string, Tone] {
   switch (p) {
     case "paid": return ["Paid in October", "ok"];
-    case "waiting": return [`Waiting for ${who.name(decider)}`, "warn"];
+    case "waiting": return [decider === who.me ? "Waiting for you"
+      : `Waiting for ${who.name(decider)}`, "warn"];
     case "accepted": return ["Counts in November pay", "done"];
     case "declined": return ["Declined", "neutral"];
   }
 }
 
-/** "Accepted by Arjun Menon, Operations manager, 27 October". */
+/** "Signed off by Arjun Menon, Operations manager, 27 October". */
 export function decidedLine(d: TimeDecision, who: Who, date: string)
   : string {
-  const what = d.verdict === "accept" ? "Accepted" : "Declined";
+  const what = d.verdict === "accept" ? "Signed off" : "Declined";
   return `${what} by ${who.name(d.by)}, ${who.jobOf(d.by)}, ${date}`;
 }

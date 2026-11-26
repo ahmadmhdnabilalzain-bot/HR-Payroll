@@ -64,6 +64,8 @@
 }
 
 .scroll {
+  /* Positioned, so hidden labels in the cells scroll with it. */
+  position: relative;
   overflow-x: auto;
   border-radius: var(--radius-panel);
   background: var(--color-surface);

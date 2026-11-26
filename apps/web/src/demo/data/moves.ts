@@ -41,7 +41,10 @@ export function adaptMoves(c: DemoCompany): MovesData {
       [formatAed(o.gross), o.gross],
       ...o.allowances.map((a): [string, Fils] =>
         [formatAed(a.monthly), a.monthly])]);
-    return offerLetterText(c, id).map((line): LetterLine => {
+    // A letter goes to a candidate: provenance stays off it (the
+    // page's sources line carries it).
+    return offerLetterText(c, id).filter((line) =>
+      !/as we read them\.?$/.test(line)).map((line): LetterLine => {
       const m = /^(.+): (AED [\d,]+\.\d\d)$/.exec(line);
       const v = m === null ? undefined : pay.get(m[2] ?? "");
       return m !== null && v !== undefined

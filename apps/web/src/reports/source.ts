@@ -44,7 +44,7 @@ const ACTION: Record<string, string> = {
   "access.review-completed": "Access review done",
   "setup.mfa-required": "Two-step sign-in required",
   "payrun.calculated": "Pay run worked out",
-  "payrun.submitted": "Pay run sent for approval",
+  "payrun.submitted": "Pay run sent for sign-off",
   "payrun.approved": "Pay run signed off",
   "wps.file-created": "Salary file made",
   "wps.file-sent": "Salary file sent",

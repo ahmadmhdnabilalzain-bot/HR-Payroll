@@ -350,7 +350,7 @@ describe("monthly history", () => {
     expect(rows).toHaveLength(10);
     expect(rows[0]!.monthText).toBe("Jan 2026");
     expect(rows[0]!.changeText).toBe("First month shown");
-    expect(rows[9]!.statusText).toBe("Awaiting approval");
+    expect(rows[9]!.statusText).toBe("Awaiting sign-off");
     expect(rows[8]!.statusText).toBe("Paid");
     expect(rows[9]!.grossText).toMatch(/^AED [\d,]+\.\d{2}$/);
     expect(rows[9]!.changeText).toMatch(/^[+-]AED [\d,]+\.\d{2} \(/);

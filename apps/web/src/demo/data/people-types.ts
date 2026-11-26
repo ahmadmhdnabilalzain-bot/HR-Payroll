@@ -152,6 +152,8 @@ export interface DayCount {
   halves: number;
   /** Weekend days inside the span, not counted. */
   weekendDays: number;
+  /** Sample public holidays on working days, not counted. */
+  holidayDays: number;
 }
 
 /** The people the role switcher stands for, from the data. */
@@ -184,6 +186,8 @@ export interface PeopleData {
   annualBalance(employeeId: string, uses: LeaveUse[]): AnnualBalance | null;
   /** Working days of a span (weekends skipped) via the engine. */
   countDays(startDate: string, endDate: string): DayCount;
+  /** The sample public holiday a date falls in (its name), or null. */
+  holidayOn(iso: string): string | null;
   /** Who decides a request by this person; never the person. */
   approverOf(employeeId: string): string;
 }

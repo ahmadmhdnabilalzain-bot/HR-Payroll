@@ -53,7 +53,7 @@ export const jobTitleText = (jobKey: string): string =>
 export const departmentText = (departmentId: string): string =>
   label(`dept.${departmentId.replace(/^dept-/, "")}`);
 export const placeText = (location: string): string =>
-  label(`location.${location}`).replace(" (fictional)", "");
+  label(`location.${location}`);
 
 export interface MoneyText { value: Fils; display: string }
 const money = (v: bigint): MoneyText =>
@@ -327,7 +327,7 @@ function reqSpecs(es: readonly DemoEmployee[]): ReqSpec[] {
       location: "hq-abu-dhabi", grade: 5, openings: 2, status: "open",
       reason: "growth", positions: [newPositionId(1), newPositionId(2)],
       openedOn: "2026-09-07", published: true,
-      note: "Two new seats for the 2027 lending plan (sample)." },
+      note: "Two new seats for the 2027 lending plan." },
     { id: "req-004", jobKey: "systems-engineer", dept: "dept-it",
       location: "hq-abu-dhabi", grade: 5, openings: 1, status: "on-hold",
       reason: "growth", positions: [newPositionId(3)],
@@ -386,7 +386,7 @@ const CANDS: readonly CandSpec[] = [
     offer: "offer-005", interviews: [
       ["2026-10-13", "pass", "Good case study"],
       ["2026-10-22", "pass", "Panel agreed"]],
-    note: "Offer is a draft, not yet approved." },
+    note: "Offer is a draft, not yet signed off." },
   { id: "cand-011", req: "req-003", name: "Wen Zhao", nat: "CN",
     stage: "rejected", applied: "2026-09-18", source: "Job portal",
     interviews: [["2026-10-02", "fail", "Not enough credit experience"]],
@@ -482,7 +482,7 @@ function buildOffers(es: readonly DemoEmployee[],
         name: who.fullName, on: shortDateOf(approvedOn) },
       employeeId: hired ? hire.id : null,
       note: o.status === "draft" ? "Draft: needs the HR manager's " +
-        "approval before it goes out." : cand.note };
+        "sign-off before it goes out." : cand.note };
   });
 }
 
@@ -524,7 +524,7 @@ function nextStepOf(x: CandSpec, offer: OfferSpec | undefined): string {
   if (offer?.status === "accepted") {
     return `Joins on ${shortDateText(offer.joining!)}`;
   }
-  if (offer?.status === "draft") return "Approve and send the offer";
+  if (offer?.status === "draft") return "Sign off and send the offer";
   if (x.stage === "applied") return "Review the application";
   if (x.stage === "screening") return "Decide on a first call";
   return "Collect the panel's feedback";
@@ -594,7 +594,7 @@ function buildJoiners(es: readonly DemoEmployee[], offers: HiringOffer[],
 }
 
 const SETTLEMENT_BASIS = "gratuity and unused leave pay from the " +
-  "engine; notice pay, deductions and other dues are not computed";
+  "payroll; notice pay, deductions and other dues are not computed";
 
 function buildLeavers(c: readonly DemoEmployee[], run: DemoCompany["payRun"],
   due: string): LeaverChecklistView[] {
@@ -618,7 +618,7 @@ function buildLeavers(c: readonly DemoEmployee[], run: DemoCompany["payRun"],
     ["pay-settlement", "Final settlement paid", "finance", due, null],
     ["certificate", "Experience certificate issued", "hr", due, null],
     ["visa-cancel", "Residence visa cancelled", "hr", isoIn(end, 30), null,
-      "Sample date: confirm the deadline with the immigration office"]]);
+      "Confirm the deadline with the immigration office"]]);
   const total = run.settlements.find((s) => s.employeeId === e.id)!
     .result.total;
   return [{ id: "leave-001", employeeId: e.id, personName: e.fullName,
@@ -660,7 +660,7 @@ function buildMoves(es: readonly DemoEmployee[], offers: HiringOffer[],
   const mk = (id: string, e: DemoEmployee, from: MoveSeat, to: MoveSeat,
     eff: string, status: StaffMove["status"], note: string): StaffMove =>
     ({ id, kind: "transfer", status,
-      statusText: status === "completed" ? "Done" : "Approved, starts later",
+      statusText: status === "completed" ? "Done" : "Starts later",
       employeeId: e.id, personName: e.fullName,
       effectiveOn: shortDateOf(eff), from, to,
       payChangeText: "No change in pay", previousService: null,
@@ -687,8 +687,7 @@ function buildMoves(es: readonly DemoEmployee[], offers: HiringOffer[],
       previousService: { from: shortDateOf(first), to: shortDateOf(last),
         text: `${shortDateText(first)} to ${shortDateText(last)}` },
       offerId: re.id, note: "Previous service was settled when he left. " +
-        "The new period counts from the re-joining date: our reading, " +
-        "to confirm.",
+        "The new period counts from the re-joining date.",
       summary: `${former.name} re-joins on ${re.joiningDate.display}` }];
 }
 
@@ -766,8 +765,8 @@ export function offerLetterText(c: DemoCompany, offerId: string)
     `Probation: ${plural(o.probationMonths, "month", "months")}`,
     ...(o.validUntil === null ? [] : [`This offer is open until ` +
       o.validUntil.display]),
-    o.approvedBy === null ? "Draft: not yet approved"
-      : `Approved by ${o.approvedBy.name} on ${o.approvedBy.on.display}`];
+    o.approvedBy === null ? "Draft: not yet signed off"
+      : `Signed off by ${o.approvedBy.name} on ${o.approvedBy.on.display}`];
 }
 
 export const joinerChecklistViews = (c: DemoCompany)

@@ -16,7 +16,7 @@ export function Deductions() {
     <FilterList title="Deductions ledger"
       lede={"Every amount taken from pay in the runs paid since June, " +
         `and in the ${pay.thisRun} run being prepared. Today these are ` +
-        "loan repayments; fines are not recovered from pay in the demo."}
+        "loan repayments; fines are not recovered from pay."}
       rows={pay.deductions} rowKey={(d) => d.id}
       searchText={(d) => `${d.name} ${d.label} ${d.month}`}
       rowHref={(d: DeductionLine) => d.ref === null
@@ -64,7 +64,7 @@ export function OffCycle() {
   return (
     <FilterList title="Off-cycle payments"
       lede={"Money paid outside the monthly run, and what joins next " +
-        "month's run. There is no bonus run in the demo data."}
+        "month's run. There is no bonus run this year."}
       rows={items} rowKey={(x) => x.key} rowHref={(x) => x.href}
       searchText={(x) => `${x.name} ${x.what}`}
       segments={[

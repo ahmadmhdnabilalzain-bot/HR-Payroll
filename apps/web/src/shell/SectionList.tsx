@@ -5,6 +5,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { countOf, panelOf, routeOf } from "../nav/registry";
 import type { SectionId } from "../nav/types";
 import { Icon } from "../ui/Icon";
+import { pickGroup } from "./groupTabs";
 import s from "./SectionList.module.css";
 
 /** Arrow keys move between the areas of a panel or section page. */
@@ -50,7 +51,10 @@ export function SectionList(p: { section: SectionId; variant: "panel" |
               const n = countOf(a, c);
               return (
                 <li key={a.id}>
-                  <a className={s.area} data-area="" onClick={p.onPick}
+                  <a className={s.area} data-area="" onClick={() => {
+                    pickGroup(a.section, a.group);
+                    p.onPick?.();
+                  }}
                     href={hrefOf(r.section, ...(r.rest ?? []))}>
                     <span className={s.label}>{a.label[lang]}</span>
                     {n !== null && (

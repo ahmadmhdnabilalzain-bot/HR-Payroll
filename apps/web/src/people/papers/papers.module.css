@@ -36,6 +36,10 @@
   min-block-size: 44px;
   color: var(--color-accent);
   font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%,
+    transparent);
   text-underline-offset: 3px;
 }
 
@@ -81,40 +85,10 @@
   font-size: var(--text-sm);
 }
 
-/* A letter as it would be handed over. */
-.paper {
-  background: var(--color-surface);
-  border-radius: var(--radius-panel);
-  padding: var(--space-6);
-  max-inline-size: 640px;
-  display: grid;
-  gap: var(--space-4);
-  line-height: 1.6;
-  font-size: var(--text-md);
-}
 
-.paperHead {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
 
-.paperTitle {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  margin: 0;
-}
 
-.paper p {
-  margin: 0;
-}
 
-.paperSign {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
 
 /* Visa steps: a vertical timeline, one line per step. */
 .steps {
@@ -174,26 +148,6 @@
   margin: 0;
 }
 
-@media print {
-  :global(body) * {
-    visibility: hidden;
-  }
-
-  .paper,
-  .paper * {
-    visibility: visible;
-  }
-
-  .paper {
-    position: absolute;
-    inset-block-start: 0;
-    inset-inline: 0;
-    max-inline-size: none;
-    padding: 0;
-    background: none;
-    color: CanvasText;
-  }
-}
 
 .page {
   max-inline-size: var(--container);

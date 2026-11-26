@@ -1,3 +1,4 @@
+import { TAMPER_AT } from "../../demo/audit-state";
 import { useDemo } from "../../demo/state";
 import { useMaskText } from "../../ui/mask";
 import { FilterList } from "../../ui/templates";
@@ -8,7 +9,6 @@ import s from "../Audit.module.css";
 
 const GROUPS: [string, string[]][] = [["Pay", ["Pay"]],
   ["People", ["People", "Time off"]], ["Setup", ["Access", "Setup"]]];
-import { TAMPER_AT } from "../../demo/audit-state";
 
 const LEDE = "Each action is written down as an entry linked to the " +
   "one before it by a fingerprint (SHA-256), so an edited or removed " +
@@ -16,8 +16,7 @@ const LEDE = "Each action is written down as an entry linked to the " +
   "change, it does not prevent one. In this demo the check runs in " +
   "your browser; it is not a legal proof.";
 
-export function statusText(c: AuditCheck | null, tampered: boolean)
-  : string {
+function statusText(c: AuditCheck | null, tampered: boolean): string {
   if (c === null) {
     return tampered ? `Entry ${TAMPER_AT} edited in this copy. Not checked`
       : "Not checked yet";

@@ -4,6 +4,9 @@ import { personOf } from "../demo/derive";
 import { useDemo, type Role } from "../demo/state";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
+import { NotificationsSheet, useUnread } from "../home/inbox/Notifications";
+import { useTheme } from "../theme/ThemeProvider";
+import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 import s from "./TopBar.module.css";
 
@@ -13,17 +16,21 @@ export const ROLE_KEY: Record<Role, MessageKey> = { hr: "shell.roleHr",
   gm: "shell.roleGm", it: "shell.roleIt", manager: "shell.roleManager",
   employee: "shell.roleEmployee" };
 
-function initials(name: string): string {
-  return name.split(" ").filter((w) => w.length > 2 || w === name)
-    .slice(0, 2).map((w) => w[0] ?? "").join("");
-}
-
-/** Who the demo is being viewed as; the person is from the data. */
+/**
+ * Who the demo is being viewed as; the person is from the data. On a
+ * phone this is the one overflow menu: notifications, hide amounts and
+ * theme sit above the roles (the bar shows only the logo, search and
+ * this avatar, which carries the unread dot).
+ */
 export function RoleMenu() {
   const { lang, t } = useLocale();
-  const { data, state } = useDemo();
+  const { data, state, dispatch } = useDemo();
   const switchRole = useSwitchRole();
+  const { resolved, setPref } = useTheme();
+  const bell = useUnread();
   const [open, setOpen] = useState(false);
+  const [notes, setNotes] = useState(false);
+  const dark = resolved === "dark";
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return undefined;
@@ -46,9 +53,8 @@ export function RoleMenu() {
     <div className={s.role} ref={box}>
       <button type="button" className={s.roleBtn} aria-haspopup="menu"
         aria-expanded={open} onClick={() => setOpen(!open)}>
-        <span className={s.avatar} aria-hidden="true">
-          {initials(me.name.en)}
-        </span>
+        <Avatar id={me.id} name={me.name.en} size="xs" />
+        {bell.unread > 0 && <span className={s.dot} aria-hidden="true" />}
         <span className="visually-hidden">{t("shell.viewingAs")}</span>
         <span className={s.roleText}>{roleLabel(state.role)}</span>
         <Icon name="chevronDown" size={14} />
@@ -56,6 +62,39 @@ export function RoleMenu() {
       {open && (
         <div className={s.menu} role="menu"
           aria-label={t("shell.viewingAs")}>
+          <div className={s.phoneOnly} role="group"
+            aria-label={t("shell.phoneTools")}>
+            <button type="button" role="menuitem" className={s.menuItem}
+              onClick={() => {
+                setOpen(false);
+                setNotes(true);
+              }}>
+              <Icon name="bell" size={18} />
+              <span className={s.menuText}>{bell.label}</span>
+              {bell.unread > 0 && (
+                <span className={s.menuCount} aria-hidden="true">
+                  {bell.unread}
+                </span>
+              )}
+            </button>
+            <button type="button" role="menuitemcheckbox"
+              aria-checked={state.hideAmounts} className={s.menuItem}
+              onClick={() => dispatch({ type: "toggle-amounts" })}>
+              <Icon name={state.hideAmounts ? "eyeOff" : "eye"} size={18} />
+              <span className={s.menuText}>{t("shell.hideAmounts")}</span>
+              {state.hideAmounts && <Icon name="check" size={16} />}
+            </button>
+            <button type="button" role="menuitem" className={s.menuItem}
+              onClick={() => {
+                setPref(dark ? "light" : "dark");
+                setOpen(false);
+              }}>
+              <Icon name={dark ? "sun" : "moon"} size={18} />
+              <span className={s.menuText}>
+                {dark ? t("shell.toLight") : t("shell.toDark")}
+              </span>
+            </button>
+          </div>
           <p className={s.menuHead}>{t("shell.viewingAs")}</p>
           {ROLES.map((r) => {
             const who = data.employee(personOf(data, r));
@@ -66,9 +105,7 @@ export function RoleMenu() {
                   switchRole(r);
                   setOpen(false);
                 }}>
-                <span className={s.avatar} aria-hidden="true">
-                  {initials(who.name.en)}
-                </span>
+                <Avatar id={who.id} name={who.name.en} size="sm" />
                 <span className={s.menuText}>
                   <span>{roleLabel(r)}</span>
                   <span className={s.menuSub}>{who.name[lang]}</span>
@@ -79,6 +116,7 @@ export function RoleMenu() {
           })}
         </div>
       )}
+      <NotificationsSheet open={notes} onClose={() => setNotes(false)} />
     </div>
   );
 }

@@ -25,8 +25,8 @@ describe("talent data", () => {
       .toBe(rows.reduce((n, r) => n + r.skills.length, 0));
   });
 
-  it("the-basis-line-says-the-levels-are-samples", () => {
-    expect(T.skillBasis).toMatch(/^Sample levels/);
+  it("the-basis-line-says-how-levels-are-worked-out", () => {
+    expect(T.skillBasis).toMatch(/^Levels worked out/);
   });
 
   it("course-counts-match-the-records", () => {

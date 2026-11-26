@@ -113,8 +113,19 @@ describe("time off", () => {
       expect(P.countDays(r.startDate, r.endDate).halves).toBe(r.halves);
     }
     expect(P.countDays("2026-11-20", "2026-11-23"))
-      .toEqual({ halves: 4, weekendDays: 2 });
+      .toEqual({ halves: 4, weekendDays: 2, holidayDays: 0 });
     expect(P.countDays("2026-11-23", "2026-11-20").halves).toBe(0);
+  });
+
+  it("skips-the-sample-public-holidays-through-the-engine", () => {
+    // National Day: Wed 2 and Thu 3 December 2026 (sample dates).
+    expect(P.countDays("2026-11-30", "2026-12-04"))
+      .toEqual({ halves: 6, weekendDays: 0, holidayDays: 2 });
+    // A holiday on a weekend counts as the weekend, once.
+    expect(P.countDays("2026-03-19", "2026-03-23").holidayDays)
+      .toBeLessThanOrEqual(2);
+    expect(P.holidayOn("2026-12-02")).toBe("UAE National Day");
+    expect(P.holidayOn("2026-12-04")).toBeNull();
   });
 
   it("balance-starts-at-the-package-figure", () => {

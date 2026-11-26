@@ -43,11 +43,23 @@ import {
   type AccessSlice,
 } from "../setup/access/state";
 import {
+  AUDITOR_INITIAL,
+  reduceAuditor,
+  type AuditorAction,
+  type AuditorSlice,
+} from "../setup/auditor/state";
+import {
   PAPERS_INITIAL,
   reducePapers,
   type PapersAction,
   type PapersSlice,
 } from "./papers-state";
+import {
+  PLANNING_INITIAL,
+  reducePlanning,
+  type PlanningAction,
+  type PlanningSlice,
+} from "./planning-state";
 import {
   reduceSafety,
   SAFETY_INITIAL,
@@ -73,17 +85,35 @@ import {
   type ConnectSlice,
 } from "../setup/more/state";
 import {
+  PRIVACY_INITIAL,
+  reducePrivacy,
+  type PrivacyAction,
+  type PrivacySlice,
+} from "../setup/privacy/state";
+import {
   PRIOR_INITIAL,
   reducePrior,
   type PriorAction,
   type PriorSlice,
 } from "../pay/more/state";
 import {
+  FINISH_INITIAL,
+  reduceFinish,
+  type FinishAction,
+  type FinishSlice,
+} from "./finish-state";
+import {
   MORE_INITIAL,
   reduceMore,
   type MoreAction,
   type MoreSlice,
 } from "./more-state";
+import {
+  reduceVerify,
+  VERIFY_INITIAL,
+  type VerifyAction,
+  type VerifySlice,
+} from "./verify-state";
 import {
   PAY_INITIAL,
   reducePay,
@@ -102,6 +132,12 @@ import {
   type HoldAction,
   type HoldSlice,
 } from "../pay/gate/hold-state";
+import {
+  RULE_CHANGE_INITIAL,
+  reduceRuleChange,
+  type RuleChangeAction,
+  type RuleChangeSlice,
+} from "../setup/rule-change/state";
 
 /** manager and employee: the team view and the self view; it: the IT
  * manager (access, connections, the audit chain; no company pay). */
@@ -121,7 +157,8 @@ export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
-    AuditSlice {
+    AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
+    AuditorSlice, FinishSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -161,10 +198,16 @@ export type Action =
   | RequestsAction
   | { type: "files"; op: FilesOp }
   | ConnectAction
+  | PrivacyAction
   | PriorAction
   | HoldAction
   | MoreAction
   | AuditAction
+  | VerifyAction
+  | RuleChangeAction
+  | PlanningAction
+  | AuditorAction
+  | FinishAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -180,6 +223,12 @@ export const INITIAL: DemoState = {
   ...HOLD_INITIAL,
   ...MORE_INITIAL,
   ...AUDIT_INITIAL,
+  ...PRIVACY_INITIAL,
+  ...VERIFY_INITIAL,
+  ...RULE_CHANGE_INITIAL,
+  ...PLANNING_INITIAL,
+  ...AUDITOR_INITIAL,
+  ...FINISH_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -237,6 +286,10 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "staff-move-new":
     case "staff-move-undo": return reduceMoves(s, a);
     case "files": return reduceFiles(s, a.op);
+    case "verify-withdraw":
+    case "verify-restore":
+    case "verify-intake":
+    case "verify-unintake": return reduceVerify(s, a);
     case "task-done": return s.tasksDone.includes(a.id) ? s
       : { ...s, tasksDone: [...s.tasksDone, a.id] };
     case "task-undone":
@@ -257,6 +310,9 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "appr-reset-undo":
     case "appr-split":
     case "appr-split-undo": return reduceRequests(s, a);
+    case "plan-set":
+    case "plan-signoff":
+    case "plan-unsign": return reducePlanning(s, a);
     case "more-hire":
     case "more-hire-withdraw":
     case "more-hire-restore":
@@ -269,6 +325,19 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "more-cover":
     case "more-cover-withdraw":
     case "more-cover-restore": return reduceMore(s, a);
+    case "auditor-grant":
+    case "auditor-ungrant":
+    case "auditor-end-date":
+    case "auditor-end-date-undo":
+    case "auditor-end":
+    case "auditor-reinstate":
+    case "auditor-view": return reduceAuditor(s, a);
+    case "finish-grant":
+    case "finish-grant-withdraw":
+    case "finish-grant-restore":
+    case "finish-incident":
+    case "finish-incident-withdraw":
+    case "finish-incident-restore": return reduceFinish(s, a);
     case "pay-request":
     case "pay-withdraw":
     case "pay-restore":
@@ -278,6 +347,12 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "dues-undo": return reducePay(s, a);
     case "connect-edit":
     case "connect-undo": return reduceConnect(s, a);
+    case "privacy-edit":
+    case "privacy-undo":
+    case "dsr-decide":
+    case "dsr-undo":
+    case "retention-sign":
+    case "retention-unsign": return reducePrivacy(s, a);
     case "prior-add":
     case "prior-check":
     case "prior-uncheck":
@@ -287,6 +362,8 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "audit-append":
     case "audit-check":
     case "audit-tamper": return reduceAudit(s, a);
+    case "rule-change-step":
+    case "rule-change-undo": return reduceRuleChange(s, a);
   }
 }
 

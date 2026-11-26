@@ -62,7 +62,7 @@ export function exitFlows(c: DemoCompany): ExitFlow[] {
     const inRun = c.payRun.payslips.some((p) => p.employeeId === e.id);
     const flags: ExitFlag[] = [
       flag("pay-by", days <= 7 ? "Check" : "Note", "Pay all dues in time",
-        `As we read it, the final dues are paid within ` +
+        `The final dues are paid within ` +
         `${plural(SETTLEMENT_DUE_DAYS, "day", "days")} of the last day, ` +
         `so by ${shortDateText(payBy)}. ` + (days < 0
           ? `That was ${plural(-days, "day", "days")} ago.`
@@ -85,8 +85,8 @@ export function exitFlows(c: DemoCompany): ExitFlow[] {
           x.display.balance).join("; ")}. It may come out of the final ` +
         "dues, within the deduction limit.")]),
       ...(e.workerClass === "uae-national" ? [flag("pension", "Check",
-        "Pension is not computed", "Pension for UAE nationals is not " +
-        "computed in this demo, so it is not in the settlement.")] : []),
+        "Pension: Not computed", "Pension for UAE nationals: Not " +
+        "computed. It is not in the settlement.")] : []),
     ];
     return [{ employeeId: e.id, name: e.fullName,
       jobText: jobTitleText(e.jobKey), reason: end?.reason ?? "",

@@ -5,6 +5,8 @@ import type { ArOf } from "../types";
 
 export const explain: ArOf<typeof en> = {
   open: "طريقة الحساب: {title}",
+  limit: "الحد",
+  limitOf: "من",
   close: "إغلاق",
   working: "طريقة الحساب",
   inputs: "المدخلات",

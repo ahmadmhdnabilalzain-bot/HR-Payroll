@@ -5,6 +5,7 @@ import { useRoute } from "./demo/route";
 import { useDemo } from "./demo/state";
 import { useLocale } from "./i18n/LocaleProvider";
 import { CommandPalette, usePaletteHotkeys } from "./shell/CommandPalette";
+import { GroupTabs } from "./shell/GroupTabs";
 import { Outside } from "./shell/Outside";
 import { PhoneTabs, TopBar } from "./shell/TopBar";
 import { mayOpen } from "./nav/registry";
@@ -52,6 +53,7 @@ export function App() {
             {t("common.arReviewBanner")}
           </p>
         )}
+        {allowed && <GroupTabs route={route} />}
         {allowed ? <View key={shown} rest={route.rest} />
           : <Outside key={`outside-${shown}`} />}
       </main>

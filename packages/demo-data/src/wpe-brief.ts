@@ -148,11 +148,11 @@ export function ownerBrief(c: DemoCompany): OwnerBrief {
   ];
   return { asOf: AS_OF, title: `Week of ${shortDateText(AS_OF)}`,
   items, dates: cal.items.filter((x) => x.key !== "asOf").map((x) =>
-    ({ label: x.label.replace("Approve by", "Sign off by"),
+    ({ label: x.label,
       text: `${x.date.display} (${x.basis})` })),
-  note: "Worked out on 27 Oct 2026 from the records in this demo. " +
+  note: "Worked out on 27 Oct 2026 from the records. " +
     "Figures that change as you work (sign-off, problems) follow the " +
-    "screen. Pension for UAE nationals is not computed." };
+    "screen. Pension for UAE nationals: Not computed." };
 }
 
 /* ---------------------------------------------------------------- *
@@ -340,6 +340,6 @@ export function itDashboard(c: DemoCompany): ItDashboard {
       "reports.audit"),
   ];
   return { rows, checks: rows.filter((x) => x.state === "check").length,
-    note: "Worked out from this demo's own access data. Nothing here " +
+    note: "Worked out from the access data on these pages. Nothing here " +
       "says a security standard is met." };
 }

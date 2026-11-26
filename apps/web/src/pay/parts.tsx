@@ -39,13 +39,13 @@ export function RequestStatus(p: { r: PayRequest }) {
   return <Status tone={REQUEST_TONE[st]}>{REQUEST_WORD[st]}</Status>;
 }
 
-/** Pay records are for HR and the General Manager only. */
+/** Pay records are for HR and the General manager only. */
 export function NotFound(p: { what: string; back: { label: string;
   href: string } }) {
   return (
     <div className={s.page}>
       <PageHead title={`No such ${p.what}`} back={p.back}
-        lede={`This ${p.what} is not in the demo. Go back to the list ` +
+        lede={`This ${p.what} was not found. Go back to the list ` +
           "to pick another."} />
     </div>
   );
@@ -127,7 +127,7 @@ export function RequestPanel(p: { r: PayRequest; what: string }) {
           <p>{`Only ${data.employee(p.r.checkerId).name.en} can decide.`}</p>
           <button type="button" className={`${b.btn} ${b.secondary}`}
             onClick={() => switchRole(gmDecides ? "gm" : "hr")}>
-            {gmDecides ? "View as General Manager" : "View as HR manager"}
+            {gmDecides ? "View as General manager" : "View as HR manager"}
           </button>
           {me === p.r.makerId && (
             <button type="button" className={`${b.btn} ${b.quiet}`}
@@ -153,7 +153,7 @@ export function RequestPanel(p: { r: PayRequest; what: string }) {
 
 /**
  * Maker and checker for a new pay request: the viewer prepares it and
- * the General Manager decides; when the GM prepares it, the HR manager
+ * the General manager decides; when the GM prepares it, the HR manager
  * decides, so the two always differ (as with leave).
  */
 export function useMakerChecker(): { makerId: string; checkerId: string;

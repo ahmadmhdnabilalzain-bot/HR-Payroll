@@ -66,7 +66,7 @@ export const inbox: ArOf<typeof en> = {
   itCheckAgain: "فحص مجددًا",
   itChainOk: "كل القيود ({count}) متطابقة. فُحصت الآن.",
   itChainBroken: "القيد {at} لا يطابق القيد الذي قبله.",
-  itChainNote: "للعرض فقط: تُحسب بصمة كل قيد في هذا المتصفح من القيد " +
+  itChainNote: "تُحسب بصمة كل قيد في هذا المتصفح من القيد " +
     "والقيد الذي قبله.",
   teamToday: "الفريق اليوم",
   teamTodayEmpty: "لا أحد يتبعك.",

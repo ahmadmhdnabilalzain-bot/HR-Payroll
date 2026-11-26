@@ -41,16 +41,16 @@ describe("setup structure data", () => {
     expect(run.steps[0]!.who).not.toBe(run.steps[1]!.who);
   });
 
-  it("keeps the holidays as sample dates", () => {
-    expect(d.holidayNote).toMatch(/^Sample dates/);
+  it("keeps the holidays as expected dates", () => {
+    expect(d.holidayNote).toMatch(/^Expected dates/);
     expect(d.holidays.every((h) => h.display.note === d.holidayNote))
       .toBe(true);
     const h = sampleHolidayText();
     expect(h.count).toBe(d.holidays.length);
     const page = holidaysPage();
     const item = page.groups[0]!.items[0]!;
-    expect(item.value).toBe(`${h.count} sample dates`);
-    expect(item.help).toMatch(/follow the official announcement/);
+    expect(item.value).toBe(`${h.count} expected dates`);
+    expect(item.help).toMatch(/Cabinet announces/);
   });
 
   it("reads exemptions and devices from the data", () => {

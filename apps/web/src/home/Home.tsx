@@ -13,7 +13,6 @@ import { ManagerHome } from "./ManagerHome";
 import { PayRunHero } from "./PayRunHero";
 import { PeopleStrip } from "./PeopleStrip";
 import { Setup } from "./Setup";
-import { StatusLead } from "./StatusLead";
 import s from "./Home.module.css";
 
 /**
@@ -35,7 +34,6 @@ export function Home(p: Partial<ViewProps>) {
   if (state.role === "it") return <ItHome />;
   return (
     <div className={s.page}>
-      <StatusLead />
       <PayRunHero />
       <PeopleStrip />
       <div className={s.grid}>

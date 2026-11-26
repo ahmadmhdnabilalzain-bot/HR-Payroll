@@ -1,10 +1,10 @@
-import type { Fils } from "@payroll/engine";
 import type { DemoData } from "../../demo/data/types";
 import { decisionsFor, openApprovals } from "../../demo/approvals";
 import { figures } from "../../demo/figures";
 import type { DemoState } from "../../demo/state";
 import { formatDate, formatMonthName } from "../../i18n/format";
 import { hours, percent, plural, share } from "../fmt";
+import type { Cell } from "../../ui/templates";
 import type { ReportsSource } from "../types";
 
 /** "1 blocks approval", "2 block approval": the plural helper. */
@@ -27,9 +27,9 @@ export function hrDashboardRows(src: ReportsSource, data: DemoData,
     ["Problems that block approval", String(fig.blocking),
       `${fig.toReview} to review`, fig.blocking === 0
         ? "Nothing holds the run back"
-        : "Bank details to enter before the run can be approved"],
+        : "Bank details to enter before the run can be signed off"],
     [`Active on ${asOf}`, String(fig.activeToday),
-      `${sum("start")} on 1 January`, "Employed on the demo date"],
+      `${sum("start")} on 1 January`, "Employed on the report date"],
     [`On the ${formatMonthName(data.headline().runMonth, "en")} payroll`,
       String(fig.onPayroll),
       "-", "Includes anyone paid for part of the month"],
@@ -44,7 +44,7 @@ export function hrDashboardRows(src: ReportsSource, data: DemoData,
       `${gone.length} already expired`, "Visas, Emirates IDs and " +
         "passports to renew"],
     ["Waiting for a decision", String(waiting), "-",
-      "Requests in the approvals inbox"],
+      "Requests in the decisions inbox"],
     [`Unpaid leave in ${last.label}`, plural(last.unpaidDays, "day",
       "days"), `${plural(last.sickDays, "sick day", "sick days")}`,
     "Working days taken in the run month"],
@@ -53,8 +53,7 @@ export function hrDashboardRows(src: ReportsSource, data: DemoData,
 
 /** Executive dashboard rows: the run, what moved it, what it costs. */
 export function execDashboardRows(src: ReportsSource, data: DemoData,
-  state: DemoState, m: (f: Fils) => string,
-  signed: (f: Fils) => string): string[][] {
+  state: DemoState, signed: (f: bigint) => string): Cell[][] {
   const fig = figures(data, state);
   const now = src.months.at(-1)!;
   const before = src.months.at(-2)!;
@@ -64,22 +63,23 @@ export function execDashboardRows(src: ReportsSource, data: DemoData,
   const main = v.drivers[0];
   const waiting = decisionsFor(data, state).length;
   return [
-    ["Gross pay", m(now.gross), m(before.gross),
+    ["Gross pay", { fils: now.gross }, { fils: before.gross },
       `${signed(v.grossChange)} (${percent(v.grossChange,
         before.gross)}) on ${before.label}`],
     ["Biggest cause of the change", main === undefined ? "-"
-      : signed(main.amount), main?.label ?? "-",
+      : { fils: main.amount, signed: true }, main?.label ?? "-",
     main === undefined ? "Nothing moved" : main.people.join(", ")],
     ["People paid", String(now.headcount), String(before.headcount),
       "Includes the leaver's part month"],
-    ["Overtime this month", m(now.overtimeAmount),
-      m(before.overtimeAmount), `${hours(now.overtimeMinutes)} hours ` +
-        `across ${plural(now.overtimePeople, "person", "people")}`],
-    ["Held out of the salary file", m(fig.heldNetFils), "-",
+    ["Overtime this month", { fils: now.overtimeAmount },
+      { fils: before.overtimeAmount }, `${hours(now.overtimeMinutes)} ` +
+        `hours across ${plural(now.overtimePeople, "person", "people")}`],
+    ["Held out of the salary file", { fils: fig.heldNetFils }, "-",
       "Net pay with no valid bank account yet"],
     ["Waiting for your decision", String(waiting), "-",
       "Open Home to decide"],
-    ["Biggest department", top === undefined ? "-" : m(top.costFils),
+    ["Biggest department", top === undefined ? "-"
+      : { fils: top.costFils },
       top === undefined ? "-" : top.name.en, "Gross cost for the month"],
   ];
 }

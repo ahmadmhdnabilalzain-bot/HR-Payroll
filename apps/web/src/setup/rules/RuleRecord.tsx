@@ -17,7 +17,7 @@ export function RuleRecord(p: { id: string }) {
   if (r === undefined) {
     return (
       <RecordTabs title="Rule not found" back={back} stats={[]}
-        lede="That rule is not in the loaded packs." tabs={[]} />
+        lede="That rule is not in the loaded rule sets." tabs={[]} />
     );
   }
   const edits = state.ruleEdits.filter((e) => e.key === r.id);
@@ -38,7 +38,7 @@ export function RuleRecord(p: { id: string }) {
                 value: r.sourceUrl }]),
               { label: "What this status means",
                 value: STATUS_MEANS[r.status] },
-              { label: "Rule pack",
+              { label: "Rule set",
                 value: `${r.packName}, version ${r.version}` },
             ]} />
             <p className={s.note}>The wording above is how we read the

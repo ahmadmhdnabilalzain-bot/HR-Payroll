@@ -1,4 +1,6 @@
 import type { IncidentView } from "../../demo/data/safety-types";
+import { useDemo } from "../../demo/state";
+import { logRows } from "../../time/finish/views";
 import b from "../../ui/button.module.css";
 import { FilterList, KeyValues, RecordTabs } from "../../ui/templates";
 import { History, type HistoryItem } from "../papers/History";
@@ -19,7 +21,8 @@ const SEVERITY_TONE = { low: "quiet", medium: "warn", high: "danger" } as
 /** P48, Safety incidents: the log. */
 export function Incidents(p: { rest: string[] }) {
   const sf = useSafety();
-  const rows = sf.data.safety.incidents();
+  const { state } = useDemo();
+  const rows = logRows(sf.data, state);
   if (p.rest[0] !== undefined) {
     return <Record row={rows.find((x) => x.id === p.rest[0]) ?? null}
       sf={sf} />;

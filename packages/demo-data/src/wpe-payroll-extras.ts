@@ -125,7 +125,7 @@ export function elementReport(c: DemoCompany): ElementReport {
       .map((l) => l.amount)),
     note: "Each line of every payslip is put under its pay element. " +
       "Earnings add up to gross pay for each month. Traffic fine " +
-      "recovery is not computed in the demo." };
+      "recovery is not computed." };
 }
 
 /* ---------------------------------------------------------------- *
@@ -250,7 +250,7 @@ export function analysisDatasets(c: DemoCompany): AnalysisDataset[] {
     ? demoLabel(d.labelKey, "en") : "");
   const payroll: AnalysisDataset = { id: "payroll",
     label: "Payroll history", source: "Pay runs January to October " +
-      "2026, each person's payslip from the engine",
+      "2026, each person's payslip from the payroll",
     dims: [{ id: "month", label: "Month" },
       { id: "department", label: "Department" }],
     measures: [{ id: "gross", label: "Gross pay", kind: "money" },
@@ -295,7 +295,7 @@ export function analysisDatasets(c: DemoCompany): AnalysisDataset[] {
     order: { department: deptOrder } };
   const overtime: AnalysisDataset = { id: "overtime",
     label: "Overtime", source: "Overtime paid January to October 2026, " +
-      "valued by the engine",
+      "valued by the payroll",
     dims: [{ id: "month", label: "Month" },
       { id: "department", label: "Department" }],
     measures: [{ id: "amount", label: "Overtime pay", kind: "money" },
@@ -552,14 +552,14 @@ export function parallelCauses(c: DemoCompany, employeeId: string)
   if (deferred !== 0n) {
     out.push({ key: "loan-cap", kind: "rule", difference: deferred,
       text: "The old system takes the whole loan instalment. We take " +
-        "only what the deduction limit allows, as we read it, and carry " +
-        "the rest to next month." });
+        "only what the deduction limit allows and carry the rest to " +
+        "next month." });
   }
   if (i.overtime.some((o) => o.nightMinutes > 0)) {
     out.push({ key: "night-rate", kind: "rule", difference: diff(rerun(s, {
       ...i, overtime: i.overtime.map((o) => ({ ...o, nightMinutes: 0 }))
     })), text: "The old system pays night overtime at the daytime rate. " +
-      "We pay the higher night rate, as we read the law." });
+      "We pay the higher night rate." });
   }
   return out.filter((x) => x.difference !== 0n);
 }
@@ -604,7 +604,7 @@ function sampleText(c: DemoCompany, keep: (k: ParallelCause) => boolean)
   return [PARALLEL_HEADER, ...rows].join("\n") + "\n";
 }
 
-/** S38: two built-in exports from the old system (Keka), October. */
+/** S38: two built-in exports from your current system, October. */
 export function parallelSamples(c: DemoCompany): ParallelSample[] {
   return [
     { id: "first", label: "First export, before clean-up",
@@ -712,7 +712,7 @@ export function compareParallel(c: DemoCompany, csv: string)
   const theirsTotal = sum(rows.map((r) => r.theirs ?? 0n));
   return { rows, matches: n("matches"), differs, explained, oursTotal,
     theirsTotal, summaryText: `${rows.length} people in the file: ` +
-      `${n("matches")} match to the fils, ${differs} differ` +
+      `${n("matches")} match exactly, ${differs} differ` +
       (differs === 0 ? "." : `, ${explained} of them with a likely ` +
         "cause.") };
 }
@@ -804,5 +804,5 @@ export function customFields(): CustomField[] {
 /** Where a custom field can never show, said once. */
 export const CUSTOM_FIELD_LIMITS = "Extra fields never go in the salary " +
   "file and never change a payslip figure. They are kept with the " +
-  "employee record and can be added to reports. Sample fields: no " +
-  `values are held in the demo (as of ${reportDate(AS_OF)}).`;
+  "employee record and can be added to reports. No values " +
+  `are held yet (as of ${reportDate(AS_OF)}).`;

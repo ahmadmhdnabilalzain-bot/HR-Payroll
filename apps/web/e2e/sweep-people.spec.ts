@@ -107,7 +107,7 @@ test("kpis and team reviews open for a manager", async ({ page }) => {
 
 const PAGES: [string, string, string][] = [
   ["people/more/new", "HR manager", "New employee"],
-  ["people/more/cover", "HR manager", "Approval cover"],
+  ["people/more/cover", "HR manager", "Decision cover"],
   ["me/expenses", "Employee", "My expenses"],
   ["me/timecard", "Employee", "My time card"],
   ["me/kpis", "Employee", "My KPIs"],

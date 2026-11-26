@@ -40,9 +40,9 @@ const STATUS: Record<string, string> = { issued: "Issued",
 const LETTERS: [string, LetterKind, string, DemoLetter["status"],
   string, string][] = [
   ["emp-012", "salary-certificate", "2026-10-20", "issued",
-    "Personal loan application", "Demo Bank (fictional)"],
+    "Personal loan application", "Demo Bank"],
   ["emp-024", "salary-certificate", "2026-10-26", "pending",
-    "Tenancy contract", "Demo Properties (fictional)"],
+    "Tenancy contract", "Demo Properties"],
   ["emp-002", "noc", "2026-10-23", "pending",
     "Travel visa application", "To whom it may concern"],
   ["emp-014", "experience", "2026-10-15", "draft",
@@ -112,8 +112,8 @@ const stage = (label: string, date: string | null, done: boolean)
   ? `${label}: not booked` : `${label}: ${displayDate(date)}${done
     ? "" : " (booked)"}` });
 
-const FEES = "Government fees are not shown: the demo has no fee " +
-  "schedule.";
+const FEES = "Government fees are not shown: no fee " +
+  "schedule is loaded.";
 
 /** Visa and Emirates ID cases, tied to the documents near expiry. */
 export function visaCases(c: DemoCompany): VisaCase[] {
@@ -149,7 +149,7 @@ export interface DemoWarning { id: string; employeeId: string;
   deductionNote: string;
   display: { name: string; issuedBy: string; status: string } }
 
-const NO_DEDUCTION = "No deduction: the demo records warnings only; any " +
+const NO_DEDUCTION = "No deduction: warnings are recorded only; any " +
   "penalty is not computed.";
 
 /** Days someone arrived after 08:15, from the attendance records. */

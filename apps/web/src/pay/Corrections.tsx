@@ -155,7 +155,7 @@ function CorrectionPage(p: { c: CorrectionView }) {
             { label: "To pay in", value: `The ${c.payIn} 2026 pay run` },
           ]} />
           <p className={s.note}>Net pay for the month is worked out again
-            by the same engine; nothing is typed by hand.</p>
+            by the same calculation; nothing is typed by hand.</p>
         </div>
       ) }]} />
   );

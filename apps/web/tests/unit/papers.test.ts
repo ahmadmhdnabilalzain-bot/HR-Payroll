@@ -27,7 +27,7 @@ describe("papers data", () => {
     const n = d.papers.nationalities();
     expect(n.rows.reduce((s, r) => s + r.count, 0)).toBe(n.headcount);
     expect(Object.keys(n)).not.toContain("target");
-    expect(n.label).toMatch(/sample data/);
+    expect(n.label).toMatch(/not confirmed yet/);
   });
 
   it("contract salary is a sum, null for strangers", () => {

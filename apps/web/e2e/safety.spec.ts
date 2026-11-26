@@ -40,7 +40,7 @@ test("insurance-incidents-iloe-policies-flow", async ({ page }, info) => {
   await clean(page);
 
   await page.goto("/#/people/safety/iloe");
-  await expect(page.getByText(/as we read the rules/).first())
+  await expect(page.getByText(/unemployment insurance scheme/).first())
     .toBeVisible();
   await expect(page.getByText(/sent to any authority/).first())
     .toBeVisible();

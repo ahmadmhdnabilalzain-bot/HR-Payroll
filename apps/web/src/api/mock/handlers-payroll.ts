@@ -89,7 +89,7 @@ function approve(c: Ctx, id: string): AppPayRun {
     throw new MockFail("RUN_NOT_DRAFT", "run is not a draft");
   }
   if (run.createdBy === u.id) {
-    throw new MockFail("SOD_VIOLATION", "the creator cannot approve");
+    throw new MockFail("SOD_VIOLATION", "the creator cannot sign off");
   }
   if (inputHash(c, run) !== run.inputHash) {
     throw new MockFail("RUN_INPUTS_CHANGED",

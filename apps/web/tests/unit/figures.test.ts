@@ -11,6 +11,7 @@ import {
   hrDashboardRows,
 } from "../../src/reports/screens/dashboard-rows";
 import { buildReportsSource } from "../../src/reports/source";
+import type { Cell } from "../../src/ui/templates";
 
 const source = buildDemoSource();
 const reports = buildReportsSource();
@@ -26,9 +27,11 @@ function surfaces(s: DemoState) {
     dues: s }, m);
   const board = boardRows(more.board, fig, m);
   const hr = hrDashboardRows(reports, d, s);
-  const exec = execDashboardRows(reports, d, s, m, m);
-  const cell = (rows: string[][], head: string, col: number): string =>
-    rows.find((r) => r[0]!.startsWith(head))?.[col] ?? "missing";
+  const exec = execDashboardRows(reports, d, s, m);
+  const text = (c: Cell | undefined): string => c === undefined
+    ? "missing" : typeof c === "object" ? m(c.fils) : String(c);
+  const cell = (rows: Cell[][], head: string, col: number): string =>
+    text(rows.find((r) => String(r[0]).startsWith(head))?.[col]);
   return { fig,
     held: [m(fig.heldNetFils),
       cell(brief, "Pay: Held out of the salary file", 2),

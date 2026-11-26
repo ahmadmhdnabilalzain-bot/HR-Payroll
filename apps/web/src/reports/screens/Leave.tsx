@@ -1,5 +1,6 @@
 import { dayCountVars } from "../../people/words";
 import { ReportPage } from "../../ui/templates";
+import { useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 
 /** Days as everywhere else: "22½", or a dash for none. */
@@ -9,11 +10,12 @@ const days = (d: number): string => d === 0 ? "-" : n(d);
 /** Leave and absence this year: who has taken or is waiting on days. */
 export function Leave() {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const rows = src.leave.map((x) => [x.name, x.department,
     n(x.annualLeft), days(x.annualTaken), days(x.sickDays),
     days(x.unpaidDays), days(x.waitingDays)]);
   return (
-    <ReportPage title="Leave and absence" period="2026 so far"
+    <ReportPage crumbs={crumbs} title="Leave and absence" period="2026 so far"
       figure={{ label: "Annual leave left across everyone",
         value: `${n(src.annualLeftTotal)} days` }}
       columns={[{ label: "Person" }, { label: "Department" },

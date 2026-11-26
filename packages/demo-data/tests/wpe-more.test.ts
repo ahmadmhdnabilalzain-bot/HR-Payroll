@@ -75,7 +75,7 @@ describe("WPE new employee (P04)", () => {
     () => each((c) => {
       const p = newHirePlan(c, "AE");
       expect(p.makerId).not.toBe(p.checkerId);
-      expect(p.pensionNote).toMatch(/not computed/);
+      expect(p.pensionNote).toMatch(/Not computed/);
       expect(newHirePlan(c, "IN").pensionNote).toBeNull();
     }));
 });

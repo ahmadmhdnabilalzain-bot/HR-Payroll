@@ -1,18 +1,18 @@
 /** English labels for demo content. Keys are shared with Arabic. */
 export const DEMO_LABELS_EN = {
   "company.name": "Zarqan Demo Bank",
-  "company.badge": "Fictional demo",
-  "company.fakeNotice": "Fictional demo: the bank, its branches, " +
-    "people, numbers and amounts are invented.",
+  "company.badge": "Demo: fictional data",
+  "company.fakeNotice": "Every person, number and amount here is " +
+    "invented.",
   "scope.rules": "Based on UAE mainland rules, as we read them",
   "dept.exec": "Executive office", "dept.retail": "Retail and branches",
   "dept.corp": "Corporate banking", "dept.ops": "Operations",
   "dept.credit": "Credit and risk", "dept.compliance": "Compliance",
   "dept.fin": "Finance", "dept.hr": "Human resources",
   "dept.it": "Information technology",
-  "location.hq-abu-dhabi": "Head office, Abu Dhabi (fictional)",
-  "location.br-khalidiya": "Khalidiya branch, Abu Dhabi (fictional)",
-  "location.br-al-ain": "Al Ain branch (fictional)",
+  "location.hq-abu-dhabi": "Head office, Abu Dhabi",
+  "location.br-khalidiya": "Khalidiya branch, Abu Dhabi",
+  "location.br-al-ain": "Al Ain branch",
   "job.general-manager": "General manager",
   "job.executive-assistant": "Executive assistant",
   "job.branch-manager": "Branch manager",
@@ -39,7 +39,7 @@ export const DEMO_LABELS_EN = {
   "reason.personal": "Personal matters",
   "status.approved": "Approved", "status.pending": "Pending",
   "status.rejected": "Rejected",
-  "status.awaiting-approval": "Waiting for approval",
+  "status.awaiting-approval": "Waiting for sign-off",
   "case.probation": "New hire on probation",
   "case.leaver": "Leaving this month", "case.unpaid-leave": "Unpaid " +
     "leave this month", "case.overtime": "Overtime this month",
@@ -54,13 +54,14 @@ export const DEMO_LABELS_EN = {
     "30 days", "expiry.expiring-90": "Expires within 90 days",
   "expiry.valid": "Valid",
   "approval.pay-run": "October pay run: HR manager prepared, General " +
-    "manager approves",
+    "manager signs off",
   "approval.leave": "Leave request",
-  "expense.entertainment": "Client lunch (demo receipt)",
-  "expense.travel": "Taxi and parking, client visits (demo receipt)",
-  "issues.title": "Found before approval",
-  "pension.title": "Needs confirmation",
-  "nationality.label": "Sample data, regime for banks to be confirmed",
+  "expense.entertainment": "Client lunch",
+  "expense.travel": "Taxi and parking, client visits",
+  "issues.title": "Found before sign-off",
+  "pension.title": "Not computed",
+  "nationality.label": "Headcount by nationality only. The rules for banks " +
+    "are not confirmed yet.",
 } as const;
 
 export type DemoLabelKey = keyof typeof DEMO_LABELS_EN;

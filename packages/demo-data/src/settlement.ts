@@ -13,8 +13,8 @@ import {
 import type { DemoEmployee, DemoLeaveRequest, DemoSettlement } from "./types";
 
 /** How the leaver's unused leave is counted, said in the trace. */
-export const LEAVE_BASIS = "our reading: the law gives leave for parts " +
-  "of the last year but no method";
+export const LEAVE_BASIS = "As we read it, the law gives leave for part " +
+  "of the last year but sets no method.";
 
 /** Unused annual leave at exit as an exact fraction of days. */
 export interface UnusedLeave { num: bigint; den: bigint; fullMonths: number;
