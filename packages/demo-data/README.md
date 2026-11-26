@@ -83,6 +83,46 @@ from the data above; nothing contradicts it.
   week, because that is all the leave data holds; no raises or
   joiners other than the demo's own cases are invented.
 
+## Setup data: access, connections, data (`src/wp9.ts`)
+
+For Setup (users and roles, API keys, webhooks, import, data
+location). Reads the audit trail from `src/wp7.ts`, so the two agree.
+
+- **Users and roles**: 12 users, all existing employees (`usr-028` is
+  Fatima Al Ketbi, and so on); everyone else has the Employee role
+  only (`roleMatrix(c).employeeOnlyText`). `ACCESS_ROLES` and
+  `ACCESS_PERMISSIONS` are the whole truth: `accessCan(c, employeeId,
+  permission)`, `whoCan(c, "pay.approve")`, `roleMatrix(c)` (the
+  who-can-do-what grid) and `accessUserRows(c)` (display text) all read
+  them. Tests hold that the HR manager prepares and cannot approve, the
+  General manager approves and cannot prepare, every approver in the
+  approvals inbox and every actor in the audit trail had the permission
+  for what they did, and no one signed in before their last audited
+  action.
+- **Rules**: `APPROVAL_RULES`, `expenseRoute(amount)` (claims over AED
+  1,000.00 go to the General manager, as the two demo claims were),
+  `segregationChecks(c)` (each with its `breaches`, all empty),
+  `accessReview(c)`, `accessSettings(c)` (second step required for
+  admin roles; single sign-on "not set up in the demo").
+- **API keys**: `accessApiKeys(c)`, shown only as `zbk_demo_****1234`,
+  read-only scopes, created by the IT administrator and present in the
+  audit trail. **Webhooks**: `accessWebhooks(c)` with masked secrets,
+  `.test` addresses and deliveries that are the audit entries
+  themselves (one retried, one failing, with a plain reason).
+- **Import sample**: `importSample(c)` is a 12-row CSV from "the old
+  system" (`.text`), parsed and checked row by row: ready, to review,
+  or to fix, each problem a sentence with a fix. Rows are existing
+  employees. The IBAN problems are the ones already in the data (the
+  typo, the missing IBAN), the salary difference is the September raise,
+  the leaver has no leaving date; a repeated number, an incomplete
+  e-mail and an unknown department are planted in the file only.
+  Nothing is imported.
+- **Data location**: `DATA_LOCATION`: demo only, the page served from
+  Frankfurt, Germany, no real data held, and an explicit list of what is
+  not claimed (certification, audit report, data-residency compliance).
+- Limit: the access log starts on 12 Jan 2026; ten of the 12 users
+  were created before it, so their creation is not in it.
+
 ## Limits, said on purpose
 
 - Pension: UAE nationals employed in Abu Dhabi may fall under the Abu
