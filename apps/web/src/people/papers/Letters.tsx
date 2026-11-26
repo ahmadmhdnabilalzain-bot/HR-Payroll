@@ -107,12 +107,16 @@ function Paper(props: { p: Papers; l: LetterRow }) {
   const { p, l } = props;
   const e = p.data.people.person(l.employeeId);
   const joined = e === null ? "" : p.when(e.joinedOn);
+  const dated = l.step?.on ?? l.requestedOn;
   return (
-    <article className={s.paper} aria-label="Letter">
-      <div className={s.paperHead}>
-        <span>{p.data.companyName[p.lang]}</span>
-        <span>{l.reference}</span>
-      </div>
+    <article className={s.paper} aria-label="Letter" data-letter>
+      <header className={s.letterhead}>
+        <span className={s.company}>{p.data.companyName[p.lang]}</span>
+        <span className={s.ref}>
+          <span>Ref: <span dir="ltr">{l.reference}</span></span>
+          <span>Date: {p.when(dated)}</span>
+        </span>
+      </header>
       <h2 className={s.paperTitle}>{LETTER_KIND[l.kind]}</h2>
       <p>{l.addressee}</p>
       {l.kind === "salary-certificate" && l.monthlySalary !== null ? (

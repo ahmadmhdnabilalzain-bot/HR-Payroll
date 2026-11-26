@@ -89,10 +89,10 @@ export function letterRows(d: DemoData, s: DemoState): LetterRow[] {
     return { ...rest, status: (step?.status ?? b) as LetterStatus, step,
       isNew, signerId: signer };
   };
-  const made = s.newLetters.map((l) => row({ id: l.id, kind: l.kind,
+  const made = s.newLetters.map((l, i) => row({ id: l.id, kind: l.kind,
     employeeId: l.employeeId, requestedOn: l.requestedOn, base: "pending",
     purpose: l.purpose, addressee: l.addressee,
-    reference: "Given when issued",
+    reference: `ZB-LTR-2026-${String(144 + i).padStart(4, "0")}`,
     monthlySalary: l.kind === "salary-certificate"
       ? d.papers.contractSalary(l.employeeId) : null }, true,
     l.checkerId));

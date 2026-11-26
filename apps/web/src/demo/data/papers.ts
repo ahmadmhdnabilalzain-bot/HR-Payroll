@@ -27,7 +27,7 @@ export function adaptPapers(c: DemoCompany): PapersData {
   const ls = letters(c).map((l) => ({ id: l.id, kind: l.kind,
     employeeId: l.employeeId, requestedOn: l.requestedOn, base: l.status,
     purpose: l.purpose, addressee: l.addressee,
-    reference: l.reference.masked, monthlySalary: l.monthlySalary }));
+    reference: l.reference.value, monthlySalary: l.monthlySalary }));
   const rs = staffRequests(c).map((r) => ({ id: r.id, kind: r.kind,
     title: r.title, employeeId: r.employeeId, raisedOn: r.raisedOn,
     base: r.status, assignedToId: r.assignedTo, linksTo: r.linksTo }));
