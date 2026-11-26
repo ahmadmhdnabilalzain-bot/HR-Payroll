@@ -55,3 +55,4 @@ export * from "./wpe-time-finish";
 export * from "./wpe-esign";
 export * from "./wpe-bonus";
 export * from "./wpe-commission";
+export * from "./wpe-checks";

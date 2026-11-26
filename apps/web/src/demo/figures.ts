@@ -18,6 +18,9 @@ export interface Figures {
   toReview: number;
   /** All open problems: blocking plus to review. */
   open: number;
+  /** Anomaly findings not yet marked: an info count, kept apart from
+   * the problems above (it never holds the run or adds to them). */
+  anomalies: number;
   /** People on the run month's payroll (31: the leaver's part month). */
   onPayroll: number;
   /** People employed on the demo's today (30). */
@@ -54,8 +57,11 @@ export function figures(d: DemoData, s: DemoState): Figures {
   const open = openIssues(d, s);
   const blocking = open.filter(isBlocking).length;
   const phase = runPhase(d, s);
+  const found = d.checks.anomalies(Object.keys(s.ibans)).findings
+    .map((f) => f.id);
   return { heldNetFils: h.heldNetFils, blocking,
     toReview: open.length - blocking, open: open.length,
+    anomalies: found.filter((id) => s.checkMarks[id] === undefined).length,
     onPayroll: h.headcount, activeToday: h.activeToday, phase,
     signedOff: phase === "file" };
 }

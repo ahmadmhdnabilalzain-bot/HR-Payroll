@@ -80,6 +80,13 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
     case "commission-unprepare":
     case "commission-decide":
     case "commission-undecide": return commission(a, make, who);
+    case "check-mark": return make(`pay.check-${a.note.mark}`, "pay",
+      { kind: "check", id: a.id, label: "Anomaly check" },
+      `${who} marked a check on ${nameOf(a.employeeId)} as ` +
+      `${a.note.mark === "reviewed" ? "reviewed" : "expected"}.`);
+    case "check-unmark": return make("pay.check-mark-undone", "pay",
+      { kind: "check", id: a.id, label: "Anomaly check" },
+      `${who} took back a mark on a check on ${nameOf(a.employeeId)}.`);
     default: return null;
   }
 }

@@ -69,6 +69,12 @@ import {
   type PlanningSlice,
 } from "./planning-state";
 import {
+  CHECKS_INITIAL,
+  reduceChecks,
+  type ChecksAction,
+  type ChecksSlice,
+} from "./checks-state";
+import {
   reduceSafety,
   SAFETY_INITIAL,
   type SafetyAction,
@@ -185,7 +191,8 @@ export interface DemoState
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
     EidSlice, FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
     AuditSlice, PrivacySlice, VerifySlice, RuleChangeSlice, PlanningSlice,
-    AuditorSlice, FinishSlice, EsignSlice, BonusSlice, CommissionSlice {
+    AuditorSlice, FinishSlice, EsignSlice, BonusSlice, CommissionSlice,
+    ChecksSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -234,6 +241,7 @@ export type Action =
   | VerifyAction
   | RuleChangeAction
   | PlanningAction
+  | ChecksAction
   | AuditorAction
   | FinishAction
   | EsignAction
@@ -258,6 +266,7 @@ export const INITIAL: DemoState = {
   ...VERIFY_INITIAL,
   ...RULE_CHANGE_INITIAL,
   ...PLANNING_INITIAL,
+  ...CHECKS_INITIAL,
   ...AUDITOR_INITIAL,
   ...FINISH_INITIAL,
   ...ESIGN_INITIAL,
@@ -349,6 +358,10 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "plan-set":
     case "plan-signoff":
     case "plan-unsign": return reducePlanning(s, a);
+    case "check-mark":
+    case "check-unmark":
+    case "view-save":
+    case "view-remove": return reduceChecks(s, a);
     case "more-hire":
     case "more-hire-withdraw":
     case "more-hire-restore":
