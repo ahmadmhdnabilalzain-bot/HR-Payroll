@@ -3,6 +3,7 @@ import {
   type InboundItem,
   type InboundSettings,
 } from "./inbound";
+import { SSO_NOTE } from "./sso";
 
 const ID = "00000000-0000-4000-8000-000000000e01";
 const EMP = "00000000-0000-4000-8000-000000000e02";
@@ -36,5 +37,14 @@ export const INBOUND_EXAMPLES: Readonly<Record<string, unknown>> = {
   CalendarFeedCreated: { ...feed, url: "https://api.example.com/v1/" +
     "calendar/cal1.<company>.<feed>.<secret>.ics" },
   CalendarFeedCreate: { scope: "my" },
+  SsoStartResponse: { authorizeUrl: "https://accounts.google.com/o/" +
+    "oauth2/v2/auth?state=...", expiresAt: AT },
+  SsoIdentityList: { items: [{ id: ID, provider: "google",
+    email: "sara@acme.test", linkedAt: AT, lastUsedAt: null }] },
+  SsoSettings: { allowedDomains: ["acme.test"],
+    googleHostedDomains: ["acme.test"], microsoftTenantIds: [],
+    jitEmployees: false, enforceSso: false, version: 1,
+    providers: { google: "configured", microsoft: "not-configured" },
+    note: SSO_NOTE },
   IcsText: "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n",
 };

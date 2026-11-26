@@ -6,6 +6,7 @@ import * as whatsapp from "./whatsapp";
 import * as waActions from "./whatsapp-actions";
 import * as inbound from "./inbound";
 import * as calendar from "./calendar";
+import * as sso from "./sso";
 
 /** Plan 13's named schemas (OpenAPI components and EXAMPLES keys). */
 const NAMES: [Record<string, unknown>, string[]][] = [
@@ -22,6 +23,9 @@ const NAMES: [Record<string, unknown>, string[]][] = [
     "InboundAccept", "InboundDismiss", "InboundAttachmentContent"]],
   [calendar, ["CalendarFeed", "CalendarFeedList", "CalendarFeedCreated",
     "CalendarFeedCreate", "IcsText"]],
+  [sso, ["SsoStartRequest", "SsoStartResponse", "SsoCallbackRequest",
+    "SsoIdentity", "SsoIdentityList", "SsoSettingsBody", "SsoSettings",
+    "SsoSettingsUpdate"]],
 ];
 
 export const CHANNEL_SCHEMAS: Readonly<Record<string, z.ZodType>> =

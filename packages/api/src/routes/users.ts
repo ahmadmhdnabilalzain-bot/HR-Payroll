@@ -89,7 +89,8 @@ async function inviteUser(ctx: ReqCtx<InviteRequest>) {
 }
 
 /** Locks the invite row: parallel accepts queue, the losers get 410. */
-async function openInvite(tx: Db, deps: HandlerDeps, token: string) {
+export async function openInvite(tx: Db, deps: HandlerDeps,
+  token: string) {
   const [inv] = await tx.query<InviteRow>(
     `SELECT id, email, role, employee_id, expires_at, used_at
      FROM invites WHERE token_hash = $1 FOR UPDATE`, [tokenHash(token)]);

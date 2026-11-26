@@ -15,8 +15,19 @@ import {
   PAYROLL,
   pub,
   ten,
+  usr,
   type RouteDef,
 } from "./route-def";
+import {
+  SsoCallbackRequest,
+  SsoIdentityList,
+  SsoProviderParams,
+  SsoSettings,
+  SsoSettingsUpdate,
+  SsoStartRequest,
+  SsoStartResponse,
+} from "./sso";
+import { LoginResponse } from "./user";
 import { HookAck, HookChallenge, WhatsAppHookQuery } from
   "./whatsapp-actions";
 import {
@@ -146,6 +157,31 @@ const CALENDAR: readonly RouteDef[] = [
     contentType: "text/calendar" }),
 ];
 
+const prov = { params: SsoProviderParams };
+
+/** Task 7: sign-in with Google or Microsoft (OpenID Connect). */
+const SSO: readonly RouteDef[] = [
+  pub({ id: "ssoStart", method: "POST",
+    path: "/v1/auth/sso/{provider}/start", ...prov, body: SsoStartRequest,
+    response: SsoStartResponse }),
+  pub({ id: "ssoCallback", method: "POST",
+    path: "/v1/auth/sso/{provider}/callback", ...prov,
+    body: SsoCallbackRequest, response: LoginResponse }),
+  usr({ id: "ssoLinkStart", method: "POST",
+    path: "/v1/me/sso-identities/{provider}/link", ...prov,
+    response: SsoStartResponse }),
+  usr({ id: "listSsoIdentities", method: "GET",
+    path: "/v1/me/sso-identities", response: SsoIdentityList }),
+  usr({ id: "unlinkSsoIdentity", method: "POST",
+    path: "/v1/me/sso-identities/{id}/unlink", ...one,
+    response: SsoIdentityList }),
+  ten(PAYROLL, { id: "getSsoSettings", method: "GET",
+    path: "/v1/sso-settings", response: SsoSettings }),
+  ten(OWNER, { id: "putSsoSettings", method: "PUT",
+    path: "/v1/sso-settings", body: SsoSettingsUpdate,
+    response: SsoSettings, mfa: true }),
+];
+
 /** Plan 13: channels and integrations (the last route group). */
 export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...SETTINGS,
@@ -154,4 +190,5 @@ export const CHANNEL_ROUTES: readonly RouteDef[] = [
   ...WA_HOOK,
   ...INBOUND,
   ...CALENDAR,
+  ...SSO,
 ];

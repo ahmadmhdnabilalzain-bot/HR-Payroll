@@ -70,4 +70,7 @@ async function seedInbound(admin: Db, c: string, user: string) {
        secret_hash, url_hint, status, created_at)
      VALUES ($1, $2, $3, 'my', 'h', 'x', 'revoked', $4)`,
     [rowId(c, "d7"), c, user, AT]);
+  await admin.query(
+    `INSERT INTO sso_settings (company_id, version, body, updated_by,
+       updated_at) VALUES ($1, 1, '{}', $2, $3)`, [c, user, AT]);
 }

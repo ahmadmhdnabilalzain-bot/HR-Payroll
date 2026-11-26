@@ -2,6 +2,8 @@ import { dispatchDue } from "../../src/channels/dispatch";
 import { withTenant } from "../../src/db/tenant";
 import type { Hitter } from "./api-flow";
 import { waBody } from "./wa-world";
+import type { FakeOidc } from "./fake-oidc";
+import { call } from "./test-app";
 import {
   hashOf,
   INBOUND_BASIC,
@@ -35,6 +37,36 @@ export async function channelFlow(_ctx: Ctx, hit: Hitter, u: FlowUsers)
   await waHookFlow(hit);
   await inboundFlow(hit, u);
   await calendarFlow(hit, u);
+  await ssoFlow(_ctx, hit, u);
+}
+
+async function ssoFlow(ctx: Ctx, hit: Hitter, u: FlowUsers) {
+  const c = u.company;
+  const s = await hit("getSsoSettings", u.owner, c);
+  await hit("putSsoSettings", u.owner, c, {}, { allowedDomains: [],
+    googleHostedDomains: [], microsoftTenantIds: [], jitEmployees: false,
+    enforceSso: false, expectedVersion: s.body.version });
+  const oidc = ctx.deps.channels.oidc as FakeOidc;
+  await hit("ssoLinkStart", u.owner, null, { provider: "google" });
+  const code = (st: { nonce: string }) => {
+    const now = Math.floor(ctx.clock.now.getTime() / 1000);
+    oidc.codes.set("flow", oidc.issuer.idToken({ sub: "flow-1",
+      iss: "https://accounts.google.com", aud: "client-google",
+      nonce: st.nonce, exp: now + 600, iat: now }));
+    return "flow";
+  };
+  const linkSt = oidc.starts.at(-1)!;
+  await call(ctx.app, u.owner, null, "POST",
+    "/v1/auth/sso/google/callback", { code: code(linkSt),
+      state: linkSt.state });
+  await hit("ssoStart", null, null, { provider: "google" },
+    { intent: "login" });
+  const st = oidc.starts.at(-1)!;
+  await hit("ssoCallback", null, null, { provider: "google" },
+    { code: code(st), state: st.state });
+  const ids = await hit("listSsoIdentities", u.owner, null);
+  await hit("unlinkSsoIdentity", u.owner, null,
+    { id: ids.body.items[0].id });
 }
 
 async function calendarFlow(hit: Hitter, u: FlowUsers) {

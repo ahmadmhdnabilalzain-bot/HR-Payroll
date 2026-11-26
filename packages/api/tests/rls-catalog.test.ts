@@ -22,9 +22,9 @@ describe("RLS catalog", () => {
     tenant = await tenantTables(db);
   });
 
-  it("the global allowlist is exactly the three tables", () => {
+  it("the global allowlist is the three tables plus SSO's two", () => {
     expect(GLOBAL_TABLES).toEqual(["schema_migrations", "users",
-      "sessions"]);
+      "sessions", "sso_states", "sso_identities"]);
   });
 
   it("every tenant table has RLS enabled, forced and a policy", async () => {

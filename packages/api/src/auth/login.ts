@@ -61,7 +61,9 @@ export async function passwordCheck(tx: Db, deps: HandlerDeps, u: UserRow,
     Date.parse(u.locked_until) > deps.now().getTime()) {
     return "locked";
   }
-  if (await verifyPassword(password, u.password_hash)) return "ok";
+  // An account made by SSO has no password: never a match.
+  if (u.password_hash !== null &&
+    await verifyPassword(password, u.password_hash)) return "ok";
   await recordFailure(tx, deps, u.id);
   return "fail";
 }
@@ -134,8 +136,8 @@ export async function verifyCredentials(enter: Enter, deps: HandlerDeps,
 
 /** Session, user and memberships. `tx` must have app.user_id set. */
 export async function signedIn(tx: Db, deps: HandlerDeps, userId: string,
-  mfa: boolean): Promise<LoginResponse> {
-  const s = await createSession(tx, deps, userId, mfa);
+  mfa: boolean, authMethod = "password"): Promise<LoginResponse> {
+  const s = await createSession(tx, deps, userId, mfa, authMethod);
   const user = await userById(tx, userId);
   return { token: s.token, expiresAt: s.expiresAt, user: toUser(user!),
     memberships: await membershipsOf(tx, userId) };

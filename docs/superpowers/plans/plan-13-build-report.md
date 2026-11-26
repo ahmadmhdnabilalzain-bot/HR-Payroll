@@ -195,3 +195,36 @@ In progress (updated after each task).
   `CHANNEL_NOT_CONFIGURED` (the URL could not be built).
 - `urlHint` shows "…" and the last 6 characters of the secret (the
   token itself always ends in ".ics").
+
+### Task 7: OIDC sign-in with linking rules
+
+- `pkce.ts` and `link.ts` were folded into `sso/identity.ts` (pure:
+  `pkcePair`, `identityFromClaims`, `jitEligible`, `inviteEmailOk`).
+- The invite token is kept sealed with the global key in `sso_states`
+  (`invite_token_enc`), not hashed: the callback must open the invite
+  with the raw token. Plan 3's `openInvite` is exported from
+  `routes/users.ts`; the SSO invite path is its own function
+  (`sso/accounts.ts inviteAccept`), not a shared `consumeInvite`.
+- An invite accepted through SSO for an email that already has an
+  account is refused (409 `EMAIL_TAKEN`): never link by email. The
+  person signs in with their password and links from the app.
+- `sso_identities` keeps unlinked rows (`status`), with a partial
+  unique index on live links.
+- The JIT lookup function reads `sso_settings`, `employees` and
+  `memberships` across companies, so those three get job-scan SELECT
+  policies (see Task 3).
+- Password login with a null password hash fails as a wrong password
+  (failure counted); `UserRow.password_hash` is now `string | null`.
+- `GLOBAL_TABLES` gains `sso_states` and `sso_identities`; the RLS
+  catalog test's exact list was updated.
+- The SSO enforcement check runs in the tenant pipeline after role and
+  MFA (`checkSsoEnforced`), skipping owners and non-password sessions.
+- Security self-review: state single use (UPDATE ... RETURNING),
+  10-minute expiry, provider-bound; PKCE S256; nonce checked; RS256
+  only with kid lookup (alg none and HS256-with-public-key refused,
+  tested); audience and azp; issuer per provider, Microsoft issuer
+  bound to the token's own tid; identity keyed by sub or tid:oid; no
+  automatic linking by email (Review Focus 2 tested: no session, no
+  identity, membership unchanged); JIT only for employee role in
+  exactly one company; link callbacks bound to the starting user's
+  bearer session; SSO never counts as MFA unless a TOTP is given.

@@ -5,7 +5,7 @@ export interface UserRow {
   id: string;
   email: string;
   display_name: string;
-  password_hash: string;
+  password_hash: string | null;
   mfa_secret_enc: string | null;
   mfa_enrolled: boolean;
   failed_logins: number;

@@ -55,7 +55,7 @@ const ID_KIND: Record<string, Kind> = {
   listNotificationTemplates: null, getMyChannels: null,
   getInboundSettings: null, listInboundItems: null,
   getInboundItem: "inboundItem", downloadInboundAttachment: "inboundItem",
-  listCalendarFeeds: null,
+  listCalendarFeeds: null, getSsoSettings: null,
 };
 
 /** Query strings a route needs. */

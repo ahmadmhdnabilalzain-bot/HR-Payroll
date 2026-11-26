@@ -7,6 +7,7 @@ import type { ChannelPorts } from "./ports";
 import { postmarkEmailSender } from "./postmark-email";
 import { metaWhatsAppInbound } from "../whatsapp/meta-inbound";
 import { postmarkInbound } from "../inbound/postmark-inbound";
+import { httpOidcClient } from "../sso/oidc-http";
 
 /**
  * The production ports: everything off, then each adapter whose
@@ -23,6 +24,11 @@ export function buildChannelPorts(cfg: Config): ChannelPorts {
   if (ch.whatsapp !== null) {
     p.whatsapp = metaWhatsAppSender(http, ch.whatsapp);
     p.whatsappInbound = metaWhatsAppInbound(ch.whatsapp);
+  }
+  if (ch.google !== null || ch.microsoft !== null) {
+    p.oidc = httpOidcClient(http, {
+      ...(ch.google === null ? {} : { google: ch.google }),
+      ...(ch.microsoft === null ? {} : { microsoft: ch.microsoft }) });
   }
   if (ch.inbound !== null) {
     p.inboundEmail = postmarkInbound(ch.inbound);

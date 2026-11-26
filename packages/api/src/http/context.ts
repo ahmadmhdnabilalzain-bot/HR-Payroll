@@ -11,6 +11,7 @@ import {
 import type { Db } from "../db/db";
 import { UUID, withTenant, type TenantCtx } from "../db/tenant";
 import type { AppDeps, HandlerDeps } from "../deps";
+import { checkSsoEnforced } from "../sso/settings";
 import { routeBodyLimit } from "./body-limit";
 import { ApiError, asError } from "./errors";
 import { validate, type Validated } from "./validate";
@@ -182,6 +183,8 @@ async function inTenant(c: Context<Env>, def: RouteDef, deps: AppDeps,
       c.set("companyId", tenant.companyId);
       checkRole(def, tenant);
       checkMfa(def, auth);
+      await checkSsoEnforced(tx, companyId, tenant.role,
+        auth.session.authMethod);
       const v = await validate(c, def);
       return handler({ ...base(c, deps, v), ...auth, tenant, tx,
         enter: NO_ENTER });

@@ -28,4 +28,5 @@ export const CHANNEL_AUDIT_CHECKS: Record<string, Check> = {
   as: oneOf(["receipt", "claim-draft"]),
   dismissReason: oneOf(["spam", "duplicate", "not-relevant", "other"]),
   scope: oneOf(["my", "team", "company-deadlines"]),
+  provider: oneOf(["google", "microsoft"]),
 };

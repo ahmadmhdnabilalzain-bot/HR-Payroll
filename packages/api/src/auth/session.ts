@@ -30,14 +30,16 @@ export async function createSession(
   deps: AppDeps,
   userId: string,
   mfa: boolean,
+  authMethod = "password",
 ): Promise<{ token: string; expiresAt: string }> {
   const token = newSecret(deps);
   const now = deps.now();
   const expiresAt = new Date(now.getTime() + SESSION_MS).toISOString();
   await tx.query(
-    `INSERT INTO sessions (token_hash, user_id, mfa, expires_at, created_at)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [tokenHash(token), userId, mfa, expiresAt, now.toISOString()]);
+    `INSERT INTO sessions (token_hash, user_id, mfa, expires_at, created_at,
+       auth_method) VALUES ($1, $2, $3, $4, $5, $6)`,
+    [tokenHash(token), userId, mfa, expiresAt, now.toISOString(),
+      authMethod]);
   return { token, expiresAt };
 }
 
@@ -48,13 +50,13 @@ export async function findSession(
   now: Date,
 ): Promise<Session | null> {
   const [row] = await tx.query<{ user_id: string; mfa: boolean;
-    expires_at: string }>(
-    `SELECT user_id, mfa, expires_at FROM sessions
+    expires_at: string; auth_method: string }>(
+    `SELECT user_id, mfa, expires_at, auth_method FROM sessions
      WHERE token_hash = $1 AND expires_at > $2`,
     [tokenHash(token), now.toISOString()]);
   if (row === undefined) return null;
   return { tokenHash: tokenHash(token), userId: row.user_id, mfa: row.mfa,
-    expiresAt: row.expires_at };
+    expiresAt: row.expires_at, authMethod: row.auth_method };
 }
 
 /** Logout: the row is expired, not deleted (the app role cannot delete). */

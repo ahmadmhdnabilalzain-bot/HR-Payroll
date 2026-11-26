@@ -3,6 +3,7 @@ import type { AppDeps } from "./deps";
 import type { App } from "./http/context";
 import { registerCalendarRoutes } from "./routes/channels-calendar";
 import { registerInboundRoutes } from "./routes/channels-inbound";
+import { registerSsoRoutes } from "./routes/channels-sso";
 import { registerNotificationRoutes } from
   "./routes/channels-notifications";
 import { registerChannelSettingsRoutes } from "./routes/channels-settings";
@@ -19,4 +20,5 @@ export function registerChannelApp(app: App, deps: AppDeps,
   registerWhatsAppHookRoutes(app, deps, handlers);
   registerInboundRoutes(app, deps);
   registerCalendarRoutes(app, deps);
+  registerSsoRoutes(app, deps);
 }

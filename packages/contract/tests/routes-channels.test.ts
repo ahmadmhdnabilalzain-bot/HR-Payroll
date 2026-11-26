@@ -20,7 +20,9 @@ const CHANNEL_ROUTE_IDS = [
   "inboundEmailHook", "listInboundItems", "getInboundItem",
   "downloadInboundAttachment", "acceptInboundItem", "dismissInboundItem",
   "listCalendarFeeds", "createCalendarFeed", "revokeCalendarFeed",
-  "getCalendarFeed",
+  "getCalendarFeed", "ssoStart", "ssoCallback", "ssoLinkStart",
+  "listSsoIdentities", "unlinkSsoIdentity", "getSsoSettings",
+  "putSsoSettings",
 ];
 
 describe("CHANNEL_ROUTES", () => {
