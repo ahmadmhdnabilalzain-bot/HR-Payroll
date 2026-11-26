@@ -1,0 +1,54 @@
+import { useMemo, useState } from "react";
+import { useExtras } from "../../demo/data/payroll-extras-load";
+import { Money } from "../../ui/Money";
+import { ReportPage } from "../../ui/templates";
+import { useMoney } from "../../reports/fmt";
+import s from "../../pay/gate/gate.module.css";
+
+/**
+ * S38: our October run against the old system's figures (Keka), from
+ * a built-in sample export. Each difference is matched to causes the
+ * engine works out; nothing is imported.
+ */
+export function ParallelRun() {
+  const x = useExtras();
+  const { m, signed } = useMoney();
+  const [id, setId] = useState(x.samples[0]!.id);
+  const sample = x.samples.find((y) => y.id === id) ?? x.samples[0]!;
+  const r = useMemo(() => x.compare(sample.text), [x, sample]);
+  const rows = r.rows.map((y) => [y.name,
+    y.ours === null ? "Not in our run" : m(y.ours),
+    y.theirs === null ? "Not read" : m(y.theirs),
+    y.difference === null || y.difference === 0n ? ""
+      : signed(y.difference), y.statusText, y.causeText]);
+  return (
+    <>
+      <div className={s.strip} role="group" aria-label="Old system file">
+        <div className={s.segments} role="group" aria-label="Sample file">
+          {x.samples.map((y) => (
+            <button key={y.id} type="button" className={s.segment}
+              aria-pressed={y.id === sample.id} onClick={() => setId(y.id)}>
+              {y.label}</button>
+          ))}
+        </div>
+        <details className={s.details}>
+          <summary>Show the file, {sample.fileName}</summary>
+          <pre className={s.file}>{sample.text}</pre>
+        </details>
+      </div>
+      <ReportPage title="Parallel run: October"
+        period={`Our run against the old system (Keka). ${r.summaryText}`}
+        figure={{ label: "Net pay for these people, ours", value: (
+          <Money value={r.oursTotal} size="lg" tween={false} />) }}
+        columns={[{ label: "Person" }, { label: "Ours", end: true },
+          { label: "Old system", end: true },
+          { label: "Difference", end: true }, { label: "Result" },
+          { label: "Likely cause" }]}
+        rows={rows} csvName={`parallel-run-${sample.id}-2026-10.csv`}
+        note={`${sample.note} Old system total ${m(r.theirsTotal)}. Each ` +
+          "likely cause is the difference the engine gets when it runs " +
+          "the person's month on the old system's assumption. Sample " +
+          "files made for the demo: nothing is imported."} />
+    </>
+  );
+}

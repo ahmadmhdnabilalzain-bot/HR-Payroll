@@ -54,6 +54,12 @@ import {
   type PayAction,
   type PaySlice,
 } from "../pay/pay-state";
+import {
+  HOLD_INITIAL,
+  reduceHolds,
+  type HoldAction,
+  type HoldSlice,
+} from "../pay/gate/hold-state";
 
 /** manager and employee: the team view and the self view; it: the IT
  * manager (access, connections, the audit chain; no company pay). */
@@ -71,7 +77,7 @@ export type Resolution = "reviewed" | "renewal";
 /** Time off requests made in the demo: LeaveSlice (leave-state.ts). */
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
-    TeamSlice, MovesSlice, PaySlice {
+    TeamSlice, MovesSlice, PaySlice, HoldSlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -107,6 +113,7 @@ export type Action =
   | TeamAction
   | MovesAction
   | PayAction
+  | HoldAction
   | { type: "task-done"; id: string }
   | { type: "task-undone"; id: string }
   | { type: "notes-read"; ids: string[] }
@@ -116,7 +123,8 @@ export const INITIAL: DemoState = {
   role: "hr", hideAmounts: false, ibans: {}, resolved: {}, decided: {},
   focusIssue: null, sourcesOpen: false, ...LEAVE_INITIAL, ...RULES_INITIAL,
   ...ACCESS_INITIAL, ...TIME_INITIAL, ...PAPERS_INITIAL, ...TEAM_INITIAL,
-  ...MOVES_INITIAL, ...PAY_INITIAL, tasksDone: [], notesRead: [],
+  ...MOVES_INITIAL, ...PAY_INITIAL, ...HOLD_INITIAL, tasksDone: [],
+  notesRead: [],
 };
 
 function without<T>(r: Record<string, T>, key: string): Record<string, T> {
@@ -185,6 +193,8 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "pay-restore":
     case "fine-decide":
     case "fine-undo": return reducePay(s, a);
+    case "salary-hold":
+    case "salary-release": return reduceHolds(s, a);
   }
 }
 

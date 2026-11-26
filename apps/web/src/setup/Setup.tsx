@@ -1,6 +1,7 @@
 import type { ViewProps } from "../views";
 import { SetupAccess } from "./access/SetupAccess";
 import { SetupRules } from "./rules/SetupRules";
+import { SetupMigration } from "./migration/SetupMigration";
 import { SetupStructure } from "./structure/SetupStructure";
 
 /**
@@ -10,5 +11,6 @@ import { SetupStructure } from "./structure/SetupStructure";
  */
 export function Setup(p: ViewProps) {
   if (p.rest[0] === "structure") return <SetupStructure {...p} />;
+  if (p.rest[0] === "migration") return <SetupMigration {...p} />;
   return p.rest[0] === "rules" ? <SetupRules {...p} /> : <SetupAccess {...p} />;
 }

@@ -3,6 +3,7 @@ import { CORE_AREAS } from "./core";
 import { AREAS as COST } from "./cost";
 import { AREAS as HOME_ME } from "./home-me";
 import { AREAS as PAY } from "./pay";
+import { AREAS as PAYROLL_EXTRAS } from "./payroll-extras";
 import { AREAS as PEOPLE_MOVES } from "./people-moves";
 import { AREAS as PEOPLE_PAPERS } from "./people-papers";
 import { AREAS as PEOPLE_TALENT } from "./people-talent";
@@ -25,6 +26,7 @@ export const ALL_AREAS: readonly Area[] = [
   ...PEOPLE_TALENT,
   ...TIME,
   ...PAY,
+  ...PAYROLL_EXTRAS,
   ...REPORTS,
   ...COST,
   ...SETUP_RULES,
