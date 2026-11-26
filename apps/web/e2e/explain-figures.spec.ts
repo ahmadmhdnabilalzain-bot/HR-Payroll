@@ -82,7 +82,7 @@ test("why-this-number-executive-dashboard", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1,
     name: "Executive dashboard" })).toBeVisible();
   await clean(page);
-  await why(page, /worked out: Gross pay, October/, /October/);
+  await why(page, /worked out: Gross pay, Oct 2026/, /October/);
   await why(page, /worked out: Department cost/, /Gross cost/);
   await page.evaluate(() => { location.hash = "#/reports/board-pack"; });
   await expect(page.getByRole("heading", { level: 1, name: "Board report" }))

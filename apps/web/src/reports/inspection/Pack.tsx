@@ -40,7 +40,8 @@ export function PackBody(p: { pack: InspectionPack }) {
           <div><dt>Deductions</dt><dd><Money value={r.deductions} /></dd></div>
           <div><dt>Net pay</dt><dd><Money value={r.net} /></dd></div>
         </dl>
-        <div className={s.scroll}>
+        <div className={s.scroll} tabIndex={0} role="region"
+          aria-label={`Payroll register, ${pack.title}`}>
           <table className={s.table}>
             <caption className="visually-hidden">
               Payroll register, {pack.title}
