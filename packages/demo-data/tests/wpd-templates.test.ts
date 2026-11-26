@@ -49,7 +49,8 @@ describe("WPD letter templates", () => {
         l.employeeId, l.purpose, l.addressee);
       expect(text).toContain(l.display.salary);
       expect(text).not.toMatch(/[{}]/);
-      expect(text).toContain("not an official document");
+      // Provenance is the page's sources line, never the letter's text.
+      expect(text).not.toMatch(/demo letter|not an official/i);
     }));
 
   it("every field in a body has a value", () => each((c) => {
