@@ -535,3 +535,21 @@ The owner can overrule any of these. Full list with reasons:
   summaries only; the legislation portal blocks automated browsers and
   the MOHRE pages did not load). Day-16 condition sources disagree;
   nothing is encoded as official. Counsel item.
+
+## 14. Render hosting rules (2026-11-26)
+
+- Owner standing rule: **never touch the owner's other project on
+  Render.** The workspace "My Workspace" (`tea-dbt39oek1f9s73ann1g0`)
+  already holds an unrelated ERP project: web service `manar-erp`
+  (`srv-dbt3bcoae00c739i42gg`), crons `manar-erp-jobs`
+  (`crn-dc2lkpek1f9s738cub4g`) and `manar-erp-einvoicing`
+  (`crn-dc24gqk9v7es73c8hfkg`), repo `ahmadmhdnabilalzain-bot/ERP`.
+  Never update, redeploy, suspend, resume, delete, adopt, rename, query
+  or change environment variables of anything not named `hr-payroll-*`.
+  Blueprints must use `existingResources: create_new` and never `adopt`.
+- Every agent brief that could reach Render must repeat this rule. Read-only
+  listing is the only allowed action on resources not owned by this app.
+- Demo first (owner): a seeded demo database behind the real API, shown
+  to clients; the real production hosting comes later on another plan.
+  Nothing is created on Render until the owner has seen the plan and
+  the cost.
