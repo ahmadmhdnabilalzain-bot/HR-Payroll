@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useOptionalDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "./Icon";
 import s from "./Toast.module.css";
@@ -15,7 +16,14 @@ interface ToastItem {
   id: number;
   text: string;
   undo?: () => void;
+  /** The page and the role it was shown on: it belongs to them. */
+  hash: string;
+  role: string | null;
+  shownAt: number;
 }
+
+/** A flow may show its message and then open the next page at once. */
+const SAME_STEP_MS = 400;
 
 interface Toasts {
   show(text: string, undo?: () => void): void;
@@ -27,9 +35,24 @@ const LIFETIME_MS = 5000;
 /** One confirmation at a time, bottom centre, with an optional undo. */
 export function ToastProvider(p: { children: ReactNode }) {
   const [item, setItem] = useState<ToastItem | null>(null);
+  const role = useOptionalDemo()?.state.role ?? null;
   const show = useCallback((text: string, undo?: () => void) => {
     setItem((prev) => ({ id: (prev?.id ?? 0) + 1, text,
-      ...(undo === undefined ? {} : { undo }) }));
+      ...(undo === undefined ? {} : { undo }), hash: location.hash,
+      role: null, shownAt: performance.now() }));
+  }, []);
+  // A message (and its Undo) never follows the person to another page
+  // or another role: an HR "IBAN saved, Undo" is not the GM's to undo.
+  useEffect(() => {
+    setItem((x) => x === null ? x : x.role === null ? { ...x, role }
+      : x.role === role ? x : null);
+  }, [role, item?.id]);
+  useEffect(() => {
+    const on = (): void => setItem((x) => x === null ||
+      x.hash === location.hash ||
+      performance.now() - x.shownAt < SAME_STEP_MS ? x : null);
+    addEventListener("hashchange", on);
+    return () => removeEventListener("hashchange", on);
   }, []);
   useEffect(() => {
     if (item === null) return undefined;
