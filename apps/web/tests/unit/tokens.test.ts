@@ -1,0 +1,61 @@
+import { describe, expect, it } from "vitest";
+import { readWeb } from "../helpers/files";
+
+type Tokens = Record<string, string>;
+
+function block(css: string, selector: string): Tokens {
+  const start = css.indexOf(`${selector} {`);
+  if (start < 0) throw new Error(`no block ${selector}`);
+  const body = css.slice(start, css.indexOf("}", start));
+  const out: Tokens = {};
+  for (const m of body.matchAll(/(--color-[a-z0-9-]+):\s*(#[0-9a-f]{6})/gi)) {
+    out[m[1] ?? ""] = m[2] ?? "";
+  }
+  return out;
+}
+
+function luminance(hex: string): number {
+  const ch = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * (ch[0] ?? 0) + 0.7152 * (ch[1] ?? 0) +
+    0.0722 * (ch[2] ?? 0);
+}
+
+function ratio(a: string, b: string): number {
+  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+  return ((x ?? 0) + 0.05) / ((y ?? 0) + 0.05);
+}
+
+const TEXT = ["text", "text-muted", "accent", "trace", "danger", "success"];
+
+function check(t: Tokens): string[] {
+  const c = (n: string): string => {
+    const v = t[`--color-${n}`];
+    if (v === undefined) throw new Error(`missing --color-${n}`);
+    return v;
+  };
+  const fails: string[] = [];
+  const need = (fg: string, bg: string, min: number): void => {
+    const r = ratio(c(fg), c(bg));
+    if (r < min) fails.push(`${fg} on ${bg}: ${r.toFixed(2)}`);
+  };
+  for (const fg of TEXT) {
+    need(fg, "surface", 4.5);
+    need(fg, "bg", 4.5);
+  }
+  need("warning", "warning-bg", 4.5);
+  need("on-accent", "accent", 4.5);
+  need("focus", "surface", 3);
+  need("border", "surface", 3);
+  return fails;
+}
+
+describe("tokens", () => {
+  it("contrast-pairs-pass", () => {
+    const css = readWeb("src/theme/tokens.css");
+    expect(check(block(css, ":root"))).toEqual([]);
+    expect(check(block(css, ':root[data-theme="dark"]'))).toEqual([]);
+  });
+});
