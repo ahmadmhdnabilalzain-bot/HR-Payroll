@@ -1,0 +1,48 @@
+.status {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.dot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-faint);
+  transform: translateY(-1px);
+}
+
+.dot[data-tone="danger"] {
+  background: var(--color-danger);
+}
+
+.dot[data-tone="warn"] {
+  background: var(--color-warning);
+}
+
+.dot[data-tone="ok"] {
+  background: var(--color-success);
+}
+
+.tap {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+}
+
+.small {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.loading {
+  padding: var(--space-7) var(--page-pad);
+  color: var(--color-text-muted);
+}
+
+.stamp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}

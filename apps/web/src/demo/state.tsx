@@ -73,6 +73,12 @@ import {
   type ConnectSlice,
 } from "../setup/more/state";
 import {
+  PRIVACY_INITIAL,
+  reducePrivacy,
+  type PrivacyAction,
+  type PrivacySlice,
+} from "../setup/privacy/state";
+import {
   PRIOR_INITIAL,
   reducePrior,
   type PriorAction,
@@ -114,7 +120,8 @@ export type Resolution = "reviewed" | "renewal";
 export interface DemoState
   extends LeaveSlice, RulesSlice, AccessSlice, TimeSlice, PapersSlice,
     TeamSlice, MovesSlice, PaySlice, SafetySlice, RequestsSlice,
-    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice {
+    FilesSlice, ConnectSlice, PriorSlice, HoldSlice, MoreSlice,
+    PrivacySlice {
   role: Role;
   hideAmounts: boolean;
   /** Employee id to the IBAN a person entered (re-checked live). */
@@ -154,6 +161,7 @@ export type Action =
   | RequestsAction
   | { type: "files"; op: FilesOp }
   | ConnectAction
+  | PrivacyAction
   | PriorAction
   | HoldAction
   | MoreAction
@@ -171,6 +179,7 @@ export const INITIAL: DemoState = {
   ...CONNECT_INITIAL, ...PRIOR_INITIAL,
   ...HOLD_INITIAL,
   ...MORE_INITIAL,
+  ...PRIVACY_INITIAL,
   tasksDone: [], notesRead: [],
 };
 
@@ -267,6 +276,12 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "fine-undo": return reducePay(s, a);
     case "connect-edit":
     case "connect-undo": return reduceConnect(s, a);
+    case "privacy-edit":
+    case "privacy-undo":
+    case "dsr-decide":
+    case "dsr-undo":
+    case "retention-sign":
+    case "retention-unsign": return reducePrivacy(s, a);
     case "prior-add":
     case "prior-check":
     case "prior-uncheck":

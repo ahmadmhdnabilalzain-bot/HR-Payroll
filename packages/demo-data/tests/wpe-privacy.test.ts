@@ -14,8 +14,8 @@ const each = (fn: (c: DemoCompany) => void) =>
   SEEDS.forEach((s) => fn(buildDemoCompany(s)));
 
 /** The words that would claim the company or product meets the law. */
-const CLAIMS =
-  /\b(compliant|compliance|complies|certified|approved|approval|guarantee[sd]?)\b/i;
+const CLAIMS = new RegExp("\\b(compliant|compliance|complies|certified|" +
+  "approved|approval|guarantee[sd]?)\\b", "i");
 
 describe("WPE privacy and retention (S26)", () => {
   it("categories cover identity, pay, health and documents", () => each(
