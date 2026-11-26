@@ -87,6 +87,11 @@ export const OFFER_WORD: Record<OfferNow, string> = {
   sent: "Sent, waiting for an answer", accepted: "Accepted",
   declined: "Declined" };
 
+/** One or two words, for a summary figure. */
+export const OFFER_SHORT: Record<OfferNow, string> = { draft: "Draft",
+  waiting: "Waiting", sent: "With candidate", accepted: "Accepted",
+  declined: "Declined" };
+
 export function offerNow(o: HiringOffer, s: Pick<DemoState, "steps">)
   : OfferNow {
   const v = s.steps[`offer:${o.id}`]?.value;
