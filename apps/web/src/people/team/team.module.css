@@ -117,7 +117,7 @@ a.line:focus-visible {
 }
 
 .status[data-tone="open"]::before {
-  background: var(--color-accent);
+  background: var(--color-info);
 }
 
 .sub {

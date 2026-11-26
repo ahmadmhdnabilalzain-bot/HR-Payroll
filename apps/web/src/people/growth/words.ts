@@ -1,0 +1,68 @@
+/** The words of the Growth screens (English only, see team/words.ts). */
+export const G = {
+  appraisals: { title: "Appraisals and cycles",
+    cycle: "Review cycle", all: "All", notStarted: "Not started",
+    waiting: "Waiting for manager", finalised: "Finalised",
+    person: "Person", status: "Status", rating: "Rating",
+    reviewer: "Reviewer", self: "Self-rating {n} of 5",
+    open: "Open: self-assessments due {self}, managers by {mgr}, " +
+      "closes {close}.",
+    closed: "Closed on {close}.",
+    remind: "Remind {n} people", remindOne: "Remind 1 person",
+    reminded: "Reminder sent to {n} people", remindedOne:
+      "Reminder sent to 1 person",
+    remindedOn: "Reminded on {date} by {name}",
+    undo: "Undo reminder", empty: "Nobody matches.",
+    payUp: "Basic pay up by ", payFrom: " from {date}",
+    unrated: "Not rated yet" },
+  goals: { title: "Goals and KPIs",
+    lede: "Yearly goals for each department and each person. Status " +
+      "compares progress with how far through the year we are.",
+    dept: "Department", mine: "Individual",
+    risk: "At risk", goal: "Goal", progress: "Progress",
+    status: "Status", dueOn: "due {date}",
+    weight: "weight {n}%", empty: "No goals here." },
+  perf: { title: "Department performance",
+    period: "Mid-year review 2026 ratings and this year's goals, as of " +
+      "{date}.", figure: "Goals at risk", of: "{n} of {total}",
+    dept: "Department", rating: "Average rating", goals: "Goals",
+    line: "{done} done, {on} on track, {risk} at risk",
+    note: "The rating is the average of the finalised mid-year review. " +
+      "Goal status compares progress with the pace of the year." },
+  prob: { title: "Probation evaluations",
+    lede: "Who is still in probation, and the last day to decide.",
+    now: "In probation", done: "Confirmed", person: "Person",
+    status: "Status", decideBy: "Decide by", ends: "Probation ends",
+    none: "None to show.",
+    record: "Record evaluation", withdraw: "Withdraw",
+    confirm: "Confirm employment", again: "Review again later",
+    undo: "Undo", noEval: "No evaluation yet",
+    waiting: "Waiting for decision", kept: "Kept in probation",
+    confirmed: "Confirmed", average: "Average {text}",
+    sent: "Sent by {who}, {date}",
+    byOn: "{who}, {date}",
+    manager: "Line manager: {name}.", form: "Evaluate {name}",
+    submit: "Send for decision",
+    sentToast: "Evaluation sent to {name}.",
+    withdrawn: "Evaluation withdrawn.",
+    decidedToast: "{text} for {name}.",
+    undone: "Decision undone.",
+    attendance: "Attendance", quality: "Quality of work",
+    teamwork: "Teamwork", learning: "Learning",
+    suggest: "Suggestion", suggestConfirm: "Confirm employment",
+    suggestAgain: "Review again later", note: "Note (optional)",
+    scoreHelp: "1 is lowest, 5 is highest.",
+    exTitle: "Last day to decide", exResult: "Decide by",
+    exSummary: "{date} is the last day the employer can give notice " +
+      "during probation. Probation ends on {end}.",
+    exJoined: "Joined", exEnds: "Probation ends",
+    exFrom: "Staff record",
+    exStep1: "Probation runs from {joined} to {end}.",
+    exStep2: "The employer's last day to give notice is {n} days " +
+      "before the end.",
+    exRule: "The employer has to decide before probation ends, with " +
+      "time left for notice.",
+    exStatus: "secondary-sourced, as we read it",
+    exCite: "Decree-Law 33/2021, probation (our notes cite Article 9; " +
+      "the primary text is not yet checked)" },
+};

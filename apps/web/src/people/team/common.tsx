@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
+import type { DemoData } from "../../demo/data/types";
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
+import { personFor } from "../../demo/time-off";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { PageHead } from "../../ui/templates";
 import s from "./team.module.css";
@@ -46,4 +48,26 @@ export function Progress(p: { pct: number; label: string }) {
       <span className="tabular">{p.label}</span>
     </span>
   );
+}
+
+/** The person the current role stands for: id, name and job title. */
+export function useMe(): { id: string; name: string; title: string } {
+  const { data, state } = useDemo();
+  const id = personFor(data, state.role);
+  const p = data.people.person(id);
+  return { id, name: p?.name.en ?? id, title: p?.role.en ?? "" };
+}
+
+/** A person with the job they hold ("Khalid Al Nuaimi, General manager"). */
+export function whoIs(data: DemoData, id: string): string {
+  const p = data.people.person(id);
+  return p === null ? id : `${p.name.en}, ${p.role.en}`;
+}
+
+/** "27 Oct 2026", the way the data package writes a date. */
+export function shortDay(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const mon = new Intl.DateTimeFormat("en-GB", { month: "short",
+    timeZone: "UTC" }).format(new Date(Date.UTC(y ?? 0, (m ?? 1) - 1, 1)));
+  return `${d} ${mon} ${y}`;
 }
