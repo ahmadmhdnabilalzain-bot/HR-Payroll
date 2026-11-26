@@ -269,8 +269,8 @@ waits for the GM (HR manager prepared it). Expats' payslips come from
 `calculatePayslip`; nationals' from the same engine steps without
 pension (`PENSION_NOT_COMPUTED`, a visible "not computed" line: the
 Abu Dhabi fund may apply, unconfirmed). Emiratisation is headcount by
-nationality only. Every figure says "UAE mainland rules" (the client
-is mainland). `issuesOf` names its source on each issue: the engine
+nationality only. Every figure says "Based on UAE mainland rules, as
+we read them" (the client is mainland). `issuesOf` names its source on each issue: the engine
 (overtime over the daily limit, a loan cut by the Article 25 cap, a
 sick day unpaid in probation, the partial settlement), the SIF
 validator (an IBAN typo, the fictional routing code), or the demo's
@@ -289,7 +289,9 @@ in-process, so no JSON under `apps/web/public/demo/`.
 
 Headline totals (seed 2026): 31 payslips, gross AED 938,680.94,
 deductions AED 4,950.00, net AED 933,730.94; SIF AED 908,430.94 plus
-AED 25,300.00 held (no IBAN); leaver settlement AED 190,078.08
+AED 25,300.00 held (no IBAN); leaver settlement AED 191,702.27
+(gratuity AED 173,928.08 plus leave pay AED 17,774.19 for 18.71 days,
+accrued pro rata through the last day, our reading)
 (outside the run and the SIF).
 
 The database seeder (Part 2: `pnpm demo:seed` and `demo:reset`

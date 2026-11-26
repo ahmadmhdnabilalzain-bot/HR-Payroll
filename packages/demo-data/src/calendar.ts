@@ -13,10 +13,21 @@ export const AS_OF = "2026-10-27";
 /** When the draft SIF was written (an input, never the clock). */
 export const SIF_CREATED = { date: "2026-10-27", time: "093000" };
 
-/** The pay-month timeline. SAMPLE dates, not a legal deadline. */
-export const PAY_CALENDAR = { asOf: AS_OF, cutOff: "2026-10-25",
-  approveBy: "2026-10-28", sifDue: "2026-10-29", payday: "2026-10-30",
-  label: "sample dates" } as const;
+/**
+ * The pay-month timeline. SAMPLE dates, not legal deadlines. The
+ * cut-off is a Thursday (25 October 2026 is a Sunday).
+ */
+export const PAY_CALENDAR = { asOf: AS_OF, cutOff: "2026-10-22",
+  approveBy: "2026-10-28", salaryFileSent: "2026-10-29",
+  payday: "2026-10-30", label: "sample dates" } as const;
+
+export const LEGAL_DUE_NOTE = "Wages are due by the 1st of the next " +
+  "month (WPS rule, secondary source; primary text not yet read)";
+
+/** Settlement due this many days after the last working day. */
+export const SETTLEMENT_DUE_DAYS = 14;
+export const SETTLEMENT_DUE_BASIS = "our reading: Decree-Law 33/2021 " +
+  "Art 53, as read in our notes";
 
 /** 0 Sunday .. 6 Saturday. Day 0 (1970-01-01) was a Thursday. */
 export function weekday(date: string): number {

@@ -55,8 +55,20 @@ const demo = buildDemoCompany(); // seed 2026; same seed, same bytes
   "needs confirmation" item (`PENSION_NOT_COMPUTED`, one place).
 - Emiratisation: headcount by nationality only, labelled "sample
   data, regime for banks to be confirmed". No target, status or fine.
-- Every figure carries "UAE mainland rules" (`RULES_SCOPE`; the client
-  is mainland).
+- Every figure carries "Based on UAE mainland rules, as we read them"
+  (`RULES_SCOPE`; the client is mainland).
+- The net pay figure, the employer cost and the GM's approval carry
+  the pension caveat (`headline().netNote`, `employerCostNote`,
+  `amountNote`); nationals' employer cost is "not computed", never 0.
+- The leaver's unused leave is accrued pro rata through the last day
+  (full months plus 15 of 31 days of October, less leave taken: 18.71
+  days), paid at basic / 30 and rounded once, half up, in fils. Our
+  reading: the law gives leave for parts of the last year but no
+  method. Gratuity is calculateSettlement's.
+- The 50% deduction cap is shown as our rule (secondary-sourced; the
+  85% payment test is not applied).
+- Pay calendar dates are samples; the settlement due date (14 days
+  after the last working day) is our reading of Article 53.
 - No claim of acceptance by any regulator, bank or ministry.
 
 ## Fake identifiers

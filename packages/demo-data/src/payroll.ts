@@ -1,29 +1,33 @@
 import {
   calculatePayslip,
-  calculateSettlement,
   DEFAULT_PAYROLL_PACKS,
   fils,
   formatIsoDate,
   daysInMonth,
-  GRATUITY_PACKS,
   type Fils,
 } from "@payroll/engine";
 import { DEMO_PERIOD, monthKey } from "./calendar";
 import { payslipInput, type InputOpts } from "./pay-inputs";
 import {
+  EMPLOYER_PENSION_NOT_COMPUTED,
   PENSION_LINE_ID,
   PENSION_NOT_COMPUTED,
   payslipWithoutPension,
 } from "./pension";
+import { settlementOf } from "./settlement";
 import { BACK_PAY_RAISE } from "./roster";
 import type {
   BackPayDerivation,
   DemoEmployee,
   DemoPayRun,
+  DemoLeaveRequest,
   DemoPayslip,
-  DemoSettlement,
   RunTotals,
 } from "./types";
+
+export const BACK_PAY_LABEL = "Back pay on basic salary";
+export const BACK_PAY_NOTE = "The September raise was on basic salary " +
+  "only; the housing allowance is unchanged.";
 
 /** No IBAN: the payslip is computed but held out of the SIF. */
 export const HELD_NO_IBAN = "No IBAN on file: this salary cannot go " +
@@ -50,7 +54,11 @@ export function slipOf(e: DemoEmployee, o: InputOpts, id: string)
   payslip: r.value, trace: r.trace,
   pension: national ? { status: "not-computed", traceId: PENSION_LINE_ID,
     reason: { en: PENSION_NOT_COMPUTED.en, ar: PENSION_NOT_COMPUTED.ar } }
-    : null, sif: e.iban === null
+    : null,
+  employer: national ? { status: "not-computed",
+    note: EMPLOYER_PENSION_NOT_COMPUTED }
+    : { status: "computed", amount: r.value.employerCost },
+  sif: e.iban === null
     ? { included: false, reason: HELD_NO_IBAN } : { included: true } };
 }
 
@@ -63,20 +71,11 @@ function backPayOf(e: DemoEmployee): BackPayDerivation {
   const paid = slipOf(e, { ...o,
     basic: fils(e.basicMonthly - BACK_PAY_RAISE) }, "bp-paid");
   const owed = slipOf(e, o, "bp-owed");
-  return { employeeId: e.id, forMonth: monthKey(o.year, o.month),
+  return { employeeId: e.id, label: BACK_PAY_LABEL,
+    note: BACK_PAY_NOTE, forMonth: monthKey(o.year, o.month),
     paidGross: paid.payslip.gross, owedGross: owed.payslip.gross,
     amount: fils(owed.payslip.gross - paid.payslip.gross),
     paidTrace: paid.trace, owedTrace: owed.trace };
-}
-
-function settlementOf(e: DemoEmployee, unusedLeaveDays: number)
-  : DemoSettlement {
-  const r = calculateSettlement({ gratuity: {
-    joiningDate: e.joiningDate, lastWorkingDate: e.leavingDate!,
-    unpaidLeaveDays: 0, lastBasicMonthly: e.basicMonthly,
-    workerClass: e.workerClass }, unusedLeaveDays }, GRATUITY_PACKS);
-  return { employeeId: e.id, unusedLeaveDays, result: r.value,
-    trace: r.trace };
 }
 
 const sum = (xs: DemoPayslip[], f: (p: DemoPayslip) => Fils): Fils =>
@@ -105,7 +104,7 @@ export const RUN_NOT_COMPUTED: readonly string[] = [
  * and stay outside the run total and the SIF.
  */
 export function buildPayRun(employees: DemoEmployee[],
-  unusedLeave: (employeeId: string) => number): DemoPayRun {
+  reqs: DemoLeaveRequest[], annualDays: number): DemoPayRun {
   const { year, month } = DEMO_PERIOD;
   const backPay = employees.filter((e) => e.cases.includes("back-pay"))
     .map(backPayOf);
@@ -116,7 +115,7 @@ export function buildPayRun(employees: DemoEmployee[],
     .map((e) => slipOf(e, { year, month, extra: extra(e) },
       `ps-${monthKey(year, month)}-${e.id}`));
   const settlements = employees.filter((e) => e.cases.includes("leaver"))
-    .map((e) => settlementOf(e, unusedLeave(e.id)));
+    .map((e) => settlementOf(e, reqs, annualDays));
   return { id: `run-${monthKey(year, month)}`, year, month,
     status: "awaiting-approval", payslips, totals: totalsOf(payslips),
     settlements, backPay, notComputed: [...RUN_NOT_COMPUTED] };
