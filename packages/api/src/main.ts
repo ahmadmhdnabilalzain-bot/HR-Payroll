@@ -2,7 +2,9 @@
  * Server entry (I/O shell). `tsx src/main.ts` migrates (as the owner
  * role in MIGRATE_DATABASE_URL) and serves (as the runtime role in
  * DATABASE_URL); `tsx src/main.ts migrate` only migrates;
- * `tsx src/main.ts jobs` runs each background job once. The runtime
+ * `tsx src/main.ts jobs` runs each background job once;
+ * `tsx src/main.ts purge-wfh` migrates, then deletes work-from-home
+ * data past each company's retention (no scheduler). The runtime
  * role must be granted payroll_app by the operator:
  *   GRANT payroll_app TO <runtime role> WITH INHERIT FALSE, SET TRUE;
  */
@@ -17,6 +19,8 @@ import { withTenant } from "./db/tenant";
 import type { Enter } from "./http/context";
 import { JOBS } from "./jobs/jobs";
 import { systemDeps } from "./deps";
+import type { Db } from "./db/db";
+import { purgeAllCompanies } from "./db/wfh-purge-all";
 import { fsBlobStore } from "./storage/fs-blob";
 
 async function runMigrations(cfg: Config): Promise<void> {
@@ -48,6 +52,19 @@ async function runJobs(cfg: Config): Promise<void> {
   }
 }
 
+async function purgeWfh(cfg: Config, db: Db): Promise<void> {
+  const owner = await openPg(cfg.migrateUrl, { max: 1 });
+  try {
+    const companies = await purgeAllCompanies(owner, db,
+      { now: () => new Date() });
+    process.stdout.write(`${JSON.stringify({ event: "wfh-purged",
+      companies })}\n`);
+  } finally {
+    await owner.close();
+    await db.close();
+  }
+}
+
 async function main(argv: string[]): Promise<void> {
   const cfg = loadConfig(process.env);
   await runMigrations(cfg);
@@ -55,6 +72,7 @@ async function main(argv: string[]): Promise<void> {
   if (argv[2] === "jobs") return runJobs(cfg);
   const db = await openPg(cfg.databaseUrl);
   await assertRuntimeRole(db);
+  if (argv[2] === "purge-wfh") return purgeWfh(cfg, db);
   const blobs = fsBlobStore(cfg.receiptsDir);
   const app = createApp(systemDeps(db, cfg.masterKey, blobs,
     buildChannelPorts(cfg)));

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CHANNEL_ERROR_STATUS } from "./errors-channels";
+import { TIME_ERROR_STATUS } from "./errors-time";
 import { HR_ERROR_STATUS } from "./errors-hr";
 
 /**
@@ -90,6 +91,7 @@ export const ERROR_STATUS = {
   ENGINE_REFUSED: 422,
   PAYLOAD_TOO_LARGE: 413,
   ACCOUNT_LOCKED: 423,
+  ...TIME_ERROR_STATUS,
   INTERNAL: 500,
   ...HR_ERROR_STATUS,
   ...EXPENSE_ERROR_STATUS,

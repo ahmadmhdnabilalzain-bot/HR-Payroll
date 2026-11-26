@@ -2,6 +2,7 @@
 // native speaker.
 import type { errors as en } from "../en/errors";
 import type { ArOf } from "../types";
+import { timeErrors } from "./errors-time";
 
 export const errors: ArOf<typeof en> = {
   generic: "حدث خطأ. حاول مرة أخرى.",
@@ -99,6 +100,7 @@ export const errors: ArOf<typeof en> = {
     "أو اطلب من الموارد البشرية رفع الحد.",
   EXCLUDED_CLAIM_INVALID: "لا يمكن استبعاد إلا المطالبات المعتمدة التي " +
     "تنتظر الدفع من المسير.",
+  ...timeErrors,
   // Plan 8 (hiring, onboarding, tasks, exits, goals).
   TASK_TRANSITION: "لا يمكن نقل هذه المهمة إلى تلك الحالة.",
   REQUISITION_NOT_OPEN: "طلب التوظيف هذا غير مفتوح.",

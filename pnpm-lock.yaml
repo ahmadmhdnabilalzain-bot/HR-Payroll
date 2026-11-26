@@ -148,6 +148,16 @@ importers:
         specifier: 22.20.7
         version: 22.20.7
 
+  packages/time-client:
+    dependencies:
+      '@payroll/contract':
+        specifier: workspace:*
+        version: link:../contract
+    devDependencies:
+      '@types/node':
+        specifier: 22.20.7
+        version: 22.20.7
+
   packages/wps:
     dependencies:
       '@payroll/engine':

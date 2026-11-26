@@ -91,16 +91,20 @@ async function listRequests(ctx: ReqCtx<unknown, { employeeId?: string;
 
 async function createReq(ctx: ReqCtx<LeaveRequestCreate>) {
   const s = await sealer(ctx);
-  const r = await createRequest(ctx.tx, ctx.tenant!, ctx.user!.id,
-    { id: ctx.deps.newId(), at: ctx.deps.now().toISOString() }, ctx.body,
-    s);
+  const { row: r, plan } = await createRequest(ctx.tx, ctx.tenant!,
+    ctx.user!.id, { id: ctx.deps.newId(), at: ctx.deps.now().toISOString(),
+      today: dubaiDate(ctx.deps.now()) }, ctx.body, s);
   await audit(ctx, "leave.requested", "leave-request", r.id,
     { employeeId: r.employee_id, leaveTypeId: r.leave_type_id,
-      days: r.days });
+      days: r.half_units / 2 });
+  if (plan.overridden) {
+    await audit(ctx, "leave.blackout-overridden", "leave-request", r.id,
+      { requestId: r.id });
+  }
   await emitEvent(eventCtx(ctx), { type: "leave.requested",
     leaveRequestId: r.id, employeeId: r.employee_id, start: r.start_date,
     end: r.end_date });
-  return toLeaveRequest(r, s);
+  return { ...toLeaveRequest(r, s), warnings: plan.warnings };
 }
 
 function decider(to: "approved" | "rejected") {
@@ -129,7 +133,8 @@ async function balances(ctx: IdCtx<unknown, { year?: number }>) {
     .filter((t) => t.annual_days !== null);
   const items = [];
   for (const t of types) {
-    items.push(await balanceFor(ctx.tx, co(ctx), ref.id, t.id, year));
+    items.push(await balanceFor(ctx.tx, co(ctx), ref.id, t.id, year,
+      dubaiDate(ctx.deps.now())));
   }
   return { items };
 }
