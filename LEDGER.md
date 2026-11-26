@@ -709,3 +709,34 @@ The owner can overrule any of these. Full list with reasons:
   build before the demo; (4) I run a full browser check as if I were the
   client and fix every bug found; (5) the owner sends the client the
   live link tonight, and meets them tomorrow 15:00 Dubai time.
+
+## 19. Quality bar and navigation rulings (2026-11-26)
+
+- Owner (2026-11-26): the previous system (Manar One) is rated 3/10; the
+  Mubinflow demo must be 10/10 and "the jump is not small". The standard
+  is "Apple is developing this app". An independent critique scored the
+  first screens about 5.5/10 (docs/design/2026-11-26-apple-standard-
+  critique.md); the fixes (type scale, one grid, motion, copy, colour,
+  Review and Fix steps) were ruled in as one design pass.
+- Owner (2026-11-26): "no long menus" does not mean cancelling features.
+  Ruling: **a short bar, every feature behind it.** Top bar of 5 to 7
+  words plus search that never grows; each section opens a panel of
+  short groups with live counts (phone: the tab's first screen is the
+  same list); features live on the record they belong to (person, pay
+  run); the command palette reaches every area, person and action. The
+  earlier line "four scenes, not forty pages" was a scope limit, not a
+  navigation rule, and is withdrawn. A navigation map
+  (docs/design/2026-11-26-navigation-map.md) assigns every Manar HR and
+  payroll area and every backend feature a home, a route of two clicks or
+  fewer, and a status (live, hours to add, not built). Demo panels list
+  only live areas (no dead ends); the owner decides how many unbuilt
+  areas to add.
+- Comparison with the owner's Manar One (read only through its own demo
+  sign-in): Manar is broader and works on live data; ours is better
+  edited but shows less. Claims of "better than the market" are limited
+  to the screens actually compared.
+- Build order for the design pass: tokens and grid first as one commit,
+  then shell, section panels, command palette and Home; then the Pay run
+  and People builders apply the critique to their own views. GSAP is a
+  dependency only once added; the offline file and the
+  no-outside-requests check must still pass.
