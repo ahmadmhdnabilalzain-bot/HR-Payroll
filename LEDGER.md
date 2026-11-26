@@ -587,3 +587,7 @@ The owner can overrule any of these. Full list with reasons:
 - Owner questions open: meeting date; the bank's size and whether it is
   mainland or DIFC/ADGM; who attends (IT security, compliance?); which HR
   and payroll system it uses today.
+- Owner: the first client currently uses **Keka** and is "extremely
+  frustrated" with it. The demo is built to win that comparison: a Keka
+  deep dive (real screens plus mined public review pain points, mapped
+  to demo scenes) is running; the demo storyline follows the pain list.
