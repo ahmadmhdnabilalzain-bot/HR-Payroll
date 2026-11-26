@@ -3,7 +3,8 @@
   gap: var(--space-5);
   max-inline-size: var(--container);
   margin-inline: auto;
-  padding: var(--space-5) var(--page-pad) var(--space-8);
+  /* The template's head position: 40 px under the bar. */
+  padding: 40px var(--page-pad) var(--space-8);
 }
 
 .tools {
@@ -233,6 +234,7 @@
 @media (max-width: 760px) {
   .page {
     padding-inline: var(--space-4);
+    padding-block-start: var(--space-4);
     padding-block-end: calc(var(--space-8) + 56px +
       env(safe-area-inset-bottom));
   }

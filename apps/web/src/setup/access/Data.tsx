@@ -105,7 +105,7 @@ export function Location(p: { d: AccessData }) {
   ];
   return (
     <FilterList title="Data location and export"
-      lede={`Demo only. Data region of this site: ${L.region}.`}
+      lede={`Data region of this site: ${L.region}.`}
       rows={facts} rowKey={(f) => f.id}
       columns={[{ key: "t", label: "Topic", render: (f) => f.topic },
         { key: "x", label: "What we can say", render: (f) => (

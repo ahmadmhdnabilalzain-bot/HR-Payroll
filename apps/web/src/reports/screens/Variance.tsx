@@ -3,8 +3,10 @@ import { money, text, type Explanation }
   from "../../components/explain/types";
 import { hrefOf } from "../../demo/route";
 import { Icon } from "../../ui/Icon";
-import { ReportPage } from "../../ui/templates";
-import { percent, plural, useMoney } from "../fmt";
+import { MINUS } from "../../i18n/format";
+import { Money } from "../../ui/Money";
+import { ReportPage, Waterfall, type Cell } from "../../ui/templates";
+import { percent, plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import type { VarianceView } from "../types";
 import p from "../Pick.module.css";
@@ -55,38 +57,47 @@ function Stepper(p2: { prev: string | null;
 
 export function Variance(props: { rest: string[] }) {
   const src = useReportsSource();
+  const crumbs = useReportCrumbs();
   const { m, signed } = useMoney();
   const keys = src.months.map((x) => x.month);
   const asked = keys.indexOf(props.rest[1] ?? "");
   const at = asked > 0 ? asked : keys.length - 1;
   const v = src.variance(keys[at]!, keys[at - 1]!);
-  const rows = [...v.drivers.map((d) => [d.label, d.people.join(", "),
-    signed(d.amount)]), ["Change in gross", headcountText(v.headcountChange),
-    signed(v.grossChange)]];
+  const rows: Cell[][] = v.drivers.map((d) => [d.label,
+    d.people.join(", "), { fils: d.amount, signed: true }]);
+  const short = (label: string): string => label.split(" ")[0] ?? label;
   return (
-    <>
-      <Stepper label={`${v.monthLabel} against ` +
-        `${v.againstLabel}`} prev={at > 1 ? keys[at - 1]! : null}
-      next={at < keys.length - 1 ? keys[at + 1]! : null} />
-      <ReportPage title="Variance against last month"
-        period={`${v.monthLabel} against ${v.againstLabel}`}
-        figure={{ label: `Change in gross, ${percent(v.grossChange,
-          v.grossBefore)}`, value: (
-          <Explainable explanation={explainVariance(v)}>
-            {signed(v.grossChange)}
-          </Explainable>) }}
-        columns={[{ label: "Cause" }, { label: "Who" },
-          { label: "Change in gross", end: true }]}
-        rows={rows} csvName={`variance-${v.month}-against-` +
-          `${v.against}.csv`}
-        note={`${m(v.grossBefore)} became ${m(v.grossNow)}. Net pay ` +
-          `changed by ${signed(v.netChange)}. The causes are read from ` +
-          "each person's record and add up to the change."} />
-    </>
+    <ReportPage crumbs={crumbs} title="Variance against last month"
+      period=""
+      meta={<Stepper label={`${v.monthLabel} against ${v.againstLabel}`}
+        prev={at > 1 ? keys[at - 1]! : null}
+        next={at < keys.length - 1 ? keys[at + 1]! : null} />}
+      figure={{ label: `Change in gross, ${percent(v.grossChange,
+        v.grossBefore)}`, value: (
+        <Explainable explanation={explainVariance(v)}>
+          <Money value={v.grossChange} signed tween={false} />
+        </Explainable>) }}
+      chart={<Waterfall key={v.month} label={`Gross pay, ${
+        v.againstLabel} to ${v.monthLabel}, by cause`} steps={[
+        { label: `${short(v.againstLabel)} gross`, kind: "total",
+          value: v.grossBefore },
+        ...v.drivers.map((d) => ({ label: d.label, kind: "change" as const,
+          value: d.amount })),
+        { label: `${short(v.monthLabel)} gross`, kind: "total",
+          value: v.grossNow }]} />}
+      columns={[{ label: "Cause" }, { label: "Who" },
+        { label: "Change in gross", end: true }]}
+      rows={rows}
+      total={["Change in gross", headcountText(v.headcountChange),
+        { fils: v.grossChange, signed: true }]}
+      csvName={`variance-${v.month}-against-${v.against}.csv`}
+      note={`${m(v.grossBefore)} became ${m(v.grossNow)}. Net pay ` +
+        `changed by ${signed(v.netChange)}. The causes are read from ` +
+        "each person's record and add up to the change."} />
   );
 }
 
 function headcountText(n: number): string {
   if (n === 0) return "Same number of people";
-  return `${n > 0 ? "+" : "-"}${plural(Math.abs(n), "person", "people")}`;
+  return `${n > 0 ? "+" : MINUS}${plural(Math.abs(n), "person", "people")}`;
 }

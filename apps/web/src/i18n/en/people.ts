@@ -36,6 +36,7 @@ export const people = {
   statusLeftOn: "Left on {date}",
   statusJoiningOn: "Joins on {date}",
   empty: "No one matches “{query}”.",
+  emptyAny: "No one matches. Clear the search or pick All.",
   emptyDept: "No one in this department matches.",
   clear: "Clear search",
   back: "People",

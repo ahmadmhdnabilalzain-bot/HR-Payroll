@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../button.module.css";
+import { Icon } from "../Icon";
+import { PageFoot } from "./PageFoot";
 import { PageHead } from "./PageHead";
 import { Sheet } from "./Sheet";
 import s from "./templates.module.css";
@@ -12,6 +14,12 @@ export interface Setting {
   help?: string;
   /** Left out: read-only (shown, not editable). */
   editable?: boolean;
+  /** Read-only: where the value is managed (an "Open" link). */
+  href?: string;
+  /** Its link's word, "Open" by default. */
+  linkLabel?: string;
+  /** Read-only: the value as a short list under the label. */
+  list?: string[];
 }
 
 export interface SettingsGroup {
@@ -26,8 +34,10 @@ export interface ChangeLogEntry {
 }
 
 /**
- * ST, settings form: grouped key-value settings, an edit sheet per
- * setting, and a change log. `onSave` stores the value in the builder's
+ * ST, settings form: grouped key-value settings (an inset grouped list with
+ * one value edge: every row keeps an action column, so values line up), an
+ * edit sheet per editable setting, an "Open" link or a short list for read-
+ * only ones, and a change log. `onSave` stores the value in the builder's
  * state and returns an error sentence or null.
  */
 export function SettingsPage(p: {
@@ -50,21 +60,33 @@ export function SettingsPage(p: {
           <h2 className={s.blockTitle}>{g.title}</h2>
           <ul className={s.grouped}>
             {g.items.map((x) => (
-              <li key={x.key} className={s.groupedRow}>
+              <li key={x.key} className={`${s.groupedRow} ${s.setRow}`}>
                 <span className={s.rowText}>
                   <span>{x.label}</span>
+                  {x.list !== undefined && x.list.length > 0 && (
+                    <ul className={s.rowList}>
+                      {x.list.map((v) => <li key={v}>{v}</li>)}
+                    </ul>
+                  )}
                   {x.help !== undefined && <small>{x.help}</small>}
                 </span>
                 <span className={s.rowValue}>{x.value}</span>
-                {x.editable === true && p.onSave !== undefined && (
-                  <button type="button"
-                    className={`${b.btn} ${b.quiet} ${s.tap}`}
-                    onClick={() => {
-                      setEdit(x);
-                      setValue(x.value);
-                      setError(null);
-                    }}>{t("tpl.edit")}</button>
-                )}
+                <span className={s.rowAct}>
+                  {x.editable === true && p.onSave !== undefined ? (
+                    <button type="button"
+                      className={`${b.btn} ${b.quiet} ${s.tap}`}
+                      onClick={() => {
+                        setEdit(x);
+                        setValue(x.value);
+                        setError(null);
+                      }}>{t("tpl.edit")}
+                      <Icon name="chevronEnd" size={16} /></button>
+                  ) : x.href !== undefined ? (
+                    <a className={`${b.btn} ${b.quiet} ${s.tap}`}
+                      href={x.href}>{x.linkLabel ?? t("tpl.open")}
+                      <Icon name="chevronEnd" size={16} /></a>
+                  ) : null}
+                </span>
               </li>
             ))}
           </ul>
@@ -76,11 +98,12 @@ export function SettingsPage(p: {
           : (
             <ul className={s.grouped}>
               {p.log.map((x, i) => (
-                <li key={i} className={s.groupedRow}>
+                <li key={i} className={`${s.groupedRow} ${s.setRow}`}>
                   <span className={s.rowText}>
                     <span>{x.what}</span><small>{x.who}</small>
                   </span>
                   <span className={s.rowValue}>{x.when}</span>
+                  <span className={s.rowAct} />
                 </li>
               ))}
             </ul>
@@ -109,6 +132,7 @@ export function SettingsPage(p: {
           </div>
         </form>
       </Sheet>
+      <PageFoot />
     </div>
   );
 }

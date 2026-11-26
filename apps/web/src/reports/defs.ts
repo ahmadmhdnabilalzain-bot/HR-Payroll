@@ -68,7 +68,7 @@ function summary(e: Env): Table {
       [t("reports.inFile"), { fils: d.file.total }, "", ""],
       [t("reports.peopleInFile"), d.file.people, "", ""],
     ],
-    note: t("reports.summaryNote", { scope: d.scope }),
+    note: t("reports.summaryNote"),
   };
 }
 

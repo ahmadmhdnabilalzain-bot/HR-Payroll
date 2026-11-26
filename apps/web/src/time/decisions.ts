@@ -25,7 +25,8 @@ export function phaseWord(p: Phase, who: Who, decider: string)
   : [string, Tone] {
   switch (p) {
     case "paid": return ["Paid in October", "ok"];
-    case "waiting": return [`Waiting for ${who.name(decider)}`, "warn"];
+    case "waiting": return [decider === who.me ? "Waiting for you"
+      : `Waiting for ${who.name(decider)}`, "warn"];
     case "accepted": return ["Counts in November pay", "done"];
     case "declined": return ["Declined", "neutral"];
   }

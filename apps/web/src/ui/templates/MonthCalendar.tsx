@@ -1,4 +1,6 @@
+import type { CSSProperties, ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { PageFoot } from "./PageFoot";
 import { PageHead } from "./PageHead";
 import s from "./templates.module.css";
 
@@ -20,14 +22,26 @@ function daysOf(ym: string): string[] {
     `${ym}-${String(i + 1).padStart(2, "0")}`);
 }
 
+const dow = (iso: string): number =>
+  new Date(`${iso}T00:00:00Z`).getUTCDay();
+
 const weekend = (iso: string): boolean => {
-  const d = new Date(`${iso}T00:00:00Z`).getUTCDay();
+  const d = dow(iso);
   return d === 0 || d === 6;
 };
 
+const LETTER = ["S", "M", "T", "W", "T", "F", "S"];
+
+/** The tones' words, shown in the legend (colour is never alone). */
+const TONE_WORD: Record<CalTone, string> = { booked: "Booked",
+  waiting: "Waiting", holiday: "Holiday", shift: "Shift" };
+
 /**
- * CA, calendar: a month grid with people (or anything) as rows, events
- * as marks per day. Weekends (Saturday, Sunday) are shaded. Month
+ * CA, calendar: a month grid with people (or anything) as rows. Each event is
+ * a bar with its label written above it (as far as the row's next event), and
+ * a legend names the tones. Weekends (Saturday, Sunday) are shaded. On phones
+ * the grid becomes the month's list (day, what, whose), so nothing scrolls
+ * sideways; pass `agenda={false}` when the page lists the month itself. Month
  * changes are the builder's (pass `onMonth`).
  */
 export function MonthCalendar(p: {
@@ -38,12 +52,25 @@ export function MonthCalendar(p: {
   rows: { id: string; label: string }[];
   events: CalEvent[];
   onMonth?(step: -1 | 1): void;
+  agenda?: boolean;
+  /** What each tone means on this page ("Payday", "Done"). */
+  legend?: Partial<Record<CalTone, string>>;
+  /** The page's own content under the grid (a list of the month). */
+  children?: ReactNode;
 }) {
   const { t } = useLocale();
   const days = daysOf(p.month);
+  const first = days[0] ?? "";
+  const last = days.at(-1) ?? "";
   const mark = (rowId: string, day: string): CalEvent | undefined =>
     p.events.find((e) => e.rowId === rowId && e.start <= day &&
       day <= e.end);
+  const inMonth = p.events.filter((e) => e.end >= first &&
+    e.start <= last).sort((a, b) => a.start.localeCompare(b.start));
+  const tones = [...new Set(inMonth.map((e) => e.tone))];
+  const word = (x: CalTone): string => p.legend?.[x] ?? TONE_WORD[x];
+  const rowLabel = (id: string): string =>
+    p.rows.find((r) => r.id === id)?.label ?? "";
   return (
     <div className={s.page}>
       <PageHead title={p.title} lede={p.lede} actions={p.onMonth && (
@@ -55,15 +82,27 @@ export function MonthCalendar(p: {
             {t("tpl.nextMonth")}</button>
         </div>
       )} />
+      {tones.length > 0 && (
+        <ul className={s.legend} aria-label={p.monthLabel}>
+          {tones.map((x) => (
+            <li key={x}><span className={s.swatch} data-tone={x}
+              aria-hidden="true" />{word(x)}</li>
+          ))}
+        </ul>
+      )}
       <div className={s.calScroll} tabIndex={0} role="region"
+        data-agenda={p.agenda !== false}
         aria-label={`${p.title}, ${p.monthLabel}`}>
-        <table className={s.cal}>
+        <table className={s.cal}
+          style={{ "--days": days.length } as CSSProperties}>
           <thead>
             <tr>
               <th scope="col"><span className="visually-hidden">
                 {t("tpl.who")}</span></th>
               {days.map((d) => (
                 <th key={d} scope="col" data-weekend={weekend(d)}>
+                  <span className={s.dow} aria-hidden="true">
+                    {LETTER[dow(d)]}</span>
                   {Number(d.slice(8))}</th>
               ))}
             </tr>
@@ -74,11 +113,20 @@ export function MonthCalendar(p: {
                 <th scope="row">{r.label}</th>
                 {days.map((d) => {
                   const e = mark(r.id, d);
+                  const starts = e !== undefined &&
+                    (e.start === d || d === first);
+                  // Room for the label: up to the row's next event.
+                  const next = p.events.filter((x) => x.rowId === r.id &&
+                    x.start > d).map((x) => x.start).sort()[0] ?? "9999";
+                  const span = days.filter((x) => x >= d && x < next)
+                    .length;
                   return (
                     <td key={d} data-weekend={weekend(d)}
                       data-tone={e?.tone} title={e?.label}>
-                      {e !== undefined && (
-                        <span className="visually-hidden">{e.label}</span>
+                      {starts && (
+                        <span className={s.calLabel} style={{
+                          "--span": span } as CSSProperties}>
+                          {e.label}</span>
                       )}
                     </td>
                   );
@@ -88,6 +136,35 @@ export function MonthCalendar(p: {
           </tbody>
         </table>
       </div>
+      {p.agenda !== false && (
+        <ul className={s.agenda} aria-label={p.monthLabel}>
+          {inMonth.length === 0 ? <li className={s.empty}>–</li>
+            : inMonth.map((e, i) => (
+              <li key={i}>
+                <span className={s.agendaDay}>
+                  {Number((e.start < first ? first : e.start).slice(8))}
+                  {e.end > e.start && e.end <= last
+                    ? `–${Number(e.end.slice(8))}` : ""}
+                </span>
+                <span className={s.agendaText}>
+                  <span>{e.label}</span>
+                  {rowLabel(e.rowId) !== e.label && (
+                    <small>{rowLabel(e.rowId)}</small>
+                  )}
+                </span>
+                <span className={s.status} data-tone={TONE_OF[e.tone]}>
+                  <span className={s.dot} aria-hidden="true" />
+                  {word(e.tone)}
+                </span>
+              </li>
+            ))}
+        </ul>
+      )}
+      {p.children}
+      <PageFoot />
     </div>
   );
 }
+
+const TONE_OF: Record<CalTone, string> = { booked: "done",
+  waiting: "warn", holiday: "neutral", shift: "neutral" };

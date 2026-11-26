@@ -43,6 +43,7 @@ export const people: ArOf<typeof en> = {
   statusLeftOn: "غادر في {date}",
   statusJoiningOn: "ينضم في {date}",
   empty: "لا يوجد من يطابق «{query}».",
+  emptyAny: "لا يوجد من يطابق. امسح البحث أو اختر الكل.",
   emptyDept: "لا يوجد من يطابق في هذا القسم.",
   clear: "مسح البحث",
   back: "الموظفون",
