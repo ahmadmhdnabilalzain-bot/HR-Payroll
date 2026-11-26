@@ -1,5 +1,5 @@
 import type { ExpenseItemInput } from "@payroll/contract";
-import { fils, type Fils } from "@payroll/engine";
+import { fils, parseAed, type Fils } from "@payroll/engine";
 import type { Db } from "../db/db";
 import type { ReqCtx } from "../http/context";
 import { ApiError } from "../http/errors";
@@ -14,8 +14,9 @@ export function savePrice(item: ExpenseItemInput, p: PolicyF)
 }
 
 /**
- * Save-time problems only: each category exists and each receipt
- * belongs to the claimant employee (422 CLAIM_PROBLEMS).
+ * Save-time problems only: each category exists, each receipt belongs
+ * to the claimant employee, and VAT is within the amount (the database
+ * also checks it) (422 CLAIM_PROBLEMS).
  */
 export async function saveProblems(tx: Db, companyId: string,
   employeeId: string, items: ExpenseItemInput[]): Promise<void> {
@@ -32,6 +33,10 @@ export async function saveProblems(tx: Db, companyId: string,
     }
     if (!cats.has(it.categoryId)) {
       problems.push(`items.${n}:CATEGORY_NOT_FOUND`);
+    }
+    if (it.kind === "receipt" &&
+      parseAed(it.vatAmount) > parseAed(it.amount)) {
+      problems.push(`items.${n}:VAT_EXCEEDS_AMOUNT`);
     }
   });
   if (problems.length > 0) {

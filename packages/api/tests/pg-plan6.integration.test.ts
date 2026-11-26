@@ -9,6 +9,7 @@ import {
   setupExpenses,
   submitted,
 } from "./helpers/expense-fixtures";
+import { guardCases } from "./helpers/freeze-cases";
 import { ADMIN_URL, closeAll, freshPgPair } from "./helpers/pg-env";
 import {
   APRIL,
@@ -32,6 +33,10 @@ import {
  */
 describe.skipIf(!ADMIN_URL)("Plan 6 on real PostgreSQL", () => {
   afterAll(closeAll);
+
+  describe("database guards, as the runtime role", () => {
+    guardCases(() => freshPgPair());
+  });
 
   it("two owners approving one step at once: one wins", async () => {
     const { db, admin } = await freshPgPair();
