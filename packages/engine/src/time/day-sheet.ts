@@ -11,7 +11,7 @@ import {
   totalMinutes,
 } from "./intervals";
 import type { TimeParams } from "./params";
-import type { DayInput, DaySheet, TimeFlag } from "./types";
+import type { DayInput, DaySheet, ShiftSlot, TimeFlag } from "./types";
 
 const NONE: Overtime = { minutes: 0, night: 0, limit: null, nightPool: 0,
   rules: [], nightRules: [] };
@@ -45,13 +45,29 @@ function scheduledOf(day: DayInput): number {
   return isHalf(day) ? Math.floor(net / 2) : net;
 }
 
-/** A rostered break is assumed taken (convention). */
-function workedOf(day: DayInput, clocked: number): number {
-  const s = day.shift;
-  if (s !== null && !isHalf(day) && clocked > s.breakMinutes) {
-    return clocked - s.breakMinutes;
+/** Unclocked minutes between consecutive records, inside the shift. */
+function gapsInShift(merged: Interval[], s: ShiftSlot): number {
+  let gaps = 0;
+  for (let i = 1; i < merged.length; i++) {
+    const from = Math.max(merged[i - 1]!.end, s.start);
+    const to = Math.min(merged[i]!.start, s.end);
+    gaps += Math.max(0, to - from);
   }
-  return clocked;
+  return gaps;
+}
+
+/**
+ * The part of the rostered break not already clocked out is assumed
+ * taken (convention). Never negative, and never falls as clocked time
+ * rises. A half day assumes no break (plan rule 3; see the plan's
+ * note on half-day overtime).
+ */
+function workedOf(day: DayInput, merged: Interval[], clocked: number):
+  number {
+  const s = day.shift;
+  if (s === null || isHalf(day)) return clocked;
+  const assumed = Math.max(0, s.breakMinutes - gapsInShift(merged, s));
+  return Math.max(0, clocked - assumed);
 }
 
 function lateEarly(day: DayInput, merged: Interval[]): [number, number] {
@@ -117,7 +133,7 @@ export function computeDaySheet(day: DayInput, p: TimeParams): DaySheet {
   const merged = mergeIntervals(day.worked);
   const clocked = totalMinutes(merged);
   const scheduledMinutes = scheduledOf(day);
-  const workedMinutes = workedOf(day, clocked);
+  const workedMinutes = workedOf(day, merged, clocked);
   const [lateMinutes, earlyLeaveMinutes] = lateEarly(day, merged);
   const ot = overtimeOf(day, p, merged, workedMinutes, scheduledMinutes);
   const fields: Fields = {

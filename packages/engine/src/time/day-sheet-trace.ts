@@ -80,8 +80,9 @@ export function daySheetTrace(day: DayInput, f: Fields, c: TraceCtx):
       " full leave, rest day, holiday or no shift",
       f.scheduledMinutes, base),
     line("time.worked", "Worked minutes",
-      "clocked - rostered break (assumed taken, convention) when a" +
-      " shift and no half day; else clocked",
+      "max(0, clocked - assumed break) with a shift and no half day;" +
+      " assumed break = rostered break minus unclocked gaps between" +
+      " records inside the shift (convention); else clocked",
       f.workedMinutes, { ...base, clocked }),
     ...lateEarlyLines(day, f, c),
     ...overtimeLines(day, f, c.ot),

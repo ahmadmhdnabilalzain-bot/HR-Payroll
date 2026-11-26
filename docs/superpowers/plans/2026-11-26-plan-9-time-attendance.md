@@ -312,9 +312,17 @@ Law task: fresh per-task review.
     2. `scheduledMinutes`: shift net (`end - start - breakMinutes`);
        `am` or `pm` leave: `floor(net / 2)`; `full` leave, no shift,
        rest or holiday: 0.
-    3. `workedMinutes`: with a shift, no half-day leave and `clocked >
-       breakMinutes`: `clocked - breakMinutes` (rostered break assumed
-       taken, convention); otherwise `clocked`.
+    3. `workedMinutes`: with a shift and no half-day leave: `max(0,
+       clocked - assumed)` where `assumed = max(0, breakMinutes -
+       gaps)` and `gaps` are the unclocked minutes between consecutive
+       merged records inside the shift (the part of the rostered break
+       not already clocked out is assumed taken, convention; review
+       C1: a clocked-out break is not deducted twice and worked never
+       falls as clocked rises); otherwise `clocked`. A half day
+       assumes no break, so a half day worked across the usual break
+       can show up to the break as overtime; it stays a candidate the
+       approver reduces (review M6, kept: halving the break would
+       understate, and approval cannot raise minutes).
     4. `lateMinutes` = `max(0, firstStart - shift.start)` unless leave
        is `am` or `full`; `earlyLeaveMinutes` = `max(0, shift.end -
        lastEnd)` unless leave is `pm` or `full`; both 0 with no shift
