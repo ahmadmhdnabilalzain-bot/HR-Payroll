@@ -8,7 +8,6 @@ import { HBars, SplitBar } from "../dash/Bars";
 import {
   beforeApproval,
   byCost,
-  byPeople,
   execTiles,
   hrTiles,
   topSlices,
@@ -88,9 +87,9 @@ export function DashboardHr() {
         </Panel>
         <Panel id="dash-dept" wide title="People by department"
           note="Employed today">
-          <HBars label="People by department" rows={byPeople(data)
-            .map((d) => ({ key: d.id, label: d.name[lang],
-              value: { n: d.headcount } }))} />
+          <HBars label="People by department" rows={[...src.departments]
+            .sort((a, b) => b.now - a.now).map((d) => ({ key: d.name,
+              label: d.name, value: { n: d.now } }))} />
         </Panel>
       </div>
     </div>

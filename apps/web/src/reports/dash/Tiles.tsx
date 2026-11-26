@@ -13,7 +13,7 @@ export function FigureView(p: { f: Figure }) {
       {p.f.kind === "money"
         ? <Money value={p.f.fils} tween={false} />
         : <span className="tabular">{formatNumber(p.f.n, lang)}</span>}
-      {p.f.kind === "count" && p.f.unit !== undefined && (
+      {p.f.kind === "count" && p.f.unit !== undefined && p.f.unit !== "" && (
         <span className={s.tileUnit}>{p.f.unit}</span>
       )}
     </span>

@@ -25,12 +25,14 @@ export function Panel(p: { id: string; title: string; note?: string;
  */
 export function useIssueWords(): IssueWords {
   const { t } = useLocale();
-  return (b) => ({
-    unit: t("payrun.fixStops", { count: b.stops })
-      .replace(/^\S+\s/, ""),
-    sub: b.checks === 0 ? t("payrun.fixNoChecks")
-      : t("payrun.fixChecks", { count: b.checks }),
-  });
+  const checks = (n: number): string => n === 0
+    ? t("payrun.fixNoChecks") : t("payrun.fixChecks", { count: n });
+  // Nothing stops pay: no unit after the 0, and Fix's whole phrase
+  // under it ("nothing stops pay, 6 to check").
+  return (b) => b.stops === 0
+    ? { unit: "", sub: `${t("payrun.fixNoStops")}, ${checks(b.checks)}` }
+    : { unit: t("payrun.fixStops", { count: b.stops })
+      .replace(/^\S+\s/, ""), sub: checks(b.checks) };
 }
 
 /** The whole phrase: "2 stop pay, 6 to check". */

@@ -41,7 +41,7 @@ export function BoardPackScreen() {
     ] },
     { id: "decide", title: "Needs a decision", points: [
       { key: "run", text: "October pay run", state: run,
-        meta: `${run.who}, General manager, decides` },
+        meta: run.meta },
       { key: "stops", figure: <Count n={b.stops} unit={w.unit} />,
         text: "Before approval", meta: w.sub },
     ] },

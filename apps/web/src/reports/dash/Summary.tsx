@@ -62,25 +62,31 @@ export function Count(p: { n: number; unit?: string }) {
   return (
     <>
       <span className="tabular">{p.n}</span>
-      {p.unit !== undefined && <span className={s.unit}>{p.unit}</span>}
+      {p.unit !== undefined && p.unit !== "" && (
+        <span className={s.unit}>{p.unit}</span>)}
     </>
   );
 }
 
 /** Where the October run's sign-off stands, as a dot and a word. */
-export function useRunState(): { tone: Tone; word: string; who: string } {
+export function useRunState(): { tone: Tone; word: string; who: string;
+  /** Who decides, or who decided. */
+  meta: string } {
   const run = useRunApproval();
   const { data } = useDemo();
   const { lang } = useLocale();
   const who = data.employee(data.runPeople().checkerId).name[lang];
+  const decides = `${who}, General manager, decides`;
   if (run.phase === "file") {
-    return { tone: "good", word: "Signed off", who };
+    return { tone: "good", word: "Signed off", who,
+      meta: `Decided by ${who}; the salary file can go` };
   }
   if (run.phase === "declined") {
-    return { tone: "warn", word: "Sent back", who };
+    return { tone: "warn", word: "Sent back", who,
+      meta: `${who} sent it back to HR` };
   }
   if (run.phase === "approve") {
-    return { tone: "wait", word: "Ready for sign-off", who };
+    return { tone: "wait", word: "Ready for sign-off", who, meta: decides };
   }
-  return { tone: "bad", word: "Held by bank details", who };
+  return { tone: "bad", word: "Held by bank details", who, meta: decides };
 }

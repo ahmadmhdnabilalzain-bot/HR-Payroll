@@ -126,3 +126,24 @@ describe("the board pack summary reads rows that exist", () => {
       .headcount);
   });
 });
+
+describe("the dashboards agree with Home and with themselves", () => {
+  it("September and October net match Home's trend (payTrend)", async () => {
+    const { buildPayView } = await import("../../src/demo/data/pay");
+    const runs = buildPayView().runs;
+    const oct = runs.at(-1)!;
+    const sep = runs.at(-2)!;
+    expect(oct.net).toBe(src.months.at(-1)!.net);
+    expect(sep.net).toBe(src.months.at(-2)!.net);
+    // Home's "against Sep" is the exec tile's change.
+    const net = tile(execTiles(src, demo.at({}), INITIAL, words), "net");
+    expect(net.change?.kind === "money" ? net.change.fils : 0n)
+      .toBe(oct.change);
+  });
+
+  it("people by department add up to the people on the payroll", () => {
+    const now = src.departments.reduce((n, d) => n + d.now, 0);
+    expect(now).toBe(30);
+    expect(demo.at({}).team.chart()).toBeDefined();
+  });
+});

@@ -39,10 +39,11 @@
   animation-delay: calc(var(--i, 0) * 50ms);
 }
 
+/* Movement only: a tile is never shown faded (its figures must read
+ * at full contrast from the first frame). */
 @keyframes rise {
   from {
-    opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
 }
 

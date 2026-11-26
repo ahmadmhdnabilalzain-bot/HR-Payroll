@@ -73,7 +73,7 @@ function useColumns(items: Item[]): Column[] {
     ] },
     { id: "decide", title: "Needs a decision", points: [
       { key: "run", text: "October pay run", state: run,
-        meta: `${run.who}, General manager, decides` },
+        meta: run.meta },
       { key: "waiting", figure: <Count n={waiting} />,
         text: "Requests waiting in the approvals inbox" },
       { key: "probation", figure: <Count n={n("probation")} />,
