@@ -280,7 +280,11 @@ AR) and a `fixKind`. Selectors: `headline`, `costByDepartment`,
 `issuesOf`, `needsConfirmation`, `payslipByEmployee`,
 `explainPayslipLine` (inputs, rule ids, source status, steps),
 `leaveRequests`, `approvalsInbox`, `sifSummary`, `documents`,
-`payCalendar` (sample dates). The web mock builds its seed
+`payCalendar` (sample dates), `openIssues` and
+`applyIbanFix` (enter an IBAN: new state, SIF rebuilt and re-checked).
+Issue reasons are plain English sentences with a title (Arabic
+reasons left empty for now); the routing-code finding is a `note`,
+not a counted issue. The web mock builds its seed
 in-process, so no JSON under `apps/web/public/demo/`.
 
 Headline totals (seed 2026): 31 payslips, gross AED 938,680.94,
