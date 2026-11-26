@@ -47,6 +47,42 @@ const demo = buildDemoCompany(); // seed 2026; same seed, same bytes
   (`calculateSettlement`, outside the run and the SIF); a new hire on
   probation; back pay (owed minus paid from two engine runs).
 
+## Reports and audit data (`src/wp7.ts`)
+
+For the Reports section and the audit trail. Everything is derived
+from the data above; nothing contradicts it.
+
+- **Audit trail**: `auditEvents(c)` (oldest first, 12 Jan to 27 Oct
+  2026), `auditRows(c, { area?, actorId? })` for the screen (`when`
+  is "27 Oct 2026, 09:42", `who` is name and job, short hashes),
+  `verifyAuditChain(events)`, `AUDIT_CHAIN_NOTE`. Each entry's SHA-256
+  covers the one before, so an edited or removed entry is caught at its
+  position. Said on purpose: demo only, worked out at load, not a
+  certified or legal proof. Actors are existing employee ids (or the
+  system). Leave, expense and approval entries follow the existing
+  requests; the October run entries carry the run's own figures; the
+  late raise, the hire, the resignation and the settlement draft use
+  the roster's own dates and amounts. `ACCESS_FACTS` is what the
+  access entries (WP9) record.
+- **Monthly history**: `payrollHistory(c)`, January to October 2026.
+  January to September are re-run through the engine from the roster
+  (30 on the payroll, the back-pay employee on the old basic until
+  September, as the back-pay figure says); October is the run itself.
+  Each month has headcount, gross, deductions, net, overtime minutes
+  and amount, leave taken (annual, sick, unpaid, in working days) and
+  per-person lines. Earlier overtime and sick days are small planned
+  lists (`HISTORY_OVERTIME`, `HISTORY_SICK`) that go through the
+  engine; sick days are unpaid only inside probation, as in October.
+  `trendRows(c)` gives display strings, `varianceBetween(c, "2026-10",
+  "2026-09")` splits the gross change by cause (new joiner, leaver,
+  unpaid leave, overtime, back pay, salary raise) and the parts add up
+  to the whole exactly.
+- `reportDate("2026-10-27")` is "27 Oct 2026" (the older
+  `displayDate` leaves the year out for 2026).
+- Limits: annual leave taken before October is only the leaver's April
+  week, because that is all the leave data holds; no raises or
+  joiners other than the demo's own cases are invented.
+
 ## Limits, said on purpose
 
 - Pension: UAE nationals employed in Abu Dhabi may fall under the Abu
