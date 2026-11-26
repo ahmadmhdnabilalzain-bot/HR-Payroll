@@ -1,9 +1,14 @@
-import { Explainable } from "../components/explain";
+import { useEffect } from "react";
+import {
+  ExplainLink,
+  Explainable,
+  Footnote,
+} from "../components/explain";
 import type { PayslipLineView, PayslipView } from "../demo/data/people-types";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { canSeePay } from "../demo/time-off";
-import { formatMonth } from "../i18n/format";
+import { formatDayMonth, formatMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
@@ -15,15 +20,45 @@ import s from "./Payslip.module.css";
 const DERIVED = new Set(["overtime", "rest-day", "holiday",
   "leave-encashment", "loan", "gpssa", "back-pay"]);
 
+/** Paper is light: print in the light theme, whatever the screen's. */
+function usePaperTheme(): void {
+  useEffect(() => {
+    const html = document.documentElement;
+    let was: string | undefined;
+    const before = (): void => {
+      was = html.dataset["theme"];
+      html.dataset["theme"] = "light";
+    };
+    const after = (): void => {
+      if (was !== undefined) html.dataset["theme"] = was;
+    };
+    addEventListener("beforeprint", before);
+    addEventListener("afterprint", after);
+    return () => {
+      removeEventListener("beforeprint", before);
+      removeEventListener("afterprint", after);
+    };
+  }, []);
+}
+
+/** The last four digits of a masked IBAN, as "•••• 0017". */
+export function lastFour(masked: string | null): string | null {
+  const m = masked?.match(/(\d{4})\s*$/);
+  return m?.[1] === undefined ? null : `•••• ${m[1]}`;
+}
+
 /**
- * The month's payslip as a document: the employer, the person and
- * the period at the top, then earnings, deductions and net pay. Every
- * figure opens its working; the dotted rule marks only the figures
- * that are worked out (overtime, a capped loan, totals), so it stays
- * a hint and not a texture.
+ * The month's payslip as a document on 8 of 12 columns: the employer,
+ * the person and the period on its top edge, net pay as the display
+ * figure, then earnings, deductions and a bold net row. Beside it, on
+ * 4 columns: where the pay went, Print and how net pay is worked out.
+ * Every figure opens its working; the dotted rule marks only the
+ * figures that are worked out (overtime, a capped loan, totals), so it
+ * stays a hint and not a texture. Print prints the document alone.
  */
 export function Payslip(q: { id: string }) {
   const { lang, t } = useLocale();
+  usePaperTheme();
   const { data, state } = useDemo();
   const x = data.people.person(q.id);
   const slip = data.people.payslip(q.id);
@@ -44,24 +79,55 @@ export function Payslip(q: { id: string }) {
           <span aria-hidden="true" className={p.sep}>/</span>
           <span aria-current="page">{t("people.pay")}</span>
         </nav>
-        <div className={s.titleRow}>
-          <h1 className={p.title}>{t("people.payslipTitle", { month })}</h1>
-          {slip !== null && allowed && (
-            <button type="button" onClick={() => print()}
-              className={[b.btn, b.secondary, p.tall, s.print].join(" ")}>
-              {t("people.print")}
-            </button>
-          )}
-        </div>
+        <h1 className={p.title}>{t("people.payslipTitle", { month })}</h1>
       </header>
       {!allowed ? (
         <p className={p.empty}>{t("people.payslipPrivate")}</p>
       ) : slip === null ? (
         <p className={p.empty}>{t("people.noPayslip", { month })}</p>
       ) : (
-        <Slip slip={slip} />
+        <div className={s.layout}>
+          <Slip slip={slip} />
+          <Aside slip={slip} />
+        </div>
       )}
+      <Footnote />
     </div>
+  );
+}
+
+/** Beside the document: where the pay went, Print, the working. */
+function Aside(q: { slip: PayslipView }) {
+  const { lang, t } = useLocale();
+  const { data } = useDemo();
+  const x = data.people.person(q.slip.employeeId);
+  const to = lastFour(x?.ibanMasked ?? null);
+  const day = formatDayMonth(data.payCalendar().payday, lang);
+  const net = useExplained(q.slip, q.slip.netTraceId, t("people.net"));
+  return (
+    <aside className={s.aside} aria-label={t("people.slipAside")}>
+      <dl className={s.asideFacts}>
+        <div>
+          <dt>{t("people.paidTo")}</dt>
+          <dd>{q.slip.held !== null ? t("people.held")
+            : to === null ? t("people.ibanMissing")
+              : <span dir="ltr" className="tabular">{to}</span>}</dd>
+        </div>
+        {q.slip.held === null && (
+          <div>
+            <dt>{t("people.paidOn")}</dt>
+            <dd>{day}</dd>
+          </div>
+        )}
+      </dl>
+      <button type="button" onClick={() => print()}
+        className={[b.btn, b.secondary, p.tall, s.print].join(" ")}>
+        {t("people.print")}
+      </button>
+      <ExplainLink explanation={net} className={s.asideLink}>
+        {t("people.howNet")}
+      </ExplainLink>
+    </aside>
   );
 }
 
@@ -123,6 +189,21 @@ function Total(q: { slip: PayslipView; traceId: string; label: string;
   );
 }
 
+/** Net pay first, as the display figure: the number a payslip is for. */
+function NetHero(q: { slip: PayslipView }) {
+  const { t } = useLocale();
+  const label = t("people.net");
+  const ex = useExplained(q.slip, q.slip.netTraceId, label);
+  return (
+    <div className={s.hero}>
+      <span className={s.heroLabel}>{label}</span>
+      <Explainable explanation={ex} className={s.heroFigure}>
+        <Money value={q.slip.netFils} size="hero" tween={false} />
+      </Explainable>
+    </div>
+  );
+}
+
 function Slip(q: { slip: PayslipView }) {
   const { lang, t } = useLocale();
   const { data } = useDemo();
@@ -131,26 +212,21 @@ function Slip(q: { slip: PayslipView }) {
   const earnings = slip.lines.filter((l) => l.group === "earning");
   const deductions = slip.lines.filter((l) => l.group === "deduction");
   return (
-    <article className={s.slip} aria-label={t("people.pay")}>
+    <article className={s.slip} aria-label={t("people.payslipTitle",
+      { month: formatMonth(data.headline().runMonth, lang) })}>
       <header className={s.docHead}>
-        <div className={s.docWho}>
-          <span className={s.employer}>{data.companyName[lang]}</span>
-          <span className={s.person}>{x?.name[lang]}</span>
-          <span className={s.meta}>
-            {x?.role[lang]} · <span className="tabular">{x?.number}</span>
-          </span>
-        </div>
-        <div className={s.docWhen}>
-          <span className={s.period}>{t("people.period", {
-            from: dayText(slip.payStart, lang),
-            to: dayText(slip.payEnd, lang) })}</span>
-          {slip.unpaidDays > 0 && (
-            <span className={s.meta}>
-              {t("people.unpaidDays", { count: slip.unpaidDays })}
-            </span>
-          )}
-        </div>
+        <span className={s.employer}>{data.companyName[lang]}</span>
+        <span className={s.period}>{t("people.period", {
+          from: dayText(slip.payStart, lang),
+          to: dayText(slip.payEnd, lang) })}</span>
+        <span className={s.person}>{x?.name[lang]}</span>
+        <span className={s.meta}>
+          {x?.role[lang]} · <span className="tabular">{x?.number}</span>
+          {slip.unpaidDays > 0 && <> · {t("people.unpaidDays",
+            { count: slip.unpaidDays })}</>}
+        </span>
       </header>
+      <NetHero slip={slip} />
       <section aria-labelledby="slip-earn">
         <h2 id="slip-earn" className={s.groupTitle}>
           {t("people.earnings")}
@@ -184,12 +260,12 @@ function Slip(q: { slip: PayslipView }) {
         <Total slip={slip} traceId={slip.netTraceId}
           label={t("people.net")} value={slip.netFils} strong />
       </dl>
-      <footer className={s.foot}>
-        <p>{t("people.explainHint")}</p>
-        {slip.pension !== null && <p>{slip.pension.text[lang]}</p>}
-        {slip.held !== null && <p>{t("people.held")}. {slip.held}</p>}
-        <p>{slip.rulesScope[lang]}</p>
-      </footer>
+      {(slip.pension !== null || slip.held !== null) && (
+        <footer className={s.foot}>
+          {slip.pension !== null && <p>{slip.pension.text[lang]}</p>}
+          {slip.held !== null && <p>{t("people.held")}. {slip.held}</p>}
+        </footer>
+      )}
     </article>
   );
 }
