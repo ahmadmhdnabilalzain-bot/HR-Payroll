@@ -509,7 +509,8 @@ li + li.actRow > .row {
  * the figures, the next action and the history. */
 .record {
   grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
-  grid-template-areas: "head head" "main side";
+  grid-template-areas: "head head" "main side" "main past" "main .";
+  grid-template-rows: auto auto auto 1fr;
   column-gap: var(--space-6);
   align-items: start;
 }
@@ -517,6 +518,7 @@ li + li.actRow > .row {
 .record[data-side="false"] {
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "head" "main";
+  grid-template-rows: none;
 }
 
 .recordHead {
@@ -530,9 +532,17 @@ li + li.actRow > .row {
   min-inline-size: 0;
 }
 
+/* The history: under the panel on desktop, after the tabs on phones. */
+.past {
+  display: grid;
+  grid-area: past;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-secondary);
+}
+
 .aside {
-  position: sticky;
-  inset-block-start: calc(var(--bar-h, 57px) + var(--space-5));
   display: grid;
   grid-area: side;
   gap: var(--space-4);
@@ -1422,11 +1432,12 @@ li + li.actRow > .row {
 
   .record {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "head" "side" "main";
+    grid-template-areas: "head" "side" "main" "past";
+    grid-template-rows: none;
   }
 
-  .aside {
-    position: static;
+  .aside,
+  .past {
     padding: var(--space-4);
   }
 

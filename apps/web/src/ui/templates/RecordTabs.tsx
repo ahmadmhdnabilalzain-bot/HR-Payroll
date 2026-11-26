@@ -70,13 +70,14 @@ export function RecordTabs(p: {
   const hasNext = p.next !== undefined || p.actions !== undefined;
   const hasPast = p.history !== undefined && p.history.length > 0;
   const side = figures.length > 0 || hasNext || hasPast;
+  const panel = figures.length > 0 || hasNext;
   return (
     <div className={`${s.page} ${s.record}`} data-side={side}>
       <div className={s.recordHead}>
         <PageHead title={p.title} lede={p.lede} back={p.back}
           crumbs={p.crumbs} badge={badge} />
       </div>
-      {side && <aside className={s.aside} aria-label={t("tpl.summary")}>
+      {panel && <aside className={s.aside} aria-label={t("tpl.summary")}>
         {figures.length > 0 && (
           <dl className={s.asideFigures}>
             {figures.map((x) => (
@@ -95,21 +96,20 @@ export function RecordTabs(p: {
             )}
           </section>
         )}
-        {hasPast && (
-          <section className={s.asideBlock}
-            aria-label={t("tpl.history")}>
-            <h2 className={s.asideTitle}>{t("tpl.history")}</h2>
-            <ol className={s.timeline}>
-              {p.history?.map((x, i) => (
-                <li key={i}>
-                  <span>{x.what}</span>
-                  <small>{x.when}</small>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
       </aside>}
+      {hasPast && (
+        <aside className={s.past} aria-label={t("tpl.history")}>
+          <h2 className={s.asideTitle}>{t("tpl.history")}</h2>
+          <ol className={s.timeline}>
+            {p.history?.map((x, i) => (
+              <li key={i}>
+                <span>{x.what}</span>
+                <small>{x.when}</small>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      )}
       <div className={s.recordMain}>
         <div className={s.tabs} role="tablist">
           {p.tabs.map((x) => (
