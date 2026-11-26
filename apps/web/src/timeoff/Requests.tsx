@@ -62,7 +62,7 @@ export function Requests(q: { fresh: string | null }) {
           {onlyOwn ? t("timeoff.requestsMine") : t("timeoff.requests")}
         </h2>
         {forMe > 0 && (
-          <span className={p.status} data-tone="warn">
+          <span className={s.needs} aria-live="polite">
             {t("timeoff.needsYou", { count: forMe })}
           </span>
         )}

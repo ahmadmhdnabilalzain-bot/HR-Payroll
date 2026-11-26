@@ -103,6 +103,81 @@ package. Never write "compliant", "approved", "certified" or
 - **Lint:** the repo has no linter: `pnpm typecheck`, `pnpm lines` and
   the style tests are the checks.
 
+## Decisions: People and Time off (Claude's calls)
+
+- **Roles:** the switcher has four views. HR manager and General
+  manager see everyone and everyone's pay. Team manager is Arjun Menon
+  and sees himself and the people whose time off he decides. Employee
+  is Jose Reyes and sees only himself. People opens straight on his
+  profile. All four people come from the data: HR and the GM are the
+  run's maker and checker, the employee is the overtime case, and the
+  manager is his approver. Visibility is checked on every People path,
+  so a deep link or a role switch falls back to "outside your view".
+- **Pay visibility:** the person, HR and the GM. A manager sees the
+  team's profiles without pay.
+- **Approver rule:** the same as the package's (the most senior person
+  in the department, same location first). Where that would be the
+  person themself (the GM), the HR manager decides instead, so maker
+  and checker always differ. A test checks the rule against the
+  package's own leave approvals.
+- **Data:** `src/demo/data/people.ts` is the adapter's People and Time
+  off half. Only adapter.ts imports it, so it stays in the lazy chunk
+  (the boundaries test lists it). `people-explain.ts` maps a payslip
+  line to the shared explain contract. Amounts are money values,
+  inputs read as plain steps ("Days paid: 31 of 31"), and raw fils,
+  rule ids and codes are never shown.
+- **Requests in the store:** a new request is `request-leave` (ids made
+  in the reducer). It carries its own approval id, so Home's inbox,
+  the Time off list and undo all read the one `decided` map. Package
+  requests that are still pending follow the same map. Withdraw (with
+  undo) removes a waiting request from the inbox.
+- **Balances:** annual leave re-runs the engine's `balanceHalves` with
+  every booked and waiting request. A leaver (no balance figure)
+  shows the package's `availableDays` and its basis note. Sick and
+  unpaid leave are shown as days used this year. Neither has a balance,
+  and both say how the days are paid.
+- **Day count:** the engine's `countLeaveHalves` on the working basis,
+  with the demo's Saturday and Sunday weekend. There is no
+  public-holiday calendar in the data, and the sheet says so. Requests
+  are whole days only, with no half days.
+- **Words:** booked, waiting, declined, withdrawn. "Approved" is never
+  shown. A decision made in the demo names the person, the role and
+  the date ("Booked by Arjun Menon, Operations manager, 27 October").
+  Package requests booked before the demo show only "Booked", because
+  the data has no decision record. Dates are written out ("2 to 6
+  November"), with the year only outside 2026.
+- **Motion:** one moment per flow. Rows in the People list stagger in
+  at 90 ms (the first six). A sent request arrives at the top of the
+  list with a short accent wash. Sheets slide 250 ms in and 200 ms
+  out. Reduced motion turns all of it off.
+- **Critique pass:**
+  - The lists are inset grouped lists: radius 12, separators inset
+    16 px, no bordered cards.
+  - Severity is an 8 px dot beside a neutral word. Open items say
+    "Stops pay" (no IBAN, or an IBAN that fails its check) or "Check".
+  - Teal is for actions only, so calendar bars and status words are
+    neutral.
+  - People has segments: all, needs attention (open items) and
+    leavers. Its department picker is our own listbox, not a native
+    select.
+  - The profile opens with three facts: net pay, annual leave left and
+    years of service. Expiring papers appear once, under Documents.
+  - The payslip has an employer header, unpaid days, a print button
+    and dotted rules on worked-out figures only. Every figure still
+    opens its working.
+  - Days left roll with GSAP, power3.out over 600 ms (`useRoll`, whole
+    half-days, tabular figures).
+  - The sheet's scrim is a box shadow, because `::backdrop` does not
+    read custom properties in older Safari.
+  - A request must fall inside 2026 and may not overlap time off
+    already booked or waiting.
+  - Type sizes follow the new scale: body 15, secondary 13.
+- **Phones:** People becomes rows (name and status, role, branch), not
+  a squeezed table. Who is off becomes a list. Sheets come up from the
+  bottom (dvh, safe-area padding). Targets are 44 px and inputs 17 px.
+  Verified in Chromium emulation of iPhone 13, 15 and 15 Pro sizes.
+  WebKit is not installed.
+
 ## Checks
 
 `pnpm --filter @payroll/web test` and `pnpm --filter @payroll/web

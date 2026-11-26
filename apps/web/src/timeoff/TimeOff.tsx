@@ -8,6 +8,7 @@ import {
   visibleIds,
 } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
+import { useRoll } from "../people/useRoll";
 import { dayCountText, dayCountVars, dayVars } from "../people/words";
 import b from "../ui/button.module.css";
 import type { ViewProps } from "../views";
@@ -59,6 +60,9 @@ function Balances(q: { id: string }) {
   const sick = usedHalves(rows, q.id, "lt-sick");
   const unpaid = usedHalves(rows, q.id, "lt-unpaid");
   const d = (h: number): string => dayCountText(h / 2, t, lang);
+  // Days left roll with GSAP when a request or decision moves them.
+  const whole = bal !== null && Number.isInteger(bal.availableDays * 2);
+  const rolled = useRoll(whole ? (bal?.availableDays ?? 0) * 2 : 0);
   return (
     <section className={p.section} aria-labelledby="bal-title">
       <header className={p.sectionHead}>
@@ -66,7 +70,7 @@ function Balances(q: { id: string }) {
           {t("timeoff.balances")}
         </h2>
       </header>
-      <div className={s.balances}>
+      <div className={`${s.balances} ${p.card}`}>
         <div className={s.balance} data-main="">
           <h3 className={s.balanceName}>{t("timeoff.annual")}</h3>
           {bal === null ? (
@@ -74,8 +78,9 @@ function Balances(q: { id: string }) {
           ) : (
             <>
               <p className={`${s.balanceBig} tabular`}>
-                {t("timeoff.annualLeft",
-                  dayCountVars(bal.availableDays, lang))}
+                {whole ? t("timeoff.annualLeft", dayVars(rolled, lang))
+                  : t("timeoff.annualLeft",
+                    dayCountVars(bal.availableDays, lang))}
               </p>
               <p className={s.balanceNote}>
                 {bal.basis ?? t("timeoff.annualMade", {

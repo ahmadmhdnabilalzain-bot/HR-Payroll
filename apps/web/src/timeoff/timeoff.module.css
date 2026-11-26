@@ -3,7 +3,6 @@
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 1fr));
   gap: var(--space-6);
-  padding-block-start: var(--space-2);
 }
 
 .balance {
@@ -36,22 +35,37 @@
   font-size: var(--text-md);
 }
 
-/* Requests */
+/* Requests: one inset grouped list. */
 .requests {
   display: grid;
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 4%,
+      transparent),
+    0 8px 24px color-mix(in srgb, var(--color-shadow) 6%, transparent);
   list-style: none;
 }
 
 .request {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3) var(--space-5);
-  padding-block: var(--space-4);
-  border-block-end: 1px solid var(--color-divider);
+  padding: 14px var(--space-4);
+}
+
+.request + .request::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--space-4) 0;
+  block-size: 1px;
+  background: var(--color-divider);
 }
 
 /* The flow's one moment: the request just sent arrives and settles. */
@@ -63,14 +77,47 @@
   0% {
     opacity: 0;
     transform: translateY(-8px);
-    background: var(--color-accent-soft);
+    background: var(--color-surface-2);
   }
 
   28% {
     opacity: 1;
     transform: none;
-    background: var(--color-accent-soft);
+    background: var(--color-surface-2);
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .request[data-fresh="true"] {
+    animation: none;
+  }
+}
+
+/* Status: a neutral word; only the 8 px dot carries the colour. */
+.request .reqStatus[data-tone] {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.request .reqStatus[data-tone="warn"]::before {
+  background: var(--color-warning);
+}
+
+.request .reqStatus[data-tone="done"]::before {
+  background: var(--color-success);
+}
+
+.request .reqStatus[data-tone="danger"]::before {
+  background: var(--color-danger);
+}
+
+.request .reqStatus[data-tone="neutral"]::before {
+  background: var(--color-text-faint);
+}
+
+.needs {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .reqMain {
@@ -81,6 +128,10 @@
 }
 
 .reqName {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  margin-block: -10px -6px;
   color: var(--color-text);
   font-weight: 500;
   text-decoration: none;
@@ -121,7 +172,7 @@
 }
 
 .reqStatus {
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
   white-space: normal;
 }
 
@@ -149,17 +200,19 @@
   animation: sheet-in var(--dur-slow) var(--ease-out);
 }
 
+/* The scrim is the sheet's own shadow: ::backdrop does not read
+ * custom properties in older Safari. */
 .sheet::backdrop {
-  background: color-mix(in srgb, var(--color-scrim) 30%, transparent);
-  animation: fade-in var(--dur-slow) var(--ease-out);
+  background: transparent;
+}
+
+.sheet[open] {
+  box-shadow: 0 0 0 100vmax color-mix(in srgb, var(--color-scrim) 30%,
+    transparent), var(--shadow-pop);
 }
 
 .sheet[data-leaving="true"] {
   animation: sheet-out var(--dur-base) var(--ease-in-out) forwards;
-}
-
-.sheet[data-leaving="true"]::backdrop {
-  animation: fade-out var(--dur-base) var(--ease-in-out) forwards;
 }
 
 @keyframes sheet-in {
@@ -332,7 +385,7 @@
   gap: var(--space-1);
   padding: var(--space-4);
   border-radius: var(--radius-panel);
-  background: var(--color-accent-soft);
+  background: var(--color-surface-2);
 }
 
 .summary[data-problem="true"] {
@@ -440,7 +493,7 @@
 }
 
 .dayHead[data-today="true"] {
-  color: var(--color-accent);
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -474,8 +527,8 @@
   inset-block: -4px;
   inset-inline-start: 50%;
   inline-size: 2px;
-  background: var(--color-accent);
-  opacity: 0.5;
+  background: var(--color-text);
+  opacity: 0.35;
 }
 
 .cell[data-on]::before {
@@ -486,13 +539,11 @@
 }
 
 .cell[data-on="booked"]::before {
-  background: var(--color-accent);
-  opacity: 0.85;
+  background: var(--color-text-muted);
 }
 
 .cell[data-on="waiting"]::before {
-  border-block: 2px solid var(--color-warning);
-  background: var(--color-warning-bg);
+  border-block: 2px dashed var(--color-text-muted);
 }
 
 .cell[data-start="true"]::before {
@@ -508,11 +559,11 @@
 }
 
 .cell[data-on="waiting"][data-start="true"]::before {
-  border-inline-start: 2px solid var(--color-warning);
+  border-inline-start: 2px dashed var(--color-text-muted);
 }
 
 .cell[data-on="waiting"][data-end="true"]::before {
-  border-inline-end: 2px solid var(--color-warning);
+  border-inline-end: 2px dashed var(--color-text-muted);
 }
 
 .legend {
@@ -537,13 +588,11 @@
 }
 
 .key[data-on="booked"] {
-  background: var(--color-accent);
-  opacity: 0.85;
+  background: var(--color-text-muted);
 }
 
 .key[data-on="waiting"] {
-  border: 2px solid var(--color-warning);
-  background: var(--color-warning-bg);
+  border: 2px dashed var(--color-text-muted);
 }
 
 .offList {

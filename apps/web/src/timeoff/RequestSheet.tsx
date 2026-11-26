@@ -2,13 +2,13 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { LeaveTypeId } from "../demo/data/people-types";
 import { DUR, reducedMotion } from "../demo/motion";
 import { useDemo } from "../demo/state";
-import { annualNow, personFor } from "../demo/time-off";
+import { annualNow, personFor, requestRows } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
 import { dayCountText, dayVars, rangeText } from "../people/words";
 import b from "../ui/button.module.css";
 import { Icon } from "../ui/Icon";
 import { useToast } from "../ui/Toast";
-import { nextWeek, problemOf } from "./draft";
+import { nextWeek, problemOf, YEAR } from "./draft";
 import p from "../people/page.module.css";
 import s from "./timeoff.module.css";
 
@@ -55,7 +55,9 @@ export function RequestSheet(q: { open: boolean; onClose(): void;
   const count = end >= start && start !== "" && end !== ""
     ? data.people.countDays(start, end) : { halves: 0, weekendDays: 0 };
   const bal = annualNow(data, state, me);
-  const problem = problemOf(type, start, end, count, bal);
+  const taken = requestRows(data, state).filter((r) => r.employeeId === me
+    && (r.state === "booked" || r.state === "waiting"));
+  const problem = problemOf(type, start, end, count, bal, taken);
   const left = bal === null ? null : bal.availableDays - count.halves / 2;
   const send = (): void => {
     if (problem !== null || approver === null) return;
@@ -111,6 +113,7 @@ export function RequestSheet(q: { open: boolean; onClose(): void;
             </label>
             <input id={ids.start} type="date" className={s.input}
               value={start} required aria-describedby={ids.sum}
+              min={`${YEAR}-01-01`} max={`${YEAR}-12-31`}
               onChange={(e) => {
                 setStart(e.target.value);
                 if (end < e.target.value) setEnd(e.target.value);
@@ -121,7 +124,8 @@ export function RequestSheet(q: { open: boolean; onClose(): void;
               {t("timeoff.lastDay")}
             </label>
             <input id={ids.end} type="date" className={s.input}
-              value={end} min={start} required aria-describedby={ids.sum}
+              value={end} min={start} max={`${YEAR}-12-31`} required
+              aria-describedby={ids.sum}
               onChange={(e) => setEnd(e.target.value)} />
           </div>
         </div>

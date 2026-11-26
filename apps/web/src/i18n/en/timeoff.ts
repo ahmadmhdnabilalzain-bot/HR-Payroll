@@ -16,7 +16,7 @@ export const timeoff = {
   sickUsed: { one: "{n} day this year",
     other: "{n} days this year" },
   sickNote: "No fixed balance. How each day is paid follows the " +
-    "payroll rules and shows on the payslip.",
+    "payroll rules; an unpaid day shows on the payslip.",
   unpaid: "Unpaid leave",
   unpaidUsed: { one: "{n} day this year",
     other: "{n} days this year" },
@@ -63,6 +63,8 @@ export const timeoff = {
   errEnd: "The last day is before the first day.",
   errNone: "These dates are all weekend days.",
   errOver: "That is more than the {days} of annual leave left.",
+  errYear: "Choose days in 2026, the year of this balance.",
+  errOverlap: "You already have time off on some of these days.",
   sent: "Sent to {name}",
   calendar: "Who is off",
   prevMonth: "Previous month",
