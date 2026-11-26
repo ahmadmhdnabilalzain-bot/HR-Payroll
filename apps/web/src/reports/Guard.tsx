@@ -7,10 +7,12 @@ import s from "./Reports.module.css";
  * These reports name people and pay: HR and the General manager only.
  * A deep link from another role lands here, not on the figures.
  */
-export function Guard(p: { children: ReactNode; gmOnly?: boolean }) {
+export function Guard(p: { children: ReactNode; gmOnly?: boolean;
+  itOk?: boolean }) {
   const { state } = useDemo();
   const allowed = state.role === "gm" ||
-    (state.role === "hr" && p.gmOnly !== true);
+    (state.role === "hr" && p.gmOnly !== true) ||
+    (state.role === "it" && p.itOk === true);
   if (allowed) return <>{p.children}</>;
   return (
     <div className={s.page}>

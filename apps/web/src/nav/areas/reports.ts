@@ -40,6 +40,6 @@ export const AREAS: readonly Area[] = [
     route: rep("dashboard-exec"), keywords: "general manager overview kpi" },
   { id: "reports.audit", section: "reports", group: "analysis",
     label: { en: "Audit trail", ar: "سجل التدقيق" }, status: "live",
-    archetype: "LF", roles: HR_GM, route: rep("audit"),
+    archetype: "LF", roles: [...HR_GM, "it"], route: rep("audit"),
     keywords: "log history who did what chain fingerprint" },
 ];

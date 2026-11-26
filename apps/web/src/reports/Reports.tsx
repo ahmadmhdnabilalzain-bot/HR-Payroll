@@ -33,10 +33,10 @@ import s from "./Reports.module.css";
 
 /** The newer reports, each on its own template page (WP7). */
 const SCREENS: Record<string, { view: ComponentType<ViewProps>;
-  gmOnly?: boolean }> = {
+  gmOnly?: boolean; itOk?: boolean }> = {
   trend: { view: Trend }, variance: { view: Variance },
   overtime: { view: Overtime }, headcount: { view: Headcount },
-  leave: { view: Leave }, audit: { view: Audit },
+  leave: { view: Leave }, audit: { view: Audit, itOk: true },
   "dashboard-hr": { view: DashboardHr },
   "dashboard-exec": { view: DashboardExec, gmOnly: true },
 };
@@ -50,7 +50,8 @@ export function Reports(p: ViewProps) {
   if (screen !== undefined) {
     return (
       <Suspense fallback={loading}>
-        <Guard gmOnly={screen.gmOnly === true}>
+        <Guard gmOnly={screen.gmOnly === true}
+          itOk={screen.itOk === true}>
           <screen.view rest={p.rest} />
         </Guard>
       </Suspense>
