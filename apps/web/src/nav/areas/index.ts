@@ -9,6 +9,7 @@ import { AREAS as PEOPLE_SAFETY } from "./people-safety";
 import { AREAS as PEOPLE_TALENT } from "./people-talent";
 import { AREAS as PEOPLE_TEAM } from "./people-team";
 import { AREAS as REPORTS } from "./reports";
+import { AREAS as REQUESTS } from "./requests";
 import { AREAS as SETUP_ACCESS } from "./setup-access";
 import { AREAS as SETUP_RULES } from "./setup-rules";
 import { AREAS as SETUP_STRUCTURE } from "./setup-structure";
@@ -33,4 +34,5 @@ export const ALL_AREAS: readonly Area[] = [
   ...SETUP_ACCESS,
   ...SETUP_STRUCTURE,
   ...HOME_ME,
+  ...REQUESTS,
 ];

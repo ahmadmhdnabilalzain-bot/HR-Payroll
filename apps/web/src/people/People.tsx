@@ -6,6 +6,7 @@ import type { ViewProps } from "../views";
 import { Papers } from "./papers/Papers";
 import { Growth } from "./growth/Growth";
 import { Moves } from "./moves/Moves";
+import { Requests } from "./requests/Requests";
 import { Payslip } from "./Payslip";
 import { PeopleList } from "./PeopleList";
 import { Profile } from "./Profile";
@@ -30,6 +31,7 @@ export function People(p: ViewProps) {
   if (id === "talent") return <Talent rest={p.rest.slice(1)} />;
   if (id === "safety") return <Safety rest={p.rest.slice(1)} />;
   if (id === "moves") return <Moves rest={p.rest} />;
+  if (id === "requests") return <Requests rest={p.rest} />;
   const who = id ?? (state.role === "employee" ? me : undefined);
   if (who === undefined) return <PeopleList />;
   if (data.people.person(who) === null) {
