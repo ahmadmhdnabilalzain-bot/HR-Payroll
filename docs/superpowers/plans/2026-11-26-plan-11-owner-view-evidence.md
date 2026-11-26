@@ -17,13 +17,13 @@
 - F4 Owner brief: one screen of what needs a decision (Task 10).
 - F5 Compliance score with fine exposure from sourced rules only
   (Task 5).
-- F6 Report builder and scheduled exports, CSV and PDF (Task 7).
+- F6 Report builder and scheduled exports, CSV and PDF (Task 8).
 - F7 Payroll reports: register, cost by department, variance,
-  gratuity liability estimate (Task 7).
+  gratuity liability estimate (Task 8).
 - F8 Inspection pack: one sealed ZIP export (Task 9).
 - F9 Verifiable payslips: payslip PDF with a verification QR (Task 6).
 - F10 Audit-readiness checklist and evidence locker (Task 9).
-- F11 Correction record for amended pay runs (Task 8).
+- F11 Correction record for amended pay runs (Task 7).
 
 **Goal:** Give the owner one place to decide, check and prove: a gate
 that must be clear before a pay run is approved, hypothetical replays,
@@ -82,10 +82,10 @@ renaming only at the export.
 | 2 | Plan 3; Plan 6 Task 6 (`PayRun.pendingClaimCount`) |
 | 3 | Plan 5 (engine payslip, `DL57_ART11` source id) |
 | 4 | Plans 3 and 5; Task 3 |
-| 5 | Plan 7 Tasks 2 and 8 (Emiratisation pack and report); Tasks 1, 3 |
+| 5 | Plan 7 Tasks 2 and 8 (Emiratisation pack and report); Tasks 1-3 |
 | 6 | Plan 7 Tasks 3 and 7 (file store, `BinaryResult`, pdfkit); Task 1 |
-| 7 | Tasks 2 and 6 |
-| 8 | Plan 6 Task 2 (approval spine); Task 6 |
+| 7 | Plan 6 Task 2 (approval spine); Task 6 |
+| 8 | Tasks 2, 6 and 7 |
 | 9 | Tasks 5 to 8 |
 | 10 | Tasks 1 to 9 |
 
@@ -136,7 +136,7 @@ them). Task 3 runs in parallel with Tasks 1 and 2.
 - Migrations are numbered `1101_` to `1108_` (Plan 11's range; `1109`
   is kept free).
 - Each task ends with `pnpm check` green and one commit. Review: fresh
-  per-task review after Tasks 2, 3, 6, 8 and 9 (money, law, crypto,
+  per-task review after Tasks 2, 3, 6, 7 and 9 (money, law, crypto,
   evidence); one whole-branch review at the end (speed ruling).
 
 ## Review Focus
@@ -150,7 +150,7 @@ them). Task 3 runs in parallel with Tasks 1 and 2.
    `'`, while signed money such as `-12.00` is left as is (Task 1
    `csv_guards_formula_cells`).
 3. A payslip checked after a correction replaced it: verification says
-   `superseded`, not `genuine` (Task 8
+   `superseded`, not `genuine` (Task 7
    `verify_superseded_after_correction`).
 4. A company where no fine is sourced: the exposure total is `null`,
    never `"0.00"`, and the score's denominator leaves out not-assessed
@@ -175,7 +175,7 @@ packages/contract/src/owner/{gate,replay,deadlines,compliance,
 packages/api/migrations/1101_gate.sql ... 1108_packs.sql
 packages/api/src/db/migrate.ts               3 or 4 digit names
 packages/api/src/audit/owner-audit.ts        ownerAudit
-packages/api/src/export/{csv,zip,pdf-table,ics}.ts
+packages/api/src/export/{zip,pdf-table,ics}.ts
 packages/api/src/gate/        checks (pure), load, ack, contracts
 packages/api/src/replay/      to-engine (pure), compute (pure), service
 packages/api/src/deadlines/   status (pure), filings, service
@@ -204,7 +204,9 @@ HANDOVER.md, LEDGER.md                       updated in Task 10
 - Modify: `packages/api/src/db/money.ts` (`toSignedMoney`),
   `src/app.ts` and `src/http/validate.ts` (text content types)
 - Create: `packages/api/src/audit/owner-audit.ts`,
-  `src/export/csv.ts`, `src/export/zip.ts`
+  `src/export/zip.ts`
+- Create or modify: `packages/api/src/http/csv.ts` (Plan 6's CSV
+  writer; one writer for the whole API)
 - Test: `packages/contract/tests/routes-owner.test.ts`,
   `packages/api/tests/csv.test.ts`, `tests/zip.test.ts`,
   `tests/helpers/zip-read.ts`, `tests/owner-audit.test.ts`
@@ -217,14 +219,17 @@ HANDOVER.md, LEDGER.md                       updated in Task 10
   - `migrate(db, dir)`: names match `/^(\d{3,4})_[a-z0-9_]+\.sql$/`
     (else `MIGRATION_NAME`); applied in numeric order of the prefix; two
     files with the same number throw `MIGRATION_NAME`. Already applied
-    names stay recorded as before.
+    names stay recorded as before. (Plan 10 Task 1 makes the same
+    change; if the branch already has it, only add the test cases.)
   - `SignedMoney` (zod): `^-?\d{1,9}\.\d{2}$`, refusing `"-0.00"`.
     `toSignedMoney(f: Fils): string` (zero is `"0.00"`).
   - `OWNER_ROUTES: readonly RouteDef[]` (empty here; each task appends
     its routes). `routes.ts`: `ROUTES` = the existing joined list (Plan
     3's routes and any other plan's list already merged) followed by
-    `...OWNER_ROUTES`. If Plan 3's list is still named `ROUTES` with no
-    join, rename it `CORE_ROUTES` as Plans 7 and 8 do.
+    `...OWNER_ROUTES`. If Plan 10's `ROUTE_GROUPS` exists, append
+    `OWNER_ROUTES` as its last group instead. If Plan 3's list is still
+    named `ROUTES` with no join, rename it `CORE_ROUTES` as Plans 7 and
+    8 do.
   - `RouteDef.contentType` gains `"text/csv"` and `"text/calendar"`
     (string bodies through Plan 3's text path; added only if absent;
     other plans' members are kept).
@@ -234,11 +239,15 @@ HANDOVER.md, LEDGER.md                       updated in Task 10
     Promise<AuditEvent>` throws `AUDIT_SENSITIVE_DATA` on any of them
     (any depth), then calls `appendAudit`. Every Plan 11 service audits
     through it.
-  - `toCsv(header: string[], rows: (string | null)[][]): string`:
-    RFC 4180, CRLF line ends, UTF-8 with no BOM; a cell is quoted when
-    it holds `,`, `"`, CR or LF (quotes doubled); `null` is an empty
-    cell; a cell starting with `=`, `+`, `-`, `@`, tab or CR gets a
-    leading `'` unless it matches `SignedMoney`.
+  - `toCsv(statement: string | null, header: string[], rows: (string |
+    null)[][]): string` in `src/http/csv.ts`, Plan 6's signature and
+    rules (RFC 4180, CRLF, UTF-8 with a BOM, quoting of `,`, `"`, CR
+    and LF, a leading `'` on cells starting with `=`, `+`, `-`, `@`,
+    tab or CR, the statement as a first one-cell line) plus two
+    additions: `null` is an empty cell, and a cell matching
+    `SignedMoney` gets no `'`. If Plan 6 has not created the file,
+    create it with exactly this behaviour; if it has, add the two
+    additions (Plan 6's tests stay green).
   - `ZipEntry { path: string; bytes: Uint8Array }`;
     `buildZip(entries: ZipEntry[], at: Date): Uint8Array`: stored (no
     compression), CRC-32 from `zlib.crc32`, DOS date and time from the
@@ -265,8 +274,8 @@ repeats in `ROUTES`; `SignedMoney` accepts `"-12.00"`, `"0.00"` and
 rejects `"-0.00"`, `"12"`, `"--1.00"`.
 
 `csv.test.ts`:
-- `csv_quotes_and_crlf`: `toCsv(["a","b"], [["x,y", 'q"'], [null,
-  "z"]])` equals `'a,b\r\n"x,y","q"""\r\n,z\r\n'`.
+- `csv_quotes_and_crlf`: `toCsv(null, ["a","b"], [["x,y", 'q"'],
+  [null, "z"]])` equals `'\uFEFFa,b\r\n"x,y","q"""\r\n,z\r\n'`.
 - `csv_guards_formula_cells` (Review Focus 2): cells
   `"=HYPERLINK(1)"`, `"+1"`, `"@x"`, `"-x"` become `"'=HYPERLINK(1)"`,
   `"'+1"`, `"'@x"`, `"'-x"`; `"-12.00"` stays `"-12.00"`.
@@ -302,7 +311,8 @@ Money task: fresh per-task review.
   `src/routes/gate.ts`
 - Modify: `packages/api/src/payroll/pay-runs.ts` (approve calls
   `assertGateClear`), `src/app.ts`, `tests/helpers/seed.ts`
-  (`seedTwoMonths`), `tests/leak.test.ts`, `tests/conformance.test.ts`
+  (`seedTwoMonths`, `seedOwnerView`, `ackAll`; `seedPayroll` calls
+  `ackAll`), `tests/leak.test.ts`, `tests/conformance.test.ts`
 - Test: `packages/api/tests/gate-checks.test.ts`, `tests/gate.test.ts`
 
 **Interfaces:**
@@ -392,8 +402,10 @@ Money task: fresh per-task review.
        `detail.fields` `"basic"`, `"total"` or `"basic,total"`).
     7. WPS: `wpsSettingsMissing`: `WPS_SETTINGS_MISSING` (error);
        `bankMissing`: one `WPS_BANK_DETAILS_MISSING` (error) listing all
-       ids; else each SIF finding: `WPS_ERROR` (error) or `WPS_WARNING`
-       (review), `detail.findingCode`, one per distinct code.
+       ids; else each SIF finding: `WPS_ERROR` (error) or `WPS_WARNING`,
+       `detail.findingCode`, one per distinct code. A warning is
+       `review`, except codes in `WPS_INFO_CODES = ["ROUTING_UNKNOWN"]`,
+       which are `info` (the routing table is known to be partial).
     8. Each `ibanGroups` entry of two or more ids:
        `DUPLICATE_BANK_ACCOUNT` (review).
     9. `fingerprint = sha256Hex(canonicalJson({ runId, inputHash, code,
@@ -420,6 +432,14 @@ Money task: fresh per-task review.
   - Contract salaries: amounts encrypted with AAD
     `"<companyId>:contract_salaries:<column>:<id>"`; audit
     `contract.salary-recorded` (`data: { employeeId, source }`).
+  - `ackAll(app, token, companyId, runId)` (test helper): acknowledges
+    every open review finding with the note `"seed"`. Plan 3's
+    `seedPayroll` calls it before approving, and so does every test
+    that approves through the route.
+  - `seedOwnerView(app, seeded)` starts here, returning `{ marRunId }`
+    from `seedTwoMonths`; Tasks 6 to 9 add `kid`, `correctionId`,
+    `definitionId`, `scheduleId`, `exportId`, `evidenceId` and
+    `packId`, so the leak and conformance tests fill every `{id}`.
   - `seedTwoMonths(app, seeded)`: February 2026 run approved; March
     2026 run draft with employee A's salary changed between the runs
     and a one-off `bonus` 500.00 for employee B; returns `{ febRunId,
@@ -540,14 +560,15 @@ Law task: fresh per-task review.
     month (`NO_PACK_FOR_DATE` before 2026-06-01, so May 2026 is the
     first period); trace ids `deadline.wps.due`, `deadline.wps.alert`,
     `deadline.gpssa.last-day`.
-  - `gpssaLateAddition(amountDue: Fils, daysLate: number, packs?:
-    readonly RulePack[], on?: string): Traced<Fils>`: `daysLate` a whole
-    number 0 or more (else `INVALID_COUNT`); result = the smaller of
+  - `gpssaLateAddition(amountDue: Fils, daysLate: number, packs:
+    readonly RulePack[] | undefined, on: string): Traced<Fils>`:
+    `daysLate` a whole number 0 or more (else `INVALID_COUNT`);
+    result = the smaller of
     `mulDiv(amountDue, dailyBps * daysLate, 10000n, rounding)` and
     `mulDiv(amountDue, capBps, 10000n, rounding)`, with `dailyBps`,
-    `capBps` and `rounding` read from the pack (selected on `on`,
-    default `"2026-06-01"`); trace id `gpssa.late-addition` with the
-    three rules.
+    `capBps` and `rounding` read from the pack selected on `on` (the
+    caller passes the deadline's last day; no default); trace id
+    `gpssa.late-addition` with the three rules.
   - `applyRuleChange(packs: readonly RulePack[], change: RuleChange):
     RulePack[]` (the existing private `applyChange`, exported and
     renamed; `previewRuleChange` keeps its signature and behaviour).
@@ -580,8 +601,8 @@ Law task: fresh per-task review.
 
 `payslip-preview.test.ts` (FX rebuilt locally as in Plan 5):
 - `identity_change_zero_delta`: `overtimeUpliftBps` set to its current
-  value: `grossDelta` 0n, `before` deep-equals `after.value` apart from
-  trace rule status.
+  value: `grossDelta` 0n and `before.value` deep-equals `after.value`
+  (only the trace rule status differs).
 - `overtime_change_moves_gross`: FX with 120 overtime minutes, uplift
   5000: `after.value.gross` equals `calculatePayslip(input,
   { ...DEFAULT_PAYROLL_PACKS, payroll: applyRuleChange(...) })
@@ -656,7 +677,7 @@ that do not exist yet are skipped.
   - Route: `replayPayRun POST /v1/pay-runs/{id}/replay` (owner, hr;
     body `{ change: ReplayChange }`, 200) to `ReplayResult`.
   - Errors: `REPLAY_CHANGE_INVALID` 422 (`detail.reason`:
-    `"unknown-key"`, `"type-mismatch"`, `"unknown-pack"`),
+    `"unknown-key"`, `"type-mismatch"`),
     `RUN_VOID` 409, `EMPLOYEE_NOT_IN_RUN` 422.
 - Produces (api):
   - `toPayslipInput(e: SnapshotEmployee, entry: PayRunEntry |
@@ -686,10 +707,12 @@ that do not exist yet are skipped.
     employees (all when omitted) is `mulDiv(amount, 10000 + bps, 10000,
     HALF_UP)` (product rounding), both payslip and settlement are
     computed twice. `delta = after - before` of the same computation,
-    never against `paidGross`. `baselineMatchesPaid = before.gross +
-    extras === paidGross`. An `EngineError` for one employee gives
-    `not-replayed` with `ENGINE_REFUSED` and `engineCode`. Totals cover
-    replayed rows only.
+    never against `paidGross`. `before.gross` and `after.gross` are
+    the engine gross plus `extras` (one-offs), and
+    `baselineMatchesPaid = before.gross === paidGross`. An
+    `EngineError` for one employee gives `not-replayed` with
+    `ENGINE_REFUSED` and `engineCode`. Totals cover replayed rows
+    only.
   - `replayPayRun(ctx, runId, body)`: validates the key exists in the
     named pack and that `typeof newValue` equals the current value's
     type (else 422); void run gives 409; unknown employee ids 422;
@@ -717,8 +740,10 @@ that do not exist yet are skipped.
   them.
 - `replay_partial_joiner_flags_mismatch`: joined `2026-03-10`, entered
   overrides: status `replayed`, `baselineMatchesPaid` false.
-- `replay_one_off_on_both_sides`: one-off 50000n: before and after
-  both include it; delta unaffected.
+- `replay_one_off_on_both_sides`: full-month expat paid basic 1000000n
+  plus one-off 50000n (`paidGross` 1050000n): `before.gross` 1050000n,
+  `baselineMatchesPaid` true; with a raise of 1000 bps `after.gross`
+  1150000n (the one-off is not raised).
 - fast-check (100 runs): for random full-month expats and raise bps,
   `totals.delta === sum of row deltas` and every row's `delta ===
   after - before`.
@@ -838,6 +863,9 @@ that do not exist yet are skipped.
     lines folded at 75 octets; `,`, `;`, `\` and newlines escaped.
   - `putFiling(ctx, kind, year, month, body)`: audit `filing.recorded`
     (`data: { kind, year, month }`).
+  - `complianceScore(ctx): Promise<ComplianceScore>` loads
+    `ComplianceFacts` and calls `buildChecks`, `scoreChecks` and
+    `sumExposure` (used by the route and by Task 10).
   - `exposureFromTrace(amount: Fils | null, trace: TraceLine[],
     exemptKeys: readonly string[]): Exposure` (pure): `null` amount
     gives `not-assessed` with `reason` `"UNSOURCED_PARAM"`; any rule
@@ -861,7 +889,8 @@ that do not exist yet are skipped.
        payment for YYYY-MM", `fixBy` the alert date.
     2. `gpssa-last-period` (rule): `not-applicable` without nationals;
        status as above against `lastDay`; exposure: `computed` from
-       `gpssaLateAddition(amountDue, daysLate)` through
+       `gpssaLateAddition(amountDue, daysLate, undefined, lastDay)`
+       through
        `exposureFromTrace(..., ["gpssaLateRounding"])` where `daysLate =
        (doneOn or today) - lastDay` (0 when on time); `not-assessed`,
        reason `"AMOUNT_DUE_NOT_ENTERED"`, without `amountDue`.
@@ -962,7 +991,7 @@ Crypto and security task: fresh per-task review.
   level M.
 - Verification (online): parse strictly, enter the token's company,
   load key, seal and payslip, recompute `bodyHash`, verify. Results:
-  `genuine`, `superseded` (a correction replaced it, Task 8),
+  `genuine`, `superseded` (a correction replaced it, Task 7),
   `revoked` (key revoked), else `not-genuine` with one identical body
   for every failure cause.
 - Rotation: owner with MFA; the old key becomes `retired` and still
@@ -990,7 +1019,9 @@ Crypto and security task: fresh per-task review.
   `BinaryResult.mime`), `src/payroll/pay-runs.ts` (approve calls
   `issueSeals`), `src/payroll/payslips.ts` (`verificationUrl`),
   `tests/helpers/test-app.ts` (`verifyBaseUrl:
-  "https://verify.example.test"`)
+  "https://verify.example.test"`), Plan 3's `tests/main.test.ts` (its
+  valid env gains `PAYSLIP_VERIFY_URL`; a missing or `http://` value
+  throws)
 - Create: `packages/api/migrations/1103_verification.sql`,
   `src/export/pdf-table.ts`, `src/verify/token.ts` (pure),
   `src/verify/keys.ts`, `src/verify/seal.ts`,
@@ -1082,8 +1113,10 @@ height); a doc with `qr` renders without error.
   `https://verify.example.test#v1.`.
 - `verify_genuine`: the token from the URL verifies as `genuine` with
   the payslip's gross and net; no auth header needed.
-- `verify_tampered_body_not_genuine`: the owner role edits the stored
-  payslip body (test superuser): `{ status: "not-genuine" }`.
+- `verify_tampered_body_not_genuine`: the test decrypts the stored
+  payslip body, raises `net`, re-encrypts it with the test keyring and
+  writes it back as the database superuser: `{ status: "not-genuine"
+  }`.
 - `verify_failures_identical`: a random token, a wrong company id, a
   flipped signature byte and an unknown kid all give a body
   deep-equal to `{ status: "not-genuine" }`.
@@ -1110,13 +1143,181 @@ height); a doc with `qr` renders without error.
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(api): verifiable payslips and PDF`.
 
-### Task 7: Payroll reports, report builder and scheduled exports (F6, F7)
+### Task 7: Correction record for amended pay runs (F11)
+
+Money task: fresh per-task review.
+
+**Files:**
+- Create: `packages/contract/src/owner/corrections.ts`
+- Modify: `packages/contract/src/routes-owner.ts`, `src/payroll.ts`
+  (`PayRun` gains `kind`, `correctsRunId`; `Payslip` gains `status`,
+  `supersededBy`, `correctionOf`), `src/approvals.ts` (`SubjectType`
+  adds `"pay-run-correction"`), `src/errors.ts`, `src/examples.ts`,
+  `src/index.ts`
+- Create: `packages/api/migrations/1104_corrections.sql`,
+  `src/corrections/diff.ts` (pure), `src/corrections/create.ts`,
+  `src/corrections/subject.ts`, `src/corrections/delta.ts`,
+  `src/routes/corrections.ts`
+- Modify: Plan 6 `src/approvals/subjects.ts` (`SubjectFacts
+  .claimantEmployeeId: string | null`; optional `SubjectHandler
+  .mfaToDecide`, `.defaultTiers`, `.chainLocked`),
+  `src/approvals/chains.ts` (default tiers per handler; `putChain` on
+  a locked type 422 `CHAIN_LOCKED`), `src/approvals/decide.ts` (MFA
+  check), Plan 3 `src/payroll/pay-runs.ts` (approve and void refuse
+  correction runs: 409 `RUN_IS_CORRECTION`), `src/payroll/payslips.ts`
+  (new fields; employees see approved correction payslips),
+  `src/verify/seal.ts` (`verifyToken` gives `superseded`),
+  `src/app.ts`, `tests/conformance.test.ts`, `tests/leak.test.ts`
+- Test: `packages/api/tests/correction-diff.test.ts`,
+  `tests/corrections.test.ts`
+
+**Interfaces:**
+- Consumes: Plan 3 `computePayRun`, `RunSnapshot`, `snapshotHash`,
+  idempotency pattern of `createPayRun`; Plan 6 `openRequest`,
+  `cancelRequest`, `viewFor`, `SubjectHandler`, `ApprovalView`; Task 6
+  `issueSeals`; Task 1 `toCsv`, `toSignedMoney`, `ownerAudit`.
+- Produces (contract):
+  - `CorrectionCategory = z.enum(["data-entry","late-input",
+    "engine-error","other"])`; `CorrectionCreate { category; reason:
+    string 10..1000; entries: PayRunEntry[] (1..500) }` (entries give
+    the corrected amounts as overrides and one-offs).
+  - `RECOVERY_NOTE` = "A negative difference is an overpayment. It is
+    not deducted automatically. Any recovery is a separate decision."
+  - `CorrectionRow { employeeId; employeeName; before: { gross: Money;
+    net: Money }; after: same; delta: { gross: SignedMoney; net:
+    SignedMoney }; lines: { code; before: Money | null; after: Money |
+    null; delta: SignedMoney }[]; settlementDelta: SignedMoney | null
+    }`.
+  - `Correction { id; originalRunId; correctionRunId; period; category;
+    reason; status: "pending" | "approved" | "rejected" | "cancelled";
+    approval: ApprovalView | null; rows: CorrectionRow[]; totals: {
+    grossDelta: SignedMoney; netDelta: SignedMoney; overpaymentCount:
+    int }; recoveryNote: typeof RECOVERY_NOTE; createdBy; createdAt;
+    closedAt: Timestamp | null }`; `CorrectionSummary` = without `rows`
+    and `reason`.
+  - Routes (owner, hr): `createCorrection POST
+    /v1/pay-runs/{id}/corrections` (header `Idempotency-Key`, 201,
+    `altStatus` 200) to `Correction`; `listCorrections GET
+    /v1/pay-run-corrections` (query `{ payRunId?: Id }`) to
+    `CorrectionSummary[]`; `getCorrection GET
+    /v1/pay-run-corrections/{id}`; `cancelCorrection POST
+    /v1/pay-run-corrections/{id}/cancel`; `downloadCorrectionDelta GET
+    /v1/pay-run-corrections/{id}/delta` (mfa, `text/csv`).
+  - Errors: `RUN_NOT_APPROVED` (Plan 3's), `RUN_IS_CORRECTION` 409,
+    `EMPLOYEE_NOT_IN_RUN` 422 (Task 4's), `CORRECTION_NO_CHANGE` 422
+    (`detail.employeeIds`), `CORRECTION_OPEN` 409, `CHAIN_LOCKED` 422,
+    `CORRECTION_NOT_PENDING` 409, `PAY_RUN_PROBLEMS` (Plan 3's).
+- Produces (api):
+  - Migration 1104: `pay_runs` gains `kind text not null default
+    'regular' check (kind in ('regular','correction'))` and
+    `corrects_run_id uuid null`; the period index becomes `unique
+    (company_id, year, month) WHERE status <> 'void' AND kind =
+    'regular'`; `payslips` gains `superseded_by uuid null`;
+    `pay_run_corrections(id, company_id, original_run_id,
+    correction_run_id, category, reason_enc, employee_ids uuid[],
+    status, approval_id, created_by, created_at, closed_at)`, partial
+    unique `(original_run_id) WHERE status = 'pending'`.
+  - `diffPayslips(before: ComputedPayslip[], after: ComputedPayslip[]):
+    CorrectionRow-with-Fils[]` (pure): lines matched by `code`;
+    `delta = after - before`; a payslip with no line, gross, net or
+    settlement change is reported in `unchanged: string[]`.
+  - `createCorrection(ctx, runId, key, body)`: one tenant transaction:
+    the run must be approved and regular; every entry's employee in its
+    snapshot; no pending correction for the run; the correction
+    snapshot = the original snapshot's records for those employees with
+    the new entries; `computePayRun`; problems give 422; the diff base
+    is each employee's **current** payslip for the period (the
+    original, or the payslip of an earlier approved correction);
+    `unchanged` non-empty gives 422 `CORRECTION_NO_CHANGE`; inserts a
+    draft run of kind `correction` (idempotency as Plan 3: same key
+    and body 200, other body 409 `IDEMPOTENCY_KEY_REUSED`), its payslips, the
+    record, then `openRequest(ctx, handlers, "pay-run-correction",
+    correctionId, userId)`; audit `correction.created` (`data: {
+    originalRunId, category, employeeCount }`).
+  - Correction subject handler: `facts` gives `claimantEmployeeId:
+    null`, `claimantUserId: null`, `lineManagerUserId: null`, `total`
+    = sum of absolute net deltas, `overLimit: false`, summary
+    `{ employeeName: "<n> employees", title: "Pay run correction
+    YYYY-MM", total, flagCodes: [category] }`; `canView` true for owner
+    and hr, false otherwise; `defaultTiers` `[{ approver: {
+    kind: "role", role: "owner" }, minTotal: "0.00" }]`; `chainLocked:
+    true`; `mfaToDecide: true`; the submitter is excluded by the spine,
+    so a creator never approves (equal to Plan 3's owner, MFA and
+    not-creator rule). `onClosed("approved")`: correction run approved
+    (`approvedBy`, `approvedAt`), the diffed current payslips get
+    `superseded_by`, their seals `superseded`, `issueSeals` for the
+    new payslips, record `approved`, audit `correction.approved`.
+    `rejected` or `returned`: run void, record `rejected`, audit
+    `correction.rejected`.
+  - `cancelCorrection`: pending only (409 `CORRECTION_NOT_PENDING`);
+    `cancelRequest`, run void, record `cancelled`.
+  - `deltaCsv(c: Correction): string`: columns `employee_number,
+    employee_name, item, before, after, difference`; one row per
+    changed line plus one `settlement` row when it changed. No second
+    SIF is produced.
+
+- [ ] **Step 1: Write the failing tests**
+
+`correction-diff.test.ts`: basic 400000n to 420000n gives a line delta
+20000n and gross delta 20000n; a removed one-off gives `after: null`
+and a negative delta; an identical payslip is listed in `unchanged`;
+fast-check: the sum of line deltas equals the gross delta.
+
+`corrections.test.ts` (seeded approved March run; owner O, second
+owner O2, hr H):
+- `correction_flow_owner_approves`: H creates with a higher basic for
+  A: 201, status `pending`, one row with positive `grossDelta`; O2 in
+  the inbox approves with MFA: status `approved`; A's original payslip
+  has `status "superseded"` and `supersededBy` the new payslip;
+  `GET /v1/me/payslips` for A lists both.
+- `creator_cannot_approve`: O creates; O deciding gives 403
+  `SOD_VIOLATION`; with no other owner the create gives 422
+  `NO_ELIGIBLE_APPROVER`.
+- `correction_decide_needs_mfa`: O2 without MFA gets 403
+  `MFA_REQUIRED`.
+- `chain_locked`: `PUT /v1/approval-chains/pay-run-correction` gives
+  422 `CHAIN_LOCKED`.
+- `no_change_refused`: entries equal to what was paid give 422
+  `CORRECTION_NO_CHANGE` with A's id.
+- `second_open_correction_409`: `CORRECTION_OPEN`.
+- `second_correction_diffs_current_payslip`: after one approved
+  correction raising A's basic by 200.00, a second raising it by
+  another 100.00 shows `before` equal to the first correction's
+  payslip and line delta `"100.00"`; on approval exactly one of A's
+  March payslips has `status "current"`.
+- `negative_delta_flagged_not_deducted`: a lower basic: `netDelta`
+  negative, `overpaymentCount` 1, `recoveryNote` equals
+  `RECOVERY_NOTE`; no payslip has a deduction line.
+- `regular_period_still_unique`: after an approved correction, a new
+  regular run for March gives 409 `RUN_EXISTS_FOR_PERIOD`.
+- `approve_route_refuses_correction_run`: `POST
+  /v1/pay-runs/{correctionRunId}/approve` gives 409
+  `RUN_IS_CORRECTION`.
+- `verify_superseded_after_correction` (Review Focus 3): A's old
+  payslip token verifies as `superseded`; the new payslip's token as
+  `genuine`.
+- `delta_csv`: download with MFA gives `text/csv` with a `basic` row
+  and difference `"200.00"`; without MFA 403.
+- `idempotent_create`: the same key and body twice give 201 then 200
+  with one record.
+- `correction_audit_has_no_reason`: audit `data` text lacks the
+  reason and any amount.
+
+- [ ] **Step 2: Run** `pnpm --filter @payroll/api test correction`.
+  Expected: FAIL.
+- [ ] **Step 3: Implement** the files above; Plan 6's
+  `approvals.test.ts` must still pass unchanged (the expense handler
+  sets none of the new optional fields).
+- [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
+- [ ] **Step 5: Commit** `feat(api): pay run correction record`.
+
+### Task 8: Payroll reports, report builder and scheduled exports (F6, F7)
 
 **Files:**
 - Create: `packages/contract/src/owner/reports.ts`
 - Modify: `packages/contract/src/routes-owner.ts`, `src/errors.ts`,
   `src/examples.ts`, `src/index.ts`
-- Create: `packages/api/migrations/1104_reports.sql`,
+- Create: `packages/api/migrations/1105_reports.sql`,
   `src/reports/datasets.ts` (pure), `src/reports/load.ts`,
   `src/reports/liability.ts`, `src/reports/run.ts`,
   `src/reports/definitions.ts`, `src/reports/schedules.ts`,
@@ -1130,7 +1331,8 @@ height); a doc with `qr` renders without error.
   `tests/report-jobs.test.ts`
 
 **Interfaces:**
-- Consumes: Task 2 `varianceCauses`; Task 6 `renderTablePdf`; Task 1
+- Consumes: Task 2 `varianceCauses`; Task 6 `renderTablePdf`; Task 7
+  payslip `status` and run `kind`; Task 1
   `toCsv`, `toSignedMoney`, `ownerAudit`; `calculateSettlement`,
   `GRATUITY_PACKS` from `@payroll/engine`; Plan 3 payslips, runs,
   employees, departments, `verifyChain`, audit events, `dubaiDate`;
@@ -1186,7 +1388,7 @@ height); a doc with `qr` renders without error.
     `REPORT_TOO_LARGE_FOR_PDF` 422 (over 5,000 rows),
     `DEFINITION_ARCHIVED` 409.
 - Produces (api):
-  - Migration 1104: `report_definitions(id, company_id, name, spec
+  - Migration 1105: `report_definitions(id, company_id, name, spec
     jsonb, status, created_by, created_at, updated_at)`;
     `report_schedules(id, company_id, definition_id, cadence jsonb,
     format, active, next_run_on, paused_reason, created_by,
@@ -1194,22 +1396,29 @@ height); a doc with `qr` renders without error.
     schedule_id, run_on date, format, file_id, row_count, created_by,
     created_at, unique(schedule_id, run_on))`; function
     `due_report_schedules(p_today date) RETURNS TABLE(company_id uuid,
-    schedule_id uuid)` `SECURITY DEFINER`, owned by the migration role,
-    `SET search_path = public`, returning only ids of active schedules
-    with `next_run_on <= p_today`; `GRANT EXECUTE` to `payroll_app`.
+    schedule_id uuid)` `SECURITY DEFINER`, `SET search_path = public`,
+    returning only ids of active schedules with `next_run_on <=
+    p_today`. Because RLS is forced, the function is owned by a new
+    role `payroll_jobs` (NOLOGIN, BYPASSRLS, created when missing)
+    whose only grant is SELECT on `report_schedules`; `GRANT EXECUTE`
+    to `payroll_app`. Plan 3's catalog test still checks that
+    `payroll_app` has no BYPASSRLS.
   - Plan 7 `files.ts` gains `storeGeneratedFile(tx: Db, deps: AppDeps,
     companyId: string, createdBy: string, name: string, mime:
     GeneratedMime, bytes: Uint8Array): Promise<FileRef>` with
     `GeneratedMime = "text/csv" | "application/pdf" |
     "application/zip"` (no sniffing: the bytes are ours; Plan 7's
     `storeFile` is unchanged). If Plan 7's `files.mime` has a CHECK
-    constraint, migration 1104 widens it to these three types.
+    constraint, migration 1105 widens it to these three types.
   - `DATASETS: Record<DatasetId, DatasetDef>` (pure) where `DatasetDef
     { info: DatasetInfo; build(rows: LoadedRows, f: ResolvedFilters):
     (string | null)[][] }`. Columns:
     - `payroll-register`: period, employeeNumber, employeeName,
       department, runKind, basic, allowances, oneOffs, gross, net,
-      payslipStatus (from approved regular and correction runs).
+      payslipStatus (from approved regular and correction runs;
+      superseded payslips appear as rows with that status).
+    - Totals and every other dataset count **current** payslips only,
+      so a corrected employee is never counted twice.
     - `payroll-cost-by-department`: period, department, headcount,
       gross, net, employerContributions (always the text "not
       computed").
@@ -1236,8 +1445,11 @@ height); a doc with `qr` renders without error.
     an `EngineError` gives `refused` with its code.
     `unpaidLeaveDaysBetween(tx, companyId, employeeId, from, to):
     Promise<number>` is added beside Plan 3's `unpaidLeaveDaysIn`.
+  - `JobCtx { tx: Db; deps: AppDeps; companyId: string; userId: string
+    }` (what a scheduled run has instead of a request).
   - `runReport(ctx, spec): Promise<ReportResult>`;
-    `exportDefinition(ctx | JobCtx, defId, format, scheduleId, runOn)`
+    `exportDefinition(c: ReqCtx | JobCtx, defId, format, scheduleId:
+    string | null, runOn: string): Promise<ReportExport>`
     renders CSV (`toCsv`) or PDF (`renderTablePdf` with notes), stores
     with `storeGeneratedFile`, audit `report.exported` (`data: {
     definitionId, format, rowCount }`).
@@ -1301,6 +1513,11 @@ after Monday `2026-03-02` gives `2026-03-09`.
   sees only A's exports.
 - `due_function_returns_ids_only`: the function's result columns are
   exactly `company_id, schedule_id`.
+- `due_function_owner_bypasses_rls`: `pg_proc.proowner` of the function
+  is `payroll_jobs`, which has `rolbypassrls` true and no grant except
+  SELECT on `report_schedules` (from `information_schema
+  .role_table_grants`); called inside `withTenant` with no company, it
+  returns the due schedules of both companies.
 
 - [ ] **Step 2: Run** `pnpm --filter @payroll/api test datasets
   next-run reports report-jobs`. Expected: FAIL.
@@ -1309,165 +1526,6 @@ after Monday `2026-03-02` gives `2026-03-09`.
 - [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(api): payroll reports, builder and
   scheduled exports`.
-
-### Task 8: Correction record for amended pay runs (F11)
-
-Money task: fresh per-task review.
-
-**Files:**
-- Create: `packages/contract/src/owner/corrections.ts`
-- Modify: `packages/contract/src/routes-owner.ts`, `src/payroll.ts`
-  (`PayRun` gains `kind`, `correctsRunId`; `Payslip` gains `status`,
-  `supersededBy`, `correctionOf`), `src/approvals.ts` (`SubjectType`
-  adds `"pay-run-correction"`), `src/errors.ts`, `src/examples.ts`,
-  `src/index.ts`
-- Create: `packages/api/migrations/1105_corrections.sql`,
-  `src/corrections/diff.ts` (pure), `src/corrections/create.ts`,
-  `src/corrections/subject.ts`, `src/corrections/delta.ts`,
-  `src/routes/corrections.ts`
-- Modify: Plan 6 `src/approvals/subjects.ts` (`SubjectFacts
-  .claimantEmployeeId: string | null`; optional `SubjectHandler
-  .mfaToDecide`, `.defaultTiers`, `.chainLocked`),
-  `src/approvals/chains.ts` (default tiers per handler; `putChain` on
-  a locked type 422 `CHAIN_LOCKED`), `src/approvals/decide.ts` (MFA
-  check), Plan 3 `src/payroll/pay-runs.ts` (approve and void refuse
-  correction runs: 409 `RUN_IS_CORRECTION`), `src/payroll/payslips.ts`
-  (new fields; employees see approved correction payslips),
-  `src/verify/seal.ts` (`verifyToken` gives `superseded`),
-  `src/app.ts`, `tests/conformance.test.ts`, `tests/leak.test.ts`
-- Test: `packages/api/tests/correction-diff.test.ts`,
-  `tests/corrections.test.ts`
-
-**Interfaces:**
-- Consumes: Plan 3 `computePayRun`, `RunSnapshot`, `snapshotHash`,
-  idempotency pattern of `createPayRun`; Plan 6 `openRequest`,
-  `cancelRequest`, `viewFor`, `SubjectHandler`, `ApprovalView`; Task 6
-  `issueSeals`; Task 1 `toCsv`, `toSignedMoney`, `ownerAudit`.
-- Produces (contract):
-  - `CorrectionCategory = z.enum(["data-entry","late-input",
-    "engine-error","other"])`; `CorrectionCreate { category; reason:
-    string 10..1000; entries: PayRunEntry[] (1..500) }` (entries give
-    the corrected amounts as overrides and one-offs).
-  - `RECOVERY_NOTE` = "A negative difference is an overpayment. It is
-    not deducted automatically. Any recovery is a separate decision."
-  - `CorrectionRow { employeeId; employeeName; before: { gross: Money;
-    net: Money }; after: same; delta: { gross: SignedMoney; net:
-    SignedMoney }; lines: { code; before: Money | null; after: Money |
-    null; delta: SignedMoney }[]; settlementDelta: SignedMoney | null
-    }`.
-  - `Correction { id; originalRunId; correctionRunId; period; category;
-    reason; status: "pending" | "approved" | "rejected" | "cancelled";
-    approval: ApprovalView | null; rows: CorrectionRow[]; totals: {
-    grossDelta: SignedMoney; netDelta: SignedMoney; overpaymentCount:
-    int }; recoveryNote: typeof RECOVERY_NOTE; createdBy; createdAt;
-    closedAt: Timestamp | null }`; `CorrectionSummary` = without `rows`
-    and `reason`.
-  - Routes (owner, hr): `createCorrection POST
-    /v1/pay-runs/{id}/corrections` (header `Idempotency-Key`, 201,
-    `altStatus` 200) to `Correction`; `listCorrections GET
-    /v1/pay-run-corrections` (query `{ payRunId?: Id }`) to
-    `CorrectionSummary[]`; `getCorrection GET
-    /v1/pay-run-corrections/{id}`; `cancelCorrection POST
-    /v1/pay-run-corrections/{id}/cancel`; `downloadCorrectionDelta GET
-    /v1/pay-run-corrections/{id}/delta` (mfa, `text/csv`).
-  - Errors: `RUN_NOT_APPROVED` (Plan 3's), `RUN_IS_CORRECTION` 409,
-    `EMPLOYEE_NOT_IN_RUN` 422 (Task 4's), `CORRECTION_NO_CHANGE` 422
-    (`detail.employeeIds`), `CORRECTION_OPEN` 409, `CHAIN_LOCKED` 422,
-    `CORRECTION_NOT_PENDING` 409, `PAY_RUN_PROBLEMS` (Plan 3's).
-- Produces (api):
-  - Migration 1105: `pay_runs` gains `kind text not null default
-    'regular' check (kind in ('regular','correction'))` and
-    `corrects_run_id uuid null`; the period index becomes `unique
-    (company_id, year, month) WHERE status <> 'void' AND kind =
-    'regular'`; `payslips` gains `superseded_by uuid null`;
-    `pay_run_corrections(id, company_id, original_run_id,
-    correction_run_id, category, reason_enc, employee_ids uuid[],
-    status, approval_id, created_by, created_at, closed_at)`, partial
-    unique `(original_run_id) WHERE status = 'pending'`.
-  - `diffPayslips(before: ComputedPayslip[], after: ComputedPayslip[]):
-    CorrectionRow-with-Fils[]` (pure): lines matched by `code`;
-    `delta = after - before`; a payslip with no line, gross, net or
-    settlement change is reported in `unchanged: string[]`.
-  - `createCorrection(ctx, runId, key, body)`: one tenant transaction:
-    the run must be approved and regular; every entry's employee in its
-    snapshot; no pending correction for the run; the correction
-    snapshot = the original snapshot's records for those employees with
-    the new entries; `computePayRun`; problems give 422; `unchanged`
-    non-empty gives 422 `CORRECTION_NO_CHANGE`; inserts a draft run of
-    kind `correction` (idempotency as Plan 3: same key and body 200,
-    other body 409 `IDEMPOTENCY_KEY_REUSED`), its payslips, the
-    record, then `openRequest(ctx, handlers, "pay-run-correction",
-    correctionId, userId)`; audit `correction.created` (`data: {
-    originalRunId, category, employeeCount }`).
-  - Correction subject handler: `facts` gives `claimantEmployeeId:
-    null`, `claimantUserId: null`, `lineManagerUserId: null`, `total`
-    = sum of absolute net deltas, `overLimit: false`, summary title
-    `"Pay run correction YYYY-MM"`; `defaultTiers` `[{ approver: {
-    kind: "role", role: "owner" }, minTotal: "0.00" }]`; `chainLocked:
-    true`; `mfaToDecide: true`; the submitter is excluded by the spine,
-    so a creator never approves (equal to Plan 3's owner, MFA and
-    not-creator rule). `onClosed("approved")`: correction run approved
-    (`approvedBy`, `approvedAt`), original payslips of the employees
-    get `superseded_by`, their seals `superseded`, `issueSeals` for the
-    new payslips, record `approved`, audit `correction.approved`.
-    `rejected` or `returned`: run void, record `rejected`, audit
-    `correction.rejected`.
-  - `cancelCorrection`: pending only (409 `CORRECTION_NOT_PENDING`);
-    `cancelRequest`, run void, record `cancelled`.
-  - `deltaCsv(c: Correction): string`: columns `employee_number,
-    employee_name, item, before, after, difference`; one row per
-    changed line plus one `settlement` row when it changed. No second
-    SIF is produced.
-
-- [ ] **Step 1: Write the failing tests**
-
-`correction-diff.test.ts`: basic 400000n to 420000n gives a line delta
-20000n and gross delta 20000n; a removed one-off gives `after: null`
-and a negative delta; an identical payslip is listed in `unchanged`;
-fast-check: the sum of line deltas equals the gross delta.
-
-`corrections.test.ts` (seeded approved March run; owner O, second
-owner O2, hr H):
-- `correction_flow_owner_approves`: H creates with a higher basic for
-  A: 201, status `pending`, one row with positive `grossDelta`; O2 in
-  the inbox approves with MFA: status `approved`; A's original payslip
-  has `status "superseded"` and `supersededBy` the new payslip;
-  `GET /v1/me/payslips` for A lists both.
-- `creator_cannot_approve`: O creates; O deciding gives 403
-  `SOD_VIOLATION`; with no other owner the create gives 422
-  `NO_ELIGIBLE_APPROVER`.
-- `correction_decide_needs_mfa`: O2 without MFA gets 403
-  `MFA_REQUIRED`.
-- `chain_locked`: `PUT /v1/approval-chains/pay-run-correction` gives
-  422 `CHAIN_LOCKED`.
-- `no_change_refused`: entries equal to what was paid give 422
-  `CORRECTION_NO_CHANGE` with A's id.
-- `second_open_correction_409`: `CORRECTION_OPEN`.
-- `negative_delta_flagged_not_deducted`: a lower basic: `netDelta`
-  negative, `overpaymentCount` 1, `recoveryNote` equals
-  `RECOVERY_NOTE`; no payslip has a deduction line.
-- `regular_period_still_unique`: after an approved correction, a new
-  regular run for March gives 409 `RUN_EXISTS_FOR_PERIOD`.
-- `approve_route_refuses_correction_run`: `POST
-  /v1/pay-runs/{correctionRunId}/approve` gives 409
-  `RUN_IS_CORRECTION`.
-- `verify_superseded_after_correction` (Review Focus 3): A's old
-  payslip token verifies as `superseded`; the new payslip's token as
-  `genuine`.
-- `delta_csv`: download with MFA gives `text/csv` with a `basic` row
-  and difference `"200.00"`; without MFA 403.
-- `idempotent_create`: the same key and body twice give 201 then 200
-  with one record.
-- `correction_audit_has_no_reason`: audit `data` text lacks the
-  reason and any amount.
-
-- [ ] **Step 2: Run** `pnpm --filter @payroll/api test correction`.
-  Expected: FAIL.
-- [ ] **Step 3: Implement** the files above; Plan 6's
-  `approvals.test.ts` must still pass unchanged (the expense handler
-  sets none of the new optional fields).
-- [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(api): pay run correction record`.
 
 ### Task 9: Evidence locker, readiness checklist, inspection pack (F8, F10)
 
@@ -1490,9 +1548,9 @@ Evidence and security task: fresh per-task review.
 
 **Interfaces:**
 - Consumes: Plan 7 `claimFile`, `readFile`, `FileRef`,
-  `contentDisposition`; Task 7 `storeGeneratedFile`; Task 6
+  `contentDisposition`; Task 8 `storeGeneratedFile`; Task 6
   `payslipPdf` renderer pieces, `signWithCompanyKey`, `publicKeyPem`;
-  Task 5 filings; Task 8 corrections; Task 1 `buildZip`, `toCsv`,
+  Task 5 filings; Task 7 corrections; Task 1 `buildZip`, `toCsv`,
   `ownerAudit`; Plan 3 `verifyChain`, `eventHash`, `GENESIS_HASH`,
   audit rows, attendance, SIF files, `SIF_STATEMENT`.
 - Produces (contract):
@@ -1653,7 +1711,8 @@ one correction, one `mohre-contract` item):
 - `pack_too_large`: with `PACK_MAX_BYTES` injected at 1,000 bytes for
   the test, 422 `PACK_TOO_LARGE` and nothing stored.
 
-`binary-routes.test.ts` (Review Focus 1): for every route in `ROUTES`
+`binary-routes.test.ts`, `binary_routes_deny_other_roles` (Review
+Focus 1): for every route in `ROUTES`
 whose `contentType` is `application/pdf`, `application/zip`,
 `text/csv` or `stored` (ids collected at run time), a manager and an
 employee calling it with seeded ids of another employee get 403 or
@@ -1683,8 +1742,8 @@ employee calling it with seeded ids of another employee get 403 or
 
 **Interfaces:**
 - Consumes: Task 2 `gateReport`; Task 5 `listDeadlines`,
-  `complianceScore` (service functions behind the routes); Task 7
-  `gratuityLiability`; Task 8 corrections list; Task 9
+  `complianceScore` (service functions behind the routes); Task 8
+  `gratuityLiability`; Task 7 corrections list; Task 9
   `evaluateReadiness`; Plan 6 `inbox`; Plan 3 runs and employees.
 - Produces (contract):
   - `BriefKind = z.enum(["pay-run-approval","gate-review",
@@ -1835,7 +1894,8 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`.
     export.
 15. **Scheduled exports run from `main.ts jobs` under an external
     scheduler** (none is set up), enumerate tenants through one
-    `SECURITY DEFINER` function that returns ids only, re-check the
+    `SECURITY DEFINER` function owned by a NOLOGIN `payroll_jobs` role
+    with BYPASSRLS and one SELECT grant, returning ids only, re-check the
     creator's role per run, and are idempotent per schedule and day.
     Delivery is the in-app exports list; email is not built. Cost: the
     owner must set up a cron entry; no push delivery.
@@ -1874,7 +1934,20 @@ says what it costs if wrong. The executor appends them to `LEDGER.md`.
     content types are added only if absent; tests never hard-code the
     total route count. Cost: one merge of `routes.ts` with Plans 6 to
     8.
-25. **Review:** per-task review after Tasks 2, 3, 6, 8 and 9; one
+25. **Review:** per-task review after Tasks 2, 3, 6, 7 and 9; one
     whole-branch review at the end (speed ruling). No pause for plan
-    review. Cost: a slipped bug in Tasks 1, 4, 5, 7 or 10 is caught
+    review. Cost: a slipped bug in Tasks 1, 4, 5, 8 or 10 is caught
     later.
+26. **WPS warnings in the gate are `review`, except `ROUTING_UNKNOWN`,
+    which is `info`,** because the routing table is known to be partial
+    and real files often raise it. Test helpers acknowledge open
+    findings (`ackAll`, called by `seedPayroll`). Cost: owners
+    acknowledge other warnings (such as an IBAN checksum) each month;
+    other plans' tests that approve through the route add one helper
+    call.
+27. **One CSV writer for the API** (Plan 6's `src/http/csv.ts`, with a
+    BOM), extended with empty cells for `null` and no guard on signed
+    money. Cost: none; a second writer would drift.
+28. **A correction diffs against and replaces each employee's current
+    payslip,** so a second correction builds on the first and exactly
+    one payslip per employee and period is current. Cost: none known.
