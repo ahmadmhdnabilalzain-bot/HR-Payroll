@@ -53,3 +53,31 @@ mkdir -p "$HOME/.local/bin" "$DEST/agent-reach"
 ln -sf "$HOME/.agent-reach-venv/bin/agent-reach" "$HOME/.local/bin/agent-reach"
 cp -R "$AR/agent_reach/skill/." "$DEST/agent-reach/"
 echo "installed agent-reach (CLI + skill)"
+
+# --- Batch 3 (2026-11-26): earshot, Magic UI, UI SFX, Hover.css ---
+# earshot: its two skill files plus the CLI in an isolated venv from the
+# pinned commit (core dependencies only; no listening models, no MCP).
+install_set Leonxlnx/earshot 7a7f7c5c70d4a763a1eca4b3666af7c77e313f97 \
+  skills/earshot skills/real-sound
+python3 -m venv "$HOME/.earshot-venv"
+"$HOME/.earshot-venv/bin/pip" install -q \
+  "earshot @ git+https://github.com/Leonxlnx/earshot@7a7f7c5c70d4a763a1eca4b3666af7c77e313f97"
+mkdir -p "$HOME/.local/bin"
+ln -sf "$HOME/.earshot-venv/bin/earshot" "$HOME/.local/bin/earshot"
+# Magic UI: its skill file only (components are not added to any product).
+install_set magicuidesign/magicui a54d9edd7bd01dfb4fa72641df2b84da449a5e35 \
+  skills/magic-ui
+# Reference copies (no skill files; read-only, not product dependencies):
+# ~/vendor/uisfx (MIT code, CC0 audio) and ~/vendor/Hover (see licence note).
+vendor_ref() {
+  local repo="$1" sha="$2" name="$3"
+  git clone --quiet --filter=blob:limit=2m "https://github.com/$repo" "$WORK/v"
+  git -C "$WORK/v" checkout --quiet "$sha"
+  mkdir -p "$HOME/vendor"
+  rm -rf "${HOME:?}/vendor/${name:?}"
+  cp -R "$WORK/v" "$HOME/vendor/$name"
+  rm -rf "${HOME:?}/vendor/${name:?}/.git" "$WORK/v"
+  echo "vendored $name from $repo@${sha:0:7}"
+}
+vendor_ref romainsimon/uisfx 9950fe66f993a6660dab9c2651dcbcd899ffd83b uisfx
+vendor_ref IanLunn/Hover eb8629df13850d78bbcccd4fed68d231aec0c535 Hover

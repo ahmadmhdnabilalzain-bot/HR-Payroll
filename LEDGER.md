@@ -772,3 +772,35 @@ The owner can overrule any of these. Full list with reasons:
   country: India payroll, GCC multi-country). Rows for other countries are
   removed from the coverage denominator and from every build list; the
   "not buildable" count for the 80% target is recomputed without them.
+
+## 20. Cinematic design, e-signatures, sprint (2026-11-26, evening)
+
+- Owner (2026-11-26): wants upgrades at the level of scroll-driven 3D
+  designs, "of course where it is fitting, not everywhere". Advisor
+  ruling: four cinematic moments only: the opening (ribbon resolving
+  into the MubinFlow wordmark, preview on branch cine, laptop first),
+  the bank-detail fix (held amount flows into the file total, one shared
+  flight helper), "Why this number" (figure lifts into its working), and
+  sign-off (name, role and time land as a stamp, reused by e-signing).
+  Every other screen stays calm. No pointer tilt or parallax (clients'
+  iPhones have no pointer). The Cinematic/Calm switch is withdrawn.
+- Owner (2026-11-26): e-signatures are registered when a company brings in
+  a new employee, and every document that needs a signature offers
+  "Sign document electronically" (branch d5; demo of the workflow, no
+  legal validity claimed).
+- Palette: ink, paper and one cool grey family (owner); the brand is
+  written MubinFlow (owner's logo choice) everywhere in text.
+- Feature freeze (2026-11-26 15:30 UTC): no new feature packages after
+  wave 4. Remaining work: design sprint (d1 to d4), e-signatures (d5),
+  fixes (fix1, fix2, fix4), polish, merges, rescore, client-style walk,
+  owner approval, then the Render plan with cost. UAE only.
+- Coverage after wave 4 and fixes: about 160+ of 207 UAE-scope rows live
+  (77 percent before wave 4); pension for UAE nationals stays "Not
+  computed" by decision.
+- Owner (2026-11-26): no more videos or screenshots of in-progress work in
+  chat ("no need to burn tokens"); plain-text progress only. Exception: the
+  final approval check on the finished build. After the full browser
+  walkthrough passes and everything is approved, produce a 4 to 5 minute
+  product-launch style promo video of the finished app covering all
+  features (story and shot list approved first). Agents must not record
+  videos for chat unless a task needs one for its own verification.
