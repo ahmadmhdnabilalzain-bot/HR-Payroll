@@ -12,6 +12,27 @@ import {
 } from "./test-db";
 import type { Db } from "../../src/db/db";
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Tracking on, consent given, a remote record clocked in. */
+async function wfhSetup(db: Db, admin: Db) {
+  const app = await makeApp({ db });
+  // Seed helpers extend sessions through deps.db: give them admin.
+  const ctx = { ...app, deps: { ...app.deps, db: admin } };
+  const s = await seedCompany(ctx, `wr${Math.random().toString(36)
+    .slice(2, 7)}`);
+  await seedTime(ctx, s);
+  await enableWfh(ctx, s);
+  const as = asUser(ctx, s);
+  await as(s.employee, "POST", "/v1/wfh/consent", { noticeVersion: 1,
+    decision: "granted" });
+  const rec = (await as(s.employee, "POST", "/v1/attendance/clock-in",
+    { method: "web", workLocation: "remote" })).body;
+  const first = nextMinute(new Date(Date.parse(rec.clockIn)));
+  ctx.clock.now = new Date(first.getTime() + 239 * 60_000);
+  return { s, as, rec, first };
+}
+
 const statuses = (rs: { status: number }[]) =>
   rs.map((r) => r.status).sort((a, b) => a - b);
 
@@ -36,31 +57,45 @@ export function pgTimeConcurrencyCases(
     expect(Number(n[0]!.n)).toBe(1);
   });
 
-  it("withdraw with erase during an upload leaves no rows", async () => {
-    const { db, admin } = await open();
-    const app = await makeApp({ db });
-    // Seed helpers extend sessions through deps.db: give them admin.
-    const ctx = { ...app, deps: { ...app.deps, db: admin } };
-    const s = await seedCompany(ctx, "wrace");
-    await seedTime(ctx, s);
-    await enableWfh(ctx, s);
-    const as = asUser(ctx, s);
-    await as(s.employee, "POST", "/v1/wfh/consent", { noticeVersion: 1,
-      decision: "granted" });
-    const rec = (await as(s.employee, "POST", "/v1/attendance/clock-in",
-      { method: "web", workLocation: "remote" })).body;
-    const first = nextMinute(new Date(Date.parse(rec.clockIn)));
-    ctx.clock.now = new Date(first.getTime() + 239 * 60_000);
-    const [up, wd] = await Promise.all([
-      as(s.employee, "POST", "/v1/wfh/activity", { attendanceId: rec.id,
-        minutes: minutes(first, 240) }),
-      new Promise((r) => setTimeout(r, 20)).then(() => as(s.employee,
-        "POST", "/v1/wfh/consent/withdraw", { erase: true }))]);
-    expect([200, 422]).toContain(up.status);
-    expect(wd.status, wd.text).toBe(200);
-    const n = await admin.query("SELECT 1 FROM wfh_activity_minutes");
-    expect(n.length).toBe(0);
-  });
+  // Review N4: a fixed order, not a timing guess. A third session holds
+  // an uncommitted row with the upload's first key, so the upload is
+  // stuck on its first insert; withdraw-and-erase runs meanwhile.
+  // Without the shared employee lock the upload, having already read
+  // consent, commits its rows after the erase (red).
+  it("withdraw with erase during a stuck upload leaves no rows",
+    async () => {
+      const { db, admin } = await open();
+      const w = await wfhSetup(db, admin);
+      let release!: () => void;
+      const gate = new Promise<void>((r) => { release = r; });
+      let held!: () => void;
+      const holding = new Promise<void>((r) => { held = r; });
+      const blocker = admin.transaction(async (tx) => {
+        await tx.query(
+          `INSERT INTO wfh_activity_minutes (company_id, employee_id,
+             attendance_id, at, active, category)
+           VALUES ($1, $2, $3, $4, true, NULL)`,
+          [w.s.companyId, w.s.emp.report, w.rec.id,
+            w.first.toISOString()]);
+        held();
+        await gate;
+        throw new Error("rollback");
+      }).catch(() => undefined);
+      await holding;
+      const up = w.as(w.s.employee, "POST", "/v1/wfh/activity", {
+        attendanceId: w.rec.id, minutes: minutes(w.first, 240) });
+      await sleep(300);
+      const wd = w.as(w.s.employee, "POST", "/v1/wfh/consent/withdraw",
+        { erase: true });
+      await sleep(300);
+      release();
+      await blocker;
+      const [u, x] = await Promise.all([up, wd]);
+      expect([200, 422]).toContain(u.status);
+      expect(x.status, x.text).toBe(200);
+      const n = await admin.query("SELECT 1 FROM wfh_activity_minutes");
+      expect(n.length).toBe(0);
+    });
 
   it("purge-wfh as the deployed roles purges every company (N3)",
     async () => {
