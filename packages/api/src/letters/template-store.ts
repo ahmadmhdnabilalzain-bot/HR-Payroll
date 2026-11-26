@@ -95,13 +95,15 @@ export async function seedStarterTemplates(tx: Db, companyId: string,
 }
 
 /** `nativeReview` is shown for every version that has a review state. */
-export function toVersion(v: TVersionRow, lang: Lang): TemplateVersion {
+export function toVersion(v: TVersionRow, lang: Lang,
+  showReviewer = true): TemplateVersion {
   return { id: v.id, version: v.version, status: v.status, body: v.body,
     fields: v.fields, usesSalary: v.uses_salary, createdBy: v.created_by,
     createdAt: v.created_at, publishedAt: v.published_at,
     nativeReview: lang === "en" && v.review_status === null ? null : {
       status: v.review_status ?? "needs-native-review",
-      reviewerName: v.reviewer_name, reviewedAt: v.reviewed_at } };
+      reviewerName: showReviewer ? v.reviewer_name : null,
+      reviewedAt: v.reviewed_at } };
 }
 
 export async function loadTemplate(ctx: ReqCtx, id: string)
@@ -129,9 +131,13 @@ export async function templateView(ctx: ReqCtx, t: TemplateRow,
   withVersions: boolean): Promise<LetterTemplate> {
   const vs = await templateVersions(ctx, t.id);
   const cur = publishedOf(vs);
+  // A reviewer's name is a person's name: owner and hr only.
+  const payroll = ["owner", "hr"].includes(ctx.tenant!.role);
   const view: LetterTemplate = { id: t.id, kind: t.kind, name: t.name,
     lang: t.lang, starter: t.starter,
-    current: cur === null ? null : toVersion(cur, t.lang) };
-  if (withVersions) view.versions = vs.map((v) => toVersion(v, t.lang));
+    current: cur === null ? null : toVersion(cur, t.lang, payroll) };
+  if (withVersions) {
+    view.versions = vs.map((v) => toVersion(v, t.lang, payroll));
+  }
   return view;
 }

@@ -154,6 +154,7 @@ export const errors: ArOf<typeof en> = {
   // NEEDS NATIVE REVIEW: the two strings below.
   RATE_LIMITED: "طلبات كثيرة في وقت قصير. انتظر دقيقة ثم حاول مجدداً.",
   PDF_RENDERER_BUSY: "يجري إعداد رسائل كثيرة. حاول مجدداً بعد ثوانٍ.",
-  // NEEDS NATIVE REVIEW
+  // NEEDS NATIVE REVIEW: the two strings below.
+  ACK_NOT_REQUIRED: "لا يطلب هذا المستند تأكيد الاطلاع.",
   FILE_QUOTA_EXCEEDED: "بلغت حد الرفع لهذا اليوم. حاول غداً.",
 };

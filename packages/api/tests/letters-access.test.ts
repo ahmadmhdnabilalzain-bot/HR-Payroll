@@ -21,7 +21,9 @@ describe("letter access (Review Focus 4)", () => {
     const { s } = w;
     const cert = await w.issue(s.manager, "salary-certificate", { ...CERT,
       employeeId: s.emp.report });
-    expect([cert.status, cert.body.error.code]).toEqual([403, "FORBIDDEN"]);
+    // 404, not the plan's 403: the review asked that a template of a
+    // kind the role may not issue is not revealed.
+    expect([cert.status, cert.body.error.code]).toEqual([404, "NOT_FOUND"]);
     const ok = await w.issue(s.manager, "warning", { ...WARN(),
       employeeId: s.emp.report });
     expect(ok.status, ok.text).toBe(201);

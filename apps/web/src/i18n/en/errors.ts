@@ -164,6 +164,7 @@ export const errors = {
     "try again.",
   PDF_RENDERER_BUSY: "Many letters are being prepared. Try again in a " +
     "few seconds.",
+  ACK_NOT_REQUIRED: "This document does not ask for an acknowledgement.",
   FILE_QUOTA_EXCEEDED: "Today's upload limit is reached. Try again " +
     "tomorrow.",
 } satisfies EnNamespace;

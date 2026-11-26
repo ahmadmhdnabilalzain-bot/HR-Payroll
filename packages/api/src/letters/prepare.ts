@@ -40,8 +40,9 @@ async function templateFor(ctx: ReqCtx, req: LetterRequest) {
   const template = await loadTemplate(ctx, req.templateId);
   const version = publishedOf(await templateVersions(ctx, template.id));
   if (version === null) throw new ApiError("TEMPLATE_NOT_PUBLISHED");
+  // A template of a kind the role may not issue is not there for it.
   if (!LETTER_GENERATE_ROLES[template.kind].includes(ctx.tenant!.role)) {
-    throw new ApiError("FORBIDDEN");
+    throw new ApiError("NOT_FOUND");
   }
   if (version.uses_salary && !isPayroll(ctx)) {
     throw new ApiError("SALARY_LETTER_NEEDS_HR");
