@@ -182,7 +182,8 @@ test("gm-sign-off-says-why-and-goes-to-fix", async ({ page }) => {
   const note = page.locator("#approve-blocked");
   await expect(note).toHaveAttribute("aria-live", "polite");
   await expect(note).toHaveText("");
-  await sign.click();
+  // aria-disabled: Playwright would wait for it to enable.
+  await sign.click({ force: true });
   await expect(note).toHaveText(new RegExp("^Two bank details are " +
     "still missing\\. Fatima\\sAl\\sKetbi \\(HR\\) is fixing " +
     "them\\. Go to Fix$"));
@@ -218,7 +219,7 @@ test("every-trend-point-opens-its-month", async ({ page }) => {
     await expect(page).toHaveURL(new RegExp(
       `#/reports/variance/2026-${key}$`));
     await expect(page.locator("main")).toContainText(
-      new RegExp(`${month} 2026`));
+      new RegExp(`${month.slice(0, 3)} 2026 against`));
   }
   // The legend opens the run it speaks of; the change, its variance.
   await home(page);
