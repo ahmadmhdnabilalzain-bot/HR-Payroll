@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   finishAll,
-  observerWatchdog,
   SETTLE_SLACK_MS,
   settleAfter,
 } from "../../src/ui/settle";
@@ -43,22 +42,6 @@ describe("motion never gates content", () => {
     settleAfter([a], 100)();
     vi.advanceTimersByTime(5000);
     expect(a.finish).not.toHaveBeenCalled();
-  });
-
-  it("shows everything when the observer never calls back", () => {
-    vi.useFakeTimers();
-    const show = vi.fn();
-    observerWatchdog(show, 1000);
-    vi.advanceTimersByTime(1000);
-    expect(show).toHaveBeenCalledOnce();
-  });
-
-  it("leaves a working observer in charge", () => {
-    vi.useFakeTimers();
-    const show = vi.fn();
-    observerWatchdog(show, 1000).seen();
-    vi.advanceTimersByTime(5000);
-    expect(show).not.toHaveBeenCalled();
   });
 });
 

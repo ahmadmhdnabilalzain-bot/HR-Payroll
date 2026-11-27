@@ -26,9 +26,11 @@ export function NoticeList(p: { limit: number }) {
       ) : (
         <ul className={s.list}>
           {shown.map((n) => (
-            <li key={n.id} className={s.row}>
+            <li key={n.id} className={`${s.row} ${s.linkRow} ${s.stretch}`}>
+              {/* The title's link covers the notice: all notices. */}
               <div className={s.main}>
-                <span className={s.what}>{n.title}</span>
+                <a className={`${s.what} ${s.stretched}`}
+                  href={hrefOf("home", "notices")}>{n.title}</a>
                 <span className={s.body}>{amountsHidden(state)
                   ? maskMoney(n.body) : n.body}</span>
                 <span className={s.meta}>

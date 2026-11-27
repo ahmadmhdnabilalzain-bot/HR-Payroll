@@ -100,6 +100,9 @@ export interface Approval {
   amountFils: Fils | null;
   makerId: string;
   checkerId: string;
+  /** The record decided (a claim, a leave request, a crew booking),
+   * when the data names one. */
+  subjectId?: string | undefined;
 }
 
 export interface DocumentExpiry {

@@ -293,3 +293,51 @@ a.noteTitle:active {
 .todo .head {
   border-block-end: 0;
 }
+
+/* A notice that opens the notices page (ui/RowLink.tsx): the hover
+ * tint reaches a little past the text. */
+.linkRow {
+  margin-inline: calc(var(--space-2) * -1);
+  padding-inline: var(--space-2);
+}
+
+/* A task row: its title's link covers the row (::after); the status
+ * word and Mark done sit above that cover. */
+.stretch {
+  position: relative;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.stretched::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.stretched:focus-visible {
+  outline: none;
+}
+
+.stretch:has(.stretched:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+  border-radius: var(--radius-control);
+}
+
+.over {
+  position: relative;
+  z-index: 1;
+}
+
+@media (hover: hover) {
+  .stretch:hover {
+    background-color: var(--color-surface-secondary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stretch {
+    transition: none;
+  }
+}

@@ -106,7 +106,7 @@
   transform-origin: 100% 50%;
 }
 
-.row:first-child .fill {
+.rows > li:first-child .fill {
   background: var(--color-accent);
 }
 

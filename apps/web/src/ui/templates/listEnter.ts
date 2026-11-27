@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
-import { observerWatchdog, settleAfter } from "../settle";
+import { FAIL_OPEN_MS, onSeen } from "../seen";
+import { settleAfter } from "../settle";
 
 /**
  * List motion inside a page (listMotion.ts moves between pages):
@@ -112,9 +113,23 @@ export function veil(el: HTMLElement, o: { duration: number;
   };
   a.addEventListener("finish", done);
   a.addEventListener("cancel", done);
-  // The finish event is not a promise: if the timeline stalls the
-  // layer is dropped anyway once the fade has had its time.
-  settleAfter([a], o.duration + (o.delay ?? 0));
+  // Fail-open: an animation that never ends (a stalled or missing
+  // WAAPI) must not leave the veil drawn over the element.
+  setTimeout(() => {
+    if (el.dataset["veil"] === undefined) return;
+    if (a.playState === "finished" || a.playState === "idle") return;
+    try {
+      a.finish();
+    } catch {
+      // A finish that throws: the veil comes off below all the same.
+    }
+    if (o.out === true) {
+      if (el.dataset["ghost"] !== undefined) el.remove();
+      return;
+    }
+    delete el.dataset["veil"];
+    el.style.removeProperty("--veil");
+  }, (o.delay ?? 0) + o.duration + FAIL_OPEN_MS);
   return a;
 }
 
@@ -144,15 +159,16 @@ export function enter(items: HTMLElement[], fade = true): void {
   const slow = dur("--dur-slow");
   const base = dur("--dur-base");
   const ease = easeOut();
-  const anims: Animation[] = [];
+  const rises: Animation[] = [];
   shown.forEach((el, i) => {
     const delay = Math.min(i, STAGGER_CAP - 1) * STAGGER_MS;
-    anims.push(el.animate([{ transform: "translateY(8px)" },
+    rises.push(el.animate([{ transform: "translateY(8px)" },
       { transform: "none" }],
     { duration: slow, delay, easing: ease, fill: "backwards" }));
-    if (fade) anims.push(veil(el, { duration: base, delay }));
+    // Each veil settles itself (veil's own fail-open timer).
+    if (fade) veil(el, { duration: base, delay });
   });
-  settleAfter(anims, slow + (STAGGER_CAP - 1) * STAGGER_MS);
+  settleAfter(rises, slow + (STAGGER_CAP - 1) * STAGGER_MS);
 }
 
 /**
@@ -185,8 +201,7 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
   selector: string): void {
   useLayoutEffect(() => {
     const root = ref.current;
-    if (root === null || reduced() || !canAnimate() ||
-      typeof IntersectionObserver !== "function") return undefined;
+    if (root === null || reduced() || !canAnimate()) return undefined;
     const below = [...root.querySelectorAll<HTMLElement>(selector)]
       .filter((el) => el.getBoundingClientRect().top > innerHeight);
     if (below.length === 0) return undefined;
@@ -200,26 +215,17 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
       veil(el, { duration: dur("--dur-base") });
       settleAfter([rise], dur("--dur-slow"));
     };
-    // A section waits hidden only while the observer is known to
-    // work: with no first callback (missing or broken), all show.
-    const all = (): void => below.forEach((el) => show(el, false));
-    const watch = observerWatchdog(all);
-    const io = new IntersectionObserver((es) => {
-      watch.seen();
-      es.forEach((e) => {
-        if (!e.isIntersecting) return;
-        io.unobserve(e.target);
-        show(e.target as HTMLElement, true);
-      });
-    }, { rootMargin: "0px 0px 6% 0px" });
     below.forEach((el) => {
       el.dataset["reveal"] = "wait";
-      io.observe(el);
     });
+    // The observer where it reports; else a scroll and timer check
+    // (ui/seen.ts), so a section never waits hidden for good.
+    const stop = onSeen(below, (el) => show(el as HTMLElement, true),
+      { pad: 0.06 });
+    const all = (): void => below.forEach((el) => show(el, false));
     addEventListener("beforeprint", all);
     return () => {
-      watch.stop();
-      io.disconnect();
+      stop();
       removeEventListener("beforeprint", all);
       all();
     };
@@ -272,7 +278,13 @@ function ghostOf(el: HTMLElement, at: Spot, z: number): HTMLElement {
   el.querySelectorAll("[data-key]").forEach((x) =>
     x.removeAttribute("data-key"));
   el.setAttribute("aria-hidden", "true");
+  // A copy, not content: never focused, pressed or followed (the live
+  // rows it stands over are never inert).
   el.setAttribute("inert", "");
+  for (const x of [el, ...el.querySelectorAll("[data-rowlink]")]) {
+    ["role", "tabindex", "data-href", "data-rowlink"].forEach((a) =>
+      x.removeAttribute(a));
+  }
   el.dataset["ghost"] = "";
   // A copy never replays its row's own entrance.
   el.removeAttribute("data-reveal");

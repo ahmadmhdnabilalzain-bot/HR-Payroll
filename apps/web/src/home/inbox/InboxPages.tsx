@@ -3,23 +3,51 @@ import { useDemo } from "../../demo/state";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { useMaskText } from "../../ui/mask";
 import { FilterList } from "../../ui/templates";
-import { inboxNotices, inboxTasks } from "./model";
+import { saveView, savedView } from "../../ui/templates/listMotion";
+import { useState } from "react";
+import {
+  inboxNotices, inboxTasks, type InboxTask, type TaskTone,
+} from "./model";
 import { TaskAction, TaskTitle, TONE_KEY } from "./TaskList";
 import s from "./inbox.module.css";
 
-/** `#/home/tasks`: every task for the role (LF), open first. */
-export function TasksPage() {
+/** The status words Home's To do opens the list on. */
+export const TASK_TONES: readonly TaskTone[] = ["overdue", "soon", "later"];
+
+/**
+ * `#/home/tasks`: every task for the role (LF), open first.
+ * `#/home/tasks/<tone>` (overdue, soon, later) opens it on that status,
+ * as Home's status words do.
+ */
+export function TasksPage(p: { tone?: string | undefined }) {
   const mask = useMaskText();
   const { t } = useLocale();
   const { data, state } = useDemo();
   const rows = inboxTasks(data, state);
+  const tone = TASK_TONES.find((x) => x === p.tone);
+  // The list starts on the status asked for (once; the person's own
+  // choice wins after that).
+  useState(() => {
+    if (tone !== undefined && savedView() === undefined) {
+      saveView(location.hash, { q: "", seg: tone });
+    }
+  });
+  const open = rows.filter((x) => !x.done).length;
+  const done = rows.length - open;
+  const summary = [{ label: t("inbox.tasksOpen"), value: open },
+    { label: t("inbox.tasksDone"), value: done }]
+    .filter((x) => x.value > 0);
   return (
     <FilterList title={t("inbox.tasksTitle")} lede={t("inbox.tasksLede")}
       crumbs={[{ label: t("inbox.backHome"), href: hrefOf("home") }]}
       rows={rows} rowKey={(x) => x.id}
       searchText={(x) => `${x.title} ${x.detail}`}
+      summary={summary.length > 0 ? summary
+        : [{ label: t("tpl.inList"), value: rows.length }]}
       segments={[
         { id: "open", label: t("inbox.tasksOpen"), match: (x) => !x.done },
+        ...TASK_TONES.map((k) => ({ id: k, label: t(TONE_KEY[k]),
+          match: (x: InboxTask) => x.tone === k })),
         { id: "done", label: t("inbox.tasksDone"), match: (x) => x.done },
         { id: "all", label: t("inbox.tasksAll"), match: () => true }]}
       columns={[

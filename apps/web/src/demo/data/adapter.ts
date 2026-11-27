@@ -81,7 +81,8 @@ export function adapt(c: DemoCompany): DemoData {
   const approvals: Approval[] = approvalsInbox(c).map((a) => ({ id: a.id,
     kind: a.kind, employeeId: a.employeeId, title: label(a.titleKey),
     requestedOn: a.requestedOn, amountFils: a.amount,
-    makerId: a.makerEmployeeId, checkerId: a.checkerEmployeeId }));
+    makerId: a.makerEmployeeId, checkerId: a.checkerEmployeeId,
+    subjectId: a.subjectId }));
   const h = headline(c);
   const run = payRunApproval(c);
   const people = adaptPeople(c);
@@ -89,7 +90,8 @@ export function adapt(c: DemoCompany): DemoData {
     id: p.id, kind: "overtime", employeeId: p.requestedBy,
     title: both(`Crew overtime for ${p.people.length} people, ` +
       p.display.date), requestedOn: c.asOf, amountFils: p.estimate,
-    makerId: p.requestedBy, checkerId: people.approverOf(p.requestedBy) }));
+    makerId: p.requestedBy, checkerId: people.approverOf(p.requestedBy),
+    subjectId: p.id }));
   return {
     companyName: { en: c.company.name, ar: c.company.nameAr },
     arReviewed: DEMO_AR_REVIEWED,

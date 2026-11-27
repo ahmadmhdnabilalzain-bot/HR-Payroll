@@ -59,7 +59,11 @@
   outline-offset: -2px;
 }
 
-.row[data-reveal] {
+.item {
+  outline-offset: -2px;
+}
+
+.item[data-reveal] {
   animation: row-in var(--dur-slow) var(--ease-out) both;
 }
 

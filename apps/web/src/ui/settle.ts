@@ -35,37 +35,3 @@ export function settleAfter(anims: readonly Animation[], ms: number)
   const h = setTimeout(() => finishAll(anims), ms + SETTLE_SLACK_MS);
   return () => clearTimeout(h);
 }
-
-/**
- * An IntersectionObserver that is known to work calls back once for
- * each target as soon as it is observed. If none comes within `ms`,
- * `fallback` runs (the observer is missing or broken: show the thing).
- * Returns `seen`, to call from the observer's callback.
- */
-export function observerWatchdog(fallback: () => void, ms = 1200)
-  : { seen(): void; stop(): void } {
-  let called = false;
-  const h = setTimeout(() => {
-    if (!called) fallback();
-  }, ms);
-  return { seen: () => { called = true; }, stop: () => clearTimeout(h) };
-}
-
-/** The longest a view transition may hold the page (its snapshot
- * covers the page and takes every click until it ends). */
-export const TRANSITION_CAP_MS = 1500;
-
-/**
- * A view transition that has not finished by the cap is skipped: the
- * new page shows at once and takes clicks. A stalled timeline would
- * otherwise leave the old snapshot over the page, unclickable.
- */
-export function capTransition(vt: { finished: Promise<void>;
-  skipTransition?: () => void }, ms = TRANSITION_CAP_MS): void {
-  if (typeof vt.skipTransition !== "function") return;
-  let done = false;
-  vt.finished.then(() => { done = true; }, () => { done = true; });
-  setTimeout(() => {
-    if (!done) vt.skipTransition?.();
-  }, ms);
-}

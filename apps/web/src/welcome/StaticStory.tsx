@@ -1,6 +1,7 @@
 import type { Fils } from "@payroll/engine";
 import { useEffect, useRef, type ReactNode } from "react";
 import { Wordmark } from "../shell/Wordmark";
+import { onSeen } from "../ui/seen";
 import type { FaceWords } from "./faces";
 import type { Story } from "./story";
 import type { Copy } from "./Welcome";
@@ -18,13 +19,10 @@ export function StaticStory(p: { story: Story; copy: Copy[];
   useEffect(() => {
     const el = root.current;
     if (el === null) return undefined;
-    const io = new IntersectionObserver((es) => {
-      for (const e of es) {
-        if (e.isIntersecting) e.target.setAttribute("data-in", "");
-      }
-    }, { threshold: 0.2 });
-    el.querySelectorAll("section").forEach((x) => io.observe(x));
-    return () => io.disconnect();
+    // Fail-open (ui/seen.ts): a scene never waits hidden for an
+    // observer that does not report, nor crashes where there is none.
+    return onSeen([...el.querySelectorAll("section")],
+      (x) => x.setAttribute("data-in", ""), { threshold: 0.2 });
   }, []);
   const { story, copy, words: w, money: m } = p;
   const slip = story.payslip;

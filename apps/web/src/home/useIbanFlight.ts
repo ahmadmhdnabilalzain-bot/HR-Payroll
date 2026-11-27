@@ -19,7 +19,7 @@ function inView(el: Element): boolean {
 
 /** The salary-file total on Home's hero (the one flight target). */
 function fileTotal(): Element | null {
-  return document.querySelector("[data-fly-target] dd");
+  return document.querySelector("[data-fly-target] [data-fly-value]");
 }
 
 /**

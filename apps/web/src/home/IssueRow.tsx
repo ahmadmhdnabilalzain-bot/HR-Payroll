@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { FixKind, Issue } from "../demo/data/types";
 import { useMaskText } from "../ui/mask";
+import { hrefOf } from "../demo/route";
 import { useDemo, type Resolution } from "../demo/state";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Icon } from "../ui/Icon";
+import { useRowLink } from "../ui/RowLink";
 import { useToast } from "../ui/Toast";
 import { IbanForm } from "./IbanForm";
 import { useIbanFlight } from "./useIbanFlight";
@@ -21,6 +23,23 @@ const ONE_TAP: Partial<Record<FixKind, [Resolution, MessageKey]>> = {
   review: ["reviewed", "home.markReviewed"],
   "renew-document": ["renewal", "home.startRenewal"],
 };
+
+/**
+ * Where the whole line of an issue goes: overtime to the overtime
+ * claims, a document to the person's documents, the pension to its
+ * page, everything else (bank details, the salary file) to Fix.
+ */
+export function issueHref(i: Pick<Issue, "code" | "fixKind" |
+  "employeeId">): string {
+  if (i.code.startsWith("OVERTIME")) return hrefOf("time-off", "overtime");
+  if (i.fixKind === "renew-document" && i.employeeId !== null) {
+    return hrefOf("people", "files", "documents", i.employeeId);
+  }
+  if (i.fixKind === "confirm-pension" || i.code.startsWith("PENSION")) {
+    return hrefOf("people", "papers", "pension");
+  }
+  return hrefOf("pay-run", "fix");
+}
 
 /** One issue: a short title, one plain sentence, one next step. */
 export function IssueRow(p: { issue: Issue; delay: number | null;
@@ -64,11 +83,19 @@ export function IssueRow(p: { issue: Issue; delay: number | null;
   const step = ONE_TAP[i.fixKind];
   const mask = useMaskText();
   const canAct = state.role === "hr" && i.employeeId !== null;
+  // The whole line opens where the issue is fixed; the side button
+  // keeps its own step. While the bank form is open or its pay is in
+  // flight the line is not a link (a stray click must not leave).
+  // (No aria-disabled then: it would disable the form inside it.)
+  const link = useRowLink({ href: issueHref(i) });
+  const asLink = !(editing || flying);
   return (
-    <li className={s.row} data-key={i.id} ref={row} tabIndex={-1}
+    <li className={s.item} data-key={i.id} ref={row} tabIndex={-1}
       data-reveal={p.delay !== null ? "" : undefined}
       style={p.delay !== null ? { animationDelay: `${p.delay}ms` }
         : undefined}>
+      <div {...(asLink ? link : {})}
+        className={`${s.row} ${asLink ? link.className : ""}`}>
       <span className={s.icon} data-tone={i.severity}>
         <Icon name={i.severity === "info" ? "info" : "alert"} />
       </span>
@@ -94,6 +121,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null;
           ) : null}
         </div>
       )}
+      </div>
     </li>
   );
 }
