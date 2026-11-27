@@ -961,3 +961,24 @@ HR and GM full audit is not complete. Manager and employee audit: 42 to 46
 percent dead, cause is missing click handlers on plain elements.
 Files: scratchpad/deadclick (CSV and summaries). Wave 1 fixes Reports and the
 dashboards; the rest is the dc1 to dc3 and item2 branches.
+
+### 23b. Branch state at wrap-up (06:15 Dubai), for Monday
+
+- dc1: only the shared `RowLink` / `useRowLink` component (apps/web/src/ui) is
+  built and documented in DEMO.md. Notice detail page, rewiring the bell,
+  Notices, To do and Waiting rows, the Later chip and the guard test are not
+  done. Cause of dead bell items: `targetHref()` in home/inbox/model.ts returns
+  null when the target is not a route the role can reach; `HomeNotice` has no
+  related-item field.
+- item2: API commit and audit subject only (`#/item/<type>/<id>`, `itemHref`,
+  `<ItemLink>`, 14 types; `ItemPage` is a stub; audit entry subject carries
+  type and personId outside the hash). Page body, responsibility table
+  (compatible with bb1 `ITEM_OWNERS`), wiring, "HR is handling" and "Nudge HR",
+  and the guard test are not done. Typecheck not run on the API commit.
+- bb4: built (shared task list, six weeks of schedules, Operations area,
+  Attendance today, Team today, Tasks, Schedules, My schedule, My tasks).
+  Attendance today changed in demo data (three people late or missing, so
+  "Clock-ins today" goes 0 to 3; the October late list 3 to 5). Last three code
+  commits not run in a browser; one leak-scan failure on comp-plan was
+  intermittent. Open-shift board and Arabic not done.
+- dc2, dc3: leave, documents, payslips and profile rows: still to be reported.
