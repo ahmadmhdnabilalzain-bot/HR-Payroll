@@ -79,7 +79,7 @@ row that lives inside a host screen.
 | H12 | M | Help and training videos | setup.help, me.help | partial |
 | H13 | K | Team chat and intranet | - | missing |
 | H14 | K | Meetings with transcript | - | missing |
-| H15 | K | AI assistant, cited policy Q&A | - | missing |
+| H15 | K | Rule-based answers, cited policy Q&A | - | missing |
 | H16 | K | Agent actions you confirm | - | missing |
 
 **People**
@@ -375,7 +375,7 @@ have, then rows that do not fit a bank.
 | | | | | partial: public holidays only; no comp-off or grants |
 | 19 | E16 | Ask about a payslip line | HR | |
 | | | | | not built: employee asks about a payslip line |
-| 20 | H15 | AI assistant, cited policy Q&A | HR | |
+| 20 | H15 | Rule-based answers, cited policy Q&A | HR | |
 | | | | | not built: cited policy questions and answers |
 | 21 | P66 | Sales commission statements | HR, GM | |
 | | | | | no data: sales commission statements (RMs) |

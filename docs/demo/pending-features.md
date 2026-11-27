@@ -28,7 +28,7 @@ Meetings (behind a launch gate, telecom position unconfirmed), data
 import and parallel run, intranet and team chat (Plan 17 tasks 1-6).
 
 ## Not built
-- AI assistant and cited policy Q&A (Plan 17 tasks 7-11).
+- Rule-based answers beyond the cited policy Q&A (Plan 17 tasks 7-11).
 - Social and website insights (Plan 15). Finance modules: accounts
   payable, cards, project billing (Plan 16).
 - Arabic screens reviewed by a native speaker (Arabic is hidden).

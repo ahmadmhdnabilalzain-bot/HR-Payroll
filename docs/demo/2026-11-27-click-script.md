@@ -505,7 +505,7 @@ Say the first four out loud during the demo; keep the rest for questions.
 8. **Not built yet:** native iPhone and Android apps (the demo is a
    mobile-friendly website), Arabic screens reviewed by a native speaker
    (Arabic is hidden), single sign-on set up for a client, accounting
-   connectors, an AI assistant.
+   connectors. Answers in the app are rule-based.
 9. **Some screens are demo scenes only.** Several panel areas (for example
    pay elements, pay groups and traffic fines) were drawn from demo data
    and have no real backend yet. The core of this script (pay run, bank
