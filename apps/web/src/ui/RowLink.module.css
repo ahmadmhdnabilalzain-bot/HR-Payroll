@@ -1,0 +1,57 @@
+/*
+ * The whole-row link (ui/RowLink.tsx). Only the press feel lives
+ * here; layout stays with the list that uses it (pass className).
+ */
+.row {
+  position: relative;
+  min-block-size: 44px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.row[aria-disabled="true"] {
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .row:hover:not([aria-disabled="true"]) {
+    background-color: var(--color-surface-secondary);
+  }
+
+  .row:hover .chevron {
+    color: var(--color-text);
+    transform: translateX(2px);
+  }
+}
+
+.row:active:not([aria-disabled="true"]) {
+  background-color: var(--color-button-secondary);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+  border-radius: var(--radius-control);
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-text-faint);
+  transition: transform var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .chevron {
+    transition: none;
+  }
+
+  .row:hover .chevron {
+    transform: none;
+  }
+}
