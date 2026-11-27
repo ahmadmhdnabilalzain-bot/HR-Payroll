@@ -15,6 +15,8 @@ import {
   type StatusTone,
 } from "../../ui/templates";
 import { Dot } from "../moves/Dot";
+import { Picker } from "../Picker";
+import { BudgetMeter, MeterKey } from "./Meter";
 import type { Tone } from "../moves/view";
 import { useActor } from "../moves/view";
 import { Outside } from "../../shell/Outside";
@@ -67,15 +69,9 @@ export function BudgetList() {
         rowHref={(r) => budgetHref(r.id)}
         searchText={(r) => `${r.title} ${r.departmentText} ${r.ownerName}`}
         filters={(
-          <label className={h.field}>
-            <span className="visually-hidden">Department</span>
-            <select value={dept} onChange={(e) => setDept(e.target.value)}>
-              <option value="all">All departments</option>
-              {depts.map((d) => (
-                <option key={d.id} value={d.id}>{d.text}</option>
-              ))}
-            </select>
-          </label>
+          <Picker label="Department" value={dept} onChange={setDept}
+            options={[{ value: "all", label: "All departments" },
+              ...depts.map((d) => ({ value: d.id, label: d.text }))]} />
         )}
         summary={[]}
         meta={(
@@ -102,7 +98,16 @@ export function BudgetList() {
                 <Money value={t.left} size="md" tween={false} />
               </Explainable></dd></div>
           </dl>
-          <p className={h.quiet}>{data.hiring.budgetBasis}</p>
+          <div className={h.meterBlock}>
+            <BudgetMeter size="md" label="All positions shown"
+              firstYear={t.firstYear} committed={t.committed}
+              offered={t.offered} />
+            <MeterKey />
+          </div>
+          <details className={h.basis}>
+            <summary>How the budget is worked out</summary>
+            <p className={h.quiet}>{data.hiring.budgetBasis}</p>
+          </details>
           </div>
         )}
         segments={[{ id: "all", label: "All", match: () => true },
@@ -121,6 +126,13 @@ export function BudgetList() {
           ) },
           { key: "l", label: "Left", end: true, render: (r) => (
             <Money value={r.left} size="sm" tween={false} />
+          ) },
+          { key: "m", label: "Spend", render: (r) => (
+            <span className={h.meterCell}><BudgetMeter
+              label={r.title} firstYear={r.cost.firstYear}
+              committed={(r.committed?.amount ?? 0n) as BudgetRow["left"]}
+              offered={(r.offered?.amount ?? 0n) as BudgetRow["left"]} />
+            </span>
           ) }]}
         actions={state.role === "gm" ? (
           <button type="button" className={`${b.btn} ${b.primary}`}
@@ -291,6 +303,15 @@ export function BudgetRecord(p: { id: string }) {
         tabs={[
           { id: "budget", label: "Budget", render: () => (
             <div className={h.stack}>
+              <div className={h.meterBlock}>
+                <BudgetMeter size="md" label={r.title}
+                  firstYear={r.cost.firstYear}
+                  committed={(r.committed?.amount ?? 0n) as
+                    BudgetRow["left"]}
+                  offered={(r.offered?.amount ?? 0n) as
+                    BudgetRow["left"]} />
+                <MeterKey />
+              </div>
               <KeyValues items={[
                 { label: "Department", value: r.departmentText },
                 { label: "Owner", value: r.ownerName },
