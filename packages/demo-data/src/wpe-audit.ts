@@ -173,7 +173,7 @@ const monthEnd = (key: string): string => {
 const stampOf = (at: string): string =>
   `${reportDate(at.slice(0, 10))}, ${at.slice(11, 16)}`;
 
-const shorten = (h: string): string => `${h.slice(0, 8)}...${h.slice(-4)}`;
+const shorten = (h: string): string => `${h.slice(0, 8)}…${h.slice(-4)}`;
 
 function packSignOffs(c: DemoCompany, month: string): PackSignOff[] {
   return signOffReport(c).filter((r) => r.sortKey.startsWith(month) ||

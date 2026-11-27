@@ -444,7 +444,7 @@ export interface AuditRow {
   shortPrev: string;
 }
 
-const shorten = (h: string): string => `${h.slice(0, 8)}...${h.slice(-4)}`;
+const shorten = (h: string): string => `${h.slice(0, 8)}…${h.slice(-4)}`;
 
 function whoOf(c: DemoCompany, id: string | null): string {
   if (id === null) return "System";

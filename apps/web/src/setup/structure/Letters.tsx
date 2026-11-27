@@ -45,7 +45,7 @@ function Preview(p: { d: StructureData; id: string }) {
   const { d } = p;
   const [who, setWho] = useState(d.people[0]!.id);
   const [purpose, setPurpose] = useState(PURPOSES[0]!);
-  const [to, setTo] = useState("The Embassy of Sample Land");
+  const [to, setTo] = useState("The Embassy of the Addressee");
   const person = d.people.find((x) => x.id === who)!;
   return (
     <div className={s.section}>
