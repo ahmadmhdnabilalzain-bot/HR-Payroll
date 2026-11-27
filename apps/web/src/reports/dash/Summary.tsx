@@ -58,8 +58,8 @@ export function Summary(p: { columns: Column[]; label: string }) {
                 </>
               );
               if (x.href === undefined && x.rowHref !== undefined) {
-                return <PointRow key={x.key} href={x.rowHref}
-                  label={x.text}>{body}</PointRow>;
+                return <PointRow key={x.key} href={x.rowHref}>
+                  {body}</PointRow>;
               }
               return (
                 <li key={x.key} className={s.point}>
@@ -81,8 +81,9 @@ export function Summary(p: { columns: Column[]; label: string }) {
  * a row link, and a press on the figure, or inside the sheet it opens
  * (a portal, so React bubbles it here), stays with the figure.
  */
-function PointRow(p: { href: string; label: string; children: ReactNode }) {
-  const row = useRowLink({ href: p.href, label: p.label });
+function PointRow(p: { href: string; children: ReactNode }) {
+  // Named by its own words, figure first, as the other points are.
+  const row = useRowLink({ href: p.href });
   return (
     <li className={s.point}>
       <div {...row} className={`${row.className} ${s.pointLink}`}
