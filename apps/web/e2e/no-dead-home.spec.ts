@@ -279,3 +279,25 @@ test("a-click-within-100ms-of-a-route-change-lands", async ({ page }) => {
     /[.*+?^${}()|[\]\\/]/g, "\\$&")}$`), { timeout: 1000 });
   await cdp.send("Animation.setPlaybackRate", { playbackRate: 1 });
 });
+
+test("captions-open-what-they-name", async ({ page }) => {
+  await page.goto("/");
+  for (const [name, url] of [
+    [/^Net pay to 31 people$/, /#\/pay-run\/pay$/],
+    [/^pays on 30 Oct$/, /#\/pay-run\/pay$/],
+    [/^Next: Rafiq Hossain, from 16 Nov$/, /#\/people\/emp-\d+$/],
+    [/^Jose Reyes Residence visa, 8 Nov$/,
+      /#\/people\/files\/documents\/emp-\d+$/],
+    [/^Then Majid Al Ketbi, 21 Nov$/,
+      /#\/people\/files\/documents\/emp-\d+$/],
+  ] as const) {
+    await home(page);
+    const link = page.getByRole("link", { name }).first();
+    await link.scrollIntoViewIfNeeded();
+    const box = await link.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box!.x + box!.width / 2,
+      box!.y + box!.height / 2);
+    await expect(page).toHaveURL(url);
+  }
+});
