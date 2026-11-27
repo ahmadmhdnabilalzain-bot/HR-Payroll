@@ -6,7 +6,7 @@ import { useRef } from "react";
 import { Money } from "../../ui/Money";
 import { useEntrance } from "../../ui/templates/listEnter";
 import type { Change, Figure, TileModel } from "./model";
-import { Sparkline } from "./Sparkline";
+import { Sparkline, ZeroBars } from "./Sparkline";
 import s from "./dash.module.css";
 
 /** A tile's figure at 34 px: money through <Money/>, counts as text. */
@@ -86,9 +86,10 @@ function Body(p: { t: TileModel; why?: Explanation | undefined;
       <ChangeView c={t.change} />
       <span className={s.tileArt}>
         {t.series !== undefined && t.series.length > 1 && (
-          <Sparkline series={t.series} zero={t.zero === true}
-            {...(t.compare === undefined ? {}
-              : { compare: t.compare })} />
+          t.zero === true ? <ZeroBars series={t.series} />
+            : <Sparkline series={t.series}
+              {...(t.compare === undefined ? {}
+                : { compare: t.compare })} />
         )}
         {t.meter !== undefined && <Meter {...t.meter} />}
       </span>
