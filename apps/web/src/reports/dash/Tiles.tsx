@@ -31,32 +31,26 @@ export function ChangeView(p: { c: Change;
   const { lang } = useLocale();
   const c = p.c;
   if (c === null) return null;
-  const Box = (b: { children: ReactNode }) => p.href === undefined
-    ? <span className={s.tileChange}>{b.children}</span>
+  const box = (children: ReactNode): ReactNode => p.href === undefined
+    ? <span className={s.tileChange}>{children}</span>
     : <a className={`${s.tileChange} ${s.changeLink}`}
-      href={p.href}>{b.children}</a>;
+      href={p.href}>{children}</a>;
   if (c.kind === "money") {
-    return (
-      <Box>
-        {c.fils === 0n ? `Same as ${c.against}` : (
-          <><Money value={c.fils} size="sm" signed tween={false} />
-            {` against ${c.against}`}</>
-        )}
-      </Box>
-    );
+    return box(c.fils === 0n ? `Same as ${c.against}` : (
+      <><Money value={c.fils} size="sm" signed tween={false} />
+        {` against ${c.against}`}</>
+    ));
   }
-  if (c.n === 0) return <Box>{`Same as ${c.against}`}</Box>;
+  if (c.n === 0) return box(`Same as ${c.against}`);
   const abs = Math.abs(c.n);
   const unit = c.unit === undefined ? ""
     : ` ${abs === 1 ? c.unit.replace(/s$/, "") : c.unit}`;
-  return (
-    <Box>
-      <span className="tabular">
-        {`${c.n < 0 ? MINUS : "+"}${formatNumber(abs, lang)}${unit}`}
-      </span>
-      {` against ${c.against}`}
-    </Box>
-  );
+  return box(<>
+    <span className="tabular">
+      {`${c.n < 0 ? MINUS : "+"}${formatNumber(abs, lang)}${unit}`}
+    </span>
+    {` against ${c.against}`}
+  </>);
 }
 
 function Meter(p: { part: number; whole: number }) {

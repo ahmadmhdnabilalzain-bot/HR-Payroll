@@ -256,7 +256,12 @@ async function decisionsShown(page: Page): Promise<void> {
   await expect(panel).toHaveAttribute("data-flash", "");
   await expect(panel).toBeInViewport();
   await expect(panel).not.toHaveAttribute("data-flash", /.*/,
-    { timeout: 2500 });
+    { timeout: 3000 });
+  // At rest: the title below the sticky header, on screen.
+  const top = await page.locator("#approvals-title").evaluate((t) =>
+    t.getBoundingClientRect().top);
+  expect(top).toBeGreaterThan(90);
+  expect(top).toBeLessThan(400);
 }
 
 test("waiting-rows-open-the-decisions-list", async ({ page }) => {

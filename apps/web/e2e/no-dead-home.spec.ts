@@ -218,8 +218,11 @@ test("gm-sign-off-says-why-and-goes-to-fix", async ({ page }) => {
   await expect(page).toHaveURL(/#\/pay-run\/fix$/);
 });
 
-test("every-trend-point-opens-its-month", async ({ page }) => {
+for (const [role, name] of [["hr", null],
+  ["gm", "General manager"]] as const) {
+test(`${role}-every-trend-point-opens-its-month`, async ({ page }) => {
   await page.goto("/");
+  if (name !== null) await asRole(page, name);
   for (const [month, key] of [["June", "06"], ["July", "07"],
     ["August", "08"], ["September", "09"], ["October", "10"]] as const) {
     await home(page);
@@ -243,6 +246,7 @@ test("every-trend-point-opens-its-month", async ({ page }) => {
   await page.getByRole("link", { name: /net against September/ }).click();
   await expect(page).toHaveURL(/#\/reports\/variance$/);
 });
+}
 
 test("a-click-within-100ms-of-a-route-change-lands", async ({ page }) => {
   await page.goto("/");
