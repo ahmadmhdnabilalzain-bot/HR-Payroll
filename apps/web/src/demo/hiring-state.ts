@@ -99,7 +99,14 @@ export interface HiringSlice {
   hiringEdits: HiringEdit[];
   budgetAsks: BudgetAsk[];
   budgetDecisions: Record<string, BudgetDecision>;
+  /** "Save draft" on Request a hire: one per person, only theirs. */
+  hiringDrafts: Record<string, SavedDraft>;
   nextHiring: number;
+}
+
+export interface SavedDraft extends HiringDraft {
+  /** The demo's date it was saved. */
+  on: string;
 }
 
 export type HiringAction =
@@ -114,11 +121,13 @@ export type HiringAction =
   | { type: "budget-ask"; ask: Omit<BudgetAsk, "id"> }
   | { type: "budget-ask-undo"; id: string }
   | { type: "budget-decide"; decision: BudgetDecision }
-  | { type: "budget-undecide"; askId: string };
+  | { type: "budget-undecide"; askId: string }
+  | { type: "hiring-draft-save"; by: string; draft: SavedDraft }
+  | { type: "hiring-draft-clear"; by: string };
 
 export const HIRING_INITIAL: HiringSlice = { hiringNew: [],
   hiringSteps: [], hiringMessages: [], hiringEdits: [], budgetAsks: [],
-  budgetDecisions: {}, nextHiring: 1 };
+  budgetDecisions: {}, hiringDrafts: {}, nextHiring: 1 };
 
 /** The id the next raise gets (to open it after the dispatch). */
 export const nextRequestId = (s: Pick<HiringSlice, "nextHiring">): string =>
@@ -160,7 +169,8 @@ export function reduceHiring<S extends HiringSlice>(s: S,
   switch (a.type) {
     case "hiring-raise":
       return { ...s, hiringNew: [...s.hiringNew, { ...a.draft, ...a.who,
-        id: `hreq-new-${n}`, n: a.n }], nextHiring: n + 1 };
+        id: `hreq-new-${n}`, n: a.n }], hiringDrafts: without(
+        s.hiringDrafts, a.who.by), nextHiring: n + 1 };
     case "hiring-raise-undo":
       if (!has(s.hiringNew, a.id)) return s;
       return { ...s, hiringNew: s.hiringNew.filter((x) => x.id !== a.id),
@@ -208,5 +218,10 @@ export function reduceHiring<S extends HiringSlice>(s: S,
     case "budget-undecide":
       if (s.budgetDecisions[a.askId] === undefined) return s;
       return { ...s, budgetDecisions: without(s.budgetDecisions, a.askId) };
+    case "hiring-draft-save":
+      return { ...s, hiringDrafts: { ...s.hiringDrafts, [a.by]: a.draft } };
+    case "hiring-draft-clear":
+      if (s.hiringDrafts[a.by] === undefined) return s;
+      return { ...s, hiringDrafts: without(s.hiringDrafts, a.by) };
   }
 }
