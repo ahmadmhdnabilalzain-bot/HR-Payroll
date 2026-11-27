@@ -7,11 +7,15 @@ an approver, and finds it in three taps.
 
 ## From the long message
 
-1. **Role and login.** "How can I log in as an employee and then request a
-   role?" The role switch lets anyone become anyone. In the product everyone
-   has one identity with fixed permissions; approvals and audit are tied to
-   the real person. The switch must read as a presenter control ("Demo: view
-   as"), separate from the product.
+1. **Role and login.** The owner's words: "How can I log in as an employee
+   and then request a role?" Two readings, both to cover: (a) the top-bar
+   role menu lets anyone become anyone, which no real product does; (b) as
+   an employee the owner could not find a way to request a role, access or a
+   change. Fix: open on a sign-in screen of named people so every action
+   belongs to one person with fixed permissions; rename the menu "Demo:
+   switch person"; approvals and audit are tied to the signed-in person; and
+   give employees a "Request access or a role change" request that follows a
+   signing chain. Ask the owner which one they meant.
 2. **HR Home shows one bank issue, titled very big.** HR has many priorities.
    Home must show, ordered by urgency: staff KPIs; staff schedules;
    attendance; visa and labour-card documents; who has expired insurance;
@@ -41,6 +45,11 @@ an approver, and finds it in three taps.
     proof of employment, and more. The employee raises a request and types
     nothing: his data is in the system. He only selects the embassy, the
     purpose, the bank from drop-downs.
+11b. **Create and edit templates.** The owner also said "if I want to create a
+    template". HR must be able to create and edit a letter template (name,
+    body with placeholders such as employee name, job title, joining date,
+    salary where allowed, addressee; letterhead; signing chain; who may
+    request it), not only staff using one.
 12. **Competitive study.** Browse competitors' navigation and features
     (Keka, Zoho, Odoo and others). "Not better than any competitor." At
     USD 10,000 a year a bank would not buy this. It must be much more premium
