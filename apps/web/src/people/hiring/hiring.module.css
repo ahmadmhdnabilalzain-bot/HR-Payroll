@@ -630,3 +630,128 @@
   text-underline-offset: 3px;
   cursor: pointer;
 }
+
+/* The milestone track: numbered targets on one rail, today a hairline
+ * with its word. Ink and grey; late is said in words and drawn as a
+ * square, never by colour alone. */
+.track {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.trackWords {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.trackWords[data-late="true"] {
+  font-weight: 600;
+}
+
+.trackLine {
+  position: relative;
+  block-size: 56px;
+  margin-inline: 12px;
+}
+
+.trackRail {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 34px;
+  block-size: 2px;
+  background: var(--color-grey-300);
+}
+
+.trackDot {
+  position: absolute;
+  inset-block-start: 24px;
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  margin-inline-start: -11px;
+  border: 2px solid var(--color-text);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.trackDot[data-state="done"] {
+  background: var(--color-text);
+  color: var(--color-on-accent);
+}
+
+.trackDot[data-state="overdue"] {
+  border-radius: 4px;
+  background: var(--color-text);
+  color: var(--color-on-accent);
+  box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 4px var(--color-text);
+}
+
+.trackToday {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 0;
+  border-inline-start: 1px dashed var(--color-text-muted);
+}
+
+.trackToday > span {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 4px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.trackToday[data-end="true"] > span {
+  inset-inline: auto 4px;
+}
+
+.trackEnds {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.mileNo {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 20px;
+  block-size: 20px;
+  margin-inline-end: var(--space-2);
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.mileNo[data-state="done"],
+.mileNo[data-state="overdue"] {
+  background: var(--color-text);
+  color: var(--color-on-accent);
+}
+
+.mileNo[data-state="overdue"] {
+  border-radius: 4px;
+}
+
+.rowEnd[data-state="overdue"] {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .track {
+    padding: var(--space-4);
+  }
+}

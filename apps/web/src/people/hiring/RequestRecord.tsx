@@ -32,6 +32,7 @@ import {
   hireCost,
   requestsNow,
   timelineOf,
+  trackOf,
   undoable,
   type Act,
   type RequestNow,
@@ -57,8 +58,8 @@ const NEXT: Record<RequestStatus, string> = {
   filled: "Filled. The new person is on the staff list or joining.",
 };
 
-const MILE_TONE: Record<MilestoneState, Tone> = { done: "ok", due: "neutral",
-  overdue: "warn", waiting: "neutral" };
+const MILE_TONE: Record<MilestoneState, Tone> = { done: "neutral",
+  due: "neutral", overdue: "neutral", waiting: "neutral" };
 const MILE_WORD: Record<MilestoneState, string> = { done: "Done",
   due: "Due", overdue: "Overdue", waiting: "Not started" };
 
@@ -156,7 +157,8 @@ export function RequestRecord(p: { id: string }) {
   const stats: RecordStat[] = deciding ? costStats(data, state, r)
     : [{ label: "People", value: String(r.headcount) },
       { label: "Target start", value: r.start.display },
-      { label: "Time to fill", value: left === null
+      { label: "Time to fill", value: timeline.find((m) =>
+        m.key === "offer")?.state === "done" ? "Offer made" : left === null
         ? `${r.timeToFillDays} days` : left < 0
           ? `${-left} days past the target` : `${left} days left` }];
   return (
@@ -236,12 +238,17 @@ export function RequestRecord(p: { id: string }) {
           ) },
           { id: "timeline", label: "Timeline", render: () => (
             <div className={h.stack}>
+              <Track r={r} />
               <ol className={h.rows} aria-label="Timeline">
-                {timeline.map((m) => (
+                {timeline.map((m, i) => (
                   <li key={m.key} className={h.row}>
-                    <span className={h.rowHead}>{m.label}</span>
-                    <span>{m.text}</span>
-                    <span className={h.rowEnd}><Dot tone={MILE_TONE[m.state]}>
+                    <span className={h.rowHead}>
+                      <span className={h.mileNo} data-state={m.state}
+                        aria-hidden="true">{i + 1}</span>{m.label}</span>
+                    <span>{m.state === "done" && m.due !== null
+                      ? `Target was ${m.due.display}` : m.text}</span>
+                    <span className={h.rowEnd} data-state={m.state}>
+                      <Dot tone={MILE_TONE[m.state]}>
                       {MILE_WORD[m.state]}</Dot></span>
                   </li>
                 ))}
@@ -336,6 +343,55 @@ function costStats(d: ReturnType<typeof useDemo>["data"],
         less: c.firstYear })}>
         <Money value={c.leftAfter} tween={false} />
       </Explainable>) }];
+}
+
+/**
+ * The milestone track: the targets placed by date from the sign-off to
+ * the start, today as a marker on the same scale, and a sentence that
+ * says whether hiring is on plan or which target is late.
+ */
+function Track(p: { r: RequestNow }) {
+  const { data, state } = useDemo();
+  const ms = timelineOf(data, state, p.r);
+  const t = trackOf(data, p.r, ms);
+  const first = t.late[0];
+  const words = p.r.signedOffIso === null
+    ? "The targets are set once the General manager signs off."
+    : first !== undefined ? `Behind plan: ${first.label.toLowerCase()}, ` +
+      `${first.text}.${t.late.length > 1 ? ` ${t.late.length - 1} more ` +
+        `${t.late.length === 2 ? "target is" : "targets are"} late.` : ""}`
+      : ms.every((m) => m.state === "done") ? "Every target is met."
+        : "On plan: every target so far is met.";
+  const placed = t.points.filter((x) => x.at !== null);
+  return (
+    <div className={h.track}>
+      <p className={h.trackWords} data-late={first !== undefined}>
+        {words}</p>
+      {placed.length > 0 && (
+        <div className={h.trackLine} role="img" aria-label={`Targets ` +
+          `from the sign-off to the start; today is ${t.todayText}.`}>
+          <span className={h.trackRail} />
+          {placed.map((x, i) => (
+            <span key={x.key} className={h.trackDot} data-state={x.state}
+              style={{ insetInlineStart: `${(x.at ?? 0) * 100}%` }}
+              title={`${x.label}, ${x.dueText}`}>{i + 1}</span>
+          ))}
+          {t.today !== null && (
+            <span className={h.trackToday} data-end={t.today > 0.75}
+              style={{ insetInlineStart: `${t.today * 100}%` }}>
+              <span>Today</span></span>
+          )}
+        </div>
+      )}
+      {placed.length > 0 && (
+        <div className={h.trackEnds} aria-hidden="true">
+          <span>{`Signed off ${data.hiring.dateText(
+            p.r.signedOffIso ?? "")}`}</span>
+          <span>{`Starts ${p.r.start.display}`}</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** The shared list motion on a thread: a message slides in, one taken
