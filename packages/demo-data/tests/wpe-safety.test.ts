@@ -98,6 +98,11 @@ describe("WPE ILOE", () => {
           86400000;
         expect(r.status === "due").toBe(days < NEW_JOINER_DAYS);
         expect(r.since === null).toBe(r.status === "due");
+        // The scheme began on 1 January 2023: never "since" earlier.
+        if (r.since !== null) {
+          expect(r.since.iso >= "2023-01-01").toBe(true);
+          expect(r.since.iso >= e.joiningDate).toBe(true);
+        }
       }
       expect(rows.some((r) => r.status === "due")).toBe(true);
       expect(rows.some((r) => r.status === "subscribed")).toBe(true);

@@ -136,7 +136,8 @@ export const payrun = {
   fileHeadline: "Salary file for {count} people, {amount}, to {bank}, " +
     "dated {date}",
   draft: "Draft: the file is final once the General manager signs off.",
-  ready: "Ready to upload to {bank}.",
+  ready: "Ready to upload to {bank}. Not confirmed by MOHRE or a bank " +
+    "test.",
   download: "Download salary file",
   summaryTitle: "The file in brief",
   sumPeople: "People in the file",

@@ -27,16 +27,12 @@ type Lang = "en" | "ar";
 
 /**
  * Where the demo shows a different status from the engine pack's
- * label (a ruling; the engine is not changed). The pack labels the
- * 50% overall deduction limit "official"; the demo presents it as
- * secondary-sourced. Arabic: NEEDS NATIVE REVIEW.
+ * label (a ruling; the engine is not changed). None now: the 50%
+ * overall deduction limit is in Art 25(2) itself, so the explain
+ * panel shows the pack's "official", as the rules screen does.
  */
 export const PRESENTED_STATUS: Record<string, { status: string;
-  label: Record<Lang, string> }> = {
-  "ae-payroll:deductionOverallCapBps": { status: "secondary",
-    label: { en: "secondary-sourced, as we read it",
-      ar: "مصدر ثانوي، كما نفهمه" } },
-};
+  label: Record<Lang, string> }> = {};
 
 const presentedOf = (r: TraceRule) =>
   r.overridden ? undefined : PRESENTED_STATUS[`${r.packId}:${r.key}`];

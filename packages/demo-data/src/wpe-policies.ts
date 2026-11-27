@@ -53,9 +53,11 @@ const SEEDS: readonly PolicySeed[] = [
     sections: [
       ["1.1", "Who this covers", "This policy covers every employee on " +
         "the company payroll, full time or part time."],
-      ["2.1", "Annual leave", "Each employee earns annual leave in " +
-        "calendar days, set in Setup, Leave rules. Weekends and public " +
-        "holidays inside the dates are not counted.",
+      ["2.1", "Annual leave", "Each employee earns annual leave, set " +
+        "in Setup, Leave rules. This sample policy counts working days, " +
+        "which is more generous than the law's default (Art 29(7), as we " +
+        "read it). Weekends and public holidays inside the dates are not " +
+        "taken from the balance.",
       "As we read it, the Labour Law sets a minimum for annual leave. " +
         "Check the rule in Setup and confirm with HR."],
       ["2.2", "Carrying leave over", "Unused annual leave may be carried " +
@@ -65,8 +67,9 @@ const SEEDS: readonly PolicySeed[] = [
         "the dates. Your manager decides, and you see who decided and " +
         "when. Ask at least one week ahead for more than three days."],
       ["3.2", "Sick leave", "Tell your manager on the first morning you " +
-        "are unwell. For more than two days in a row, add a medical " +
-        "certificate from a licensed clinic to the request.",
+        "are unwell. Within three working days, send a medical report " +
+        "from a medical authority (Art 31, as we read it) with the " +
+        "request.",
       "As we read it, sick leave rules are set in law. HR holds the " +
         "current reading."],
       ["4.1", "Other leave", "Compassionate leave, study leave, comp-off " +

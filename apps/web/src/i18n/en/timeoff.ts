@@ -10,8 +10,8 @@ export const timeoff = {
   balances: "Your balance",
   annual: "Annual leave",
   annualLeft: { one: "{n} day left", other: "{n} days left" },
-  annualMade: "{accrued} earned this year, {taken} taken, " +
-    "{pending} waiting",
+  annualMade: "{accrued} earned this year (company policy: credited " +
+    "monthly), {taken} taken, {pending} waiting",
   sick: "Sick leave",
   sickUsed: { one: "{n} day this year",
     other: "{n} days this year" },
