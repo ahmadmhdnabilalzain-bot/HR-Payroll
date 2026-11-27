@@ -118,6 +118,9 @@ export function RunBar(p: { step: StepId; go: Go }) {
                       if (id !== p.step) p.go(id);
                     }}>
                     <span className={s.dot} aria-hidden="true" />
+                    <span className={s.dotName} aria-hidden="true">
+                      {t(STEP_LABEL[id])}
+                    </span>
                     <span className="visually-hidden">
                       {t("payrun.stepOf", { n: i + 1 })}:{" "}
                       {t(STEP_LABEL[id])}, {word(id)}

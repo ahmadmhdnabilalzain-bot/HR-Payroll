@@ -75,10 +75,13 @@
   gap: var(--space-1);
 }
 
+/* The step's title on the page title token (PageHead's 28/34, 22/28
+ * on phones); the sticky row above keeps the compact 17 px run title. */
 .stepTitle {
-  font-size: var(--text-xl);
+  font-size: var(--text-title);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  line-height: var(--text-title-lh);
+  letter-spacing: -0.4px;
 }
 
 .stepSub {
