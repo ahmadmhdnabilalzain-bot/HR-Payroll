@@ -3,10 +3,12 @@ import { Explainable } from "../components/explain";
 import type { DepartmentRow } from "../demo/data/types";
 import { useFlip } from "../demo/motion";
 import { Count } from "../ui/Count";
-import { useDemo } from "../demo/state";
+import { hrefOf } from "../demo/route";
+import { useDemo, type Role } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Money } from "../ui/Money";
+import { useRowLink } from "../ui/RowLink";
 import s from "./Departments.module.css";
 
 type Metric = "cost" | "headcount";
@@ -57,12 +59,32 @@ export function Departments() {
       </header>
       <ol className={s.rows} ref={box}>
         {top !== undefined && rows.map((d) => (
-          <li key={d.id} className={s.row} data-flip={d.id}>
-            <DeptRow d={d} top={top} metric={metric} />
-          </li>
+          <DeptItem key={d.id} d={d} top={top} metric={metric} />
         ))}
       </ol>
     </section>
+  );
+}
+
+/**
+ * Where a department opens: the departments report; the Executive
+ * office opens the GM's executive dashboard (HR has none).
+ */
+export function deptHref(id: string, role: Role): string {
+  return id === "dept-exec" && role === "gm"
+    ? hrefOf("reports", "dashboard-exec") : hrefOf("reports", "departments");
+}
+
+/** One department: the whole row opens its report. */
+function DeptItem(p: { d: DepartmentRow; top: DepartmentRow;
+  metric: Metric }) {
+  const { state } = useDemo();
+  const link = useRowLink({ href: deptHref(p.d.id, state.role) });
+  return (
+    <li {...link} className={`${s.row} ${link.className}`}
+      data-flip={p.d.id}>
+      <DeptRow d={p.d} top={p.top} metric={p.metric} />
+    </li>
   );
 }
 
