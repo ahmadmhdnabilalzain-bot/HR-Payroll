@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Explainable } from "../../components/explain";
 import type { BudgetStatus, PositionCost } from "../../demo/data/hiring-types";
 import { nextAskId } from "../../demo/hiring-state";
@@ -24,14 +24,15 @@ import {
   freePositions,
   requestHref,
   requestsNow,
+  rowAfterAsk,
   type BudgetRow,
 } from "./model";
 import h from "./hiring.module.css";
 
 export const BUDGET_TONE: Record<BudgetStatus, Tone> = { budgeted: "neutral",
-  open: "info", "in-hiring": "info", filled: "ok" };
+  open: "info", "in-hiring": "info", filled: "neutral" };
 const PILL: Record<BudgetStatus, StatusTone> = { budgeted: "neutral",
-  open: "warn", "in-hiring": "warn", filled: "ok" };
+  open: "warn", "in-hiring": "warn", filled: "neutral" };
 
 const signWord = (r: BudgetRow): string => r.pending !== null
   ? "Change waiting" : r.budgetState === "waiting" ? "Waiting"
@@ -269,7 +270,7 @@ export function BudgetRecord(p: { id: string }) {
           "budget") }}
         status={{ word: data.hiring.budgetStatusText[r.status],
           tone: PILL[r.status] }}
-        stats={[
+        stats={ask !== null ? askStats(r, rowAfterAsk(data, r, ask)) : [
           { label: "A full month", value: (
             <Explainable explanation={ex.monthly(r.id, r.title, r.cost)}>
               <Money value={r.cost.monthly} tween={false} />
@@ -339,6 +340,40 @@ export function BudgetRecord(p: { id: string }) {
         </form>
       </Sheet>
     </>
+  );
+}
+
+/**
+ * A change waiting for the General manager: the budget now, the first
+ * year asked, and what would be left once it is signed off, each with
+ * its working, so the decision is made with the cost in view.
+ */
+function askStats(r: BudgetRow, after: BudgetRow) {
+  return [
+    { label: "First-year budget now", value: (
+      <ExplainHere k={r.id} row={r} kind="year">
+        <Money value={r.cost.firstYear} tween={false} />
+      </ExplainHere>) },
+    { label: "First year if signed off", value: (
+      <ExplainHere k={`${r.id}:ask`} row={after} kind="year">
+        <Money value={after.cost.firstYear} tween={false} />
+      </ExplainHere>) },
+    { label: "Left if signed off", value: (
+      <ExplainHere k={`${r.id}:ask`} row={after} kind="left">
+        <Money value={after.left} tween={false} />
+      </ExplainHere>) }];
+}
+
+function ExplainHere(p: { k: string; row: BudgetRow; kind: "year" |
+  "left"; children: ReactNode }) {
+  const { data } = useDemo();
+  const ex = data.hiring.explain;
+  const r = p.row;
+  return (
+    <Explainable explanation={p.kind === "year"
+      ? ex.firstYear(p.k, r.title, r.cost) : ex.left(p.k, r.title, {
+        firstYear: r.cost.firstYear, committed: r.committed,
+        offered: r.offered })}>{p.children}</Explainable>
   );
 }
 

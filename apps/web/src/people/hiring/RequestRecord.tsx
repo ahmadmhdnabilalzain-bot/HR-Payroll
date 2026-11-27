@@ -1,5 +1,6 @@
 import type { Fils } from "@payroll/engine";
 import { useRef, useState, type ReactNode } from "react";
+import { Explainable } from "../../components/explain";
 import type {
   MilestoneState,
   RequestStatus,
@@ -15,16 +16,20 @@ import m from "../../ui/templates/motion.module.css";
 import { useToast } from "../../ui/Toast";
 import {
   KeyValues,
+  MoreMenu,
   RecordTabs,
   Sheet,
+  type RecordStat,
   type StatusTone,
 } from "../../ui/templates";
 import { Dot } from "../moves/Dot";
 import { reqNow, STAGE_WORD, useActor, type Tone } from "../moves/view";
 import {
   actsFor,
+  budgetRows,
   canSeeRequest,
   candidatesOf,
+  hireCost,
   requestsNow,
   timelineOf,
   undoable,
@@ -128,17 +133,32 @@ export function RequestRecord(p: { id: string }) {
         <button type="button" className={`${b.btn} ${b.primary}`}
           onClick={() => start(primary)}>{primary.label}</button>
       )}
-      {last === null && others.map((a) => (
+      {last === null && others.slice(0, 1).map((a) => (
         <button key={a.id} type="button"
           className={`${b.btn} ${b.secondary}`}
           onClick={() => start(a)}>{a.label}</button>
       ))}
-      {canEdit && (
+      {canEdit && others.length <= 1 && (
         <button type="button" className={`${b.btn} ${b.quiet}`}
           onClick={() => setEditing(true)}>Edit</button>
       )}
+      {last === null && others.length > 1 && (
+        <MoreMenu label="More actions" items={[
+          ...others.slice(1).map((a) => ({ label: a.label,
+            onSelect: () => start(a) })),
+          ...(canEdit ? [{ label: "Edit the request",
+            onSelect: () => setEditing(true) }] : [])]} />
+      )}
     </div>
   );
+  const deciding = staff && ["with-hr", "changes", "with-gm", "on-hold"]
+    .includes(r.status);
+  const stats: RecordStat[] = deciding ? costStats(data, state, r)
+    : [{ label: "People", value: String(r.headcount) },
+      { label: "Target start", value: r.start.display },
+      { label: "Time to fill", value: left === null
+        ? `${r.timeToFillDays} days` : left < 0
+          ? `${-left} days past the target` : `${left} days left` }];
   return (
     <>
       <RecordTabs title={r.title}
@@ -148,13 +168,9 @@ export function RequestRecord(p: { id: string }) {
           "requests") }}
         status={{ word: data.hiring.statusText[r.status],
           tone: PILL[r.status] }}
-        stats={[
-          { label: "People", value: String(r.headcount) },
-          { label: "Target start", value: r.start.display },
-          { label: "Time to fill", value: left === null
-            ? `${r.timeToFillDays} days` : left < 0
-              ? `${-left} days past the target` : `${left} days left` }]}
-        next={NEXT[r.status]}
+        stats={stats}
+        next={deciding ? `${NEXT[r.status]} ${headWords(data, state, r)}`
+          : NEXT[r.status]}
         actions={actions}
         tabs={[
           { id: "summary", label: "Summary", render: () => (
@@ -269,6 +285,57 @@ export function RequestRecord(p: { id: string }) {
       {editing && <EditSheet r={r} onClose={() => setEditing(false)} />}
     </>
   );
+}
+
+/** "1 person from 18 Jan 2027": the figures' basis, in words. */
+function headWords(d: ReturnType<typeof useDemo>["data"],
+  s: ReturnType<typeof useDemo>["state"], r: RequestNow): string {
+  const c = hireCost(d, s, r);
+  const basis = `Costed for ${r.headcount === 1 ? "1 person"
+    : `${r.headcount} people`} from ${r.start.display}, at the foot of ` +
+    `grade ${r.grade}.`;
+  if (c.leftAfter >= 0n) return basis;
+  return `${basis} ${c.position !== null ? "Over budget: it costs more " +
+    "than the position's budget left." : "It costs more than is left " +
+    "unspent today; a new position brings its own budget."}`;
+}
+
+/**
+ * The decision figures, for HR and the General manager while the
+ * request is undecided: the first-year cost, the budget it is measured
+ * against, and what is left after it, each with its working. A
+ * budgeted position counts against its own budget; a new position is
+ * set beside what is left unspent across the budget today.
+ */
+function costStats(d: ReturnType<typeof useDemo>["data"],
+  s: ReturnType<typeof useDemo>["state"], r: RequestNow): RecordStat[] {
+  const c = hireCost(d, s, r);
+  const ex = d.hiring.explain;
+  const rows = budgetRows(d, s);
+  const leftLabel = c.position !== null ? "Budget left"
+    : "Left unspent today";
+  return [
+    { label: "First-year cost", value: (
+      <Explainable explanation={ex.hire(r.id, r.title, c.cost,
+        c.headcount)}>
+        <Money value={c.firstYear} tween={false} />
+      </Explainable>) },
+    { label: leftLabel, value: (
+      <Explainable explanation={c.position !== null
+        ? ex.left(c.position.id, c.position.title, {
+          firstYear: c.position.cost.firstYear,
+          committed: c.position.committed, offered: c.position.offered })
+        : ex.total(leftLabel, rows.map((x) => ({
+          title: `${x.title}, ${x.departmentText}`, value: x.left })))}>
+        <Money value={c.leftNow} tween={false} />
+      </Explainable>) },
+    { label: c.position !== null ? "Left after this hire"
+      : "Unspent less this cost", value: (
+      <Explainable explanation={ex.after(r.id, r.title, { leftLabel,
+        leftNow: c.leftNow, lessLabel: "First-year cost",
+        less: c.firstYear })}>
+        <Money value={c.leftAfter} tween={false} />
+      </Explainable>) }];
 }
 
 /** The shared list motion on a thread: a message slides in, one taken
