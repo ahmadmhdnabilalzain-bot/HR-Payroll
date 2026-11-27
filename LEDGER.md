@@ -891,3 +891,56 @@ New gates added today (all must pass before the redeploy):
 Standing: the audit evidence for the dead-click problem is in
 scratchpad/deadclick; the item-page builder is branch item1; the order of
 merge is Reports, GM dashboard, HR Home, letters, then the rest.
+
+## 23. Scope ruling, 27 Nov 2026 (06:10 Dubai): wave 1 ships today; the rest is Monday
+
+Owner ruling: "Anything post wave 1 keep it in ledger for monday." Also: laptop
+first, phone second (the owner's laptop is an Asus Vivobook; the iPhone is a
+13 Pro Max in Safari). Wave 1 is the only build for today's meeting (15:00
+Dubai), deployed after it passes the full gate. Everything below is built or
+partly built on branches and is NOT deployed today. It is the Monday list.
+
+Wave 1 contains (merged on branch `wave1`): design rounds 3A to 3E (global
+links and spelling, bonus and commission, hiring budget and Request a hire,
+pay run Fix and sign-off and Documents to sign, Reports hub, dashboards, Setup
+home), the fail-open fixes (a stalled animation or view transition can no
+longer leave content hidden or unclickable), law wording, copy rulings, every
+leave type, the phone fixes already merged, and the click script.
+
+Monday list, with the branch that holds the work (all unmerged, none deployed):
+
+| Item (owner's verdict point) | Branch | State |
+| --- | --- | --- |
+| 18, 20, 21 Item pages: every error, notification and decision opens a page with history and next steps | item2 (restart; the first attempt item1 was stopped by a platform safeguard: do not use item1) | in progress |
+| 20 Every notice and notification clickable, notice detail page, RowLink | dc1 | in progress |
+| 18 Leave, time off, documents rows lead somewhere | dc2 | in progress |
+| 18 Payslips, profile rows, reviews, help lead somewhere | dc3 | in progress |
+| 1 Sign-in with named people, "Demo: switch person", access or role request, chairman view | auth1 | in progress |
+| 15 Official PDFs with letterhead for every report, payslip, letter | pdf1 | in progress |
+| 10, 11, 11b Letters: signing chains, request catalogue, template editor | bb1 | done, tested |
+| 10 Expense claims follow the signing table | exp1 | done, tested |
+| 2 HR Home priority board, GM board, Company status variant | bb2 | done, tested |
+| 7, 8 Org chart, grades (5C), reports-to, profile hub, KPIs | bb3 | done, tested |
+| 3, 5, 6 Schedules, Team today, tasks, Operations area | bb4 | in progress (task API done) |
+| 4 In-app messages and announcements | bb5 | done, tested |
+| 2 Expiry feed, government letters, Waiting on HR | bb6 | done, tested |
+| Safari and Vivobook compatibility, fail-open walk | saf1 | in progress |
+
+Known gaps to carry (from the audits and reports): about 42 to 46 percent of
+manager and employee elements were dead on the live build (missing click
+handlers on plain rows, numbers, names, chips); the HR/GM and IT audits are in
+scratchpad/deadclick; grade chips inside sentences; PNG/PDF export of the org
+chart; Home sign-off button without the confirmation sheet; three native
+controls in hiring sheets; Arabic strings need a native reviewer; real Safari
+never tested here; competitor menu counts marked [R] need verifying; WPS
+Resolution 340/2026 details unverified; unemployment-insurance dates fixed
+in wave 1.
+
+Monday order of merge: Reports and dashboards are already in wave 1; then
+item pages with the dead-click fixers (dc1 to dc3), sign-in, letters and
+expenses, HR Home, org chart, schedules and tasks, messages, PDFs; then the
+full gate; the cold test (eight real jobs as the person, no script) before
+any new deploy; video last.
+
+Rule held: nothing unfinished is shown half-built; nothing is deployed that
+has not passed the full gate on the exact commit.
