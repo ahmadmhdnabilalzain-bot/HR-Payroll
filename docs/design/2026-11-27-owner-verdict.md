@@ -82,3 +82,29 @@ IT sees no pay. Hide amounts masks. Headline numbers unchanged: net
 933,730.94; gross 938,680.94; file 908,430.94 with 25,300.00 held; Oct vs Sep
 -19,669.06; leaver settlement 191,702.27; HR "Waiting for a decision" 4.
 The bank is "the bank". The competitor is "your current system" on screen.
+
+## Added later on 27 Nov (the GM dashboard message)
+
+18. **The GM dashboard is not clickable.** "Before sign off, these are errors
+    you have": every error must be clickable and take the person to the exact
+    area, with a description of the problem and the solution.
+19. **Right item, right person.** A general manager should not be bothered by
+    an expired visa: that is the HR manager's job. A general notice is fine,
+    but actions follow who approves what, by department.
+20. **Every notification and every decision is clickable.** It opens the root
+    of the matter. The root shows the HISTORY (on the side of the screen or
+    similar): how did this happen, since when, was there a solution. "It
+    can't be just a notification." Important decisions that do not open
+    anything are a defect.
+21. **"And then what?"** After seeing an item, the manager must not have to
+    grab the phone and call. The app gives the next step: assign to someone,
+    ask, remind, escalate, message the person, create a task, with who and by
+    when. Reduce email and calls.
+22. **Purpose.** Help a company be organised, optimise and automate work,
+    reduce back-and-forth by email and phone, help management and owners
+    understand what is going on. A founder or chairman can sign in and
+    monitor the whole status at any time.
+23. **Scope.** HR and payroll is not a full ERP, but it can become HR,
+    payroll and Operations (staff tasks and daily work linked in). The owner
+    is open to adding an Operations section if that is the logical way.
+24. **The stake.** "I can't show up with this demo. I will lose the deal."
