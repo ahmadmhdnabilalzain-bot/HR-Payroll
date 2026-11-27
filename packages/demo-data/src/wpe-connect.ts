@@ -57,7 +57,7 @@ function whatsapp(c: DemoCompany): ConnectPage {
   const sample = pending === undefined ? "No leave request is waiting."
     : `Leave: ${nameOf(c, pending.employeeId)} asks for leave from ` +
       `${shortDateText(pending.startDate)} to ` +
-      `${shortDateText(pending.endDate)}. Reply YES to agree or NO to ` +
+      `${shortDateText(pending.endDate)}. Reply YES to book or NO to ` +
       "decline.";
   const rule = (id: string, label: string, how: string): ConnectItem => {
     const r = APPROVAL_RULES.find((x) => x.id === id)!;

@@ -47,7 +47,7 @@ const keyOf = (m: number): string => `2026-${String(m).padStart(2, "0")}`;
  */
 const REWORD: [RegExp, string][] = [
   [/were approved but not paid/, "were signed off but not paid"],
-  [/advance approved on/, "advance agreed on"],
+  [/advance approved on/, "advance signed off on"],
   [/from approved hours/, "from hours signed off"],
 ];
 export function reword(s: string): string {

@@ -20,8 +20,8 @@ test("loan-request-is-decided-by-the-gm", async ({ page }) => {
     .toBeVisible();
   await page.getByRole("button", { name: "View as General Manager" })
     .click();
-  await page.getByRole("button", { name: "Agree", exact: true }).click();
-  await expect(page.getByText(/^Agreed by /)).toBeVisible();
+  await page.getByRole("button", { name: "Sign off", exact: true }).click();
+  await expect(page.getByText(/^Signed off by /)).toBeVisible();
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText(/Waiting for /)).toBeVisible();
 });
@@ -63,11 +63,11 @@ test("expense-claim-is-decided-through-the-inbox-id", async ({ page }) => {
   await page.goto("/#/pay-run/expenses/exp-002");
   await page.getByRole("button", { name: "View as General Manager" })
     .click();
-  await page.getByRole("button", { name: "Agree", exact: true }).click();
-  await expect(page.getByText(/^Agreed by /)).toBeVisible();
+  await page.getByRole("button", { name: "Sign off", exact: true }).click();
+  await expect(page.getByText(/^Signed off by /)).toBeVisible();
   await page.getByRole("link", { name: "Expense claims" }).click();
   await expect(page.getByRole("link", { name: /Rashid Al Falasi/ }))
-    .toContainText("Agreed");
+    .toContainText("Signed off");
 });
 
 test("it-opens-pay-groups-and-elements-from-setup", async ({ page }) => {

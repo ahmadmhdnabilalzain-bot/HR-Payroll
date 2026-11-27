@@ -224,7 +224,7 @@ export function boardPack(c: DemoCompany): BoardPack {
     row({ topic: "Liabilities", measure: "Gratuity, if all counted people " +
       "left today", amount: gp.total, note: gp.display.counts + "." }),
     row({ topic: "Liabilities", measure: "Loans and advances outstanding",
-      amount: owing, note: "Active loans and advances agreed." }),
+      amount: owing, note: "Active loans and advances signed off." }),
     row({ topic: "Open items", measure: "Problems before sign-off",
       text: String(h.issuesOpen), note: "Counted from the run's checks.",
       live: "issues-open" }),
@@ -258,7 +258,7 @@ export interface LoansReport {
 }
 
 const LOAN_STATUS: Record<string, string> = { active: "Active",
-  closed: "Repaid", approved: "Agreed" };
+  closed: "Repaid", approved: "Signed off" };
 
 /** All loans and advances, with what is still owed. */
 export function loansReport(c: DemoCompany): LoansReport {
@@ -273,7 +273,7 @@ export function loansReport(c: DemoCompany): LoansReport {
   active: all.filter((l) => l.status === "active").length,
   repaid: all.filter((l) => l.status === "closed").length,
   note: `${DEDUCTION_CAP_NOTE} A loan repaid in full shows no balance. ` +
-    "An agreed advance starts in November." };
+    "A signed-off advance starts in November." };
 }
 
 /* ---------------------------------------------------------------- *

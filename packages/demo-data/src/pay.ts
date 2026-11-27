@@ -309,7 +309,7 @@ export function loans(c: DemoCompany): LoanRecord[] {
     loanRow(c, { ref: "ADV-1007", employeeId: "emp-018", kind: "advance",
       status: "approved", principal: fils(300000n),
       instalment: fils(100000n), balance: fils(300000n), ledger: [] },
-    "November", "Salary advance agreed on 26 October; recovered in " +
+    "November", "Salary advance signed off on 26 October; recovered in " +
       "three instalments, each checked against the limits on the day."),
   ];
 }
