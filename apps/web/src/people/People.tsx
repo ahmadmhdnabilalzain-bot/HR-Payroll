@@ -45,7 +45,7 @@ export function People(p: ViewProps) {
   if (id === "hiring") return <Hiring rest={p.rest.slice(1)} />;
   if (id === "requests") return <Requests rest={p.rest} />;
   if (id === "more") return <More rest={p.rest.slice(1)} />;
-  if (id === "department") {
+  if (id === "department" && state.role !== "employee") {
     return <PeopleList key={sub ?? ""} dept={sub} />;
   }
   const who = id ?? (state.role === "employee" ? me : undefined);

@@ -244,6 +244,16 @@ describe("every dashboard line opens a page", () => {
     expect(deptHrefByName(d.departments(), "Nowhere")).toBeUndefined();
   });
 
+  it("a bar's name hides its amount with the rest", async () => {
+    const { maskMoney } = await import("../../src/ui/mask");
+    const { formatMoney } = await import("../../src/i18n/format");
+    for (const v of [0n, 123_456n, 98_765_432_10n]) {
+      const said = maskMoney(`Sales, 8 people, ${formatMoney(v as never,
+        "en")}`);
+      expect(said.replace("8 people", ""), said).not.toMatch(/\d/);
+    }
+  });
+
   it("every tile links", () => {
     const d = demo.at({});
     for (const t of [...hrTiles(src, d, INITIAL, words),

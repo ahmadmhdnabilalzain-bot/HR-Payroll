@@ -12,7 +12,8 @@ import { expect, test, type Page } from "@playwright/test";
  *
  * Static on purpose (not pressed): the brief's column titles (What
  * changed, Needs a decision, At risk) are plain headings over their
- * points, and a table's total row sums the rows above it.
+ * points, and a table's total row sums the rows above it. The pay
+ * run's current dot, already at its own address, scrolls to the top.
  */
 test.use({ viewport: { width: 1366, height: 768 } });
 

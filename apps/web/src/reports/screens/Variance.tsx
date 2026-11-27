@@ -51,8 +51,11 @@ export function Variance(props: { rest: string[] }) {
   const rowHref = (r: number): string | undefined => {
     const d = v.drivers[r];
     if (d === undefined) return undefined;
+    // Never this report itself: a cause named a "change" is not a page.
+    const area = areaHref(d.label);
     return (d.people.length === 1 ? personHref(d.people[0]) : undefined)
-      ?? areaHref(d.label) ?? personHref(d.people[0]);
+      ?? (area?.startsWith(hrefOf("reports", "variance")) === true
+        ? undefined : area) ?? personHref(d.people[0]);
   };
   return (
     <ReportPage crumbs={crumbs} title="Variance against last month"
