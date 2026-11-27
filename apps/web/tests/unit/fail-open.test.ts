@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { savePdf } from "../../src/pdf/ios";
 import { FAIL_OPEN_MS, onSeen } from "../../src/ui/seen";
-import { tooSlow, GATE_FRAMES, GATE_SKIP } from "../../src/welcome/gate";
+import { gateDone, tooSlow, GATE_FROM, GATE_RUN, GATE_TO }
+  from "../../src/welcome/gate";
 import { hasViewTransitions, isWebKit, safeTransition, TRANSITION_LIMIT_MS }
   from "../../src/ui/viewTransition";
 
@@ -118,15 +119,34 @@ describe("onSeen fails open", () => {
 });
 
 describe("the opening's weak-graphics gate", () => {
-  const gaps = (ms: number): number[] =>
-    Array.from({ length: GATE_SKIP + GATE_FRAMES }, (_, i) =>
-      i < GATE_SKIP ? 400 : ms);
-  it("slow-frames-skip-fast-ones-play", () => {
-    expect(tooSlow(gaps(55))).toBe(true);
-    expect(tooSlow(gaps(17))).toBe(false);
-    // Shader compiles in the first frames do not count.
-    expect(tooSlow(gaps(20))).toBe(false);
-    expect(tooSlow([60, 60])).toBe(false);
+  /** `head` gaps of `slowStart` ms (load, shader compiles), then `ms`. */
+  const gaps = (ms: number, slowStart = 400, n = GATE_TO): number[] =>
+    Array.from({ length: n }, (_, i) => (i < GATE_FROM ? slowStart : ms));
+  it("a-normal-laptop-plays-the-film", () => {
+    // 30 fps, and 20 fps: both hold the film.
+    expect(tooSlow(gaps(33))).toBe(false);
+    expect(tooSlow(gaps(50))).toBe(false);
+  });
+  it("load-and-the-first-30-frames-never-count", () => {
+    expect(tooSlow(gaps(17, 2000))).toBe(false);
+  });
+  it("30-slow-frames-in-a-row-give-way-to-the-product", () => {
+    expect(tooSlow(gaps(60))).toBe(true);
+    // Decided as soon as one run of 30 is in.
+    expect(tooSlow(gaps(60, 400, GATE_FROM + GATE_RUN))).toBe(true);
+    expect(tooSlow(gaps(60, 400, GATE_FROM + GATE_RUN - 1))).toBe(false);
+  });
+  it("a-hitch-is-not-a-weak-laptop", () => {
+    // A third of the frames dropped: the median stays fast.
+    const g = gaps(17).map((x, i) => (i >= GATE_FROM && i % 3 === 0
+      ? 120 : x));
+    expect(tooSlow(g)).toBe(false);
+  });
+  it("frames-past-90-are-not-timed", () => {
+    const g = [...gaps(17), ...Array.from({ length: 60 }, () => 200)];
+    expect(tooSlow(g)).toBe(false);
+    expect(gateDone(g)).toBe(true);
+    expect(gateDone(gaps(17, 400, GATE_TO - 1))).toBe(false);
   });
 });
 

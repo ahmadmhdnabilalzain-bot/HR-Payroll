@@ -864,8 +864,10 @@ builder (docs/design/2026-11-27-safari-compat.md has the audit):
   handler as early as possible. On an iPhone it tries the share sheet,
   then a new tab, then shows a visible "Open PDF" link; elsewhere it
   downloads. Do not revoke the blob address quickly (it keeps it 5 min).
-- **The opening** skips itself on a software renderer and fades into
-  the product when its first 20 frames average over 40 ms; `?film=1`
+- **The opening** skips itself on a software renderer, and fades into
+  the product only when 30 frames in a row run a median over 50 ms,
+  timed from frame 30 to 90 after the first scene is drawn on a loaded
+  page (never during the load: a normal laptop gets it); `?film=1`
   keeps it (the opening spec uses it: headless Chromium renders GL in
   software). The product under it is freed after 14 s at most.
 - **Build target** is Safari 15 and Chromium 100 (vite.config.ts), so

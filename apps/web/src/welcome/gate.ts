@@ -3,12 +3,15 @@
  * never gets the film, and slow first frames fade it into the product.
  */
 
-/** Frames timed before the gate decides, after the first few (shader
- * compiles), and the average frame time above which the film gives
- * way to the product (25 fps: integrated graphics at 150 % scaling). */
-export const GATE_FRAMES = 20;
-export const GATE_SKIP = 4;
-export const GATE_MS = 40;
+/** The gate times only the frames GATE_FROM to GATE_TO after the
+ * first scene is drawn on a loaded page (never the page load or the
+ * shader compiles), and gives the film way to the product only when
+ * GATE_RUN frames in a row run a median above GATE_MS (under 20 fps:
+ * a laptop that cannot hold the film, not one that hitched once). */
+export const GATE_FROM = 30;
+export const GATE_TO = 90;
+export const GATE_RUN = 30;
+export const GATE_MS = 50;
 
 /** `?film=1` keeps the film on any graphics (checks, a slow demo). */
 export function filmForced(): boolean {
@@ -29,9 +32,26 @@ export function softwareGL(gl: WebGLRenderingContext |
   }
 }
 
-/** Whether the frames timed so far (ms apart) are too slow. */
+function median(xs: number[]): number {
+  const o = [...xs].sort((x, y) => x - y);
+  const m = o.length >> 1;
+  return o.length % 2 === 1 ? o[m]! : (o[m - 1]! + o[m]!) / 2;
+}
+
+/**
+ * Whether the frame gaps so far (ms apart; gap 0 follows the first
+ * scene's frame) are too slow: some GATE_RUN consecutive gaps between
+ * GATE_FROM and GATE_TO with a median above GATE_MS.
+ */
 export function tooSlow(gaps: number[]): boolean {
-  const timed = gaps.slice(GATE_SKIP, GATE_SKIP + GATE_FRAMES);
-  if (timed.length < GATE_FRAMES) return false;
-  return timed.reduce((a, b) => a + b, 0) / timed.length > GATE_MS;
+  const end = Math.min(gaps.length, GATE_TO);
+  for (let j = GATE_FROM; j + GATE_RUN <= end; j++) {
+    if (median(gaps.slice(j, j + GATE_RUN)) > GATE_MS) return true;
+  }
+  return false;
+}
+
+/** Whether the gate has seen all the frames it times. */
+export function gateDone(gaps: number[]): boolean {
+  return gaps.length >= GATE_TO;
 }

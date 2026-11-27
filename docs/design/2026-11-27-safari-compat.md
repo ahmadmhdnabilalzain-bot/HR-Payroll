@@ -62,7 +62,7 @@ Each item has a backstop. `FAIL_OPEN_MS` is 1.2 s, in `ui/seen.ts`.
 | Charts (built paused at frame 0) | Played only when observed | `onSeen`, then a finish-all timer |
 | Explain triggers on HR dashboards (opacity 0 through their hidden section) | Hidden while the section waited | Fixed by the reveal fix |
 | First-load opening (`inert` shell under the film) | A hung or failed chunk kept the product inert | A 14 s cap, and a caught import that goes straight to the product |
-| Opening on weak graphics | A slow film on integrated GPUs | A software renderer skips the film. If the first 20 frames (after 4) average over 40 ms, the film fades into the product. `?film=1` keeps the film; the opening spec uses it |
+| Opening on weak graphics | A slow film on integrated GPUs | A software renderer skips the film. If 30 frames in a row (timed from frame 30 to 90 after the first scene, on a loaded page) run a median over 50 ms, the film fades into the product. `?film=1` keeps the film; the opening spec uses it |
 | Still opening's scenes (opacity 0 until observed) | Hidden; and a crash with no observer | `onSeen` |
 | Chip flights (IBAN save, fixed row) | The value was saved only on the fade's `finish` | A timer lands the value |
 | Figure roll | The old figure was kept until the animations settled | A timer settles it |

@@ -34,8 +34,7 @@ import {
 import { mixPose, Ribbon, type RibbonPose } from "./ribbon";
 import type { Story } from "./story";
 import { wordmarkGeometry, WORDMARK_ASPECT } from "./wordmark3d";
-import { filmForced, GATE_FRAMES, GATE_SKIP, softwareGL, tooSlow }
-  from "./gate";
+import { filmForced, gateDone, softwareGL, tooSlow } from "./gate";
 
 export interface StageInput {
   root: HTMLElement;
@@ -535,19 +534,21 @@ export async function mountStage(i: StageInput): Promise<() => void> {
   let frames = 0;
   let cpu = 0;
   let since = performance.now();
-  /* The gate: if the first frames come too slowly (weak graphics), the
-   * film fades straight into the product. */
+  /* The gate (gate.ts): frames 30 to 90 after the first scene is drawn
+   * on a loaded page; if they run too slowly (weak graphics), the film
+   * fades straight into the product. */
   const gaps: number[] = [];
   let last = -1;
   let gated = forced;
   const loop = (now: number): void => {
     raf = requestAnimationFrame(loop);
-    if (!gated) {
+    if (!gated && document.readyState === "complete") {
       if (last >= 0) gaps.push(now - last);
       last = now;
-      if (gaps.length >= GATE_SKIP + GATE_FRAMES) {
+      const slow = tooSlow(gaps);
+      if (slow || gateDone(gaps)) {
         gated = true;
-        if (tooSlow(gaps)) {
+        if (slow) {
           i.root.dataset["gate"] = "slow";
           tween.kill();
           cancelAnimationFrame(raf);
