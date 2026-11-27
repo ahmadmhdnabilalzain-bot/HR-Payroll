@@ -51,7 +51,7 @@ const BODIES: Record<LetterKind, string> = {
     "employee's request for {purpose}.",
   noc: "To {addressee}. Zarqan Demo Bank has no objection " +
     "to {name}, {job}, applying for {purpose}. This letter does not " +
-    "commit the bank to anything else.",
+    "commit the company to anything else.",
   experience: "To {addressee}. {name} ({number}) worked at Zarqan Demo " +
     "Bank as {job}, joined {joined}. Issued for {purpose}.",
 };

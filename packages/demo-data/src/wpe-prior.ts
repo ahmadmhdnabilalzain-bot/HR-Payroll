@@ -42,7 +42,7 @@ export function priorEmploymentRows(c: DemoCompany): PriorEmploymentRow[] {
         jobText: jobTitleText(e.jobKey),
         departmentText: departmentText(e.departmentId),
         joined: shortDateText(e.joiningDate),
-        tenureText: d < 31 ? `${d} ${d === 1 ? "day" : "days"} in the bank`
-          : `${months} ${months === 1 ? "month" : "months"} in the bank` };
+        tenureText: d < 31 ? `${d} ${d === 1 ? "day" : "days"} in the company`
+          : `${months} ${months === 1 ? "month" : "months"} in the company` };
     });
 }

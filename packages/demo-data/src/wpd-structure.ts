@@ -256,7 +256,7 @@ export function payrollExclusions(c: DemoCompany): PayrollExclusion[] {
   }
   for (const st of c.payRun.settlements) {
     const e = emps.get(st.employeeId)!;
-    add(e, "October pay run", "outside-run", "Left the bank on " +
+    add(e, "October pay run", "outside-run", "Left the company on " +
       `${shortDateText(e.leavingDate!)}; the final settlement is paid ` +
       "outside the pay run and the salary file.", "Check",
     shortDateText(e.leavingDate!));
