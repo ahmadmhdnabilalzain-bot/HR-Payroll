@@ -68,7 +68,7 @@ export function execDashboardRows(src: ReportsSource, data: DemoData,
   return [
     ["Gross pay", { fils: now.gross },
       `${signed(v.grossChange)} (${percent(v.grossChange,
-        before.gross)}) on ${before.label}, ${money(before.gross)}`],
+        before.gross)}) against ${money(before.gross)} in ${before.label}`],
     ["Biggest cause of the change", main === undefined ? "-"
       : { fils: main.amount, signed: true }, main === undefined
       ? "Nothing moved" : `${main.label}: ${main.people.join(", ")}`],
