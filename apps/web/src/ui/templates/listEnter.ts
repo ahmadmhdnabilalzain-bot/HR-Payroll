@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
+import { observerWatchdog, settleAfter } from "../settle";
 
 /**
  * List motion inside a page (listMotion.ts moves between pages):
@@ -102,6 +103,9 @@ export function veil(el: HTMLElement, o: { duration: number;
   };
   a.addEventListener("finish", done);
   a.addEventListener("cancel", done);
+  // The finish event is not a promise: if the timeline stalls the
+  // layer is dropped anyway once the fade has had its time.
+  settleAfter([a], o.duration + (o.delay ?? 0));
   return a;
 }
 
@@ -131,12 +135,15 @@ export function enter(items: HTMLElement[], fade = true): void {
   const slow = dur("--dur-slow");
   const base = dur("--dur-base");
   const ease = easeOut();
+  const anims: Animation[] = [];
   shown.forEach((el, i) => {
     const delay = Math.min(i, STAGGER_CAP - 1) * STAGGER_MS;
-    el.animate([{ transform: "translateY(8px)" }, { transform: "none" }],
-      { duration: slow, delay, easing: ease, fill: "backwards" });
-    if (fade) veil(el, { duration: base, delay });
+    anims.push(el.animate([{ transform: "translateY(8px)" },
+      { transform: "none" }],
+    { duration: slow, delay, easing: ease, fill: "backwards" }));
+    if (fade) anims.push(veil(el, { duration: base, delay }));
   });
+  settleAfter(anims, slow + (STAGGER_CAP - 1) * STAGGER_MS);
 }
 
 /**
@@ -178,11 +185,18 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
       if (el.dataset["reveal"] !== "wait") return;
       el.dataset["reveal"] = "done";
       if (!animate || reduced()) return;
-      el.animate([{ transform: "translateY(16px)" }, { transform: "none" }],
-        { duration: dur("--dur-slow"), easing: easeOut() });
+      const rise = el.animate([{ transform: "translateY(16px)" },
+        { transform: "none" }],
+      { duration: dur("--dur-slow"), easing: easeOut() });
       veil(el, { duration: dur("--dur-base") });
+      settleAfter([rise], dur("--dur-slow"));
     };
+    // A section waits hidden only while the observer is known to
+    // work: with no first callback (missing or broken), all show.
+    const all = (): void => below.forEach((el) => show(el, false));
+    const watch = observerWatchdog(all);
     const io = new IntersectionObserver((es) => {
+      watch.seen();
       es.forEach((e) => {
         if (!e.isIntersecting) return;
         io.unobserve(e.target);
@@ -193,9 +207,9 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
       el.dataset["reveal"] = "wait";
       io.observe(el);
     });
-    const all = (): void => below.forEach((el) => show(el, false));
     addEventListener("beforeprint", all);
     return () => {
+      watch.stop();
       io.disconnect();
       removeEventListener("beforeprint", all);
       all();

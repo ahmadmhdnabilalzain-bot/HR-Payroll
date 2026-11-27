@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
 import { reducedMotion } from "../demo/motion";
+import { observerWatchdog, settleAfter } from "./settle";
 
 /**
  * Data in motion for every chart, on WAAPI only (so a capture can
@@ -220,15 +221,30 @@ export function useChartMotion(root: RefObject<Element | null>,
       ? entrance(el, opts.stagger ?? STAGGER, opts.duration)
       : opts.entrance(el);
     for (const a of anims) a.pause();
+    // The chart is built at frame 0 (empty) and waits for the view:
+    // the longest it may take, after which it is drawn in full even
+    // if the timeline never ran (motion is never a gate).
+    const longest = anims.reduce((m, a) => {
+      const t = a.effect?.getComputedTiming();
+      return Math.max(m, Number(t?.endTime ?? 0));
+    }, 0);
+    let unsettle = (): void => undefined;
+    let started = false;
     const go = (): void => {
+      if (started) return;
+      started = true;
       if (opts.session !== undefined) enteredOnce.add(opts.session);
       for (const a of anims) a.play();
+      unsettle = settleAfter(anims, longest);
     };
     if (typeof IntersectionObserver !== "function") {
       go();
       return undefined;
     }
+    // No first callback from the observer: it is broken; draw now.
+    const watch = observerWatchdog(go);
     const io = new IntersectionObserver((es) => {
+      watch.seen();
       if (es.some((e) => e.isIntersecting)) {
         io.disconnect();
         go();
@@ -238,6 +254,8 @@ export function useChartMotion(root: RefObject<Element | null>,
     return () => {
       // Unmounted (or React's dev double run): start over next time.
       entered.current = false;
+      watch.stop();
+      unsettle();
       io.disconnect();
       for (const a of anims) a.cancel();
     };
