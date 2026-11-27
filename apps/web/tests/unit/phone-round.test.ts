@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { buildDemoData } from "../../src/demo/data/adapter";
 import { INITIAL, type DemoState } from "../../src/demo/state";
 import { wordOfRoute } from "../../src/nav/registry";
+import { MORE_MAX, moreAreas, PHONE_MORE, phoneMore }
+  from "../../src/nav/phone";
 import { problemOf, yearsBetween } from "../../src/timeoff/draft";
 import { contractProblems } from "../../src/components/explain/types";
 
@@ -94,5 +96,22 @@ describe("why this number: net pay and overtime", () => {
     expect(e.summary).toContain("6 hours");
     expect(e.steps.some((x) => /rounded to the fils/.test(x.text)))
       .toBe(true);
+  });
+});
+
+describe("the phone's More page is short", () => {
+  it("shows 8 to 10 rows a role uses, the rest behind More areas", () => {
+    for (const role of ["hr", "gm", "it", "manager", "employee"] as const) {
+      const { top, rest } = phoneMore(role);
+      expect(top.length, role).toBeGreaterThanOrEqual(8);
+      expect(top.length, role).toBeLessThanOrEqual(MORE_MAX);
+      expect(PHONE_MORE[role].length, role).toBe(top.length);
+      expect(top.length + rest, role).toBe(moreAreas(role).length);
+    }
+    const ids = phoneMore("employee").top.map((a) => a.id);
+    expect(ids).toContain("me.policies");
+    expect(ids).toContain("me.sign");
+    expect(phoneMore("gm").top.some((a) => a.id === "setup.keys"))
+      .toBe(false);
   });
 });

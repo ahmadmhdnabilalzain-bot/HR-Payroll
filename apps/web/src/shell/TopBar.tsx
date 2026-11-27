@@ -144,7 +144,8 @@ export function PhoneTabs(p: { route: Route }) {
   const { t } = useLocale();
   const { data, state } = useDemo();
   const words = barFor(state.role);
-  const here = p.route.section === "s" ? (p.route.rest[0] ?? "more")
+  const here = p.route.section === "s"
+    ? (words.find((w) => w === p.route.rest[0]) ?? "more")
     : wordOfRoute(state.role, p.route, { data, state });
   return (
     <nav className={s.tabs} aria-label={t("shell.sections")}

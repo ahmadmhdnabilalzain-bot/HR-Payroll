@@ -19,6 +19,7 @@ export const shell: ArOf<typeof en> = {
   navRequests: "الطلبات",
   navMe: "أنا",
   navMore: "المزيد",
+  moreAreas: "أقسام أخرى",
   panelOpen: "فتح {section}",
   countWaiting: "{count} بالانتظار",
   sectionEmpty: "لا شيء هنا بعد في هذا العرض.",
