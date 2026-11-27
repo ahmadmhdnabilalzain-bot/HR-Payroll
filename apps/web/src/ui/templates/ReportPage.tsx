@@ -18,6 +18,7 @@ import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
 import "./motion.module.css";
 import s from "./templates.module.css";
+import { safeAnimate } from "../safeAnimate";
 
 export type { Cell } from "../../lib/csv";
 
@@ -145,11 +146,11 @@ export function ReportPage(p: {
       const now = c.getBoundingClientRect();
       const dy = (old.top - now.top) / z;
       if (dy > 0.5) {
-        c.animate([{ transform: `translateY(${dy}px)` },
+        safeAnimate(c, [{ transform: `translateY(${dy}px)` },
           { transform: "none" }], timing);
       }
       if (c.tagName !== "TABLE" && now.height - old.height > 0.5) {
-        c.animate([{ height: `${old.height / z}px`, overflow: "hidden" },
+        safeAnimate(c, [{ height: `${old.height / z}px`, overflow: "hidden" },
           { height: `${now.height / z}px`, overflow: "hidden" }], timing);
       }
     });

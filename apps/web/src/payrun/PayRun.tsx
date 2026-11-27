@@ -18,6 +18,7 @@ import { ReviewStep } from "./ReviewStep";
 import { RunBar } from "./RunBar";
 import s from "./PayRun.module.css";
 import { FAIL_OPEN_MS } from "../ui/seen";
+import { safeAnimate } from "../ui/safeAnimate";
 
 export type Go = (to: StepId) => void;
 
@@ -52,7 +53,7 @@ function leaveCopy(swap: HTMLElement, d: 1 | -1): (() => void) | null {
     // step coming in underneath); the copy is hidden from assistive
     // tech.
     const dx = -24 * d * (rtl ? -1 : 1);
-    copy.animate([{ opacity: 1, transform: "none" },
+    safeAnimate(copy, [{ opacity: 1, transform: "none" },
       { opacity: 0, transform: `translateX(${dx}px)` }],
     { duration: fast, easing: easeOut(), fill: "forwards" })
       .onfinish = () => copy.remove();

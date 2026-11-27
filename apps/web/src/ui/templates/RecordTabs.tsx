@@ -14,6 +14,7 @@ import { PageFoot } from "./PageFoot";
 import { maskNode, useMaskText } from "../mask";
 import { PageHead, type Crumb } from "./PageHead";
 import s from "./templates.module.css";
+import { safeAnimate } from "../safeAnimate";
 
 export interface RecordStat {
   label: string;
@@ -172,7 +173,7 @@ function Tabbed(p: { tabs: RecordTab[]; current: RecordTab | undefined;
     if (a === null || el === null) return;
     out.current = null;
     a.cancel();
-    into.current = el.animate([
+    into.current = safeAnimate(el, [
       { opacity: 0, transform: `translateX(${8 * dir.current}px)` },
       { opacity: 1, transform: "none" }],
     { duration: tokenMs("--dur-base", 200),
@@ -192,7 +193,7 @@ function Tabbed(p: { tabs: RecordTab[]; current: RecordTab | undefined;
     into.current?.cancel();
     const rtl = getComputedStyle(el).direction === "rtl" ? -1 : 1;
     dir.current = Math.sign(at(current?.id) - at(shownId)) * rtl;
-    const a = el.animate([{ opacity: 1, transform: "none" },
+    const a = safeAnimate(el, [{ opacity: 1, transform: "none" },
       { opacity: 0, transform: `translateX(${-8 * dir.current}px)` }],
     { duration: tokenMs("--dur-fast", 120), fill: "forwards",
       easing: tokenEase("--ease-in-out", "cubic-bezier(0.4, 0, 0.2, 1)") });

@@ -10,6 +10,7 @@ import {
   type Slot,
 } from "./roll";
 import { FAIL_OPEN_MS } from "./seen";
+import { safeAnimate } from "./safeAnimate";
 
 /** What a figure shows: an optional sign and currency, then digits. */
 export interface Face {
@@ -114,9 +115,9 @@ function startRoll(el: Element, up: boolean): Animation[] {
   const timing = { duration: ROLL_MS, fill: "both" as const };
   for (const c of el.querySelectorAll<HTMLElement>("[data-roll-col]")) {
     const rank = Number(c.dataset["rank"] ?? 0);
-    out.push(c.animate(slideKeyframes(rank, up), timing));
+    out.push(safeAnimate(c, slideKeyframes(rank, up), timing));
     const slot = c.parentElement;
-    if (slot !== null) out.push(slot.animate(dimKeyframes(), timing));
+    if (slot !== null) out.push(safeAnimate(slot, dimKeyframes(), timing));
   }
   return out;
 }
@@ -124,11 +125,11 @@ function startRoll(el: Element, up: boolean): Animation[] {
 function startSwap(el: Element): Animation[] {
   const out: Animation[] = [];
   for (const g of el.querySelectorAll<HTMLElement>("[data-roll-old]")) {
-    out.push(g.animate([{ opacity: 1 }, { opacity: 0 }],
+    out.push(safeAnimate(g, [{ opacity: 1 }, { opacity: 0 }],
       { duration: SWAP_MS, easing: "linear", fill: "both" }));
   }
   for (const n of el.querySelectorAll<HTMLElement>("[data-roll-new]")) {
-    out.push(n.animate([{ opacity: 0 }, { opacity: 1 }],
+    out.push(safeAnimate(n, [{ opacity: 0 }, { opacity: 1 }],
       { duration: SWAP_MS, delay: SWAP_MS, easing: "linear",
         fill: "both" }));
   }

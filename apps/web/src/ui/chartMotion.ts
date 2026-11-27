@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, type RefObject } from "react";
 import { reducedMotion } from "../demo/motion";
 import { onSeen } from "./seen";
 import { settleAfter } from "./settle";
+import { safeAnimate } from "./safeAnimate";
 
 /**
  * Data in motion for every chart, on WAAPI only (so a capture can
@@ -123,17 +124,17 @@ function entrance(root: Element, stagger: number,
   const ease = motion.ease;
   marks.forEach((el, i) => {
     prep(el);
-    out.push(el.animate(growFrames(el), { duration: hero, delay: i * stagger,
-      easing: ease, fill: "backwards" }));
+    out.push(safeAnimate(el, growFrames(el), { duration: hero,
+      delay: i * stagger, easing: ease, fill: "backwards" }));
   });
   for (const el of root.querySelectorAll<SVGElement>("[data-line]")) {
-    out.push(el.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }],
+    out.push(safeAnimate(el, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }],
       { duration: hero, easing: ease, fill: "backwards" }));
   }
   const after = Math.max(hero, hero + (marks.length - 1) * stagger) - 80;
   root.querySelectorAll<HTMLElement | SVGElement>("[data-label]")
     .forEach((el, i) => {
-      out.push(el.animate([{ opacity: 0 }, { opacity: 1 }],
+      out.push(safeAnimate(el, [{ opacity: 0 }, { opacity: 1 }],
         { duration: motion.base, delay: after + i * 12,
           easing: "linear", fill: "backwards" }));
     });
@@ -152,7 +153,8 @@ function tween(root: Element, before: Map<string, Geo>): Animation[] {
     const was = before.get(el.dataset["key"] ?? "");
     if (was === undefined) {
       prep(el);
-      out.push(el.animate(growFrames(el), { ...timing, fill: "backwards" }));
+      out.push(safeAnimate(el, growFrames(el),
+        { ...timing, fill: "backwards" }));
       continue;
     }
     const now = geoOf(el, root);
@@ -165,7 +167,7 @@ function tween(root: Element, before: Map<string, Geo>): Animation[] {
       Math.abs(sy - 1) < 0.002) continue;
     el.style.transformBox = "fill-box";
     el.style.transformOrigin = "0 0";
-    out.push(el.animate([
+    out.push(safeAnimate(el, [
       { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` },
       { transform: "none" }], timing));
   }
@@ -174,16 +176,17 @@ function tween(root: Element, before: Map<string, Geo>): Animation[] {
     const now = el.getAttribute("d") ?? "";
     if (was === undefined || was === now) continue;
     if (commands(was) === commands(now)) {
-      out.push(el.animate([{ d: `path("${was}")` }, { d: `path("${now}")` }],
-        timing));
+      out.push(safeAnimate(el, [{ d: `path("${was}")` },
+        { d: `path("${now}")` }], timing));
     } else {
-      out.push(el.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }],
+      out.push(safeAnimate(el, [{ strokeDashoffset: 1 },
+        { strokeDashoffset: 0 }],
         { ...timing, duration: motion.hero, fill: "backwards" }));
     }
   }
   for (const el of root.querySelectorAll<HTMLElement | SVGElement>(
     "[data-label]")) {
-    out.push(el.animate([{ opacity: 0 }, { opacity: 1 }],
+    out.push(safeAnimate(el, [{ opacity: 0 }, { opacity: 1 }],
       { duration: motion.base, delay: slow * 0.6, easing: "linear",
         fill: "backwards" }));
   }
