@@ -87,7 +87,10 @@ test.describe("laptop", () => {
       return n;
     };
     expect(await replay()).toBe(1);
-    /* The replay plays the film at #/welcome and Skip lands on Home. */
+    /* The replay plays the film at #/welcome and Skip lands on Home.
+     * The pointer rests where Skip was; off the list, so a mousemove
+     * over an option cannot pick another row before Enter. */
+    await page.mouse.move(1, 1);
     await page.keyboard.press("Control+k");
     await page.getByRole("combobox").fill("replay");
     await page.keyboard.press("Enter");
