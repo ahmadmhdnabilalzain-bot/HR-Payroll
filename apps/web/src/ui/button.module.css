@@ -21,16 +21,19 @@
 }
 
 /* Pressed: a 0.98 dip over --dur-fast, back on release. */
-.btn:active:not(:disabled) {
+.btn:active:not(:disabled, [aria-disabled="true"]) {
   transform: scale(0.98);
 }
 
-.btn:disabled {
+.btn:disabled,
+.btn[aria-disabled="true"] {
   cursor: not-allowed;
 }
 
 .primary:disabled,
-.secondary:disabled {
+.secondary:disabled,
+.primary[aria-disabled="true"],
+.secondary[aria-disabled="true"] {
   background: var(--color-disabled-bg);
   color: var(--color-disabled-text);
 }
@@ -47,12 +50,12 @@
 }
 
 @media (hover: hover) {
-  .primary:hover:not(:disabled) {
+  .primary:hover:not(:disabled, [aria-disabled="true"]) {
     background: var(--color-accent-hover);
   }
 }
 
-.primary:active:not(:disabled) {
+.primary:active:not(:disabled, [aria-disabled="true"]) {
   background: var(--color-accent-hover);
 }
 
@@ -62,12 +65,12 @@
 }
 
 @media (hover: hover) {
-  .secondary:hover:not(:disabled) {
+  .secondary:hover:not(:disabled, [aria-disabled="true"]) {
     background: var(--color-button-secondary-hover);
   }
 }
 
-.secondary:active:not(:disabled) {
+.secondary:active:not(:disabled, [aria-disabled="true"]) {
   background: var(--color-button-secondary-hover);
 }
 
@@ -82,13 +85,13 @@
 }
 
 @media (hover: hover) {
-  .quiet:hover:not(:disabled) {
+  .quiet:hover:not(:disabled, [aria-disabled="true"]) {
     background: var(--color-surface-2);
     color: var(--color-text);
   }
 }
 
-.quiet:active:not(:disabled) {
+.quiet:active:not(:disabled, [aria-disabled="true"]) {
   background: var(--color-surface-2);
   color: var(--color-text);
 }

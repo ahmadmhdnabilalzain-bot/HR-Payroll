@@ -176,7 +176,22 @@ test("gm-sign-off-says-why-and-goes-to-fix", async ({ page }) => {
   await asRole(page, "General manager");
   await home(page);
   const sign = page.getByRole("button", { name: "Sign off October pay" });
-  await expect(sign).toBeDisabled();
+  // Not a dead control: it keeps the focus and, pressed, says why.
+  await expect(sign).toHaveAttribute("aria-disabled", "true");
+  await expect(sign).not.toHaveAttribute("disabled");
+  const note = page.locator("#approve-blocked");
+  await expect(note).toHaveAttribute("aria-live", "polite");
+  await expect(note).toHaveText("");
+  await sign.click();
+  await expect(note).toHaveText(new RegExp("^Two bank details are " +
+    "still missing\\. Fatima\\sAl\\sKetbi \\(HR\\) is fixing " +
+    "them\\. Go to Fix$"));
+  await expect(page).toHaveURL(/#\/home$/);
+  await sign.focus();
+  await expect(sign).toBeFocused();
+  await note.getByRole("link", { name: "Go to Fix" }).click();
+  await expect(page).toHaveURL(/#\/pay-run\/fix$/);
+  await home(page);
   const why = page.locator("#approve-why");
   await expect(why).toContainText("Sign-off waits for bank details");
   await expect(why).toContainText(
