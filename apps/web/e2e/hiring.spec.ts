@@ -53,6 +53,13 @@ test("manager raises a hire; HR asks for changes, then sends it on",
       exact: true }).click();
     await expect(date).toHaveAccessibleName(
       "Target start date: 1 February 2027");
+    // Keys: Page Down moves a month and keeps the focus; Escape returns.
+    await date.click();
+    await page.keyboard.press("PageDown");
+    await expect(page.getByRole("button", { name: "1 March 2027",
+      exact: true })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(date).toBeFocused();
     // The cost summary follows the headcount; the bar carries it too.
     const sum = page.getByRole("complementary", { name: "Cost summary" });
     await expect(sum).toContainText("1 person, from 1 Feb 2027");

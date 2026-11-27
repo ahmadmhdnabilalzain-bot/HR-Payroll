@@ -60,7 +60,12 @@ export function RequestForm(p: { budgetId: string | null }) {
   };
   const [init] = useState((): HiringDraft & { fromDraft: boolean } => {
     if (saved !== undefined && (p.budgetId === null ||
-      saved.budgetId === p.budgetId)) return { ...saved, fromDraft: true };
+      saved.budgetId === p.budgetId)) {
+      // A position taken since the draft was saved: a new position.
+      const still = free.some((x) => x.id === saved.budgetId);
+      return { ...saved, budgetId: still ? saved.budgetId : null,
+        fromDraft: true };
+    }
     const pick0 = free.find((x) => x.id === p.budgetId) ?? null;
     const dept0 = pick0?.departmentId ?? (manager ? own : depts[0]!.id);
     const job0 = pick0?.jobKey ?? rolesIn(dept0)[0]!.jobKey;
@@ -157,14 +162,14 @@ export function RequestForm(p: { budgetId: string | null }) {
       "for sign-off", () => dispatch({ type: "hiring-raise-undo", id }));
     location.hash = requestHref(id);
   };
+  const [savedNow, setSavedNow] = useState(false);
+  /** Said in the bar, not a toast: on phones a toast would sit on the
+   * bar's own buttons. "Discard the draft" above the form undoes it. */
   const saveDraft = (): void => {
-    const before = state.hiringDrafts[me];
     dispatch({ type: "hiring-draft-save", by: me, draft: { ...draftNow(),
       on: actor.on } });
     setFromDraft(true);
-    toast.show("Draft saved. Only you can see it.", () => dispatch(
-      before === undefined ? { type: "hiring-draft-clear", by: me }
-        : { type: "hiring-draft-save", by: me, draft: before }));
+    setSavedNow(true);
   };
   const discard = (): void => {
     dispatch({ type: "hiring-draft-clear", by: me });
@@ -372,8 +377,10 @@ export function RequestForm(p: { budgetId: string | null }) {
             value={cost.firstYear} size="sm" />
           {cost.leftAfter < 0n && (staff || locked) && <strong>, over
             budget</strong>}</span>
-          <span className={h.barHint}>HR reviews it first, then the
-            General manager signs off.</span>
+          <span className={h.barHint} data-saved={savedNow}
+            role="status">{savedNow ? "Draft saved. Only you can see it."
+              : "HR reviews it first, then the General manager signs off."}
+          </span>
         </p>
         <div className={h.barActions}>
           <button type="button" className={`${b.btn} ${b.secondary}`}
@@ -447,7 +454,9 @@ function CostSummary(p: { cost: HireCost; title: string; staff: boolean;
               : "Unspent less this cost"}</dt>
             <dd><Explainable explanation={ex.after(`ask:${p.title}`,
               p.title, { leftLabel, leftNow: c.leftNow,
-                lessLabel: "First-year cost", less: c.firstYear })}>
+                lessLabel: "First-year cost", less: c.firstYear,
+        ...(c.position === null ? { heading: "Unspent less this cost",
+          result: "Unspent less this cost" } : {}) })}>
               <Money value={c.leftAfter} size="sm" />
             </Explainable></dd>
           </div>

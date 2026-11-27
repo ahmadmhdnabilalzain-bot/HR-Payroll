@@ -92,7 +92,9 @@ export interface HiringData {
       headcount: number): Explanation;
     /** The budget left once a hire or a change is counted. */
     after(key: string, title: string, p: { leftLabel: string;
-      leftNow: Fils; lessLabel: string; less: Fils }): Explanation;
+      leftNow: Fils; lessLabel: string; less: Fils;
+      /** The drawer's title and result ("Budget left", "Left"). */
+      heading?: string; result?: string }): Explanation;
   };
   budgetBasis: string;
   requestBasis: string;
