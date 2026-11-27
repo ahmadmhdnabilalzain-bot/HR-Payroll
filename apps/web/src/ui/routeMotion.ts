@@ -1,4 +1,5 @@
 import { reducedMotion } from "../demo/motion";
+import { capTransition } from "./settle";
 import { SECTIONS } from "../demo/route";
 
 /**
@@ -92,6 +93,7 @@ function run(dir: number, pace: Pace,
     : "fade";
   html.dataset["routePace"] = pace;
   const vt = doc.startViewTransition!(change);
+  capTransition(vt);
   running = vt;
   vt.ready?.catch(() => undefined);
   vt.finished.finally(() => {
