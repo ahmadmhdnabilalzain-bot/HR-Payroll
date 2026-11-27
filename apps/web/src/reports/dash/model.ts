@@ -30,6 +30,8 @@ export interface TileModel {
   series?: number[];
   /** Last month's level, drawn as the grey comparison line. */
   compare?: number;
+  /** Draw the series as bars from zero (a count that barely moves). */
+  zero?: boolean;
   /** A share drawn as a meter, when there is no history. */
   meter?: { part: number; whole: number };
   /** One short line under the label (issues: Fix's own words). */
@@ -77,6 +79,15 @@ function countTile(id: string, label: string, now: number, before: number,
     series, compare: before };
 }
 
+/** People paid moves by one or two a month: bars from zero, so 30 to
+ * 31 never reads as a spike on a fitted axis. */
+function paidTile(now: MonthRow, before: MonthRow, ms: MonthRow[])
+  : TileModel {
+  return { ...countTile("paid", "People paid", now.headcount,
+    before.headcount, short(before), ms.map((m) => m.headcount)),
+  zero: true };
+}
+
 /** Fix's own words for the counts: the unit after the figure, and
  * the line under it ("stop pay", "6 to check"). */
 export type IssueWords = (b: BeforeApproval) => { unit: string;
@@ -107,8 +118,7 @@ export function execTiles(src: ReportsSource, d: DemoData, s: DemoState,
       short(before), ms.map((m) => m.net)),
     moneyTile("gross", `Gross pay, ${short(now)}`, h.grossTotalFils,
       before.gross, short(before), ms.map((m) => m.gross)),
-    countTile("paid", "People paid", now.headcount, before.headcount,
-      short(before), ms.map((m) => m.headcount)),
+    paidTile(now, before, ms),
     issuesTile(beforeApproval(d, s), words),
   ];
 }
@@ -120,8 +130,7 @@ export function hrTiles(src: ReportsSource, d: DemoData, s: DemoState,
   const ms = src.months;
   const hrs = (m: number): number => Math.round(m / 6) / 10;
   return [
-    countTile("paid", "People paid", now.headcount, before.headcount,
-      short(before), ms.map((m) => m.headcount)),
+    paidTile(now, before, ms),
     issuesTile(beforeApproval(d, s), words),
     countTile("leave", `Leave days, ${short(now)}`, leaveDays(now),
       leaveDays(before), short(before), ms.map(leaveDays), "days"),
@@ -178,4 +187,30 @@ export function trendBars(src: ReportsSource, runWord: string)
     value: m.gross,
     ...(i === n - 1 ? { mark: runWord, focus: true }
       : i === n - 2 ? { mark: m.paid ? "Paid" : "Not paid" } : {}) }));
+}
+
+export interface DeptView {
+  id: string;
+  row: DepartmentRow;
+  /** Gross cost over people, rounded half up to the fils. */
+  perHead: Fils;
+  /** Share of the month's gross, in whole percent (half up). */
+  share: number;
+}
+
+/**
+ * The Executive's own department view: what one person costs in each
+ * department this month and its share of the gross, highest cost per
+ * head first. Home shows totals; this shows the rate. Bigint only.
+ */
+export function deptView(d: DemoData): DeptView[] {
+  const rows = d.departments();
+  const total = rows.reduce((n, r) => n + r.costFils, 0n);
+  const half = (a: bigint, b: bigint): bigint => b === 0n ? 0n
+    : (a * 2n + b) / (b * 2n);
+  return rows.map((row) => ({ id: row.id, row,
+    perHead: fils(half(row.costFils, BigInt(row.headcount))),
+    share: Number(half(row.costFils * 100n, total)) }))
+    .sort((a, b) => a.perHead < b.perHead ? 1 : a.perHead > b.perHead
+      ? -1 : 0);
 }

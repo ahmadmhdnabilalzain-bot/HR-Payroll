@@ -81,8 +81,9 @@ function Body(p: { t: TileModel; why?: Explanation | undefined }) {
       <ChangeView c={t.change} />
       <span className={s.tileArt}>
         {t.series !== undefined && t.series.length > 1 && (
-          <Sparkline series={t.series} {...(t.compare === undefined ? {}
-            : { compare: t.compare })} />
+          <Sparkline series={t.series} zero={t.zero === true}
+            {...(t.compare === undefined ? {}
+              : { compare: t.compare })} />
         )}
         {t.meter !== undefined && <Meter {...t.meter} />}
       </span>

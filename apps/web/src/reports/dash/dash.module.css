@@ -147,6 +147,14 @@ a.tileIn:focus-visible {
   stroke-dasharray: 3 3;
 }
 
+.sparkBar {
+  fill: var(--color-chart-compare);
+}
+
+.sparkBar[data-now="true"] {
+  fill: var(--color-text);
+}
+
 .sparkDot {
   stroke: var(--color-text);
   stroke-width: 6;

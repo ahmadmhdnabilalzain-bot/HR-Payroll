@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useRunApproval } from "../../demo/actions";
 import { decisionsFor, waitingList } from "../../demo/approvals";
 import { isBlocking, openIssues } from "../../demo/derive";
@@ -11,6 +12,7 @@ import { HBars, SplitBar } from "../dash/Bars";
 import {
   beforeApproval,
   byCost,
+  deptView,
   execTiles,
   hrTiles,
   topSlices,
@@ -25,8 +27,10 @@ import { plural, useMoney, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import { execDashboardRows, hrDashboardRows } from "./dashboard-rows";
 
+/** Measure, figure, and what it tells you: last month's level, where
+ * there is one, is said in the sentence (and on the tile above). */
 const COLUMNS = [{ label: "Measure" }, { label: "Now", end: true },
-  { label: "Compared with", end: true }, { label: "What it tells you" }];
+  { label: "What it tells you" }];
 
 /** The word under this run's bar: where the approval stands. */
 export function useRunWord(): string {
@@ -64,7 +68,7 @@ export function DashboardHr() {
     live.waitingExplain(data, list, run.scope)];
   // The shared rows, with what stops pay in Fix's own words.
   const rows = hrDashboardRows(src, data, state).map((r, i) => i !== 0 ? r
-    : ["Before sign-off", phrase(beforeApproval(data, state)), "-",
+    : ["Before sign-off", phrase(beforeApproval(data, state)),
       "What stops pay holds the whole run; checks do not"]);
   const board = (
     <div className={s.board}>
@@ -102,7 +106,7 @@ export function DashboardHr() {
 /**
  * Executive dashboard: four tiles (net and gross pay, people paid,
  * what stops the run), gross pay by month with September and October
- * marked, cost by department, then the details table.
+ * marked, cost per head by department, then the details table.
  */
 export function DashboardExec() {
   const src = useReportsSource();
@@ -111,7 +115,7 @@ export function DashboardExec() {
   const run = useRunDetail();
   const { data, state } = useDemo();
   const { lang } = useLocale();
-  const { signed } = useMoney();
+  const { m, signed } = useMoney();
   const words = useIssueWords();
   const runWord = useRunWord();
   const now = src.months.at(-1)!;
@@ -121,23 +125,25 @@ export function DashboardExec() {
   const v = src.variance(now.month, before.month);
   const main = v.drivers[0];
   const list = decisionsFor(data, state);
-  // By row of execDashboardRows.
-  const why = [[src.explain[`trend:${now.month}`],
-    src.explain[`trend:${before.month}`]],
-  [main === undefined ? undefined : v.driverExplain[main.key]],
-  [run.explain["run:people"]],
-  [src.explain[`overtime:${now.month}`],
-    src.explain[`overtime:${before.month}`]],
-  [run.explain["run:held"]],
-  [live.waitingExplain(data, list, run.scope)],
-  [top === undefined ? undefined : run.explain[`dept-cost:${top.id}`]]];
+  // By row of execDashboardRows: the working behind each "Now".
+  const why = [src.explain[`trend:${now.month}`],
+    main === undefined ? undefined : v.driverExplain[main.key],
+    run.explain["run:people"], src.explain[`overtime:${now.month}`],
+    run.explain["run:held"], live.waitingExplain(data, list, run.scope),
+    top === undefined ? undefined : run.explain[`dept-cost:${top.id}`]];
   const rows = execDashboardRows(src, data, state,
-    (f) => signed(f as never));
-  // The lead tile (net pay) tips up into place, once per load.
+    (f) => signed(f as never), (f) => m(f as never));
+  // The lead tile (net pay) tips up into place, once per load. When
+  // the tilt has played the wrapper drops it, so a later re-layout
+  // (a resize, a full-page capture) never replays it mid-page and
+  // leaves the first tile sitting low beside the others.
   const first = useFirstReveal("exec-top");
+  const [tilt, setTilt] = useState(first);
   const board = (
     <div className={s.board}>
-      <div className={first ? x.lead : x.still}>
+      <div className={tilt ? x.lead : x.still} onAnimationEnd={(e) => {
+        if (e.animationName.includes("depth-in")) setTilt(false);
+      }}>
         <Tiles label="Key figures"
           tiles={execTiles(src, data, state, words)}
           explain={{ net: run.explain["run:net"],
@@ -152,11 +158,13 @@ export function DashboardExec() {
             "against the month before, February to October; October " +
             runWord.toLowerCase()} />
         </Panel>
-        <Panel id="dash-cost" wide title="Cost by department"
-          note={`Gross pay, ${now.label}`}>
-          <HBars label="Cost by department" rows={depts.map((d) => ({
-            key: d.id, label: d.name[lang], value: { fils: d.costFils },
-            meta: plural(d.headcount, "person", "people") }))} />
+        <Panel id="dash-cost" wide title="Cost per head by department"
+          note={`Gross pay over people, ${now.label}; highest first`}>
+          <HBars label="Cost per head by department" rows={deptView(data)
+            .map((d) => ({ key: d.id, label: d.row.name[lang],
+              value: { fils: d.perHead },
+              meta: `${plural(d.row.headcount, "person", "people")} · ` +
+                `${d.share}% of gross` }))} />
         </Panel>
       </div>
     </div>
@@ -166,7 +174,7 @@ export function DashboardExec() {
       title="Executive dashboard"
       period={`${now.label} run against ${before.label}`}
       chart={board}
-      explain={(r, c) => c === 0 ? undefined : why[r]?.[c - 1]}
+      explain={(r, c) => c === 1 ? why[r] : undefined}
       columns={COLUMNS} rows={rows}
       csvName="executive-dashboard-2026-10.csv"
       note={"Figures are the run as it stands today, including any pay " +
