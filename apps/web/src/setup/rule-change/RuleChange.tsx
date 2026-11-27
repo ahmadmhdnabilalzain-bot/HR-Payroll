@@ -123,7 +123,7 @@ export function RuleChange() {
             {myTurn && (
               <>
                 <button type="button" className={`${b.btn} ${b.primary}`}
-                  onClick={() => decide("plan")}>Plan for the next run</button>
+                  onClick={() => decide("plan")}>Plan for next run</button>
                 <button type="button" className={`${b.btn} ${b.secondary}`}
                   onClick={() => decide("hold")}>Hold</button>
               </>

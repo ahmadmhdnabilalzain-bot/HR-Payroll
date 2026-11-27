@@ -4,7 +4,7 @@ test("loan-request-is-decided-by-the-gm", async ({ page }) => {
   await page.goto("/#/pay-run/loans");
   await expect(page.getByRole("heading", { level: 1,
     name: "Loans and advances" })).toBeVisible();
-  await page.getByRole("button", { name: "Give a loan or advance" })
+  await page.getByRole("button", { name: "New loan" })
     .click();
   const sheet = page.getByRole("dialog");
   await sheet.getByLabel("Amount (AED)").fill("abc");

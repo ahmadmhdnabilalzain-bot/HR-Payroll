@@ -114,7 +114,7 @@ export function AccessRecord(props: { id: string }) {
             { label: "Why", value: r.reason },
           ]} />
           <a className={s.link} href={hrefOf("setup", "access", "who")}>
-            See what this role can do</a>
+            What it allows</a>
         </div>) },
       { id: "history", label: "History",
         render: () => <History items={historyOf(p, r)} /> },

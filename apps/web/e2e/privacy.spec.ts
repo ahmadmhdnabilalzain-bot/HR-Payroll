@@ -20,7 +20,7 @@ test("privacy-and-retention-flow", async ({ page }) => {
   await clean(page);
 
   await page.goto("/#/setup/privacy/requests/dsr-003");
-  await page.getByRole("button", { name: "Keep for a legal duty" }).click();
+  await page.getByRole("button", { name: "Keep: legal duty" }).click();
   await expect(page.getByText(/Kept for a legal duty by .*HR/).first())
     .toBeVisible();
   await page.getByRole("main").getByRole("button", { name: "Undo" }).click();

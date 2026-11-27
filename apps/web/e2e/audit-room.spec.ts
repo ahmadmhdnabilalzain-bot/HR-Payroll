@@ -19,12 +19,12 @@ test("auditor access, the auditor's view and the logged views", async ({
     .toBeDisabled();
   await roleAs(page, "IT manager");
   await page.getByRole("button", { name: "Give access" }).click();
-  await page.getByRole("button", { name: "Fill from the engagement letter" })
+  await page.getByRole("button", { name: "Fill from letter" })
     .click();
   await page.getByLabel("Access ends").fill("");
   await page.getByRole("button", { name: "Give access" }).last().click();
   await expect(page.getByRole("alert")).toContainText("must end on a date");
-  await page.getByRole("button", { name: "Fill from the engagement letter" })
+  await page.getByRole("button", { name: "Fill from letter" })
     .click();
   await page.getByRole("button", { name: "Give access" }).last().click();
   await expect(page.getByText("Active").first()).toBeVisible();

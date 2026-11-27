@@ -131,7 +131,7 @@ export function Loans() {
         empty="No loans or advances match. Clear the search to see all."
         actions={(
           <button type="button" className={`${b.btn} ${b.primary}`}
-            onClick={() => setOpen(true)}>Give a loan or advance</button>
+            onClick={() => setOpen(true)}>New loan</button>
         )} />
       {open && (
         <ApprovalForm open title="Give a loan or advance"

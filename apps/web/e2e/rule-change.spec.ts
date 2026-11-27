@@ -18,12 +18,12 @@ test("rule-change-preview-hr-then-gm", async ({ page }) => {
   await expect(page.getByText("Waiting for HR")).toBeVisible();
   const bad = await new AxeBuilder({ page }).analyze();
   expect(bad.violations).toEqual([]);
-  await page.getByRole("button", { name: "Plan for the next run" }).click();
+  await page.getByRole("button", { name: "Plan for next run" }).click();
   await expect(page.getByText("Waiting for the General manager"))
     .toBeVisible();
   await asRole(page, "General manager");
   await page.evaluate(() => { location.hash = "#/setup/rule-change"; });
-  await page.getByRole("button", { name: "Plan for the next run" }).click();
+  await page.getByRole("button", { name: "Plan for next run" }).click();
   await expect(page.getByText("Planned for the next run").first())
     .toBeVisible();
   await expect(page.getByText(/Nothing is sent\./)).toBeVisible();
