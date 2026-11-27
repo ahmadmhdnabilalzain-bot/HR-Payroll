@@ -218,6 +218,10 @@ export function FixStep() {
   );
 }
 
+/** The longest a cancelled form waits for its fold to end (--dur-slow
+ * is 320 ms; ui/seen.ts FAIL_OPEN_MS is the house backstop). */
+const FOLD_CAP_MS = 1200;
+
 function BlockerRow(p: { issue: Issue; canFix: boolean;
   target: RefObject<HTMLElement | null>; busy: boolean;
   setBusy(b: boolean): void }) {
@@ -234,6 +238,8 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
   // (PayRun.module.css .rowForm), so the rows under it rise with it
   // rather than jumping up as it goes.
   const [closing, setClosing] = useState(false);
+  // The latest fold: a save after a cancel outlives the cancel's cap.
+  const folds = useRef(0);
   const row = useRef<HTMLLIElement>(null);
   const i = p.issue;
   const name = i.employeeId === null ? ""
@@ -265,12 +271,23 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
           <RowIban employeeId={i.employeeId} name={name}
             onCancel={() => {
               // Folds away as a save does (reduced motion: at once).
-              setClosing(!reducedMotion());
+              const fold = !reducedMotion();
+              setClosing(fold);
               setOpen(false);
+              // Fail-open: an engine that does not transition
+              // grid-template-rows (Safari 15, Chromium before 107)
+              // never sends the transitionend; the button comes back.
+              const id = ++folds.current;
+              if (fold) {
+                setTimeout(() => {
+                  if (folds.current === id) setClosing(false);
+                }, FOLD_CAP_MS);
+              }
             }}
             onSave={(value) => {
               const id = i.employeeId!;
               const from = row.current?.querySelector("input") ?? null;
+              folds.current += 1;
               setFlying(true);
               setClosing(true);
               setOpen(false);
