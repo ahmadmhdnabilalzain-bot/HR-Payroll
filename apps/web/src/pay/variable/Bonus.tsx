@@ -16,15 +16,21 @@ import { useToast } from "../../ui/Toast";
 import {
   ApprovalForm,
   FilterList,
+  PageFoot,
+  PageHead,
   RecordTabs,
   type FormValues,
 } from "../../ui/templates";
 import { NotFound, useMakerChecker } from "../parts";
 import { BONUS_WORD, BonusState } from "./bonus-parts";
+import { PayoutMeter } from "./Meters";
+import { NameLink, VarList, VarRow, varStyles as vs } from "./rows";
 import { useVariableSource } from "./load";
 import s from "../pay.module.css";
 
 const LIST = hrefOf("pay-run", "bonus");
+const LEDE = "A bonus paid off-cycle, outside the monthly run. HR " +
+  "prepares the run and the General manager signs it off.";
 
 /** R13: bonus runs, newest first; HR prepares one with the form. */
 export function BonusRuns() {
@@ -36,17 +42,37 @@ export function BonusRuns() {
     <button type="button" className={`${b.btn} ${b.primary}`}
       onClick={() => setOpen(true)}>New bonus run</button>
   ) : null;
+  if (runs.length === 0) {
+    return (
+      <>
+        <div className={s.page}>
+          <PageHead title="Bonus runs" lede={LEDE} />
+          <div className={vs.empty}>
+            <p>{state.role === "hr"
+              ? `No bonus run yet. Prepare the ${v.bonus.label}.`
+              : "No bonus run yet. HR prepares one for you to sign off."}
+            </p>
+            {prepare}
+            <details className={vs.how}>
+              <summary>How the bonus is worked out</summary>
+              <p>{v.bonus.basis}</p>
+            </details>
+          </div>
+          <PageFoot />
+        </div>
+        {open && <NewBonus onClose={() => setOpen(false)} />}
+      </>
+    );
+  }
   return (
     <>
-      <FilterList title="Bonus runs"
-        lede={"A bonus paid off-cycle, outside the monthly run. HR " +
-          "prepares the run and reviews each figure; the General " +
-          "manager signs it off. A signed-off run shows in the pay run " +
-          `history. ${v.bonus.basis}`}
+      <FilterList title="Bonus runs" lede={LEDE}
         rows={runs} rowKey={(r) => r.id} searchText={(r) => r.label}
         rowHref={(r) => hrefOf("pay-run", "bonus", r.id)}
         segments={[
           { id: "all", label: "All", match: () => true },
+          { id: "draft", label: "Draft", match: (r) =>
+            bonusStatus(r) === "draft" },
           { id: "wait", label: "Waiting", match: (r) =>
             bonusStatus(r) === "waiting" },
           { id: "done", label: "Signed off", match: (r) =>
@@ -56,10 +82,12 @@ export function BonusRuns() {
           { key: "n", label: "Run", render: (r) => r.label },
           { key: "p", label: "People", end: true, render: (r) =>
             <span className="tabular">{r.totals.count}</span> },
-          { key: "g", label: "Gross", end: true, render: (r) =>
+          { key: "g", label: runs.every((r) => r.totals.net ===
+            r.totals.gross) ? "Bonus" : "Gross", end: true, render: (r) =>
             <Money value={r.totals.gross} size="sm" /> },
-          { key: "net", label: "Net", end: true, render: (r) =>
-            <Money value={r.totals.net} size="sm" /> },
+          ...(runs.every((r) => r.totals.net === r.totals.gross) ? [] : [
+            { key: "net", label: "Net", end: true, render: (r: BonusRun) =>
+              <Money value={r.totals.net} size="sm" /> }]),
           { key: "st", label: "Status", render: (r) =>
             <BonusState run={r} /> },
         ]}
@@ -156,7 +184,7 @@ function Run(p: { run: BonusRun }) {
       {st === "draft" && isHr && (
         <>
           <button type="button" className={`${b.btn} ${b.primary}`}
-            onClick={send}>Send for sign off</button>
+            onClick={send}>Send for sign-off</button>
           <button type="button" className={`${b.btn} ${b.secondary}`}
             onClick={() => {
               dispatch({ type: "bonus-remove", id: r.id });
@@ -175,7 +203,7 @@ function Run(p: { run: BonusRun }) {
       {st === "waiting" && isHr && (
         <button type="button" className={`${b.btn} ${b.secondary}`}
           onClick={() => dispatch({ type: "bonus-unsend", id: r.id })}>
-          Take back from sign off</button>
+          Take back from sign-off</button>
       )}
       {(st === "signed" || st === "declined") && isGm && (
         <button type="button" className={`${b.btn} ${b.secondary}`}
@@ -196,12 +224,43 @@ function Run(p: { run: BonusRun }) {
     { when: formatDate(r.created.on, lang), what: `Prepared by ` +
       `${name(r.created.by)}` },
     ...(r.sent === null ? [] : [{ when: formatDate(r.sent.on, lang),
-      what: `Sent for sign off by ${name(r.sent.by)}` }]),
+      what: `Sent for sign-off by ${name(r.sent.by)}` }]),
     ...(r.decision === null ? [] : [{ when: formatDate(r.decision.on, lang),
       what: `${r.decision.verdict === "signed" ? "Signed off" : "Declined"}` +
         ` by ${name(r.decision.by)}` }]),
   ];
   const ids = rows.map((x) => x.employeeId);
+  const same = r.totals.net === r.totals.gross;
+  const eligible = v.totalsOf(v.bonus.rows.map((x) => x.employeeId));
+  const gross = (
+    <Explainable explanation={v.runGross(ids)}>
+      <Money value={r.totals.gross} size="lg" /></Explainable>);
+  const people = (
+    <div className={s.stack}>
+      <PayoutMeter selected={r.totals.gross} eligible={eligible.gross}
+        figure={gross} text={`${r.totals.count} of ${eligible.count} ` +
+          `eligible people, ${r.totals.gross === eligible.gross ? "all of "
+            : ""}${eligible.display.gross} eligible in all`} />
+      <VarList label="People in the run">
+        {rows.map((x) => (
+          <VarRow key={x.employeeId}
+            title={<NameLink href={hrefOf("people", x.employeeId)}>
+              {x.name}</NameLink>}
+            note={`${x.jobText}. Rated ${x.rating} \u00b7 ` +
+              `${x.display.rate} of basic`}
+            end={<Explainable explanation={v.bonusAmount(x)}>
+              <Money value={x.bonus} size="sm" /></Explainable>} />
+        ))}
+      </VarList>
+      {same && <p className={s.muted}>No deductions are taken from this
+        bonus, so each person is paid the full amount.</p>}
+      <details className={vs.how}>
+        <summary>How the bonus is worked out</summary>
+        <p>{v.bonus.basis}</p>
+        <p>{v.bonus.notComputed}</p>
+      </details>
+    </div>
+  );
   return (
     <RecordTabs title={r.label}
       lede={`An off-cycle bonus for ${r.totals.count} ` +
@@ -211,51 +270,36 @@ function Run(p: { run: BonusRun }) {
       status={{ word: BONUS_WORD[st], tone: st === "signed" ? "done"
         : st === "waiting" ? "warn" : "neutral" }}
       stats={[
-        { label: "Gross bonus", value: (
-          <Explainable explanation={v.runGross(ids)}>
-            <Money value={r.totals.gross} size="lg" /></Explainable>) },
-        { label: "Net bonus", value: (
+        same ? { label: "Bonus to pay", value: (
+          <>
+            <Explainable explanation={v.runNet(ids)}>
+              <Money value={r.totals.net} size="lg" /></Explainable>
+            <small className={vs.under}>No deductions</small>
+          </>) }
+          : { label: "Gross bonus", value: gross },
+        ...(same ? [] : [{ label: "Net bonus", value: (
           <Explainable explanation={v.runNet(ids)}>
-            <Money value={r.totals.net} size="lg" /></Explainable>) },
+            <Money value={r.totals.net} size="lg" /></Explainable>) }]),
         { label: "People", value: String(r.totals.count) },
       ]}
       next={next} actions={actions} history={history}
       tabs={[
-        { id: "people", label: `People (${rows.length})`, render: () => (
-          <ul className={s.list} aria-label="People in the run">
-            {rows.map((x) => (
-              <li key={x.employeeId} className={s.row}>
-                <span className={s.rowText}>
-                  <a href={hrefOf("people", x.employeeId)}>{x.name}</a>
-                  <small>{x.jobText}, rated {x.rating}. {x.display.rate}
-                    {" "}of basic</small></span>
-                <span className={s.rowEnd}>
-                  <Explainable explanation={v.bonusAmount(x)}>
-                    <Money value={x.bonus} size="sm" /></Explainable>
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) },
-        { id: "slips", label: "Net after deductions", render: () => (
-          <>
-            <p className={s.muted}>{v.bonus.notComputed}</p>
-            <ul className={s.list} aria-label="Net after deductions">
-              {rows.map((x) => (
-                <li key={x.employeeId} className={s.row}>
-                  <span className={s.rowText}>{x.name}
-                    <small>Deductions taken {" "}
-                      <Money value={x.deductions} size="sm" /></small>
-                  </span>
-                  <span className={s.rowEnd}>
-                    <Explainable explanation={v.bonusNet(x)}>
-                      <Money value={x.net} size="sm" /></Explainable>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) },
+        { id: "people", label: `People (${rows.length})`,
+          render: () => people },
+        ...(same ? [] : [{ id: "slips", label: "Net after deductions",
+          render: () => (
+            <>
+              <p className={s.muted}>{v.bonus.notComputed}</p>
+              <VarList label="Net after deductions">
+                {rows.map((x) => (
+                  <VarRow key={x.employeeId} title={x.name}
+                    note={<>Deductions taken{" "}
+                      <Money value={x.deductions} size="sm" /></>}
+                    end={<Explainable explanation={v.bonusNet(x)}>
+                      <Money value={x.net} size="sm" /></Explainable>} />
+                ))}
+              </VarList>
+            </>) }]),
       ]} />
   );
 }

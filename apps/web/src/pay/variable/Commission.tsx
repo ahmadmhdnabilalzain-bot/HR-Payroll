@@ -20,13 +20,14 @@ import {
 import { NotFound, useMakerChecker } from "../parts";
 import { useVariableSource } from "./load";
 import type { CommissionStatement } from "./source";
+import { Clawback, varStyles as r } from "./rows";
 import { StatementLines } from "./Statement";
 import s from "../pay.module.css";
 
 const LIST = hrefOf("pay-run", "commission");
 
 export const COMMISSION_WORD: Record<CommissionStatus, string> = {
-  open: "Not prepared", waiting: "Waiting for sign off",
+  open: "Not prepared", waiting: "Waiting for sign-off",
   signed: "Signed off", declined: "Declined",
 };
 const TONE: Record<CommissionStatus, StatusTone> = {
@@ -70,7 +71,7 @@ export function CommissionStatements() {
     ? (st === "open" || st === "declined"
       ? btn("primary", st === "open" ? "Prepare statements"
         : "Prepare again", prepare)
-      : st === "waiting" ? btn("secondary", "Take back from sign off",
+      : st === "waiting" ? btn("secondary", "Take back from sign-off",
         () => dispatch({ type: "commission-unprepare",
           month: plan.month })) : null)
     : state.role === "gm"
@@ -89,20 +90,22 @@ export function CommissionStatements() {
         `on ${formatDate(month.decision.on, lang)}.`);
   return (
     <FilterList title="Sales commission"
-      lede={`Statements for ${plan.monthText}. Each salesperson has a ` +
-        "monthly target; commission is paid by tier, less any clawback " +
-        `on a cancelled sale, and joins ${plan.paidWith}. HR prepares ` +
-        "the statements; the General manager signs them off."}
+      lede={`Statements for ${plan.monthText}, paid by tier against each ` +
+        "salesperson's monthly target, less any clawback on a cancelled " +
+        `sale, with ${plan.paidWith}. HR prepares them and the General ` +
+        "manager signs them off."}
       meta={<span><StatusPill tone={TONE[st]}>{COMMISSION_WORD[st]}
       </StatusPill> <span className={s.muted}>{line}</span></span>}
       rows={plan.statements} rowKey={(x) => x.employeeId}
-      searchText={(x) => `${x.name} ${x.jobText}`}
+      searchText={(x) => `${x.name} ${x.jobText}`} summary={[]}
       rowHref={(x) => hrefOf("pay-run", "commission", x.employeeId)}
       avatar={(x) => ({ id: x.employeeId, name: x.name })}
       columns={[
-        { key: "who", label: "Person", render: (x) => x.name },
-        { key: "t", label: "Target", end: true, render: (x) =>
-          <Money value={x.target} size="sm" /> },
+        { key: "who", label: "Person", render: (x) => (
+          <span className={r.text}>{x.name}
+            <small>{x.jobText}</small>
+            <small>Target <Money value={x.target} size="sm" /></small>
+          </span>) },
         { key: "a", label: "Attainment", end: true, render: (x) =>
           <Explainable explanation={v.attainment(x)}>
             <span className="tabular">{x.display.attainment}</span>
@@ -110,9 +113,9 @@ export function CommissionStatements() {
         { key: "c", label: "Commission", end: true, render: (x) =>
           <Explainable explanation={v.commissionOf(x)}>
             <Money value={x.commission} size="sm" /></Explainable> },
-        { key: "cb", label: "Clawback", end: true, render: (x) =>
+        { key: "cb", label: "Adjustment", end: true, render: (x) =>
           x.clawback === 0n ? <span className={s.muted}>None</span>
-            : <Money value={x.clawback} size="sm" signed /> },
+            : <Clawback amount={x.clawback} /> },
         { key: "p", label: "To pay", end: true, render: (x) =>
           <Explainable explanation={v.payableOf(x)}>
             <Money value={x.net} size="sm" /></Explainable> },

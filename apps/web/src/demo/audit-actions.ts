@@ -275,9 +275,9 @@ function bonus(a: Extract<Action, { type: `bonus-${string}` }>,
     switch (a.type) {
       case "bonus-new": return ["bonus-prepared", "prepared"];
       case "bonus-remove": return ["bonus-removed", "removed the draft of"];
-      case "bonus-send": return ["bonus-sent", "sent for sign off"];
+      case "bonus-send": return ["bonus-sent", "sent for sign-off"];
       case "bonus-unsend": return ["bonus-send-taken-back",
-        "took back from sign off"];
+        "took back from sign-off"];
       case "bonus-decide": return a.decision.verdict === "signed"
         ? ["bonus-signed-off", "signed off"] : ["bonus-declined",
           "declined"];

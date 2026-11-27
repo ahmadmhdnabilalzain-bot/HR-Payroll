@@ -1,0 +1,269 @@
+/* Bonus run and commission statement: rows and meters. Ink and grey. */
+
+/* The list template's own list: a panel, a hairline between rows. */
+.list {
+  margin: 0;
+  padding: 0;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  list-style: none;
+  overflow: clip;
+}
+
+.list > li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-block-size: 56px;
+  padding: var(--space-2) var(--space-4);
+}
+
+.list > li + li {
+  box-shadow: inset 0 1px 0 var(--color-divider);
+}
+
+.text {
+  display: grid;
+  flex: 1;
+  min-inline-size: 0;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.text small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+.end {
+  flex: none;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A person's name: ink, not the browser's blue. */
+.name {
+  justify-self: start;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .name:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.name:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-text));
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .name {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+  }
+}
+
+.negative {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.negative > span:first-child {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.empty p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.how summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.how p {
+  max-inline-size: 72ch;
+  margin-block-start: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Meters: a track of segments, a fill that grows by transform. */
+.meter {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.meterHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.meterHead > span:first-child {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.meterValue {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.track {
+  position: relative;
+  display: flex;
+  block-size: 12px;
+  margin-block: var(--space-1);
+}
+
+.seg {
+  position: relative;
+  flex: var(--span) 1 0;
+  min-inline-size: 0;
+  background: var(--color-divider);
+  overflow: hidden;
+}
+
+.seg:first-child {
+  border-start-start-radius: var(--radius-pill);
+  border-end-start-radius: var(--radius-pill);
+}
+
+.seg:last-child {
+  border-start-end-radius: var(--radius-pill);
+  border-end-end-radius: var(--radius-pill);
+}
+
+.seg + .seg::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 1;
+  inline-size: 2px;
+  background: var(--color-surface);
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-text-faint);
+  transform: scaleX(var(--f));
+  transform-origin: 0 50%;
+  animation: fillIn var(--dur-base, 200ms) var(--ease-out, ease-out) both;
+}
+
+.fill:dir(rtl) {
+  transform-origin: 100% 50%;
+}
+
+.ink .fill {
+  background: var(--color-text);
+}
+
+/* The marker is as wide as the track, so a percentage moves it by the
+ * track's width: transform only, no layout. */
+.rail {
+  position: absolute;
+  inset: -4px -2px;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.marker {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 2px;
+  inline-size: calc(100% - 4px);
+  transform: translateX(var(--at));
+  animation: markerIn var(--dur-base, 200ms) var(--ease-out, ease-out)
+    both;
+}
+
+.marker:dir(rtl) {
+  transform: translateX(calc(var(--at) * -1));
+}
+
+.marker::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -1px;
+  inline-size: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text);
+}
+
+.ticks {
+  position: relative;
+  block-size: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.ticks > span {
+  position: absolute;
+  inset-inline-start: var(--p);
+  transform: translateX(-50%);
+}
+
+.ticks > span:dir(rtl) {
+  transform: translateX(50%);
+}
+
+.under {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+.meterNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+@keyframes fillIn {
+  from { transform: scaleX(0); }
+}
+
+@keyframes markerIn {
+  from { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill,
+  .marker {
+    animation: none;
+  }
+}
