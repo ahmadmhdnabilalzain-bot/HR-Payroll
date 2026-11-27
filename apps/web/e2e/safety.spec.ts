@@ -2,6 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const clean = async (page: import("@playwright/test").Page) => {
+  // A tab panel or form still moving reads wrong to axe: let the
+  // finite animations end first (shimmers loop and are skipped).
+  await page.waitForFunction(() => document.getAnimations().every((a) =>
+    a.playState !== "running" ||
+    a.effect?.getTiming().iterations === Infinity));
   const r = await new AxeBuilder({ page }).analyze();
   expect(r.violations.map((v) => v.id)).toEqual([]);
 };

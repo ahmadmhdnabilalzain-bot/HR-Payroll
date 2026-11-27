@@ -8,6 +8,14 @@ async function asRole(page: Page, name: string): Promise<void> {
   await page.getByRole("menuitemradio", { name }).click();
 }
 
+async function settled(page: Page): Promise<void> {
+  // A tab panel or form still moving reads wrong to axe: let the
+  // finite animations end first (shimmers loop and are skipped).
+  await page.waitForFunction(() => document.getAnimations().every((a) =>
+    a.playState !== "running" ||
+    a.effect?.getTiming().iterations === Infinity));
+}
+
 async function shot(page: Page, name: string): Promise<void> {
   if (SHOTS === undefined) return;
   const project = test.info().project.name;
@@ -40,6 +48,7 @@ test("erp-ledger-teams-say-nothing-is-connected", async ({ page }) => {
   await expect(page.getByText(/ERP connection set to On/).first())
     .toBeVisible();
   await shot(page, "erp");
+  await settled(page);
   const bad = await new AxeBuilder({ page }).analyze();
   expect(bad.violations).toEqual([]);
 
@@ -54,6 +63,7 @@ test("erp-ledger-teams-say-nothing-is-connected", async ({ page }) => {
   expect((await dl).suggestedFilename()).toBe(
     "payroll-posting-october-2026.csv");
   await shot(page, "gl");
+  await settled(page);
   const bad2 = await new AxeBuilder({ page }).analyze();
   expect(bad2.violations).toEqual([]);
 
@@ -62,6 +72,7 @@ test("erp-ledger-teams-say-nothing-is-connected", async ({ page }) => {
     name: "Teams messages" })).toBeVisible();
   await expect(page.getByRole("article").first()).toBeVisible();
   await shot(page, "teams");
+  await settled(page);
   const bad3 = await new AxeBuilder({ page }).analyze();
   expect(bad3.violations).toEqual([]);
 });
