@@ -1,9 +1,12 @@
 import { steps, type StepId } from "../demo/derive";
-import { useDemo } from "../demo/state";
+import type { DemoData } from "../demo/data/types";
+import { hrefOf } from "../demo/route";
+import { useDemo, type DemoState } from "../demo/state";
 import { formatDayMonth } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import s from "./StepTracker.module.css";
+import tl from "./TextLink.module.css";
 
 const LABEL: Record<StepId, MessageKey> = {
   review: "payrun.review",
@@ -11,6 +14,12 @@ const LABEL: Record<StepId, MessageKey> = {
   approve: "payrun.approve",
   pay: "payrun.pay",
 };
+
+/** The pay-run step the month is on now (Review, Fix, Sign off, Pay). */
+export function currentStepHref(d: DemoData, st: DemoState): string {
+  const now = steps(d, st).find((x) => x.state === "now");
+  return hrefOf("pay-run", now?.id ?? "pay");
+}
 
 /**
  * The pay month in one line: "Step 2 of 4 · Fix", four small
@@ -33,7 +42,8 @@ export function StepTracker() {
             style={{ "--n": i } as object} />
         ))}
       </ol>
-      <p className={s.line}>
+      <a className={`${s.line} ${tl.link}`}
+        href={hrefOf("pay-run", now.id)}>
         <span className={s.now} aria-current="step">
           {t("home.stepOf", { n: at + 1, count: list.length })}
           {" · "}{t(LABEL[now.id])}
@@ -44,7 +54,7 @@ export function StepTracker() {
               date: formatDayMonth(next.date, lang) })}
           </span>
         )}
-      </p>
+      </a>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { confirmations } from "../demo/derive";
 import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
+import { RowLink } from "../ui/RowLink";
+import { issueHref } from "./IssueRow";
 import s from "./Side.module.css";
 
 /**
@@ -20,11 +22,14 @@ export function Setup() {
       <p className={s.lede}>{t("home.setupSub")}</p>
       <ul className={s.list}>
         {list.map((i) => (
-          <li key={i.id} className={s.row}>
-            <div className={s.main}>
-              <span className={s.what}>{i.title[lang]}</span>
-              <span className={s.meta}>{i.reason[lang]}</span>
-            </div>
+          <li key={i.id}>
+            <RowLink href={issueHref(i)}
+              className={`${s.row} ${s.linkRow}`}>
+              <div className={s.main}>
+                <span className={s.what}>{i.title[lang]}</span>
+                <span className={s.meta}>{i.reason[lang]}</span>
+              </div>
+            </RowLink>
           </li>
         ))}
       </ul>

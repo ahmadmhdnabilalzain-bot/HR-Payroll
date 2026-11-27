@@ -79,6 +79,40 @@
   background: var(--color-surface);
 }
 
+/* The chart's lines never take a click; each month's point does: a
+ * 44 px target over the 9 px dot, which shows that month's figure. */
+.chart {
+  pointer-events: none;
+}
+
+.point {
+  position: absolute;
+  inset: -20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .point:hover {
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  }
+}
+
+.point:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -12px;
+}
+
+.point[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
 .tag {
   position: absolute;
   inset-block-end: calc(100% + 6px);

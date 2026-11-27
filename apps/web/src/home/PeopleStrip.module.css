@@ -190,8 +190,48 @@
   align-items: center;
 }
 
-.face + .face {
+.faceLink + .faceLink {
   margin-inline-start: 4px;
+}
+
+/* A face or a name that opens its own page sits above the card's
+ * stretched link (.head a::after), so the click reaches it. */
+.above {
+  position: relative;
+  z-index: 1;
+  border-radius: var(--radius-control);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.above:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+a.who:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.faceLink {
+  display: inline-flex;
+  border-radius: 50%;
+}
+
+/* Each face is 44 px to the touch, drawn at its own size. */
+.faceLink::before {
+  position: absolute;
+  inset: -6px -2px;
+  content: "";
+}
+
+@media (hover: hover) {
+  .faceLink:hover > * {
+    outline: 2px solid var(--color-divider-strong);
+    outline-offset: 1px;
+  }
 }
 
 .more {

@@ -7,6 +7,7 @@ import { useToast } from "../../ui/Toast";
 import { Icon } from "../../ui/Icon";
 import { useToSign } from "../../people/esign/ToSignCard";
 import { inboxTasks, type InboxTask, type TaskTone } from "./model";
+import tl from "../TextLink.module.css";
 import s from "./inbox.module.css";
 
 export const TONE_KEY: Record<TaskTone, MessageKey> = {
@@ -40,9 +41,48 @@ export function TaskAction(p: { task: InboxTask }) {
   );
 }
 
+/**
+ * The status word ("Overdue", "This week", "Later"): on Home it opens
+ * the full list on that status. "Done" stays a word.
+ */
+export function TaskStatus(p: { tone: TaskTone }) {
+  const { t } = useLocale();
+  const word = t(TONE_KEY[p.tone]);
+  if (p.tone === "done") {
+    return <span className={s.status} data-tone={p.tone}>{word}</span>;
+  }
+  return (
+    <a className={`${s.status} ${tl.link}`} data-tone={p.tone}
+      href={hrefOf("home", "tasks", p.tone)}>{word}</a>
+  );
+}
+
 export function TaskTitle(p: { task: InboxTask }) {
   return p.task.href === null ? <span className={s.what}>{p.task.title}</span>
     : <a className={s.what} href={p.task.href}>{p.task.title}</a>;
+}
+
+/**
+ * One task: the title's link stretches over the whole row (to its
+ * screen or, with none, the full list); the status word and Mark done
+ * sit above it and keep their own press.
+ */
+function TaskRow(p: { task: InboxTask }) {
+  const x = p.task;
+  return (
+    <li className={`${s.row} ${s.linkRow} ${s.stretch}`}
+      data-done={x.done}>
+      <div className={s.main}>
+        <a className={`${s.what} ${s.stretched}`}
+          href={x.href ?? hrefOf("home", "tasks")}>{x.title}</a>
+        <span className={s.meta}>{x.dueText}</span>
+      </div>
+      <div className={`${s.end} ${s.over}`}>
+        <TaskStatus tone={x.tone} />
+        <TaskAction task={x} />
+      </div>
+    </li>
+  );
 }
 
 /**
@@ -85,20 +125,7 @@ export function TaskList(p: { limit: number }) {
                 </a>
               </li>
             )}
-            {shown.map((x) => (
-              <li key={x.id} className={s.row} data-done={x.done}>
-                <div className={s.main}>
-                  <TaskTitle task={x} />
-                  <span className={s.meta}>{x.dueText}</span>
-                </div>
-                <div className={s.end}>
-                  <span className={s.status} data-tone={x.tone}>
-                    {t(TONE_KEY[x.tone])}
-                  </span>
-                  <TaskAction task={x} />
-                </div>
-              </li>
-            ))}
+            {shown.map((x) => <TaskRow key={x.id} task={x} />)}
           </ul>
         )}
     </section>

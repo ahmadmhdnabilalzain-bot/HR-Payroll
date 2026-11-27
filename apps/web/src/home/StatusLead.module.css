@@ -67,6 +67,16 @@
   font-size: var(--text-xs);
 }
 
+/* "Go to Fix": underlined, so it reads as the way out of the wait. */
+.fixLink {
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
 @media (max-width: 760px) {
   .lead {
     margin-block: calc(var(--space-7) - var(--space-2)) 0;

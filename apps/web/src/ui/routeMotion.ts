@@ -22,6 +22,18 @@ import { hasViewTransitions, safeTransition } from "./viewTransition";
  *   (the browser's rule) and starts from the page as it now is.
  */
 
+/**
+ * Snapshot motion (the View Transitions API) is off for route changes.
+ * While a view transition runs, its callback pending or its layers
+ * animating, Chromium sends every click to the root element whatever
+ * the layers' pointer-events say, so a click in the first 0.25 to
+ * 1.5 s after a change was swallowed (dead-click audit, 27 Nov). The
+ * page now changes at once, pressable from the first frame (no fade
+ * either: a page held part-transparent reads as low contrast and is
+ * still "arriving"). Turn this on only with a way to keep clicks live.
+ */
+export const SNAPSHOT_MOTION = false;
+
 /** The transition in flight, so only its own end clears the flags. */
 let running = 0;
 
@@ -94,7 +106,7 @@ function run(dir: number, pace: Pace,
 
 /** Whether a route transition can play now. */
 export function canMove(): boolean {
-  return !reducedMotion() && hasViewTransitions()
+  return SNAPSHOT_MOTION && !reducedMotion() && hasViewTransitions()
     && document.querySelector("main")?.closest("[inert]") == null;
 }
 
@@ -143,9 +155,16 @@ function until(ready: () => boolean, ms = 400): Promise<void> {
 export function slideRoute(from: string, to: string, render: () => void,
   trusted: boolean): boolean {
   // Script-sent changes and the opening (an inert product) just render.
-  if (!trusted || !canMove()) return false;
+  if (!trusted) return false;
   const dir = directionOf(from, to);
   if (dir === null) return false;
+  if (!canMove()) {
+    // No snapshot: the page changes at once, live. Numbers, not
+    // { behavior: "instant" } (Safari before 16.4 throws on it).
+    render();
+    scrollTo(scrollX, 0);
+    return true;
+  }
   run(dir, "page", () => {
     render();
     // Safari before 16.4 throws on behavior "instant"; this is instant.

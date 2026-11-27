@@ -5,14 +5,18 @@ import { hrefOf } from "../demo/route";
 import type { Issue } from "../demo/data/types";
 import { useDemo } from "../demo/state";
 import {
+  formatDayMonth,
   formatList,
   formatLongDay,
   formatMonthName,
+  formatTime,
 } from "../i18n/format";
+import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useLayoutEffect, useRef, useState } from "react";
 import b from "../ui/button.module.css";
 import s from "./StatusLead.module.css";
+import tl from "./TextLink.module.css";
 
 /**
  * The page leads with one sentence about the pay run, in the shared
@@ -82,6 +86,11 @@ export function StatusAction(p: { onIban?(issue: Issue): void }) {
   const names = (ids: string[]): string => formatList(ids.map(nameOf), lang);
   const held = run.blockedBy;
   const firstHeld = openIssues(data, state).find(isBlocking);
+  // Who is fixing what holds the sign-off, and since when: the person
+  // who prepared the run, at the time the run was prepared.
+  const detail = useRunDetail();
+  const maker = nameOf(data.runPeople().makerId);
+  const since = `${detail.preparedOn}T${detail.preparedAt}:00+04:00`;
   return (
     <div className={s.action}>
       {run.isChecker && (run.phase === "approve" ||
@@ -101,6 +110,13 @@ export function StatusAction(p: { onIban?(issue: Issue): void }) {
           {!run.canDecide && held.length > 0 && (
             <p id="approve-why" className={s.why}>
               {t("home.approveWaits", { names: names(held) })}
+              {" "}
+              {t("home.fixingSince", { name: maker,
+                date: formatDayMonth(detail.preparedOn, lang),
+                time: formatTime(since, lang) })}
+              {" "}
+              <a className={`${tl.link} ${s.fixLink}`}
+                href={hrefOf("pay-run", "fix")}>{t("home.goToFix")}</a>
             </p>
           )}
         </>

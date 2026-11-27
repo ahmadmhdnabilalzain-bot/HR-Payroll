@@ -37,17 +37,17 @@
   border-block-end: 1px solid var(--color-divider);
 }
 
-.row dt {
+.row > .label {
   color: var(--color-text-muted);
 }
 
-.row dd {
+.row > .cell {
   display: flex;
   justify-content: flex-end;
   margin: 0;
 }
 
-.row[data-strong="true"] dt {
+.row[data-strong="true"] > .label {
   color: var(--color-text);
   font-weight: 500;
 }

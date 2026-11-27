@@ -26,6 +26,8 @@ export const home = {
   stripDocsSub: "within 30 days",
   approveWaits: "Sign-off waits for bank details for {names}: a " +
     "missing or mistyped IBAN. A pay run is never paid in part.",
+  fixingSince: "{name} in HR is fixing them, since {date} at {time}.",
+  goToFix: "Go to Fix",
   netTo: { one: "Net pay to {count} person", other: "Net pay to {count} " +
     "people" },
   paysOn: "pays on {date}",

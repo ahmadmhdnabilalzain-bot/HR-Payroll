@@ -20,7 +20,7 @@
  */
 
 import { settleAfter } from "../settle";
-import { slideRoute } from "../routeMotion";
+import { SNAPSHOT_MOTION, slideRoute } from "../routeMotion";
 import { hasViewTransitions, safeTransition } from "../viewTransition";
 
 /** theme/motion.css: --dur-slow and --ease-in-out. */
@@ -219,6 +219,12 @@ function runRoute(oldUrl: string, render: () => void,
     // on that value. Nothing sets smooth scrolling, so this is instant.
     scrollTo(scrollX, top);
   };
+  // Snapshot motion takes every click while it runs (ui/routeMotion.ts,
+  // SNAPSHOT_MOTION): the record simply shows.
+  if (!SNAPSHOT_MOTION) {
+    swap();
+    return;
+  }
   if (reduced() || !hasViewTransitions()) {
     swap();
     dissolve();

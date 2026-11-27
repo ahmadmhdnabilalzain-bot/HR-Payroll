@@ -1,6 +1,9 @@
+import type { DocumentExpiry } from "../demo/data/types";
+import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { RowLink } from "../ui/RowLink";
 import s from "./Side.module.css";
 
 /** Documents expiring within 60 days, soonest first (from the data). */
@@ -22,26 +25,39 @@ export function Expiries() {
       </header>
       <ul className={s.list}>
         {list.map((d) => (
-          <li key={d.id} className={s.row}>
-            <div className={s.main}>
-              <span className={s.what}>
-                {data.employee(d.employeeId).name[lang]}
-              </span>
-              <span className={s.meta}>
-                {d.kind[lang]}
-                {" · "}
-                <span className="tabular">
-                  {formatDayMonth(d.expiresOn, lang)}
-                </span>
-              </span>
-            </div>
-            <span className={`${s.days} tabular`}
-              data-urgent={d.daysLeft < URGENT_DAYS}>
-              {t("home.daysLeft", { count: d.daysLeft })}
-            </span>
+          <li key={d.id}>
+            <ExpiryRow d={d} />
           </li>
         ))}
       </ul>
     </section>
+  );
+}
+
+/** One document: the whole row opens the person's documents. */
+function ExpiryRow(p: { d: DocumentExpiry }) {
+  const { lang, t } = useLocale();
+  const { data } = useDemo();
+  const d = p.d;
+  return (
+    <RowLink href={hrefOf("people", "files", "documents",
+      d.employeeId)} className={`${s.row} ${s.linkRow}`}>
+      <div className={s.main}>
+        <span className={s.what}>
+          {data.employee(d.employeeId).name[lang]}
+        </span>
+        <span className={s.meta}>
+          {d.kind[lang]}
+          {" · "}
+          <span className="tabular">
+            {formatDayMonth(d.expiresOn, lang)}
+          </span>
+        </span>
+      </div>
+      <span className={`${s.days} tabular`}
+        data-urgent={d.daysLeft < URGENT_DAYS}>
+        {t("home.daysLeft", { count: d.daysLeft })}
+      </span>
+    </RowLink>
   );
 }
