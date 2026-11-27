@@ -791,3 +791,32 @@ Everything here runs on CSS transitions or WAAPI, so it shows up in
   `getAnimations()` cannot see; use `gsap.globalTimeline.pause()` and
   `.time()` for those.
 
+
+## Safari, iPhone and fail-open (saf1, 2026-11-27)
+
+The owner runs an iPhone (Safari) and a Windows laptop. Rules for every
+builder (docs/design/2026-11-27-safari-compat.md has the audit):
+
+- **Nothing waits hidden for an API.** Anything drawn hidden, inert or
+  covered until an animation, observer or transition reports must have
+  a backstop that shows it anyway: `FAIL_OPEN_MS` (1.2 s) in
+  `ui/seen.ts`. Use `onSeen(els, cb)` instead of a bare
+  IntersectionObserver; it also checks geometry on scroll and on a timer.
+- **View transitions only through `ui/viewTransition.ts`**
+  (`safeTransition`, `hasViewTransitions`). WebKit (Safari, every iOS
+  browser) gets none (`?vt=1` turns them on there); elsewhere each is
+  capped at 1.5 s, then skipped and its flags cleared.
+- **PDFs (agent pdf1):** hand a built PDF to the viewer with
+  `savePdf(blob, name)` from `src/pdf/ios.ts`, called from the tap's
+  handler as early as possible. On an iPhone it tries the share sheet,
+  then a new tab, then shows a visible "Open PDF" link; elsewhere it
+  downloads. Do not revoke the blob address quickly (it keeps it 5 min).
+- **The opening** skips itself on a software renderer and fades into
+  the product when its first 20 frames average over 40 ms; `?film=1`
+  keeps it (the opening spec uses it: headless Chromium renders GL in
+  software). The product under it is freed after 14 s at most.
+- **Build target** is Safari 15 and Chromium 100 (vite.config.ts), so
+  syntax and CSS are lowered; runtime APIs past Safari 15.4 still need
+  a guard.
+- `e2e/failopen.spec.ts` walks every route with the APIs stubbed away
+  (`FAILOPEN_PROFILE=absent`, default) or stalling (`stall`).

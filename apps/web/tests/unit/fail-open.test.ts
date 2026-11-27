@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { savePdf } from "../../src/pdf/ios";
 import { FAIL_OPEN_MS, onSeen } from "../../src/ui/seen";
 import { tooSlow, GATE_FRAMES, GATE_SKIP } from "../../src/welcome/gate";
 import { hasViewTransitions, isWebKit, safeTransition, TRANSITION_LIMIT_MS }
@@ -124,5 +125,59 @@ describe("the opening's weak-graphics gate", () => {
     // Shader compiles in the first frames do not count.
     expect(tooSlow(gaps(20))).toBe(false);
     expect(tooSlow([60, 60])).toBe(false);
+  });
+});
+
+describe("the iPhone-safe PDF hand-over", () => {
+  const IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) " +
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 " +
+    "Safari/604.1";
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn(() => "blob:pdf");
+    URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    document.querySelectorAll("[data-pdf-link]").forEach((x) => x.remove());
+  });
+  const iphone = (extra: Record<string, unknown>): void => {
+    vi.stubGlobal("navigator", { userAgent: IOS,
+      vendor: "Apple Computer, Inc.", maxTouchPoints: 5, ...extra });
+  };
+  const blob = new Blob(["%PDF-1.7"], { type: "application/pdf" });
+
+  it("laptops-download-it", async () => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    expect(await savePdf(blob, "payslip")).toBe("downloaded");
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
+  it("an-iphone-gets-the-share-sheet", async () => {
+    const share = vi.fn(() => Promise.resolve());
+    iphone({ share, canShare: () => true });
+    expect(await savePdf(blob, "payslip")).toBe("shared");
+    expect(share).toHaveBeenCalledTimes(1);
+  });
+
+  it("a-lapsed-tap-falls-to-a-tab-then-a-link", async () => {
+    const refused = Object.assign(new Error("lapsed"),
+      { name: "NotAllowedError" });
+    iphone({ share: () => Promise.reject(refused), canShare: () => true });
+    vi.spyOn(window, "open").mockReturnValue(null);
+    expect(await savePdf(blob, "payslip")).toBe("link");
+    const a = document.querySelector<HTMLAnchorElement>("[data-pdf-link]");
+    expect(a?.href).toBe("blob:pdf");
+    expect(a?.textContent).toContain("payslip.pdf");
+    // Kept long enough to be tapped.
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+  });
+
+  it("closing-the-sheet-is-an-answer", async () => {
+    const abort = Object.assign(new Error("no"), { name: "AbortError" });
+    iphone({ share: () => Promise.reject(abort), canShare: () => true });
+    expect(await savePdf(blob, "payslip")).toBe("cancelled");
+    expect(document.querySelector("[data-pdf-link]")).toBeNull();
   });
 });
