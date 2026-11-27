@@ -201,6 +201,12 @@ test("gm-sign-off-says-why-and-goes-to-fix", async ({ page }) => {
   await page.getByRole("link", { name: "Waiting for a decision" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#approvals-title")).toBeFocused();
+  // ... and marks the list for a second, so the jump is seen.
+  const decisions = page.locator(
+    "section[aria-labelledby='approvals-title']");
+  await expect(decisions).toHaveAttribute("data-flash", "");
+  await expect(decisions).not.toHaveAttribute("data-flash", /.*/,
+    { timeout: 2500 });
   await why.getByRole("link", { name: "Go to Fix" }).click();
   await expect(page).toHaveURL(/#\/pay-run\/fix$/);
 });

@@ -5,6 +5,13 @@
   min-inline-size: 0;
 }
 
+/* Decisions, just asked for: outlined for a second, nothing moves. */
+.panel[data-flash] {
+  border-radius: var(--radius-control);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 6px;
+}
+
 .head {
   display: flex;
   align-items: baseline;

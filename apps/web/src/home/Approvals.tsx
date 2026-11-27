@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useRunApproval } from "../demo/actions";
 import type { Approval, ApprovalKind } from "../demo/data/types";
 import {
@@ -8,8 +8,8 @@ import {
   mayDecide,
   undoAction,
 } from "../demo/approvals";
-import { useFlip } from "../demo/motion";
-import { hrefOf } from "../demo/route";
+import { reducedMotion, useFlip } from "../demo/motion";
+import { hrefOf, useRoute } from "../demo/route";
 import { useDemo, type Verdict } from "../demo/state";
 import { formatDayMonth, formatList } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
@@ -37,6 +37,15 @@ export function Approvals() {
   const list = approvalsShown(data, state);
   const box = useRef<HTMLUListElement>(null);
   useFlip(box, [list.map((a) => a.id).join(), state.role]);
+  // `#/home/decisions` (a dashboard's "Waiting for a decision"): Home,
+  // with Decisions brought to view, marked and focused.
+  const route = useRoute();
+  const asked = route.section === "home" && route.rest[0] === "decisions";
+  useEffect(() => {
+    if (!asked) return;
+    const id = requestAnimationFrame(() => showDecisions());
+    return () => cancelAnimationFrame(id);
+  }, [asked]);
   return (
     <section className={s.panel} aria-labelledby="approvals-title">
       <header className={s.head}>
@@ -56,6 +65,30 @@ export function Approvals() {
 }
 
 export { approvalHref };
+
+/** Where Home's Decisions is, for a link from another page. */
+export const DECISIONS_HREF = hrefOf("home", "decisions");
+
+let unflash: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * Bring Decisions into view, outline it for a second (no movement, so
+ * the same with reduced motion) and give its title the focus, so the
+ * keys carry on from there.
+ */
+export function showDecisions(): void {
+  const to = document.getElementById("approvals-title");
+  if (to === null) return;
+  to.scrollIntoView({ block: "start",
+    behavior: reducedMotion() ? "auto" : "smooth" });
+  to.tabIndex = -1;
+  to.focus({ preventScroll: true });
+  const panel = to.closest("section");
+  if (panel === null) return;
+  clearTimeout(unflash);
+  panel.setAttribute("data-flash", "");
+  unflash = setTimeout(() => panel.removeAttribute("data-flash"), 1000);
+}
 
 function ApprovalRow(p: { a: Approval }) {
   const { lang, t } = useLocale();

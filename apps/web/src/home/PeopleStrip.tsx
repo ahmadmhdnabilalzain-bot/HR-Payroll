@@ -10,8 +10,8 @@ import { Count } from "../ui/Count";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
-import { reducedMotion } from "../demo/motion";
 import { Avatar } from "../ui/Avatar";
+import { showDecisions } from "./Approvals";
 import s from "./PeopleStrip.module.css";
 
 /** Days ahead the leave card looks, today included. */
@@ -224,14 +224,8 @@ function Waiting(p: { why?: Explanation | undefined }) {
       label={t("home.cardWaiting")} why={p.why} onClick={(e) => {
         if (e.metaKey || e.ctrlKey) return;
         e.preventDefault();
-        // Decisions comes into view and takes the focus, so the keys
-        // carry on from there.
-        const to = document.getElementById("approvals-title");
-        if (to === null) return;
-        to.scrollIntoView({ block: "start",
-          behavior: reducedMotion() ? "auto" : "smooth" });
-        to.tabIndex = -1;
-        to.focus({ preventScroll: true });
+        // Decisions comes into view, is marked and takes the focus.
+        showDecisions();
       }}>
       <span className={s.faces}>
         {ids.slice(0, FACES).map((id, i) => (

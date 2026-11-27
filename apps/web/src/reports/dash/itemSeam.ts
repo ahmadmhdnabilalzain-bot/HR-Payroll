@@ -6,7 +6,8 @@ import { hrefOf } from "../../demo/route";
  * fix and its history) come with `itemHref(type, id)` and <ItemLink>
  * from another package. Until they land, each kind opens the screen
  * where it is dealt with today: a problem before sign-off opens the
- * pay run's Fix step, a decision opens Home's Decisions, a person
+ * pay run's Fix step, a decision opens Home's Decisions (marked
+ * and focused), a person
  * their profile, a document the expiry report. Swap the body of this
  * function for `itemHref` when it lands; callers do not change.
  */
@@ -16,7 +17,7 @@ export type ItemType = "issue" | "approval" | "person" | "document" |
 export function itemHref(type: ItemType, id = ""): string {
   switch (type) {
     case "issue": return hrefOf("pay-run", "fix");
-    case "approval": return hrefOf("home");
+    case "approval": return hrefOf("home", "decisions");
     case "person": return id === "" ? hrefOf("people")
       : hrefOf("people", id);
     case "document": return hrefOf("reports", "documents");
