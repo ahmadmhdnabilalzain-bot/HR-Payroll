@@ -992,3 +992,13 @@ dashboards; the rest is the dc1 to dc3 and item2 branches.
   e2e tests still fail and are unchecked against a clean d3e build (explain
   figures and GM leak scan on the executive dashboard, one a11y timeout).
   Wave 1 keeps d3e's Download PDF, which opens the print sheet.
+- dc2: one commit only (939c8c3, unchecked beyond line length, committed with
+  hooks off): Time off balance cards link to `#/me/leave`; list summary figures
+  on short lists filter on click (shared FilterList: expect merge conflicts);
+  local copy of RowLink. Not done: leave detail with ledger, leave request
+  record, My calendar, shifts, attendance rows, Documents to sign, My documents
+  detail, Change my details, guard test, laptop-size checks. Run hooks and the
+  gate before merging.
+- saf1 (Safari and laptop fail-open): 13 commits; last two code commits not
+  typechecked. Candidate "wave 1b" (branch wave1b) after wave 1, decided on
+  its own gate.
