@@ -129,17 +129,6 @@ textarea {
   transform: scaleX(-1);
 }
 
-/* A transition's layers are pictures of the page, never a lid on it:
- * a click during one reaches the live page underneath (the new page,
- * already rendered), so no click after a route change is swallowed. */
-::view-transition,
-::view-transition-group(*),
-::view-transition-image-pair(*),
-::view-transition-old(*),
-::view-transition-new(*) {
-  pointer-events: none;
-}
-
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: var(--dur-base);
