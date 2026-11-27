@@ -392,6 +392,18 @@
   overflow: hidden;
 }
 
+/* Cancelled: on a phone it folds to the height of the "Enter IBAN"
+ * line that takes its place (--form-from), so nothing jumps at the
+ * swap; on a laptop the button sits at the row's end and it folds to
+ * nothing. */
+.rowForm[data-cancel="true"] {
+  min-block-size: var(--form-from, 0px);
+  margin-block-start: var(--form-from-gap, 0px);
+  transition: grid-template-rows var(--dur-slow) var(--ease-in-out),
+    min-block-size var(--dur-slow) var(--ease-in-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
 /* Fix: the list's two section headers, keyed rows of their own (so
  * they slide with the rows), and each row's text kept to a 640 px
  * measure. */

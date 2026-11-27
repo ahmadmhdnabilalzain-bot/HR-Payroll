@@ -246,7 +246,7 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
           <span className={s.who}> · {name}</span></span>
         <span className={s.reason}>{mask(plainOnly(i.reason[lang]))}</span>
       </span>
-      {p.canFix && i.employeeId !== null && !open && !flying && (
+      {p.canFix && i.employeeId !== null && !open && !flying && !closing && (
         <span className={s.rowAction}>
           <button type="button"
             className={`${b.btn} ${b.secondary} ${s.act}`}
@@ -256,7 +256,8 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
       )}
       {p.canFix && i.employeeId !== null && (open || closing) && (
         <span className={s.rowForm} data-closing={closing}
-          inert={closing} onTransitionEnd={(e) => {
+          data-cancel={closing && !flying} inert={closing}
+          onTransitionEnd={(e) => {
             // Cancelled: once the fold ends, the form is gone.
             if (e.target === e.currentTarget && !flying &&
               e.propertyName === "grid-template-rows") setClosing(false);
