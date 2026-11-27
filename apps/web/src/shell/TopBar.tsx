@@ -71,8 +71,9 @@ export function TopBar(p: { route: Route; onSearch(): void }) {
             <span className="visually-hidden">{t("shell.searchHint")}</span>
             <kbd className={s.kbd} aria-hidden="true">⌘K</kbd>
           </button>
+          {/* The bell stays in the bar on a phone too. */}
+          <NotificationsButton className={s.iconBtn ?? ""} />
           <span className={s.deskTools}>
-            <NotificationsButton className={s.iconBtn ?? ""} />
             <AmountsToggle />
             <ThemeToggle />
           </span>
@@ -143,7 +144,8 @@ export function PhoneTabs(p: { route: Route }) {
   const { t } = useLocale();
   const { data, state } = useDemo();
   const words = barFor(state.role);
-  const here = p.route.section === "s" ? (p.route.rest[0] ?? "more")
+  const here = p.route.section === "s"
+    ? (words.find((w) => w === p.route.rest[0]) ?? "more")
     : wordOfRoute(state.role, p.route, { data, state });
   return (
     <nav className={s.tabs} aria-label={t("shell.sections")}

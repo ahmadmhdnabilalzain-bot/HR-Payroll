@@ -68,6 +68,12 @@ function maskStrings<T>(v: T, mask: (t: string) => string): T {
   return v;
 }
 
+/** Only a money figure with a real working (two or more lines) gets
+ * the dotted rule; a count or a plain copy does not. */
+function isWorkedOut(e: Explanation): boolean {
+  return e.result.value.kind === "money" && e.steps.length >= 2;
+}
+
 /** Fired on window whenever an explanation opens (first-time hints). */
 export const EXPLAIN_OPEN = "mubinflow:explain-open";
 
@@ -92,6 +98,7 @@ export function Explainable(p: { explanation: Explanation | undefined;
       <button ref={btn} type="button" aria-haspopup="dialog"
         className={`${s.trigger} ${p.className ?? ""}`}
         data-explain-src={p.explanation.id}
+        data-worked={isWorkedOut(p.explanation)}
         onClick={() => {
           origin.current = btn.current;
           setOpen(true);
@@ -372,7 +379,9 @@ export function ExplainPanel(p: { explanation: Explanation;
             </button>
           </div>
           <div className={s.result}>
-            <span className={s.resultLabel}>{e.result.label}</span>
+            {/* The title already names the figure: say it once. */}
+            <span className={e.result.label === e.title ? "visually-hidden"
+              : s.resultLabel}>{e.result.label}</span>
             <span className={s.resultFigure} ref={result}>
               <Value v={e.result.value} size="hero" />
             </span>

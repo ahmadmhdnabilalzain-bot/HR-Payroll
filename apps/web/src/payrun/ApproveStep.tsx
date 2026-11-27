@@ -11,13 +11,8 @@ import { useRef } from "react";
 import { useHeightTween } from "../ui/heightTween";
 import { ReleaseStatus } from "./ReleaseStatus";
 import b from "../ui/button.module.css";
-import {
-  decisionTime,
-  demoClockIso,
-  forgetDecision,
-  nowMs,
-  recordDecision,
-} from "./model";
+import { decisionTime, demoClockIso, nowMs } from "./model";
+import { useDecide } from "./useDecide";
 import type { Go } from "./PayRun";
 import s from "./PayRun.module.css";
 
@@ -34,7 +29,7 @@ function names(xs: string[]): string {
  */
 export function ApproveStep(p: { go: Go }) {
   const { lang, t } = useLocale();
-  const { data, state, dispatch } = useDemo();
+  const { data, state } = useDemo();
   const a = useRunApproval();
   const detail = useRunDetail();
   const switchRole = useSwitchRole();
@@ -49,10 +44,14 @@ export function ApproveStep(p: { go: Go }) {
   const open = openIssues(data, state).filter((i) => !isBlocking(i))
     .length;
   const blockedNames = a.blockedBy.map((x) => data.employee(x).name[lang]);
-  const decide = (v: "approve" | "decline"): void => {
-    if (id !== null) recordDecision(id);
-    a.decide(v);
-  };
+  const { decide, undo } = useDecide();
+  // Undo sits under the decision it takes back (the stamp, or "Sent
+  // back") and in the toast; nowhere else.
+  const undoBtn = a.isChecker && id !== null && verdict !== undefined && (
+    <button type="button"
+      className={`${b.btn} ${b.quiet} ${s.act} ${s.chainUndo}`}
+      onClick={undo}>{t("payrun.undo")}</button>
+  );
   const waiting = verdict === undefined;
   const fresh = at !== null && nowMs() - at < 2000;
   // The card loses "Send back" and the reason as the run is signed:
@@ -107,7 +106,9 @@ export function ApproveStep(p: { go: Go }) {
                 when={decidedAt} fresh={fresh}>
                 <ScriptSignature name={checker.name[lang]} />
               </SignStamp>
-            ) : (
+            ) : null}
+            {verdict === "approve" && undoBtn}
+            {verdict !== "approve" && (
               <div className={s.chainText}>
                 <p className={s.chainLabel}>
                   {verdict === "decline" ? t("payrun.chainDeclined")
@@ -118,6 +119,7 @@ export function ApproveStep(p: { go: Go }) {
                 <p className={s.chainWhen}>
                   {waiting ? t("payrun.notYet") : decidedAt}
                 </p>
+                {undoBtn}
               </div>
             )}
           </li>
@@ -145,27 +147,16 @@ export function ApproveStep(p: { go: Go }) {
               : t("payrun.openChecks", { count: open })}
           </p>
 
-          <div className={s.approveActions}>
-            {waiting ? (
-              a.isChecker && (
-                <button type="button"
-                  className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
-                  disabled={!a.canDecide}
-                  onClick={() => decide("decline")}>
-                  {t("payrun.declineBtn")}
-                </button>
-              )
-            ) : (
-              a.isChecker && id !== null && (
-                <button type="button"
-                  className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
-                  onClick={() => {
-                    forgetDecision(id);
-                    dispatch({ type: "undecide", id });
-                  }}>{t("payrun.undo")}</button>
-              )
-            )}
-          </div>
+          {waiting && a.isChecker && (
+            <div className={s.approveActions}>
+              <button type="button"
+                className={`${b.btn} ${b.quiet} ${b.large} ${s.act}`}
+                disabled={!a.canDecide}
+                onClick={() => decide("decline")}>
+                {t("payrun.declineBtn")}
+              </button>
+            </div>
+          )}
 
           {reason !== null && (
             <div className={s.why} data-tone={blocked ? "bad" : "info"}

@@ -4,9 +4,10 @@ import { ExplainLink } from "../components/explain";
 import type { Issue } from "../demo/data/types";
 import { confirmations, isBlocking, runPhase } from "../demo/derive";
 import { beforeApproval } from "../reports/dash/model";
+import { reducedMotion } from "../demo/motion";
+import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
-import { IbanForm } from "../home/IbanForm";
 import { formatSignedMoney } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Icon } from "../ui/Icon";
@@ -16,6 +17,7 @@ import b from "../ui/button.module.css";
 import { fly } from "../ui/flight";
 import { RollDigits } from "../ui/RollDigits";
 import { RollMoney, shortFade } from "./Roll";
+import { RowIban } from "./RowIban";
 import { useListFlip } from "../ui/templates/listEnter";
 import m from "../ui/templates/motion.module.css";
 import s from "./PayRun.module.css";
@@ -71,37 +73,44 @@ function useFixFlight(target: RefObject<HTMLElement | null>)
   };
 }
 
-type Kind = "stops" | "check" | "confirm" | "fixed";
-
-const KIND_WORD = {
-  stops: "payrun.kindStops", check: "payrun.kindCheck",
-  confirm: "payrun.kindConfirm", fixed: "payrun.kindFixed",
-} as const;
-
-/** The row's kind: an 8 px dot that carries the colour, and a word. */
-function KindTag(p: { kind: Kind }) {
+/** A done row's mark before its title (the words say "done" too). */
+function DoneMark() {
   const { t } = useLocale();
   return (
-    <span className={s.kind}>
-      {p.kind === "fixed"
-        ? <span className={s.kindIcon}><Icon name="check" size={14} /></span>
-        : <span className={s.dot8} aria-hidden="true" data-tone={
-          p.kind === "stops" ? "bad" : p.kind === "check" ? "warn"
-            : "info"} />}
-      {t(KIND_WORD[p.kind])}
+    <span className={s.doneMark}>
+      <Icon name="check" size={14} />
+      <span className="visually-hidden">{t("payrun.kindFixed")}: </span>
     </span>
   );
 }
 
 /**
- * Step 2: one grouped list. What stops pay comes first (bank details:
- * entering an IBAN re-runs the real salary file check and the held pay
- * flows into the file), then what to check, then setup to confirm.
- * Each row says its kind once, as a dot and a word.
+ * A section header inside the one list ("Stops pay", "To check"): a
+ * keyed row of its own, so it slides with the rows when one above it
+ * folds away (listEnter.ts), with the colour dot and a count.
+ */
+function SectionRow(p: { k: string; tone: "bad" | "warn"; title: string;
+  count: string }) {
+  return (
+    <li className={s.sectionRow} data-key={p.k}>
+      <h4 className={s.sectionHead}>
+        <span className={s.dot8} aria-hidden="true" data-tone={p.tone} />
+        {p.title}
+        <span className={s.sectionCount}>{p.count}</span>
+      </h4>
+    </li>
+  );
+}
+
+/**
+ * Step 2: one grouped list under two headers. What stops pay comes
+ * first (bank details: entering an IBAN re-runs the real salary file
+ * check and the held pay flows into the file), then what to check.
+ * Each row is two lines: the title with the name, then one sentence.
+ * Setup to confirm (the pension fund) is a note under the list.
  */
 export function FixStep() {
   const { lang, t } = useLocale();
-  const mask = useMaskText();
   const { data, state } = useDemo();
   const h = data.headline();
   const issues = data.issues().filter((i) => i.kind === "issue");
@@ -126,10 +135,11 @@ export function FixStep() {
   const count = beforeApproval(data, state);
   const open = count.checks;
   const list = useRef<HTMLDivElement>(null);
-  useListFlip(list, [...blockers.map((i) => i.id),
+  useListFlip(list, ["h-stops", ...blockers.map((i) => i.id),
     ...fixed.map((id) => `fixed-${id}`),
     ...(blockers.length === 0 && fixed.length === 0 ? ["none"] : []),
-    ...checks.map((i) => i.id), ...setup.map((i) => i.id)]);
+    ...(checks.length > 0 ? ["h-check"] : []),
+    ...checks.map((i) => i.id)]);
   return (
     <section aria-labelledby="step-title" className={s.step}>
       <h2 id="step-title" className={s.stepTitle}>
@@ -155,17 +165,14 @@ export function FixStep() {
       <section aria-labelledby="tofix-title" className={s.block}>
         <h3 id="tofix-title" className={s.groupTitle}>
           {t("payrun.fixListTitle")}
-          <span className={s.groupCount}>
-            {count.stops === 0 ? t("payrun.fixNoStops")
-              : t("payrun.fixStops", { count: count.stops })},{" "}
-            {open === 0 ? t("payrun.fixNoChecks")
-              : t("payrun.fixChecks", { count: open })}
-          </span>
         </h3>
         {/* A fixed row fades where it stood while the rows below slide
           * up over it (listEnter.ts). */}
         <div className={m.host} ref={list}>
         <ul className={s.group}>
+          <SectionRow k="h-stops" tone="bad" title={t("payrun.stopsHead")}
+            count={count.stops === 0 ? t("payrun.noneNow")
+              : String(count.stops)} />
           {blockers.map((i) => (
             <BlockerRow key={i.id} issue={i} canFix={isHr}
               target={figure} busy={busy} setBusy={setBusy} />
@@ -174,8 +181,8 @@ export function FixStep() {
             <li key={`fixed-${id}`} className={s.row} data-done="true"
               data-key={`fixed-${id}`}>
               <span className={s.rowMain}>
-                <KindTag kind="fixed" />
-                <span className={s.name}>{t("payrun.fixedTitle")}
+                <span className={s.name}><DoneMark />
+                  {t("payrun.fixedTitle")}
                   <span className={s.who}> · {data.employee(id)
                     .name[lang]}</span></span>
                 <span className={s.reason}>{t("payrun.fixedIban",
@@ -190,20 +197,22 @@ export function FixStep() {
               </span>
             </li>
           )}
+          {checks.length > 0 && (
+            <SectionRow k="h-check" tone="warn" title={t("payrun.checkHead")}
+              count={open === 0 ? t("payrun.noneNow") : String(open)} />
+          )}
           {checks.map((i, n) => (
             <CheckRow key={i.id} issue={i} canAct={isHr} index={n} />
           ))}
-          {setup.map((i) => (
-            <li key={i.id} className={s.row} data-key={i.id}>
-              <span className={s.rowMain}>
-                <KindTag kind="confirm" />
-                <span className={s.name}>{i.title[lang]}</span>
-                <span className={s.reason}>{mask(i.reason[lang])}</span>
-              </span>
-            </li>
-          ))}
         </ul>
         </div>
+        {setup.map((i) => (
+          <p key={i.id} className={s.setupNote}>
+            {t("payrun.setupNote", { title: i.title[lang] })}{" "}
+            <a href={hrefOf("people", "papers", "pension")}
+              className={s.inlineLink}>{t("payrun.setupLink")}</a>
+          </p>
+        ))}
       </section>
     </section>
   );
@@ -233,14 +242,11 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
     <li ref={row} className={s.row} id={`fix-${i.id}`} data-open={open}
       data-key={i.id}>
       <span className={s.rowMain}>
-        <KindTag kind="stops" />
         <span className={s.name}>{i.title[lang]}
           <span className={s.who}> · {name}</span></span>
-        <span className={s.reasonMain}>
-          {mask(plainOnly(i.reason[lang]))}</span>
-        <span className={s.reason}>{mask(i.suggestedFix[lang])}</span>
+        <span className={s.reason}>{mask(plainOnly(i.reason[lang]))}</span>
       </span>
-      {p.canFix && i.employeeId !== null && !open && !flying && (
+      {p.canFix && i.employeeId !== null && !open && !flying && !closing && (
         <span className={s.rowAction}>
           <button type="button"
             className={`${b.btn} ${b.secondary} ${s.act}`}
@@ -250,9 +256,18 @@ function BlockerRow(p: { issue: Issue; canFix: boolean;
       )}
       {p.canFix && i.employeeId !== null && (open || closing) && (
         <span className={s.rowForm} data-closing={closing}
-          inert={closing}>
-          <IbanForm employeeId={i.employeeId} name={name}
-            onCancel={() => setOpen(false)}
+          data-cancel={closing && !flying} inert={closing}
+          onTransitionEnd={(e) => {
+            // Cancelled: once the fold ends, the form is gone.
+            if (e.target === e.currentTarget && !flying &&
+              e.propertyName === "grid-template-rows") setClosing(false);
+          }}>
+          <RowIban employeeId={i.employeeId} name={name}
+            onCancel={() => {
+              // Folds away as a save does (reduced motion: at once).
+              setClosing(!reducedMotion());
+              setOpen(false);
+            }}
             onSave={(value) => {
               const id = i.employeeId!;
               const from = row.current?.querySelector("input") ?? null;
@@ -288,14 +303,13 @@ function CheckRow(p: { issue: Issue; canAct: boolean; index: number }) {
     <li className={s.row} data-done={done !== undefined} data-key={i.id}
       style={{ "--i": Math.min(p.index, 8) } as object}>
       <span className={s.rowMain}>
-        <KindTag kind={done !== undefined ? "fixed" : "check"} />
-        <span className={s.name}>{i.title[lang]}
+        <span className={s.name}>
+          {done !== undefined && <DoneMark />}{i.title[lang]}
           {name !== "" && <span className={s.who}> · {name}</span>}</span>
-        <span className={s.reasonMain}>
-          {mask(plainOnly(i.reason[lang]))}</span>
         {/* One action per row (the button at its end); the working
-            is a quiet link inside the advice, not a second action. */}
-        <span className={s.reason}>{mask(i.suggestedFix[lang])}
+            is a quiet link at the end of the sentence, not a second
+            action. */}
+        <span className={s.reason}>{mask(plainOnly(i.reason[lang]))}
           {ex !== null && <>{" "}
             <ExplainLink explanation={d.explain[ex]} className={s.rowLink}>
               {t("payrun.howWorked")}

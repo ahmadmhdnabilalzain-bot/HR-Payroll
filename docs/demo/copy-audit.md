@@ -53,8 +53,8 @@ M1. `web/brand.ts:12-13`
   MubinFlow. `tests/unit/brand.test.ts` guards this file; update it.
 
 M2. `web/setup/migration/Parallel.tsx:44`
-- now: `Our run against the old system (Keka). ...`
-- fix: delete " (Keka)": never name the client's current vendor.
+- now: `Our run against the old system (vendor name). ...`
+- fix: delete the vendor name: never name the client's current vendor.
 
 M3. `web/i18n/en/home.ts:81`
 - now: "Pension: confirm the fund with the client"

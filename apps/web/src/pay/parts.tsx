@@ -25,7 +25,7 @@ export function Status(p: { tone: Tone; children: ReactNode }) {
 }
 
 export const REQUEST_WORD: Record<RequestState, string> = {
-  waiting: "Waiting", agreed: "Agreed", declined: "Declined",
+  waiting: "Waiting", agreed: "Signed off", declined: "Declined",
   withdrawn: "Withdrawn",
 };
 
@@ -54,9 +54,9 @@ export function NotFound(p: { what: string; back: { label: string;
 
 export const Loading = () => <Skeleton label="Loading pay records" />;
 
-/** "Agreed by Khalid Al Nuaimi, General manager, 27 October". */
+/** "Signed off by Khalid Al Nuaimi, General manager, 27 October". */
 function decidedLine(st: RequestState, who: string, date: string): string {
-  return `${st === "agreed" ? "Agreed" : "Declined"} by ${who}, ${date}`;
+  return `${st === "agreed" ? "Signed off" : "Declined"} by ${who}, ${date}`;
 }
 
 /**
@@ -77,7 +77,7 @@ export function RequestPanel(p: { r: PayRequest; what: string }) {
   const checker = whoIs(data, p.r.checkerId);
   const decide = (v: "approve" | "decline"): void => {
     dispatch({ type: "decide", id: p.r.approvalId, verdict: v });
-    toast.show(v === "approve" ? `${p.what} agreed` : `${p.what} declined`,
+    toast.show(v === "approve" ? `${p.what} signed off` : `${p.what} declined`,
       () => dispatch({ type: "undecide", id: p.r.approvalId }));
   };
   return (
@@ -115,7 +115,7 @@ export function RequestPanel(p: { r: PayRequest; what: string }) {
           <p>You decide this request. It can be undone for a few
             seconds.</p>
           <button type="button" className={`${b.btn} ${b.primary}`}
-            onClick={() => decide("approve")}>Agree</button>
+            onClick={() => decide("approve")}>Sign off</button>
           <button type="button" className={`${b.btn} ${b.quiet}`}
             onClick={() => decide("decline")}>Decline</button>
         </div>
@@ -150,7 +150,7 @@ export function RequestPanel(p: { r: PayRequest; what: string }) {
 }
 
 /**
- * A request's decision on its list row: Agree and Decline for the
+ * A request's decision on its list row: Sign off and Decline for the
  * checker (the same rule as RequestPanel), who it waits for otherwise,
  * and Undo for the checker once decided. `decide` records who, role and
  * date; the toast offers undo.
@@ -165,13 +165,13 @@ export function RequestRow(p: { r: PayRequest | null; what: string }) {
   const mine = personOf(data, state.role) === r.checkerId;
   const decide = (v: "approve" | "decline") => (): void => {
     dispatch({ type: "decide", id: r.approvalId, verdict: v });
-    toast.show(v === "approve" ? `${p.what} agreed` : `${p.what} declined`,
+    toast.show(v === "approve" ? `${p.what} signed off` : `${p.what} declined`,
       () => dispatch({ type: "undecide", id: r.approvalId }));
   };
   return (
     <RowDecision open={st === "waiting"} mine={mine}
       waitingFor={data.employee(r.checkerId).name.en}
-      yes={{ label: "Agree", run: decide("approve") }}
+      yes={{ label: "Sign off", run: decide("approve") }}
       no={{ label: "Decline", run: decide("decline") }}
       undo={mine ? () => dispatch({ type: "undecide",
         id: r.approvalId }) : undefined} />

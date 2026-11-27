@@ -172,10 +172,19 @@ export function allApprovals(d: DemoData, s: DemoState): Approval[] {
  * among those the viewer may see: what an approver weighs. */
 export function overlapsOf(rows: RequestRow[], r: RequestRow,
   visible: ReadonlySet<string>): RequestRow[] {
+  const seen = new Set<string>();
   return rows.filter((x) => x.id !== r.id &&
     x.employeeId !== r.employeeId && visible.has(x.employeeId) &&
     (x.state === "booked" || x.state === "waiting") &&
-    x.startDate <= r.endDate && r.startDate <= x.endDate);
+    x.startDate <= r.endDate && r.startDate <= x.endDate)
+    // One mention per person and range: two requests for the same
+    // days read as one clash, not "Jose Reyes and Jose Reyes".
+    .filter((x) => {
+      const k = `${x.employeeId}|${x.startDate}|${x.endDate}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
 }
 
 /** Who is off on a date (booked, or waiting when asked for). */

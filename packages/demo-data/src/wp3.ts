@@ -803,8 +803,8 @@ export function hiringSummary(c: DemoCompany): HiringSummary {
     openings: open.reduce((n, r) => n + r.openingsLeft, 0),
     candidatesInProcess: inProcess, offersOut: out,
     upcomingJoiners: joiners,
-    text: `${plural(open.length, "open requisition", "open " +
-      "requisitions")}, ${plural(inProcess, "candidate", "candidates")} ` +
+    text: `${plural(open.length, "open position", "open " +
+      "positions")}, ${plural(inProcess, "candidate", "candidates")} ` +
       `in process, ${plural(out, "offer", "offers")} waiting for an ` +
       `answer, ${plural(joiners, "person", "people")} joining soon` };
 }

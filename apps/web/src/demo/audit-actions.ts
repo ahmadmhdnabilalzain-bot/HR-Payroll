@@ -86,7 +86,7 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
       `${who} signed off the access review.`);
     case "access-unsign": return make("access.review-sign-off-undone",
       "access", { kind: "review", id: "access", label: "Access review" },
-      `${who} took back the access review sign off.`);
+      `${who} took back the access review sign-off.`);
     case "salary-hold": return make("pay.salary-held", "pay",
       emp(a.hold.employeeId), `${who} held the pay of ` +
       `${nameOf(a.hold.employeeId)}.`);
@@ -144,6 +144,9 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
     case "budget-ask-undo":
     case "budget-decide":
     case "budget-undecide": return hiring(a, s, d, make, who);
+    // A draft is the person's own until it is sent: no trail line.
+    case "hiring-draft-save":
+    case "hiring-draft-clear": return null;
     default: return null;
   }
 }
@@ -159,8 +162,8 @@ function sandboxWhat(d: SandboxDraftSpec): string {
       : "overtime rates";
 }
 
-type HiringAct = Extract<Action, { type: `hiring-${string}` |
-  `budget-${string}` }>;
+type HiringAct = Exclude<Extract<Action, { type: `hiring-${string}` |
+  `budget-${string}` }>, { type: `hiring-draft-${string}` }>;
 
 const STEP_CODE: Record<string, [string, string]> = {
   "with-hr": ["sent-again", "sent again"],
@@ -275,9 +278,9 @@ function bonus(a: Extract<Action, { type: `bonus-${string}` }>,
     switch (a.type) {
       case "bonus-new": return ["bonus-prepared", "prepared"];
       case "bonus-remove": return ["bonus-removed", "removed the draft of"];
-      case "bonus-send": return ["bonus-sent", "sent for sign off"];
+      case "bonus-send": return ["bonus-sent", "sent for sign-off"];
       case "bonus-unsend": return ["bonus-send-taken-back",
-        "took back from sign off"];
+        "took back from sign-off"];
       case "bonus-decide": return a.decision.verdict === "signed"
         ? ["bonus-signed-off", "signed off"] : ["bonus-declined",
           "declined"];
@@ -323,7 +326,7 @@ function decision(a: Extract<Action, { type: "decide" | "undecide" }>,
   const [code, yes, what, area] = CODES[item?.kind ?? "leave"]
     ?? CODES["leave"]!;
   const subject = { kind: "approval", id: a.id,
-    label: item?.title.en ?? "Approval" };
+    label: item?.title.en ?? "Decision" };
   const area2 = area as AuditAddition["area"];
   if (a.type === "undecide") {
     return make(`${code}.decision-undone`, area2, subject,

@@ -17,6 +17,8 @@ export interface NewLeave {
   reasonKey: string;
   /** The person's own words, if any (optional). */
   note: string;
+  /** The (fictional) files sent with it, by name. */
+  files?: string[];
   requestedOn: string;
   checkerId: string;
   withdrawn: boolean;

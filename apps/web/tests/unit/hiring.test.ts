@@ -21,10 +21,14 @@ import { ALL_AREAS } from "../../src/nav/areas";
 import { areasFor, mayOpen } from "../../src/nav/registry";
 import {
   actsFor,
+  asksNow,
   budgetRows,
+  hireCost,
   hiringTasks,
   requestsNow,
+  rowAfterAsk,
   timelineOf,
+  trackOf,
   visibleRequests,
 } from "../../src/people/hiring/model";
 
@@ -333,5 +337,102 @@ describe("audit and figures", () => {
     const s = step(INITIAL, "hreq-006", "gm", "open");
     expect(figures(d, s)).toEqual(figures(d, INITIAL));
     expect(String(d.headline().netTotalFils)).toBe("93373094");
+  });
+});
+
+describe("hiring: the figures a decision needs", () => {
+  const aed = (f: bigint): string => (Number(f) / 100).toFixed(2);
+
+  it("the list's four totals stay as they were", () => {
+    const t = d.hiring.totals(budgetRows(d, INITIAL));
+    expect([t.firstYear, t.committed, t.offered, t.left].map(aed))
+      .toEqual(["1395284.67", "340659.67", "759600.00", "295025.00"]);
+  });
+
+  it("a new position's cost is the engine's, compared to what is left",
+    () => {
+      const r = find(INITIAL, "hreq-006");
+      const c = hireCost(d, INITIAL, r);
+      expect(c.position).toBeNull();
+      expect(c.firstYear).toBe(d.hiring.cost(r.grade, 0, r.startIso)
+        .firstYear);
+      expect(aed(c.firstYear)).toBe("257661.29");
+      expect(aed(c.leftNow)).toBe("295025.00");
+      expect(aed(c.leftAfter)).toBe("37363.71");
+      const two = hireCost(d, INITIAL, { ...r, headcount: 2 });
+      expect(two.firstYear).toBe(c.firstYear * 2n);
+      expect(two.leftAfter < 0n).toBe(true);
+      const e = d.hiring.explain.hire("x", r.title, c.cost, 2);
+      expect(JSON.stringify(e, (_k, v: unknown) => typeof v === "bigint"
+        ? String(v) : v)).toContain("Person 2");
+    });
+
+  it("a hire on a budgeted position counts against its own budget", () => {
+    const s = run(as("gm"), { type: "budget-ask", ask: { kind: "add",
+      budgetId: null, grade: 4, steps: 2, reason: "Cover",
+      jobKey: "teller", departmentId: "dept-retail",
+      startIso: "2027-03-01", ...who("gm") } });
+    const row = budgetRows(d, s).find((b) => b.session)!;
+    const c = hireCost(d, s, { grade: 4, startIso: "2027-03-01",
+      headcount: 1, budgetId: row.id });
+    expect(c.position!.id).toBe(row.id);
+    expect(c.leftNow).toBe(row.left);
+    expect(c.leftAfter).toBe(row.left - c.firstYear);
+    expect(c.leftAfter > 0n).toBe(true);
+    const over = hireCost(d, s, { grade: 4, startIso: "2027-03-01",
+      headcount: 2, budgetId: row.id });
+    expect(over.leftAfter < 0n).toBe(true);
+  });
+
+  it("the panel's 'if signed off' is the row after the sign-off", () => {
+    const ask = asksNow(d, INITIAL).find((a) => a.id === "bask-001")!;
+    const row = budgetRows(d, INITIAL).find((b) =>
+      b.id === "bud-pos-014")!;
+    const told = rowAfterAsk(d, row, ask);
+    const s = run(as("gm"), { type: "budget-decide", decision: {
+      askId: "bask-001", verdict: "signed-off", note: "", ...who("gm") } });
+    const after = budgetRows(d, s).find((b) => b.id === "bud-pos-014")!;
+    expect(told.cost.firstYear).toBe(after.cost.firstYear);
+    expect(told.left).toBe(after.left);
+    expect(told.left).not.toBe(row.left);
+  });
+
+  it("the milestone track puts today and each target on one scale", () => {
+    const r = find(INITIAL, "hreq-002");
+    const t = trackOf(d, r, timelineOf(d, INITIAL, r));
+    const at = t.points.map((p) => p.at!);
+    expect(at[0]! > 0 && at.at(-1) === 1).toBe(true);
+    expect([...at].sort((a, b) => a - b)).toEqual(at);
+    expect(t.today! > 0 && t.today! < 1).toBe(true);
+    expect(t.todayText).toBe("27 Oct 2026");
+    expect(t.late).toEqual([]);
+    const fresh = find(INITIAL, "hreq-006");
+    const w = trackOf(d, fresh, timelineOf(d, INITIAL, fresh));
+    expect(w.today).toBeNull();
+    expect(w.points.every((p) => p.at === null)).toBe(true);
+  });
+
+  it("a late milestone is named on the track", () => {
+    // Signed off long ago with nobody posted: every target has passed.
+    const s = step(step(INITIAL, "hreq-005", "hr", "with-gm"), "hreq-005",
+      "gm", "open");
+    const r = { ...find(s, "hreq-005"), signedOffIso: "2026-08-01" };
+    const t = trackOf(d, r, timelineOf(d, s, r));
+    expect(t.late.map((m) => m.key)).toContain("posted");
+    expect(t.late[0]!.text).toMatch(/overdue/);
+  });
+
+  it("a saved draft is the saver's only; sending clears it", () => {
+    const me = personFor(d, "manager");
+    let s = run(as("manager"), { type: "hiring-draft-save", by: me,
+      draft: { ...draft(), on: ON } });
+    expect(s.hiringDrafts[me]!.startIso).toBe("2027-02-01");
+    expect(Object.keys(s.hiringDrafts)).toEqual([me]);
+    expect(auditFor({ type: "hiring-draft-save", by: me, draft: {
+      ...draft(), on: ON } }, s, d)).toBeNull();
+    s = run(s, { type: "hiring-raise", draft: draft(), who:
+      who("manager"), n: 7 });
+    expect(s.hiringDrafts).toEqual({});
+    expect(reduce(s, { type: "hiring-draft-clear", by: me })).toBe(s);
   });
 });

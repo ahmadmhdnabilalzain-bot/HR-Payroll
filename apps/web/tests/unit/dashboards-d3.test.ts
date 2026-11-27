@@ -4,6 +4,7 @@ import { isBlocking, openIssues } from "../../src/demo/derive";
 import { INITIAL, reduce, type DemoState } from "../../src/demo/state";
 import {
   beforeApproval,
+  deptView,
   execTiles,
   hrTiles,
   trendBars,
@@ -150,5 +151,78 @@ describe("the dashboards agree with Home and with themselves", () => {
     const now = src.departments.reduce((n, d) => n + d.now, 0);
     expect(now).toBe(30);
     expect(demo.at({}).team.chart()).toBeDefined();
+  });
+});
+
+describe("the details table and the department view", () => {
+  it("has no 'Compared with' column: three cells a row", async () => {
+    const { execDashboardRows, hrDashboardRows } = await import(
+      "../../src/reports/screens/dashboard-rows");
+    const d = demo.at({});
+    const m = (f: bigint): string => String(f);
+    for (const r of hrDashboardRows(src, d, INITIAL)) {
+      expect(r).toHaveLength(3);
+    }
+    for (const r of execDashboardRows(src, d, INITIAL, m, m)) {
+      expect(r).toHaveLength(3);
+    }
+  });
+
+  it("people paid draws from zero, others on their own range", () => {
+    const d = demo.at({});
+    expect(tile(hrTiles(src, d, INITIAL, words), "paid").zero).toBe(true);
+    expect(tile(execTiles(src, d, INITIAL, words), "paid").zero).toBe(true);
+    expect(tile(execTiles(src, d, INITIAL, words), "net").zero)
+      .toBeUndefined();
+  });
+
+  it("cost per head is the department's cost over its people", () => {
+    const d = demo.at({});
+    const v = deptView(d);
+    expect(v).toHaveLength(d.departments().length);
+    for (const x of v) {
+      const h = BigInt(x.row.headcount);
+      expect(x.perHead * h - x.row.costFils <= h).toBe(true);
+      expect(x.row.costFils - x.perHead * h <= h).toBe(true);
+    }
+    for (let i = 1; i < v.length; i++) {
+      expect(v[i - 1]!.perHead >= v[i]!.perHead).toBe(true);
+    }
+    const total = v.reduce((n, x) => n + x.share, 0);
+    expect(Math.abs(total - 100)).toBeLessThanOrEqual(v.length);
+  });
+});
+
+describe("every dashboard line opens a page", () => {
+  it("each row of both dashboards, the brief and the board has one",
+    async () => {
+      const { areaHref } = await import("../../src/reports/dash/itemSeam");
+      const { execDashboardRows, hrDashboardRows } = await import(
+        "../../src/reports/screens/dashboard-rows");
+      const { buildMoreSource } = await import(
+        "../../src/reports/more/source");
+      const { brief, board } = buildMoreSource();
+      const d = demo.at({});
+      const m = (f: bigint): string => String(f);
+      const words = [
+        ...hrDashboardRows(src, d, INITIAL).map((r) => String(r[0])),
+        ...execDashboardRows(src, d, INITIAL, m, m)
+          .map((r) => String(r[0])),
+        ...brief.items.map((i) => `${i.area}: ${i.item}`),
+        ...board.rows.map((r) => r.measure)];
+      for (const w of words) expect(areaHref(w), w).toMatch(/^#\//);
+      expect(areaHref("Before sign-off")).toBe("#/pay-run/fix");
+      expect(areaHref("Leave requests waiting"))
+        .toBe("#/reports/leave");
+      expect(areaHref("Gratuity if everyone left today"))
+        .toBe("#/reports/gratuity-liability");
+    });
+
+  it("every tile links", () => {
+    const d = demo.at({});
+    for (const t of [...hrTiles(src, d, INITIAL, words),
+      ...execTiles(src, d, INITIAL, words)]) {
+      expect(t.href, t.id).toMatch(/^#\//);
+    }
   });
 });

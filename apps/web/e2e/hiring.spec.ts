@@ -34,13 +34,56 @@ test("manager raises a hire; HR asks for changes, then sends it on",
     await expect(h1(page)).toHaveText("My hiring requests");
     await page.locator('a[href$="/hiring/requests/new"]').first().click();
     await expect(h1(page)).toHaveText("Request a hire");
-    await expect(page.getByLabel("Job description"))
+    await expect(page.getByRole("textbox", { name: "Job description" }))
       .toHaveValue(/What you will do:/);
-    await page.getByLabel("Target start date").fill("2026-10-01");
-    await page.getByRole("button", { name: "Send to HR" }).click();
-    await expect(page.getByRole("alert")).toContainText("must be after");
-    await page.getByLabel("Target start date").fill("2027-02-01");
-    await page.getByRole("button", { name: "Send to HR" }).click();
+    // The start is said in words; days before tomorrow cannot be picked.
+    const date = page.getByRole("button", { name: /^Target start date/ });
+    await expect(date).toHaveText(/^4 January 2027$/);
+    await date.click();
+    for (let i = 0; i < 3; i += 1) {
+      await page.getByRole("button", { name: "Previous month" }).click();
+    }
+    await expect(page.getByRole("button", { name: "26 October 2026",
+      exact: true }))
+      .toBeDisabled();
+    for (let i = 0; i < 4; i += 1) {
+      await page.getByRole("button", { name: "Next month" }).click();
+    }
+    await page.getByRole("button", { name: "1 February 2027",
+      exact: true }).click();
+    await expect(date).toHaveAccessibleName(
+      "Target start date: 1 February 2027");
+    // Keys: Page Down moves a month and keeps the focus; Escape returns.
+    await date.click();
+    await page.keyboard.press("PageDown");
+    await expect(page.getByRole("button", { name: "1 March 2027",
+      exact: true })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(date).toBeFocused();
+    // The cost summary follows the headcount; the bar carries it too.
+    const sum = page.getByRole("complementary", { name: "Cost summary" });
+    await expect(sum).toContainText("1 person, from 1 Feb 2027");
+    await page.getByRole("button", { name: /^How many people/ }).click();
+    await page.getByRole("option", { name: "2 people" }).click();
+    await expect(sum).toContainText("2 people");
+    await page.getByRole("button", { name: /^How many people/ }).click();
+    await page.getByRole("option", { name: "1 person" }).click();
+    await page.getByLabel("Days to find someone").fill("5");
+    await page.getByRole("button", { name: "Send for sign-off" }).click();
+    await expect(page.getByRole("alert")).toContainText("14 to 120");
+    await page.getByLabel("Days to find someone").fill("45");
+    await page.getByRole("button", { name: "Save draft" }).click();
+    await expect(page.getByRole("status").filter({ hasText:
+      "Draft saved" })).toBeVisible();
+    await settle(page);
+    const form = await new AxeBuilder({ page }).analyze();
+    expect(form.violations).toEqual([]);
+    await go(page, "#/people/hiring/requests");
+    await page.locator('a[href$="/hiring/requests/new"]').first().click();
+    await expect(page.getByText(/Your draft, saved/)).toBeVisible();
+    await expect(date).toHaveAccessibleName(
+      "Target start date: 1 February 2027");
+    await page.getByRole("button", { name: "Send for sign-off" }).click();
     await expect(page.getByText("With HR").first()).toBeVisible();
     await page.getByRole("tab", { name: /Messages/ }).click();
     await page.getByLabel("Write a message").fill("Can we start in " +
@@ -84,6 +127,14 @@ test("GM signs off a request and a budget change; the trail shows it",
     await asRole(page, "General manager");
     await go(page, "#/people/hiring/requests/hreq-006");
     await expect(h1(page)).toHaveText("AML analyst");
+    // The decision is made with the cost in view, and its working.
+    const side = page.getByRole("complementary", { name: "Summary" });
+    await expect(side).toContainText("First-year cost");
+    await expect(side).toContainText("257,661");
+    await expect(side).toContainText("Left unspent today");
+    await page.getByRole("button", { name: /First-year cost/ }).click();
+    await expect(page.getByRole("dialog")).toContainText("Twelve payroll");
+    await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Sign off" }).first().click();
     await page.getByRole("button", { name: "Sign off" }).last().click();
     await expect(page.getByText("Open position").first()).toBeVisible();
@@ -98,6 +149,7 @@ test("GM signs off a request and a budget change; the trail shows it",
       .click();
     await expect(page.getByRole("dialog")).toContainText("Twelve payroll");
     await page.keyboard.press("Escape");
+    await expect(page.getByText("First year if signed off")).toBeVisible();
     await page.getByRole("button", { name: "Sign off the change" }).click();
     await expect(page.getByRole("status").first())
       .toContainText("budget change signed off");

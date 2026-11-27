@@ -28,13 +28,13 @@ Meetings (behind a launch gate, telecom position unconfirmed), data
 import and parallel run, intranet and team chat (Plan 17 tasks 1-6).
 
 ## Not built
-- AI assistant and cited policy Q&A (Plan 17 tasks 7-11).
+- Rule-based answers beyond the cited policy Q&A (Plan 17 tasks 7-11).
 - Social and website insights (Plan 15). Finance modules: accounts
   payable, cards, project billing (Plan 16).
 - Arabic screens reviewed by a native speaker (Arabic is hidden).
 - Native mobile apps (the demo is a mobile-friendly website).
 - Production hosting in the UAE, a penetration test, SOC 2 / ISO 27001,
-  single sign-on screens, Keka data migration tooling.
+  single sign-on screens, data migration tooling.
 
 ## Honest limits of the live demo
 Runs in the browser on fictional data; changes reset on reload; no

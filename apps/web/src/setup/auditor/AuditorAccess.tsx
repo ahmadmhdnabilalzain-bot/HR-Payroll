@@ -79,7 +79,7 @@ function GrantSheet(p: { d: AuditData; open: boolean; onClose(): void;
         {p.mode === "grant" && (
           <>
             <button type="button" className={`${b.btn} ${b.secondary} ${
-              a.tap}`} onClick={fill}>Fill from the engagement letter
+              a.tap}`} onClick={fill}>Fill from letter
             </button>
             <label className={a.field}><span>Auditor's name</span>
               <input value={v.name} autoComplete="off"

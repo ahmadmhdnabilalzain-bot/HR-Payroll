@@ -35,7 +35,7 @@ function Library() {
   };
   return (
     <div className={tpl.page}>
-      <PageHead title="Ask about a policy"
+      <PageHead title="Policy answers"
         lede={"Type a question. The answer quotes our written policy and " +
           "says which section it came from."} />
       <div className={s.stack}>

@@ -43,16 +43,24 @@ export function nowMs(): number {
 }
 
 /**
+ * How long after the preparation the visit opens, on the demo's clock:
+ * the checker comes to the run a few minutes after HR finished it, so
+ * a sign-off made at once never reads the same minute as "Prepared".
+ */
+export const DEMO_CLOCK_LEAD_MS = 12 * 60_000;
+
+/**
  * A moment of this visit on the demo's own clock: the demo's day
- * starts when the run was prepared (09:30 on 27 October, Dubai), and
- * time runs on from the page opening. A stamp can therefore never
- * read earlier than the preparation it follows.
+ * reaches the run DEMO_CLOCK_LEAD_MS after it was prepared (09:30 on
+ * 27 October, Dubai, so 09:42), and time runs on from the page
+ * opening. A stamp therefore always reads later than the preparation
+ * it follows, on the same day.
  */
 export function demoClockIso(atMs: number, preparedOn: string,
-  preparedAt: string): string {
+  preparedAt: string, origin = performance.timeOrigin): string {
   const start = Date.parse(`${preparedOn}T${preparedAt}:00+04:00`);
-  return new Date(start + Math.max(0, atMs - performance.timeOrigin))
-    .toISOString();
+  return new Date(start + DEMO_CLOCK_LEAD_MS +
+    Math.max(0, atMs - origin)).toISOString();
 }
 
 export function recordDecision(id: string): void {

@@ -5,7 +5,7 @@ import { StatusPill } from "../../ui/templates";
 
 /** Status as the screens word it: signed off, never approved. */
 export const BONUS_WORD: Record<BonusStatus, string> = {
-  draft: "Draft", waiting: "Waiting for sign off", signed: "Signed off",
+  draft: "Draft", waiting: "Waiting for sign-off", signed: "Signed off",
   declined: "Declined",
 };
 

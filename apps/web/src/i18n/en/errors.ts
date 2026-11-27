@@ -100,16 +100,16 @@ export const errors = {
   RECEIPT_TYPE_MISMATCH: "The file type does not match its contents.",
   POLICY_INVALID: "The expense policy is not valid. Check the marked " +
     "rows.",
-  CANCEL_NOTE_REQUIRED: "Add a note to cancel an agreed claim.",
+  CANCEL_NOTE_REQUIRED: "Add a note to cancel a signed-off claim.",
   CLAIM_PROBLEMS: "The claim has problems. Fix the marked items.",
   RECEIPT_QUOTA_EXCEEDED: "Too many receipts uploaded today. Try again " +
     "tomorrow or ask HR to raise the limit.",
-  EXCLUDED_CLAIM_INVALID: "Only agreed claims waiting for payment can " +
+  EXCLUDED_CLAIM_INVALID: "Only signed-off claims waiting for payment can " +
     "be left out of a run.",
   ...timeErrors,
   // Plan 8 (hiring, onboarding, tasks, exits, goals).
   TASK_TRANSITION: "This task cannot move to that status.",
-  REQUISITION_NOT_OPEN: "This requisition is not open.",
+  REQUISITION_NOT_OPEN: "This position is not open.",
   CANDIDATE_EXISTS: "A candidate with this email already exists.",
   APPLICATION_EXISTS: "This candidate already applied here.",
   APPLICATION_CLOSED: "This application is closed.",

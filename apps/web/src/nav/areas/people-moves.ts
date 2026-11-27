@@ -8,7 +8,7 @@ const go = (screen: string) => ({ section: "people" as const,
 
 export const AREAS: readonly Area[] = [
   { id: "people.requisitions", section: "people", group: "hiring",
-    label: { en: "Requisitions", ar: "طلبات الشغور" },
+    label: { en: "Open positions", ar: "طلبات الشغور" },
     status: "live", archetype: "LF", roles: HR_GM, route: go("requisitions"),
     keywords: "hiring requisition vacancy open role recruit hire" },
   { id: "people.board", section: "people", group: "hiring",
@@ -26,7 +26,7 @@ export const AREAS: readonly Area[] = [
     }).length, keywords: "offers offer letter salary package candidate " +
       "hiring" },
   { id: "people.vacancies", section: "people", group: "hiring",
-    label: { en: "Vacancies", ar: "الوظائف الشاغرة" },
+    label: { en: "Advertised jobs", ar: "الوظائف الشاغرة" },
     status: "live", archetype: "LF", roles: HR_GM, route: go("vacancies"),
     keywords: "vacancy advertised job posting open positions" },
   { id: "people.joiners", section: "people", group: "moves",

@@ -122,13 +122,18 @@ export function useGlide(ref: RefObject<HTMLElement | null>,
       if (from === null || same(from, next) || next.w === 0) return;
       const sx = from.w / next.w;
       const sy = next.h === 0 ? 1 : from.h / next.h;
-      root.animate([
-        { transform: `translate(${from.x}px, ${from.y}px) ` +
-          `scale(${sx}, ${sy})` },
-        { transform: `translate(${next.x}px, ${next.y}px)` },
-      ], { duration: Math.min(GLIDE_MS, tokenMs("--dur-spring", 420)),
-        easing: tokenEase("--ease-spring", "cubic-bezier(0.22,1.2,0.36,1)"),
-        pseudoElement: "::before" });
+      try {
+        root.animate([
+          { transform: `translate(${from.x}px, ${from.y}px) ` +
+            `scale(${sx}, ${sy})` },
+          { transform: `translate(${next.x}px, ${next.y}px)` },
+        ], { duration: Math.min(GLIDE_MS, tokenMs("--dur-spring", 420)),
+          easing: tokenEase("--ease-spring",
+            "cubic-bezier(0.22,1.2,0.36,1)"),
+          pseudoElement: "::before" });
+      } catch {
+        // No pseudo-element animation here: the marker just moves.
+      }
     };
     root.dataset["glide"] = kind;
     sync(false);

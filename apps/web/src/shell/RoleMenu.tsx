@@ -20,8 +20,8 @@ export const ROLE_KEY: Record<Role, MessageKey> = { hr: "shell.roleHr",
 /**
  * Who the demo is being viewed as; the person is from the data. On a
  * phone this is the one overflow menu: notifications, hide amounts and
- * theme sit above the roles (the bar shows only the logo, search and
- * this avatar, which carries the unread dot).
+ * theme sit above the roles (the bar shows the logo, search, the bell
+ * with its unread dot, and this avatar).
  */
 export function RoleMenu() {
   const { lang, t } = useLocale();
@@ -57,7 +57,6 @@ export function RoleMenu() {
       <button type="button" className={s.roleBtn} aria-haspopup="menu"
         aria-expanded={open} onClick={() => setOpen(!open)}>
         <Avatar id={me.id} name={me.name.en} size="xs" />
-        {bell.unread > 0 && <span className={s.dot} aria-hidden="true" />}
         <span className="visually-hidden">{t("shell.viewingAs")}</span>
         <span className={s.roleText}>{roleLabel(state.role)}</span>
         <Icon name="chevronDown" size={14} />

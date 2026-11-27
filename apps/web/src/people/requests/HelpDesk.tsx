@@ -17,7 +17,7 @@ export function HelpDesk() {
   const rows = ticketRows(p.data, p.state);
   return (
     <FilterList title="HR help desk"
-      lede={"Questions people sent to HR. Open a ticket to read the " +
+      lede={"Questions people sent to HR. Open a request to read the " +
         "messages and reply."}
       rows={rows} rowKey={(r) => r.id}
       searchText={(r) => `${r.subject} ${p.nameOf(r.employeeId)} ` +
@@ -32,7 +32,7 @@ export function HelpDesk() {
         { id: "all", label: "All", match: () => true },
       ]}
       columns={[
-        { key: "t", label: "Ticket", render: (r) => (
+        { key: "t", label: "Request", render: (r) => (
           <Stack main={r.subject} sub={`${r.id}, ${p.nameOf(r.employeeId)}`}
           />) },
         { key: "c", label: "Topic", render: (r) => r.category },
@@ -44,7 +44,7 @@ export function HelpDesk() {
           return <Status word={word} tone={tone} />;
         } },
       ]}
-      empty="No tickets. Questions from staff arrive here." />
+      empty="No requests. Questions from staff arrive here." />
   );
 }
 
@@ -53,10 +53,10 @@ export function TicketRecord(props: { id: string }) {
   const p = useRequests();
   const t = ticketRows(p.data, p.state).find((x) => x.id === props.id);
   if (t === undefined) {
-    return <NotFound what="ticket" back="HR help desk" href={LIST} />;
+    return <NotFound what="request" back="HR help desk" href={LIST} />;
   }
   const [word] = TICKET_STATUS[t.status];
-  const solve = (): void => p.record(t.id, "solved", "Ticket marked " +
+  const solve = (): void => p.record(t.id, "solved", "Request marked " +
     "solved.", t.step);
   return (
     <RecordTabs title={t.subject} lede={`${p.nameOf(t.employeeId)}, ` +
@@ -74,7 +74,7 @@ export function TicketRecord(props: { id: string }) {
       { id: "details", label: "Details", render: () => (
         <div className={s.block}>
           <KeyValues items={[
-            { label: "Ticket", value: t.id },
+            { label: "Request", value: t.id },
             { label: "From", value: <a className={s.link}
               href={hrefOf("people", t.employeeId)}>
               {p.nameOf(t.employeeId)}</a> },

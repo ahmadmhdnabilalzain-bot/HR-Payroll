@@ -24,7 +24,7 @@ export function Thread(p: { t: TicketRow; r: Requests;
     setText("");
     setError(null);
   };
-  const reopen = (): void => r.record(t.id, "open", "Ticket reopened.",
+  const reopen = (): void => r.record(t.id, "open", "Request reopened.",
     t.step);
   return (
     <div className={s.block}>

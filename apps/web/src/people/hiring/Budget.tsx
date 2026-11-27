@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Explainable } from "../../components/explain";
 import type { BudgetStatus, PositionCost } from "../../demo/data/hiring-types";
 import { nextAskId } from "../../demo/hiring-state";
@@ -15,6 +15,8 @@ import {
   type StatusTone,
 } from "../../ui/templates";
 import { Dot } from "../moves/Dot";
+import { Picker } from "../Picker";
+import { BudgetMeter, MeterKey } from "./Meter";
 import type { Tone } from "../moves/view";
 import { useActor } from "../moves/view";
 import { Outside } from "../../shell/Outside";
@@ -24,14 +26,15 @@ import {
   freePositions,
   requestHref,
   requestsNow,
+  rowAfterAsk,
   type BudgetRow,
 } from "./model";
 import h from "./hiring.module.css";
 
 export const BUDGET_TONE: Record<BudgetStatus, Tone> = { budgeted: "neutral",
-  open: "info", "in-hiring": "info", filled: "ok" };
+  open: "info", "in-hiring": "info", filled: "neutral" };
 const PILL: Record<BudgetStatus, StatusTone> = { budgeted: "neutral",
-  open: "warn", "in-hiring": "warn", filled: "ok" };
+  open: "warn", "in-hiring": "warn", filled: "neutral" };
 
 const signWord = (r: BudgetRow): string => r.pending !== null
   ? "Change waiting" : r.budgetState === "waiting" ? "Waiting"
@@ -66,15 +69,9 @@ export function BudgetList() {
         rowHref={(r) => budgetHref(r.id)}
         searchText={(r) => `${r.title} ${r.departmentText} ${r.ownerName}`}
         filters={(
-          <label className={h.field}>
-            <span className="visually-hidden">Department</span>
-            <select value={dept} onChange={(e) => setDept(e.target.value)}>
-              <option value="all">All departments</option>
-              {depts.map((d) => (
-                <option key={d.id} value={d.id}>{d.text}</option>
-              ))}
-            </select>
-          </label>
+          <Picker label="Department" value={dept} onChange={setDept}
+            options={[{ value: "all", label: "All departments" },
+              ...depts.map((d) => ({ value: d.id, label: d.text }))]} />
         )}
         summary={[]}
         meta={(
@@ -101,7 +98,16 @@ export function BudgetList() {
                 <Money value={t.left} size="md" tween={false} />
               </Explainable></dd></div>
           </dl>
-          <p className={h.quiet}>{data.hiring.budgetBasis}</p>
+          <div className={h.meterBlock}>
+            <BudgetMeter size="md" label="All positions shown"
+              firstYear={t.firstYear} committed={t.committed}
+              offered={t.offered} />
+            <MeterKey />
+          </div>
+          <details className={h.basis}>
+            <summary>How the budget is worked out</summary>
+            <p className={h.quiet}>{data.hiring.budgetBasis}</p>
+          </details>
           </div>
         )}
         segments={[{ id: "all", label: "All", match: () => true },
@@ -120,6 +126,13 @@ export function BudgetList() {
           ) },
           { key: "l", label: "Left", end: true, render: (r) => (
             <Money value={r.left} size="sm" tween={false} />
+          ) },
+          { key: "m", label: "Spend", render: (r) => (
+            <span className={h.meterCell}><BudgetMeter
+              label={r.title} firstYear={r.cost.firstYear}
+              committed={(r.committed?.amount ?? 0n) as BudgetRow["left"]}
+              offered={(r.offered?.amount ?? 0n) as BudgetRow["left"]} />
+            </span>
           ) }]}
         actions={state.role === "gm" ? (
           <button type="button" className={`${b.btn} ${b.primary}`}
@@ -226,6 +239,9 @@ export function BudgetRecord(p: { id: string }) {
       "The General manager signs it off or declines it."
     : r.budgetState === "waiting" ? "The budget waits for the General " +
       "manager's sign-off on the hiring request." : undefined;
+  const staff = state.role === "hr" || state.role === "gm";
+  const hasActs = (state.role === "gm" && ask !== null) ||
+    (staff && ask === null) || mineAsk || free;
   const actions = (
     <div className={h.actions}>
       {state.role === "gm" && ask !== null && (
@@ -269,7 +285,7 @@ export function BudgetRecord(p: { id: string }) {
           "budget") }}
         status={{ word: data.hiring.budgetStatusText[r.status],
           tone: PILL[r.status] }}
-        stats={[
+        stats={ask !== null ? askStats(r, rowAfterAsk(data, r, ask)) : [
           { label: "A full month", value: (
             <Explainable explanation={ex.monthly(r.id, r.title, r.cost)}>
               <Money value={r.cost.monthly} tween={false} />
@@ -285,11 +301,20 @@ export function BudgetRecord(p: { id: string }) {
               <Money value={r.left} tween={false} />
             </Explainable>) }]}
         {...(nextText === undefined ? {} : { next: nextText })}
-        actions={actions}
+        actions={hasActs ? actions : undefined}
         history={history}
         tabs={[
           { id: "budget", label: "Budget", render: () => (
             <div className={h.stack}>
+              <div className={h.meterBlock}>
+                <BudgetMeter size="md" label={r.title}
+                  firstYear={r.cost.firstYear}
+                  committed={(r.committed?.amount ?? 0n) as
+                    BudgetRow["left"]}
+                  offered={(r.offered?.amount ?? 0n) as
+                    BudgetRow["left"]} />
+                <MeterKey />
+              </div>
               <KeyValues items={[
                 { label: "Department", value: r.departmentText },
                 { label: "Owner", value: r.ownerName },
@@ -339,6 +364,40 @@ export function BudgetRecord(p: { id: string }) {
         </form>
       </Sheet>
     </>
+  );
+}
+
+/**
+ * A change waiting for the General manager: the budget now, the first
+ * year asked, and what would be left once it is signed off, each with
+ * its working, so the decision is made with the cost in view.
+ */
+function askStats(r: BudgetRow, after: BudgetRow) {
+  return [
+    { label: "First-year budget now", value: (
+      <ExplainHere k={r.id} row={r} kind="year">
+        <Money value={r.cost.firstYear} tween={false} />
+      </ExplainHere>) },
+    { label: "First year if signed off", value: (
+      <ExplainHere k={`${r.id}:ask`} row={after} kind="year">
+        <Money value={after.cost.firstYear} tween={false} />
+      </ExplainHere>) },
+    { label: "Left if signed off", value: (
+      <ExplainHere k={`${r.id}:ask`} row={after} kind="left">
+        <Money value={after.left} tween={false} />
+      </ExplainHere>) }];
+}
+
+function ExplainHere(p: { k: string; row: BudgetRow; kind: "year" |
+  "left"; children: ReactNode }) {
+  const { data } = useDemo();
+  const ex = data.hiring.explain;
+  const r = p.row;
+  return (
+    <Explainable explanation={p.kind === "year"
+      ? ex.firstYear(p.k, r.title, r.cost) : ex.left(p.k, r.title, {
+        firstYear: r.cost.firstYear, committed: r.committed,
+        offered: r.offered })}>{p.children}</Explainable>
   );
 }
 

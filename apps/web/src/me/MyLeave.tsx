@@ -5,7 +5,7 @@ import { annualNow, personFor, requestRows } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { PageHead } from "../ui/templates";
-import { LeaveForm } from "../home/LeaveForm";
+import { RequestSheet } from "../timeoff/RequestSheet";
 import { RequestList } from "../home/RequestList";
 import s from "../home/Self.module.css";
 import { Footnote } from "../components/explain";
@@ -30,12 +30,11 @@ export function MyLeave() {
             : t("timeoff.annualLeft",
               dayCountVars(balance.availableDays, lang))}
         </p>
-        {!asking && (
-          <button type="button" className={`${b.btn} ${b.primary}`}
-            onClick={() => setAsking(true)}>{t("home.requestLeave")}</button>
-        )}
+        <button type="button" className={`${b.btn} ${b.primary}`}
+          onClick={() => setAsking(true)}>{t("home.requestLeave")}</button>
       </section>
-      {asking && <LeaveForm employeeId={me} onDone={() => setAsking(false)} />}
+      <RequestSheet open={asking} onClose={() => setAsking(false)}
+        onSent={() => undefined} from={[20, 21]} />
       <RequestList title={t("me.upcoming")} rows={mine}
         empty={t("timeoff.requestsEmpty")} />
       <Footnote />

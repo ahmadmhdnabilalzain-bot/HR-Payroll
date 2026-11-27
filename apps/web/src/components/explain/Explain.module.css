@@ -1,17 +1,22 @@
-/* The figure is the button: same type as around it, a dotted rule. */
+/* The figure is the button: same type as around it. Only a worked-out
+ * money figure carries the dotted rule at rest. */
 .trigger {
   display: inline-flex;
   align-items: baseline;
   margin: 0;
   padding: 0;
   border: 0;
-  border-block-end: 1px dotted var(--color-border);
+  border-block-end: 1px dotted transparent;
   background: transparent;
   color: inherit;
   font: inherit;
   text-align: inherit;
   cursor: pointer;
   transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.trigger[data-worked="true"] {
+  border-block-end-color: var(--color-border);
 }
 
 @media (hover: hover) {
@@ -561,7 +566,20 @@
   }
 
   .head {
-    padding: var(--space-4) var(--space-4) var(--space-3);
+    position: relative;
+    padding: var(--space-5) var(--space-4) var(--space-3);
+  }
+
+  /* The grabber: a sheet from the bottom says so. */
+  .head::before {
+    position: absolute;
+    inset-block-start: var(--space-2);
+    inset-inline-start: calc(50% - 18px);
+    inline-size: 36px;
+    block-size: 5px;
+    border-radius: var(--radius-pill);
+    background: var(--color-divider-strong);
+    content: "";
   }
 
   .body {

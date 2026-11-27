@@ -31,7 +31,7 @@ export function Inspection(p: ViewProps) {
         actions={(
           <>
             <button type="button" className={`${b.btn} ${b.primary} ${s.tap}`}
-              onClick={() => print()}>Print or save as PDF</button>
+              onClick={() => print()}>Print or PDF</button>
             <button type="button" className={`${b.btn} ${b.secondary} ${s.tap}`}
               onClick={csv}>Register as CSV</button>
             <a className={`${b.btn} ${b.quiet} ${s.tap}`}

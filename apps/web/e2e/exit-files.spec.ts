@@ -22,6 +22,8 @@ test("exit-interviews-signatures-files-and-time-extras", async (
 
   await page.goto("/#/people/files/signatures");
   await h1(page, "E-signatures");
+  // The register opens on what waits for HR's own signature.
+  await page.getByRole("button", { name: /^All/ }).click();
   await page.getByRole("link", { name: /Salary certificate/ }).first()
     .click();
   await expect(page.getByText(/no legal validity/).first()).toBeVisible();

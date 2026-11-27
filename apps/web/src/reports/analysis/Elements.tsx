@@ -18,7 +18,7 @@ export function Elements() {
   const most = r.rows.reduce((n, x) => x.october > n ? x.october : n, 0n);
   return (
     <ReportPage title="Pay elements report" period={r.period}
-      figure={{ label: "Earnings in October, which is gross pay",
+      figure={{ label: "Gross pay, October",
         value: <Money value={r.earningsOctober} size="lg" tween={false} />,
         explanation: src.elementsExplain }}
       columns={[{ label: "Element" }, { label: "Type" },

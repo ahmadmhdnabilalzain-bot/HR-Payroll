@@ -211,3 +211,25 @@ export function matches(c: Command, query: string): boolean {
   return query.toLowerCase().split(/\s+/).filter(Boolean)
     .every((w) => hay.includes(w));
 }
+
+/**
+ * How well a command fits a query: a word in the label beats a word
+ * only in the keywords, and a label that starts with it beats both
+ * ("bonus" puts Bonus runs above Extra pay run).
+ */
+export function score(c: Command, query: string): number {
+  const label = c.label.toLowerCase();
+  return query.toLowerCase().split(/\s+/).filter(Boolean).reduce(
+    (sum, w) => sum + (label.startsWith(w) ? 4
+      : label.split(/\s+/).some((x) => x.startsWith(w)) ? 3
+        : label.includes(w) ? 2 : 0), 0);
+}
+
+/** The matches, best first inside each group; ties keep their order. */
+export function ranked(all: Command[], query: string): Command[] {
+  const hits = all.filter((c) => matches(c, query));
+  if (query.trim() === "") return hits;
+  return GROUP_ORDER.flatMap((g) => hits.filter((c) => c.group === g)
+    .map((c, i) => ({ c, i, v: score(c, query) }))
+    .sort((a, b) => b.v - a.v || a.i - b.i).map((x) => x.c));
+}

@@ -37,7 +37,7 @@ test("a-switch-is-recorded-and-undone", async ({ page }) => {
   await asRole(page, "IT manager");
   await page.evaluate(() => { location.hash = "#/setup/more/whatsapp"; });
   await expect(page.getByRole("heading", { level: 1,
-    name: "Decisions by WhatsApp" })).toBeVisible();
+    name: "Decisions by message" })).toBeVisible();
   await expect(page.getByText(/Nothing is connected yet/))
     .toBeVisible();
   await page.getByRole("button", { name: "Edit" }).first().click();
@@ -46,10 +46,10 @@ test("a-switch-is-recorded-and-undone", async ({ page }) => {
   await expect(page.getByRole("alert")).toContainText("Type one of");
   await page.getByRole("textbox").fill("on");
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByText(/Decisions by WhatsApp set to On/).first())
+  await expect(page.getByText(/Decisions by message set to On/).first())
     .toBeVisible();
   await expect(page.getByRole("listitem").filter({
-    hasText: "Decisions by WhatsApp set to On" }).last())
+    hasText: "Decisions by message set to On" }).last())
     .toContainText(/\w+ \w+, \w+/);
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText(/set to On \(undone\)/)).toBeVisible();

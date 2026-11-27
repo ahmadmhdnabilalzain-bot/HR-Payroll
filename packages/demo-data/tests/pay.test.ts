@@ -59,7 +59,7 @@ describe("WP6 past pay runs", () => {
     expect(t.map((x) => x.month)).toEqual([6, 7, 8, 9, 10]);
     expect(t.at(-1)!.net).toBe(c.payRun.totals.net);
     expect(t[0]!.changeDisplay).toBe("");
-    for (const x of t.slice(1)) expect(x.changeDisplay).toMatch(/^[+-]/);
+    for (const x of t.slice(1)) expect(x.changeDisplay).toMatch(/^[+\u2212]/);
     const oct = runChanges(c, 10);
     const reasons = oct.flatMap((x) => x.reasons);
     for (const r of ["joined", "left", "basic revised", "back pay",

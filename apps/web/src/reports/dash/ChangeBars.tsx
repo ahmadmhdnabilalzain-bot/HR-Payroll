@@ -22,7 +22,9 @@ const signedCompact = (v: bigint): string =>
  * move shows (a bar from zero would make ten months look alike). The
  * month in focus is ink, the rest grey; figures follow hide-amounts.
  */
-export function ChangeBars(p: { months: MonthRow[]; label: string }) {
+export function ChangeBars(p: { months: MonthRow[]; label: string;
+  /** Each month opens its own page (its variance), by month key. */
+  hrefOf?: (month: string, label: string) => string }) {
   const { state } = useDemo();
   const box = useRef<HTMLDivElement>(null);
   const w = useBoxWidth(box);
@@ -83,6 +85,16 @@ export function ChangeBars(p: { months: MonthRow[]; label: string }) {
             );
           })}
         </svg>
+      )}
+      {w > 0 && p.hrefOf !== undefined && (
+        <ul className={s.trendLinks}>
+          {rows.map((r) => (
+            <li key={r.key}>
+              <a className={s.barLink} href={p.hrefOf?.(r.key, r.label)}
+                aria-label={`Variance, ${r.label}`} />
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

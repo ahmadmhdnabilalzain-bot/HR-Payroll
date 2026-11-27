@@ -3,8 +3,9 @@ import type { EnNamespace } from "../types";
 /** Scene 1: what needs a decision today. */
 export const home = {
   dateLine: "{date} · {company}",
-  statusBank: { one: "1 bank detail holds {month} pay",
-    other: "{count} bank details hold {month} pay" },
+  statusBank: { one: "1 bank detail is missing. Pay is held until it is " +
+      "fixed.", other: "{count} bank details are missing. Pay is held " +
+      "until they are fixed." },
   statusApprove: "{month} pay is ready for sign-off",
   statusApproveYou: "{month} pay waits for your sign-off",
   statusFile: "{month} salary file is next",
@@ -32,7 +33,7 @@ export const home = {
   deductions: "Deductions",
   net: "Net pay",
   inSif: "In the salary file",
-  held: "Held out (no IBAN)",
+  held: "Held: bank details",
   routingNote: "The bank's routing code is not in the code list, so this " +
     "line is a note, not a problem.",
   preparedBy: "Prepared by {name}",

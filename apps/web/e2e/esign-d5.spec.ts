@@ -90,6 +90,11 @@ test("the employee's Documents to sign and the To sign count on Home",
     await page.goto("/#/home");
     await expect(page.getByRole("link", { name: /^Sign \d+ document/ }))
       .toBeVisible();
+    // HR: the link opens the register on "To sign", not "Awaiting".
+    await page.getByRole("link", { name: /^Sign \d+ document/ }).click();
+    await expect(page.getByRole("button", { name: /^To sign/ }))
+      .toHaveAttribute("aria-pressed", "true");
+    await page.goto("/#/home");
     await roleAs(page, "Employee");
     await expect(page.getByRole("link", { name: /^Sign \d+ document/ }))
       .toBeVisible();

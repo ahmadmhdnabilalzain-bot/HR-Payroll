@@ -3,7 +3,7 @@ import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useLocale } from "../i18n/LocaleProvider";
 import { countOf, panelOf, routeOf } from "../nav/registry";
-import type { SectionId } from "../nav/types";
+import type { Area, SectionId } from "../nav/types";
 import { Icon } from "../ui/Icon";
 import { pickGroup } from "./groupTabs";
 import s from "./SectionList.module.css";
@@ -76,6 +76,54 @@ export function SectionList(p: { section: SectionId; variant: "panel" |
           </ul>
         </section>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Areas as one plain list of page rows (the phone's More), with an
+ * optional last row that opens the rest.
+ */
+export function AreaRows(p: { areas: Area[]; label: string;
+  more?: { label: string; href: string } | undefined }) {
+  const { lang, t } = useLocale();
+  const { data, state } = useDemo();
+  const c = { data, state };
+  return (
+    <div className={s.groups} data-variant="page" onKeyDown={onArrows}>
+      <ul className={s.areas} aria-label={p.label}>
+        {p.areas.map((a) => {
+          const r = routeOf(a, c);
+          const n = countOf(a, c);
+          return (
+            <li key={a.id}>
+              <a className={s.area} data-area="" href={hrefOf(r.section,
+                ...(r.rest ?? []))} onClick={() => pickGroup(a.section,
+                a.group)}>
+                <span className={s.label}>{a.label[lang]}</span>
+                {n !== null && (
+                  <span className={`${s.count} tabular`}
+                    data-stop={a.stopsPay === true}>
+                    <span aria-hidden="true">{n}</span>
+                    <span className="visually-hidden">
+                      {t("shell.countWaiting", { count: n })}
+                    </span>
+                  </span>
+                )}
+                <Icon name="chevronEnd" size={16} />
+              </a>
+            </li>
+          );
+        })}
+        {p.more !== undefined && (
+          <li>
+            <a className={s.area} data-area="" href={p.more.href}>
+              <span className={s.label}>{p.more.label}</span>
+              <Icon name="chevronEnd" size={16} />
+            </a>
+          </li>
+        )}
+      </ul>
     </div>
   );
 }

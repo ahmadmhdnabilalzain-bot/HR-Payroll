@@ -10,26 +10,39 @@
   color: var(--color-text-muted);
 }
 
+/* Each group: a 13px sentence-case label over a two-column grid of
+ * report cards (one column on a phone). A card is the title at 17/22
+ * and the question it answers on one line. */
+.groupBlock {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
-  border-block-start: 1px solid var(--color-divider);
 }
 
 .list li {
-  border-block-end: 1px solid var(--color-divider);
+  display: grid;
+  min-inline-size: 0;
 }
 
 .item {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  min-block-size: 64px;
-  padding: var(--space-4) var(--space-2);
+  gap: var(--space-3);
+  min-block-size: 72px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
   color: inherit;
   text-decoration: none;
-  transition: background-color var(--dur-fast) ease;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 
 @media (hover: hover) {
@@ -42,6 +55,11 @@
   background: var(--color-surface-2);
 }
 
+.item:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .item > svg {
   flex: none;
   color: var(--color-text-faint);
@@ -50,26 +68,41 @@
 .itemText {
   display: grid;
   flex: 1;
+  gap: 2px;
   min-inline-size: 0;
 }
 
 .itemTitle {
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
+  line-height: 22px;
   font-weight: 500;
 }
 
 .itemBlurb {
+  overflow: hidden;
   color: var(--color-text-muted);
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .group {
-  margin-block: var(--space-6) var(--space-2);
+  margin-block-start: var(--space-2);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 500;
+}
+
+@media (max-width: 760px) {
+  .list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* On a phone the question wraps rather than hiding its end. */
+  .itemBlurb {
+    white-space: normal;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

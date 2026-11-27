@@ -10,8 +10,8 @@ export const timeoff = {
   balances: "Your balance",
   annual: "Annual leave",
   annualLeft: { one: "{n} day left", other: "{n} days left" },
-  annualMade: "{accrued} earned this year, {taken} taken, " +
-    "{pending} waiting",
+  annualMade: "{accrued} earned this year (company policy: credited " +
+    "monthly), {taken} taken, {pending} waiting",
   sick: "Sick leave",
   sickUsed: { one: "{n} day this year",
     other: "{n} days this year" },
@@ -85,4 +85,21 @@ export const timeoff = {
   dates: "Dates",
   length: "Length",
   status: "Status",
+  calendarDays: { one: "{n} calendar day",
+    other: "{n} calendar days" },
+  maternity: "Maternity leave",
+  parental: "Parental leave",
+  bereavement: "Bereavement leave",
+  study: "Study leave",
+  ruleTitle: "The rule",
+  ruleProof: "Needs: {proof}",
+  attach: "Add the file",
+  attachSample: "Sample file for the demo",
+  removeFile: "Remove {file}",
+  goesChain: "Goes to {manager}, {role}, then {hr} in HR",
+  errMax: "{type} is at most {days} at a time.",
+  errService: "{type} starts after {years} years with the company.",
+  errProof: "Add the file first: {proof}.",
+  shortNotice: "Less than {days} days' notice: your manager may still " +
+    "book it.",
 } satisfies EnNamespace;

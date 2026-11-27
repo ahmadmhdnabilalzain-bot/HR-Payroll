@@ -18,8 +18,8 @@ export const reports = {
   deptNote: "Cost is monthly gross pay from this run.",
   natTitle: "Headcount by nationality",
   natBlurb: "How many people of each nationality work here.",
-  natNote: "Headcount by nationality only, as of {date}. The rules for " +
-    "banks are not confirmed yet.",
+  natNote: "Headcount by nationality only, as of {date}. Not " +
+    "confirmed yet.",
   docTitle: "Documents expiring",
   docBlurb: "Residence visas and Emirates IDs, soonest first.",
   docNote: "Tracked here: residence visas and Emirates IDs that have an " +
@@ -53,5 +53,5 @@ export const reports = {
   colTotal: "Total",
   colDated: "Dated",
   fileDraft: "Draft, waiting for sign-off",
-  fileReady: "Ready to upload",
+  fileReady: "Ready to upload (not confirmed by MOHRE or a bank test)",
 } satisfies EnNamespace;

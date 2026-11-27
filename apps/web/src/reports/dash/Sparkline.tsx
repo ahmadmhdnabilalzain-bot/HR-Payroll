@@ -53,3 +53,31 @@ export function Sparkline(p: { series: number[]; compare?: number }) {
     </svg>
   );
 }
+
+/**
+ * A count that barely moves (people paid, 30 to 31): one thin bar a
+ * month from a zero baseline, so a step of one reads as a step of one,
+ * never a spike. The bars grow in once in view (ui/chartMotion); this
+ * month is ink, the rest grey.
+ */
+export function ZeroBars(p: { series: number[] }) {
+  const ref = useRef<SVGSVGElement>(null);
+  const hi = Math.max(...p.series, 1);
+  const n = p.series.length;
+  const gap = 4;
+  const w = (W - gap * (n - 1)) / n;
+  useChartMotion(ref, p.series.join());
+  return (
+    <svg ref={ref} className={s.spark} viewBox={`0 0 ${W} ${H}`}
+      aria-hidden="true" focusable="false">
+      {p.series.map((v, i) => {
+        const h = Math.max((v / hi) * H, 1);
+        return (
+          <rect key={i} x={(w + gap) * i} y={H - h} width={w} height={h}
+            rx={1} className={s.sparkBar} data-now={i === n - 1}
+            data-mark="" data-key={`m${i}`} data-grow="y" />
+        );
+      })}
+    </svg>
+  );
+}

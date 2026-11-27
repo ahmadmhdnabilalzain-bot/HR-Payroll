@@ -11,7 +11,14 @@ import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
 import { beforeApproval } from "../dash/model";
 import { useIssuePhrase, useIssueWords } from "../dash/Panel";
-import { Count, Summary, useRunState, type Column } from "../dash/Summary";
+import {
+  Count,
+  linkPoints,
+  Summary,
+  useRunState,
+  type Column,
+} from "../dash/Summary";
+import { areaHref } from "../dash/itemSeam";
 import { useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import { useTableMoney } from "./nb";
@@ -115,10 +122,13 @@ export function OwnerBriefScreen() {
     ? [r[0]!, r[1]!, phrase(beforeApproval(data, state))] : r);
   return (
     <ReportPage title="Owner brief" period={brief.title} crumbs={crumbs}
-      chart={<Summary label="This week in brief" columns={columns} />}
+      chart={<Summary label="This week in brief"
+        columns={linkPoints(columns, areaHref,
+        ["waiting"])} />}
       explain={(r, c) => c === 2 ? why[r] : undefined}
       columns={[{ label: "Item" }, { label: "What it is, and what next" },
         { label: "Figure", end: true }]}
+      rowHref={(r) => areaHref(String(rows[r]?.[0] ?? ""))}
       rows={rows} csvName="owner-brief-2026-10-27.csv" note={brief.note} />
   );
 }

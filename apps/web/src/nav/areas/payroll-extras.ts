@@ -20,7 +20,7 @@ export const AREAS: readonly Area[] = [
     status: "live", archetype: "FA", roles: HR_GM, route: gate("what-if"),
     keywords: "R09 what if replay owner view basic overtime recompute" },
   { id: "pay.advice", section: "pay", group: "month",
-    label: { en: "Bank advice", ar: "إشعار البنك" },
+    label: { en: "Salary file list", ar: "إشعار البنك" },
     status: "live", archetype: "RP", roles: HR_GM, route: gate("advice"),
     keywords: "R12 bank advice payment list salary file print" },
   { id: "pay.hold", section: "pay", group: "changes",

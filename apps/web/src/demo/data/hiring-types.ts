@@ -86,6 +86,15 @@ export interface HiringData {
       committed: SpendLine | null; offered: SpendLine | null }): Explanation;
     total(label: string, rows: readonly { title: string;
       value: Fils }[]): Explanation;
+    /** A hire's first year: one line per person, at the foot of the
+     * grade, from the engine's twelve payroll months. */
+    hire(key: string, title: string, cost: PositionCost,
+      headcount: number): Explanation;
+    /** The budget left once a hire or a change is counted. */
+    after(key: string, title: string, p: { leftLabel: string;
+      leftNow: Fils; lessLabel: string; less: Fils;
+      /** The drawer's title and result ("Budget left", "Left"). */
+      heading?: string; result?: string }): Explanation;
   };
   budgetBasis: string;
   requestBasis: string;

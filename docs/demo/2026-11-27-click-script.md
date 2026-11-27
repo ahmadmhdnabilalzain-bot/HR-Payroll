@@ -9,7 +9,9 @@ iPhones (Safari).
 
 Every figure below was read from the demo itself on 26 Nov 2026 (build of
 branch release: motion, the new features, hiring, and the payslip-line,
-report, policy and help screens merged). Link:
+report, policy and help screens merged), and re-read on 27 Nov 2026 from
+the wave 1 build (copy, hiring, pay run, documents, reports and phone
+fixes). Link:
 https://hr-payroll-demo-site-223y.onrender.com (add ?v= and the time to
 get the newest copy if a cached page shows). If a figure on screen differs, trust
 the screen and say "this is the sample bank's figure".
@@ -96,7 +98,7 @@ matches a step below, say "I will show you that in a minute".
 as HR manager (Fatima Al Ketbi). Click "Why this number" under the big
 figure.
 
-**They see.** One sentence at the top: "2 bank details hold October pay",
+**They see.** One sentence at the top: "2 bank details are missing. Pay is held until they are fixed.",
 with one black button, "Enter bank details". Under it the net pay figure,
 the date line "Tuesday, 27 October · Zarqan Demo Bank", "29 ready, 2 need
 bank details", "In the salary file AED 908,430.94", "Held out AED
@@ -104,8 +106,9 @@ bank details", "In the salary file AED 908,430.94", "Held out AED
 Oct" (the four steps are Review, Fix, Sign off, Pay), "Waiting for a
 decision" with 4, and the list "Before sign-off: 2 items block sign-off ·
 6 to review". "Why this number" opens a side panel that adds the figure
-up. Further down, "To do" lists "Review the hiring request for Payments
-officer" just after the overdue visa task (step 9 A, hiring).
+up. Further down, "To do" starts with "Sign 5 documents" (waiting for
+your signature), then the overdue visa task, then "Review the hiring
+request for Payments officer" (step 9 A, hiring).
 
 **Say.** "Home answers one question: can October be paid, and what is my
 next step. Every number can be opened to see how it was worked out."
@@ -114,7 +117,7 @@ next step. Every number can be opened to see how it was worked out."
 - Net pay AED 933,730.94 to 31 people, paid on 30 Oct.
 - Gross AED 938,680.94 less deductions AED 4,950.00.
 - October net against September: AED 19,669.06 lower (net change
-  -19,669.06), shown in the trend on Home. Read it off the screen.
+  −19,669.06), shown in the trend on Home. Read it off the screen.
 - In the salary file AED 908,430.94 (30 people); held out AED 25,300.00
   (1 person with no bank account on file).
 - Pension for the 14 UAE nationals is not included and says so on screen.
@@ -141,7 +144,7 @@ is refused in plain words. Then use "Fill from bank letter".
 
 **They see.** After Priya: a message "Priya Nair: IBAN saved. Salary file
 checked again: 31 people, AED 933,730.94.", the sentence becomes "1 bank
-detail holds October pay", "In the salary file" becomes AED 933,730.94
+detail is missing. Pay is held until it is fixed.", "In the salary file" becomes AED 933,730.94
 and "Held out" changes from AED 25,300.00 to "None". After Juma: the
 sentence becomes "October pay is ready for sign-off" with the button "Go
 to sign-off", "31 ready", the step line reads "Step 3 of 4 · Sign off"
@@ -173,7 +176,8 @@ story restarts at step 1 (about 30 seconds to catch up).
 
 **They see.** As the GM, Home reads "October pay waits for your sign-off".
 After the click a stamp reads "Sign-off recorded, Khalid Al Nuaimi, 27
-October 2026 at 09:30", Home reads "October salary file is next", with
+October 2026 at 09:42" (the demo clock: 12 minutes after HR prepared the
+run), Home reads "October salary file is next", with
 the button "Open the salary file", and "Step 4 of 4 · Pay". The list
 heading changes to "Signed off": what is left to review does not hold
 the salary file.
@@ -196,7 +200,8 @@ menu does not open, press Esc and click "Viewing as" again.
 
 **They see.** The pay run at "Step 4 of 4: Pay": "Salary file AED
 933,730.94, 31 people · Zarqan Demo Bank · dated 27 October 2026", "Ready
-to upload to Zarqan Demo Bank.", "The file in brief" (63 lines; "Held
+to upload to Zarqan Demo Bank. Not confirmed by MOHRE or a bank test.",
+"The file in brief" (63 lines; "Held
 out: Nobody"), "What the file check found: No problems found in the
 file.", and the file line by line (name, account, days, fixed pay,
 variable pay). The download is a .SIF file.
@@ -227,9 +232,9 @@ it ask for its own format?" (Discovery question 3.)
 3. Click the gratuity figure, AED 173,928.08.
 
 **They see.** A statement: gratuity AED 173,928.08, unused leave AED
-17,774.19, notice pay, deductions and other dues marked "Not worked out:
-to add by hand before paying", total so far AED 191,702.27, pay by 29
-October. The side panel shows each step in plain words, then "What went
+17,774.19, notice pay, deductions and other dues marked "Not worked out"
+with "To add by hand before paying: use Add other dues", "Gratuity and
+leave pay so far AED 191,702.27", pay by 29 October. The side panel shows each step in plain words, then "What went
 in" and "Rules used", each rule with its source.
 
 **Say.** "Every figure shows its working and the article of the law it
@@ -390,10 +395,15 @@ minutes).**
 1. As HR manager, on Home under "To do", click "Review the hiring request
    for Payments officer" (or People, then "Hiring requests").
 2. The request reads "With HR", HR-REQ-2026-0005, Operations, raised by
-   Arjun Menon, with "Send for sign-off", "Ask for changes", "Put on
-   hold" and the tabs Summary, Messages, Job description, Criteria,
-   Timeline. Click "Send for sign-off", then "Send for sign-off" again
-   to confirm: it reads "Waiting for sign-off".
+   Arjun Menon, with "First-year cost AED 145,219.36", "Left unspent
+   today AED 295,025.00" and "Unspent less this cost AED 149,805.64";
+   the buttons "Send for sign-off" and "Ask for changes" ("Put on hold"
+   is under "More actions") and the tabs Summary, Messages (1), Job
+   description, Criteria, Timeline. Click "Send for sign-off", then
+   "Send for sign-off" again to confirm: it reads "Waiting for
+   sign-off", with "Undo" beside it. The hiring tabs read Open
+   positions, Candidates, Offers, Advertised jobs, Referrals and
+   agencies, Hiring budget, Hiring requests.
 3. People, then "Hiring budget": "First-year budget AED 1,395,284.67",
    "Committed AED 340,659.67", "Offered AED 759,600.00", "Left AED
    295,025.00", one row per budgeted position.
@@ -429,7 +439,8 @@ without touching the real run.
 from.
 
 **F. Referrals and agencies.** People, "Hiring", "Referrals and agencies":
-who referred whom, and what becomes payable after probation.
+who referred whom, and what becomes payable after the hire's first 90
+days (our demo terms).
 
 **G. About this line (employee payslip).** As "Employee, Jose Reyes":
 Pay, "My payslips", October. Each line has an "About this line" button.
@@ -451,7 +462,7 @@ matches your words to the report list. Nothing is made up."
 
 **I. Ask about a policy.** Cmd K, "Policy answers". Type
 "How do I report sick?" and click "Find in policies": a quote from the
-policy ("add a medical certificate from a licensed clinic") with the
+policy ("send a medical report from a medical authority") with the
 link "Leave policy, section 3.2". Open it and click "Acknowledge". A
 question the policies do not cover reads "Not covered in our policies"
 with "Ask HR". Say: "The answer is a quote with its section. The match
@@ -505,7 +516,7 @@ Say the first four out loud during the demo; keep the rest for questions.
 8. **Not built yet:** native iPhone and Android apps (the demo is a
    mobile-friendly website), Arabic screens reviewed by a native speaker
    (Arabic is hidden), single sign-on set up for a client, accounting
-   connectors, an AI assistant.
+   connectors. Answers in the app are rule-based.
 9. **Some screens are demo scenes only.** Several panel areas (for example
    pay elements, pay groups and traffic fines) were drawn from demo data
    and have no real backend yet. The core of this script (pay run, bank

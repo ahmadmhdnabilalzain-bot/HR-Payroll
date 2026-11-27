@@ -47,7 +47,7 @@ const keyOf = (m: number): string => `2026-${String(m).padStart(2, "0")}`;
  */
 const REWORD: [RegExp, string][] = [
   [/were approved but not paid/, "were signed off but not paid"],
-  [/advance approved on/, "advance agreed on"],
+  [/advance approved on/, "advance signed off on"],
   [/from approved hours/, "from hours signed off"],
 ];
 export function reword(s: string): string {
@@ -180,8 +180,9 @@ function dueExplain(c: DemoCompany, s: ReturnType<
     result: { label: "Pay by", value: text(s.display.due) },
     inputs: [{ label: "Last working day", value: text(s.display.lastDay),
       from: "Employee record" }],
-    rules: [{ text: `A final settlement is paid within ` +
-      `${SETTLEMENT_DUE_DAYS} days after the last working day.`,
+    rules: [{ text: `Within ${SETTLEMENT_DUE_DAYS} days of the end of ` +
+      "the contract (Art 53). We count from the last working day: our " +
+      "reading.",
     status: "official", statusLabel: null,
     citation: "Decree-Law 33/2021, Article 53" }],
     steps: [

@@ -96,7 +96,8 @@ export interface DocumentView {
   state: "expired" | "expiring-30" | "expiring-90" | "valid";
 }
 
-export type LeaveTypeId = "lt-annual" | "lt-sick" | "lt-unpaid";
+export type LeaveTypeId = "lt-annual" | "lt-sick" | "lt-maternity" |
+  "lt-parental" | "lt-bereavement" | "lt-study" | "lt-unpaid";
 export type LeaveStatus = "approved" | "pending" | "rejected";
 
 export interface LeaveTypeView {
@@ -104,6 +105,19 @@ export interface LeaveTypeView {
   name: Localized;
   paid: boolean;
   annualDays: number | null;
+  /** The rule as the person asking reads it, and what is checked. */
+  rule: LeaveRuleView;
+}
+
+export interface LeaveRuleView {
+  text: Localized;
+  maxDays: number | null;
+  basis: "working" | "calendar";
+  proof: Localized | null;
+  proofFile: string | null;
+  noticeDays: number;
+  minServiceYears: number;
+  source: Localized;
 }
 
 export interface ReasonOption {

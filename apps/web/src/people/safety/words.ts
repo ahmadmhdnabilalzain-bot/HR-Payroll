@@ -4,7 +4,7 @@ export const T = {
     lede: "Who is covered, the card (number masked) and when cover " +
       "renews. A register only.",
     person: "Person", status: "Status", card: "Card", renewal: "Renewal",
-    all: "All", pending: "Card pending", ended: "Cover ended",
+    all: "All", pending: "Card waiting", ended: "Cover ended",
     covered: "Covered", empty: "Nobody here.",
     back: "Health insurance", insurer: "Insurer", starts: "Cover starts",
     ends: "Cover ended", renews: "Renews", cover: "Cover",

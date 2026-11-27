@@ -64,7 +64,7 @@ export function buildVariableSource(): VariableSource {
 
   const net = (r: BonusRow): Explanation => ({
     id: `bonus-net:${r.employeeId}`, title: "Net bonus", ...base(r),
-    summary: "The bonus less any deduction the engine takes from it. " +
+    summary: "The bonus less any deduction the payroll takes from it. " +
       "None is requested, so the net is the bonus.",
     result: { label: "Net bonus", value: money(r.net) },
     inputs: [{ label: "Bonus", value: money(r.bonus),
@@ -147,7 +147,7 @@ export function buildVariableSource(): VariableSource {
     payableOf: (s) => ({ id: `payable:${s.employeeId}`,
       title: "Commission to pay", ...pay(s),
       summary: "The commission less the clawback on a cancelled " +
-        "sale, then through the engine's deduction rules.",
+        "sale, then through the payroll's deduction rules.",
       result: { label: "To pay", value: money(s.net) },
       inputs: [
         { label: "Commission", value: money(s.commission),

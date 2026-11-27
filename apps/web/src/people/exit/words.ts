@@ -10,7 +10,7 @@ export const X = {
   summary: "Reasons for leaving",
   noSummary: "No interviews held yet.",
   basis: (n: number): string => n === 1
-    ? "From 1 interview held. The bank has one leaver in this sample."
+    ? "From 1 interview held. One leaver in this sample."
     : `From ${n} interviews held.`,
   schedule: "Schedule an interview", scheduleGo: "Schedule",
   scheduleNote: "The interview is with the HR manager. Nothing is sent.",

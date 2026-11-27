@@ -32,11 +32,11 @@ function useApproval(x: ExpenseView): Approval | undefined {
 function useClaimState(x: ExpenseView): [string, Tone] {
   const { data, state } = useDemo();
   const a = useApproval(x);
-  if (a === undefined) return ["Agreed earlier", "done"];
+  if (a === undefined) return ["Signed off earlier", "done"];
   const v = state.decided[a.id];
   return v === undefined ? [`Waiting for ${data.employee(a.checkerId)
     .name.en}`, "check"] : v === "approve"
-    ? ["Agreed", "done"] : ["Declined", "neutral"];
+    ? ["Signed off", "done"] : ["Declined", "neutral"];
 }
 
 function ClaimStatus(p: { x: ExpenseView }) {
@@ -44,7 +44,7 @@ function ClaimStatus(p: { x: ExpenseView }) {
   return <Status tone={tone}>{word}</Status>;
 }
 
-/** Agree and Decline on the row, for the person who decides. */
+/** Sign off and Decline on the row, for the person who decides. */
 function ClaimActions(p: { x: ExpenseView }) {
   const { data, state, dispatch } = useDemo();
   const toast = useToast();
@@ -53,13 +53,13 @@ function ClaimActions(p: { x: ExpenseView }) {
   const mine = mayDecide(data, state.role, a);
   const decide = (v: "approve" | "decline") => (): void => {
     dispatch({ type: "decide", id: a.id, verdict: v });
-    toast.show(v === "approve" ? "Claim agreed" : "Claim declined",
+    toast.show(v === "approve" ? "Claim signed off" : "Claim declined",
       () => dispatch({ type: "undecide", id: a.id }));
   };
   return (
     <RowDecision open={state.decided[a.id] === undefined} mine={mine}
       waitingFor={data.employee(a.checkerId).name.en}
-      yes={{ label: "Agree", run: decide("approve") }}
+      yes={{ label: "Sign off", run: decide("approve") }}
       no={{ label: "Decline", run: decide("decline") }}
       undo={mine ? () => dispatch({ type: "undecide", id: a.id })
         : undefined} />
@@ -72,7 +72,7 @@ export function Expenses() {
   return (
     <FilterList title="Expense claims"
       lede={"Claims with their receipts. The person's manager decides, " +
-        "or the General manager above the claim limit; an agreed claim " +
+        "or the General manager above the claim limit; a signed-off claim " +
         "is repaid with the next pay run."}
       rows={pay.expenses} rowKey={(x) => x.id}
       searchText={(x) => `${x.name} ${x.title}`}
@@ -115,7 +115,7 @@ function ClaimPage(p: { x: ExpenseView }) {
   const decide = (v: "approve" | "decline"): void => {
     if (a === undefined) return;
     dispatch({ type: "decide", id: a.id, verdict: v });
-    toast.show(v === "approve" ? "Claim agreed" : "Claim declined",
+    toast.show(v === "approve" ? "Claim signed off" : "Claim declined",
       () => dispatch({ type: "undecide", id: a.id }));
   };
   return (
@@ -126,7 +126,8 @@ function ClaimPage(p: { x: ExpenseView }) {
       history={[{ when: x.date, what: `Sent by ${x.name}` },
         ...(a === undefined || verdict === undefined ? [] : [{
           when: dayMonth(data.payCalendar().asOf, lang),
-          what: `Claim ${verdict === "approve" ? "agreed" : "declined"} by ` +
+          what: `Claim ${verdict === "approve" ? "signed off" : "declined"} ` +
+            "by " +
             whoIs(data, a.checkerId) }])]}
       back={{ label: "Expense claims", href: LIST }}
       actions={a !== undefined && verdict === undefined && isChecker ? (
@@ -134,7 +135,7 @@ function ClaimPage(p: { x: ExpenseView }) {
           <button type="button" className={`${b.btn} ${b.quiet}`}
             onClick={() => decide("decline")}>Decline</button>
           <button type="button" className={`${b.btn} ${b.primary}`}
-            onClick={() => decide("approve")}>Agree</button>
+            onClick={() => decide("approve")}>Sign off</button>
         </>
       ) : undefined}
       stats={[
@@ -161,7 +162,7 @@ function ClaimPage(p: { x: ExpenseView }) {
           )}
           {a !== undefined && verdict !== undefined && (
             <div className={s.decide}>
-              <p>{`${verdict === "approve" ? "Agreed" : "Declined"} by ` +
+              <p>{`${verdict === "approve" ? "Signed off" : "Declined"} by ` +
                 whoIs(data, a.checkerId)}</p>
               {isChecker && (
                 <button type="button" className={`${b.btn} ${b.quiet}`}

@@ -335,3 +335,87 @@
     margin: 0;
   }
 }
+
+/*
+ * Documents to sign: the page grid (title at the page's start, like
+ * every page), the lists capped at a reading width; each paper is one
+ * line on the white grouped list (the pay run's list surface).
+ */
+.signPage > :not(header) {
+  max-inline-size: 760px;
+}
+
+.papers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 4%,
+      transparent),
+    0 8px 24px color-mix(in srgb, var(--color-shadow) 6%, transparent);
+}
+
+.paper {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+}
+
+.paper + .paper::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--space-4) 0;
+  block-size: 1px;
+  background: var(--color-divider);
+}
+
+.paperLine {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-block-size: 44px;
+}
+
+.paperTitle {
+  min-inline-size: 0;
+  font-weight: 500;
+}
+
+/* Phone: the date goes under the name; the action stays at the end. */
+@media (max-width: 760px) {
+  .paperLine {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-block: var(--space-1);
+  }
+
+  .paperMeta {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  .paperActions {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+.paperMeta {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.paperActions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.paper > .stamp {
+  margin-block-end: var(--space-2);
+}

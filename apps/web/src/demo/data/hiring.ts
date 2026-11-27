@@ -119,6 +119,25 @@ export function adaptHiring(c: DemoCompany, managerId: string)
         summary: "Each position in the list, added up.", resultLabel: label,
         parts: rows.map((r) => ({ text: r.title, value: money(r.value) })),
         emptyText: "No positions in the list", scope: c.rulesScope }),
+      hire: (key, title, cost, headcount) => sumExplain({
+        id: `hire-ask:${key}`, title: "First-year cost", subject: title,
+        summary: `Twelve payroll months of gross pay from ` +
+          `${cost.startText} at the foot of grade ${cost.grade}, for ` +
+          (headcount === 1 ? "one person." : `each of ${headcount} ` +
+            "people."), resultLabel: "First year, gross",
+        parts: Array.from({ length: headcount }, (_, i) => ({
+          text: headcount === 1 ? "Twelve payroll months"
+            : `Person ${i + 1}, twelve payroll months`,
+          value: money(cost.firstYear) })),
+        notComputed: [NOT_IN], scope: c.rulesScope }),
+      after: (key, title, p) => sumExplain({ id: `hire-after:${key}`,
+        title: p.heading ?? "Budget left", subject: title,
+        summary: `${p.leftLabel}, less ${p.lessLabel.toLowerCase()}.`,
+        resultLabel: p.result ?? "Left", parts: [
+          { text: p.leftLabel, value: money(p.leftNow) },
+          { text: `Less ${p.lessLabel.toLowerCase()}`,
+            value: money(p.less), less: true }],
+        scope: c.rulesScope }),
     },
     budgetBasis: HIRING_BUDGET_BASIS,
     requestBasis: REQUEST_BASIS,

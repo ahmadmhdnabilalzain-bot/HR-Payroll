@@ -33,10 +33,9 @@ export function leavePage(d: DemoData): PageSpec {
           why: LAW_MIN } };
     }
     return { key: `type:${t.id}`, label: t.name.en,
-      value: t.paid ? "Paid, in steps" : "Not paid",
-      help: t.paid ? "Days used are counted, with no yearly balance. " +
-        "The steps are under Sick leave."
-        : "Days used are counted and taken out of the month's pay." };
+      value: t.paid ? t.rule.maxDays === null ? "Paid"
+        : `Paid, up to ${t.rule.maxDays} days` : "Not paid",
+      help: `${t.rule.text.en} ${t.rule.source.en}.` };
   });
   return { title: "Leave policies",
     lede: "Leave types, and the rules behind them.",
@@ -172,15 +171,15 @@ export function deductionsPage(): PageSpec {
 export function wpsPage(d: DemoData): PageSpec {
   const h = d.headline();
   const held = d.heldIds().length;
-  return { title: "WPS and bank file",
-    lede: "The settings of the monthly salary file. The bank checks the " +
-      "file again when it is uploaded.",
+  return { title: "Salary file settings",
+    lede: "The settings of the monthly salary file (the WPS file). The " +
+      "bank checks it again when it is uploaded.",
     groups: [
       g("Salary file",
         { key: "wps:employer", label: "Employer",
           value: d.companyName.en },
         { key: "wps:format", label: "File",
-          value: "WPS salary file, one per pay run",
+          value: "Salary file, one per pay run",
           help: "Made from the pay run; downloaded on the Pay step." },
         { key: "wps:people", label: "People in this month's file",
           value: `${h.sifPeople} of ${h.headcount}` },

@@ -15,7 +15,7 @@ test("a question is answered by a quote with a section citation",
     await page.goto("/#/me/policies");
     await page.getByLabel("Your question").fill("How do I report sick?");
     await page.getByRole("button", { name: "Find in policies" }).click();
-    await expect(page.getByText(/medical certificate/).first())
+    await expect(page.getByText(/medical report/).first())
       .toBeVisible();
     await page.getByRole("link", { name: "Leave policy, section 3.2" })
       .click();

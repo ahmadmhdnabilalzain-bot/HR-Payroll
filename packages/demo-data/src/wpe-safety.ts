@@ -64,7 +64,7 @@ export interface InsuranceCoverRow {
 }
 
 const WORD: Record<CoverStatus, string> = { covered: "Covered",
-  "card-pending": "Card pending", ended: "Cover ended" };
+  "card-pending": "Card waiting", ended: "Cover ended" };
 
 /** Four digits from the employee number: sample, never a real card. */
 const lastFour = (e: DemoEmployee): string =>
@@ -247,7 +247,7 @@ export const ILOE_BASIS = "ILOE is the unemployment insurance scheme. " +
   "the joining date, until subscriptions are loaded. No fees are shown.";
 export const ILOE_EXEMPT_NOTE = "A few groups are " +
   "exempt (for example people under 18 and domestic workers). Nobody at " +
-  "the bank falls in one of them.";
+  "the company falls in one of them.";
 
 export interface IloeRow {
   id: string;
@@ -259,16 +259,22 @@ export interface IloeRow {
   display: { status: string; note: string };
 }
 
+/** The scheme began on 1 January 2023: nobody is shown as covered
+ * earlier. The later of the joining date and that day. */
+export const ILOE_START = "2023-01-01";
+const iloeSince = (joined: string): string =>
+  joined > ILOE_START ? joined : ILOE_START;
+
 export function iloeRows(c: DemoCompany): IloeRow[] {
   return active(c).map((e): IloeRow => {
     const due = daysIn(e) < NEW_JOINER_DAYS;
     const status: IloeStatus = due ? "due" : "subscribed";
     return { id: `iloe-${e.id}`, employeeId: e.id, name: e.fullName,
       jobText: jobTitleText(e.jobKey), status,
-      since: due ? null : shortDateOf(e.joiningDate),
+      since: due ? null : shortDateOf(iloeSince(e.joiningDate)),
       display: { status: due ? "Due" : "Subscribed",
         note: due ? `Joined ${shortDateText(e.joiningDate)}; to be ` +
-          "subscribed" : `Since ${shortDateText(e.joiningDate)}` } };
+          "subscribed" : `Since ${shortDateText(iloeSince(e.joiningDate))}` } };
   });
 }
 
@@ -285,7 +291,7 @@ interface PolicySeed { id: string; name: string; version: string;
 const POLICIES: readonly PolicySeed[] = [
   { id: "pol-handbook", name: "Staff handbook", version: "4.2",
     on: "2026-01-01", ownerJob: "hr-manager", before: ["4.1", "2025-01-01"],
-    summary: "How working at the bank works: hours, conduct at work, " +
+    summary: "How working at the company works: hours, conduct at work, " +
       "pay days and who to ask." },
   { id: "pol-conduct", name: "Code of conduct", version: "5.0",
     on: "2026-01-01", ownerJob: "compliance-officer",

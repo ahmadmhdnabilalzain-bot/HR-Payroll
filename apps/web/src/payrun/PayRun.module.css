@@ -75,10 +75,13 @@
   gap: var(--space-1);
 }
 
+/* The step's title on the page title token (PageHead's 28/34, 22/28
+ * on phones); the sticky row above keeps the compact 17 px run title. */
 .stepTitle {
-  font-size: var(--text-xl);
+  font-size: var(--text-title);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  line-height: var(--text-title-lh);
+  letter-spacing: -0.4px;
 }
 
 .stepSub {
@@ -350,6 +353,29 @@
   min-block-size: 0;
 }
 
+/* Opened: the field unfolds on the row's height (the closing fold in
+ * reverse), so the rows under it ease down rather than jump. */
+.rowForm:not([data-closing="true"]) {
+  animation: form-open var(--dur-slow) var(--ease-out);
+}
+
+.rowForm:not([data-closing="true"]) > * {
+  overflow: clip;
+  overflow-clip-margin: 4px;
+}
+
+/* On a phone the row's "Enter IBAN" sits on its own line: the form
+ * starts at that line's height (--form-from), so nothing below moves
+ * as the button gives way to it. */
+@keyframes form-open {
+  from {
+    grid-template-rows: 0fr;
+    min-block-size: var(--form-from, 0px);
+    margin-block-start: var(--form-from-gap, 0px);
+    opacity: 0;
+  }
+}
+
 /* Saved: the form folds away on the row's height while the chip
  * leaves (FixStep.tsx), so the rows under it rise in step, never in
  * one frame. Its ink goes first, then the space. */
@@ -364,6 +390,137 @@
 
 .rowForm[data-closing="true"] > * {
   overflow: hidden;
+}
+
+/* Cancelled: on a phone it folds to the height of the "Enter IBAN"
+ * line that takes its place (--form-from), so nothing jumps at the
+ * swap; on a laptop the button sits at the row's end and it folds to
+ * nothing. */
+.rowForm[data-cancel="true"] {
+  min-block-size: var(--form-from, 0px);
+  margin-block-start: var(--form-from-gap, 0px);
+  transition: grid-template-rows var(--dur-slow) var(--ease-in-out),
+    min-block-size var(--dur-slow) var(--ease-in-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+/* Fix: the list's two section headers, keyed rows of their own (so
+ * they slide with the rows), and each row's text kept to a 640 px
+ * measure. */
+.sectionRow {
+  position: relative;
+  padding: var(--space-4) var(--space-4) var(--space-1);
+}
+
+.sectionRow + .row::before {
+  display: none;
+}
+
+.row + .sectionRow {
+  margin-block-start: var(--space-2);
+}
+
+.row + .sectionRow::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 1px;
+  background: var(--color-divider);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.sectionCount {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.sectionCount::before {
+  content: "·";
+  margin-inline-end: var(--space-2);
+}
+
+.group .rowMain {
+  max-inline-size: 640px;
+}
+
+.doneMark {
+  display: inline-flex;
+  margin-inline-end: 6px;
+  color: var(--color-text);
+  vertical-align: -2px;
+}
+
+.setupNote {
+  margin-block-start: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.setupNote .inlineLink {
+  min-block-size: 0;
+  font-size: var(--text-sm);
+}
+
+/* The inline IBAN field: 360 px, monospaced, grouped in fours as
+ * typed; no card around it. Its validity line keeps one line's
+ * height, so the row never moves while the words change. */
+.iban {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.ibanRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ibanInput {
+  flex: 0 1 auto;
+  inline-size: min(360px, 100%);
+  min-inline-size: 0;
+  min-block-size: 40px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.ibanInput[aria-invalid="true"] {
+  border-color: var(--color-text);
+}
+
+.ibanLinks {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.ibanLive {
+  min-block-size: 18px;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 18px;
+}
+
+.ibanLive[data-error="true"] {
+  color: var(--color-text);
+  font-weight: 500;
 }
 
 /* The working, as a quiet link at the end of the advice line. */
@@ -1013,6 +1170,8 @@
     text-align: start;
   }
   .rowForm {
+    --form-from: 36px;
+    --form-from-gap: var(--space-2);
     grid-column: 1 / -1;
   }
 
@@ -1127,6 +1286,10 @@
   .rowForm[data-closing="true"] {
     transition: none;
   }
+
+  .rowForm:not([data-closing="true"]) {
+    animation: none;
+  }
 }
 
 @media (max-width: 1000px) {
@@ -1199,4 +1362,41 @@
 .release[data-released="false"] .releaseDot {
   background: transparent;
   box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+/* Sign off anyway: the sheet's open checks, one line each. */
+.anywayLede {
+  color: var(--color-text-muted);
+}
+
+.anywayList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.anywayList li {
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-divider);
+}
+
+.anywayActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+/* Undo, under the decision it takes back. */
+.chainUndo {
+  justify-self: start;
+  margin-block-start: var(--space-1);
+  margin-inline-start: calc(var(--space-3) * -1);
+}
+
+.chainItem > .chainUndo {
+  grid-column: 2;
+  margin-block-start: calc(var(--space-3) * -1);
 }

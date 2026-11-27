@@ -56,7 +56,7 @@ export const payrun = {
   colChange: "Against {month}",
   colFile: "Salary file",
   inFile: "In the file",
-  held: "Held: no IBAN",
+  held: "Held: bank details",
   newThisMonth: "New this month",
   noChange: "No change",
   settlement: "{name}'s final settlement is paid outside this run.",
@@ -79,6 +79,16 @@ export const payrun = {
   fixedTitle: "Fixed",
   fixedIban: "IBAN entered for {name}. The salary file was checked " +
     "again and the pay joins it.",
+  stopsHead: "Stops pay",
+  checkHead: "To check",
+  setupNote: "{title}. This is setup, outside this run.",
+  noneNow: "none now",
+  setupLink: "Open pension",
+  ibanStart: "An IBAN here starts with AE",
+  ibanDigits: "Only digits after AE",
+  ibanCount: { one: "{count} of 23 characters",
+    other: "{count} of 23 characters" },
+  ibanOk: "Complete, and the check digits add up",
   nothingToFix: "Nothing stops the salary file now.",
   fileNow: "Salary file now",
   fileLine: { one: "{count} person", other: "{count} people" },
@@ -124,6 +134,16 @@ export const payrun = {
   viewAsGm: "View as General manager",
   openChecks: { one: "{count} check is not marked reviewed yet.",
     other: "{count} checks are not marked reviewed yet." },
+  anywayTitle: { one: "{count} check not reviewed",
+    other: "{count} checks not reviewed" },
+  anywayLede: { one: "This check is not marked reviewed yet. It does " +
+    "not hold pay; signing off releases the run as it stands.",
+    other: "These {count} checks are not marked reviewed yet. They do " +
+    "not hold pay; signing off releases the run as it stands." },
+  anywayBtn: "Sign off anyway",
+  anywayReview: "Review the checks",
+  signedToast: "Pay run signed off.",
+  sentBackToast: "Pay run sent back to HR.",
   allChecked: "Every check is marked reviewed.",
 
   payTitle: "Pay",
@@ -136,7 +156,8 @@ export const payrun = {
   fileHeadline: "Salary file for {count} people, {amount}, to {bank}, " +
     "dated {date}",
   draft: "Draft: the file is final once the General manager signs off.",
-  ready: "Ready to upload to {bank}.",
+  ready: "Ready to upload to {bank}. Not confirmed by MOHRE or a bank " +
+    "test.",
   download: "Download salary file",
   summaryTitle: "The file in brief",
   sumPeople: "People in the file",

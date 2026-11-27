@@ -1,4 +1,4 @@
-# Coverage 2: the Mubinflow demo against the navigation map
+# Coverage 2: the MubinFlow demo against the navigation map
 
 Date 2026-11-26. Build: branch integ, HEAD 0448198 (WP18 merge), built fresh
 with vite into a scratch folder and served on its own port. Map:
@@ -79,7 +79,7 @@ row that lives inside a host screen.
 | H12 | M | Help and training videos | setup.help, me.help | partial |
 | H13 | K | Team chat and intranet | - | missing |
 | H14 | K | Meetings with transcript | - | missing |
-| H15 | K | AI assistant, cited policy Q&A | - | missing |
+| H15 | K | Rule-based answers, cited policy Q&A | - | missing |
 | H16 | K | Agent actions you confirm | - | missing |
 
 **People**
@@ -278,7 +278,7 @@ row that lives inside a host screen.
 | S35 | K | Accounting sync (Xero...) | - | missing |
 | S36 | K | Slack and Teams | - | missing |
 | S43 | K | ERP integration (SAP...) | - | missing |
-| S37 | B | Data import, Keka cut-over | setup.import | live |
+| S37 | B | Data import and cut-over | setup.import | live |
 | S38 | K | Parallel run compare | setup.parallel | live |
 | S39 | M | Data export, backup, health | setup.location | live |
 | S40 | M | Companies, numbering | setup.company | live |
@@ -375,7 +375,7 @@ have, then rows that do not fit a bank.
 | | | | | partial: public holidays only; no comp-off or grants |
 | 19 | E16 | Ask about a payslip line | HR | |
 | | | | | not built: employee asks about a payslip line |
-| 20 | H15 | AI assistant, cited policy Q&A | HR | |
+| 20 | H15 | Rule-based answers, cited policy Q&A | HR | |
 | | | | | not built: cited policy questions and answers |
 | 21 | P66 | Sales commission statements | HR, GM | |
 | | | | | no data: sales commission statements (RMs) |

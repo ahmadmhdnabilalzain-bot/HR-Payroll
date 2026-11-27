@@ -1,8 +1,10 @@
+import type { Fils } from "@payroll/engine";
 import type { HomeNotification, HomeTask } from "../../demo/data/home-types";
 import type {
   HiringRequestView,
   Milestone,
   PositionBudget,
+  PositionCost,
   RequestEvent,
   RequestStatus,
   SpendLine,
@@ -255,6 +257,43 @@ export function timelineOf(d: DemoData, s: S, r: RequestNow): Milestone[] {
   timeToFillDays: r.timeToFillDays, startIso: r.startIso, progress });
 }
 
+export interface TrackPoint {
+  key: string;
+  label: string;
+  state: Milestone["state"];
+  /** Where it sits on the track, 0 to 1; null before the sign-off. */
+  at: number | null;
+  dueText: string;
+}
+
+/**
+ * The milestone track: each milestone placed by its due date between
+ * the sign-off and the start, with today (the demo day) on the same
+ * scale. Before the sign-off only the start has a date.
+ */
+export function trackOf(d: DemoData, r: Pick<RequestNow, "signedOffIso" |
+  "startIso">, ms: readonly Milestone[]): { points: TrackPoint[];
+  today: number | null; todayText: string; late: Milestone[] } {
+  const from = r.signedOffIso;
+  const span = from === null ? 1
+    : Math.max(1, daysFrom(d, from, r.startIso));
+  const at = (iso: string | null): number | null => from === null ||
+    iso === null ? null : Math.min(1, Math.max(0,
+    daysFrom(d, from, iso) / span));
+  const points = ms.map((m): TrackPoint => ({ key: m.key, label: m.label,
+    state: m.state, at: at(m.due?.iso ?? null),
+    dueText: m.due?.display ?? "" }));
+  return { points, today: at(d.hiring.asOf),
+    todayText: d.hiring.dateText(d.hiring.asOf),
+    late: ms.filter((m) => m.state === "overdue") };
+}
+
+/** Whole days from one ISO date to another (the demo's calendar). */
+function daysFrom(d: DemoData, a: string, b: string): number {
+  // daysLeft(iso, n) is the days from the demo day to iso + n.
+  return (d.hiring.daysLeft(b, 0) ?? 0) - (d.hiring.daysLeft(a, 0) ?? 0);
+}
+
 /** The request behind a requisition (the Board's link to it). */
 export const requestOfRequisition = (d: DemoData, s: S, reqId: string)
   : RequestNow | null =>
@@ -407,6 +446,45 @@ export function budgetRows(d: DemoData, s: S): BudgetRow[] {
       : withCost(d, row, last.grade, last.steps)), session: row.session,
     changes, pending: mine.find((a) => a.decision === null) ?? null };
   });
+}
+
+/** A position as it would stand with a budget change signed off. */
+export const rowAfterAsk = (d: DemoData, row: BudgetRow,
+  ask: Pick<AskNow, "grade" | "steps">): BudgetRow =>
+  ({ ...row, ...withCost(d, row, ask.grade, ask.steps) });
+
+/** What a hire would cost, and the budget it is measured against. */
+export interface HireCost {
+  /** One person's first twelve payroll months (the engine's). */
+  cost: PositionCost;
+  headcount: number;
+  /** Every person's first year, added up. */
+  firstYear: Fils;
+  /** The budgeted position it fills, or null for a new position. */
+  position: BudgetRow | null;
+  /**
+   * Budgeted position: its own budget left. New position: what is left
+   * unspent across every budgeted position today, for comparison only
+   * (a new position brings its own budget when it is signed off).
+   */
+  leftNow: Fils;
+  /** `leftNow` less this hire's first year; below 0 is over budget. */
+  leftAfter: Fils;
+}
+
+/** The cost of a hire at the foot of its grade (steps 0), as the
+ * budget rows cost a position made from a request. */
+export function hireCost(d: DemoData, s: S, p: { grade: number;
+  startIso: string; headcount: number; budgetId: string | null })
+  : HireCost {
+  const rows = budgetRows(d, s);
+  const cost = d.hiring.cost(p.grade, 0, p.startIso);
+  const n = Math.max(1, Math.floor(p.headcount));
+  const firstYear = (cost.firstYear * BigInt(n)) as Fils;
+  const position = rows.find((x) => x.id === p.budgetId) ?? null;
+  const leftNow = position?.left ?? d.hiring.totals(rows).left;
+  return { cost, headcount: n, firstYear, position, leftNow,
+    leftAfter: (leftNow - firstYear) as Fils };
 }
 
 /** Budgeted positions a new request can fill (no live request yet). */

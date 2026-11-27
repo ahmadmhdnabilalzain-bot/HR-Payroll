@@ -28,14 +28,14 @@ export function Advice() {
   });
   const heldCount = rows.filter((r) => r[4] !== "Pay").length;
   return (
-    <ReportPage title="Bank advice"
+    <ReportPage title="Salary file list"
       period={`October 2026, file ${f.fileName}, to ${f.bank}`}
       figure={{ label: `${f.people} people in the salary file`,
         value: <Money value={f.total} size="lg" tween={false} /> }}
       columns={[{ label: "Person" }, { label: "Account (IBAN)" },
         { label: "Amount", end: true }, { label: "Value date" },
         { label: "Advice" }]}
-      rows={rows} csvName="bank-advice-2026-10.csv"
+      rows={rows} csvName="salary-file-list-2026-10.csv"
       note={["Each line is the salary file's own line, so the total is " +
         "the file's.", out.length === 0 ? "" : `${formatList(out, lang)} ` +
         `${out.length === 1 ? "is" : "are"} not in the file: no IBAN ` +

@@ -119,6 +119,8 @@ export function barFor(role: Role): SectionId[] {
 export function firstRoute(role: Role, section: SectionId, c: NavCtx)
   : AreaRoute {
   const a = areasFor(role, section)[0];
+  // Setup has its own first page: every area with its state.
+  if (section === "setup" && a !== undefined) return { section: "setup" };
   return a === undefined ? { section: "home" } : routeOf(a, c);
 }
 
@@ -126,10 +128,20 @@ export function firstRoute(role: Role, section: SectionId, c: NavCtx)
 export function wordOfRoute(role: Role, r: AreaRoute, c: NavCtx)
   : SectionId | null {
   if (r.section === "home") return "home";
-  const key = (x: AreaRoute): string =>
-    [x.section, ...(x.rest ?? [])].join("/");
-  const hit = areasFor(role).find((a) => key(routeOf(a, c)) === key(r)) ??
-    areasFor(role).find((a) => routeOf(a, c).section === r.section);
+  // The area whose route is the longest prefix of the path (a form
+  // under a list belongs to the list's word); else the first area in
+  // the same route section.
+  const path = keyOf(r);
+  let hit: Area | undefined;
+  let len = 0;
+  for (const a of areasFor(role)) {
+    const k = keyOf(routeOf(a, c));
+    if (k.length <= len || k.length > path.length) continue;
+    if (!k.every((x, i) => path[i] === x)) continue;
+    hit = a;
+    len = k.length;
+  }
+  hit ??= areasFor(role).find((a) => routeOf(a, c).section === r.section);
   return hit?.section ?? null;
 }
 

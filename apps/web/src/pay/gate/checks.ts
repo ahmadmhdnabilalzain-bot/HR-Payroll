@@ -59,7 +59,7 @@ export function gateChecks(g: GateInput): GateCheck[] {
     { id: "corrections", label: "Open pay corrections",
       pass: g.correctionsWaiting === 0, to: ["pay-run", "corrections"],
       detail: g.correctionsWaiting === 0 ? "None waiting. " +
-        `${g.correctionsBooked} agreed earlier are paid in ${g.nextRun}.`
+        `${g.correctionsBooked} signed off earlier are paid in ${g.nextRun}.`
         : `${g.correctionsWaiting} waiting for a decision.` },
     { id: "contracts", label: "Pay matches each contract",
       pass: mism.length === 0, to: ["people"],

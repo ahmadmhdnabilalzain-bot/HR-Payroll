@@ -1,5 +1,6 @@
 .box {
   position: relative;
+  min-inline-size: 0;
 }
 
 .button {
@@ -20,9 +21,15 @@
 }
 
 @media (hover: hover) {
-  .button:hover {
+  .button:hover:not(:disabled) {
     border-color: var(--color-border);
   }
+}
+
+.button:disabled {
+  border-color: var(--color-divider);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-muted);
 }
 
 .button:active {
@@ -39,6 +46,7 @@
 }
 
 .value {
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
