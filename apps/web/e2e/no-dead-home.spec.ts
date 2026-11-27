@@ -189,16 +189,30 @@ test("gm-sign-off-says-why-and-goes-to-fix", async ({ page }) => {
   await expect(page).toHaveURL(/#\/pay-run\/fix$/);
 });
 
-test("trend-points-toggle-their-month", async ({ page }) => {
+test("every-trend-point-opens-its-month", async ({ page }) => {
   await page.goto("/");
+  for (const [month, key] of [["June", "06"], ["July", "07"],
+    ["August", "08"], ["September", "09"], ["October", "10"]] as const) {
+    await home(page);
+    const point = page.getByRole("link", { name: new RegExp(
+      `^${month} 2026`) });
+    const box = await point.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box!.x + box!.width / 2,
+      box!.y + box!.height / 2);
+    await expect(page).toHaveURL(new RegExp(
+      `#/reports/variance/2026-${key}$`));
+    await expect(page.locator("main")).toContainText(
+      new RegExp(`${month} 2026`));
+  }
+  // The legend opens the run it speaks of; the change, its variance.
   await home(page);
-  const june = page.getByRole("button", { name: /^June 2026/ });
-  const box = await june.boundingBox();
-  expect(box).not.toBeNull();
-  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
-  await expect(june).toHaveAttribute("aria-pressed", "true");
-  await june.press("Enter");
-  await expect(june).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("link", { name: "October: prepared, not paid yet" })
+    .click();
+  await expect(page).toHaveURL(/#\/pay-run\/review$/);
+  await home(page);
+  await page.getByRole("link", { name: /net against September/ }).click();
+  await expect(page).toHaveURL(/#\/reports\/variance$/);
 });
 
 test("a-click-within-100ms-of-a-route-change-lands", async ({ page }) => {
