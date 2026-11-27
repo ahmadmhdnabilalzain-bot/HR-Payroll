@@ -15,6 +15,10 @@ export const tpl = {
   nextMonth: "Next",
   who: "Who",
   csv: "Download CSV",
+  pdf: "Download PDF",
+  share: "Share",
+  linkCopied: "Link copied: {title}",
+  shareFailed: "Copy the address bar to share this report.",
   print: "Print",
   changes: "Changes",
   explainHint: "Figures with a dotted line open how they are " +

@@ -136,6 +136,13 @@
   margin-block: calc((var(--text-title-lh) - 44px) / 2);
 }
 
+/* A report's own actions: Download PDF, Print, Share (ReportPage). */
+.reportActs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 /* The "..." menu: secondary page actions. */
 .menuWrap {
   position: relative;
