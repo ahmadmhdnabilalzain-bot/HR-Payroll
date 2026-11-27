@@ -62,6 +62,41 @@ export interface StageInput {
   onRelayout(): void;
 }
 
+/* ---------- the weak-graphics gate ---------- */
+
+/** Frames timed before the gate decides, after the first few (shader
+ * compiles), and the average frame time above which the film gives
+ * way to the product (25 fps: integrated graphics at 150 % scaling). */
+export const GATE_FRAMES = 20;
+export const GATE_SKIP = 4;
+export const GATE_MS = 40;
+
+/** `?film=1` keeps the film on any graphics (checks, a slow demo). */
+export function filmForced(): boolean {
+  return new URLSearchParams(location.search).get("film") === "1";
+}
+
+/** A software renderer (no graphics chip): never the film. */
+export function softwareGL(gl: WebGLRenderingContext |
+  WebGL2RenderingContext): boolean {
+  try {
+    const ext = gl.getExtension("WEBGL_debug_renderer_info");
+    const name = String(gl.getParameter(ext === null ? gl.RENDERER
+      : ext.UNMASKED_RENDERER_WEBGL));
+    return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i
+      .test(name);
+  } catch {
+    return false;
+  }
+}
+
+/** Whether the frames timed so far (ms apart) are too slow. */
+export function tooSlow(gaps: number[]): boolean {
+  const timed = gaps.slice(GATE_SKIP, GATE_SKIP + GATE_FRAMES);
+  if (timed.length < GATE_FRAMES) return false;
+  return timed.reduce((a, b) => a + b, 0) / timed.length > GATE_MS;
+}
+
 /* ---------- small maths ---------- */
 
 const clamp = (x: number): number => Math.min(1, Math.max(0, x));
@@ -374,6 +409,14 @@ export async function mountStage(i: StageInput): Promise<() => void> {
     i.onFail();
     return () => undefined;
   }
+  const forced = filmForced();
+  if (!forced && softwareGL(renderer.getContext())) {
+    i.root.dataset["gate"] = "software";
+    renderer.dispose();
+    canvas.remove();
+    i.onFail();
+    return () => undefined;
+  }
   const owner = new Owner();
   const p = i.palette;
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -525,8 +568,28 @@ export async function mountStage(i: StageInput): Promise<() => void> {
   let frames = 0;
   let cpu = 0;
   let since = performance.now();
+  /* The gate: if the first frames come too slowly (weak graphics), the
+   * film fades straight into the product. */
+  const gaps: number[] = [];
+  let last = -1;
+  let gated = forced;
   const loop = (now: number): void => {
     raf = requestAnimationFrame(loop);
+    if (!gated) {
+      if (last >= 0) gaps.push(now - last);
+      last = now;
+      if (gaps.length >= GATE_SKIP + GATE_FRAMES) {
+        gated = true;
+        if (tooSlow(gaps)) {
+          i.root.dataset["gate"] = "slow";
+          tween.kill();
+          cancelAnimationFrame(raf);
+          raf = -1;
+          i.onEnd();
+          return;
+        }
+      }
+    }
     /* The ribbon always breathes a little, so draw each frame while
      * on screen; the rest is a pure function of the scroll position. */
     const t0 = performance.now();
@@ -549,10 +612,12 @@ export async function mountStage(i: StageInput): Promise<() => void> {
   };
   const run = (): void => {
     const go = onScreen && document.visibilityState === "visible";
+    if (raf < 0) return;
     if (go && raf === 0) raf = requestAnimationFrame(loop);
     if (!go && raf !== 0) {
       cancelAnimationFrame(raf);
       raf = 0;
+      last = -1;
     }
   };
   const seen = new IntersectionObserver((e) => {
