@@ -105,8 +105,13 @@ export function veil(el: HTMLElement, o: { duration: number;
   }
   const done = (): void => {
     if (o.out === true) return;
-    if (safeGetAnimations(el, { subtree: true }).some((x) => x !== a &&
-      (x.effect as KeyframeEffect | null)?.pseudoElement === "::after")) {
+    const rest = safeGetAnimations(el, { subtree: true }).filter((x) =>
+      x !== a && x.playState !== "finished" && x.playState !== "idle" &&
+      (x.effect as KeyframeEffect | null)?.pseudoElement === "::after");
+    if (rest.length > 0) {
+      // Another fade still runs here: lift the veil once it ends, not
+      // never (an early return used to leave data-veil on for good).
+      void Promise.allSettled(rest.map((x) => x.finished)).then(done);
       return;
     }
     delete el.dataset["veil"];
