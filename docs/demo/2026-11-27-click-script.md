@@ -429,7 +429,8 @@ without touching the real run.
 from.
 
 **F. Referrals and agencies.** People, "Hiring", "Referrals and agencies":
-who referred whom, and what becomes payable after probation.
+who referred whom, and what becomes payable after the hire's first 90
+days (our demo terms).
 
 **G. About this line (employee payslip).** As "Employee, Jose Reyes":
 Pay, "My payslips", October. Each line has an "About this line" button.
@@ -451,7 +452,7 @@ matches your words to the report list. Nothing is made up."
 
 **I. Ask about a policy.** Cmd K, "Policy answers". Type
 "How do I report sick?" and click "Find in policies": a quote from the
-policy ("add a medical certificate from a licensed clinic") with the
+policy ("send a medical report from a medical authority") with the
 link "Leave policy, section 3.2". Open it and click "Acknowledge". A
 question the policies do not cover reads "Not covered in our policies"
 with "Ask HR". Say: "The answer is a quote with its section. The match

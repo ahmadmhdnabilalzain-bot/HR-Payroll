@@ -52,6 +52,19 @@ IT manager.
    systems for one or two months, compare the numbers. The migration tool
    is not built yet; we start from their exports.
 
+## Prepared answers on the law
+- **Gratuity:** needs ONE year of service. "Two years" is the cap (two
+  years' wage), not the minimum.
+- **Annual leave:** 30 days (the law does not say calendar or working;
+  our sample policy counts working days).
+- **Referrals:** the 8% is the AGENCY fee. The staff referral bonus is a
+  flat amount by grade. Both payable after the hire's first 90 days (our
+  demo terms).
+- **Loan deduction vs WPS (UNVERIFIED, Resolution 340/2026 from secondary
+  sources only):** "The law caps deductions at half the wage; WPS may
+  still flag a person paid below 85% of the wage; we would confirm with
+  MOHRE and the WPS agent."
+
 ## If it goes wrong (60 seconds)
 Slow link: offline file. Odd screen: reload (story restarts). Wrong
 person: initials, top right. Amounts a problem: "Hide amounts" in the top
