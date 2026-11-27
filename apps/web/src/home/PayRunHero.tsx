@@ -84,10 +84,13 @@ export function PayRunHero() {
               {phase === "file" && <HeroStamp />}
             </div>
             <p className={s.line}>
-              <span>{t("home.netTo", { count: h.headcount })}</span>
+              {/* Who is paid and when: the pay run's Pay step. */}
+              <a className={tl.link} href={hrefOf("pay-run", "pay")}>
+                {t("home.netTo", { count: h.headcount })}</a>
               <span className={s.dot} aria-hidden="true" />
-              <span>{t("home.paysOn", { date: formatDayMonth(cal.payday,
-                lang) })}</span>
+              <a className={tl.link} href={hrefOf("pay-run", "pay")}>
+                {t("home.paysOn", { date: formatDayMonth(cal.payday,
+                  lang) })}</a>
               <ExplainLink explanation={net} className={s.why}>
                 <Icon name="info" size={16} />
                 {t("home.whyNumber")}

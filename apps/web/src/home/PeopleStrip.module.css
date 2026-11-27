@@ -205,12 +205,28 @@
   cursor: pointer;
 }
 
+/* A footnote that opens its person: muted as before, and a 44 px
+ * target without moving a thing. */
+a.sub {
+  overflow: clip;
+  overflow-clip-margin: 13px;
+  color: var(--color-text-muted);
+}
+
+a.sub::after {
+  position: absolute;
+  inset: -13px -4px;
+  content: "";
+}
+
 .above:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
-a.who:hover {
+a.who:hover,
+a.doc:hover > .who,
+a.sub:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }

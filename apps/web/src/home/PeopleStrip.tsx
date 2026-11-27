@@ -174,10 +174,11 @@ function LeaveWeek() {
           `${d.off.length}`).join(", ")}
       </span>
       {next !== undefined && (
-        <span className={s.sub}>
+        <a className={`${s.sub} ${s.above}`}
+          href={hrefOf("people", next.employeeId)}>
           {t("home.cardLeaveNext", { name: data.employee(next.employeeId)
             .name[lang], date: formatDayMonth(next.startDate, lang) })}
-        </span>
+        </a>
       )}
     </Card>
   );
@@ -194,20 +195,22 @@ function Expiring(p: { why?: Explanation | undefined }) {
     <Card href={hrefOf("reports", "documents")} value={soon}
       label={t("home.cardDocs")} why={p.why}>
       {first !== undefined && (
-        <span className={s.doc}>
-          <a className={`${s.who} ${s.above}`} href={hrefOf("people",
-            "files", "documents", first.employeeId)}>
-            {data.employee(first.employeeId).name[lang]}</a>
+        // The person and their paper: their documents.
+        <a className={`${s.doc} ${s.above}`} href={hrefOf("people",
+          "files", "documents", first.employeeId)}>
+          <span className={s.who}>
+            {data.employee(first.employeeId).name[lang]}</span>
           <span className={s.when}>
             {first.kind[lang]}, {formatDayMonth(first.expiresOn, lang)}
           </span>
-        </span>
+        </a>
       )}
       {then !== undefined && (
-        <span className={s.sub}>
+        <a className={`${s.sub} ${s.above}`} href={hrefOf("people",
+          "files", "documents", then.employeeId)}>
           {t("home.cardDocsNext", { name: data.employee(then.employeeId)
             .name[lang], date: formatDayMonth(then.expiresOn, lang) })}
-        </span>
+        </a>
       )}
     </Card>
   );
