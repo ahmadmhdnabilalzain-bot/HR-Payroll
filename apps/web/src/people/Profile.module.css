@@ -10,9 +10,14 @@ div.page {
 }
 
 @media (max-width: 760px) {
-  /* The face's negative margin is 4 px larger on a phone's title. */
   div.page {
-    padding-block-start: calc(var(--space-4) + 4px);
+    padding-block-start: var(--space-4);
+  }
+
+  /* On a phone the face takes its own height, so the actions row
+   * under the name never runs into it. */
+  .face {
+    margin-block: 0;
   }
 }
 
