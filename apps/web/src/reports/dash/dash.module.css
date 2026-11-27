@@ -657,11 +657,14 @@ a.tileIn:focus-visible {
 }
 
 .trendLinks > li {
-  flex: 1;
+  flex: 1 1 0;
+  min-inline-size: 0;
 }
 
 .barLink {
   display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
   block-size: 100%;
   border-radius: var(--radius-control);
 }

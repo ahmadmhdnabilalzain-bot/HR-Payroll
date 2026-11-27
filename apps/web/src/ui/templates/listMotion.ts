@@ -19,7 +19,7 @@
  * Back button all take the same path.
  */
 
-import { settleAfter } from "../settle";
+import { capTransition, settleAfter } from "../settle";
 import { slideRoute } from "../routeMotion";
 
 /** theme/motion.css: --dur-slow and --ease-in-out. */
@@ -34,6 +34,7 @@ const CARD = "list-card";
 interface Transition {
   finished: Promise<void>;
   ready?: Promise<void>;
+  skipTransition?: () => void;
 }
 type Doc = Document & {
   startViewTransition?: (cb: () => Promise<void>) => Transition;
@@ -257,6 +258,7 @@ function runRoute(oldUrl: string, render: () => void,
   });
   // A transition skipped by the next one rejects `ready`; nothing waits.
   vt.ready?.catch(() => undefined);
+  capTransition(vt);
   vt.finished.finally(() => {
     clearNew();
     delete html.dataset["listMotion"];
