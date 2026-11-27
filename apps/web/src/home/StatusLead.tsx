@@ -91,16 +91,20 @@ export function StatusAction(p: { onIban?(issue: Issue): void }) {
   const detail = useRunDetail();
   const maker = nameOf(data.runPeople().makerId);
   const since = `${detail.preparedOn}T${detail.preparedAt}:00+04:00`;
+  // Pressed while it cannot sign: the reason, said once more, aloud.
+  const [tried, setTried] = useState(false);
   return (
     <div className={s.action}>
       {run.isChecker && (run.phase === "approve" ||
         run.phase === "bank-details") && (
         <>
+          {/* Focusable while it cannot sign: a press says why. */}
           <button type="button" className={`${b.btn} ${b.primary}
-            ${b.large}`} disabled={!run.canDecide}
+            ${b.large}`} aria-disabled={run.canDecide ? undefined : true}
             aria-describedby={held.length === 0 ? undefined
               : "approve-why"}
             onClick={() => {
+              if (!run.canDecide) { setTried(true); return; }
               const id = runApprovalId(data);
               if (id !== null) recordDecision(id);
               run.decide("approve");
@@ -119,6 +123,21 @@ export function StatusAction(p: { onIban?(issue: Issue): void }) {
                 href={hrefOf("pay-run", "fix")}>{t("home.goToFix")}</a>
             </p>
           )}
+          <p className={s.blocked} role="status" aria-live="polite"
+            id="approve-blocked">
+            {tried && !run.canDecide && held.length > 0 && (
+              <>
+                {/* English starts the sentence with a word ("Two"),
+                  which takes the plural form; one passes as 1. */}
+                {t("home.approveBlocked", { count: lang === "en" &&
+                  held.length > 1 ? countWord(held.length) : held.length,
+                name: maker })}
+                {" "}
+                <a className={`${tl.link} ${s.fixLink}`}
+                  href={hrefOf("pay-run", "fix")}>{t("home.goToFix")}</a>
+              </>
+            )}
+          </p>
         </>
       )}
       {!run.isChecker && firstHeld === undefined &&
@@ -149,4 +168,12 @@ export function StatusAction(p: { onIban?(issue: Issue): void }) {
       )}
     </div>
   );
+}
+
+const WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six",
+  "Seven", "Eight", "Nine", "Ten"];
+
+/** "Two" for 2, the digits past ten: a sentence starts with a word. */
+function countWord(n: number): string {
+  return WORDS[n] ?? String(n);
 }

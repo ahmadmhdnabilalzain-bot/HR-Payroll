@@ -113,7 +113,9 @@ async function pressEveryLink(page: Page, hrefs: string[]): Promise<void> {
     await home(page);
     const el = page.locator(`main [href="${href}"], ` +
       `main [data-href="${href}"]`).first();
-    await el.scrollIntoViewIfNeeded();
+    // To the middle: "in view" can still be under the sticky header
+    // (Decisions, just shown, leaves the cards above it at the top).
+    await el.evaluate((e) => e.scrollIntoView({ block: "center" }));
     const box = await el.boundingBox();
     if (box === null) { failed.push(`${href}: not on screen`); continue; }
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
@@ -165,8 +167,15 @@ for (const [role, name] of [["hr", null],
       "#/pay-run/fix", "#/pay-run/approve", "#/reports/summary",
       "#/people/papers/pension", "#/reports/departments",
       "#/home/tasks/soon",
-      ...(role === "hr" ? ["#/time-off", "#approvals-title"]
-        : ["#/reports/dashboard-exec"])]));
+      ...(role === "hr" ? ["#/time-off", "#approvals-title"] : [])]));
+    // Every department, the Executive office too, opens the same report.
+    const depts = page.locator("section[aria-labelledby='dept-title'] " +
+      "[data-rowlink]");
+    expect(await depts.count()).toBeGreaterThan(5);
+    for (const h of await depts.evaluateAll((xs) =>
+      xs.map((x) => x.getAttribute("data-href")))) {
+      expect(h).toBe("#/reports/departments");
+    }
     await pressEveryLink(page, hrefs);
   });
 }
@@ -176,7 +185,23 @@ test("gm-sign-off-says-why-and-goes-to-fix", async ({ page }) => {
   await asRole(page, "General manager");
   await home(page);
   const sign = page.getByRole("button", { name: "Sign off October pay" });
-  await expect(sign).toBeDisabled();
+  // Not a dead control: it keeps the focus and, pressed, says why.
+  await expect(sign).toHaveAttribute("aria-disabled", "true");
+  await expect(sign).not.toHaveAttribute("disabled");
+  const note = page.locator("#approve-blocked");
+  await expect(note).toHaveAttribute("aria-live", "polite");
+  await expect(note).toHaveText("");
+  // aria-disabled: Playwright would wait for it to enable.
+  await sign.click({ force: true });
+  await expect(note).toHaveText(new RegExp("^Two bank details are " +
+    "still missing\\. Fatima\\sAl\\sKetbi \\(HR\\) is fixing " +
+    "them\\. Go to Fix$"));
+  await expect(page).toHaveURL(/#\/home$/);
+  await sign.focus();
+  await expect(sign).toBeFocused();
+  await note.getByRole("link", { name: "Go to Fix" }).click();
+  await expect(page).toHaveURL(/#\/pay-run\/fix$/);
+  await home(page);
   const why = page.locator("#approve-why");
   await expect(why).toContainText("Sign-off waits for bank details");
   await expect(why).toContainText(
@@ -185,21 +210,45 @@ test("gm-sign-off-says-why-and-goes-to-fix", async ({ page }) => {
   await page.getByRole("link", { name: "Waiting for a decision" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#approvals-title")).toBeFocused();
+  // ... and marks the list for a second, so the jump is seen.
+  const decisions = page.locator(
+    "section[aria-labelledby='approvals-title']");
+  await expect(decisions).toHaveAttribute("data-flash", "");
+  await expect(decisions).not.toHaveAttribute("data-flash", /.*/,
+    { timeout: 2500 });
   await why.getByRole("link", { name: "Go to Fix" }).click();
   await expect(page).toHaveURL(/#\/pay-run\/fix$/);
 });
 
-test("trend-points-toggle-their-month", async ({ page }) => {
+for (const [role, name] of [["hr", null],
+  ["gm", "General manager"]] as const) {
+test(`${role}-every-trend-point-opens-its-month`, async ({ page }) => {
   await page.goto("/");
+  if (name !== null) await asRole(page, name);
+  for (const [month, key] of [["June", "06"], ["July", "07"],
+    ["August", "08"], ["September", "09"], ["October", "10"]] as const) {
+    await home(page);
+    const point = page.getByRole("link", { name: new RegExp(
+      `^${month} 2026`) });
+    const box = await point.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box!.x + box!.width / 2,
+      box!.y + box!.height / 2);
+    await expect(page).toHaveURL(new RegExp(
+      `#/reports/variance/2026-${key}$`));
+    await expect(page.locator("main")).toContainText(
+      new RegExp(`${month.slice(0, 3)} 2026 against`));
+  }
+  // The legend opens the run it speaks of; the change, its variance.
   await home(page);
-  const june = page.getByRole("button", { name: /^June 2026/ });
-  const box = await june.boundingBox();
-  expect(box).not.toBeNull();
-  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
-  await expect(june).toHaveAttribute("aria-pressed", "true");
-  await june.press("Enter");
-  await expect(june).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("link", { name: "October: prepared, not paid yet" })
+    .click();
+  await expect(page).toHaveURL(/#\/pay-run\/review$/);
+  await home(page);
+  await page.getByRole("link", { name: /net against September/ }).click();
+  await expect(page).toHaveURL(/#\/reports\/variance$/);
 });
+}
 
 test("a-click-within-100ms-of-a-route-change-lands", async ({ page }) => {
   await page.goto("/");
@@ -235,4 +284,26 @@ test("a-click-within-100ms-of-a-route-change-lands", async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`${next!.href.replace(
     /[.*+?^${}()|[\]\\/]/g, "\\$&")}$`), { timeout: 1000 });
   await cdp.send("Animation.setPlaybackRate", { playbackRate: 1 });
+});
+
+test("captions-open-what-they-name", async ({ page }) => {
+  await page.goto("/");
+  for (const [name, url] of [
+    [/^Net pay to 31 people$/, /#\/pay-run\/pay$/],
+    [/^pays on 30 Oct$/, /#\/pay-run\/pay$/],
+    [/^Next: Rafiq Hossain, from 16 Nov$/, /#\/people\/emp-\d+$/],
+    [/^Jose Reyes Residence visa, 8 Nov$/,
+      /#\/people\/files\/documents\/emp-\d+$/],
+    [/^Then Majid Al Ketbi, 21 Nov$/,
+      /#\/people\/files\/documents\/emp-\d+$/],
+  ] as const) {
+    await home(page);
+    const link = page.getByRole("link", { name }).first();
+    await link.scrollIntoViewIfNeeded();
+    const box = await link.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box!.x + box!.width / 2,
+      box!.y + box!.height / 2);
+    await expect(page).toHaveURL(url);
+  }
 });

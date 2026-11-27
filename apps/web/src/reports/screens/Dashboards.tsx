@@ -160,6 +160,7 @@ export function DashboardExec() {
       }}>
         <Tiles label="Key figures"
           tiles={execTiles(src, data, state, words)}
+          changeHref={hrefOf("reports", "variance")}
           explain={{ net: run.explain["run:net"],
             gross: run.explain["run:gross"],
             paid: run.explain["run:people"] }} />

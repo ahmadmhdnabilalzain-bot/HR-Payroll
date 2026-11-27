@@ -10,8 +10,8 @@ import { Count } from "../ui/Count";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
-import { reducedMotion } from "../demo/motion";
 import { Avatar } from "../ui/Avatar";
+import { showDecisions } from "./Approvals";
 import s from "./PeopleStrip.module.css";
 
 /** Days ahead the leave card looks, today included. */
@@ -174,10 +174,11 @@ function LeaveWeek() {
           `${d.off.length}`).join(", ")}
       </span>
       {next !== undefined && (
-        <span className={s.sub}>
+        <a className={`${s.sub} ${s.above}`}
+          href={hrefOf("people", next.employeeId)}>
           {t("home.cardLeaveNext", { name: data.employee(next.employeeId)
             .name[lang], date: formatDayMonth(next.startDate, lang) })}
-        </span>
+        </a>
       )}
     </Card>
   );
@@ -194,20 +195,22 @@ function Expiring(p: { why?: Explanation | undefined }) {
     <Card href={hrefOf("reports", "documents")} value={soon}
       label={t("home.cardDocs")} why={p.why}>
       {first !== undefined && (
-        <span className={s.doc}>
-          <a className={`${s.who} ${s.above}`} href={hrefOf("people",
-            "files", "documents", first.employeeId)}>
-            {data.employee(first.employeeId).name[lang]}</a>
+        // The person and their paper: their documents.
+        <a className={`${s.doc} ${s.above}`} href={hrefOf("people",
+          "files", "documents", first.employeeId)}>
+          <span className={s.who}>
+            {data.employee(first.employeeId).name[lang]}</span>
           <span className={s.when}>
             {first.kind[lang]}, {formatDayMonth(first.expiresOn, lang)}
           </span>
-        </span>
+        </a>
       )}
       {then !== undefined && (
-        <span className={s.sub}>
+        <a className={`${s.sub} ${s.above}`} href={hrefOf("people",
+          "files", "documents", then.employeeId)}>
           {t("home.cardDocsNext", { name: data.employee(then.employeeId)
             .name[lang], date: formatDayMonth(then.expiresOn, lang) })}
-        </span>
+        </a>
       )}
     </Card>
   );
@@ -224,14 +227,8 @@ function Waiting(p: { why?: Explanation | undefined }) {
       label={t("home.cardWaiting")} why={p.why} onClick={(e) => {
         if (e.metaKey || e.ctrlKey) return;
         e.preventDefault();
-        // Decisions comes into view and takes the focus, so the keys
-        // carry on from there.
-        const to = document.getElementById("approvals-title");
-        if (to === null) return;
-        to.scrollIntoView({ block: "start",
-          behavior: reducedMotion() ? "auto" : "smooth" });
-        to.tabIndex = -1;
-        to.focus({ preventScroll: true });
+        // Decisions comes into view, is marked and takes the focus.
+        showDecisions();
       }}>
       <span className={s.faces}>
         {ids.slice(0, FACES).map((id, i) => (

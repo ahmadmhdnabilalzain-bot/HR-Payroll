@@ -2,7 +2,7 @@ import { Explainable } from "../../components/explain";
 import type { Explanation } from "../../components/explain/types";
 import { formatNumber, MINUS } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { Money } from "../../ui/Money";
 import { useEntrance } from "../../ui/templates/listEnter";
 import type { Change, Figure, TileModel } from "./model";
@@ -25,34 +25,32 @@ export function FigureView(p: { f: Figure }) {
 }
 
 /** "+AED 5.00 against Sep", "+1 day against Sep", "Same as Sep". */
-export function ChangeView(p: { c: Change }) {
+export function ChangeView(p: { c: Change;
+  /** Where the change is explained (the variance report): a link. */
+  href?: string | undefined }) {
   const { lang } = useLocale();
   const c = p.c;
   if (c === null) return null;
+  const box = (children: ReactNode): ReactNode => p.href === undefined
+    ? <span className={s.tileChange}>{children}</span>
+    : <a className={`${s.tileChange} ${s.changeLink}`}
+      href={p.href}>{children}</a>;
   if (c.kind === "money") {
-    return (
-      <span className={s.tileChange}>
-        {c.fils === 0n ? `Same as ${c.against}` : (
-          <><Money value={c.fils} size="sm" signed tween={false} />
-            {` against ${c.against}`}</>
-        )}
-      </span>
-    );
+    return box(c.fils === 0n ? `Same as ${c.against}` : (
+      <><Money value={c.fils} size="sm" signed tween={false} />
+        {` against ${c.against}`}</>
+    ));
   }
-  if (c.n === 0) {
-    return <span className={s.tileChange}>{`Same as ${c.against}`}</span>;
-  }
+  if (c.n === 0) return box(`Same as ${c.against}`);
   const abs = Math.abs(c.n);
   const unit = c.unit === undefined ? ""
     : ` ${abs === 1 ? c.unit.replace(/s$/, "") : c.unit}`;
-  return (
-    <span className={s.tileChange}>
-      <span className="tabular">
-        {`${c.n < 0 ? MINUS : "+"}${formatNumber(abs, lang)}${unit}`}
-      </span>
-      {` against ${c.against}`}
+  return box(<>
+    <span className="tabular">
+      {`${c.n < 0 ? MINUS : "+"}${formatNumber(abs, lang)}${unit}`}
     </span>
-  );
+    {` against ${c.against}`}
+  </>);
 }
 
 function Meter(p: { part: number; whole: number }) {
@@ -67,7 +65,9 @@ function Meter(p: { part: number; whole: number }) {
 
 function Body(p: { t: TileModel; why?: Explanation | undefined;
   /** The tile has a working and a page: the label is the link. */
-  labelHref?: string }) {
+  labelHref?: string;
+  /** Where its change against last month is explained. */
+  changeHref?: string | undefined }) {
   const t = p.t;
   return (
     <>
@@ -83,7 +83,7 @@ function Body(p: { t: TileModel; why?: Explanation | undefined;
             <FigureView f={t.figure} />
           </Explainable>)}
       {t.sub !== undefined && <span className={s.tileSub}>{t.sub}</span>}
-      <ChangeView c={t.change} />
+      <ChangeView c={t.change} href={p.changeHref} />
       <span className={s.tileArt}>
         {t.series !== undefined && t.series.length > 1 && (
           t.zero === true ? <ZeroBars series={t.series} />
@@ -104,7 +104,10 @@ function Body(p: { t: TileModel; why?: Explanation | undefined;
  */
 export function Tiles(p: { tiles: TileModel[]; label: string;
   /** The working behind a tile's figure, by tile id. */
-  explain?: Readonly<Record<string, Explanation | undefined>> }) {
+  explain?: Readonly<Record<string, Explanation | undefined>>;
+  /** Where a change against last month is explained; a tile that is
+   * a whole link keeps its change as text (no link in a link). */
+  changeHref?: string }) {
   // The tiles rise in once per route, 40 ms apart; movement only, so
   // their figures read at full contrast from the first frame.
   const list = useRef<HTMLUListElement>(null);
@@ -116,12 +119,14 @@ export function Tiles(p: { tiles: TileModel[]; label: string;
           data-money={t.figure.kind === "money"}
           data-card-box="">
           {t.href === undefined ? <div className={s.tileIn}>
-            <Body t={t} why={p.explain?.[t.id]} /></div>
+            <Body t={t} why={p.explain?.[t.id]}
+              changeHref={p.changeHref} /></div>
             : p.explain?.[t.id] !== undefined ? (
               // A figure with its working stays its own button; the
               // label opens the page (never a button inside a link).
               <div className={s.tileIn}>
-                <Body t={t} why={p.explain[t.id]} labelHref={t.href} />
+                <Body t={t} why={p.explain[t.id]} labelHref={t.href}
+                  changeHref={p.changeHref} />
               </div>
             ) : (
               <a className={s.tileIn} href={t.href} data-card="">

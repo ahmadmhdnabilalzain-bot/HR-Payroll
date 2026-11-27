@@ -109,8 +109,14 @@
   outline-offset: -12px;
 }
 
-.point[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+/* The other months' figures show while their point is pointed at or
+ * focused (no motion: they appear and go). */
+.tag[data-on="false"] {
+  display: none;
+}
+
+.point:is(:hover, :focus-visible) + .tag[data-on="false"] {
+  display: block;
 }
 
 .tag {
@@ -148,6 +154,7 @@
 
 .change {
   display: flex;
+  inline-size: fit-content;
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-2);

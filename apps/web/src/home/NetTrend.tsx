@@ -1,5 +1,5 @@
 import { fils, type Fils } from "@payroll/engine";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { hrefOf } from "../demo/route";
 import { useLocale } from "../i18n/LocaleProvider";
 import { usePay } from "../pay/load";
@@ -8,6 +8,7 @@ import { Money } from "../ui/Money";
 import { Avatar } from "../ui/Avatar";
 import { useChartMotion } from "../ui/chartMotion";
 import s from "./NetTrend.module.css";
+import tl from "./TextLink.module.css";
 
 /** Chart box in SVG units; the SVG scales to its column. */
 const W = 400;
@@ -57,9 +58,8 @@ export function NetTrend() {
   const pay = usePay();
   const runs = pay.runs;
   const fig = useRef<HTMLElement>(null);
-  // A pressed point shows its own month's figure (press again to put
-  // it away); the last two months always show theirs.
-  const [pick, setPick] = useState<number | null>(null);
+  // Each point opens its own month's variance; a point pointed at or
+  // focused shows its figure; the last two months always show theirs.
   const pts = pointsOf(runs);
   const paid = runs.filter((r) => r.paid).length;
   const last = runs.at(-1);
@@ -84,7 +84,8 @@ export function NetTrend() {
           {t("home.trendTitle", { from: first.label.split(" ")[0] ?? "",
             to: last.label.split(" ")[0] ?? "" })}
         </h2>
-        <p className={s.note}>{t("home.trendNote")}</p>
+        <a className={`${s.note} ${tl.link}`}
+          href={hrefOf("pay-run", "review")}>{t("home.trendNote")}</a>
       </div>
       <figure className={s.figure} ref={fig}>
         <svg className={s.chart} viewBox={`0 0 ${W} ${H}`}
@@ -101,20 +102,18 @@ export function NetTrend() {
               `${(pts[i]!.x / W) * 100}%`, insetBlockStart:
               `${(pts[i]!.y / H) * 100}%` }} data-paid={r.paid}
               data-label="">
-              <button type="button" className={s.point}
-                aria-pressed={pick === i}
-                onClick={() => setPick(pick === i ? null : i)}>
+              <a className={s.point}
+                href={hrefOf("reports", "variance", r.id)}>
                 <span className="visually-hidden">
                   {r.label}{r.paid ? "" : `, ${t("home.trendPrepared")}`}
                   {": "}<Money value={r.net} tween={false} />
                 </span>
-              </button>
-              {(i >= runs.length - 2 || pick === i) && (
-                <span className={s.tag} aria-hidden="true"
-                  data-end={i === runs.length - 1}>
-                  <Money value={r.net} size="sm" tween={false} />
-                </span>
-              )}
+              </a>
+              <span className={s.tag} aria-hidden="true"
+                data-end={i === runs.length - 1}
+                data-on={i >= runs.length - 2}>
+                <Money value={r.net} size="sm" tween={false} />
+              </span>
             </li>
           ))}
         </ol>
@@ -124,7 +123,8 @@ export function NetTrend() {
           ))}
         </div>
       </figure>
-      <p className={s.change}>
+      <a className={`${s.change} ${tl.link}`}
+        href={hrefOf("reports", "variance")}>
         <span className={s.delta}>
           <span className="visually-hidden">
             {change < 0n ? t("home.trendDown") : t("home.trendUp")}
@@ -135,7 +135,7 @@ export function NetTrend() {
           {t("home.trendAgainst", { month:
             before?.label.split(" ")[0] ?? "" })}
         </span>
-      </p>
+      </a>
       <ul className={s.drivers} aria-label={t("home.trendDrivers")}>
         {drivers.map((d) => (
           <li key={d.employeeId}>

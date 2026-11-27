@@ -28,6 +28,9 @@ export const home = {
     "missing or mistyped IBAN. A pay run is never paid in part.",
   fixingSince: "{name} in HR is fixing them, since {date} at {time}.",
   goToFix: "Go to Fix",
+  approveBlocked: { one: "One bank detail is still missing. {name} (HR) " +
+      "is fixing it.", other: "{count} bank details are still missing. " +
+      "{name} (HR) is fixing them." },
   netTo: { one: "Net pay to {count} person", other: "Net pay to {count} " +
     "people" },
   paysOn: "pays on {date}",

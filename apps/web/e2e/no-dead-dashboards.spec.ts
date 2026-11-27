@@ -247,3 +247,48 @@ test("the-current-pay-run-dot-opens-its-step", async ({ page }) => {
   await review.click();
   await expect(page).toHaveURL(/#\/pay-run\/review$/);
 });
+
+/** Decisions on Home, asked for: in view, marked for a second, focused. */
+async function decisionsShown(page: Page): Promise<void> {
+  await expect(page).toHaveURL(/#\/home\/decisions$/);
+  await expect(page.locator("#approvals-title")).toBeFocused();
+  const panel = page.locator("section[aria-labelledby='approvals-title']");
+  await expect(panel).toHaveAttribute("data-flash", "");
+  await expect(panel).toBeInViewport();
+  await expect(panel).not.toHaveAttribute("data-flash", /.*/,
+    { timeout: 3000 });
+  // At rest: the title below the sticky header, on screen.
+  const top = await page.locator("#approvals-title").evaluate((t) =>
+    t.getBoundingClientRect().top);
+  expect(top).toBeGreaterThan(90);
+  expect(top).toBeLessThan(400);
+}
+
+test("waiting-rows-open-the-decisions-list", async ({ page }) => {
+  await page.goto("/");
+  await open(page, "#/reports/dashboard-hr", "HR dashboard");
+  await page.locator("main tbody tr", { hasText: "Waiting for a decision" })
+    .locator("td").first().click();
+  await decisionsShown(page);
+  await asRole(page, "General manager");
+  await open(page, "#/reports/dashboard-exec", "Executive dashboard");
+  await page.locator("main tbody tr", { hasText:
+    "Waiting for your decision" }).locator("td").first().click();
+  await decisionsShown(page);
+});
+
+test("exec-tile-changes-open-the-variance", async ({ page }) => {
+  await page.goto("/");
+  await asRole(page, "General manager");
+  await open(page, "#/reports/dashboard-exec", "Executive dashboard");
+  const changes = page.locator("main [data-tile] a", { hasText:
+    /against Sep/ });
+  expect(await changes.count()).toBeGreaterThanOrEqual(3);
+  for (let i = 0; i < 3; i++) {
+    await open(page, "#/reports/dashboard-exec", "Executive dashboard");
+    await changes.nth(i).click();
+    await expect(page).toHaveURL(/#\/reports\/variance$/);
+    await expect(page.getByRole("heading", { level: 1 }))
+      .toHaveText("Variance against last month");
+  }
+});

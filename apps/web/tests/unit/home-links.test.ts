@@ -49,10 +49,8 @@ describe("home links", () => {
   it("departments-open-their-report", () => {
     const ids = d.departments().map((x) => x.id);
     expect(ids).toContain("dept-exec");
-    expect(deptHref("dept-exec", "gm")).toBe("#/reports/dashboard-exec");
-    expect(deptHref("dept-exec", "hr")).toBe("#/reports/departments");
-    expect(deptHref(ids.find((x) => x !== "dept-exec") ?? "", "gm"))
-      .toBe("#/reports/departments");
+    // Every department, the Executive office too, for HR and the GM.
+    expect(deptHref()).toBe("#/reports/departments");
   });
 
   it("the-step-line-opens-the-step-the-run-is-on", () => {

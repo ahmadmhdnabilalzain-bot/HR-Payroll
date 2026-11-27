@@ -67,6 +67,20 @@
   font-size: var(--text-xs);
 }
 
+/* Said when the disabled sign-off is pressed; takes no room before. */
+.blocked {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+}
+
+.blocked:empty {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 /* "Go to Fix": underlined, so it reads as the way out of the wait. */
 .fixLink {
   color: var(--color-text);
