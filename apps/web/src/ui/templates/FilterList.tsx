@@ -57,6 +57,9 @@ function useBarHeight(): void {
 /** At this many rows or fewer, a summary band sits above the table. */
 export const SHORT_LIST = 5;
 
+/** Fewer rows than this: no search box (a glance finds the row). */
+export const SEARCH_MIN = 8;
+
 const isAll = (id: string, label: string): boolean =>
   id === "all" || /^all\b/i.test(label);
 
@@ -64,7 +67,8 @@ const isAll = (id: string, label: string): boolean =>
 function bandOf<T>(rows: T[], segs: ListSegment<T>[] | undefined,
   total: string): ListSummary[] {
   const out = (segs ?? []).filter((x) => !isAll(x.id, x.label))
-    .map((x) => ({ label: x.label, value: rows.filter(x.match).length }));
+    .map((x) => ({ label: x.label, value: rows.filter(x.match).length }))
+    .filter((x) => x.value > 0);
   return out.length > 0 ? out : [{ label: total, value: rows.length }];
 }
 
@@ -122,14 +126,24 @@ export function FilterList<T>(p: {
     setSegRaw(v);
     saveView(key, { q, seg: v });
   };
-  const active = p.segments?.find((x) => x.id === seg);
-  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  // An empty or tiny list gets no search; a chip with nothing in it is
+  // left out (never the first or the chosen one); one chip is no
+  // choice, so then there is no chip row at all.
+  const searching = p.searchText !== undefined &&
+    p.rows.length >= SEARCH_MIN;
+  const chips = (p.segments ?? []).filter((x, i) => i === 0 ||
+    x.id === seg || p.rows.some(x.match));
+  const chipRow = p.rows.length > 0 && chips.length > 1;
+  const active = chipRow ? p.segments?.find((x) => x.id === seg)
+    : undefined;
+  const words = !searching ? []
+    : q.toLowerCase().split(/\s+/).filter(Boolean);
   const shown = p.rows.filter((r) => (active === undefined ||
     active.match(r)) && words.every((w) =>
     (p.searchText?.(r) ?? "").toLowerCase().includes(w)));
   const band = p.rows.length > 0 && p.rows.length <= SHORT_LIST
     ? p.summary ?? bandOf(p.rows, p.segments, t("tpl.inList")) : [];
-  const many = (p.segments?.length ?? 0) > 4;
+  const many = chips.length > 4;
   const segRow = useRef<HTMLDivElement>(null);
   useGlide(segRow, "seg");
   // Rows rise in once per route; a filter, a search or a decision
@@ -151,8 +165,10 @@ export function FilterList<T>(p: {
           ))}
         </dl>
       )}
+      {(searching || chipRow || (p.rows.length > 0 &&
+        p.filters !== undefined)) && (
       <div className={s.toolbar}>
-        {p.searchText !== undefined && (
+        {searching && (
           <label className={s.searchBox}>
             <Icon name="search" />
             <span className="visually-hidden">{t("tpl.search")}</span>
@@ -162,11 +178,11 @@ export function FilterList<T>(p: {
           </label>
         )}
         {p.filters}
-        {p.segments !== undefined && (
+        {chipRow && (
           <div className={s.segScroll} data-many={many}>
             <div className={s.segments} role="group" ref={segRow}
               aria-label={t("tpl.filter")}>
-              {p.segments.map((x) => (
+              {chips.map((x) => (
                 <button key={x.id} type="button"
                   aria-pressed={seg === x.id}
                   onClick={() => setSeg(x.id)}>
@@ -181,10 +197,12 @@ export function FilterList<T>(p: {
           {t("tpl.shown", { n: shown.length, total: p.rows.length })}
         </span>
       </div>
+      )}
       <div className={m.host} ref={host}>
         {shown.length === 0 ? (
           <div className={s.emptyState}>
-            {p.rows.length > 0 && (q !== "" || active !== p.segments?.[0]) ? (
+            {p.rows.length > 0 && (words.length > 0 ||
+              (active !== undefined && active !== p.segments?.[0])) ? (
               <>
                 <p>{t("tpl.noMatch")}</p>
                 <button type="button" className={`${b.btn} ${b.secondary}`}
@@ -228,7 +246,8 @@ export function FilterList<T>(p: {
 function Count(p: { n: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   useSwapIn(ref, p.n);
-  return <span className="tabular" ref={ref}>{p.n}</span>;
+  // Zero says nothing on a chip: no number.
+  return <span className="tabular" ref={ref}>{p.n === 0 ? "" : p.n}</span>;
 }
 
 type RowProps<T> = Pick<Parameters<typeof FilterList<T>>[0],
