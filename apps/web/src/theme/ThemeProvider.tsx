@@ -8,6 +8,7 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { loadPrefs, savePrefs, type ThemePref } from "../lib/prefs";
+import { safeTransition } from "../ui/viewTransition";
 
 export type { ThemePref };
 type Resolved = "light" | "dark";
@@ -29,17 +30,9 @@ const DARK_QUERY = "(prefers-color-scheme: dark)";
 function crossfade(update: () => void): void {
   const reduce = typeof matchMedia === "function" &&
     matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const doc = document as Document & {
-    startViewTransition?: (cb: () => void) => {
-      ready?: Promise<unknown>; finished?: Promise<unknown> };
-  };
-  if (reduce || typeof doc.startViewTransition !== "function") update();
-  else {
-    // A transition skipped by the next one rejects; nothing waits on it.
-    const vt = doc.startViewTransition(update);
-    vt.ready?.catch(() => undefined);
-    vt.finished?.catch(() => undefined);
-  }
+  // Capped, skipped on WebKit, and never left hanging (ui/viewTransition).
+  if (reduce) update();
+  else safeTransition(update);
 }
 
 /**

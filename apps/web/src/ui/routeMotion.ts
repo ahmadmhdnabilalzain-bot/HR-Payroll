@@ -1,5 +1,6 @@
 import { reducedMotion } from "../demo/motion";
 import { SECTIONS } from "../demo/route";
+import { hasViewTransitions, safeTransition } from "./viewTransition";
 
 /**
  * Route motion between sections: the page slides 24 to 32 px the
@@ -15,22 +16,14 @@ import { SECTIONS } from "../demo/route";
  * - Direction: forward when the target sits later in the group tabs,
  *   or later in the bar's section order; back the other way. Mirrored
  *   in Arabic (RTL). Unknown: a plain cross-fade.
- * - No View Transitions API, or reduced motion: it just renders.
+ * - No View Transitions API, WebKit, or reduced motion: it just
+ *   renders (ui/viewTransition.ts, which also caps every transition).
  * - Interruptible: a new navigation skips the running one to its end
  *   (the browser's rule) and starts from the page as it now is.
  */
 
-interface Transition {
-  finished: Promise<void>;
-  ready?: Promise<void>;
-  skipTransition?: () => void;
-}
-type Doc = Document & {
-  startViewTransition?: (cb: () => Promise<void> | void) => Transition;
-};
-
 /** The transition in flight, so only its own end clears the flags. */
-let running: Transition | null = null;
+let running = 0;
 
 const sectionOf = (hash: string): string =>
   hash.replace(/^#\/?/, "").split("/")[0] ?? "";
@@ -84,29 +77,24 @@ type Pace = "page" | "quick";
 /** Runs `change` inside the route transition, in direction `dir`. */
 function run(dir: number, pace: Pace,
   change: () => Promise<void> | void): void {
-  const doc = document as Doc;
   const html = document.documentElement;
   const rtl = getComputedStyle(html).direction === "rtl";
   html.style.setProperty("--route-dir", String(rtl ? -dir : dir));
   html.dataset["routeMotion"] = dir > 0 ? "forward" : dir < 0 ? "back"
     : "fade";
   html.dataset["routePace"] = pace;
-  const vt = doc.startViewTransition!(change);
-  running = vt;
-  vt.ready?.catch(() => undefined);
-  vt.finished.finally(() => {
-    if (running !== vt) return;
-    running = null;
+  const id = ++running;
+  safeTransition(change, () => {
+    if (running !== id) return;
     delete html.dataset["routeMotion"];
     delete html.dataset["routePace"];
     html.style.removeProperty("--route-dir");
-  }).catch(() => undefined);
+  });
 }
 
 /** Whether a route transition can play now. */
 export function canMove(): boolean {
-  const doc = document as Doc;
-  return !reducedMotion() && typeof doc.startViewTransition === "function"
+  return !reducedMotion() && hasViewTransitions()
     && document.querySelector("main")?.closest("[inert]") == null;
 }
 
