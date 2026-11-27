@@ -915,7 +915,7 @@ Monday list, with the branch that holds the work (all unmerged, none deployed):
 | 20 Every notice and notification clickable, notice detail page, RowLink | dc1 | in progress |
 | 18 Leave, time off, documents rows lead somewhere | dc2 | in progress |
 | 18 Payslips, profile rows, reviews, help lead somewhere | dc3 | in progress |
-| 1 Sign-in with named people, "Demo: switch person", access or role request, chairman view | auth1 | in progress |
+| 1 Sign-in with named people, "Demo: switch person", access or role request, chairman view | auth1 | done; typecheck, lines, targeted tests pass; full web unit run to repeat; every spec now seeds signedIn=hr |
 | 15 Official PDFs with letterhead for every report, payslip, letter | pdf1 | in progress |
 | 10, 11, 11b Letters: signing chains, request catalogue, template editor | bb1 | done, tested |
 | 10 Expense claims follow the signing table | exp1 | done, tested |
