@@ -2,6 +2,7 @@ import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { amountsHidden, maskMoney } from "../../ui/mask";
+import { RowLink } from "../../ui/RowLink";
 import { inboxNotices } from "./model";
 import s from "./inbox.module.css";
 
@@ -26,17 +27,20 @@ export function NoticeList(p: { limit: number }) {
       ) : (
         <ul className={s.list}>
           {shown.map((n) => (
-            <li key={n.id} className={s.row}>
-              <div className={s.main}>
-                <span className={s.what}>{n.title}</span>
-                <span className={s.body}>{amountsHidden(state)
-                  ? maskMoney(n.body) : n.body}</span>
-                <span className={s.meta}>
-                  {t("inbox.postedBy", { name: n.postedBy.name,
-                    date: n.postedOn.display })}
-                  {n.pinned && ` · ${t("inbox.pinned")}`}
-                </span>
-              </div>
+            <li key={n.id}>
+              <RowLink href={hrefOf("home", "notices")}
+                className={`${s.row} ${s.linkRow}`}>
+                <div className={s.main}>
+                  <span className={s.what}>{n.title}</span>
+                  <span className={s.body}>{amountsHidden(state)
+                    ? maskMoney(n.body) : n.body}</span>
+                  <span className={s.meta}>
+                    {t("inbox.postedBy", { name: n.postedBy.name,
+                      date: n.postedOn.display })}
+                    {n.pinned && ` · ${t("inbox.pinned")}`}
+                  </span>
+                </div>
+              </RowLink>
             </li>
           ))}
         </ul>

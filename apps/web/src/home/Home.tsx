@@ -32,7 +32,9 @@ export function Home(p: Partial<ViewProps>) {
   const { state } = useDemo();
   const phone = usePhone();
   const page = p.rest?.[0];
-  if (page === "tasks") return <TasksPage />;
+  if (page === "tasks") {
+    return <TasksPage key={p.rest?.[1] ?? ""} tone={p.rest?.[1]} />;
+  }
   if (page === "notices") return <NoticesPage />;
   if (state.role === "employee") return <EmployeeHome />;
   if (state.role === "manager") return <ManagerHome />;
