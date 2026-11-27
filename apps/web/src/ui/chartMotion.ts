@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
 import { reducedMotion } from "../demo/motion";
+import { FAIL_OPEN_MS, onSeen } from "./seen";
 
 /**
  * Data in motion for every chart, on WAAPI only (so a capture can
@@ -223,22 +224,25 @@ export function useChartMotion(root: RefObject<Element | null>,
     const go = (): void => {
       if (opts.session !== undefined) enteredOnce.add(opts.session);
       for (const a of anims) a.play();
+      // Fail-open: whatever has not ended by then jumps to its end.
+      setTimeout(() => {
+        for (const a of anims) {
+          if (a.playState !== "running" && a.playState !== "paused") continue;
+          try {
+            a.finish();
+          } catch {
+            // An endless effect cannot finish; it was only decoration.
+          }
+        }
+      }, motion.hero * 3 + FAIL_OPEN_MS);
     };
-    if (typeof IntersectionObserver !== "function") {
-      go();
-      return undefined;
-    }
-    const io = new IntersectionObserver((es) => {
-      if (es.some((e) => e.isIntersecting)) {
-        io.disconnect();
-        go();
-      }
-    }, { threshold: 0.15 });
-    io.observe(el);
+    // The observer where it reports; else a scroll and timer check
+    // (ui/seen.ts): a chart never stays paused at its first frame.
+    const stop = onSeen([el], go, { threshold: 0.15 });
     return () => {
       // Unmounted (or React's dev double run): start over next time.
       entered.current = false;
-      io.disconnect();
+      stop();
       for (const a of anims) a.cancel();
     };
   }, [ready]);

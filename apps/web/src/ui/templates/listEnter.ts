@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
+import { FAIL_OPEN_MS, onSeen } from "../seen";
 
 /**
  * List motion inside a page (listMotion.ts moves between pages):
@@ -102,6 +103,23 @@ export function veil(el: HTMLElement, o: { duration: number;
   };
   a.addEventListener("finish", done);
   a.addEventListener("cancel", done);
+  // Fail-open: an animation that never ends (a stalled or missing
+  // WAAPI) must not leave the veil drawn over the element.
+  setTimeout(() => {
+    if (el.dataset["veil"] === undefined) return;
+    if (a.playState === "finished" || a.playState === "idle") return;
+    try {
+      a.finish();
+    } catch {
+      // A finish that throws: the veil comes off below all the same.
+    }
+    if (o.out === true) {
+      if (el.dataset["ghost"] !== undefined) el.remove();
+      return;
+    }
+    delete el.dataset["veil"];
+    el.style.removeProperty("--veil");
+  }, (o.delay ?? 0) + o.duration + FAIL_OPEN_MS);
   return a;
 }
 
@@ -169,8 +187,7 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
   selector: string): void {
   useLayoutEffect(() => {
     const root = ref.current;
-    if (root === null || reduced() || !canAnimate() ||
-      typeof IntersectionObserver !== "function") return undefined;
+    if (root === null || reduced() || !canAnimate()) return undefined;
     const below = [...root.querySelectorAll<HTMLElement>(selector)]
       .filter((el) => el.getBoundingClientRect().top > innerHeight);
     if (below.length === 0) return undefined;
@@ -182,21 +199,17 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
         { duration: dur("--dur-slow"), easing: easeOut() });
       veil(el, { duration: dur("--dur-base") });
     };
-    const io = new IntersectionObserver((es) => {
-      es.forEach((e) => {
-        if (!e.isIntersecting) return;
-        io.unobserve(e.target);
-        show(e.target as HTMLElement, true);
-      });
-    }, { rootMargin: "0px 0px 6% 0px" });
     below.forEach((el) => {
       el.dataset["reveal"] = "wait";
-      io.observe(el);
     });
+    // The observer where it reports; else a scroll and timer check
+    // (ui/seen.ts), so a section never waits hidden for good.
+    const stop = onSeen(below, (el) => show(el as HTMLElement, true),
+      { pad: 0.06 });
     const all = (): void => below.forEach((el) => show(el, false));
     addEventListener("beforeprint", all);
     return () => {
-      io.disconnect();
+      stop();
       removeEventListener("beforeprint", all);
       all();
     };
