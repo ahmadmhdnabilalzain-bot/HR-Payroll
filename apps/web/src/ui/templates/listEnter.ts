@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
 import { FAIL_OPEN_MS, onSeen } from "../seen";
 import { settleAfter } from "../settle";
+import { safeAnimate, safeGetAnimations } from "../safeAnimate";
 
 /**
  * List motion inside a page (listMotion.ts moves between pages):
@@ -91,7 +92,7 @@ export function veil(el: HTMLElement, o: { duration: number;
   const kf = [{ opacity: 1 }, { opacity: 0 }];
   let a: Animation;
   try {
-    a = el.animate(o.out === true ? [...kf].reverse() : kf, {
+    a = safeAnimate(el, o.out === true ? [...kf].reverse() : kf, {
       duration: o.duration, delay: o.delay ?? 0,
       easing: o.easing ?? "linear", pseudoElement: "::after",
       fill: o.out === true ? "forwards" : "backwards" });
@@ -100,11 +101,11 @@ export function veil(el: HTMLElement, o: { duration: number;
     // the element simply shows (or, leaving, goes at once).
     delete el.dataset["veil"];
     el.style.removeProperty("--veil");
-    return el.animate([], { duration: 0 });
+    return safeAnimate(el, [], { duration: 0 });
   }
   const done = (): void => {
     if (o.out === true) return;
-    if (el.getAnimations({ subtree: true }).some((x) => x !== a &&
+    if (safeGetAnimations(el, { subtree: true }).some((x) => x !== a &&
       (x.effect as KeyframeEffect | null)?.pseudoElement === "::after")) {
       return;
     }
@@ -162,7 +163,7 @@ export function enter(items: HTMLElement[], fade = true): void {
   const rises: Animation[] = [];
   shown.forEach((el, i) => {
     const delay = Math.min(i, STAGGER_CAP - 1) * STAGGER_MS;
-    rises.push(el.animate([{ transform: "translateY(8px)" },
+    rises.push(safeAnimate(el, [{ transform: "translateY(8px)" },
       { transform: "none" }],
     { duration: slow, delay, easing: ease, fill: "backwards" }));
     // Each veil settles itself (veil's own fail-open timer).
@@ -209,7 +210,7 @@ export function useReveal(ref: RefObject<HTMLElement | null>,
       if (el.dataset["reveal"] !== "wait") return;
       el.dataset["reveal"] = "done";
       if (!animate || reduced()) return;
-      const rise = el.animate([{ transform: "translateY(16px)" },
+      const rise = safeAnimate(el, [{ transform: "translateY(16px)" },
         { transform: "none" }],
       { duration: dur("--dur-slow"), easing: easeOut() });
       veil(el, { duration: dur("--dur-base") });
@@ -354,7 +355,7 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
     if (lift > 0.5) {
       for (let el = root.nextElementSibling; el !== null;
         el = el.nextElementSibling) {
-        (el as HTMLElement).animate([{ transform: `translateY(${lift}px)` },
+        safeAnimate(el as HTMLElement, [{ transform: `translateY(${lift}px)` },
           { transform: "none" }], { duration: slow, easing: ease });
       }
     }
@@ -383,7 +384,7 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
       if (empty instanceof HTMLElement &&
         empty.dataset["ghost"] === undefined) {
         const delay = leaving > 0 ? fast / 2 : 0;
-        empty.animate([{ transform: "translateY(4px)" },
+        safeAnimate(empty, [{ transform: "translateY(4px)" },
           { transform: "none" }], { duration: base, easing: ease,
           fill: "backwards", delay });
         veil(empty, { duration: base, delay });
@@ -397,7 +398,7 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
         // Retarget from where the row is drawn now: its start was
         // measured with any running slide applied, so cancel that slide
         // before reading where the row now sits.
-        el.getAnimations().forEach((x) => {
+        safeGetAnimations(el).forEach((x) => {
           if (x.id === "flip") x.cancel();
         });
         const r = el.getBoundingClientRect();
@@ -407,7 +408,7 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
           // New rows wait for the leaving ones to clear, then fade in.
           const delay = (leaving > 0 ? fast : 0) +
             Math.min(fresh++, STAGGER_CAP - 1) * (STAGGER_MS / 2);
-          el.animate([{ transform: "translateY(6px)" },
+          safeAnimate(el, [{ transform: "translateY(6px)" },
             { transform: "none" }],
           { duration: base, easing: ease, fill: "backwards", delay });
           veil(el, { duration: base, delay });
@@ -419,7 +420,7 @@ export function useListFlip(host: RefObject<HTMLElement | null>,
           return;
         }
         el.dataset["moving"] = "";
-        const a = el.animate([{ transform: `translateY(${dy}px)` },
+        const a = safeAnimate(el, [{ transform: `translateY(${dy}px)` },
           { transform: "none" }], { duration: slow, easing: ease });
         a.id = "flip";
         a.onfinish = () => {
@@ -447,7 +448,7 @@ export function useSwapIn(ref: RefObject<HTMLElement | null>,
     }
     const el = ref.current;
     if (el === null || reduced() || !canAnimate()) return;
-    el.animate([{ transform: "translateY(4px)" }, { transform: "none" }],
+    safeAnimate(el, [{ transform: "translateY(4px)" }, { transform: "none" }],
       { duration: dur("--dur-base"), easing: easeOut() });
     veil(el, { duration: dur("--dur-base") });
   }, [state]);

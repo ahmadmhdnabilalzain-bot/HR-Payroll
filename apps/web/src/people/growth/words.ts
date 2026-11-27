@@ -31,10 +31,14 @@ export const G = {
       "Goal status compares progress with the pace of the year." },
   prob: { title: "Probation evaluations",
     lede: "Who is still in probation, and the last day to decide.",
+    ledeCounts: "{now} in probation, {waiting} waiting for the General " +
+      "manager's decision. HR records the evaluation; the General " +
+      "manager decides by the date shown.",
     now: "In probation", done: "Confirmed", person: "Person",
+    toDecide: "Waiting for a decision", all: "All",
     status: "Status", decision: "Decision", decideOn: "Decide by {date}",
     ends: "Probation ends",
-    none: "None to show.",
+    none: "No one is in probation or confirmed this year.",
     record: "Record evaluation", withdraw: "Withdraw",
     confirm: "Confirm employment", again: "Review again later",
     undo: "Undo", noEval: "No evaluation yet",

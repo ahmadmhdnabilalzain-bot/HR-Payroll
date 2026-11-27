@@ -7,6 +7,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { amountsHidden } from "./mask";
 import { RollFace } from "./Rolling";
 import s from "./Money.module.css";
+import { safeAnimate } from "./safeAnimate";
 
 type Size = "hero" | "lg" | "md" | "sm";
 
@@ -43,7 +44,7 @@ export function Money(p: { value: Fils; size?: Size; tween?: boolean;
     if (was.current === hidden) return;
     was.current = hidden;
     if (reducedMotion()) return;
-    box.current?.animate([{ opacity: 0, filter: "blur(0.14em)" },
+    safeAnimate(box.current, [{ opacity: 0, filter: "blur(0.14em)" },
       { opacity: 1, filter: "blur(0)" }],
     { duration: HIDE_MS, easing: "cubic-bezier(0.2, 0, 0, 1)" });
   }, [hidden]);

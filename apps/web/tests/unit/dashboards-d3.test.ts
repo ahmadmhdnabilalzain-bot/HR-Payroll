@@ -218,6 +218,42 @@ describe("every dashboard line opens a page", () => {
         .toBe("#/reports/gratuity-liability");
     });
 
+  it("the brief's dates open the step they belong to", async () => {
+    const { areaHref } = await import("../../src/reports/dash/itemSeam");
+    const { buildMoreSource } = await import(
+      "../../src/reports/more/source");
+    const { brief } = buildMoreSource();
+    for (const x of brief.dates) {
+      expect(areaHref(`Dates: ${x.label}`), x.label).toMatch(/^#\/pay-run\//);
+    }
+    expect(areaHref("Dates: Sign off by")).toBe("#/pay-run/approve");
+    expect(areaHref("Dates: Salary file sent")).toBe("#/pay-run/pay");
+  });
+
+  it("a department's rows open its people, by name or id", async () => {
+    const { deptHrefByName } = await import(
+      "../../src/reports/dash/itemSeam");
+    const d = demo.at({});
+    const ids = new Set(d.people.departments().map((x) => x.id));
+    for (const x of src.departments) {
+      const href = deptHrefByName(d.departments(), x.name);
+      expect(href, x.name).toMatch(/^#\/people\/department\//);
+      expect(ids.has(decodeURIComponent(href!.split("/").at(-1)!)))
+        .toBe(true);
+    }
+    expect(deptHrefByName(d.departments(), "Nowhere")).toBeUndefined();
+  });
+
+  it("a bar's name hides its amount with the rest", async () => {
+    const { maskMoney } = await import("../../src/ui/mask");
+    const { formatMoney } = await import("../../src/i18n/format");
+    for (const v of [0n, 123_456n, 98_765_432_10n]) {
+      const said = maskMoney(`Sales, 8 people, ${formatMoney(v as never,
+        "en")}`);
+      expect(said.replace("8 people", ""), said).not.toMatch(/\d/);
+    }
+  });
+
   it("every tile links", () => {
     const d = demo.at({});
     for (const t of [...hrTiles(src, d, INITIAL, words),

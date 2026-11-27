@@ -1,5 +1,6 @@
 import { useLayoutEffect, type RefObject } from "react";
 import { reducedMotion } from "../demo/motion";
+import { safeAnimate, safeGetAnimations } from "./safeAnimate";
 
 /**
  * The sliding indicator under tabs and segments. The row (its
@@ -111,7 +112,7 @@ export function useGlide(ref: RefObject<HTMLElement | null>,
       }
       const next = boxIn(root, el, kind);
       if (at !== null && same(at, next)) return;
-      const running = root.getAnimations({ subtree: true }).filter((a) =>
+      const running = safeGetAnimations(root, { subtree: true }).filter((a) =>
         (a.effect as KeyframeEffect | null)?.pseudoElement === "::before");
       const from = glide && at !== null && !reducedMotion()
         ? shownBox(root, at) : null;
@@ -123,7 +124,7 @@ export function useGlide(ref: RefObject<HTMLElement | null>,
       const sx = from.w / next.w;
       const sy = next.h === 0 ? 1 : from.h / next.h;
       try {
-        root.animate([
+        safeAnimate(root, [
           { transform: `translate(${from.x}px, ${from.y}px) ` +
             `scale(${sx}, ${sy})` },
           { transform: `translate(${next.x}px, ${next.y}px)` },

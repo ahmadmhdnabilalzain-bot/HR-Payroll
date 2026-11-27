@@ -93,6 +93,7 @@ export const timeoff = {
   study: "Study leave",
   ruleTitle: "The rule",
   ruleProof: "Needs: {proof}",
+  notForYou: "{type}: not available for your profile. {who}",
   attach: "Add the file",
   attachSample: "Sample file for the demo",
   removeFile: "Remove {file}",

@@ -4,6 +4,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import { FLIGHT_MS, SPRING } from "../ui/flight";
 import { signSequence } from "../ui/SignStamp";
 import s from "./PayRun.module.css";
+import { safeAnimate, safeGetAnimations } from "../ui/safeAnimate";
 
 /**
  * Where the pay stands against the sign-off: "Pay held until sign-off"
@@ -20,10 +21,10 @@ export function ReleaseStatus(p: { released: boolean; fresh: boolean }) {
   useLayoutEffect(() => {
     const el = ink.current;
     if (!p.fresh || el === null || reducedMotion()) return;
-    for (const a of el.getAnimations()) a.cancel();
+    for (const a of safeGetAnimations(el)) a.cancel();
     const from = dir === "rtl" ? "inset(0 0 0 100% round 999px)"
       : "inset(0 100% 0 0 round 999px)";
-    el.animate([{ clipPath: from },
+    safeAnimate(el, [{ clipPath: from },
       { clipPath: "inset(0 0 0 0 round 999px)" }],
     { duration: FLIGHT_MS, delay: signSequence(true).release,
       easing: SPRING, fill: "backwards" });

@@ -31,7 +31,7 @@ const LAW = (art: number): DemoLeaveRule["source"] => ({
   ar: `المرسوم بقانون اتحادي رقم 33 لسنة 2021، المادة ${art}` });
 const POLICY = { en: "Company policy", ar: "سياسة الشركة" };
 const none = { proof: null, proofFile: null, noticeDays: 0,
-  minServiceYears: 0 };
+  minServiceYears: 0, onlyFor: null, who: null };
 
 /**
  * The leave a person can ask for, with the rule behind each. Sick and
@@ -61,7 +61,8 @@ export const LEAVE_TYPES: readonly DemoLeaveType[] = [
         "فترة التجربة." } } },
   { id: "lt-maternity", labelKey: "leave.maternity", paid: true,
     annualDays: null, rule: { ...none, maxDays: MAT.full + MAT.half,
-      basis: "calendar", source: LAW(30),
+      basis: "calendar", source: LAW(30), onlyFor: "female",
+      who: { en: "For female employees.", ar: "للموظفات." },
       proof: { en: "A medical certificate with the expected date of birth",
         ar: "شهادة طبية بتاريخ الولادة المتوقع" },
       proofFile: "expected-birth-certificate.pdf",

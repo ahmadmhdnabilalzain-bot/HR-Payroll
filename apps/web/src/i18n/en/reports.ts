@@ -3,6 +3,9 @@ import type { EnNamespace } from "../types";
 /** Reports: a few real reports from the data. */
 export const reports = {
   title: "Reports",
+  askTitle: "Ask for a report",
+  askSub: "Say what you want to see in plain words; the report that " +
+    "matches opens with its filter set. Or pick one from the list.",
   sub: "Each report comes straight from this month's data. Download it " +
     "as a spreadsheet or print it.",
   loading: "Loading the report",

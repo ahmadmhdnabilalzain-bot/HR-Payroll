@@ -17,8 +17,9 @@ export const tpl = {
   csv: "Download CSV",
   pdf: "Download PDF",
   share: "Share",
-  linkCopied: "Link copied: {title}",
-  shareFailed: "Copy the address bar to share this report.",
+  copyLink: "Copy link",
+  linkCopied: "Link copied",
+  shareFailed: "The link could not be copied. It is {url}",
   print: "Print",
   changes: "Changes",
   explainHint: "Figures with a dotted line open how they are " +

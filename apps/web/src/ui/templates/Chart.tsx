@@ -6,6 +6,7 @@ import { formatMoney, formatSignedMoney, MINUS }
   from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
 import s from "./templates.module.css";
+import { safeAnimate } from "../safeAnimate";
 
 /**
  * Report charts (RP): plain SVG, no library, ink and grey only. Bars
@@ -159,10 +160,10 @@ function waterfallIn(root: Element): Animation[] {
         : [{ offset: 0, transform: s(0) },
           { offset: at, transform: s(0), easing: ease },
           { offset: 1, transform: s(1) }];
-    out.push(el.animate(frames, { duration: total, fill: "backwards" }));
+    out.push(safeAnimate(el, frames, { duration: total, fill: "backwards" }));
   }
   root.querySelectorAll<SVGElement>("[data-label]").forEach((el, i) => {
-    out.push(el.animate([{ opacity: 0 }, { opacity: 1 }],
+    out.push(safeAnimate(el, [{ opacity: 0 }, { opacity: 1 }],
       { duration: motion.base, delay: total - 80 + i * 12,
         easing: "linear", fill: "backwards" }));
   });

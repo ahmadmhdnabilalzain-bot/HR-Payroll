@@ -8,16 +8,18 @@ import { toCsv as csvOf, type Cell } from "../../lib/csv";
 import { downloadText } from "../../lib/download";
 import { amountsHidden, maskMoney, useMaskText } from "../mask";
 import { Money } from "../Money";
+import { rowClick } from "../rowClick";
 import { dur, easeOut, reduced, useEntrance, useReveal, veil }
   from "./listEnter";
 import { MoreMenu } from "./Menu";
-import { downloadReportPdf, shareReport } from "./reportPdf";
+import { downloadReportPdf, shareReport, sheetShare } from "./reportPdf";
 import b from "../button.module.css";
 import { useToast } from "../Toast";
 import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
 import "./motion.module.css";
 import s from "./templates.module.css";
+import { safeAnimate } from "../safeAnimate";
 
 export type { Cell } from "../../lib/csv";
 
@@ -89,8 +91,10 @@ export function ReportPage(p: {
   id?: string;
   /** One more action before the menu (e.g. run a check). */
   actions?: ReactNode;
-  /** Where a row opens: its first cell becomes the link. */
-  rowHref?: (row: number) => string | undefined;
+  /** Where a row opens: its first cell becomes the link, and a press
+   * anywhere else on the row opens it too (its figures keep their own
+   * working). */
+  rowHref?: ((row: number) => string | undefined) | undefined;
 }) {
   const { t } = useLocale();
   const { state } = useDemo();
@@ -145,11 +149,11 @@ export function ReportPage(p: {
       const now = c.getBoundingClientRect();
       const dy = (old.top - now.top) / z;
       if (dy > 0.5) {
-        c.animate([{ transform: `translateY(${dy}px)` },
+        safeAnimate(c, [{ transform: `translateY(${dy}px)` },
           { transform: "none" }], timing);
       }
       if (c.tagName !== "TABLE" && now.height - old.height > 0.5) {
-        c.animate([{ height: `${old.height / z}px`, overflow: "hidden" },
+        safeAnimate(c, [{ height: `${old.height / z}px`, overflow: "hidden" },
           { height: `${now.height / z}px`, overflow: "hidden" }], timing);
       }
     });
@@ -170,10 +174,11 @@ export function ReportPage(p: {
                 onClick={() => print()}>{t("tpl.print")}</button>
               <button type="button" className={`${b.btn} ${b.quiet}`}
                 onClick={() => void shareReport(p.title).then((r) => {
-                  if (r === "copied") {
-                    toast.show(t("tpl.linkCopied", { title: p.title }));
-                  } else if (r === "none") toast.show(t("tpl.shareFailed"));
-                })}>{t("tpl.share")}</button>
+                  if (r === "copied") toast.show(t("tpl.linkCopied"));
+                  else if (r === "none") {
+                    toast.show(t("tpl.shareFailed", { url: location.href }));
+                  }
+                })}>{t(sheetShare() ? "tpl.share" : "tpl.copyLink")}</button>
             </span>
             <MoreMenu items={[{ label: t("tpl.csv"),
               onSelect: download, disabled: hidden,
@@ -199,13 +204,16 @@ export function ReportPage(p: {
           ))}</tr>
         </thead>
         <tbody>
-          {p.rows.map((r, i) => (
-            <tr key={i}>
+          {p.rows.map((r, i) => {
+            const href = p.rowHref?.(i);
+            return (
+            <tr key={i} onClick={rowClick(href)} data-href={href}
+              className={href === undefined ? undefined : s.linkRow}>
               {r.map((v, j) => (
                 <td key={j} data-end={end(j)}
                   data-label={p.columns[j]?.label}>
-                  {j === 0 && p.rowHref?.(i) !== undefined ? (
-                    <a className={s.rowLink} href={p.rowHref(i)}>
+                  {j === 0 && href !== undefined ? (
+                    <a className={s.rowLink} href={href}>
                       <CellView c={v} /></a>
                   ) : <Why e={p.explain?.(i, j)}><CellView c={v} /></Why>}
                   {j === 0 && p.bars?.[i] !== undefined && (
@@ -217,7 +225,8 @@ export function ReportPage(p: {
                 </td>
               ))}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
         {p.total !== undefined && (
           <tfoot>

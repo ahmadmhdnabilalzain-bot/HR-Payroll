@@ -32,10 +32,13 @@ export function leavePage(d: DemoData): PageSpec {
           ruleOf(TIME, "timeAnnualLeaveMinDays").raw), max: 60,
           why: LAW_MIN } };
     }
+    const paid = t.paid ? t.rule.maxDays === null ? "Paid"
+      : `Paid, up to ${t.rule.maxDays} days` : "Not paid";
+    const who = t.rule.who === null ? "" : ` ${t.rule.who.en}`;
     return { key: `type:${t.id}`, label: t.name.en,
-      value: t.paid ? t.rule.maxDays === null ? "Paid"
-        : `Paid, up to ${t.rule.maxDays} days` : "Not paid",
-      help: `${t.rule.text.en} ${t.rule.source.en}.` };
+      value: t.rule.onlyFor === "female" ? `${paid}, female employees`
+        : paid,
+      help: `${t.rule.text.en}${who} ${t.rule.source.en}.` };
   });
   return { title: "Leave policies",
     lede: "Leave types, and the rules behind them.",

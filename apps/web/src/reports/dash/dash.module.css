@@ -217,6 +217,16 @@ a.tileIn:focus-visible {
   background: var(--color-surface);
 }
 
+.panel[data-href] {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .panel[data-href]:has(> .panelHead:hover) .panelLink {
+    text-decoration-color: currentColor;
+  }
+}
+
 .panelHead {
   display: flex;
   flex-wrap: wrap;
@@ -369,6 +379,14 @@ a.tileIn:focus-visible {
   min-block-size: 36px;
 }
 
+/* A bar that opens its page: the whole row (ui/RowLink). */
+.hbarLink {
+  min-block-size: 44px;
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-control);
+}
+
 .hbarText {
   display: grid;
   min-inline-size: 0;
@@ -454,11 +472,18 @@ a.tileIn:focus-visible {
   list-style: none;
 }
 
-.splitKey > li {
+.splitRow {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
   column-gap: var(--space-2);
+}
+
+.splitLink {
+  min-block-size: 44px;
+  margin-inline: calc(-1 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
 }
 
 .splitName {

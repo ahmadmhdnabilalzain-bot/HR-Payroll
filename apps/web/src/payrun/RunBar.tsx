@@ -118,8 +118,13 @@ export function RunBar(p: { step: StepId; go: Go }) {
                     data-state={states[id]} data-current={id === p.step}
                     aria-current={id === p.step ? "step" : undefined}
                     onClick={(e) => {
+                      // The step on screen: its own address, from the
+                      // top (#/pay-run shows Review). Another: travel.
                       e.preventDefault();
                       if (id !== p.step) p.go(id);
+                      else if (location.hash !== hrefOf("pay-run", id)) {
+                        p.go(id);
+                      } else scrollTo({ top: 0, behavior: "smooth" });
                     }}>
                     <span className={s.dot} aria-hidden="true" />
                     <span className={s.dotName} aria-hidden="true">

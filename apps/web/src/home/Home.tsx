@@ -6,7 +6,7 @@ import { Departments } from "./Departments";
 import { EmployeeHome } from "./EmployeeHome";
 import { Expiries } from "./Expiries";
 import { Inbox } from "./inbox/Inbox";
-import { NoticesPage, TasksPage } from "./inbox/InboxPages";
+import { NoticesPage, NoticePage, TasksPage } from "./inbox/InboxPages";
 import { IssueList } from "./IssueList";
 import { ItHome } from "./ItHome";
 import { MakeUp } from "./MakeUp";
@@ -35,7 +35,10 @@ export function Home(p: Partial<ViewProps>) {
   if (page === "tasks") {
     return <TasksPage key={p.rest?.[1] ?? ""} tone={p.rest?.[1]} />;
   }
-  if (page === "notices") return <NoticesPage />;
+  if (page === "notices") {
+    const id = p.rest?.[1];
+    return id === undefined ? <NoticesPage /> : <NoticePage id={id} />;
+  }
   if (state.role === "employee") return <EmployeeHome />;
   if (state.role === "manager") return <ManagerHome />;
   if (state.role === "it") return <ItHome />;

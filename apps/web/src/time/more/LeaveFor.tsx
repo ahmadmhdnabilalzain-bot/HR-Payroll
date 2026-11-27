@@ -9,6 +9,7 @@ import { useToast } from "../../ui/Toast";
 import { ApprovalForm, FilterList } from "../../ui/templates";
 import { useNames } from "../../people/files/common";
 import f from "../../people/files/files.module.css";
+import { mayTake } from "../../timeoff/eligibility";
 import { M } from "./words";
 
 const W = M.record;
@@ -75,6 +76,11 @@ export function LeaveFor() {
           const count = data.people.countDays(from, to);
           if (count.halves === 0) return W.noDays;
           const type = (v["type"] ?? "lt-annual") as "lt-annual";
+          const kind = types.find((t) => t.id === type);
+          if (kind !== undefined && !mayTake(kind, data.people.person(who))) {
+            return W.notFor(kind.name[lang], names.name(who),
+              kind.rule.who?.[lang] ?? "");
+          }
           const checker = data.people.approverOf(who);
           dispatch({ type: "request-leave", draft: { employeeId: who,
             leaveTypeId: type, startDate: from, endDate: to,

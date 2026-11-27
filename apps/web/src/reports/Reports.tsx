@@ -29,6 +29,7 @@ import { ANALYSIS_SCREENS } from "./analysis";
 import { ASK_SCREENS } from "./ask";
 import { Audit } from "./screens/Audit";
 import { DashboardExec, DashboardHr } from "./screens/Dashboards";
+import { Files } from "./screens/Files";
 import { Headcount } from "./screens/Headcount";
 import { Leave } from "./screens/Leave";
 import { Overtime } from "./screens/Overtime";
@@ -41,6 +42,7 @@ const SCREENS: Record<string, { view: ComponentType<ViewProps>;
   trend: { view: Trend }, variance: { view: Variance },
   overtime: { view: Overtime }, headcount: { view: Headcount },
   leave: { view: Leave }, audit: { view: Audit, itOk: true },
+  files: { view: Files },
   "dashboard-hr": { view: DashboardHr },
   "dashboard-exec": { view: DashboardExec, gmOnly: true },
   ...COST_SCREENS,
@@ -95,7 +97,7 @@ function Report(p: { id: ReportId }) {
     <ReportPage title={t(TITLE[p.id])} period={t(BLURB[p.id])}
       crumbs={[{ label: t("shell.navReports"), href: hrefOf("reports") }]}
       columns={table.columns} rows={table.rows} bars={table.bars}
-      explain={table.explain}
+      explain={table.explain} rowHref={table.rowHref}
       note={table.note}
       csvName={`${company}-${p.id}-${env.d.month}.csv`}
       foot={t("reports.foot", {

@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { reducedMotion } from "../demo/motion";
 import { Icon } from "./Icon";
 import s from "./SignStamp.module.css";
+import { safeAnimate, safeGetAnimations } from "./safeAnimate";
 
 /** The card coming up under the pen. */
 export const PAPER_MS = 180;
@@ -46,7 +47,7 @@ function drawSignature(el: Element, dir: string): void {
   const path = el.querySelector("path");
   if (path !== null && typeof path.getTotalLength === "function") {
     const len = Math.ceil(path.getTotalLength()) + 1;
-    path.animate([
+    safeAnimate(path, [
       { strokeDasharray: `${len}`, strokeDashoffset: `${len}` },
       { strokeDasharray: `${len}`, strokeDashoffset: "0" },
     ], { duration: SIG_MS, delay: SIG_AT, easing:
@@ -54,7 +55,7 @@ function drawSignature(el: Element, dir: string): void {
     return;
   }
   const hidden = dir === "rtl" ? "inset(0 0 0 100%)" : "inset(0 100% 0 0)";
-  el.animate([
+  safeAnimate(el, [
     { clipPath: hidden },
     { clipPath: "inset(0 0 0 0)" },
   ], { duration: SIG_MS, delay: SIG_AT, easing:
@@ -87,12 +88,12 @@ export function SignStamp(p: { label: string; name: string; role: string;
   useLayoutEffect(() => {
     const el = box.current;
     if (p.fresh !== true || el === null || reducedMotion()) return;
-    for (const a of el.getAnimations({ subtree: true })) a.cancel();
+    for (const a of safeGetAnimations(el, { subtree: true })) a.cancel();
     const sig = p.declined === true ? null : el.querySelector("[data-sig]");
     const { land } = signSequence(sig !== null);
     const settle = "cubic-bezier(0.2, 0, 0, 1)";
     if (sig !== null) {
-      el.animate([{ opacity: 0, transform: "translateY(4px)" },
+      safeAnimate(el, [{ opacity: 0, transform: "translateY(4px)" },
         { opacity: 1, transform: "none" }],
       { duration: PAPER_MS, easing: settle });
       drawSignature(sig, getComputedStyle(el).direction);
@@ -101,18 +102,18 @@ export function SignStamp(p: { label: string; name: string; role: string;
     // stamp with a signature the card is already up, so only the
     // frame and seal land; without one the whole stamp does.
     const target = sig !== null ? el.querySelector(`.${s.frame}`) : el;
-    target?.animate([
+    safeAnimate(target, [
       { transform: "scale(1.08)", opacity: 0 },
       { transform: "scale(1)", opacity: 1 },
     ], { duration: STAMP_MS, delay: land, easing: STAMP_EASE,
       fill: "backwards" });
-    el.querySelector(`.${s.seal}`)?.animate([
+    safeAnimate(el.querySelector(`.${s.seal}`), [
       { transform: "scale(1.5)", opacity: 0 },
       { transform: "scale(0.94)", opacity: 1, offset: 0.6 },
       { transform: "scale(1)", opacity: 1 },
     ], { duration: STAMP_MS, delay: land + 40, easing: settle,
       fill: "backwards" });
-    el.querySelector(`.${s.ring}`)?.animate([
+    safeAnimate(el.querySelector(`.${s.ring}`), [
       { opacity: 0.9, transform: "scale(1)" },
       { opacity: 0, transform: "scale(1.08)" },
     ], { duration: RING_MS, delay: land + STAMP_MS - 120,

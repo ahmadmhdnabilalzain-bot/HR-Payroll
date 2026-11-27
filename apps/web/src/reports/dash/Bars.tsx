@@ -1,9 +1,11 @@
 import type { Fils } from "@payroll/engine";
 import { useRef } from "react";
+import type { ReactNode } from "react";
 import { formatNumber } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { useChartMotion } from "../../ui/chartMotion";
 import { Money } from "../../ui/Money";
+import { RowLink } from "../../ui/RowLink";
 import type { Slice } from "./model";
 import s from "./dash.module.css";
 
@@ -31,7 +33,10 @@ const size = (v: HBar["value"]): number =>
 /**
  * Horizontal bars, largest first: the name and a meta line, a grey bar
  * from zero (the largest in ink), and the figure at the end. Plain
- * HTML so the figures are <Money/> and read in order.
+ * HTML so the figures are <Money/> and read in order. A row with an
+ * `href` is one link, name, bar and figure, named by its own text (no
+ * aria-label: axe flags a label that differs from what is drawn, and
+ * the figure on screen already follows hide-amounts).
  */
 export function HBars(p: { rows: HBar[]; label: string }) {
   const { lang } = useLocale();
@@ -41,32 +46,40 @@ export function HBars(p: { rows: HBar[]; label: string }) {
   return (
     <div ref={ref}>
       <ul className={s.hbars} aria-label={p.label}>
-        {p.rows.map((r, i) => (
-          <li key={r.key} className={s.hbar}>
-            <span className={s.hbarText}>
-              {r.href === undefined
-                ? <span className={s.hbarName}>{r.label}</span>
-                : <a className={`${s.hbarName} ${s.rowLink}`}
-                  href={r.href}>{r.label}</a>}
-              {r.meta !== undefined && (
-                <span className={s.hbarMeta}>{r.meta}</span>
-              )}
-            </span>
-            <span className={s.hbarTrack} aria-hidden="true">
-              <span data-mark="" data-key={r.key} data-grow="x"
-                className={s.hbarFill}
-                data-first={i === 0}
-                style={{ inlineSize: `${max === 0 ? 0
-                  : (size(r.value) / max * 100).toFixed(1)}%` }} />
-            </span>
-            <span className={s.hbarValue}>
-              {"fils" in r.value
-                ? <Money value={r.value.fils} size="sm" tween={false} />
-                : <span className="tabular">
-                  {formatNumber(r.value.n, lang)}</span>}
-            </span>
-          </li>
-        ))}
+        {p.rows.map((r, i) => {
+          const body: ReactNode = (
+            <>
+              <span className={s.hbarText}>
+                <span className={r.href === undefined ? s.hbarName
+                  : `${s.hbarName} ${s.rowLink}`}>{r.label}</span>
+                {r.meta !== undefined && (
+                  <span className={s.hbarMeta}>{r.meta}</span>
+                )}
+              </span>
+              <span className={s.hbarTrack} aria-hidden="true">
+                <span data-mark="" data-key={r.key} data-grow="x"
+                  className={s.hbarFill}
+                  data-first={i === 0}
+                  style={{ inlineSize: `${max === 0 ? 0
+                    : (size(r.value) / max * 100).toFixed(1)}%` }} />
+              </span>
+              <span className={s.hbarValue}>
+                {"fils" in r.value
+                  ? <Money value={r.value.fils} size="sm" tween={false} />
+                  : <span className="tabular">
+                    {formatNumber(r.value.n, lang)}</span>}
+              </span>
+            </>
+          );
+          return r.href === undefined
+            ? <li key={r.key} className={s.hbar}>{body}</li>
+            : (
+              <li key={r.key}>
+                <RowLink href={r.href}
+                  className={`${s.hbar} ${s.hbarLink}`}>{body}</RowLink>
+              </li>
+            );
+        })}
       </ul>
     </div>
   );
@@ -77,7 +90,9 @@ export function HBars(p: { rows: HBar[]; label: string }) {
  * with a key underneath: each group's name, count and share.
  */
 export function SplitBar(p: { slices: Slice[]; label: string;
-  unit: [string, string] }) {
+  unit: [string, string];
+  /** Where each group opens (the whole key row is the link). */
+  href?: string }) {
   const { lang } = useLocale();
   const total = p.slices.reduce((n, x) => n + x.count, 0);
   const ref = useGrow(p.slices.map((x) => `${x.label}${x.count}`).join());
@@ -94,16 +109,27 @@ export function SplitBar(p: { slices: Slice[]; label: string;
         ))}
       </div>
       <ul className={s.splitKey} aria-label={p.label}>
-        {p.slices.map((x, i) => (
-          <li key={x.label}>
-            <span className={`${s.swatch} ${s.tone}`} data-tone={Math.min(i, 5)}
-              aria-hidden="true" />
-            <span className={s.splitName}>{x.label}</span>
-            <span className={`${s.splitCount} tabular`}>
-              {`${formatNumber(x.count, lang)} ${x.count === 1
-                ? p.unit[0] : p.unit[1]}, ${pct(x.count)}`}</span>
-          </li>
-        ))}
+        {p.slices.map((x, i) => {
+          const count = `${formatNumber(x.count, lang)} ${x.count === 1
+            ? p.unit[0] : p.unit[1]}, ${pct(x.count)}`;
+          const body: ReactNode = (
+            <>
+              <span className={`${s.swatch} ${s.tone}`}
+                data-tone={Math.min(i, 5)} aria-hidden="true" />
+              <span className={s.splitName}>{x.label}</span>
+              <span className={`${s.splitCount} tabular`}>{count}</span>
+            </>
+          );
+          return p.href === undefined
+            ? <li key={x.label} className={s.splitRow}>{body}</li>
+            : (
+              <li key={x.label}>
+                <RowLink href={p.href} label={`${x.label}, ${count}`}
+                  className={`${s.splitRow} ${s.splitLink}`}>
+                  {body}</RowLink>
+              </li>
+            );
+        })}
       </ul>
     </div>
   );

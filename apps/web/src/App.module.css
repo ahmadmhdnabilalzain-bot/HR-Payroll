@@ -27,3 +27,32 @@
   z-index: 40;
   background: var(--color-cine-paper);
 }
+
+/* The same as the film's Skip (welcome/Welcome.module.css), so it does
+ * not move when the film takes over. */
+.skip {
+  position: fixed;
+  inset-block-start: 16px;
+  inset-inline-end: 16px;
+  z-index: 3;
+  min-block-size: 44px;
+  padding-block: 8px;
+  padding-inline: 18px;
+  border: 1px solid var(--color-cine-grey-300);
+  border-radius: var(--radius-pill);
+  background: var(--color-cine-paper);
+  color: var(--color-cine-ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.skip:hover {
+  border-color: var(--color-cine-ink);
+}
+
+.skip:focus-visible {
+  outline: 2px solid var(--color-cine-ink);
+  outline-offset: 3px;
+}

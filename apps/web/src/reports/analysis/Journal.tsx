@@ -1,4 +1,6 @@
+import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
+import { deptHrefByName } from "../dash/itemSeam";
 import { useExtras } from "../../demo/data/payroll-extras-load";
 import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
@@ -11,7 +13,7 @@ import { useCellMoney as useMoney } from "../../pay/gate/cell-money";
  */
 export function Journal() {
   const x = useExtras();
-  const { state } = useDemo();
+  const { data, state } = useDemo();
   const { m } = useMoney();
   const j = x.journal(state.ibans);
   const why = x.journalExplain(j);
@@ -32,6 +34,14 @@ export function Journal() {
       columns={[{ label: "Line" }, { label: "Department" },
         { label: "Debit", end: true }, { label: "Credit", end: true }]}
       rows={rows} csvName="payroll-journal-view-2026-10.csv"
+      rowHref={(r) => {
+        // A line opens its department's people; a line for the whole
+        // company, and the total, open the payroll summary.
+        const l = j.lines[r];
+        return (l === undefined ? undefined
+          : deptHrefByName(data.departments(), l.department))
+          ?? hrefOf("reports", "summary");
+      }}
       note={j.note} />
   );
 }

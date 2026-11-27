@@ -1,6 +1,7 @@
 import { useId, useState, type FormEvent } from "react";
 import { dayCountVars, dayVars } from "../people/words";
 import type { LeaveTypeId } from "../demo/data/people-types";
+import { typesFor } from "../timeoff/eligibility";
 import { useDemo } from "../demo/state";
 import { annualNow } from "../demo/time-off";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -27,7 +28,8 @@ export function LeaveForm(p: { employeeId: string; onDone(): void }) {
   const toast = useToast();
   const id = useId();
   const asOf = data.people.asOf;
-  const types = data.people.leaveTypes();
+  const types = typesFor(data.people.leaveTypes(),
+    data.people.person(p.employeeId)).open;
   const reasons = data.people.reasons();
   const [type, setType] = useState<LeaveTypeId>("lt-annual");
   const [from, setFrom] = useState(plusDays(asOf, 20));

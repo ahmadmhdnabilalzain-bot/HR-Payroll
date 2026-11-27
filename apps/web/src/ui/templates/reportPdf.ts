@@ -48,9 +48,59 @@ export async function downloadReportPdf(r: ReportForPdf): Promise<void> {
   if (typeof print === "function") print();
 }
 
+/** A phone or tablet held by hand: the only place the share sheet
+ * beats copying the link. */
+function touch(): boolean {
+  return typeof matchMedia === "function" &&
+    matchMedia("(pointer: coarse)").matches;
+}
+
+/** The old way, for a browser without the async clipboard (or one
+ * that refuses it): a hidden text box, selected and copied. */
+function copyByHand(text: string): boolean {
+  if (typeof document.execCommand !== "function") return false;
+  const box = document.createElement("textarea");
+  box.value = text;
+  box.setAttribute("readonly", "");
+  box.style.position = "fixed";
+  box.style.opacity = "0";
+  box.style.insetBlockStart = "0";
+  document.body.append(box);
+  const was = document.activeElement;
+  box.select();
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  box.remove();
+  if (was instanceof HTMLElement) was.focus();
+  return ok;
+}
+
+/** Copy a link: the clipboard, else the hidden text box. */
+export async function copyLink(url: string): Promise<boolean> {
+  try {
+    if (typeof navigator.clipboard?.writeText === "function") {
+      await navigator.clipboard.writeText(url);
+      return true;
+    }
+  } catch {
+    // Refused (no permission, not focused): try the old way.
+  }
+  return copyByHand(url);
+}
+
+/** Share opens the system sheet here (else the button copies). */
+export function sheetShare(): boolean {
+  return typeof (navigator as { share?: unknown }).share === "function" &&
+    touch();
+}
+
 /**
- * Share the report's link: the system share sheet where there is one
- * (Safari on iPhone and Mac), else the link is copied. Returns what
+ * Share the report's link: on a touch screen with a system share
+ * sheet, the sheet; everywhere else the link is copied. Returns what
  * happened, for the toast.
  */
 export async function shareReport(title: string)
@@ -59,7 +109,7 @@ export async function shareReport(title: string)
   const nav = navigator as Navigator & {
     share?: (d: { title: string; url: string }) => Promise<void>;
   };
-  if (typeof nav.share === "function") {
+  if (nav.share !== undefined && sheetShare()) {
     try {
       await nav.share({ title, url });
       return "shared";
@@ -70,10 +120,5 @@ export async function shareReport(title: string)
       }
     }
   }
-  try {
-    await navigator.clipboard.writeText(url);
-    return "copied";
-  } catch {
-    return "none";
-  }
+  return await copyLink(url) ? "copied" : "none";
 }

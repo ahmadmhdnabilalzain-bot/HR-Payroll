@@ -16,6 +16,7 @@ import {
   BASIC_STEP,
   DEPT_CODES,
   GRADE_BASIC,
+  genderOf,
   GRADE_TRANSPORT,
   STAFF,
   type StaffSeed,
@@ -79,6 +80,7 @@ function employeeOf(p: StaffSeed, i: number, rng: Rng): DemoEmployee {
     fullName: p.name, fullNameAr: p.nameAr, email: emailOf(p.name),
     departmentId: `dept-${p.dept}`, jobKey: p.job, grade: p.grade,
     location: p.location, nationality: p.nationality,
+    gender: genderOf(p.name),
     workerClass: p.nationality === "AE" ? "uae-national"
       : "expat-full-time",
     joiningDate: joined,

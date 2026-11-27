@@ -1,4 +1,6 @@
+import { useDemo } from "../../demo/state";
 import { ReportPage, type Cell } from "../../ui/templates";
+import { deptHrefByName } from "../dash/itemSeam";
 import { turnoverText as turnover, useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import type { DeptHeads } from "../types";
@@ -10,6 +12,7 @@ const list = (names: string[]): string => names.length === 0 ? "nobody"
 export function Headcount() {
   const src = useReportsSource();
   const crumbs = useReportCrumbs();
+  const { data } = useDemo();
   const total = src.heads;
   const last = src.departments.length;
   const line = (d: DeptHeads): Cell[] => [d.name, d.start, d.joined,
@@ -27,6 +30,8 @@ export function Headcount() {
         { label: "Joined", end: true }, { label: "Left", end: true },
         { label: "Now", end: true }, { label: "Turnover", end: true }]}
       rows={rows} total={line(total)}
+      rowHref={(r) => deptHrefByName(data.departments(),
+        src.departments[r]?.name ?? "")}
       csvName="headcount-turnover-2026.csv"
       note={`Joined: ${list(src.joiners)}. Left: ${list(src.leavers)}. ` +
         "Turnover is the people who left divided by the average of the " +
