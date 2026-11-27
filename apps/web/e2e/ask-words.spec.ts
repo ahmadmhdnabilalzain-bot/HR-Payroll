@@ -41,7 +41,9 @@ test("hr-asks-for-a-report-in-words", async ({ page }) => {
     .toBeVisible();
 });
 
-test("the-ask-hr-box-shows-no-amount-while-hidden", async ({ page }) => {
+test("the-ask-hr-box-shows-no-amount-while-hidden",
+  async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "Hide amounts: top bar");
   await page.goto("/");
   await page.getByRole("button", { name: /Hide amounts/ }).first().click();
   await asRole(page, "Employee");
