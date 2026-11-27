@@ -19,7 +19,8 @@ export const LEAVE_TYPES: readonly DemoLeaveType[] = [
     annualDays: null },
 ];
 
-/** Company policy for the demo: 30 days a year, credited monthly. */
+/** Company policy for the demo (not the law): 30 days a year,
+ * credited monthly from the first month. */
 export const ANNUAL_POLICY = { accrual: "monthly" as const,
   annualDays: 30, joiningYearProRata: true };
 

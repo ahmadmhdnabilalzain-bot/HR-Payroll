@@ -53,5 +53,5 @@ export const reports = {
   colTotal: "Total",
   colDated: "Dated",
   fileDraft: "Draft, waiting for sign-off",
-  fileReady: "Ready to upload",
+  fileReady: "Ready to upload (not confirmed by MOHRE or a bank test)",
 } satisfies EnNamespace;
