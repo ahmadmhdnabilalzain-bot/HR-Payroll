@@ -1,5 +1,6 @@
 .box {
   position: relative;
+  min-inline-size: 0;
 }
 
 .button {
@@ -45,6 +46,7 @@
 }
 
 .value {
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
