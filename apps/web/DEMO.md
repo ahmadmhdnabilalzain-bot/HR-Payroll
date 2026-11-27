@@ -748,11 +748,23 @@ already visible and clickable; the motion only plays over it.
   chart draws); `observerWatchdog(fallback)` shows a section or chart
   waiting for the IntersectionObserver if the observer never makes
   its first callback.
-- Reproduced before the fix with the animation timeline paused (CDP
-  `Animation.setPlaybackRate 0`) and with `Element.animate` stubbed:
-  the Reports index showed only the head and the tabs, every card
-  under its layer and none clickable. After it, all cards show and
-  open in both cases, at 1440 and 393 wide.
+- `capTransition(vt)`: a route or list-to-record view transition
+  still running after 1.5 s is skipped. While one runs its snapshot
+  covers the page and takes every click, so a stalled timeline left
+  the page unclickable after the first open.
+- The list-to-record dissolve (the path without View Transitions,
+  Safari before 18) fades `<main>` in with no fill; it is settled on
+  the same timer, so it never holds the page at opacity 0.
+- An engine that throws on WAAPI's `pseudoElement` option no longer
+  takes the app down: the veil and the tab glide catch it and show
+  the content as is.
+- Checked in Chromium only (no WebKit run): with the timeline paused
+  (CDP `Animation.setPlaybackRate 0`), with `Element.animate`
+  stubbed out, and with it throwing on `pseudoElement`. Before the
+  fixes the Reports index showed only the head and the tabs and no
+  card opened. From commit 4f1dfea on, every card opens for HR (28)
+  and the GM (30 to 31) in each case, and every entrance settles
+  within 2.5 s, at 1440, 428 and 393 wide.
 
 ## Data in motion (figures, charts, rails)
 
