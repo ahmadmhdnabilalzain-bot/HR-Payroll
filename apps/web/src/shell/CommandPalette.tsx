@@ -19,7 +19,7 @@ import { VIEWS } from "../views";
 import { areasFor, routeOf, WORD, WORD_ICON } from "../nav/registry";
 import { Icon } from "../ui/Icon";
 import { useModal } from "../ui/presence";
-import { commands, GROUP_ORDER, matches, type Command, type Group }
+import { commands, GROUP_ORDER, ranked, type Command, type Group }
   from "./commands";
 import s from "./CommandPalette.module.css";
 
@@ -100,7 +100,7 @@ function Palette(p: { arabicShown: boolean; onClose(): void }) {
       ? "" : `, ${asked.filterText}`}`,
     hint: t("shell.askHint"), keywords: "",
     run: () => navigate("reports", ...asked.rest) }];
-  const shown = [...askCommand, ...all.filter((c) => matches(c, query))];
+  const shown = [...askCommand, ...ranked(all, query)];
   const pick = (c: Command | undefined): void => {
     if (c === undefined) return;
     p.onClose();

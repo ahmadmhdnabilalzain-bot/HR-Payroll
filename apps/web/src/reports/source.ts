@@ -96,7 +96,7 @@ const ACTION: Record<string, string> = {
   "setup.rule-change-undone": "Rule change taken back",
   "setup.connection-changed": "Connection changed",
   "access.review-signed-off": "Access review signed off",
-  "access.review-sign-off-undone": "Access review sign off taken back",
+  "access.review-sign-off-undone": "Access review sign-off taken back",
 };
 
 const AREA: Record<string, string> = { pay: "Pay", people: "People",
