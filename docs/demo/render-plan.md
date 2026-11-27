@@ -99,7 +99,7 @@ The live file only changes the one service `hr-payroll-demo-site`.
 6. `approve_blueprint`. WARNING: this deploys at once, even with
    `autoDeployTrigger: "off"`.
 7. Watch `list_deploys` / `get_deploy` until live.
-8. Verify with `?v=<time>`: banner "Mubinflow demo: fictional data",
+8. Verify with `?v=<time>`: banner "MubinFlow demo: fictional data",
    `/#/pay-run` opens, click script steps 1 to 3, response headers below.
 9. Record the result in LEDGER section 14.
 

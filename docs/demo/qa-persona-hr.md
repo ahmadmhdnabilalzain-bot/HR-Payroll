@@ -1,4 +1,4 @@
-# QA persona: skeptical bank HR Manager (30-person bank, unhappy with Keka)
+# QA persona: skeptical bank HR Manager (30-person bank, unhappy with the current system)
 
 Tested 26 Nov 2026 on a private build of branch integ (served on port 5401,
 now stopped). Desktop 1440x900 and iPhone 15 (393x852). Role: HR manager
@@ -10,7 +10,7 @@ SP = /tmp/claude-0/-home-user-HR-Payroll/55600167-2f81-585b-8597-bc047d967ec5/
 
 Verdict in one line: the click script runs end to end with no console
 errors, every figure on the script matches the screen, and Cmd K, "Why this
-number" and the IBAN check are genuinely better than what Keka gives me.
+number" and the IBAN check are genuinely better than what the current system gives me.
 The doubts come from dead ends in the settlement, from numbers that are
 labelled differently on different pages, and from privacy gaps.
 
@@ -196,7 +196,7 @@ disabled with a reason. No page errors or console errors in any run.
    "Only Khalid Al Nuaimi can approve" and a "View as General Manager" link.
 7. The gratuity side panel shows each step (7 y 220 d, 105 days, 78.08
    days, 173,928.08) and labels every rule Official, Secondary or Our
-   working rule. No Keka screen did that for me.
+   working rule. No screen in the current system did that for me.
 8. The salary file page checks layout and every account, then a real
    .SIF downloads with matching line counts.
 9. Loan cap on Home explains why 4,950 was taken, not 6,000, and moves

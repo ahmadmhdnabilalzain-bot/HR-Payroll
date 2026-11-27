@@ -1,4 +1,4 @@
-# Coverage 2: the Mubinflow demo against the navigation map
+# Coverage 2: the MubinFlow demo against the navigation map
 
 Date 2026-11-26. Build: branch integ, HEAD 0448198 (WP18 merge), built fresh
 with vite into a scratch folder and served on its own port. Map:
@@ -278,7 +278,7 @@ row that lives inside a host screen.
 | S35 | K | Accounting sync (Xero...) | - | missing |
 | S36 | K | Slack and Teams | - | missing |
 | S43 | K | ERP integration (SAP...) | - | missing |
-| S37 | B | Data import, Keka cut-over | setup.import | live |
+| S37 | B | Data import and cut-over | setup.import | live |
 | S38 | K | Parallel run compare | setup.parallel | live |
 | S39 | M | Data export, backup, health | setup.location | live |
 | S40 | M | Companies, numbering | setup.company | live |

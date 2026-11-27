@@ -34,7 +34,7 @@ import and parallel run, intranet and team chat (Plan 17 tasks 1-6).
 - Arabic screens reviewed by a native speaker (Arabic is hidden).
 - Native mobile apps (the demo is a mobile-friendly website).
 - Production hosting in the UAE, a penetration test, SOC 2 / ISO 27001,
-  single sign-on screens, Keka data migration tooling.
+  single sign-on screens, data migration tooling.
 
 ## Honest limits of the live demo
 Runs in the browser on fictional data; changes reset on reload; no
