@@ -109,7 +109,7 @@ export const errors = {
   ...timeErrors,
   // Plan 8 (hiring, onboarding, tasks, exits, goals).
   TASK_TRANSITION: "This task cannot move to that status.",
-  REQUISITION_NOT_OPEN: "This requisition is not open.",
+  REQUISITION_NOT_OPEN: "This position is not open.",
   CANDIDATE_EXISTS: "A candidate with this email already exists.",
   APPLICATION_EXISTS: "This candidate already applied here.",
   APPLICATION_CLOSED: "This application is closed.",

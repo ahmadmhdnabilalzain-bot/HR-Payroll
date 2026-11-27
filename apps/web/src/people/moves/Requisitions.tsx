@@ -42,7 +42,7 @@ export function Requisitions() {
   const now = r === null ? "open" : reqNow(r, state);
   return (
     <>
-      <FilterList title="Requisitions" rows={rows}
+      <FilterList title="Open positions" rows={rows}
         lede="Roles the company has asked to fill."
         rowKey={(x) => x.id}
         searchText={(x) => `${x.title} ${x.departmentText} ${x.locationText}`}
@@ -67,7 +67,7 @@ export function Requisitions() {
               {REQ_WORD[reqNow(x, state)]}
             </Dot>
           ) }]}
-        empty="No requisitions match." />
+        empty="No open positions match." />
       <Sheet open={r !== null} title={r?.title ?? ""}
         onClose={() => setOpen(null)}>
         {r !== null && (
@@ -120,7 +120,7 @@ export function Vacancies() {
   const cands = data.moves.candidates();
   const rows = data.moves.vacancies();
   return (
-    <FilterList title="Vacancies" rows={rows}
+    <FilterList title="Advertised jobs" rows={rows}
       lede="Roles that are open and advertised now."
       rowKey={(x) => x.id}
       searchText={(x) => `${x.title} ${x.departmentText} ${x.locationText}`}
@@ -132,6 +132,6 @@ export function Vacancies() {
         { key: "b", label: "Basic pay band", render: band },
         { key: "c", label: "Candidates", end: true, render: (x) =>
           cands.filter((c) => c.requisitionId === x.id).length }]}
-      empty="Nothing is advertised. Open a requisition to start hiring." />
+      empty="Nothing is advertised. Request a hire to start hiring." />
   );
 }
