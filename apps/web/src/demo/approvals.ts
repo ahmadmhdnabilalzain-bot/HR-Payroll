@@ -1,5 +1,6 @@
 import type { Approval, DemoData } from "./data/types";
 import { approvalBlockedBy } from "./derive";
+import { hrefOf } from "./route";
 import type { Action, DemoState, Role, Verdict } from "./state";
 import { allApprovals, personFor } from "./time-off";
 
@@ -86,3 +87,21 @@ export function waitingList(d: DemoData, s: DemoState): Approval[] {
 
 export const waitingCount = (d: DemoData, s: DemoState): number =>
   waitingList(d, s).length;
+
+/**
+ * The record a decision is about: the pay run's sign-off step, the
+ * leave requests (no page per request yet), the expense claim, the
+ * crew booking.
+ */
+export function approvalHref(a: Pick<Approval, "id" | "kind" |
+  "subjectId">): string {
+  switch (a.kind) {
+    case "pay-run": return hrefOf("pay-run", "approve");
+    case "leave": return hrefOf("time-off");
+    case "expense": return a.subjectId === undefined
+      ? hrefOf("pay-run", "expenses")
+      : hrefOf("pay-run", "expenses", a.subjectId);
+    case "overtime": return hrefOf("time-off", "overtime", "crew",
+      a.subjectId ?? a.id);
+  }
+}

@@ -59,17 +59,19 @@ export function NotificationsSheet(p: { open: boolean; onClose(): void }) {
           : (
             <ul className={s.notes}>
               {notes.map((n) => (
-                <li key={n.id} className={s.note} data-unread={n.unread}>
-                  {n.href === null ? (
-                    <span className={s.noteTitle}>{n.title}</span>
-                  ) : (
-                    <a className={s.noteTitle} href={n.href} onClick={() => {
+                <li key={n.id} data-unread={n.unread}
+                  className={`${s.note} ${s.linkRow} ${s.stretch}`}>
+                  {/* The title's link covers the whole notification. */}
+                  <a className={`${s.noteTitle} ${s.stretched}`}
+                    href={n.href} onClick={() => {
                       dispatch({ type: "notes-read", ids: [n.id] });
                       setOpen(false);
                     }}>{n.title}</a>
-                  )}
                   <span className={s.body}>{amountsHidden(state)
                     ? maskMoney(n.body) : n.body}</span>
+                  {n.via !== null && (
+                    <span className={s.meta}>{n.via}</span>
+                  )}
                   <span className={s.meta}>
                     {n.agoText}
                     {n.unread && (

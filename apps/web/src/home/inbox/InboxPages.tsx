@@ -2,7 +2,7 @@ import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { useMaskText } from "../../ui/mask";
-import { FilterList } from "../../ui/templates";
+import { FilterList, RecordTabs } from "../../ui/templates";
 import { saveView, savedView } from "../../ui/templates/listMotion";
 import { useState } from "react";
 import {
@@ -55,6 +55,7 @@ export function TasksPage(p: { tone?: string | undefined }) {
           <span className={s.main}>
             <TaskTitle task={x} />
             <span className={s.meta}>{mask(x.detail)}</span>
+            {x.via !== null && <span className={s.meta}>{x.via}</span>}
           </span>) },
         { key: "due", label: t("inbox.colDue"), render: (x) => x.dueText },
         { key: "status", label: t("inbox.colStatus"), render: (x) => (
@@ -76,7 +77,7 @@ export function NoticesPage() {
   return (
     <FilterList title={t("inbox.notices")} lede={t("inbox.noticesLede")}
       crumbs={[{ label: t("inbox.backHome"), href: hrefOf("home") }]}
-      rows={rows} rowKey={(x) => x.id}
+      rows={rows} rowKey={(x) => x.id} rowHref={(x) => x.href}
       searchText={(x) => `${x.title} ${x.body}`}
       columns={[
         { key: "notice", label: t("inbox.colNotice"), render: (x) => (
@@ -91,5 +92,34 @@ export function NoticesPage() {
           render: (x) => x.pinned ? `${x.audienceText} · ` +
             t("inbox.pinned") : x.audienceText }]}
       empty={t("inbox.noticesEmpty")} />
+  );
+}
+
+/**
+ * `#/home/notices/<id>`: one notice in full, for a notice with no
+ * record the role may open (a fire drill, a holiday, a welcome).
+ */
+export function NoticePage(p: { id: string }) {
+  const mask = useMaskText();
+  const { t } = useLocale();
+  const { data, state } = useDemo();
+  const x = inboxNotices(data, state).find((n) => n.id === p.id);
+  const crumbs = [{ label: t("inbox.backHome"), href: hrefOf("home") },
+    { label: t("inbox.notices"), href: hrefOf("home", "notices") }];
+  if (x === undefined) {
+    return (
+      <FilterList title={t("inbox.notices")} crumbs={crumbs} rows={[]}
+        rowKey={() => ""} searchText={() => ""} columns={[]}
+        empty={t("inbox.noticesEmpty")} />
+    );
+  }
+  return (
+    <RecordTabs title={x.title} crumbs={crumbs}
+      stats={[{ label: t("inbox.colPosted"), value: t("inbox.postedBy",
+        { name: x.postedBy.name, date: x.postedOn.display }) },
+      { label: t("inbox.colAudience"), value: x.pinned
+        ? `${x.audienceText} · ${t("inbox.pinned")}` : x.audienceText }]}
+      tabs={[{ id: "notice", label: t("inbox.colNotice"),
+        render: () => <p className={s.body}>{mask(x.body)}</p> }]} />
   );
 }

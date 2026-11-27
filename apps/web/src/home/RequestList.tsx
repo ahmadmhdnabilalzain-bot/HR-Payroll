@@ -11,7 +11,10 @@ import { formatDayMonth, formatList } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
+import { hrefOf } from "../demo/route";
+import { useRowLink } from "../ui/RowLink";
 import { useToast } from "../ui/Toast";
+import type { ReactNode } from "react";
 import s from "./Self.module.css";
 
 const STATE: Record<RequestRow["state"], MessageKey> = {
@@ -60,7 +63,8 @@ export function RequestList(p: { title: string; rows: RequestRow[];
               () => dispatch({ type: "undecide", id: r.approvalId ?? "" }));
             };
             return (
-              <li key={r.id} className={s.row}>
+              <LinkRow key={r.id} href={r.employeeId === me
+                ? hrefOf("me", "leave") : hrefOf("time-off")}>
                 <div className={s.rowMain}>
                   <span className={s.rowTitle}>
                     {p.showName === true ? `${nameOf(r.employeeId)} · ` : ""}
@@ -106,11 +110,22 @@ export function RequestList(p: { title: string; rows: RequestRow[];
                     )}
                   </div>
                 )}
-              </li>
+              </LinkRow>
             );
           })}
         </ul>
       )}
     </section>
   );
+}
+
+/**
+ * A request row that opens its leave (the viewer's own on My leave, a
+ * team member's in Time off); Decline, Book and Withdraw keep their
+ * own press.
+ */
+function LinkRow(p: { href: string; children: ReactNode }) {
+  const row = useRowLink({ href: p.href });
+  return <li {...row} className={`${s.row} ${row.className}`}>
+    {p.children}</li>;
 }

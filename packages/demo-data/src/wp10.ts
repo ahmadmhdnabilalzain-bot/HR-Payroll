@@ -491,6 +491,12 @@ export interface HomeNotice {
   /** "all", or the places that see it. */
   audience: "all" | string[];
   audienceText: string;
+  /**
+   * The record the notice is about, as a route hint ("people/emp-009",
+   * "people/growth/cyc-2026", "pay/this-month"), or null when it has
+   * none (a fire drill): the notice is then its own page.
+   */
+  target: string | null;
 }
 
 const HQ = "hq-abu-dhabi";
@@ -504,12 +510,19 @@ function noticesOf(c: DemoCompany): HomeNotice[] {
   const cy = appraisalCycleViews(c).find((x) => x.status === "open")!;
   const move = movesDataOf(c).moves.find((m) => m.kind === "transfer" &&
     m.status === "approved")!;
+  const TARGETS: Record<string, string> = {
+    "notice-001": "pay/this-month", "notice-002": `people/growth/${cy.id}`,
+    "notice-003": `people/${hire.id}`, "notice-004": `people/${leaver.id}`,
+    "notice-006": "me/calendar", "notice-008": "me/payslips",
+    ...(move.employeeId === null ? {}
+      : { "notice-007": `people/${move.employeeId}` }) };
   const years = Math.floor(daysBetween(leaver.joiningDate,
     leaver.leavingDate!) / 365.25);
   const n = (id: string, who: DemoEmployee, on: string, exp: string | null,
     pinned: boolean, category: HomeNotice["category"], title: string,
     body: string, audience: "all" | string[] = "all"): HomeNotice => ({
-    id, title, body, category, postedOn: shortDateOf(on),
+    id, title, body, category, target: TARGETS[id] ?? null,
+    postedOn: shortDateOf(on),
     postedBy: { employeeId: who.id, name: who.fullName }, pinned,
     expiresOn: exp === null ? null : shortDateOf(exp), audience,
     audienceText: audience === "all" ? "Everyone"
