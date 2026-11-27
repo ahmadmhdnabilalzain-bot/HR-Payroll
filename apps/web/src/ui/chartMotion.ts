@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
 import { reducedMotion } from "../demo/motion";
-import { observerWatchdog, settleAfter } from "./settle";
+import { onSeen } from "./seen";
+import { settleAfter } from "./settle";
 
 /**
  * Data in motion for every chart, on WAAPI only (so a capture can
@@ -235,28 +236,18 @@ export function useChartMotion(root: RefObject<Element | null>,
       started = true;
       if (opts.session !== undefined) enteredOnce.add(opts.session);
       for (const a of anims) a.play();
+      // Fail-open: whatever has not ended by its own length (plus
+      // slack) jumps to its end (ui/settle.ts).
       unsettle = settleAfter(anims, longest);
     };
-    if (typeof IntersectionObserver !== "function") {
-      go();
-      return undefined;
-    }
-    // No first callback from the observer: it is broken; draw now.
-    const watch = observerWatchdog(go);
-    const io = new IntersectionObserver((es) => {
-      watch.seen();
-      if (es.some((e) => e.isIntersecting)) {
-        io.disconnect();
-        go();
-      }
-    }, { threshold: 0.15 });
-    io.observe(el);
+    // The observer where it reports; else a scroll and timer check
+    // (ui/seen.ts): a chart never stays paused at its first frame.
+    const stop = onSeen([el], go, { threshold: 0.15 });
     return () => {
       // Unmounted (or React's dev double run): start over next time.
       entered.current = false;
-      watch.stop();
+      stop();
       unsettle();
-      io.disconnect();
       for (const a of anims) a.cancel();
     };
   }, [ready]);

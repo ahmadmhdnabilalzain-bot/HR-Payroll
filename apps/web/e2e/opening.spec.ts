@@ -24,7 +24,7 @@ test.describe("laptop", () => {
 
   test("plays-once-at-first-load-then-hands-to-home", async ({ page }) => {
     const stage = watchStage(page);
-    await page.goto("/");
+    await page.goto("/?film=1");
     await expect(film(page)).toBeVisible();
     await expect(page.getByRole("button", { name: "Skip" })).toBeVisible();
     await expect(page).toHaveTitle(home, { timeout: 20000 });
@@ -44,7 +44,7 @@ test.describe("laptop", () => {
   });
 
   test("skip-ends-it-at-once", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/?film=1");
     await expect(film(page)).toBeVisible();
     await page.getByRole("button", { name: "Skip" }).click();
     await expect(film(page)).toHaveCount(0);
@@ -64,7 +64,7 @@ test.describe("laptop", () => {
     async ({ page }) => {
       await page.emulateMedia({ reducedMotion: "reduce" });
       const stage = watchStage(page);
-      await page.goto("/");
+      await page.goto("/?film=1");
       await expect(page).toHaveTitle(home);
       await expect(film(page)).toHaveCount(0);
       await page.evaluate(() => { location.hash = "#/welcome"; });
@@ -75,7 +75,7 @@ test.describe("laptop", () => {
     });
 
   test("replay-in-the-palette-for-hr-and-gm-only", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/?film=1");
     await page.getByRole("button", { name: "Skip" }).click();
     await expect(page).toHaveTitle(home);
     const replay = async (): Promise<number> => {
@@ -112,7 +112,7 @@ test.describe("phone", () => {
 
   test("no-film-on-a-phone-and-a-still-at-welcome", async ({ page }) => {
     const stage = watchStage(page);
-    await page.goto("/");
+    await page.goto("/?film=1");
     await expect(page).toHaveTitle(home);
     await expect(film(page)).toHaveCount(0);
     await page.evaluate(() => { location.hash = "#/welcome"; });

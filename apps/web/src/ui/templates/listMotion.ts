@@ -19,8 +19,9 @@
  * Back button all take the same path.
  */
 
-import { capTransition, settleAfter } from "../settle";
+import { settleAfter } from "../settle";
 import { slideRoute } from "../routeMotion";
+import { hasViewTransitions, safeTransition } from "../viewTransition";
 
 /** theme/motion.css: --dur-slow and --ease-in-out. */
 export const LIST_MS = 320;
@@ -30,15 +31,6 @@ export const LIST_EASE = "cubic-bezier(0.4,0,0.2,1)";
 const FACE = "list-face";
 const NAME = "list-name";
 const CARD = "list-card";
-
-interface Transition {
-  finished: Promise<void>;
-  ready?: Promise<void>;
-  skipTransition?: () => void;
-}
-type Doc = Document & {
-  startViewTransition?: (cb: () => Promise<void>) => Transition;
-};
 
 interface Parts {
   face: HTMLElement | null;
@@ -223,10 +215,11 @@ function runRoute(oldUrl: string, render: () => void,
   const top = back ? scrolls.get(to) ?? 0 : 0;
   const swap = (): void => {
     render();
-    scrollTo({ top, behavior: "instant" });
+    // Numbers, not { behavior: "instant" }: Safari before 16.4 throws
+    // on that value. Nothing sets smooth scrolling, so this is instant.
+    scrollTo(scrollX, top);
   };
-  const doc = document as Doc;
-  if (reduced() || typeof doc.startViewTransition !== "function") {
+  if (reduced() || !hasViewTransitions()) {
     swap();
     dissolve();
     return;
@@ -236,7 +229,7 @@ function runRoute(oldUrl: string, render: () => void,
   const clearOld = nameParts(old);
   let clearNew = (): void => undefined;
   html.dataset["listMotion"] = back ? "back" : "open";
-  const vt = doc.startViewTransition(async () => {
+  safeTransition(async () => {
     clearOld();
     swap();
     // The list renders at once: look once (a decided row may have left
@@ -255,14 +248,11 @@ function runRoute(oldUrl: string, render: () => void,
     clearNew = nameParts(parts === null ? null
       : { face: face ? parts.face : null, name: same ? parts.name : null,
         box: parts.box ?? null });
-  });
-  // A transition skipped by the next one rejects `ready`; nothing waits.
-  vt.ready?.catch(() => undefined);
-  capTransition(vt);
-  vt.finished.finally(() => {
+  }, () => {
+    // However it ends (skipped by the next one, timed out): clear up.
     clearNew();
     delete html.dataset["listMotion"];
-  }).catch(() => undefined);
+  });
 }
 
 /** The record opened last from a list: its row shows as selected. */

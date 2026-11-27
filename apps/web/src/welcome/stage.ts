@@ -34,6 +34,8 @@ import {
 import { mixPose, Ribbon, type RibbonPose } from "./ribbon";
 import type { Story } from "./story";
 import { wordmarkGeometry, WORDMARK_ASPECT } from "./wordmark3d";
+import { filmForced, GATE_FRAMES, GATE_SKIP, softwareGL, tooSlow }
+  from "./gate";
 
 export interface StageInput {
   root: HTMLElement;
@@ -374,6 +376,14 @@ export async function mountStage(i: StageInput): Promise<() => void> {
     i.onFail();
     return () => undefined;
   }
+  const forced = filmForced();
+  if (!forced && softwareGL(renderer.getContext())) {
+    i.root.dataset["gate"] = "software";
+    renderer.dispose();
+    canvas.remove();
+    i.onFail();
+    return () => undefined;
+  }
   const owner = new Owner();
   const p = i.palette;
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -525,8 +535,28 @@ export async function mountStage(i: StageInput): Promise<() => void> {
   let frames = 0;
   let cpu = 0;
   let since = performance.now();
+  /* The gate: if the first frames come too slowly (weak graphics), the
+   * film fades straight into the product. */
+  const gaps: number[] = [];
+  let last = -1;
+  let gated = forced;
   const loop = (now: number): void => {
     raf = requestAnimationFrame(loop);
+    if (!gated) {
+      if (last >= 0) gaps.push(now - last);
+      last = now;
+      if (gaps.length >= GATE_SKIP + GATE_FRAMES) {
+        gated = true;
+        if (tooSlow(gaps)) {
+          i.root.dataset["gate"] = "slow";
+          tween.kill();
+          cancelAnimationFrame(raf);
+          raf = -1;
+          i.onEnd();
+          return;
+        }
+      }
+    }
     /* The ribbon always breathes a little, so draw each frame while
      * on screen; the rest is a pure function of the scroll position. */
     const t0 = performance.now();
@@ -549,10 +579,12 @@ export async function mountStage(i: StageInput): Promise<() => void> {
   };
   const run = (): void => {
     const go = onScreen && document.visibilityState === "visible";
+    if (raf < 0) return;
     if (go && raf === 0) raf = requestAnimationFrame(loop);
     if (!go && raf !== 0) {
       cancelAnimationFrame(raf);
       raf = 0;
+      last = -1;
     }
   };
   const seen = new IntersectionObserver((e) => {

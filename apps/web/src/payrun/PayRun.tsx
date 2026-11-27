@@ -17,6 +17,7 @@ import { PayStep } from "./PayStep";
 import { ReviewStep } from "./ReviewStep";
 import { RunBar } from "./RunBar";
 import s from "./PayRun.module.css";
+import { FAIL_OPEN_MS } from "../ui/seen";
 
 export type Go = (to: StepId) => void;
 
@@ -55,6 +56,8 @@ function leaveCopy(swap: HTMLElement, d: 1 | -1): (() => void) | null {
       { opacity: 0, transform: `translateX(${dx}px)` }],
     { duration: fast, easing: easeOut(), fill: "forwards" })
       .onfinish = () => copy.remove();
+    // Fail-open: the leaving copy goes even if its fade never ends.
+    setTimeout(() => copy.remove(), fast + FAIL_OPEN_MS);
   };
 }
 

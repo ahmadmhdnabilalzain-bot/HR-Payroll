@@ -22,6 +22,7 @@ import type {
   SourceStatus,
 } from "./types";
 import s from "./Explain.module.css";
+import { FAIL_OPEN_MS } from "../../ui/seen";
 
 const STATUS: Record<SourceStatus, MessageKey> = {
   official: "explain.official",
@@ -255,6 +256,8 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   const gone = (): void => wrap.remove();
   travel.onfinish = gone;
   travel.oncancel = gone;
+  // Fail-open: a copy whose flight never ends does not stay drawn.
+  setTimeout(gone, FLIGHT_MS + FAIL_OPEN_MS);
 }
 
 /** Brings the source figure back at once if the drawer closes while

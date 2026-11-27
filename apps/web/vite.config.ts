@@ -14,7 +14,11 @@ export default defineConfig({
   server: { port: 5173 },
   preview: { port: 4173 },
   build: {
-    target: "es2022",
+    /* The owner's iPhone may run anything from iOS 15.4 up: syntax
+     * and CSS are lowered for Safari 15 (es2022 shipped class static
+     * blocks, which Safari reads only from 16.4), and for the
+     * Chromium browsers a Windows laptop runs. */
+    target: ["es2020", "safari15", "chrome100", "edge100", "firefox100"],
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       treeshake: {

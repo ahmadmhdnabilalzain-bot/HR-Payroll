@@ -65,13 +65,14 @@ export function useSwitchRole(): (role: Role) => void {
           { oldURL, newURL: location.href }));
       }
       flushSync(() => dispatch({ type: "role", role }));
-      scrollTo({ top: 0, left: 0, behavior: "instant" });
+      // Not { behavior: "instant" }: Safari before 16.4 throws on it.
+      scrollTo(0, 0);
     };
     if (!canMove()) {
       run();
       return;
     }
-    scrollTo({ top: 0, left: 0, behavior: "instant" });
+    scrollTo(0, 0);
     moveWithin(0, run);
   };
 }

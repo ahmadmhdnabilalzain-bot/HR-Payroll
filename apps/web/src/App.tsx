@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState }
-  from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState,
+  type ComponentType } from "react";
 import { documentTitle } from "./brand";
 import { showArabic } from "./demo/flags";
 import { useRoute } from "./demo/route";
@@ -16,8 +16,24 @@ import { markOpeningSeen, opensAtFirstLoad, useWelcome }
   from "./welcome/route";
 import s from "./App.module.css";
 
+/** The opening's chunk did not load: go straight to the product. */
+function NoOpening(p: { onDone: (() => void) | undefined }) {
+  const { onDone } = p;
+  useEffect(() => {
+    if (onDone !== undefined) onDone();
+    else location.hash = "#/home";
+  }, [onDone]);
+  return null;
+}
+
 /** The opening (#/welcome): three.js and its scenes load only here. */
-const Welcome = lazy(() => import("./welcome/Welcome"));
+type OpeningProps = { onDone: (() => void) | undefined };
+const Welcome = lazy<ComponentType<OpeningProps>>(() =>
+  import("./welcome/Welcome").catch(() => ({ default: NoOpening })));
+
+/** The longest the product waits, inert, under the first opening:
+ * the film is about 8.5 s; past this it shows whatever happened. */
+export const OPENING_CAP_MS = 14000;
 
 /** The demo shell: ribbon, slim top bar, one section, the palette. */
 export function App() {
@@ -34,7 +50,13 @@ export function App() {
     markOpeningSeen();
     const end = (): void => setFirst(false);
     addEventListener("hashchange", end);
-    return () => removeEventListener("hashchange", end);
+    // Fail-open: a film that hangs (a stuck chunk, a lost GPU that
+    // never says so) never leaves the product inert under it.
+    const cap = setTimeout(end, OPENING_CAP_MS);
+    return () => {
+      clearTimeout(cap);
+      removeEventListener("hashchange", end);
+    };
   }, [first]);
   const welcome = atWelcome || first;
   /* Report and pay run chunks load ahead, once the opening is over. */
