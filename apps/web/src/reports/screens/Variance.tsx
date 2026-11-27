@@ -1,4 +1,6 @@
 import { hrefOf } from "../../demo/route";
+import { useDemo } from "../../demo/state";
+import { areaHref } from "../dash/itemSeam";
 import { Icon } from "../../ui/Icon";
 import { MINUS } from "../../i18n/format";
 import { Money } from "../../ui/Money";
@@ -39,6 +41,19 @@ export function Variance(props: { rest: string[] }) {
   const rows: Cell[][] = v.drivers.map((d) => [d.label,
     d.people.join(", "), { fils: d.amount, signed: true }]);
   const short = (label: string): string => label.split(" ")[0] ?? label;
+  // A cause opens the person it is about; one spread over several
+  // people opens the report of its kind, else its first person.
+  const { data } = useDemo();
+  const personHref = (name: string | undefined): string | undefined => {
+    const x = data.people.people().find((q) => q.name.en === name);
+    return x === undefined ? undefined : hrefOf("people", x.id);
+  };
+  const rowHref = (r: number): string | undefined => {
+    const d = v.drivers[r];
+    if (d === undefined) return undefined;
+    return (d.people.length === 1 ? personHref(d.people[0]) : undefined)
+      ?? areaHref(d.label) ?? personHref(d.people[0]);
+  };
   return (
     <ReportPage crumbs={crumbs} title="Variance against last month"
       period=""
@@ -62,7 +77,7 @@ export function Variance(props: { rest: string[] }) {
           value: v.grossNow }]} />}
       columns={[{ label: "Cause" }, { label: "Who" },
         { label: "Change in gross", end: true }]}
-      rows={rows}
+      rows={rows} rowHref={rowHref}
       total={["Change in gross", headcountText(v.headcountChange),
         { fils: v.grossChange, signed: true }]}
       csvName={`variance-${v.month}-against-${v.against}.csv`}

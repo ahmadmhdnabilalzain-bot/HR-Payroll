@@ -22,7 +22,8 @@ import { Esign } from "./esign/Esign";
 import s from "./page.module.css";
 
 /**
- * People: `#/people` lists, `#/people/<id>` is a profile and
+ * People: `#/people` lists (`#/people/department/<id>` opens it on one
+ * department), `#/people/<id>` is a profile and
  * `#/people/<id>/payslip` the month's payslip. What a role may see is
  * checked here for every path, so a deep link or a role switch on a
  * page falls back cleanly. An employee's People is their own profile.
@@ -44,6 +45,9 @@ export function People(p: ViewProps) {
   if (id === "hiring") return <Hiring rest={p.rest.slice(1)} />;
   if (id === "requests") return <Requests rest={p.rest} />;
   if (id === "more") return <More rest={p.rest.slice(1)} />;
+  if (id === "department") {
+    return <PeopleList key={sub ?? ""} dept={sub} />;
+  }
   const who = id ?? (state.role === "employee" ? me : undefined);
   if (who === undefined) return <PeopleList />;
   if (data.people.person(who) === null) {

@@ -95,7 +95,7 @@ function Report(p: { id: ReportId }) {
     <ReportPage title={t(TITLE[p.id])} period={t(BLURB[p.id])}
       crumbs={[{ label: t("shell.navReports"), href: hrefOf("reports") }]}
       columns={table.columns} rows={table.rows} bars={table.bars}
-      explain={table.explain}
+      explain={table.explain} rowHref={table.rowHref}
       note={table.note}
       csvName={`${company}-${p.id}-${env.d.month}.csv`}
       foot={t("reports.foot", {

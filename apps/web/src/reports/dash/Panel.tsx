@@ -1,15 +1,22 @@
 import type { ReactNode } from "react";
 import { useLocale } from "../../i18n/LocaleProvider";
+import { rowClick } from "../../ui/rowClick";
 import type { IssueWords } from "./model";
 import s from "./dash.module.css";
 
-/** A white panel with a 17 px title and an optional quiet note. */
+/**
+ * A white panel with a 17 px title and an optional quiet note. With an
+ * `href` the title is the link (the keyboard path) and a press
+ * anywhere else on the panel (the note, a chart, the space between
+ * its rows) opens the same page; rows and bars inside keep their own.
+ */
 export function Panel(p: { id: string; title: string; note?: string;
   children: ReactNode; wide?: boolean;
   /** The page behind the panel: the title opens it. */
   href?: string }) {
   return (
     <section className={s.panel} aria-labelledby={p.id} data-reveal-part=""
+      onClick={rowClick(p.href)} data-href={p.href}
       style={p.wide === true ? { gridColumn: "1 / -1" } : undefined}>
       <div className={s.panelHead}>
         <h2 id={p.id} className={s.panelTitle}>

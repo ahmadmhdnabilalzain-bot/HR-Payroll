@@ -218,6 +218,32 @@ describe("every dashboard line opens a page", () => {
         .toBe("#/reports/gratuity-liability");
     });
 
+  it("the brief's dates open the step they belong to", async () => {
+    const { areaHref } = await import("../../src/reports/dash/itemSeam");
+    const { buildMoreSource } = await import(
+      "../../src/reports/more/source");
+    const { brief } = buildMoreSource();
+    for (const x of brief.dates) {
+      expect(areaHref(`Dates: ${x.label}`), x.label).toMatch(/^#\/pay-run\//);
+    }
+    expect(areaHref("Dates: Sign off by")).toBe("#/pay-run/approve");
+    expect(areaHref("Dates: Salary file sent")).toBe("#/pay-run/pay");
+  });
+
+  it("a department's rows open its people, by name or id", async () => {
+    const { deptHrefByName } = await import(
+      "../../src/reports/dash/itemSeam");
+    const d = demo.at({});
+    const ids = new Set(d.people.departments().map((x) => x.id));
+    for (const x of src.departments) {
+      const href = deptHrefByName(d.departments(), x.name);
+      expect(href, x.name).toMatch(/^#\/people\/department\//);
+      expect(ids.has(decodeURIComponent(href!.split("/").at(-1)!)))
+        .toBe(true);
+    }
+    expect(deptHrefByName(d.departments(), "Nowhere")).toBeUndefined();
+  });
+
   it("every tile links", () => {
     const d = demo.at({});
     for (const t of [...hrTiles(src, d, INITIAL, words),

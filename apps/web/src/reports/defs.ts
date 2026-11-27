@@ -2,6 +2,7 @@ import { fils } from "@payroll/engine";
 import type { Explanation } from "../components/explain/types";
 import type { DemoData } from "../demo/data/types";
 import type { RunDetail } from "../demo/data/run-types";
+import { hrefOf } from "../demo/route";
 import { formatDate, formatMonth } from "../i18n/format";
 import type { MessageKey, T } from "../i18n/t";
 import type { Lang } from "../i18n/types";
@@ -37,6 +38,8 @@ export interface Table {
   note?: string;
   /** The working behind a cell, by row and column, if it has one. */
   explain?: (row: number, col: number) => Explanation | undefined;
+  /** The page a row opens (a department's people, a person). */
+  rowHref?: (row: number) => string | undefined;
 }
 
 export interface Env {
@@ -93,6 +96,8 @@ function departments(e: Env): Table {
     note: e.t("reports.deptNote"),
     explain: (r, c) => c === 2 ? e.d.explain[
       `dept-cost:${rows[r]?.id ?? ""}`] : undefined,
+    rowHref: (r) => rows[r] === undefined ? undefined
+      : hrefOf("people", "department", rows[r].id),
   };
 }
 
@@ -114,16 +119,19 @@ function documents(e: Env): Table {
   const status = (days: number): string => days < 0
     ? e.t("reports.expired") : days <= 30 ? e.t("reports.within30")
       : days <= 90 ? e.t("reports.within90") : e.t("reports.valid");
+  const docs = e.data.documents();
   return {
     columns: [{ label: e.t("reports.colEmployee"), end: false },
       { label: e.t("reports.colDocument"), end: false },
       { label: e.t("reports.colExpires"), end: false },
       { label: e.t("reports.colDaysLeft"), end: true },
       { label: e.t("reports.colStatus"), end: false }],
-    rows: e.data.documents().map((x) => [
+    rows: docs.map((x) => [
       e.data.employee(x.employeeId).name[e.lang], x.kind[e.lang],
       formatDate(x.expiresOn, e.lang), x.daysLeft, status(x.daysLeft)]),
     note: e.t("reports.docNote"),
+    rowHref: (r) => docs[r] === undefined ? undefined
+      : hrefOf("people", docs[r].employeeId),
   };
 }
 

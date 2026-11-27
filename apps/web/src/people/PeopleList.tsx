@@ -20,13 +20,14 @@ const TONE: Record<Tone, StatusTone> = {
 /**
  * Who works here, on the list template (LF): column headers, the
  * person's initials, a segmented filter (all, needs attention,
- * leavers), a search and a department picker. Status is a dot and a
+ * leavers), a search and a department picker (set from the address on
+ * `#/people/department/<id>`). Status is a dot and a
  * word, shown only when it is not plain "Active".
  */
-export function PeopleList() {
+export function PeopleList(p: { dept?: string | undefined } = {}) {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
-  const [dept, setDept] = useState<string | null>(null);
+  const [dept, setDept] = useState<string | null>(p.dept ?? null);
   const mine = useMemo(() => {
     const ids = new Set(visibleIds(data, state));
     return data.people.people().filter((x) => ids.has(x.id));

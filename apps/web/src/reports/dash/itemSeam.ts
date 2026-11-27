@@ -25,9 +25,28 @@ export function itemHref(type: ItemType, id = ""): string {
   }
 }
 
+/** A department's people: the People list on that department. */
+export function deptPeopleHref(id: string): string {
+  return hrefOf("people", "department", id);
+}
+
+/** The People list for a department named in a row ("Sales"), by the
+ * departments' names; undefined when the words name none. */
+export function deptHrefByName(depts: readonly { id: string;
+  name: { en: string } }[], name: string): string | undefined {
+  const d = depts.find((x) => x.name.en === name.trim());
+  return d === undefined ? undefined : deptPeopleHref(d.id);
+}
+
 /** Words in a measure, item or point, and the page each opens. The
  * first match wins, so the specific words come first. */
 const AREAS: readonly [RegExp, () => string][] = [
+  // The brief's planned dates, each to the step it belongs to.
+  [/^Dates: Sign off by/i, () => hrefOf("pay-run", "approve")],
+  [/^Dates: Salary file sent/i, () => hrefOf("pay-run", "pay")],
+  [/^Dates: Payday/i, () => hrefOf("pay-run", "pay")],
+  [/^Dates: Cut-off/i, () => hrefOf("pay-run", "review")],
+  [/^Dates: Final settlement/i, () => hrefOf("pay-run", "settlements")],
   [/settlement/i, () => hrefOf("pay-run", "settlements")],
   [/held|bank|stop pay|before sign-off|problems/i,
     () => itemHref("issue")],
