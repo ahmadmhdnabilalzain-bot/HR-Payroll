@@ -81,7 +81,7 @@ export function Try(p: { via: "phone" | "kiosk" }) {
       <SheetForm open={open} title={label} submitLabel={W.submit}
         onClose={() => setOpen(false)}
         note={p.via === "phone" ? data.files.clock.geofenceNote
-          : M.kiosk.face}
+          : undefined}
         onSubmit={() => {
           if (!TIME.test(time)) return W.badTime;
           const place = sites.find((s) => s.id === site);
@@ -144,7 +144,7 @@ export function Kiosk() {
   const lines = state.clocks.filter((c) => c.via === "kiosk");
   return (
     <>
-      <FilterList title={W.title} lede={`${W.lede} ${W.face}`} rows={lines}
+      <FilterList title={W.title} lede={W.lede} rows={lines}
         rowKey={(l) => l.id} searchText={(l) => names.name(l.employeeId)}
         segments={[{ id: "all", label: "All", match: () => true }]}
         columns={[

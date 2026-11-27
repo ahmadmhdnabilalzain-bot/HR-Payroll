@@ -20,7 +20,6 @@ export const shell = {
   panelOpen: "Open {section}",
   countWaiting: "{count} waiting",
   sectionEmpty: "Nothing here yet.",
-  notInDemo: "Not built yet",
   search: "Search",
   searchHint: "Search people and actions",
   viewingAs: "Viewing as",

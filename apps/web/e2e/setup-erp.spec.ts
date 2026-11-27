@@ -40,8 +40,8 @@ test("erp-ledger-teams-say-nothing-is-connected", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Employee sync preview" }))
     .toContainText("Cost centre");
   await page.getByRole("button", { name: "Test connection" }).click();
-  await expect(page.getByText(/Test connection: not available/)).toContainText(
-    "not available yet");
+  await expect(page.getByText(/Not connected\. No request/)).toContainText(
+    "Not connected");
   await page.getByRole("button", { name: "Edit" }).first().click();
   await page.getByRole("textbox").fill("on");
   await page.getByRole("button", { name: "Save" }).click();
@@ -69,7 +69,7 @@ test("erp-ledger-teams-say-nothing-is-connected", async ({ page }) => {
 
   await page.evaluate(() => { location.hash = "#/setup/erp/teams"; });
   await expect(page.getByRole("heading", { level: 1,
-    name: "Teams messages" })).toBeVisible();
+    name: "Chat messages" })).toBeVisible();
   await expect(page.getByRole("article").first()).toBeVisible();
   await shot(page, "teams");
   await settled(page);

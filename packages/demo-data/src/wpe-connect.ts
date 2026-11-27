@@ -63,11 +63,11 @@ function whatsapp(c: DemoCompany): ConnectPage {
     const r = APPROVAL_RULES.find((x) => x.id === id)!;
     return item(`wa:${id}`, label, "Off", `${r.text} ${how}`, ON_OFF);
   };
-  return { id: "whatsapp", title: "Decisions by WhatsApp",
+  return { id: "whatsapp", title: "Decisions by message",
     lede: "Let a manager answer a request from their phone.",
     notice: NOTICE,
     groups: [
-      { title: "Switch", items: [item("wa:switch", "Decisions by WhatsApp",
+      { title: "Switch", items: [item("wa:switch", "Decisions by message",
         "Off", "Off until the company's own number is connected.",
         ON_OFF)] },
       { title: "Which requests can be answered by message", items: [

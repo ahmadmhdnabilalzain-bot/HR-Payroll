@@ -22,7 +22,6 @@ export const shell: ArOf<typeof en> = {
   panelOpen: "فتح {section}",
   countWaiting: "{count} بالانتظار",
   sectionEmpty: "لا شيء هنا بعد في هذا العرض.",
-  notInDemo: "ليس ضمن هذا العرض",
   search: "بحث",
   searchHint: "ابحث عن الموظفين والإجراءات",
   viewingAs: "العرض بصفة",

@@ -86,7 +86,6 @@ export const M = {
     scan: "Scan the code", submit: "Check in", empty:
       "Nobody has checked in at a kiosk yet.", checked: "Checked in",
     code: "Not a working QR code.",
-    face: "Face check-in is not built yet.",
     done: (n: string): string => `${n} checked in.`, time: "Time (hh:mm)",
     badTime: "Type the time as hh:mm, like 08:30." },
   cover: { title: "Minimum on shift", lede: "November: leave on the " +

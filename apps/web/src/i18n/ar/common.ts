@@ -15,7 +15,6 @@ export const common: ArOf<typeof en> = {
   sampleDataHint: "بيانات تجريبية في هذا المتصفح فقط. إعادة تحميل الصفحة " +
     "تعيدها إلى العينة، فلا تُحفظ التغييرات.",
   arReviewBanner: "النص العربي بانتظار مراجعة متحدث أصلي",
-  building: "هذا التطبيق قيد البناء. الشاشات قادمة.",
   loading: "جارٍ التحميل",
   tryAgain: "حاول مرة أخرى",
   reference: "المرجع: {requestId}",
