@@ -113,7 +113,9 @@ async function pressEveryLink(page: Page, hrefs: string[]): Promise<void> {
     await home(page);
     const el = page.locator(`main [href="${href}"], ` +
       `main [data-href="${href}"]`).first();
-    await el.scrollIntoViewIfNeeded();
+    // To the middle: "in view" can still be under the sticky header
+    // (Decisions, just shown, leaves the cards above it at the top).
+    await el.evaluate((e) => e.scrollIntoView({ block: "center" }));
     const box = await el.boundingBox();
     if (box === null) { failed.push(`${href}: not on screen`); continue; }
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
