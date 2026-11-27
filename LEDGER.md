@@ -1015,3 +1015,14 @@ dashboards; the rest is the dc1 to dc3 and item2 branches.
   Rosters, Signing profiles, ILOE, Goals, Leave liability. Transient dead
   window after navigation (0.25 to 1.5 s). Wave 1b candidates: saf1 fail-open
   fixes and home1 (HR and GM Home clickable).
+
+## 23c. Wave 1d live check (27 Nov, 11:39 Dubai): left for Monday
+- Live build 7744898 (index-dw0SWAwz.js): story, Home links, bell (29/29),
+  Reports (29/29 HR, 31/31 GM), click timing 10/10 all passed.
+- Bell items "Priya Nair / Juma Al Zaabi: bank details to fix" open the Review
+  step, not Fix. Fix: point them at #/pay-run/fix. Demo workaround: reach Fix
+  from Home or the pay-run steps, not the bell.
+- GM "Sign off October pay" is aria-disabled with no visual cue until pressed.
+- Still plain text: names caption under "Waiting for a decision"; trend axis
+  month letters (the points above them work).
+- Freeze held at 12:00: no gate time left for these.
