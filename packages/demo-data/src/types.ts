@@ -134,7 +134,33 @@ export interface DemoSif {
 export type LeaveStatus = "approved" | "pending" | "rejected";
 
 export interface DemoLeaveType { id: string; labelKey: string;
-  paid: boolean; annualDays: number | null }
+  paid: boolean; annualDays: number | null; rule: DemoLeaveRule }
+
+/** Text in both languages (the Arabic NEEDS NATIVE REVIEW). */
+export interface LeaveWords { en: string; ar: string }
+
+/**
+ * A leave type's rule as the person asking reads it, and what the
+ * request form checks. Figures from a rule pack are read from it.
+ */
+export interface DemoLeaveRule {
+  /** How long and how it is paid, in one or two plain sentences. */
+  text: LeaveWords;
+  /** Most days one request may take, or null (a balance decides). */
+  maxDays: number | null;
+  /** Whether those days are working days or calendar days. */
+  basis: "working" | "calendar";
+  /** What has to come with the request, or null. */
+  proof: LeaveWords | null;
+  /** The (fictional) file name the demo attaches for that proof. */
+  proofFile: string | null;
+  /** Days of notice asked for (company policy); 0 for none. */
+  noticeDays: number;
+  /** Years with the company before the type can be used; 0 for any. */
+  minServiceYears: number;
+  /** Where the rule comes from, in plain words. */
+  source: LeaveWords;
+}
 
 export interface DemoLeaveRequest {
   id: string;

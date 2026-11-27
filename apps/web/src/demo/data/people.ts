@@ -245,7 +245,7 @@ export function adaptPeople(c: DemoCompany): PeopleData {
         expiresOn: d.expiresOn, daysLeft: d.daysLeft, state: d.state })),
     leaveTypes: () => c.leaveTypes.map((t) => ({
       id: t.id as LeaveTypeId, name: label(t.labelKey), paid: t.paid,
-      annualDays: t.annualDays })),
+      annualDays: t.annualDays, rule: t.rule })),
     reasons: () => ["reason.travel", "reason.family", "reason.rest",
       "reason.medical", "reason.personal"].map((key) => ({ key,
       text: label(key) })),

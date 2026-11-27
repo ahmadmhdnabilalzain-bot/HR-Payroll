@@ -12,7 +12,7 @@ import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
 import { Inbox } from "./inbox/Inbox";
-import { LeaveForm } from "./LeaveForm";
+import { RequestSheet } from "../timeoff/RequestSheet";
 import { RequestList } from "./RequestList";
 import s from "./Self.module.css";
 
@@ -63,13 +63,12 @@ export function EmployeeHome() {
               : t("timeoff.annualLeft",
               dayCountVars(balance.availableDays, lang))}
           </p>
-          {!asking && (
-            <button type="button" className={`${b.btn} ${b.secondary}`}
-              onClick={() => setAsking(true)}>{t("home.requestLeave")}</button>
-          )}
+          <button type="button" className={`${b.btn} ${b.secondary}`}
+            onClick={() => setAsking(true)}>{t("home.requestLeave")}</button>
         </section>
       </div>
-      {asking && <LeaveForm employeeId={me} onDone={() => setAsking(false)} />}
+      <RequestSheet open={asking} onClose={() => setAsking(false)}
+        onSent={() => undefined} from={[20, 21]} />
       <RequestList title={t("home.myRequests")} rows={mine}
         empty={t("timeoff.requestsEmpty")} />
       <Inbox />

@@ -12,7 +12,9 @@ import s from "./timeoff.module.css";
 
 const TYPE: Record<LeaveTypeId, MessageKey> = {
   "lt-annual": "timeoff.annual", "lt-sick": "timeoff.sick",
-  "lt-unpaid": "timeoff.unpaid",
+  "lt-unpaid": "timeoff.unpaid", "lt-maternity": "timeoff.maternity",
+  "lt-parental": "timeoff.parental", "lt-bereavement": "timeoff.bereavement",
+  "lt-study": "timeoff.study",
 };
 
 const pad = (n: number): string => String(n).padStart(2, "0");

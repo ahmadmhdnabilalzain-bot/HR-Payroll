@@ -431,6 +431,38 @@
   font-size: var(--text-md);
 }
 
+/* The chosen type's rule, under the picker. */
+.rule {
+  display: grid;
+  gap: var(--space-1);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 2px solid var(--color-divider-strong);
+  font-size: var(--text-md);
+}
+
+/* An attached (sample) file: name, note, remove. */
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 56px;
+  padding-inline: var(--space-3) var(--space-1);
+  border: 1px solid var(--color-divider-strong);
+  border-radius: var(--radius-control);
+  font-size: var(--text-md);
+}
+
+.chip .close {
+  margin-inline-end: 0;
+}
+
+.chipText {
+  display: grid;
+  flex: 1;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
 .sheetActions {
   display: flex;
   justify-content: flex-end;
@@ -689,6 +721,18 @@
     border-start-start-radius: 16px;
     border-start-end-radius: 16px;
     animation-name: sheet-up;
+  }
+
+  /* The grabber: a sheet from the bottom says so. */
+  .sheet::before {
+    position: absolute;
+    inset-block-start: var(--space-2);
+    inset-inline-start: calc(50% - 18px);
+    inline-size: 36px;
+    block-size: 5px;
+    border-radius: var(--radius-pill);
+    background: var(--color-divider-strong);
+    content: "";
   }
 
   .sheet[data-leaving="true"] {

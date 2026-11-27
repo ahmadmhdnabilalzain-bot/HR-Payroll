@@ -39,6 +39,8 @@ export const DEMO_LABELS_AR: Record<DemoLabelKey, string> = {
   "job.systems-engineer": "مهندس أنظمة",
   "leave.annual": "إجازة سنوية", "leave.sick": "إجازة مرضية",
   "leave.unpaid": "إجازة بدون راتب",
+  "leave.maternity": "إجازة أمومة", "leave.parental": "إجازة والدية",
+  "leave.bereavement": "إجازة حداد", "leave.study": "إجازة دراسية",
   "reason.family": "زيارة عائلية", "reason.rest": "راحة",
   "reason.travel": "سفر", "reason.medical": "موعد طبي",
   "reason.personal": "شؤون شخصية",
