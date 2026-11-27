@@ -24,23 +24,20 @@ authority. Say "as we read the law" and "we will confirm".
    fresh. Check the top left says "MubinFlow demo: fictional data".
    The opening film plays once per browser, at the first load, and only on
    a laptop with a mouse, a wide window and WebGL. "Skip" is visible the
-   whole time: use it if the room is waiting. If you already saw it on
-   this browser, it will not play again: use a fresh window, or press
-   Cmd K and choose "Replay opening". On the phones there is no film.
+   whole time: use it if the room is waiting; it lands on Home. If you
+   already saw it on this browser, it will not play again: use a fresh
+   private window, or press Cmd K, type "replay" and choose "Replay
+   opening" (offered to the HR manager and the General manager). On the
+   phones there is no film at the first load; a replay there shows a
+   still picture instead.
 2. Make sure the theme is light (the sun and moon button, top right).
 3. Zoom the browser to 110% or 125% if the room is large (Cmd and +).
 4. Keep the offline file (mubinflow-demo.html) on the laptop desktop. It
    opens by double click with no internet. If the network fails, use it.
 5. Have the link or a QR code ready to show for the phones.
-6. Open this script and the two other notes on paper or a second screen:
-   2026-11-27-it-manager-note.md and 2026-11-27-discovery-questions.md.
-7. The opening film plays once per browser, at the first load. If you
-   tried the link on this laptop already, it will not play again by
-   itself. To show it in the meeting, either open the link in a fresh
-   private window, or press Cmd K, type "replay" and choose "Replay
-   opening" (offered to the HR manager and the General manager, on the
-   laptop; a phone shows a still instead of the film). "Skip" lands on
-   Home.
+6. Open this script and the other notes on paper or a second screen:
+   2026-11-27-owner-cheatsheet.md, 2026-11-27-it-manager-note.md and
+   2026-11-27-discovery-questions.md.
 
 ## What to tell them about the phones (say this once, at the start)
 
@@ -108,7 +105,7 @@ Oct" (the four steps are Review, Fix, Sign off, Pay), "Waiting for a
 decision" with 4, and the list "Before sign-off: 2 items block sign-off ·
 6 to review". "Why this number" opens a side panel that adds the figure
 up. Further down, "To do" lists "Review the hiring request for Payments
-officer" just after the overdue visa task (step 8, hiring).
+officer" just after the overdue visa task (step 9 A, hiring).
 
 **Say.** "Home answers one question: can October be paid, and what is my
 next step. Every number can be opened to see how it was worked out."
@@ -442,7 +439,9 @@ worked: 6 hours", 125%. Under "Questions you may have" click "Why is
 overtime AED 250.00?". Then "Ask HR about this line", "Send to HR": it
 reads "Sent to HR with the line and the amount". Say: "The answer is
 worked out from the payslip and the rules, not written by a person; the
-sheet says so."
+sheet says so." With "Hide amounts" on, the question box shows the mask
+instead of the amount. Sending it (or "Ask HR" in I) leaves HR's Home as
+it was: "Waiting for a decision" 4, 13 open tasks.
 
 **H. Ask for a report in words.** As HR manager: Reports. In "Ask for a
 report" type "variance for september" and click "Show report": it opens
