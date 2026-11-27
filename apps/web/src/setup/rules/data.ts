@@ -46,11 +46,9 @@ export const STATUS_MEANS: Record<RuleStatus, string> = {
     "until the company enters one.",
 };
 
-/** One status the engine shows differently in the demo (as on the
- * explain panel): the 50% deduction limit reads secondary-sourced. */
-const PRESENTED: Record<string, RuleStatus> = {
-  "ae-payroll:deductionOverallCapBps": "secondary",
-};
+/** Statuses the engine shows differently in the demo (as on the
+ * explain panel). None now: the 50% limit is in Art 25(2). */
+const PRESENTED: Record<string, RuleStatus> = {};
 
 const PACKS: readonly { id: string; name: string;
   packs: readonly RulePack[]; skip?: RegExp }[] = [

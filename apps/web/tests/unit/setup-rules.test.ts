@@ -34,9 +34,9 @@ describe("setup rules", () => {
       expect(r.sourceNote).toBeNull();
     }
   });
-  it("shows the 50% limit as secondary, as the explain panel does", () => {
+  it("shows the 50% limit as official (Art 25), as the explain panel", () => {
     expect(ruleOf("ae-payroll", "deductionOverallCapBps").status)
-      .toBe("secondary");
+      .toBe("official");
   });
   it("excludes pension keys and finds no holiday dates", () => {
     expect(ruleRows().some((r) => /^gpssa/.test(r.key))).toBe(false);

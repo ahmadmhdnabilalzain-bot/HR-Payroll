@@ -33,7 +33,7 @@ describe("follow-ups after the merge", () => {
     }
   });
 
-  it("(b) the 50% limit is presented as secondary, as we read it", () => {
+  it("(b) the 50% limit is presented as official (Art 25)", () => {
     const e = employeesWithCase(c, "loan-over-cap")[0]!;
     const s = payslipByEmployee(c, e.id)!;
     const lines = explainPayslip(c, s.id);
@@ -43,16 +43,9 @@ describe("follow-ups after the merge", () => {
     for (const l of cap) {
       const r = l.rules.find((x) => x.key === "deductionOverallCapBps")!;
       expect(r.status).toBe("official");
-      expect(r.presentedStatus).toBe("secondary");
-      expect(r.presentedLabel).toBe("secondary-sourced, as we read it");
-      expect(l.text.en).toContain("secondary-sourced, as we read it");
-      // "official" may stay only for another rule on the same line
-      // (e.g. the loan consent rule, Art 25(1)(a)).
-      const others = l.rules.some((x) => x.key !==
-        "deductionOverallCapBps" && x.presentedStatus === "official");
-      expect(/\bofficial\b/.test(l.text.en)).toBe(others);
-      expect(l.steps.join("\n"))
-        .not.toMatch(/deductionOverallCapBps = \d+ \(official/);
+      expect(r.presentedStatus).toBe("official");
+      expect(r.presentedLabel).toBeNull();
+      expect(l.text.en).not.toContain("secondary-sourced");
     }
   });
 
@@ -60,7 +53,6 @@ describe("follow-ups after the merge", () => {
     const s = c.payRun.payslips[0]!;
     for (const l of explainPayslip(c, s.id)) {
       for (const r of l.rules) {
-        if (r.key === "deductionOverallCapBps") continue;
         expect(r.presentedStatus).toBe(r.overridden ? "overridden"
           : r.status);
       }
