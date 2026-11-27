@@ -249,7 +249,7 @@
       env(safe-area-inset-bottom));
   }
 
-  .barHint {
+  .barHint:not([data-saved="true"]) {
     display: none;
   }
 

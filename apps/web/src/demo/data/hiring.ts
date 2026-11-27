@@ -131,9 +131,9 @@ export function adaptHiring(c: DemoCompany, managerId: string)
           value: money(cost.firstYear) })),
         notComputed: [NOT_IN], scope: c.rulesScope }),
       after: (key, title, p) => sumExplain({ id: `hire-after:${key}`,
-        title: "Budget left", subject: title,
+        title: p.heading ?? "Budget left", subject: title,
         summary: `${p.leftLabel}, less ${p.lessLabel.toLowerCase()}.`,
-        resultLabel: "Left", parts: [
+        resultLabel: p.result ?? "Left", parts: [
           { text: p.leftLabel, value: money(p.leftNow) },
           { text: `Less ${p.lessLabel.toLowerCase()}`,
             value: money(p.less), less: true }],

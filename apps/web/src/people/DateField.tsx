@@ -131,6 +131,9 @@ export function DateField(p: { label: string; value: string; min: string;
               const rtl = getComputedStyle(e.currentTarget).direction ===
                 "rtl" ? -1 : 1;
               const n = move[e.key];
+              // The focused day may unmount (a new month): refocus.
+              if (n !== undefined || e.key === "PageUp" ||
+                e.key === "PageDown") opening.current = true;
               if (n !== undefined) {
                 e.preventDefault();
                 setAt(clamp(shift(at, Math.abs(n) === 1 ? n * rtl : n)));
