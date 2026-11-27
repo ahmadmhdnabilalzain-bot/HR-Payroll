@@ -13,7 +13,11 @@ import { Footnote } from "../components/explain";
 import { AskBox } from "./ask/AskBox";
 import { canAsk } from "./ask/useAsk";
 
-/** Reports home: every report, grouped, with the question it answers. */
+/**
+ * Reports home: every report, grouped under a sentence-case label, as
+ * a two-column grid of cards (one on a phone), each with the one-line
+ * question it answers.
+ */
 export function Catalogue(p: { autoFocusAsk?: boolean }) {
   const { lang, t } = useLocale();
   const ctx = useDemo();
@@ -33,7 +37,8 @@ export function Catalogue(p: { autoFocusAsk?: boolean }) {
         <AskBox autoFocus={p.autoFocusAsk === true} />
       )}
       {groups.map(({ group, areas }) => (
-        <section key={group.id} aria-labelledby={`rg-${group.id}`}>
+        <section key={group.id} className={s.groupBlock}
+          aria-labelledby={`rg-${group.id}`}>
           <h2 id={`rg-${group.id}`} className={s.group}>
             {group.label[lang]}</h2>
           <ul className={s.list}>
@@ -47,7 +52,8 @@ export function Catalogue(p: { autoFocusAsk?: boolean }) {
                     data-row-name={a.label[lang]}>
                     <span className={s.itemText} data-row-main="">
                       <span className={s.itemTitle}>{a.label[lang]}</span>
-                      <span className={s.itemBlurb}>{BLURB[a.id]}</span>
+                      <span className={s.itemBlurb}
+                        title={BLURB[a.id]}>{BLURB[a.id]}</span>
                     </span>
                     <Icon name="chevronEnd" size={20} />
                   </a>
