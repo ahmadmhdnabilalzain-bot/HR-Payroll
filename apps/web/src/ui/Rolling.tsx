@@ -9,6 +9,7 @@ import {
   SWAP_MS,
   type Slot,
 } from "./roll";
+import { FAIL_OPEN_MS } from "./seen";
 
 /** What a figure shows: an optional sign and currency, then digits. */
 export interface Face {
@@ -73,10 +74,16 @@ export function RollFace(p: { face: Face; value: number | bigint;
     const anims = run.kind === "roll" ? startRoll(el, run.up)
       : startSwap(el);
     let live = true;
-    void Promise.all(anims.map((a) => a.finished)).then(() => {
+    const settle = (): void => {
       if (live) setRun((r) => (r?.id === run.id ? null : r));
-    }, () => undefined);
+    };
+    void Promise.all(anims.map((a) => a.finished)).then(settle,
+      () => undefined);
+    // Fail-open: if the animations never end, the new figure shows.
+    const backstop = setTimeout(settle,
+      Math.max(ROLL_MS, SWAP_MS * 2) + FAIL_OPEN_MS);
     return () => {
+      clearTimeout(backstop);
       live = false;
       for (const a of anims) a.cancel();
     };

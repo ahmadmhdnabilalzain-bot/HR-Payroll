@@ -1,4 +1,5 @@
 import { reducedMotion } from "../demo/motion";
+import { FAIL_OPEN_MS } from "./seen";
 
 /**
  * One flight helper for the whole demo: a figure (or a chip) leaves
@@ -144,6 +145,12 @@ export function fly(o: FlyOptions): () => void {
     done();
     land();
   };
+  // Fail-open: an animation that never ends still lands the value.
+  const backstop = setTimeout(() => {
+    done();
+    land();
+  }, total + FAIL_OPEN_MS);
+  fade.oncancel = () => clearTimeout(backstop);
   travel.onfinish = () => {
     // The target takes the chip: a hair of give, then home. Scheduled
     // from the travel's end, on the same clock as the flight.
@@ -152,6 +159,7 @@ export function fly(o: FlyOptions): () => void {
       easing: "cubic-bezier(0.2, 0, 0, 1)" });
   };
   return () => {
+    clearTimeout(backstop);
     travel.cancel();
     fade.cancel();
     done();
