@@ -29,7 +29,7 @@ export const home = {
   fixingSince: "{name} in HR is fixing them, since {date} at {time}.",
   goToFix: "Go to Fix",
   approveBlocked: { one: "One bank detail is still missing. {name} (HR) " +
-      "is fixing it.", other: "{word} bank details are still missing. " +
+      "is fixing it.", other: "{count} bank details are still missing. " +
       "{name} (HR) is fixing them." },
   netTo: { one: "Net pay to {count} person", other: "Net pay to {count} " +
     "people" },

@@ -127,8 +127,11 @@ export function StatusAction(p: { onIban?(issue: Issue): void }) {
             id="approve-blocked">
             {tried && !run.canDecide && held.length > 0 && (
               <>
-                {t("home.approveBlocked", { count: held.length,
-                  word: countWord(held.length), name: maker })}
+                {/* English starts the sentence with a word ("Two"),
+                  which takes the plural form; one passes as 1. */}
+                {t("home.approveBlocked", { count: lang === "en" &&
+                  held.length > 1 ? countWord(held.length) : held.length,
+                name: maker })}
                 {" "}
                 <a className={`${tl.link} ${s.fixLink}`}
                   href={hrefOf("pay-run", "fix")}>{t("home.goToFix")}</a>
