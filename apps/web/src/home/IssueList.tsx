@@ -8,7 +8,9 @@ import { useDemo } from "../demo/state";
 import { formatMonthName } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { IssueRow } from "./IssueRow";
+import { hrefOf } from "../demo/route";
 import s from "./IssueList.module.css";
+import tl from "./TextLink.module.css";
 
 /** How many issues show before "N more to review". */
 const FIRST = 3;
@@ -60,7 +62,11 @@ export function IssueList() {
         </h2>
         <span className={`${s.count} tabular`} data-zero={open.length === 0}
           ref={countRef}>
-          {open.length === 0 ? t("home.noIssues") : counts}
+          {open.length === 0 ? t("home.noIssues") : (
+            // The counts open the Fix step, which lists every one.
+            <a className={tl.link} href={hrefOf("pay-run", "fix")}>
+              {counts}</a>
+          )}
         </span>
       </header>
       {fig.signedOff ? (

@@ -272,7 +272,13 @@ function ghostOf(el: HTMLElement, at: Spot, z: number): HTMLElement {
   el.querySelectorAll("[data-key]").forEach((x) =>
     x.removeAttribute("data-key"));
   el.setAttribute("aria-hidden", "true");
+  // A copy, not content: never focused, pressed or followed (the live
+  // rows it stands over are never inert).
   el.setAttribute("inert", "");
+  for (const x of [el, ...el.querySelectorAll("[data-rowlink]")]) {
+    ["role", "tabindex", "data-href", "data-rowlink"].forEach((a) =>
+      x.removeAttribute(a));
+  }
   el.dataset["ghost"] = "";
   // A copy never replays its row's own entrance.
   el.removeAttribute("data-reveal");
