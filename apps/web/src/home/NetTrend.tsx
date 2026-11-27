@@ -1,5 +1,5 @@
 import { fils, type Fils } from "@payroll/engine";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { hrefOf } from "../demo/route";
 import { useLocale } from "../i18n/LocaleProvider";
 import { usePay } from "../pay/load";
@@ -57,6 +57,9 @@ export function NetTrend() {
   const pay = usePay();
   const runs = pay.runs;
   const fig = useRef<HTMLElement>(null);
+  // A pressed point shows its own month's figure (press again to put
+  // it away); the last two months always show theirs.
+  const [pick, setPick] = useState<number | null>(null);
   const pts = pointsOf(runs);
   const paid = runs.filter((r) => r.paid).length;
   const last = runs.at(-1);
@@ -98,11 +101,15 @@ export function NetTrend() {
               `${(pts[i]!.x / W) * 100}%`, insetBlockStart:
               `${(pts[i]!.y / H) * 100}%` }} data-paid={r.paid}
               data-label="">
-              <span className="visually-hidden">
-                {r.label}{r.paid ? "" : `, ${t("home.trendPrepared")}`}
-                {": "}<Money value={r.net} tween={false} />
-              </span>
-              {i >= runs.length - 2 && (
+              <button type="button" className={s.point}
+                aria-pressed={pick === i}
+                onClick={() => setPick(pick === i ? null : i)}>
+                <span className="visually-hidden">
+                  {r.label}{r.paid ? "" : `, ${t("home.trendPrepared")}`}
+                  {": "}<Money value={r.net} tween={false} />
+                </span>
+              </button>
+              {(i >= runs.length - 2 || pick === i) && (
                 <span className={s.tag} aria-hidden="true"
                   data-end={i === runs.length - 1}>
                   <Money value={r.net} size="sm" tween={false} />
