@@ -9,7 +9,9 @@ import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth, formatMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
 import { downloadText } from "../lib/download";
+import { reducedMotion } from "../demo/motion";
 import { Icon } from "../ui/Icon";
+import { dur } from "../ui/templates/listEnter";
 import b from "../ui/button.module.css";
 import {
   STEP_LABEL,
@@ -228,11 +230,37 @@ function Continue(p: { go: Go; next: StepId }) {
  * reason it is not open yet is said on the page, under the decision.
  */
 function ApproveAction(p: { go: Go }) {
+  const { data, state } = useDemo();
+  const { decide } = useDecide();
+  const [ask, setAsk] = useState(false);
+  // Checks not marked reviewed: the same list the card counts.
+  const checks = openIssues(data, state).filter((i) => !isBlocking(i));
+  // The sheet slides out first; what it chose happens once it has
+  // gone, so the stamp never lands under the scrim. The sheet stays
+  // mounted above the header's states, so the decision cannot cut its
+  // exit short.
+  const after = (then: () => void): void => {
+    setAsk(false);
+    setTimeout(then, reducedMotion() ? 0 : dur("--dur-base"));
+  };
+  return (
+    <>
+      <ApproveState go={p.go} ask={() => {
+        if (checks.length > 0) setAsk(true);
+        else decide("approve");
+      }} anyChecks={checks.length > 0} />
+      <SignAnyway open={ask} checks={checks} onClose={() => setAsk(false)}
+        onSign={() => after(() => decide("approve"))}
+        onReview={() => after(() => p.go("fix"))} />
+    </>
+  );
+}
+
+/** The header's action at sign-off: Sign off, who signs, or Continue. */
+function ApproveState(p: { go: Go; ask(): void; anyChecks: boolean }) {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const a = useRunApproval();
-  const { decide } = useDecide();
-  const [ask, setAsk] = useState(false);
   const id = runApprovalId(data);
   const verdict = id === null ? undefined : state.decided[id];
   if (verdict === "approve") {
@@ -258,30 +286,14 @@ function ApproveAction(p: { go: Go }) {
     );
   }
   const full = t("payrun.approveBtn");
-  // Checks not marked reviewed: the same list the card counts.
-  const checks = openIssues(data, state).filter((i) => !isBlocking(i));
   return (
-    <>
-      <button type="button" className={btn} disabled={!a.canDecide}
-        aria-label={full}
-        aria-describedby={a.canDecide ? undefined : "approve-why"}
-        aria-haspopup={checks.length > 0 ? "dialog" : undefined}
-        onClick={() => {
-          if (checks.length > 0) setAsk(true);
-          else decide("approve");
-        }}>
-        <Label full={full} short={t("payrun.actApprove")} />
-      </button>
-      <SignAnyway open={ask} checks={checks} onClose={() => setAsk(false)}
-        onSign={() => {
-          setAsk(false);
-          decide("approve");
-        }}
-        onReview={() => {
-          setAsk(false);
-          p.go("fix");
-        }} />
-    </>
+    <button type="button" className={btn} disabled={!a.canDecide}
+      aria-label={full}
+      aria-describedby={a.canDecide ? undefined : "approve-why"}
+      aria-haspopup={p.anyChecks ? "dialog" : undefined}
+      onClick={p.ask}>
+      <Label full={full} short={t("payrun.actApprove")} />
+    </button>
   );
 }
 
