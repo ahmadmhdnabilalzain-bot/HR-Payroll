@@ -413,7 +413,9 @@ export function reduce(s: DemoState, a: Action): DemoState {
     case "budget-ask":
     case "budget-ask-undo":
     case "budget-decide":
-    case "budget-undecide": return reduceHiringMoves(s, a);
+    case "budget-undecide":
+    case "hiring-draft-save":
+    case "hiring-draft-clear": return reduceHiringMoves(s, a);
     case "more-hire":
     case "more-hire-withdraw":
     case "more-hire-restore":

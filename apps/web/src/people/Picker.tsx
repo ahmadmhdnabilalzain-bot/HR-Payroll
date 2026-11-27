@@ -13,7 +13,9 @@ export interface PickerOption {
  * move, Enter or Space picks, Escape closes and returns focus.
  */
 export function Picker(p: { label: string; value: string;
-  options: PickerOption[]; onChange(v: string): void }) {
+  options: PickerOption[]; onChange(v: string): void;
+  /** Shown but fixed (a budgeted position's grade). */
+  disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [at, setAt] = useState(0);
   const box = useRef<HTMLDivElement>(null);
@@ -42,6 +44,7 @@ export function Picker(p: { label: string; value: string;
       <button ref={btn} type="button" className={s.button}
         aria-haspopup="listbox" aria-expanded={open}
         aria-label={`${p.label}: ${current?.label ?? ""}`}
+        disabled={p.disabled === true}
         onClick={() => setOpen(!open)}>
         <span className={s.value}>{current?.label}</span>
         <Icon name="chevronDown" size={16} />

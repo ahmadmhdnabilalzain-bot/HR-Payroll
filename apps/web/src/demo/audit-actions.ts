@@ -144,6 +144,9 @@ export function auditFor(a: Action, s: DemoState, d: DemoData):
     case "budget-ask-undo":
     case "budget-decide":
     case "budget-undecide": return hiring(a, s, d, make, who);
+    // A draft is the person's own until it is sent: no trail line.
+    case "hiring-draft-save":
+    case "hiring-draft-clear": return null;
     default: return null;
   }
 }
@@ -159,8 +162,8 @@ function sandboxWhat(d: SandboxDraftSpec): string {
       : "overtime rates";
 }
 
-type HiringAct = Extract<Action, { type: `hiring-${string}` |
-  `budget-${string}` }>;
+type HiringAct = Exclude<Extract<Action, { type: `hiring-${string}` |
+  `budget-${string}` }>, { type: `hiring-draft-${string}` }>;
 
 const STEP_CODE: Record<string, [string, string]> = {
   "with-hr": ["sent-again", "sent again"],
