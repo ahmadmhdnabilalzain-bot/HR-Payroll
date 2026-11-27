@@ -982,3 +982,13 @@ dashboards; the rest is the dc1 to dc3 and item2 branches.
   commits not run in a browser; one leak-scan failure on comp-plan was
   intermittent. Open-shift board and Arabic not done.
 - dc2, dc3: leave, documents, payslips and profile rows: still to be reported.
+- pdf1: built. Real PDF files (own small writer, standard fonts, loaded only on
+  click, about 13.5 kB) with letterhead, logo mark, reference, page numbers,
+  verification code, signer block and stamp; Hide amounts and IT masking inside
+  the file. On every shared report, payslip, "Why this number", letters,
+  e-sign, salary file summary, settlement, bonus, commission, org chart. Not
+  done: anomaly checks and error-remedy PDFs (in a git stash on pdf1), report
+  templates, Ask, auditor view, mapping bb1's `LetterDoc` onto `PdfDoc`. Three
+  e2e tests still fail and are unchecked against a clean d3e build (explain
+  figures and GM leak scan on the executive dashboard, one a11y timeout).
+  Wave 1 keeps d3e's Download PDF, which opens the print sheet.
