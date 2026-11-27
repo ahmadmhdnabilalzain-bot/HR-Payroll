@@ -11,7 +11,9 @@ import s from "./Ask.module.css";
  * rules (no model) and that report opens with its filter set. When
  * nothing matches, the list of reports below stays the way in.
  */
-export function AskBox(p: { autoFocus?: boolean }) {
+export function AskBox(p: { autoFocus?: boolean;
+  /** The page's own title already says "Ask for a report". */
+  titled?: boolean }) {
   const ctx = useAskContext();
   const toast = useToast();
   const [text, setText] = useState("");
@@ -29,7 +31,8 @@ export function AskBox(p: { autoFocus?: boolean }) {
   };
   return (
     <section className={s.box} aria-labelledby="ask-report-title">
-      <h2 id="ask-report-title" className={s.title}>Ask for a report</h2>
+      <h2 id="ask-report-title" className={p.titled === true
+        ? "visually-hidden" : s.title}>Ask for a report</h2>
       <form className={s.form} onSubmit={(e) => {
         e.preventDefault();
         go(text);

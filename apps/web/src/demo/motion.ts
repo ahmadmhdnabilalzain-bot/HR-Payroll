@@ -1,5 +1,6 @@
 import { gsap } from "gsap";
 import { useLayoutEffect, useRef, type RefObject } from "react";
+import { safeAnimate } from "../ui/safeAnimate";
 
 /** Durations in ms; theme/motion.css carries the same values. */
 export const DUR = { fast: 120, base: 200, slow: 320, hero: 480 } as const;
@@ -45,7 +46,7 @@ export function useFlip(ref: RefObject<HTMLElement | null>,
       const before = last.current.get(key);
       const dy = before === undefined ? 0 : before - el.offsetTop;
       if (dy !== 0 && !reducedMotion()) {
-        el.animate([{ transform: `translateY(${dy}px)` },
+        safeAnimate(el, [{ transform: `translateY(${dy}px)` },
           { transform: "translateY(0)" }],
         { duration: DUR.slow, easing: EASE_OUT });
       }

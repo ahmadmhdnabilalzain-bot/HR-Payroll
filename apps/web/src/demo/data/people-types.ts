@@ -29,6 +29,8 @@ export interface Person {
   grade: number;
   /** ISO 3166 code; the screens name it with Intl.DisplayNames. */
   nationality: string;
+  /** As on the file; decides who may take maternity leave. */
+  gender: "female" | "male";
   uaeNational: boolean;
   email: string;
   /** Masked and fake (fails Luhn); never the full value. */
@@ -118,6 +120,10 @@ export interface LeaveRuleView {
   noticeDays: number;
   minServiceYears: number;
   source: Localized;
+  /** Only people of this gender may take it; null: everyone. */
+  onlyFor: "female" | "male" | null;
+  /** Who may take it, when not everyone ("For female employees."). */
+  who: Localized | null;
 }
 
 export interface ReasonOption {

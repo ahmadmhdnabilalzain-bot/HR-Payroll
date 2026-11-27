@@ -103,6 +103,7 @@ export const timeoff: ArOf<typeof en> = {
   study: "إجازة دراسية",
   ruleTitle: "القاعدة",
   ruleProof: "المطلوب: {proof}",
+  notForYou: "{type}: غير متاحة لملفك. {who}",
   attach: "أضف الملف",
   attachSample: "ملف تجريبي للعرض",
   removeFile: "إزالة {file}",

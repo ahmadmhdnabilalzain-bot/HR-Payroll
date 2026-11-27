@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
 import { reducedMotion } from "../demo/motion";
+import { safeAnimate } from "./safeAnimate";
 
 /** A card's height change, eased rather than jumped. */
 export const HEIGHT_MS = 250;
@@ -24,7 +25,7 @@ export function useHeightTween(ref: RefObject<HTMLElement | null>,
       Math.abs(was.h - h) < 1) return;
     const z = Number(getComputedStyle(document.documentElement)
       .getPropertyValue("zoom")) || 1;
-    el.animate([{ height: `${was.h / z}px`, overflow: "hidden" },
+    safeAnimate(el, [{ height: `${was.h / z}px`, overflow: "hidden" },
       { height: `${h / z}px`, overflow: "hidden" }],
     { duration: HEIGHT_MS, easing: "cubic-bezier(0.2, 0, 0, 1)" });
   });

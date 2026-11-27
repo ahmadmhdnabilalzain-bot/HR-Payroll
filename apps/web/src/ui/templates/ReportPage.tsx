@@ -11,13 +11,14 @@ import { Money } from "../Money";
 import { dur, easeOut, reduced, useEntrance, useReveal, veil }
   from "./listEnter";
 import { MoreMenu } from "./Menu";
-import { downloadReportPdf, shareReport } from "./reportPdf";
+import { downloadReportPdf, shareReport, sheetShare } from "./reportPdf";
 import b from "../button.module.css";
 import { useToast } from "../Toast";
 import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
 import "./motion.module.css";
 import s from "./templates.module.css";
+import { safeAnimate } from "../safeAnimate";
 
 export type { Cell } from "../../lib/csv";
 
@@ -145,11 +146,11 @@ export function ReportPage(p: {
       const now = c.getBoundingClientRect();
       const dy = (old.top - now.top) / z;
       if (dy > 0.5) {
-        c.animate([{ transform: `translateY(${dy}px)` },
+        safeAnimate(c, [{ transform: `translateY(${dy}px)` },
           { transform: "none" }], timing);
       }
       if (c.tagName !== "TABLE" && now.height - old.height > 0.5) {
-        c.animate([{ height: `${old.height / z}px`, overflow: "hidden" },
+        safeAnimate(c, [{ height: `${old.height / z}px`, overflow: "hidden" },
           { height: `${now.height / z}px`, overflow: "hidden" }], timing);
       }
     });
@@ -170,10 +171,11 @@ export function ReportPage(p: {
                 onClick={() => print()}>{t("tpl.print")}</button>
               <button type="button" className={`${b.btn} ${b.quiet}`}
                 onClick={() => void shareReport(p.title).then((r) => {
-                  if (r === "copied") {
-                    toast.show(t("tpl.linkCopied", { title: p.title }));
-                  } else if (r === "none") toast.show(t("tpl.shareFailed"));
-                })}>{t("tpl.share")}</button>
+                  if (r === "copied") toast.show(t("tpl.linkCopied"));
+                  else if (r === "none") {
+                    toast.show(t("tpl.shareFailed", { url: location.href }));
+                  }
+                })}>{t(sheetShare() ? "tpl.share" : "tpl.copyLink")}</button>
             </span>
             <MoreMenu items={[{ label: t("tpl.csv"),
               onSelect: download, disabled: hidden,

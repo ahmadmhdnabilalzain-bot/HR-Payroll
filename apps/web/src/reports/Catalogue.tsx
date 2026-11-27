@@ -28,13 +28,18 @@ export function Catalogue(p: { autoFocusAsk?: boolean }) {
   useEntrance(page, "ul > li", { scope: "rows" });
   return (
     <div className={tp.page} ref={page}>
-      <PageHead title={t("reports.title")} lede={t("reports.sub")} />
+      {p.autoFocusAsk === true ? (
+        <PageHead title={t("reports.askTitle")} lede={t("reports.askSub")}
+          crumbs={[{ label: t("shell.navReports"),
+            href: hrefOf("reports") }]} />
+      ) : <PageHead title={t("reports.title")} lede={t("reports.sub")} />}
       {groups.length === 0 && (
         <p className={s.sub}>Reports are for the HR manager and the
           General manager.</p>
       )}
       {canAsk(ctx.state.role) && (
-        <AskBox autoFocus={p.autoFocusAsk === true} />
+        <AskBox autoFocus={p.autoFocusAsk === true}
+          titled={p.autoFocusAsk === true} />
       )}
       {groups.map(({ group, areas }) => (
         <section key={group.id} className={s.groupBlock}

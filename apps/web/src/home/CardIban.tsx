@@ -7,6 +7,7 @@ import { IbanForm } from "./IbanForm";
 import { useIbanFlight } from "./useIbanFlight";
 import { useSaveIban } from "./useSaveIban";
 import s from "./PayRunHero.module.css";
+import { safeAnimate } from "../ui/safeAnimate";
 
 /** The form fades out while the amount travels. */
 const FADE_MS = 160;
@@ -47,7 +48,7 @@ export function CardIban(p: { issue: Issue; onDone(): void }) {
     };
     const el = box.current;
     if (el === null || reducedMotion()) return finish();
-    el.animate([{ opacity: 1 }, { opacity: 0 }],
+    safeAnimate(el, [{ opacity: 1 }, { opacity: 0 }],
       { duration: FADE_MS, easing: "ease-out", fill: "forwards" });
     // Saved: the fading form takes no more input while the chip flies.
     el.inert = true;

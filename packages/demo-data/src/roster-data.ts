@@ -1,4 +1,4 @@
-import type { CaseTag, DeptCode } from "./types";
+import type { CaseTag, DeptCode, Gender } from "./types";
 
 /**
  * FICTIONAL staff of a FICTIONAL Abu Dhabi bank. Names are common
@@ -79,6 +79,29 @@ export const STAFF: readonly StaffSeed[] = [
     "night-overtime"),
   s("Emily Carter", null, "GB", 1993, "it", "systems-engineer", 5, HQ),
 ];
+
+/**
+ * Gender as on each (fictional) file, by name, so the roster stays
+ * one line a person. Every name is in exactly one list (a test
+ * checks), so nobody is a man by omission.
+ */
+export const FEMALE: readonly string[] = ["Sara Haddad",
+  "Mariam Al Suwaidi", "Maria Santos", "Noora Al Shamsi",
+  "Ayesha Siddiqui", "Kavya Iyer", "Moza Al Kaabi", "Aisha Al Marri",
+  "Latifa Al Hammadi", "Shamma Al Zaabi", "Lina Khoury", "Priya Nair",
+  "Hessa Al Mheiri", "Fatima Al Ketbi", "Grace Wanjiru", "Emily Carter"];
+export const MALE: readonly string[] = ["Khalid Al Nuaimi",
+  "Hamdan Al Dhaheri", "Saeed Al Mazrouei", "Rashid Al Falasi",
+  "Omar Farouk", "James Whitfield", "Arjun Menon", "Jose Reyes",
+  "Rafiq Hossain", "Nimal Perera", "Majid Al Ketbi", "Youssef Adel",
+  "Karim Saade", "Juma Al Zaabi", "Vikram Rao"];
+
+/** The person's gender; a name in neither list is an error. */
+export function genderOf(name: string): Gender {
+  if (FEMALE.includes(name)) return "female";
+  if (MALE.includes(name)) return "male";
+  throw new Error(`no gender on file for ${name}`);
+}
 
 export const DEPT_CODES: readonly DeptCode[] = ["exec", "retail", "corp",
   "ops", "credit", "compliance", "fin", "hr", "it"];

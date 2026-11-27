@@ -1,5 +1,6 @@
 import { reducedMotion } from "../demo/motion";
 import { FAIL_OPEN_MS } from "./seen";
+import { safeAnimate } from "./safeAnimate";
 
 /**
  * One flight helper for the whole demo: a figure (or a chip) leaves
@@ -88,7 +89,7 @@ export function fly(o: FlyOptions): () => void {
   const target = o.to instanceof Element ? o.to : null;
   if (reducedMotion()) {
     land();
-    target?.animate([{ opacity: 0 }, { opacity: 1 }],
+    safeAnimate(target, [{ opacity: 0 }, { opacity: 1 }],
       { duration: 120, easing: "linear" });
     return () => undefined;
   }
@@ -121,7 +122,7 @@ export function fly(o: FlyOptions): () => void {
   const x1 = (o.align === "end" ? b.right - c.width
     : b.left + b.width / 2 - c.width / 2) / z;
   const y1 = (b.top + b.height / 2 - c.height / 2) / z;
-  const travel = clone.animate([
+  const travel = safeAnimate(clone, [
     { transform: `translate(${x0}px, ${y0}px)` },
     { transform: `translate(${x1}px, ${y1}px)` },
   ], { duration: FLIGHT_MS, easing: SPRING, fill: "forwards" });
@@ -131,7 +132,7 @@ export function fly(o: FlyOptions): () => void {
   const total = FLIGHT_MS + LAND_FADE_MS;
   // The hand-over eases out: the chip drops below a legible ink in
   // about 30 ms, so it is barely read over the old total.
-  const fade = inner.animate([
+  const fade = safeAnimate(inner, [
     { opacity: 1, transform: "scale(1)" },
     { opacity: 1, transform: "scale(1)", offset: FLIGHT_MS / total,
       easing: "cubic-bezier(0.2, 0, 0, 1)" },
@@ -154,7 +155,7 @@ export function fly(o: FlyOptions): () => void {
   travel.onfinish = () => {
     // The target takes the chip: a hair of give, then home. Scheduled
     // from the travel's end, on the same clock as the flight.
-    target?.animate([{ transform: "scale(1.03)" },
+    safeAnimate(target, [{ transform: "scale(1.03)" },
       { transform: "scale(1)" }], { duration: RECEIVE_MS,
       easing: "cubic-bezier(0.2, 0, 0, 1)" });
   };

@@ -18,6 +18,8 @@ export type CaseTag = "probation" | "leaver" | "unpaid-leave" |
   "overtime" | "night-overtime" | "back-pay" | "missing-iban" |
   "iban-typo" | "loan-over-cap";
 
+export type Gender = "female" | "male";
+
 export interface DemoDepartment { id: string; code: DeptCode;
   labelKey: string }
 
@@ -34,6 +36,8 @@ export interface DemoEmployee {
   /** Head office or branch (all FICTIONAL, all in Abu Dhabi). */
   location: string;
   nationality: string;
+  /** As on the (fictional) file; decides who may take maternity leave. */
+  gender: Gender;
   workerClass: WorkerClass;
   joiningDate: string;
   leavingDate: string | null;
@@ -160,6 +164,10 @@ export interface DemoLeaveRule {
   minServiceYears: number;
   /** Where the rule comes from, in plain words. */
   source: LeaveWords;
+  /** Only people of this gender may take it; null: everyone. */
+  onlyFor: Gender | null;
+  /** Who may take it, in plain words, when not everyone; else null. */
+  who: LeaveWords | null;
 }
 
 export interface DemoLeaveRequest {

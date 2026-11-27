@@ -91,7 +91,7 @@ function toPerson(c: DemoCompany, e: DemoEmployee): Person {
     branch: label(`location.${e.location}`), status, statusDate,
     joinedOn: e.joiningDate, leftOn: e.leavingDate,
     probationEndsOn: e.probationEndDate, grade: e.grade,
-    nationality: e.nationality, uaeNational:
+    nationality: e.nationality, gender: e.gender, uaeNational:
       e.workerClass === "uae-national", email: e.email,
     emiratesIdMasked: e.emiratesId.masked,
     ibanMasked: e.iban?.masked ?? null,

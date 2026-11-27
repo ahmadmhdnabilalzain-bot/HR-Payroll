@@ -34,6 +34,12 @@ export function Probation() {
   const recordOf = (x: ProbationEvaluationView): ProbationRecord | undefined =>
     state.probationRecords[x.id]?.withdrawn === true ? undefined
       : state.probationRecords[x.id];
+  // Sent by HR, no decision yet: the General manager's to make.
+  const waiting = (x: ProbationEvaluationView): boolean => {
+    const r = recordOf(x);
+    return x.status === "in-progress" && r !== undefined &&
+      r.verdict == null;
+  };
   const target = rows.find((x) => x.status === "in-progress" &&
     recordOf(x) === undefined);
   const day = shortDay;
@@ -67,12 +73,16 @@ export function Probation() {
   };
   return (
     <>
-      <FilterList title={g.title} lede={g.lede} rows={rows}
+      <FilterList title={g.title} lede={fill(g.ledeCounts, {
+        now: rows.filter((x) => x.status === "in-progress").length,
+        waiting: rows.filter(waiting).length })} rows={rows}
         rowKey={(x) => x.id}
         searchText={(x) => `${x.employeeName} ${x.title}`}
         segments={[
           { id: "now", label: g.now, match: (x) => x.status === "in-progress" },
+          { id: "waiting", label: g.toDecide, match: waiting },
           { id: "done", label: g.done, match: (x) => x.status === "confirmed" },
+          { id: "all", label: g.all, match: () => true },
         ]}
         actions={state.role === "hr" && target !== undefined && (
           <button type="button" className={`${b.btn} ${b.primary} ${s.tall}`}

@@ -15,7 +15,9 @@ export const M = {
     waiting: "Waiting", booked: "Booked", declined: "Declined",
     withdrawn: "Withdrawn", manager: "their manager",
     left: (n: number): string => `${n} days left this year.`,
-    tooMany: (n: number): string => `Only ${n} annual days are left.` },
+    tooMany: (n: number): string => `Only ${n} annual days are left.`,
+    notFor: (type: string, name: string, who: string): string =>
+      `${type} is not available for ${name}. ${who}` },
   encash: { title: "Leave encashment",
     lede: "Unused annual leave days turned into pay. HR signs off, then " +
       "the General manager.",

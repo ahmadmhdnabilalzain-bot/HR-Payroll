@@ -23,6 +23,7 @@ import type {
 } from "./types";
 import s from "./Explain.module.css";
 import { FAIL_OPEN_MS } from "../../ui/seen";
+import { safeAnimate, safeGetAnimations } from "../../ui/safeAnimate";
 
 const STATUS: Record<SourceStatus, MessageKey> = {
   official: "explain.official",
@@ -200,7 +201,7 @@ function shiftOf(el: Element | null, zoom: number): { x: number;
 function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   layer: HTMLElement | null, panel: HTMLElement | null): void {
   if (reducedMotion()) {
-    layer?.animate([{ opacity: 0 }, { opacity: 1 }],
+    safeAnimate(layer, [{ opacity: 0 }, { opacity: 1 }],
       { duration: FADE_MS, easing: "linear" });
     return;
   }
@@ -210,7 +211,7 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   if (src === null || el === null || phone()) return;
   // Measure the figure where it lands, not mid-flight: an effect run
   // twice (React's development check) must not fly from itself.
-  for (const a of el.getAnimations()) a.cancel();
+  for (const a of safeGetAnimations(el)) a.cancel();
   document.querySelectorAll("[data-explain-flight]")
     .forEach((n) => n.remove());
   const origin = src.getBoundingClientRect();
@@ -238,20 +239,20 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
   const sx = (dirOf(el) === "rtl" ? origin.x + origin.width -
     now.width * k : origin.x) / zoom;
   const sy = (origin.top + (origin.height - now.height * k) / 2) / zoom;
-  const travel = wrap.animate([
+  const travel = safeAnimate(wrap, [
     { transform: `translate(${sx}px, ${sy}px) scale(${k})` },
     { transform: `translate(${end.x / zoom}px, ${end.y / zoom}px)` },
   ], { duration: FLIGHT_MS, easing: SPRING, fill: "forwards" });
   // The header figure stays hidden until the copy lands on it.
-  el.animate([{ opacity: 0 }, { opacity: 0 }],
+  safeAnimate(el, [{ opacity: 0 }, { opacity: 0 }],
     { duration: FLIGHT_MS });
   // The source steps back in the copy's first frame (no ramp), so the
   // copy leaving it never sits on a second full-ink figure. It comes
   // back as the copy lands, so the page under the scrim keeps its full
   // contrast while the working is read.
-  src.animate([{ opacity: DIM }, { opacity: DIM }],
+  safeAnimate(src, [{ opacity: DIM }, { opacity: DIM }],
     { duration: FLIGHT_MS });
-  src.animate([{ opacity: DIM }, { opacity: 1 }],
+  safeAnimate(src, [{ opacity: DIM }, { opacity: 1 }],
     { duration: CLOSE_MS, delay: FLIGHT_MS, easing: "ease-out" });
   const gone = (): void => wrap.remove();
   travel.onfinish = gone;
@@ -264,7 +265,7 @@ function openFrom(src: HTMLElement | null, el: HTMLElement | null,
  * the copy is still in flight. */
 function undim(src: HTMLElement | null): void {
   if (src === null) return;
-  for (const a of src.getAnimations()) a.cancel();
+  for (const a of safeGetAnimations(src)) a.cancel();
 }
 
 function dirOf(el: Element): string {
@@ -312,7 +313,7 @@ export function ExplainPanel(p: { explanation: Explanation;
     closing.current = true;
     undim(p.origin ?? null);
     if (reducedMotion()) {
-      layer.current?.animate([{ opacity: 1 }, { opacity: 0 }],
+      safeAnimate(layer.current, [{ opacity: 1 }, { opacity: 0 }],
         { duration: FADE_MS, easing: "linear", fill: "forwards" });
       setTimeout(done, FADE_MS);
       return;

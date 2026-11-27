@@ -22,6 +22,7 @@
 import { settleAfter } from "../settle";
 import { SNAPSHOT_MOTION, slideRoute } from "../routeMotion";
 import { hasViewTransitions, safeTransition } from "../viewTransition";
+import { safeAnimate } from "../safeAnimate";
 
 /** theme/motion.css: --dur-slow and --ease-in-out. */
 export const LIST_MS = 320;
@@ -152,7 +153,7 @@ function until(find: () => Parts | null, ms = 400): Promise<Parts | null> {
 function dissolve(): void {
   const main = document.querySelector("main");
   if (main === null || typeof main.animate !== "function") return;
-  const a = main.animate([{ opacity: 0 }, { opacity: 1 }],
+  const a = safeAnimate(main, [{ opacity: 0 }, { opacity: 1 }],
     { duration: FADE_MS, easing: "linear" });
   settleAfter([a], FADE_MS);
 }
