@@ -8,12 +8,14 @@ import {
   undoAction,
 } from "../demo/approvals";
 import { useFlip } from "../demo/motion";
+import { hrefOf } from "../demo/route";
 import { useDemo, type Verdict } from "../demo/state";
 import { formatDayMonth, formatList } from "../i18n/format";
 import type { MessageKey } from "../i18n/t";
 import { useLocale } from "../i18n/LocaleProvider";
 import b from "../ui/button.module.css";
 import { Money } from "../ui/Money";
+import { useRowLink } from "../ui/RowLink";
 import { useToast } from "../ui/Toast";
 import s from "./Side.module.css";
 import { Avatar } from "../ui/Avatar";
@@ -52,6 +54,24 @@ export function Approvals() {
   );
 }
 
+/**
+ * The record a decision is about: the pay run's sign-off step, the
+ * leave requests (no page per request yet), the expense claim, the
+ * crew booking.
+ */
+export function approvalHref(a: Pick<Approval, "id" | "kind" |
+  "subjectId">): string {
+  switch (a.kind) {
+    case "pay-run": return hrefOf("pay-run", "approve");
+    case "leave": return hrefOf("time-off");
+    case "expense": return a.subjectId === undefined
+      ? hrefOf("pay-run", "expenses")
+      : hrefOf("pay-run", "expenses", a.subjectId);
+    case "overtime": return hrefOf("time-off", "overtime", "crew",
+      a.subjectId ?? a.id);
+  }
+}
+
 function ApprovalRow(p: { a: Approval }) {
   const { lang, t } = useLocale();
   const { data, state, dispatch } = useDemo();
@@ -72,8 +92,11 @@ function ApprovalRow(p: { a: Approval }) {
   const why = isRun && blocked && run.blockedBy.length > 0
     ? t("home.approveWaits", { names: formatList(run.blockedBy.map((id) =>
       data.employee(id).name[lang]), lang) }) : undefined;
+  // The whole row opens its record; Sign off and Decline keep theirs.
+  const link = useRowLink({ href: approvalHref(a) });
   return (
-    <li className={s.row} data-flip={a.id} id={`approval-${a.id}`}>
+    <li {...link} className={`${s.row} ${s.linkRow} ${link.className}`}
+      data-flip={a.id} id={`approval-${a.id}`}>
       <Avatar id={a.employeeId ?? a.makerId} name={data.employee(
         a.employeeId ?? a.makerId).name.en} />
       <div className={s.main}>

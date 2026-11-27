@@ -134,3 +134,10 @@
 .row > [data-tone] + .main {
   flex: 1 1 200px;
 }
+
+/* A row that is its own link (ui/RowLink.tsx): the hover tint reaches
+ * a little past the text, the text stays where it was. */
+.linkRow {
+  margin-inline: calc(var(--space-2) * -1);
+  padding-inline: var(--space-2);
+}
