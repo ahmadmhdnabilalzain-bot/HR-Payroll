@@ -1,10 +1,9 @@
 import type { Fils } from "@payroll/engine";
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { formatMoney, formatNumber } from "../../i18n/format";
+import { formatNumber } from "../../i18n/format";
 import { useLocale } from "../../i18n/LocaleProvider";
 import { useChartMotion } from "../../ui/chartMotion";
-import { useMaskText } from "../../ui/mask";
 import { Money } from "../../ui/Money";
 import { RowLink } from "../../ui/RowLink";
 import type { Slice } from "./model";
@@ -35,19 +34,15 @@ const size = (v: HBar["value"]): number =>
  * Horizontal bars, largest first: the name and a meta line, a grey bar
  * from zero (the largest in ink), and the figure at the end. Plain
  * HTML so the figures are <Money/> and read in order. A row with an
- * `href` is one link, name, bar and figure, named in words (amounts
- * follow hide-amounts in the name as on screen).
+ * `href` is one link, name, bar and figure, named by its own text (no
+ * aria-label: axe flags a label that differs from what is drawn, and
+ * the figure on screen already follows hide-amounts).
  */
 export function HBars(p: { rows: HBar[]; label: string }) {
   const { lang } = useLocale();
-  const mask = useMaskText();
   const max = p.rows.reduce((m, r) => Math.max(m, size(r.value)), 0);
   const ref = useGrow(p.rows.map((r) => `${r.key}${size(r.value)}`)
     .join());
-  const said = (r: HBar): string => mask([r.label, r.meta,
-    "fils" in r.value ? formatMoney(r.value.fils, lang)
-      : formatNumber(r.value.n, lang)].filter((x) => x !== undefined)
-    .join(", "));
   return (
     <div ref={ref}>
       <ul className={s.hbars} aria-label={p.label}>
@@ -80,7 +75,7 @@ export function HBars(p: { rows: HBar[]; label: string }) {
             ? <li key={r.key} className={s.hbar}>{body}</li>
             : (
               <li key={r.key}>
-                <RowLink href={r.href} label={said(r)}
+                <RowLink href={r.href}
                   className={`${s.hbar} ${s.hbarLink}`}>{body}</RowLink>
               </li>
             );
