@@ -34,6 +34,8 @@ import {
 import { mixPose, Ribbon, type RibbonPose } from "./ribbon";
 import type { Story } from "./story";
 import { wordmarkGeometry, WORDMARK_ASPECT } from "./wordmark3d";
+import { filmForced, GATE_FRAMES, GATE_SKIP, softwareGL, tooSlow }
+  from "./gate";
 
 export interface StageInput {
   root: HTMLElement;
@@ -60,41 +62,6 @@ export interface StageInput {
   onFail(): void;
   /** The window turned between wide and tall: build the scenes again. */
   onRelayout(): void;
-}
-
-/* ---------- the weak-graphics gate ---------- */
-
-/** Frames timed before the gate decides, after the first few (shader
- * compiles), and the average frame time above which the film gives
- * way to the product (25 fps: integrated graphics at 150 % scaling). */
-export const GATE_FRAMES = 20;
-export const GATE_SKIP = 4;
-export const GATE_MS = 40;
-
-/** `?film=1` keeps the film on any graphics (checks, a slow demo). */
-export function filmForced(): boolean {
-  return new URLSearchParams(location.search).get("film") === "1";
-}
-
-/** A software renderer (no graphics chip): never the film. */
-export function softwareGL(gl: WebGLRenderingContext |
-  WebGL2RenderingContext): boolean {
-  try {
-    const ext = gl.getExtension("WEBGL_debug_renderer_info");
-    const name = String(gl.getParameter(ext === null ? gl.RENDERER
-      : ext.UNMASKED_RENDERER_WEBGL));
-    return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i
-      .test(name);
-  } catch {
-    return false;
-  }
-}
-
-/** Whether the frames timed so far (ms apart) are too slow. */
-export function tooSlow(gaps: number[]): boolean {
-  const timed = gaps.slice(GATE_SKIP, GATE_SKIP + GATE_FRAMES);
-  if (timed.length < GATE_FRAMES) return false;
-  return timed.reduce((a, b) => a + b, 0) / timed.length > GATE_MS;
 }
 
 /* ---------- small maths ---------- */
