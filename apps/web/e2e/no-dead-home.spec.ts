@@ -160,9 +160,10 @@ for (const [role, name] of [["hr", null],
     const hrefs = [...new Set(found.map((x) => x.target ?? "")
       .filter((x) => x.startsWith("#")))];
     // The GM decides no leave here; HR's run sign-off waits on the GM.
+    // A notice opens its own record now, not the list of all notices.
     expect(hrefs).toEqual(expect.arrayContaining([
       "#/pay-run/fix", "#/pay-run/approve", "#/reports/summary",
-      "#/people/papers/pension", "#/home/notices", "#/reports/departments",
+      "#/people/papers/pension", "#/reports/departments",
       "#/home/tasks/soon",
       ...(role === "hr" ? ["#/time-off", "#approvals-title"]
         : ["#/reports/dashboard-exec"])]));

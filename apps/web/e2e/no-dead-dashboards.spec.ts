@@ -228,7 +228,8 @@ test("bars-are-focusable-links-with-names", async ({ page }) => {
   await open(page, "#/reports/dashboard-hr", "HR dashboard");
   const bar = page.locator("main [class*='hbars'] > li > a").first();
   await expect(bar).toHaveAttribute("href", /#\/people\/department\//);
-  await expect(bar).toHaveAttribute("aria-label", /\d/);
+  // Named by its own text, figure included (no aria-label to drift).
+  await expect(bar).toHaveAccessibleName(/\d/);
   const h = (await bar.boundingBox())!.height;
   expect(h).toBeGreaterThanOrEqual(44);
   await bar.focus();
