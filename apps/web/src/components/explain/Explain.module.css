@@ -561,7 +561,20 @@
   }
 
   .head {
-    padding: var(--space-4) var(--space-4) var(--space-3);
+    position: relative;
+    padding: var(--space-5) var(--space-4) var(--space-3);
+  }
+
+  /* The grabber: a sheet from the bottom says so. */
+  .head::before {
+    position: absolute;
+    inset-block-start: var(--space-2);
+    inset-inline-start: calc(50% - 18px);
+    inline-size: 36px;
+    block-size: 5px;
+    border-radius: var(--radius-pill);
+    background: var(--color-divider-strong);
+    content: "";
   }
 
   .body {

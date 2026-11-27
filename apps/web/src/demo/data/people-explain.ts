@@ -171,20 +171,73 @@ function rulesOf(src: LineSource["rules"]): ExplainRule[] {
   });
 }
 
-/** The engine's sentence without its closing status list. */
-const plain = (x: string): string => x.replace(/\s*\([^()]*\)\.$/, ".");
+/** The engine's sentence without its closing status list, with any
+ * minutes said in hours (the working counts in hours too). */
+const plain = (x: string): string => x.replace(/\s*\([^()]*\)\.$/, ".")
+  .replace(/\b(\d+) minutes\b/g, (_, m: string) => hours(Number(m)));
+
+/** One earning that makes up gross pay (net pay's working). */
+export interface GrossPart { label: string; fils: string }
+
+/**
+ * Net pay's working starts from what gross is made of, so the panel
+ * says something the payslip does not: each earning, gross, then the
+ * deductions when there are any. Every figure is the payslip's own.
+ */
+function netSteps(line: TraceLine, parts: GrossPart[], label: string)
+  : { steps: ExplainStep[]; summary: string } | null {
+  const i = line.inputs;
+  if (!isInt(i["gross"]) || !isInt(i["deductions"]) || parts.length === 0) {
+    return null;
+  }
+  const sum = parts.reduce((a, x) => a + BigInt(x.fils), 0n);
+  if (sum !== BigInt(i["gross"])) return null;
+  const earn: ExplainStep[] = parts.map((x) => ({ text: x.label,
+    value: money(x.fils), op: "add" }));
+  const gross: ExplainStep = { text: "Gross pay", value: money(i["gross"]),
+    op: "total" };
+  if (i["deductions"] === "0") {
+    return { summary: "Your earnings added up. Nothing is deducted " +
+      "this month, so net pay is the same as gross.",
+    steps: [...earn, { ...gross,
+      text: "Gross pay, with nothing deducted" }] };
+  }
+  return { summary: "Your earnings added up to gross pay, less this " +
+    "month's deductions.",
+  steps: [...earn, gross, { text: "Gross pay", value: money(i["gross"]),
+    op: "add" }, { text: "Less deductions", value: money(i["deductions"]),
+    op: "less" }, { text: label, value: money(line.result), op: "total" }] };
+}
+
+/**
+ * The hourly rate is shown to the fils, but the sum uses the exact
+ * rate: said in its own line when the two would differ.
+ */
+function roundingStep(line: TraceLine): ExplainStep | null {
+  const i = line.inputs;
+  if (!isInt(i["basicMonthly"]) || !isInt(i["dailyDivisor"]) ||
+    !isInt(i["hoursPerDay"]) || !isInt(i["minutes"])) return null;
+  const rate = Number(i["basicMonthly"]) /
+    (Number(i["dailyDivisor"]) * Number(i["hoursPerDay"]));
+  if (Number.isInteger(rate)) return null;
+  return { text: "The hourly rate above is rounded to the fils; the sum " +
+    "uses the exact rate, then rounds the result to the nearest fils." };
+}
 
 export function toExplanation(id: string, src: LineSource, x: {
   label: string; subject: string; lang: "en" | "ar"; scope: string;
-  notComputed: string | null }): Explanation {
+  notComputed: string | null; gross?: GrossPart[] }): Explanation {
   const result = isInt(src.line.result) ? money(src.line.result)
     : text(x.notComputed === null ? src.line.result : "Not computed");
-  const steps = stepsOf(src.line);
+  const net = x.gross === undefined ? null
+    : netSteps(src.line, x.gross, x.label);
+  const round = roundingStep(src.line);
+  const steps = [...stepsOf(src.line), ...(round === null ? [] : [round])];
   return { id, title: x.label, subject: x.subject,
-    summary: plain(src.text[x.lang]),
+    summary: net?.summary ?? plain(src.text[x.lang]),
     result: { label: x.label, value: result }, inputs: [],
     rules: rulesOf(src.rules),
-    steps: [...steps, { text: x.label, value: result }],
+    steps: net?.steps ?? [...steps, { text: x.label, value: result }],
     notComputed: x.notComputed === null ? [] : [x.notComputed],
     scope: x.scope };
 }

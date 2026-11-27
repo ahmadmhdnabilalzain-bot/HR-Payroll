@@ -3,6 +3,7 @@ import { buildDemoData } from "../../src/demo/data/adapter";
 import { INITIAL, type DemoState } from "../../src/demo/state";
 import { wordOfRoute } from "../../src/nav/registry";
 import { problemOf, yearsBetween } from "../../src/timeoff/draft";
+import { contractProblems } from "../../src/components/explain/types";
 
 const data = buildDemoData();
 const as = (role: DemoState["role"]): DemoState => ({ ...INITIAL, role });
@@ -65,3 +66,33 @@ describe("every leave type can be asked for, with its rule", () => {
   });
 });
 
+describe("why this number: net pay and overtime", () => {
+  const P = data.people;
+  const slips = P.people().map((x) => P.payslip(x.id))
+    .filter((x) => x !== null);
+
+  it("net pay shows how gross is made, and every working adds up", () => {
+    expect(slips.length).toBeGreaterThan(10);
+    for (const s of slips) {
+      const e = P.explain(s.id, s.netTraceId, "Net pay", "en");
+      expect(contractProblems(e), s.id).toEqual([]);
+      const earn = s.lines.filter((l) => l.group === "earning").length;
+      expect(e.steps.filter((x) => x.op === "add").length, s.id)
+        .toBeGreaterThanOrEqual(earn);
+    }
+    const jose = P.payslip(P.personas().employeeId)!;
+    const e = P.explain(jose.id, jose.netTraceId, "Net pay", "en");
+    expect(e.steps.map((x) => x.text)).toEqual(["Basic salary",
+      "Housing allowance", "Transport allowance", "Overtime",
+      "Gross pay, with nothing deducted"]);
+  });
+
+  it("overtime is said in hours, with the rounding as its own line", () => {
+    const jose = P.payslip(P.personas().employeeId)!;
+    const e = P.explain(jose.id, "earn.overtime.normal", "Overtime", "en");
+    expect(e.summary).not.toMatch(/minutes/);
+    expect(e.summary).toContain("6 hours");
+    expect(e.steps.some((x) => /rounded to the fils/.test(x.text)))
+      .toBe(true);
+  });
+});
