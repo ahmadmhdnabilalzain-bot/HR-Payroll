@@ -159,7 +159,9 @@ async function audit(page: Page): Promise<Finding[]> {
       }
       el.scrollIntoView({ block: "center", inline: "center",
         behavior: "instant" as ScrollBehavior });
-      const r = el.getBoundingClientRect();
+      // A link that wraps has one box per line; its bounding box centre
+      // can fall in the gap between lines, so test the first line box.
+      const r = el.getClientRects()[0] ?? el.getBoundingClientRect();
       const x = Math.min(Math.max(r.left + r.width / 2, 1), innerWidth - 1);
       const y = Math.min(Math.max(r.top + Math.min(r.height / 2, 20), 1),
         innerHeight - 1);
