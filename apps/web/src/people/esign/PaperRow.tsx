@@ -26,8 +26,10 @@ function markOf(row: EsignRow, by: string) {
  * - mine: Sign (the sign sheet).
  * - others: whose turn it is.
  * - closed: "Signed 17 January" and View, which opens the paper's
- *   stamps in a sheet. One signed in this visit keeps its stamp under
- *   the row (where it lands) with "Undo my signature".
+ *   stamps in a sheet.
+ * A paper the viewer signed in this visit has "Undo my signature";
+ * the one signed last also keeps its stamp under the row, where it
+ * landed.
  */
 export function PaperRow(p: { row: EsignRow; as: Signer;
   kind: PaperKind; flip: string }) {
@@ -39,8 +41,14 @@ export function PaperRow(p: { row: EsignRow; as: Signer;
   const { row, as } = p;
   const title = row.doc.title;
   const mark = markOf(row, as.by);
-  const mine = p.kind === "closed"
-    ? undoable(state.esignLog, row.doc.id, as.by) : null;
+  // Signed by this viewer in this visit (whichever list the paper is
+  // in now, e.g. still waiting for a second signer): Undo and stamp.
+  const mine = undoable(state.esignLog, row.doc.id, as.by);
+  // Only the latest of those shows its stamp (where it just landed);
+  // the earlier ones fold back to a line, so the page stays short.
+  const latest = state.esignLog.filter((e) => e.kind === "sign" &&
+    e.by === as.by).at(-1)?.seq;
+  const stamped = mine !== null && mine === latest;
   const fp = fingerprintOf(data, row.doc);
   const style = world.profiles.find((x) => x.key === as.by)?.style;
   const meta = p.kind === "others"
@@ -67,7 +75,7 @@ export function PaperRow(p: { row: EsignRow; as: Signer;
               onClick={() => setOpen("view")}>{E.view}</button>)}
         </span>
       </span>
-      {mine !== null && mark !== null && (
+      {stamped && mark !== null && (
         <Stamp mark={mark} fingerprint={fp} style={style} />)}
       {sign.mounted && (
         <SignSheet open={open === "sign"} row={row} who={as}
