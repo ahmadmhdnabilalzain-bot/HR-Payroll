@@ -8,6 +8,7 @@ import { dayCountText, dayVars, rangeText } from "../people/words";
 import b from "../ui/button.module.css";
 import { Icon } from "../ui/Icon";
 import { useToast } from "../ui/Toast";
+import { typesFor } from "./eligibility";
 import { daysOf, nextWeek, plusDays, problemOf, YEAR, yearsBetween }
   from "./draft";
 import p from "../people/page.module.css";
@@ -63,7 +64,8 @@ export function RequestSheet(q: { open: boolean; onClose(): void;
   };
   const approver = data.people.person(data.people.approverOf(me));
   const hr = data.people.person(data.people.personas().hrId);
-  const types = data.people.leaveTypes();
+  const all = typesFor(data.people.leaveTypes(), data.people.person(me));
+  const types = all.open;
   const kind = types.find((x) => x.id === type) ?? types[0];
   const rule = kind?.rule;
   const joined = data.people.person(me)?.joinedOn ?? asOf;
@@ -133,9 +135,16 @@ export function RequestSheet(q: { open: boolean; onClose(): void;
               <option key={x.id} value={x.id}>{x.name[lang]}</option>
             ))}
           </select>
+          {all.closed.map((x) => (
+            <p key={x.id} className={s.countSub}>
+              {t("timeoff.notForYou", { type: x.name[lang],
+                who: x.rule.who?.[lang] ?? "" })}
+            </p>
+          ))}
           {rule !== undefined && (
             <div id={ids.rule} className={s.rule}>
               <p>{rule.text[lang]}</p>
+              {rule.who !== null && <p>{rule.who[lang]}</p>}
               {rule.proof !== null && (
                 <p>{t("timeoff.ruleProof", { proof: rule.proof[lang] })}</p>
               )}
