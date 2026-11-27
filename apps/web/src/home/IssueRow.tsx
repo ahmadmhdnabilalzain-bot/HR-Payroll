@@ -86,14 +86,16 @@ export function IssueRow(p: { issue: Issue; delay: number | null;
   // The whole line opens where the issue is fixed; the side button
   // keeps its own step. While the bank form is open or its pay is in
   // flight the line is not a link (a stray click must not leave).
-  const link = useRowLink({ href: issueHref(i),
-    disabled: editing || flying });
+  // (No aria-disabled then: it would disable the form inside it.)
+  const link = useRowLink({ href: issueHref(i) });
+  const asLink = !(editing || flying);
   return (
     <li className={s.item} data-key={i.id} ref={row} tabIndex={-1}
       data-reveal={p.delay !== null ? "" : undefined}
       style={p.delay !== null ? { animationDelay: `${p.delay}ms` }
         : undefined}>
-      <div {...link} className={`${s.row} ${link.className}`}>
+      <div {...(asLink ? link : {})}
+        className={`${s.row} ${asLink ? link.className : ""}`}>
       <span className={s.icon} data-tone={i.severity}>
         <Icon name={i.severity === "info" ? "info" : "alert"} />
       </span>

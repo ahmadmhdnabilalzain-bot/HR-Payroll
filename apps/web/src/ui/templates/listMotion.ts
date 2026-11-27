@@ -158,7 +158,6 @@ function until(find: () => Parts | null, ms = 400): Promise<Parts | null> {
  * first frame: if the timeline stalls it is finished on a timer.
  */
 function dissolve(): void {
-  if (reduced()) return;
   const main = document.querySelector("main");
   if (main === null || typeof main.animate !== "function") return;
   const a = main.animate([{ opacity: 0 }, { opacity: 1 }],
@@ -228,9 +227,12 @@ function runRoute(oldUrl: string, render: () => void,
   };
   const doc = document as Doc;
   // Snapshot motion takes every click while it runs (ui/routeMotion.ts,
-  // SNAPSHOT_MOTION): the live dissolve instead.
-  if (!SNAPSHOT_MOTION || reduced() ||
-    typeof doc.startViewTransition !== "function") {
+  // SNAPSHOT_MOTION): the record simply shows.
+  if (!SNAPSHOT_MOTION) {
+    swap();
+    return;
+  }
+  if (reduced() || typeof doc.startViewTransition !== "function") {
     swap();
     dissolve();
     return;
