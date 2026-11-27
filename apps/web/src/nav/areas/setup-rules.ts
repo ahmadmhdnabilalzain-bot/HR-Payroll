@@ -35,7 +35,7 @@ export const AREAS: readonly Area[] = [
     "ST", ["deductions"], "deduction limit loan fine cap half wage"),
   area("setup.calendar", "pay", "Pay calendar", "تقويم الرواتب", "CA",
     ["calendar"], "cut-off payday approve date month"),
-  area("setup.wps", "pay", "WPS file", "نظام حماية الأجور",
+  area("setup.wps", "pay", "Salary file settings", "نظام حماية الأجور",
     "ST", ["wps"], "wps bank file salary file sif iban routing"),
   area("setup.company", "data", "Company details", "بيانات الشركة", "ST",
     ["company"], "company name locations departments"),

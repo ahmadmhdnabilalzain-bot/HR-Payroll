@@ -73,7 +73,7 @@ const SHORT: Record<string, { en: string; ar: string }> = {
   "setup.eos": { en: "End of service", ar: "نهاية الخدمة" },
   "setup.deductions": { en: "Deductions", ar: "الاستقطاعات" },
   "setup.calendar": { en: "Pay calendar", ar: "تقويم الرواتب" },
-  "setup.wps": { en: "WPS file", ar: "ملف WPS" },
+  "setup.wps": { en: "Salary file settings", ar: "ملف WPS" },
   "setup.company": { en: "Company", ar: "الشركة" },
   "setup.users": { en: "Users", ar: "المستخدمون" },
   "setup.who": { en: "Permissions", ar: "الصلاحيات" },

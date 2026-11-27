@@ -31,7 +31,7 @@ export const BACK_PAY_NOTE = "The September raise was on basic salary " +
 
 /** No IBAN: the payslip is computed but held out of the SIF. */
 export const HELD_NO_IBAN = "No IBAN on file: this salary cannot go " +
-  "in the WPS file until the bank details are entered.";
+  "in the salary file until the bank details are entered.";
 
 export function employedIn(e: DemoEmployee, year: number, month: number)
   : boolean {

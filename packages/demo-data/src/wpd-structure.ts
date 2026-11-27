@@ -245,7 +245,7 @@ export function payrollExclusions(c: DemoCompany): PayrollExclusion[] {
         "Payroll rules", `Joined ${shortDateText(e.joiningDate)}`);
     }
     if (!s.sif.included) {
-      add(e, "Salary file (WPS)", "held-out", s.sif.reason,
+      add(e, "Salary file", "held-out", s.sif.reason,
         "Check", `Held in the ${monthName(c)} run`);
     }
     if (e.cases.includes("probation") && s.payslip.unpaidDays > 0) {

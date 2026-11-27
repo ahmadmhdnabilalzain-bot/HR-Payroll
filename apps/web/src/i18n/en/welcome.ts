@@ -13,7 +13,7 @@ export const welcome = {
   s4Body: "Pay runs, leave and expenses wait in one place, each for " +
     "the right person.",
   s5Title: "Built for the UAE.",
-  s5Body: "WPS salary files, leave and end-of-service, worked out on " +
+  s5Body: "Salary files, leave and end-of-service, worked out on " +
     "UAE rules as we read them.",
   open: "Open the demo",
   payslip: "Payslip",
