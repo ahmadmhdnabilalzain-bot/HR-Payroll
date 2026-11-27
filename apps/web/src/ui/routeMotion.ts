@@ -148,7 +148,8 @@ export function slideRoute(from: string, to: string, render: () => void,
   if (dir === null) return false;
   run(dir, "page", () => {
     render();
-    scrollTo({ top: 0, behavior: "instant" });
+    // Safari before 16.4 throws on behavior "instant"; this is instant.
+    scrollTo(scrollX, 0);
     return settled();
   });
   return true;

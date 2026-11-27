@@ -207,7 +207,9 @@ function runRoute(oldUrl: string, render: () => void,
   const top = back ? scrolls.get(to) ?? 0 : 0;
   const swap = (): void => {
     render();
-    scrollTo({ top, behavior: "instant" });
+    // Numbers, not { behavior: "instant" }: Safari before 16.4 throws
+    // on that value. Nothing sets smooth scrolling, so this is instant.
+    scrollTo(scrollX, top);
   };
   if (reduced() || !hasViewTransitions()) {
     swap();
