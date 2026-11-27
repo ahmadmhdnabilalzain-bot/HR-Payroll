@@ -75,9 +75,9 @@ function Body(p: { t: TileModel; why?: Explanation | undefined;
         ? <span className={s.tileLabel}>{t.label}</span>
         : <a className={`${s.tileLabel} ${s.tileLink}`}
           href={p.labelHref}>{t.label}</a>}
-      {/* A linked tile is already a link: its working stays on the
-          page it opens, never a button inside the link. */}
-      {p.why === undefined || t.href !== undefined
+      {/* A tile that is a whole link gets no working here (never a
+          button inside a link); one whose label links keeps it. */}
+      {p.why === undefined
         ? <FigureView f={t.figure} /> : (
           <Explainable explanation={p.why}>
             <FigureView f={t.figure} />
