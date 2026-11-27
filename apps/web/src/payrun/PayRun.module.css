@@ -1351,3 +1351,40 @@
   background: transparent;
   box-shadow: inset 0 0 0 1.5px currentColor;
 }
+
+/* Sign off anyway: the sheet's open checks, one line each. */
+.anywayLede {
+  color: var(--color-text-muted);
+}
+
+.anywayList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.anywayList li {
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-divider);
+}
+
+.anywayActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+/* Undo, under the decision it takes back. */
+.chainUndo {
+  justify-self: start;
+  margin-block-start: var(--space-1);
+  margin-inline-start: calc(var(--space-3) * -1);
+}
+
+.chainItem > .chainUndo {
+  grid-column: 2;
+  margin-block-start: calc(var(--space-3) * -1);
+}

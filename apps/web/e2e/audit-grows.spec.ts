@@ -16,6 +16,8 @@ test("the audit trail grows with each demo action, as the IT manager sees it",
     await page.getByRole("button", { name: "View as General Manager" })
       .click();
     await page.getByRole("button", { name: "Sign off pay run" }).click();
+    // Six checks are open: the GM signs over them knowingly.
+    await page.getByRole("button", { name: "Sign off anyway" }).click();
     await expect(page.getByText("Sign-off recorded")).toBeVisible();
     await page.locator("button[aria-haspopup=menu]").click();
     await page.getByRole("menuitemradio", { name: "IT manager" }).click();

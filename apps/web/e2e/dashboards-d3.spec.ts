@@ -71,6 +71,8 @@ test("owner-brief-and-dashboards-follow-the-story", async ({ page },
   await page.getByRole("button", { name: "View as General Manager" })
     .click();
   await page.getByRole("button", { name: "Sign off pay run" }).click();
+  // Six checks are open: the GM signs over them knowingly.
+  await page.getByRole("button", { name: "Sign off anyway" }).click();
   await expect(page.getByText("Sign-off recorded")).toBeVisible();
   await page.evaluate(() => { location.hash = "#/reports/owner-brief"; });
   await expect(sum.getByText("Signed off", { exact: true })).toBeVisible();

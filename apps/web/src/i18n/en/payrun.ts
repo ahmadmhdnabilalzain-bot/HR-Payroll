@@ -134,6 +134,16 @@ export const payrun = {
   viewAsGm: "View as General manager",
   openChecks: { one: "{count} check is not marked reviewed yet.",
     other: "{count} checks are not marked reviewed yet." },
+  anywayTitle: { one: "{count} check not reviewed",
+    other: "{count} checks not reviewed" },
+  anywayLede: { one: "This check is not marked reviewed yet. It does " +
+    "not hold pay; signing off releases the run as it stands.",
+    other: "These {count} checks are not marked reviewed yet. They do " +
+    "not hold pay; signing off releases the run as it stands." },
+  anywayBtn: "Sign off anyway",
+  anywayReview: "Review the checks",
+  signedToast: "Pay run signed off.",
+  sentBackToast: "Pay run sent back to HR.",
   allChecked: "Every check is marked reviewed.",
 
   payTitle: "Pay",

@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRunApproval } from "../demo/actions";
-import { runApprovalId, runPhase } from "../demo/derive";
+import { isBlocking, openIssues, runApprovalId, runPhase }
+  from "../demo/derive";
 import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { beforeApproval } from "../reports/dash/model";
@@ -11,7 +12,6 @@ import { downloadText } from "../lib/download";
 import { Icon } from "../ui/Icon";
 import b from "../ui/button.module.css";
 import {
-  recordDecision,
   STEP_LABEL,
   STEPS,
   stepStates,
@@ -20,6 +20,8 @@ import {
 } from "./model";
 import type { Go } from "./PayRun";
 import s from "./RunBar.module.css";
+import { SignAnyway } from "./SignAnyway";
+import { useDecide } from "./useDecide";
 
 const STATE_WORD: Record<StepState, "payrun.stateDone" | "payrun.stateNow" |
   "payrun.stateNext" | "payrun.stateWaiting" | null> = {
@@ -229,6 +231,8 @@ function ApproveAction(p: { go: Go }) {
   const { lang, t } = useLocale();
   const { data, state } = useDemo();
   const a = useRunApproval();
+  const { decide } = useDecide();
+  const [ask, setAsk] = useState(false);
   const id = runApprovalId(data);
   const verdict = id === null ? undefined : state.decided[id];
   if (verdict === "approve") {
@@ -254,16 +258,30 @@ function ApproveAction(p: { go: Go }) {
     );
   }
   const full = t("payrun.approveBtn");
+  // Checks not marked reviewed: the same list the card counts.
+  const checks = openIssues(data, state).filter((i) => !isBlocking(i));
   return (
-    <button type="button" className={btn} disabled={!a.canDecide}
-      aria-label={full}
-      aria-describedby={a.canDecide ? undefined : "approve-why"}
-      onClick={() => {
-        if (id !== null) recordDecision(id);
-        a.decide("approve");
-      }}>
-      <Label full={full} short={t("payrun.actApprove")} />
-    </button>
+    <>
+      <button type="button" className={btn} disabled={!a.canDecide}
+        aria-label={full}
+        aria-describedby={a.canDecide ? undefined : "approve-why"}
+        aria-haspopup={checks.length > 0 ? "dialog" : undefined}
+        onClick={() => {
+          if (checks.length > 0) setAsk(true);
+          else decide("approve");
+        }}>
+        <Label full={full} short={t("payrun.actApprove")} />
+      </button>
+      <SignAnyway open={ask} checks={checks} onClose={() => setAsk(false)}
+        onSign={() => {
+          setAsk(false);
+          decide("approve");
+        }}
+        onReview={() => {
+          setAsk(false);
+          p.go("fix");
+        }} />
+    </>
   );
 }
 
