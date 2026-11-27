@@ -5,7 +5,9 @@ import { useMaskText } from "../../ui/mask";
 import { FilterList } from "../../ui/templates";
 import { saveView, savedView } from "../../ui/templates/listMotion";
 import { useState } from "react";
-import { inboxNotices, inboxTasks, type TaskTone } from "./model";
+import {
+  inboxNotices, inboxTasks, type InboxTask, type TaskTone,
+} from "./model";
 import { TaskAction, TaskTitle, TONE_KEY } from "./TaskList";
 import s from "./inbox.module.css";
 
@@ -45,7 +47,7 @@ export function TasksPage(p: { tone?: string | undefined }) {
       segments={[
         { id: "open", label: t("inbox.tasksOpen"), match: (x) => !x.done },
         ...TASK_TONES.map((k) => ({ id: k, label: t(TONE_KEY[k]),
-          match: (x: { tone: TaskTone }) => x.tone === k })),
+          match: (x: InboxTask) => x.tone === k })),
         { id: "done", label: t("inbox.tasksDone"), match: (x) => x.done },
         { id: "all", label: t("inbox.tasksAll"), match: () => true }]}
       columns={[
