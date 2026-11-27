@@ -823,3 +823,71 @@ The owner can overrule any of these. Full list with reasons:
   is approved by the owner.
 - Ruling: sound is off by default in the demo and in any video.
 - Ruling: the client is called "the bank" in every document.
+
+## 22. The owner's verdict, 27 Nov 2026: MANDATORY (binding, none optional)
+
+Recorded at 05:40 Dubai on the owner's instruction: "Whatever I have been
+telling you should have been in the ledger, and it is mandatory to be done.
+Everything you have to fix now in the next 2 to 3 hours, and then you will
+redeploy." The full numbered list is `docs/design/2026-11-27-owner-verdict.md`
+(points 1 to 24). Every point is binding. This section is the contract.
+
+Ruling, deadline: builders hand back by 09:00 Dubai (phone and Safari fixes by
+08:30); one combined merge and the full gate follow; the deploy freeze is
+11:00 Dubai (meeting 15:00). The link live now stays up until the new build
+passes the gate. Unfinished parts stay hidden behind a flag, never half-shown.
+
+Binding requirements (summary; the verdict file is the full text):
+
+1. Sign-in with named people; the role menu is "Demo: switch person"; every
+   action and audit entry shows the real person; employees can request access
+   or a role change through a signing chain.
+2. HR Home is a priority board: KPIs, schedules, attendance, visa and labour
+   card documents, expired insurance, government letters, staff requests; most
+   urgent first; every tile clickable.
+3. Staff schedules exist and are findable.
+4. In-app chat and announcements instead of email.
+5. GM sees what every staff member is doing today: tasks and deadlines.
+6. Operations is a third area beside HR and Payroll (the "Time" word becomes
+   "Operations": today, team today, schedules, tasks, messages,
+   announcements, plus time and leave).
+7. Org chart with reports-to and responsibilities per position.
+8. KPIs, company guidelines, grades (for example 5C) beside every name;
+   starting level by position.
+9. Every leave type can be requested, maternity included.
+10. Letters have a defined signing chain (HR manager, then GM where set); the
+    employee never picks the signer.
+11. Letter templates need no typing: drop-downs for purpose, embassy, bank;
+    11b: HR can create and edit templates.
+12. Competitive study of navigation and features; premium bar; the product
+    must justify a controlled-process platform price for a bank.
+14. Reports are fully clickable; 15. every report and document is
+    generatable as an official PDF with letterhead and logo.
+16. Hiring budget (budgeting per position) and hiring requests in the app.
+17. Premium bar: craft, motion and "can each person finish a real job".
+18. Every error, notification, decision, tile, row and chip is clickable and
+    opens an item page: what it is, why, since when, how to fix it (with the
+    action in place), owner, and HISTORY on the side.
+19. Items are routed by who owns them (an expired visa is HR's; the GM sees
+    "HR is handling: N"); actions follow who approves what.
+20. No notification is a dead end; each opens its root with history.
+21. Every item gives the next logical step in the app: assign, ask, remind,
+    escalate, message, note; no phone calls, no email.
+22. Purpose: organise the company, optimise and automate, cut email and
+    calls, let management and owners see what is going on; a founder or
+    chairman can sign in and monitor the whole status (read-only).
+23. HR, Payroll and Operations; 24. the demo must be able to win the deal.
+
+New gates added today (all must pass before the redeploy):
+- Dead-click test: every role's Home, dashboards, bell, notices, reports and
+  lists have no row, tile, chip or notification that does nothing.
+- Fail-open: content is visible and clickable by default if any animation,
+  View Transition, IntersectionObserver or requestIdleCallback is missing.
+- Owner devices: Safari on iPhone 13 Pro Max (428 x 926) and an Asus Vivobook
+  (Windows, 125 to 150 percent scaling, integrated graphics).
+- Headline numbers unchanged; HR "Waiting for a decision" 4; IT sees no pay;
+  Hide amounts masks everywhere including PDFs.
+
+Standing: the audit evidence for the dead-click problem is in
+scratchpad/deadclick; the item-page builder is branch item1; the order of
+merge is Reports, GM dashboard, HR Home, letters, then the rest.
