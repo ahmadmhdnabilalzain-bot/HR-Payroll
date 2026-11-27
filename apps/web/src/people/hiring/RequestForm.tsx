@@ -288,15 +288,15 @@ export function RequestForm(p: { budgetId: string | null }) {
 
           <section className={h.group} aria-labelledby="hf-g3">
             <h2 id="hf-g3" className={h.section}>Job description</h2>
-            <label className={`${h.field} ${h.wide}`}>
-              <span>Job description</span>
-              <textarea value={jd} rows={12} onChange={(e) => {
-                setJd(e.target.value);
-                setJdOwn(true);
-              }} />
-              <small>Starts from the template for the role; edit freely.
-              </small>
-            </label>
+            <div className={`${h.field} ${h.wide}`}>
+              <textarea value={jd} rows={12} aria-labelledby="hf-g3"
+                aria-describedby="hf-jd" onChange={(e) => {
+                  setJd(e.target.value);
+                  setJdOwn(true);
+                }} />
+              <small id="hf-jd">Starts from the template for the role; edit
+                freely.</small>
+            </div>
             <div className={`${h.actions} ${h.wide}`}>
               <button type="button" className={`${b.btn} ${b.secondary}`}
                 disabled={!jdOwn}
