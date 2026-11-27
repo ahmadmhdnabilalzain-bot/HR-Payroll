@@ -3,13 +3,24 @@
   align-content: start;
   gap: var(--space-1);
   min-inline-size: 0;
+  /* Brought to view (Decisions): clear of the sticky header. */
+  scroll-margin-block-start: 112px;
 }
 
-/* Decisions, just asked for: outlined for a second, nothing moves. */
-.panel[data-flash] {
+/* Decisions, just asked for: outlined for a second, nothing moves.
+ * A ring above the rows (they paint over a plain outline). */
+.decisions {
+  position: relative;
+}
+
+.decisions[data-flash]::after {
+  position: absolute;
+  z-index: 2;
+  inset: -8px;
+  border: 2px solid var(--color-focus);
   border-radius: var(--radius-control);
-  outline: 2px solid var(--color-focus);
-  outline-offset: 6px;
+  content: "";
+  pointer-events: none;
 }
 
 .head {

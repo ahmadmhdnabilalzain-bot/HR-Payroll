@@ -47,7 +47,8 @@ export function Approvals() {
     return () => cancelAnimationFrame(id);
   }, [asked]);
   return (
-    <section className={s.panel} aria-labelledby="approvals-title">
+    <section className={`${s.panel} ${s.decisions}`}
+      aria-labelledby="approvals-title">
       <header className={s.head}>
         <h2 id="approvals-title" className={s.title}>
           {t("home.approvalsTitle")}
@@ -79,15 +80,21 @@ let unflash: ReturnType<typeof setTimeout> | undefined;
 export function showDecisions(): void {
   const to = document.getElementById("approvals-title");
   if (to === null) return;
-  to.scrollIntoView({ block: "start",
-    behavior: reducedMotion() ? "auto" : "smooth" });
+  const panel = to.closest("section");
+  const smooth = !reducedMotion();
+  (panel ?? to).scrollIntoView({ block: "start",
+    behavior: smooth ? "smooth" : "auto" });
   to.tabIndex = -1;
   to.focus({ preventScroll: true });
-  const panel = to.closest("section");
   if (panel === null) return;
-  clearTimeout(unflash);
+  // The mark stays a second after the page comes to rest.
+  const later = (): void => {
+    clearTimeout(unflash);
+    unflash = setTimeout(() => panel.removeAttribute("data-flash"), 1000);
+  };
   panel.setAttribute("data-flash", "");
-  unflash = setTimeout(() => panel.removeAttribute("data-flash"), 1000);
+  later();
+  if (smooth) addEventListener("scrollend", later, { once: true });
 }
 
 function ApprovalRow(p: { a: Approval }) {
