@@ -143,7 +143,7 @@ render.live.yaml serves it (port 4881), at 1440 x 900, as the role named.
 |---|---|---|---|---|---|
 | E16 | Ask about a payslip line | missing | #/me/payslips, October, "About this line" (7 lines) | Employee (Jose Reyes) | sheet "About this line", worked answers, "Ask HR about this line", "Sent to HR" |
 | X34 | Ask for a report in words | missing | Reports home, "Ask for a report"; reports.ask | HR manager | "variance for september" opens #/reports/variance/2026-09; unknown words read "No report matched those words" |
-| H15 | AI assistant, cited policy Q&A | missing | #/me/policies, heading "Ask about a policy" | HR manager, Employee, IT manager | a quote with "Leave policy, section 3.2", Acknowledge, "Not covered in our policies" with Ask HR |
+| H15 | Rule-based answers, cited policy Q&A | missing | #/me/policies, heading "Ask about a policy" | HR manager, Employee, IT manager | a quote with "Leave policy, section 3.2", Acknowledge, "Not covered in our policies" with Ask HR |
 | H12 | Help and training videos | partial | #/me/help, heading "Help" | HR manager | 14 cards, each with "Walkthrough: 90 seconds" (Step 1 of 5, Next, Back, Close) |
 
 Judgement calls, said plainly:

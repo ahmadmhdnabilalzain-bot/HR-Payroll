@@ -122,7 +122,7 @@ const OVERRIDES = (): Record<string, number> => Object.fromEntries(
   RULE_CHANGE_VALUES.map((v) => [v.key, v.to]));
 
 const signed = (f: bigint): string => f === 0n ? formatAed(fils(0n))
-  : f > 0n ? `+${formatAed(fils(f))}` : formatAed(fils(f));
+  : f > 0n ? `+${formatAed(fils(f))}` : `\u2212${formatAed(fils(-f))}`;
 
 const sum = (xs: { amount: Fils }[]): bigint =>
   xs.reduce((n, x) => n + x.amount, 0n);

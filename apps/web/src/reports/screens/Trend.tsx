@@ -69,7 +69,8 @@ export function Trend() {
       csvName="payroll-trend-2026-01-to-10.csv"
       note={"January to September are worked out again from today's " +
         "pay and joining dates, so they show what the same rules give, " +
-        "not a bank record. October is the run waiting for sign-off. " +
+        "not the records of those months. October is the run waiting " +
+        "for sign-off. " +
         "Open Variance to see why a month moved."} />
   );
 }

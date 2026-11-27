@@ -71,7 +71,7 @@ export function CommissionStatements() {
     ? (st === "open" || st === "declined"
       ? btn("primary", st === "open" ? "Prepare statements"
         : "Prepare again", prepare)
-      : st === "waiting" ? btn("secondary", "Take back from sign-off",
+      : st === "waiting" ? btn("secondary", "Take back",
         () => dispatch({ type: "commission-unprepare",
           month: plan.month })) : null)
     : state.role === "gm"

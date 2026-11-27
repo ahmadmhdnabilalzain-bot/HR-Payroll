@@ -4,7 +4,7 @@ test("loan-request-is-decided-by-the-gm", async ({ page }) => {
   await page.goto("/#/pay-run/loans");
   await expect(page.getByRole("heading", { level: 1,
     name: "Loans and advances" })).toBeVisible();
-  await page.getByRole("button", { name: "Give a loan or advance" })
+  await page.getByRole("button", { name: "New loan" })
     .click();
   const sheet = page.getByRole("dialog");
   await sheet.getByLabel("Amount (AED)").fill("abc");
@@ -20,18 +20,18 @@ test("loan-request-is-decided-by-the-gm", async ({ page }) => {
     .toBeVisible();
   await page.getByRole("button", { name: "View as General Manager" })
     .click();
-  await page.getByRole("button", { name: "Agree", exact: true }).click();
-  await expect(page.getByText(/^Agreed by /)).toBeVisible();
+  await page.getByRole("button", { name: "Sign off", exact: true }).click();
+  await expect(page.getByText(/^Signed off by /)).toBeVisible();
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText(/Waiting for /)).toBeVisible();
 });
 
 test("fine-decision-has-an-undo", async ({ page }) => {
   await page.goto("/#/pay-run/fines/tf-1");
-  await page.getByRole("button", { name: "The bank pays" }).click();
-  await expect(page.getByText(/^The bank pays: /)).toBeVisible();
+  await page.getByRole("button", { name: "The company pays" }).click();
+  await expect(page.getByText(/^The company pays: /)).toBeVisible();
   await page.getByRole("button", { name: "Take back decision" }).click();
-  await expect(page.getByRole("button", { name: "The bank pays" }))
+  await expect(page.getByRole("button", { name: "The company pays" }))
     .toBeVisible();
 });
 
@@ -63,11 +63,11 @@ test("expense-claim-is-decided-through-the-inbox-id", async ({ page }) => {
   await page.goto("/#/pay-run/expenses/exp-002");
   await page.getByRole("button", { name: "View as General Manager" })
     .click();
-  await page.getByRole("button", { name: "Agree", exact: true }).click();
-  await expect(page.getByText(/^Agreed by /)).toBeVisible();
+  await page.getByRole("button", { name: "Sign off", exact: true }).click();
+  await expect(page.getByText(/^Signed off by /)).toBeVisible();
   await page.getByRole("link", { name: "Expense claims" }).click();
   await expect(page.getByRole("link", { name: /Rashid Al Falasi/ }))
-    .toContainText("Agreed");
+    .toContainText("Signed off");
 });
 
 test("it-opens-pay-groups-and-elements-from-setup", async ({ page }) => {

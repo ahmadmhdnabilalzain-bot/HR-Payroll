@@ -110,7 +110,7 @@ describe("the demo bank", () => {
     const n = c.nationalities as unknown as Record<string, unknown>;
     expect(Object.keys(n).sort()).toEqual(["asOf", "byNationality",
       "headcount", "headcountText", "label", "uaeNationals"]);
-    expect(n.label).toBe("The rules for banks are not confirmed yet");
+    expect(n.label).toBe("Not confirmed yet");
   });
 });
 

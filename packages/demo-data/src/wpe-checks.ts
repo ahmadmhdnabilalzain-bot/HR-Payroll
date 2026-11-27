@@ -376,11 +376,11 @@ export interface HirePreview {
   basis: string;
 }
 
-export const HIRE_BASIS = "Pay is worked out by the payroll engine for " +
+export const HIRE_BASIS = "Pay is worked out by the payroll for " +
   "twelve payroll months from the start date, at the foot of the " +
   "grade's pay band; the first month is part of a month. Visa, medical " +
   "and insurance lines are demo estimates, kept apart from the " +
-  "engine's figures. Gratuity and other costs are not included.";
+  "payroll figures. Gratuity and other costs are not included.";
 
 export const HIRE_EMPLOYER_NOTE = "Not computed. The rules loaded work " +
   "out no employer-side cost for this person.";

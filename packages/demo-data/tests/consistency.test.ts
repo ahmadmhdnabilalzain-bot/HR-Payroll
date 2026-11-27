@@ -66,8 +66,8 @@ describe("every month agrees across the selectors", () => {
         .toBe(v.grossChange);
       const t = payTrend(c).find((x) => x.month === m)!;
       const sign = now.net - before.net >= 0n ? "+" : "";
-      expect(t.changeDisplay).toBe(sign + formatAed((now.net -
-        before.net) as Fils));
+      expect(t.changeDisplay).toBe((sign + formatAed((now.net -
+        before.net) as Fils)).replace("-", "\u2212"));
     }
   });
 });

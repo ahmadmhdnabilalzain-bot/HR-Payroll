@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("IT manager: who can approve, review, key, import", async ({ page }) => {
   await page.goto("/#/setup/access/who/pay.approve");
-  await expect(page.getByRole("heading", { name: "Sign off a pay run" }))
+  await expect(page.getByRole("heading", { name: "Sign off pay" }))
     .toBeVisible();
   await expect(page.getByText("Khalid Al Nuaimi").first()).toBeVisible();
 

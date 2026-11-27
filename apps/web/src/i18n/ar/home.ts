@@ -10,8 +10,8 @@ const all = (s: string): ArPlural =>
 export const home: ArOf<typeof en> = {
   dateLine: "{date} · {company}",
   statusBank: {
-    ...all("{count} بيانات بنكية توقف رواتب {month}"),
-    one: "بيان بنكي واحد يوقف رواتب {month}",
+    ...all("{count} بيانات بنكية ناقصة. الرواتب موقوفة حتى تُصحَّح"),
+    one: "بيان بنكي واحد ناقص. الرواتب موقوفة حتى يُصحَّح",
   },
   statusApprove: "رواتب {month} جاهزة للتوقيع",
   statusApproveYou: "رواتب {month} بانتظار توقيعك",

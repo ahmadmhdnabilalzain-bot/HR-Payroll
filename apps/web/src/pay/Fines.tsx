@@ -20,7 +20,7 @@ import type { FineView } from "./types";
 
 const LIST = hrefOf("pay-run", "fines");
 const CHOICE: Record<FineChoice, string> = {
-  bank: "The bank pays", recover: "Recover from the employee",
+  bank: "The company pays", recover: "Recover from the employee",
 };
 
 function FineStatus(p: { d: FineDecision | undefined }) {
@@ -36,27 +36,26 @@ function FineRow(p: { f: FineView }) {
   const decide = (choice: FineChoice) => (): void => {
     dispatch({ type: "fine-decide", id: p.f.id, decision: { choice,
       by: personOf(data, state.role), on: data.payCalendar().asOf } });
-    toast.show(choice === "bank" ? "Noted: the bank pays this fine"
+    toast.show(choice === "bank" ? "Noted: the company pays this fine"
       : "Noted: to recover from the employee",
     () => dispatch({ type: "fine-undo", id: p.f.id }));
   };
   return (
     <RowDecision open={d === undefined} mine
-      yes={{ label: "Bank pays", run: decide("bank") }}
+      yes={{ label: "Company pays", run: decide("bank") }}
       no={{ label: "Recover", run: decide("recover") }}
       undo={() => dispatch({ type: "fine-undo", id: p.f.id })} />
   );
 }
 
-/** R24: traffic fines on bank cars, waiting for a decision. */
+/** R24: traffic fines on company cars, waiting for a decision. */
 export function Fines() {
   const { state } = useDemo();
   const pay = usePay();
   const d = state.fineDecisions;
   return (
     <FilterList title="Traffic fines"
-      lede={"Fines on bank cars. Decide who pays each one; recovering a " +
-        "fine from pay is not worked out yet."}
+      lede="Fines on company cars. Decide who pays each one."
       rows={pay.fines} rowKey={(f) => f.id}
       searchText={(f) => `${f.name} ${f.offence}`}
       rowHref={(f) => hrefOf("pay-run", "fines", f.id)}
@@ -99,7 +98,7 @@ function FinePage(p: { f: FineView }) {
   const decide = (choice: FineChoice): void => {
     dispatch({ type: "fine-decide", id: f.id, decision: { choice,
       by: personOf(data, state.role), on: data.payCalendar().asOf } });
-    toast.show(choice === "bank" ? "Noted: the bank pays this fine"
+    toast.show(choice === "bank" ? "Noted: the company pays this fine"
       : "Noted: to recover from the employee",
     () => dispatch({ type: "fine-undo", id: f.id }));
   };

@@ -39,12 +39,12 @@ test("cover: a manager asks, HR agrees", async ({ page }) => {
   await page.getByRole("button", { name: /Set cover: Arjun/ }).click();
   await page.getByLabel("From", { exact: true }).fill("2026-11-02");
   await page.getByLabel("To", { exact: true }).fill("2026-11-06");
-  await page.getByRole("button", { name: "Send for agreement" }).click();
+  await page.getByRole("button", { name: "Send for sign-off" }).click();
   await expect(page.getByText(/Waiting for Fatima/)).toBeVisible();
   await roleAs(page, "HR manager");
   await page.goto("/#/people/more/cover");
-  await page.getByRole("button", { name: /^To agree/ }).click();
-  await page.getByRole("button", { name: /Agree: Arjun/ }).click();
+  await page.getByRole("button", { name: /^To sign off/ }).click();
+  await page.getByRole("button", { name: /Sign off: Arjun/ }).click();
   await page.getByRole("button", { name: /^In place/ }).click();
   await expect(page.locator("span[data-tone=ok]")).toHaveText("In place");
 });
@@ -62,10 +62,10 @@ test("expenses: an employee sends a claim, the manager decides it", async ({
   await roleAs(page, "Team manager");
   await page.goto("/#/me/expenses");
   await expect(page.getByText("Claims waiting for you")).toBeVisible();
-  await page.getByRole("button", { name: /^Agree: Jose/ }).click();
+  await page.getByRole("button", { name: /^Sign off: Jose/ }).click();
   await roleAs(page, "Employee");
   await page.goto("/#/me/expenses");
-  await expect(page.getByText("Agreed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Signed off", { exact: true })).toBeVisible();
 });
 
 test("expenses: a bad amount is refused in plain words", async ({ page }) => {
@@ -91,8 +91,8 @@ test("time card: ask for a correction, the manager agrees", async ({
   await expect(page.getByText("Waiting for Arjun Menon")).toBeVisible();
   await roleAs(page, "Team manager");
   await page.goto("/#/me/timecard");
-  await page.getByRole("button", { name: /^Agree: Jose/ }).click();
-  await expect(page.getByText("Agreed").first()).toBeVisible();
+  await page.getByRole("button", { name: /^Book: Jose/ }).click();
+  await expect(page.getByText("Booked").first()).toBeVisible();
 });
 
 test("kpis and team reviews open for a manager", async ({ page }) => {

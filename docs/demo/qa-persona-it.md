@@ -144,7 +144,7 @@ L5. "Compliance" appears as a screen name ("Compliance overview",
 "Compliance calendar", "Compliance and safety"). Reads as a claim to a
 bank; say "checks" or keep with the existing "not a compliance finding".
 L6. "Security patches applied on time ... 100 %" is a sample KPI of the
-fictional bank's IT department (`wp2.ts:432`). Not a Mubinflow claim,
+fictional bank's IT department (`wp2.ts:432`). Not a MubinFlow claim,
 but a skimmer may think it is.
 L7. "Import the ready rows" does nothing ("Nothing imported. 4 ready
 rows would be added; 5 rows need a fix first."). Honest; say so.
@@ -237,13 +237,13 @@ keys, webhooks, calendar feeds, WPS SIF file, CSV import and export.
 Accounting connectors are planned, not built." Do not promise core
 banking. Webhook payload contents: say you will send the exact fields.
 
-22. Keka exports and history? "Our migration tool is not built. Give us
+22. Exports and history? "Our migration tool is not built. Give us
 anonymised samples and your retention years first." Do not say we import
-Keka today (the import screen shows a sample and imports nothing).
+its data today (the import screen shows a sample and imports nothing).
 
 23. Attendance devices? "Kiosk, phone clock-in and feeds are designed;
 we have not connected a real device. Tell us the device and how
-punches reach Keka."
+punches reach the current system."
 
 24. Who sees salaries, audit retention, access review? "Today: HR manager,
 General manager, finance roles. IT does not see salary fields, but in

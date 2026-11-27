@@ -45,8 +45,7 @@ const ON_OFF = ["On", "Off"] as const;
 const NOTICE = "Nothing is connected. Nothing below is sent " +
   "to anyone.";
 
-export const TEST_RESULT = "Test connection: not available yet. " +
-  "No request was made.";
+export const TEST_RESULT = "Not connected. No request was made.";
 
 const item = (key: string, label: string, value: string, help: string,
   choices: readonly string[] | null = null): ErpItem =>
@@ -338,14 +337,14 @@ function gl(c: DemoCompany): ErpPage {
 
 function teams(c: DemoCompany): ErpPage {
   const first = teamsCards(c, 1)[0];
-  return { id: "teams", title: "Teams messages", testResult: TEST_RESULT,
-    lede: "Tell the person who must decide, in a Teams channel.",
+  return { id: "teams", title: "Chat messages", testResult: TEST_RESULT,
+    lede: "Tell the person who must decide, in a chat channel.",
     notice: NOTICE.replace("Nothing below is sent to anyone.",
       "No message is sent."),
     groups: [
       { title: "Connection", items: [
-        item("teams:switch", "Messages in Teams", "Off",
-          "Off until your own Teams channel is connected.", ON_OFF),
+        item("teams:switch", "Messages in chat", "Off",
+          "Off until your own chat channel is connected.", ON_OFF),
         item("teams:endpoint", "Channel address",
           "Sample .test address",
           `https://teams.${DEMO_EMAIL_DOMAIN}/hooks/hr-decisions. ` +
@@ -356,7 +355,7 @@ function teams(c: DemoCompany): ErpPage {
         item("teams:what", "Requests waiting for a decision", "Off",
           "A card for each request that waits for a decision: pay run, " +
           "leave and expenses. The decision is made in MubinFlow, never " +
-          "in Teams.", ON_OFF),
+          "in chat.", ON_OFF),
         item("teams:first", "First card", first?.title ?? "None",
           "Built from a real request. Preview below."),
       ] },

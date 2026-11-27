@@ -57,17 +57,17 @@ function whatsapp(c: DemoCompany): ConnectPage {
   const sample = pending === undefined ? "No leave request is waiting."
     : `Leave: ${nameOf(c, pending.employeeId)} asks for leave from ` +
       `${shortDateText(pending.startDate)} to ` +
-      `${shortDateText(pending.endDate)}. Reply YES to agree or NO to ` +
+      `${shortDateText(pending.endDate)}. Reply YES to book or NO to ` +
       "decline.";
   const rule = (id: string, label: string, how: string): ConnectItem => {
     const r = APPROVAL_RULES.find((x) => x.id === id)!;
     return item(`wa:${id}`, label, "Off", `${r.text} ${how}`, ON_OFF);
   };
-  return { id: "whatsapp", title: "Decisions by WhatsApp",
+  return { id: "whatsapp", title: "Decisions by message",
     lede: "Let a manager answer a request from their phone.",
     notice: NOTICE,
     groups: [
-      { title: "Switch", items: [item("wa:switch", "Decisions by WhatsApp",
+      { title: "Switch", items: [item("wa:switch", "Decisions by message",
         "Off", "Off until the company's own number is connected.",
         ON_OFF)] },
       { title: "Which requests can be answered by message", items: [

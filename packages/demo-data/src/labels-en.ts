@@ -37,8 +37,8 @@ export const DEMO_LABELS_EN = {
   "reason.family": "Family visit", "reason.rest": "Rest",
   "reason.travel": "Travel", "reason.medical": "Medical appointment",
   "reason.personal": "Personal matters",
-  "status.approved": "Approved", "status.pending": "Pending",
-  "status.rejected": "Rejected",
+  "status.approved": "Signed off", "status.pending": "Waiting",
+  "status.rejected": "Declined",
   "status.awaiting-approval": "Waiting for sign-off",
   "case.probation": "New hire on probation",
   "case.leaver": "Leaving this month", "case.unpaid-leave": "Unpaid " +
@@ -60,8 +60,8 @@ export const DEMO_LABELS_EN = {
   "expense.travel": "Taxi and parking, client visits",
   "issues.title": "Found before sign-off",
   "pension.title": "Not computed",
-  "nationality.label": "Headcount by nationality only. The rules for banks " +
-    "are not confirmed yet.",
+  "nationality.label": "Headcount by nationality only. Not confirmed " +
+    "yet.",
 } as const;
 
 export type DemoLabelKey = keyof typeof DEMO_LABELS_EN;

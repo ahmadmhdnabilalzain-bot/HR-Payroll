@@ -323,7 +323,7 @@ function decision(a: Extract<Action, { type: "decide" | "undecide" }>,
   const [code, yes, what, area] = CODES[item?.kind ?? "leave"]
     ?? CODES["leave"]!;
   const subject = { kind: "approval", id: a.id,
-    label: item?.title.en ?? "Approval" };
+    label: item?.title.en ?? "Decision" };
   const area2 = area as AuditAddition["area"];
   if (a.type === "undecide") {
     return make(`${code}.decision-undone`, area2, subject,

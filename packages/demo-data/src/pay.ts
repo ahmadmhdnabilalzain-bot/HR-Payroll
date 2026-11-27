@@ -30,7 +30,7 @@ import type { DemoCompany, DemoEmployee, PayslipBasis } from "./types";
 const MONTHS = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
 const signed = (f: bigint) => f === 0n ? formatAed(fils(0n))
-  : f > 0n ? `+${formatAed(fils(f))}` : formatAed(fils(f));
+  : f > 0n ? `+${formatAed(fils(f))}` : `\u2212${formatAed(fils(-f))}`;
 const nameOf = (c: DemoCompany, id: string) =>
   c.employees.find((e) => e.id === id)?.fullName ?? id;
 const monthEnd = (m: number) => formatIsoDate({ y: 2026, m,
@@ -309,7 +309,7 @@ export function loans(c: DemoCompany): LoanRecord[] {
     loanRow(c, { ref: "ADV-1007", employeeId: "emp-018", kind: "advance",
       status: "approved", principal: fils(300000n),
       instalment: fils(100000n), balance: fils(300000n), ledger: [] },
-    "November", "Salary advance agreed on 26 October; recovered in " +
+    "November", "Salary advance signed off on 26 October; recovered in " +
       "three instalments, each checked against the limits on the day."),
   ];
 }
@@ -357,18 +357,18 @@ const FINE = (n: number): FakeIdentifier => ({
   masked: `DEMO-TF-26-****`, fake: true,
   note: "Fake: DEMO prefix, not an issued fine" });
 
-/** Fines on bank cars, waiting for a decision (fictional records). */
+/** Fines on company cars, waiting for a decision (fictional records). */
 export function trafficFines(c: DemoCompany): TrafficFine[] {
   const note = "Recovering a fine from pay is not computed: there " +
     "is no sourced rule for it, and any deduction would be checked " +
     "against the deduction limits.";
-  return [["emp-013", "2026-10-09", 60000n, "Speeding, bank car"],
-    ["emp-017", "2026-10-18", 40000n, "Parking, bank car"]].map(
+  return [["emp-013", "2026-10-09", 60000n, "Speeding, company car"],
+    ["emp-017", "2026-10-18", 40000n, "Parking, company car"]].map(
     ([id, date, amount, offence], i): TrafficFine => ({
       id: `tf-${i + 1}`, employeeId: id as string, date: date as string,
       amount: fils(amount as bigint), offence: offence as string,
       number: FINE(i + 1), status: "to-decide",
-      options: ["The bank pays", "Recover from the employee"],
+      options: ["The company pays", "Recover from the employee"],
       recoveryNote: note, display: { name: nameOf(c, id as string),
         date: displayDate(date as string),
         amount: formatAed(fils(amount as bigint)) } }));

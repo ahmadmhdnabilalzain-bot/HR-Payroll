@@ -43,7 +43,7 @@ export function Holds() {
       <FilterList title="Salary hold"
         lede={"Keep one person's October salary back while something is " +
           "sorted out. The salary is still worked out; it is marked do " +
-          "not pay on the bank advice until it is released."}
+          "not pay on the salary file list until it is released."}
         rows={d.people} rowKey={(p) => p.id}
         searchText={(p) => `${p.name} ${p.department}`}
         segments={[{ id: "all", label: "Everyone", match: () => true },

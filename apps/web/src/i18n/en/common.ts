@@ -13,7 +13,6 @@ export const common = {
   sampleDataHint: "Every person, number and amount here is invented. " +
     "Nothing is saved; reloading starts again.",
   arReviewBanner: "Arabic text awaiting native review",
-  building: "This app is being built. The screens come next.",
   loading: "Loading",
   tryAgain: "Try again",
   reference: "Reference: {requestId}",

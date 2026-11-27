@@ -203,7 +203,7 @@ function Run(p: { run: BonusRun }) {
       {st === "waiting" && isHr && (
         <button type="button" className={`${b.btn} ${b.secondary}`}
           onClick={() => dispatch({ type: "bonus-unsend", id: r.id })}>
-          Take back from sign-off</button>
+          Take back</button>
       )}
       {(st === "signed" || st === "declined") && isGm && (
         <button type="button" className={`${b.btn} ${b.secondary}`}

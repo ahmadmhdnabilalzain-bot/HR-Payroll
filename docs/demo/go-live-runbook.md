@@ -36,7 +36,7 @@ Hard rule: never touch `manar-erp`, `manar-erp-jobs`,
    Expected build time: under 3 minutes.
 7. Verify with a cache-busting URL, so no old copy is shown:
    `https://hr-payroll-demo-site-223y.onrender.com/?v=<today's time>`
-   Check: top left says "Mubinflow demo: fictional data"; no blank page;
+   Check: top left says "MubinFlow demo: fictional data"; no blank page;
    `/#/pay-run` opens the pay run; the click script steps 1 to 3 work.
 8. Re-list services (read-only `list_services`). Confirm
    `hr-payroll-demo-site` is live and that `manar-erp`, `manar-erp-jobs`
@@ -58,10 +58,10 @@ Hard rule: never touch `manar-erp`, `manar-erp-jobs`,
 
 - [ ] The link opens over https with no certificate warning.
 - [ ] The page loads in under 5 seconds on mobile data.
-- [ ] Top left says "Mubinflow demo: fictional data".
+- [ ] Top left says "MubinFlow demo: fictional data".
 - [ ] No text is cut off or runs off the right edge; no sideways scroll.
 - [ ] Portrait and landscape both work.
-- [ ] Home shows "2 bank details hold October pay".
+- [ ] Home shows "2 bank details are missing. Pay is held until they are fixed.".
 - [ ] Tap "Enter bank details", "Fill from bank letter", "Save and check"
       twice; the sentence changes to "ready for approval".
 - [ ] Tap the round initials, choose the General manager, tap "Approve

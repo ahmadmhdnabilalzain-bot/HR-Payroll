@@ -70,7 +70,7 @@ function Decide(p: { v: PrivacyView; id: string; who: string }) {
       <button type="button" className={`${b.btn} ${b.secondary} ${s.tap}`}
         onClick={() => record("declined")}>Decline</button>
       <button type="button" className={`${b.btn} ${b.secondary} ${s.tap}`}
-        onClick={() => record("legal-duty")}>Keep for a legal duty</button>
+        onClick={() => record("legal-duty")}>Keep: legal duty</button>
       <button type="button" className={`${b.btn} ${b.primary} ${s.tap}`}
         onClick={() => record("answered")}>Mark as answered</button>
     </>

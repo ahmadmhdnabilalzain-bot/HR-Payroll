@@ -239,7 +239,7 @@ export function RequestForm(p: { budgetId: string | null }) {
             onClick={() => {
               setJd(data.hiring.jobDescription(jobKey, dept));
               setJdOwn(false);
-            }}>Start again from the template</button>
+            }}>Use the template</button>
         </div>
         <label className={h.field}>
           <span>Must have</span>

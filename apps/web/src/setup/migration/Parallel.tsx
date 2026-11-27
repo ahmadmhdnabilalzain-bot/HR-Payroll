@@ -26,7 +26,7 @@ export function ParallelRun() {
   return (
     <ReportPage title="Parallel run: October"
       period={`Our run against your current system. ${r.summaryText}`}
-      figure={{ label: "Net pay for these people, ours", value: (
+      figure={{ label: "Net pay, ours", value: (
         <Money value={r.oursTotal} size="lg" tween={false} />) }}
       columns={[{ label: "Person" }, { label: "Ours", end: true },
         { label: "Old system", end: true },

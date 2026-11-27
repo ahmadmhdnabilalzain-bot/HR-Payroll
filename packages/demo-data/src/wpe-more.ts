@@ -216,7 +216,7 @@ export function claimRoute(c: DemoCompany, employeeId: string,
 }
 
 export const CLAIM_LIMIT_TEXT = `Claims up to ${AED(EXPENSE_LIMIT)} go to ` +
-  "your line manager, larger ones to the General manager. An agreed " +
+  "your line manager, larger ones to the General manager. A signed-off " +
   "claim is repaid with the next pay run.";
 
 /** A claim needs a kind, a date in the demo's year up to today, an amount. */

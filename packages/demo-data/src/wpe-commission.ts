@@ -39,11 +39,11 @@ export interface Tier { id: string; fromBps: bigint; toBps: bigint | null;
 /** SAMPLE tiers: each band of the target pays its own rate. */
 export const COMMISSION_TIERS: readonly Tier[] = [
   { id: "t0", fromBps: 0n, toBps: 8000n, rateBps: 0n,
-    label: "Up to 80% of target", rateText: "0%" },
+    label: "Up to 80%", rateText: "0%" },
   { id: "t1", fromBps: 8000n, toBps: 10000n, rateBps: 150n,
-    label: "80 to 100% of target", rateText: "1.5%" },
+    label: "80% to 100% of target", rateText: "1.5%" },
   { id: "t2", fromBps: 10000n, toBps: 12000n, rateBps: 300n,
-    label: "100 to 120% of target", rateText: "3%" },
+    label: "100% to 120% of target", rateText: "3%" },
   { id: "t3", fromBps: 12000n, toBps: null, rateBps: 450n,
     label: "Above 120% of target", rateText: "4.5%" },
 ];
@@ -54,7 +54,7 @@ export const CLAWBACK_WINDOW_TEXT = "a sale cancelled within 60 days";
 
 export const COMMISSION_BASIS = "Sample plan. Each salesperson has a " +
   "monthly sales target. Sales up to 80% of target pay nothing; " +
-  "each band above pays its own rate (1.5%, 3% and 4.5%). A sale " +
+  "each band above pays its own rate (1.5, 3 and 4.5%). A sale " +
   `cancelled later (${CLAWBACK_WINDOW_TEXT}) gives back commission at ` +
   "1.5%, taken from the next statement. The sales figures here " +
   "are sample figures, not from a sales system.";

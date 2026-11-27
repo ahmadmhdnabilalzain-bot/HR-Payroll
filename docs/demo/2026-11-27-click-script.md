@@ -96,7 +96,7 @@ matches a step below, say "I will show you that in a minute".
 as HR manager (Fatima Al Ketbi). Click "Why this number" under the big
 figure.
 
-**They see.** One sentence at the top: "2 bank details hold October pay",
+**They see.** One sentence at the top: "2 bank details are missing. Pay is held until they are fixed.",
 with one black button, "Enter bank details". Under it the net pay figure,
 the date line "Tuesday, 27 October · Zarqan Demo Bank", "29 ready, 2 need
 bank details", "In the salary file AED 908,430.94", "Held out AED
@@ -114,7 +114,7 @@ next step. Every number can be opened to see how it was worked out."
 - Net pay AED 933,730.94 to 31 people, paid on 30 Oct.
 - Gross AED 938,680.94 less deductions AED 4,950.00.
 - October net against September: AED 19,669.06 lower (net change
-  -19,669.06), shown in the trend on Home. Read it off the screen.
+  −19,669.06), shown in the trend on Home. Read it off the screen.
 - In the salary file AED 908,430.94 (30 people); held out AED 25,300.00
   (1 person with no bank account on file).
 - Pension for the 14 UAE nationals is not included and says so on screen.
@@ -141,7 +141,7 @@ is refused in plain words. Then use "Fill from bank letter".
 
 **They see.** After Priya: a message "Priya Nair: IBAN saved. Salary file
 checked again: 31 people, AED 933,730.94.", the sentence becomes "1 bank
-detail holds October pay", "In the salary file" becomes AED 933,730.94
+detail is missing. Pay is held until it is fixed.", "In the salary file" becomes AED 933,730.94
 and "Held out" changes from AED 25,300.00 to "None". After Juma: the
 sentence becomes "October pay is ready for sign-off" with the button "Go
 to sign-off", "31 ready", the step line reads "Step 3 of 4 · Sign off"
@@ -506,7 +506,7 @@ Say the first four out loud during the demo; keep the rest for questions.
 8. **Not built yet:** native iPhone and Android apps (the demo is a
    mobile-friendly website), Arabic screens reviewed by a native speaker
    (Arabic is hidden), single sign-on set up for a client, accounting
-   connectors, an AI assistant.
+   connectors. Answers in the app are rule-based.
 9. **Some screens are demo scenes only.** Several panel areas (for example
    pay elements, pay groups and traffic fines) were drawn from demo data
    and have no real backend yet. The core of this script (pay run, bank

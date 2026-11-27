@@ -17,6 +17,6 @@ export const AREAS: readonly Area[] = [
     "S43 erp employee sync posting file cost centre accounts"),
   area("setup.gl", "General ledger", "gl",
     "S35 accounting ledger journal posting csv accounts"),
-  area("setup.teams", "Teams messages", "teams",
+  area("setup.teams", "Chat messages", "teams",
     "S36 teams slack chat card decisions notify"),
 ];

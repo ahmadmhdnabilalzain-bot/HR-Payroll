@@ -140,8 +140,8 @@ export function valueWords(key: string, v: ParamValue | null): string {
     }
     const said = STRINGS[v];
     if (said !== undefined) return said;
-    if (v === "HALF_UP") return "Half up";
-    if (v === "DOWN") return "Down";
+    if (v === "HALF_UP") return "Halves round up";
+    if (v === "DOWN") return "Round down";
     return sentence(v.replace(/[-_,]/g, " ").trim());
   }
   if (/Bps$/.test(key)) return `${v / 100}%`;
