@@ -14,7 +14,7 @@ const ROWS = 3;
 
 const KIND: Record<string, MessageKey> = {
   leave: "home.kindLeave", expense: "home.kindExpense",
-  "pay-run": "home.kindPayRun",
+  "pay-run": "home.kindPayRun", overtime: "people.lineOvertime",
 };
 
 interface Row {
