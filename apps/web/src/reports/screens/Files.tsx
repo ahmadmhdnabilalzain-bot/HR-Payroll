@@ -68,8 +68,8 @@ export function Files() {
         { label: t("reports.colStatus") }]}
       rows={cells}
       note={`${t("reports.filesNote")}${held === 0 ? "" : ` ${formatNumber(
-        held, lang)} people are held out of the file; the pay run ` +
-        "says why."}`}
+        held, lang)} ${held === 1 ? "person is" : "people are"} held out ` +
+        "of the file; the pay run says why."}`}
       csvName={`${company}-files-${d.month}.csv`} />
   );
 }

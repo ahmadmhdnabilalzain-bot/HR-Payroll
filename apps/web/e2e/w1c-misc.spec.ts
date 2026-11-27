@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { PRODUCT_NAME } from "../src/brand";
 
@@ -9,6 +10,13 @@ const roleAs = async (page: Page, name: RegExp): Promise<void> => {
   await page.getByRole("menuitemradio", { name }).click();
 };
 const home = `Home · ${PRODUCT_NAME.en}`;
+const clean = async (page: Page): Promise<void> => {
+  // The sheet fades in: check the settled colours, not a frame of it.
+  await page.waitForFunction(() => document.getAnimations()
+    .every((a) => a.playState !== "running"));
+  const r = await new AxeBuilder({ page }).analyze();
+  expect(r.violations.map((v) => v.id)).toEqual([]);
+};
 
 test("a-man-is-not-offered-maternity-leave", async ({ page }) => {
   await page.goto("/");
@@ -22,6 +30,7 @@ test("a-man-is-not-offered-maternity-leave", async ({ page }) => {
   const held = /^Maternity leave: not available for your profile\. For/;
   await expect(page.getByText(held)).toBeVisible();
   await expect(page.getByText(/58 days left after this/)).toHaveCount(0);
+  await clean(page);
 });
 
 test("setup-says-who-may-take-maternity-leave", async ({ page }) => {
@@ -93,6 +102,26 @@ test("the-thin-report-pages-say-what-they-are", async ({ page }) => {
   await page.goto("/#/people/growth/probation");
   await expect(page.getByText(/in probation, \d+ waiting for the General/))
     .toBeVisible();
+});
+
+test("the-new-pages-pass-axe-and-hide-amounts", async ({ page },
+  info) => {
+  for (const hash of ["#/reports/files", "#/reports/safety-incidents",
+    "#/people/growth/probation", "#/reports/ask"]) {
+    await page.goto(`/${hash}`);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await clean(page);
+    await page.screenshot({ path: info.outputPath(
+      `${hash.replace(/\W+/g, "-")}.png`), fullPage: true });
+  }
+  await page.goto("/#/reports/files");
+  await page.getByRole("button", { name: /Ready to upload/ }).click();
+  await clean(page);
+  await page.getByRole("button", { name: /^All/ }).click();
+  await expect(page.getByText(/AED [\d,]+\.\d\d/).first()).toBeVisible();
+  test.skip(info.project.name !== "desktop", "Hide amounts: top bar");
+  await page.getByRole("button", { name: /Hide amounts/ }).first().click();
+  await expect(page.getByText(/AED [\d,]+\.\d\d/)).toHaveCount(0);
 });
 
 test.describe("opening", () => {
