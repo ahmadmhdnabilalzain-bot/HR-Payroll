@@ -239,6 +239,9 @@ export function BudgetRecord(p: { id: string }) {
       "The General manager signs it off or declines it."
     : r.budgetState === "waiting" ? "The budget waits for the General " +
       "manager's sign-off on the hiring request." : undefined;
+  const staff = state.role === "hr" || state.role === "gm";
+  const hasActs = (state.role === "gm" && ask !== null) ||
+    (staff && ask === null) || mineAsk || free;
   const actions = (
     <div className={h.actions}>
       {state.role === "gm" && ask !== null && (
@@ -298,7 +301,7 @@ export function BudgetRecord(p: { id: string }) {
               <Money value={r.left} tween={false} />
             </Explainable>) }]}
         {...(nextText === undefined ? {} : { next: nextText })}
-        actions={actions}
+        actions={hasActs ? actions : undefined}
         history={history}
         tabs={[
           { id: "budget", label: "Budget", render: () => (

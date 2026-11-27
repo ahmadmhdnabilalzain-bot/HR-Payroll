@@ -265,6 +265,7 @@
 .field {
   display: grid;
   align-content: start;
+  min-inline-size: 0;
   gap: var(--space-1);
   font-size: var(--text-sm);
   font-weight: 500;
