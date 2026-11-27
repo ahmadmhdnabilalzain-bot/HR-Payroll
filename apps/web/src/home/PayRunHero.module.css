@@ -362,13 +362,17 @@
   border-radius: var(--radius-control);
 }
 
-.totals dt {
+.total {
+  display: grid;
+}
+
+.totals .k {
   color: var(--color-text-muted);
   font-size: var(--text-xs);
 }
 
 /* One line height for an amount and for "None". */
-.totals dd {
+.totals .v {
   display: flex;
   align-items: flex-end;
   min-block-size: 30px;

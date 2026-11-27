@@ -30,7 +30,7 @@ export function MakeUp() {
         <h2 id="makeup-title" className={s.title}>{t("home.makeUp")}</h2>
         <span className={s.note}>{t("home.vsLast", { month })}</span>
       </header>
-      <dl className={s.rows}>
+      <div className={s.rows}>
         <Row label={t("home.gross")} now={h.grossTotalFils}
           prev={run.prev.gross} href={hrefOf("reports", "summary")} />
         <Row label={t("home.deductions")} now={h.deductionsFils}
@@ -42,7 +42,7 @@ export function MakeUp() {
           href={hrefOf("pay-run", "pay")} />
         <Row label={t("home.held")} now={h.heldNetFils} prev={null}
           href={hrefOf("pay-run", "fix")} />
-      </dl>
+      </div>
       <p className={s.people}>
         {t("home.preparedBy", { name: name(people.makerId) })}
         {" · "}
@@ -67,11 +67,11 @@ function Row(p: { label: string; now: Fils; prev: Fils | null;
   return (
     <div {...link} className={`${s.row} ${link.className}`}
       data-strong={p.strong === true}>
-      <dt>{p.label}</dt>
-      <dd className={s.delta}>
+      <span className={s.label}>{p.label}</span>
+      <span className={`${s.cell} ${s.delta}`}>
         {p.prev !== null && <SignedMoney value={fils(p.now - p.prev)} />}
-      </dd>
-      <dd><Money value={p.now} /></dd>
+      </span>
+      <span className={s.cell}><Money value={p.now} /></span>
     </div>
   );
 }

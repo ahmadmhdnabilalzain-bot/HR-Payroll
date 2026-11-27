@@ -153,16 +153,17 @@ function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
           </span>
         )}
       </a>
-      <dl className={s.totals}>
+      <div className={s.totals}>
         <Total href={hrefOf("pay-run", "pay")} fly>
-          <dt>{t("home.inFile")}</dt>
-          <dd><RollDigits value={p.file} size="lg" /></dd>
+          <span className={s.k}>{t("home.inFile")}</span>
+          <span className={s.v} data-fly-value="">
+            <RollDigits value={p.file} size="lg" /></span>
         </Total>
         <Total href={hrefOf("pay-run", "fix")}>
-          <dt>{t("home.heldOutLabel")}</dt>
-          <dd><HeldOut value={p.held} /></dd>
+          <span className={s.k}>{t("home.heldOutLabel")}</span>
+          <span className={s.v}><HeldOut value={p.held} /></span>
         </Total>
-      </dl>
+      </div>
     </div>
   );
 }

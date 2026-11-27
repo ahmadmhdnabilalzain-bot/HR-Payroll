@@ -81,9 +81,10 @@ function DeptItem(p: { d: DepartmentRow; top: DepartmentRow;
   const { state } = useDemo();
   const link = useRowLink({ href: deptHref(p.d.id, state.role) });
   return (
-    <li {...link} className={`${s.row} ${link.className}`}
-      data-flip={p.d.id}>
-      <DeptRow d={p.d} top={p.top} metric={p.metric} />
+    <li data-flip={p.d.id}>
+      <div {...link} className={`${s.row} ${link.className}`}>
+        <DeptRow d={p.d} top={p.top} metric={p.metric} />
+      </div>
     </li>
   );
 }

@@ -95,8 +95,9 @@ function ApprovalRow(p: { a: Approval }) {
   // The whole row opens its record; Sign off and Decline keep theirs.
   const link = useRowLink({ href: approvalHref(a) });
   return (
-    <li {...link} className={`${s.row} ${s.linkRow} ${link.className}`}
-      data-flip={a.id} id={`approval-${a.id}`}>
+    <li data-flip={a.id} id={`approval-${a.id}`}>
+      <div {...link}
+        className={`${s.row} ${s.linkRow} ${link.className}`}>
       <Avatar id={a.employeeId ?? a.makerId} name={data.employee(
         a.employeeId ?? a.makerId).name.en} />
       <div className={s.main}>
@@ -132,6 +133,7 @@ function ApprovalRow(p: { a: Approval }) {
       </div>
       {mine && why !== undefined && run.blockedBy.length === 0 &&
         <p className={s.why}>{why}</p>}
+      </div>
     </li>
   );
 }

@@ -237,8 +237,9 @@ function Waiting(p: { why?: Explanation | undefined }) {
         {ids.slice(0, FACES).map((id, i) => (
           // Each face opens that person, above the card's own link.
           <a key={id} className={`${s.faceLink} ${s.above}`}
-            href={hrefOf("people", id)} aria-label={names[i] ?? ""}>
+            href={hrefOf("people", id)}>
             <Avatar id={id} name={names[i] ?? ""} className={s.face} />
+            <span className="visually-hidden">{names[i] ?? ""}</span>
           </a>
         ))}
         {ids.length > FACES && (

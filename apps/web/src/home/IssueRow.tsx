@@ -89,11 +89,11 @@ export function IssueRow(p: { issue: Issue; delay: number | null;
   const link = useRowLink({ href: issueHref(i),
     disabled: editing || flying });
   return (
-    <li {...link} className={`${s.row} ${link.className}`}
-      data-key={i.id} ref={row}
+    <li className={s.item} data-key={i.id} ref={row} tabIndex={-1}
       data-reveal={p.delay !== null ? "" : undefined}
       style={p.delay !== null ? { animationDelay: `${p.delay}ms` }
         : undefined}>
+      <div {...link} className={`${s.row} ${link.className}`}>
       <span className={s.icon} data-tone={i.severity}>
         <Icon name={i.severity === "info" ? "info" : "alert"} />
       </span>
@@ -119,6 +119,7 @@ export function IssueRow(p: { issue: Issue; delay: number | null;
           ) : null}
         </div>
       )}
+      </div>
     </li>
   );
 }

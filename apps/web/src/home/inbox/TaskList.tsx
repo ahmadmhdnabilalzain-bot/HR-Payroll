@@ -5,7 +5,6 @@ import { useLocale } from "../../i18n/LocaleProvider";
 import b from "../../ui/button.module.css";
 import { useToast } from "../../ui/Toast";
 import { Icon } from "../../ui/Icon";
-import { useRowLink } from "../../ui/RowLink";
 import { useToSign } from "../../people/esign/ToSignCard";
 import { inboxTasks, type InboxTask, type TaskTone } from "./model";
 import tl from "../TextLink.module.css";
@@ -64,20 +63,21 @@ export function TaskTitle(p: { task: InboxTask }) {
 }
 
 /**
- * One task: the whole row opens its screen (or, with none, the full
- * list); the title, the status word and Mark done keep their own.
+ * One task: the title's link stretches over the whole row (to its
+ * screen or, with none, the full list); the status word and Mark done
+ * sit above it and keep their own press.
  */
 function TaskRow(p: { task: InboxTask }) {
   const x = p.task;
-  const link = useRowLink({ href: x.href ?? hrefOf("home", "tasks") });
   return (
-    <li {...link} className={`${s.row} ${s.linkRow} ${link.className}`}
+    <li className={`${s.row} ${s.linkRow} ${s.stretch}`}
       data-done={x.done}>
       <div className={s.main}>
-        <TaskTitle task={x} />
+        <a className={`${s.what} ${s.stretched}`}
+          href={x.href ?? hrefOf("home", "tasks")}>{x.title}</a>
         <span className={s.meta}>{x.dueText}</span>
       </div>
-      <div className={s.end}>
+      <div className={`${s.end} ${s.over}`}>
         <TaskStatus tone={x.tone} />
         <TaskAction task={x} />
       </div>
