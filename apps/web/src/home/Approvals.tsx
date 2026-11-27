@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useRunApproval } from "../demo/actions";
 import type { Approval, ApprovalKind } from "../demo/data/types";
 import {
+  approvalHref,
   approvalsShown,
   decideAction,
   mayDecide,
@@ -54,23 +55,7 @@ export function Approvals() {
   );
 }
 
-/**
- * The record a decision is about: the pay run's sign-off step, the
- * leave requests (no page per request yet), the expense claim, the
- * crew booking.
- */
-export function approvalHref(a: Pick<Approval, "id" | "kind" |
-  "subjectId">): string {
-  switch (a.kind) {
-    case "pay-run": return hrefOf("pay-run", "approve");
-    case "leave": return hrefOf("time-off");
-    case "expense": return a.subjectId === undefined
-      ? hrefOf("pay-run", "expenses")
-      : hrefOf("pay-run", "expenses", a.subjectId);
-    case "overtime": return hrefOf("time-off", "overtime", "crew",
-      a.subjectId ?? a.id);
-  }
-}
+export { approvalHref };
 
 function ApprovalRow(p: { a: Approval }) {
   const { lang, t } = useLocale();

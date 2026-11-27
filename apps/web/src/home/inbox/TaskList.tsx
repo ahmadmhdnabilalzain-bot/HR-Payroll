@@ -58,14 +58,13 @@ export function TaskStatus(p: { tone: TaskTone }) {
 }
 
 export function TaskTitle(p: { task: InboxTask }) {
-  return p.task.href === null ? <span className={s.what}>{p.task.title}</span>
-    : <a className={s.what} href={p.task.href}>{p.task.title}</a>;
+  return <a className={s.what} href={p.task.href}>{p.task.title}</a>;
 }
 
 /**
  * One task: the title's link stretches over the whole row (to its
- * screen or, with none, the full list); the status word and Mark done
- * sit above it and keep their own press.
+ * record, or the nearest page the role may open, which the row then
+ * says); the status word and Mark done keep their own press.
  */
 function TaskRow(p: { task: InboxTask }) {
   const x = p.task;
@@ -74,8 +73,9 @@ function TaskRow(p: { task: InboxTask }) {
       data-done={x.done}>
       <div className={s.main}>
         <a className={`${s.what} ${s.stretched}`}
-          href={x.href ?? hrefOf("home", "tasks")}>{x.title}</a>
+          href={x.href}>{x.title}</a>
         <span className={s.meta}>{x.dueText}</span>
+        {x.via !== null && <span className={s.meta}>{x.via}</span>}
       </div>
       <div className={`${s.end} ${s.over}`}>
         <TaskStatus tone={x.tone} />
