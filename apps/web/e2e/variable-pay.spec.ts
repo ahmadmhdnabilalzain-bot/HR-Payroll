@@ -25,7 +25,7 @@ test("bonus run: prepare, send, sign off, then the pay run history",
     await page.getByRole("button", { name: "Prepare the run" }).click();
     await page.getByRole("link", { name: "Q3 performance bonus" }).click();
     await expect(page.getByText("Draft").first()).toBeVisible();
-    await page.getByRole("button", { name: "Send for sign off" }).click();
+    await page.getByRole("button", { name: "Send for sign-off" }).click();
     await settle(page);
     const bad = await new AxeBuilder({ page }).analyze();
     expect(bad.violations).toEqual([]);
@@ -50,7 +50,7 @@ test("commission: HR prepares, the GM signs off, the employee sees it",
     await expect(page.getByRole("heading", { level: 1,
       name: "Sales commission" })).toBeVisible();
     await page.getByRole("button", { name: "Prepare statements" }).click();
-    await expect(page.getByText("Waiting for sign off").first())
+    await expect(page.getByText("Waiting for sign-off").first())
       .toBeVisible();
     await settle(page);
     const bad = await new AxeBuilder({ page }).analyze();

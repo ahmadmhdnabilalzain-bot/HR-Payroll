@@ -26,7 +26,7 @@ import s from "../pay.module.css";
 const LIST = hrefOf("pay-run", "commission");
 
 export const COMMISSION_WORD: Record<CommissionStatus, string> = {
-  open: "Not prepared", waiting: "Waiting for sign off",
+  open: "Not prepared", waiting: "Waiting for sign-off",
   signed: "Signed off", declined: "Declined",
 };
 const TONE: Record<CommissionStatus, StatusTone> = {
@@ -70,7 +70,7 @@ export function CommissionStatements() {
     ? (st === "open" || st === "declined"
       ? btn("primary", st === "open" ? "Prepare statements"
         : "Prepare again", prepare)
-      : st === "waiting" ? btn("secondary", "Take back from sign off",
+      : st === "waiting" ? btn("secondary", "Take back",
         () => dispatch({ type: "commission-unprepare",
           month: plan.month })) : null)
     : state.role === "gm"

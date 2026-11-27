@@ -156,7 +156,7 @@ function Run(p: { run: BonusRun }) {
       {st === "draft" && isHr && (
         <>
           <button type="button" className={`${b.btn} ${b.primary}`}
-            onClick={send}>Send for sign off</button>
+            onClick={send}>Send for sign-off</button>
           <button type="button" className={`${b.btn} ${b.secondary}`}
             onClick={() => {
               dispatch({ type: "bonus-remove", id: r.id });
@@ -175,7 +175,7 @@ function Run(p: { run: BonusRun }) {
       {st === "waiting" && isHr && (
         <button type="button" className={`${b.btn} ${b.secondary}`}
           onClick={() => dispatch({ type: "bonus-unsend", id: r.id })}>
-          Take back from sign off</button>
+          Take back</button>
       )}
       {(st === "signed" || st === "declined") && isGm && (
         <button type="button" className={`${b.btn} ${b.secondary}`}
@@ -196,7 +196,7 @@ function Run(p: { run: BonusRun }) {
     { when: formatDate(r.created.on, lang), what: `Prepared by ` +
       `${name(r.created.by)}` },
     ...(r.sent === null ? [] : [{ when: formatDate(r.sent.on, lang),
-      what: `Sent for sign off by ${name(r.sent.by)}` }]),
+      what: `Sent for sign-off by ${name(r.sent.by)}` }]),
     ...(r.decision === null ? [] : [{ when: formatDate(r.decision.on, lang),
       what: `${r.decision.verdict === "signed" ? "Signed off" : "Declined"}` +
         ` by ${name(r.decision.by)}` }]),
