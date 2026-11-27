@@ -10,6 +10,7 @@ import { Count } from "../ui/Count";
 import { useRunDetail } from "../demo/useRunDetail";
 import { formatDayMonth } from "../i18n/format";
 import { useLocale } from "../i18n/LocaleProvider";
+import { reducedMotion } from "../demo/motion";
 import { Avatar } from "../ui/Avatar";
 import s from "./PeopleStrip.module.css";
 
@@ -194,8 +195,9 @@ function Expiring(p: { why?: Explanation | undefined }) {
       label={t("home.cardDocs")} why={p.why}>
       {first !== undefined && (
         <span className={s.doc}>
-          <span className={s.who}>{data.employee(first.employeeId)
-            .name[lang]}</span>
+          <a className={`${s.who} ${s.above}`} href={hrefOf("people",
+            "files", "documents", first.employeeId)}>
+            {data.employee(first.employeeId).name[lang]}</a>
           <span className={s.when}>
             {first.kind[lang]}, {formatDayMonth(first.expiresOn, lang)}
           </span>
@@ -220,14 +222,24 @@ function Waiting(p: { why?: Explanation | undefined }) {
   return (
     <Card href="#approvals-title" value={open.length}
       label={t("home.cardWaiting")} why={p.why} onClick={(e) => {
+        if (e.metaKey || e.ctrlKey) return;
         e.preventDefault();
-        document.getElementById("approvals-title")
-          ?.scrollIntoView({ block: "start", behavior: "smooth" });
+        // Decisions comes into view and takes the focus, so the keys
+        // carry on from there.
+        const to = document.getElementById("approvals-title");
+        if (to === null) return;
+        to.scrollIntoView({ block: "start",
+          behavior: reducedMotion() ? "auto" : "smooth" });
+        to.tabIndex = -1;
+        to.focus({ preventScroll: true });
       }}>
       <span className={s.faces}>
         {ids.slice(0, FACES).map((id, i) => (
-          <Avatar key={id} id={id} name={names[i] ?? ""}
-            className={s.face} />
+          // Each face opens that person, above the card's own link.
+          <a key={id} className={`${s.faceLink} ${s.above}`}
+            href={hrefOf("people", id)} aria-label={names[i] ?? ""}>
+            <Avatar id={id} name={names[i] ?? ""} className={s.face} />
+          </a>
         ))}
         {ids.length > FACES && (
           <span className={s.more}>+{ids.length - FACES}</span>
