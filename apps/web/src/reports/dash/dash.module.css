@@ -118,6 +118,35 @@ a.tileIn:focus-visible {
   font-weight: 500;
 }
 
+/* A change that opens the variance: text until pointed at, a 44 px
+ * target without moving a thing. */
+.changeLink {
+  position: relative;
+  justify-self: start;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.changeLink::after {
+  position: absolute;
+  inset: -13px -4px;
+  content: "";
+}
+
+@media (hover: hover) {
+  .changeLink:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+}
+
+.changeLink:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .tileArt {
   display: flex;
   align-items: flex-end;
