@@ -37,13 +37,13 @@ export function reportMonth(key: string): string {
 }
 
 const signed = (a: bigint): string =>
-  `${a < 0n ? "-" : "+"}${formatAed(fils(a < 0n ? -a : a))}`;
+  `${a < 0n ? "\u2212" : "+"}${formatAed(fils(a < 0n ? -a : a))}`;
 
 const pct = (part: bigint, whole: bigint): string => {
   if (whole === 0n) return "0.0%";
   const tenths = (part * 2000n / whole + (part < 0n ? -1n : 1n)) / 2n;
   const t = Number(tenths) / 10;
-  return `${t < 0 ? "-" : "+"}${Math.abs(t).toFixed(1)}%`;
+  return `${t < 0 ? "\u2212" : "+"}${Math.abs(t).toFixed(1)}%`;
 };
 
 /* ---------------------------------------------------------------- *
@@ -690,7 +690,7 @@ export function varianceBetween(c: DemoCompany, month: string,
   return { title: `${reportMonth(month)} against ${reportMonth(against)}`,
     month, against, grossChange, netChange: fils(now.net - base.net),
     headcountChange: head, drivers, summaryText: `${signed(grossChange)} ` +
-      `gross (${pct(grossChange, base.gross)}), ${head >= 0 ? "+" : "-"}` +
+      `gross (${pct(grossChange, base.gross)}), ${head >= 0 ? "+" : "\u2212"}` +
       `${Math.abs(head)} ${Math.abs(head) === 1 ? "person" : "people"}` };
 }
 

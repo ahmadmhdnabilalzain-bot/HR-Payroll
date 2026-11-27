@@ -30,7 +30,7 @@ import type { DemoCompany, DemoEmployee, PayslipBasis } from "./types";
 const MONTHS = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
 const signed = (f: bigint) => f === 0n ? formatAed(fils(0n))
-  : f > 0n ? `+${formatAed(fils(f))}` : formatAed(fils(f));
+  : f > 0n ? `+${formatAed(fils(f))}` : `\u2212${formatAed(fils(-f))}`;
 const nameOf = (c: DemoCompany, id: string) =>
   c.employees.find((e) => e.id === id)?.fullName ?? id;
 const monthEnd = (m: number) => formatIsoDate({ y: 2026, m,

@@ -352,7 +352,7 @@ describe("monthly history", () => {
     expect(rows[9]!.statusText).toBe("Awaiting sign-off");
     expect(rows[8]!.statusText).toBe("Paid");
     expect(rows[9]!.grossText).toMatch(/^AED [\d,]+\.\d{2}$/);
-    expect(rows[9]!.changeText).toMatch(/^[+-]AED [\d,]+\.\d{2} \(/);
+    expect(rows[9]!.changeText).toMatch(/^[+\u2212]AED [\d,]+\.\d{2} \(/);
     expect(rows[1]!.headcountText).toBe("30 people");
   });
 });

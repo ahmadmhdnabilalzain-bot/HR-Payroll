@@ -126,7 +126,8 @@ function ClaimPage(p: { x: ExpenseView }) {
       history={[{ when: x.date, what: `Sent by ${x.name}` },
         ...(a === undefined || verdict === undefined ? [] : [{
           when: dayMonth(data.payCalendar().asOf, lang),
-          what: `Claim ${verdict === "approve" ? "signed off" : "declined"} by ` +
+          what: `Claim ${verdict === "approve" ? "signed off" : "declined"} ` +
+            "by " +
             whoIs(data, a.checkerId) }])]}
       back={{ label: "Expense claims", href: LIST }}
       actions={a !== undefined && verdict === undefined && isChecker ? (

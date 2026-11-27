@@ -7,8 +7,8 @@ function FieldsPage() {
   const x = useExtras();
   return (
     <SettingsPage title="Custom fields"
-      lede={"Extra fields the company keeps on each employee, and the screens " +
-        "where they show."}
+      lede={"Extra fields the company keeps on each employee, and the " +
+        "screens where they show."}
       groups={[{ title: "Extra employee fields", items: x.fields.map((f) =>
         ({ key: f.id, label: f.label, value: f.shownOn.join(", "),
           help: `${f.typeText}. ${f.required ? "Required" : "Optional"}. ` +

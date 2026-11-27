@@ -186,7 +186,7 @@ export interface SandboxResult {
 
 export const signedAed = (f: bigint): string => f === 0n
   ? formatAed(fils(0n)) : f > 0n ? `+${formatAed(fils(f))}`
-    : formatAed(fils(f));
+    : `\u2212${formatAed(fils(-f))}`;
 
 const sum = (xs: readonly bigint[]): bigint =>
   xs.reduce((n, x) => n + x, 0n);

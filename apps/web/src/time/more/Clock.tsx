@@ -80,8 +80,8 @@ export function Try(p: { via: "phone" | "kiosk" }) {
           setOpen(true); }}>{label}</button>
       <SheetForm open={open} title={label} submitLabel={W.submit}
         onClose={() => setOpen(false)}
-        note={p.via === "phone" ? data.files.clock.geofenceNote
-          : undefined}
+        {...(p.via === "phone"
+          ? { note: data.files.clock.geofenceNote } : {})}
         onSubmit={() => {
           if (!TIME.test(time)) return W.badTime;
           const place = sites.find((s) => s.id === site);
