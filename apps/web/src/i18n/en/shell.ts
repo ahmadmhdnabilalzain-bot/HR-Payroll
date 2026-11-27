@@ -17,6 +17,7 @@ export const shell = {
   navRequests: "Requests",
   navMe: "Me",
   navMore: "More",
+  moreAreas: "More areas",
   panelOpen: "Open {section}",
   countWaiting: "{count} waiting",
   sectionEmpty: "Nothing here yet.",
