@@ -133,6 +133,13 @@ async function audit(page: Page): Promise<Finding[]> {
         if ((el as HTMLButtonElement).disabled) return false;
         const r = el.getBoundingClientRect();
         if (r.width < 4 || r.height < 4) return false;
+        // Kept for keyboards and screen readers only (a 1 px clipped
+        // box, "visually hidden"): not meant to be seen or tapped.
+        for (let p = el.parentElement; p !== null; p = p.parentElement) {
+          const b = p.getBoundingClientRect();
+          if ((b.width < 2 || b.height < 2) &&
+            getComputedStyle(p).overflow !== "visible") return false;
+        }
         return el.checkVisibility({ visibilityProperty: true } as
           CheckVisibilityOptions);
       });
@@ -371,3 +378,24 @@ for (const [w, h] of SIZES) {
     });
   }
 }
+
+test.describe("the first-load opening", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+  for (const [w, h] of [[1366, 768], [1536, 864]] as const) {
+    test(`frees the product on weak graphics ${w}x${h}`,
+      async ({ page }, info) => {
+        test.skip(info.project.name !== "desktop", "laptop sizes");
+        // Headless Chromium draws GL in software, the weakest case.
+        await page.setViewportSize({ width: w, height: h });
+        await page.goto("/");
+        await expect(async () => {
+          const free = await page.evaluate(() =>
+            document.querySelector("main")?.closest("[inert]") === null &&
+            document.querySelector("[data-mode=webgl]") === null);
+          expect(free).toBe(true);
+        }).toPass({ timeout: 16000 });
+        const link = page.locator("main a[href]").first();
+        await link.click({ timeout: 3000 });
+      });
+  }
+});
