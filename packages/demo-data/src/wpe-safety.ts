@@ -259,16 +259,22 @@ export interface IloeRow {
   display: { status: string; note: string };
 }
 
+/** The scheme began on 1 January 2023: nobody is shown as covered
+ * earlier. The later of the joining date and that day. */
+export const ILOE_START = "2023-01-01";
+const iloeSince = (joined: string): string =>
+  joined > ILOE_START ? joined : ILOE_START;
+
 export function iloeRows(c: DemoCompany): IloeRow[] {
   return active(c).map((e): IloeRow => {
     const due = daysIn(e) < NEW_JOINER_DAYS;
     const status: IloeStatus = due ? "due" : "subscribed";
     return { id: `iloe-${e.id}`, employeeId: e.id, name: e.fullName,
       jobText: jobTitleText(e.jobKey), status,
-      since: due ? null : shortDateOf(e.joiningDate),
+      since: due ? null : shortDateOf(iloeSince(e.joiningDate)),
       display: { status: due ? "Due" : "Subscribed",
         note: due ? `Joined ${shortDateText(e.joiningDate)}; to be ` +
-          "subscribed" : `Since ${shortDateText(e.joiningDate)}` } };
+          "subscribed" : `Since ${shortDateText(iloeSince(e.joiningDate))}` } };
   });
 }
 
