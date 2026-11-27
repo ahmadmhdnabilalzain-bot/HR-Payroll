@@ -82,9 +82,9 @@ export function RuleChange() {
     : stage.kind === "waiting-gm"
       ? `${r.deciders.gm.name} (General manager) decides next.`
       : stage.kind === "planned"
-        ? `The rule pack keeps 25% and 50% until the ${ch.nextRun} run. ` +
+        ? `The rules in force keep 25% and 50% until the ${ch.nextRun} run. ` +
           "Nothing is applied."
-        : "The rule pack in force is unchanged.";
+        : "The rules in force are unchanged.";
 
   return (
     <>
@@ -146,7 +146,7 @@ export function RuleChange() {
             ...ch.values.map((v) => ({ label: v.label, value: (
               <a className={s.link} href={ruleHref(v.key)}>
                 {v.fromText} to {v.toText}</a>) })),
-            { label: "Rule pack", value: ch.packName },
+            { label: "Rules", value: ch.packName },
             { label: "Source", value: ch.sourceText },
             { label: "Would apply from", value:
               formatDate(ch.effectiveFrom.iso, lang) },

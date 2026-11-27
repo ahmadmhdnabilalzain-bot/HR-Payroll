@@ -48,9 +48,9 @@ const WHAT: Record<string, string> = {
   transport: "A transport allowance is a fixed monthly addition to " +
     "basic salary.",
   phone: "A phone allowance is a fixed monthly addition to basic salary.",
-  overtime: "Overtime is pay for approved hours beyond a normal day.",
-  "rest-day": "Rest day pay is for approved work on a day off.",
-  holiday: "Holiday pay is for approved work on a public holiday.",
+  overtime: "Overtime is pay for signed-off hours beyond a normal day.",
+  "rest-day": "Rest day pay is for signed-off work on a day off.",
+  holiday: "Holiday pay is for signed-off work on a public holiday.",
   "back-pay": "Back pay makes up an earlier shortfall.",
   "leave-encashment": "Leave encashment pays leave days that were not " +
     "taken.",

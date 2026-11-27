@@ -50,7 +50,7 @@ export const SANDBOX_NOT_SAVED = "A sandbox: nothing here changes the " +
   "October run, a payslip or the salary file.";
 
 export const EMPLOYER_NOTE = "Employer cost is gross pay plus the " +
-  "employer amounts the engine computed. Employer pension for UAE " +
+  "employer amounts the payroll computed. Employer pension for UAE " +
   "nationals is Not computed, so the figure is partial.";
 
 const NEUTRAL: SandboxDraft = { kind: "housing-raise", grade: null,

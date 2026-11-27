@@ -81,7 +81,7 @@ const CARDS: readonly Card[] = [
   { id: "reset", title: "Send a sign-off back to waiting", hr: true,
     steps: ["Open Sign-off splits and resets and choose the item.",
       "Press Send back to waiting and give a reason.",
-      "The toast offers an undo."],
+      "A message offers an undo."],
     href: hrefOf("people", "requests", "splits"), go: "Open splits" },
 ];
 
