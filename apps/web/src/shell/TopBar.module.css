@@ -500,8 +500,8 @@ a.navItem:active {
   }
 }
 
-/* Touch screens: at least 44 by 44 px. */
-@media (pointer: coarse) {
+/* Touch screens and phone widths: at least 44 by 44 px. */
+@media (pointer: coarse), (max-width: 760px) {
   .iconBtn,
   .langBtn,
   .roleBtn,

@@ -342,7 +342,7 @@
   }
 }
 
-@media (pointer: coarse) {
+@media (pointer: coarse), (max-width: 760px) {
   .why {
     min-block-size: 44px;
   }
