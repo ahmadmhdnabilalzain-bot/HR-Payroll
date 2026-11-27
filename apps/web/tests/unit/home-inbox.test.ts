@@ -15,11 +15,13 @@ import {
 } from "../../src/demo/time-off";
 import {
   inboxNotes,
+  inboxNotices,
   inboxTasks,
   targetHref,
   unreadCount,
 } from "../../src/home/inbox/model";
-import { barFor } from "../../src/nav/registry";
+import { barFor, mayOpen } from "../../src/nav/registry";
+import type { Section } from "../../src/demo/state";
 
 const ROLES: Role[] = ["hr", "gm", "it", "manager", "employee"];
 const BANNED = /\b(compliant|approved|certified|guaranteed)\b/i;
@@ -125,6 +127,70 @@ describe("home inbox (WP10)", () => {
     for (const r of ROLES) {
       for (const x of inboxTasks(d, as(r))) {
         if (x.href !== null) expect(x.href).toMatch(/^#\//);
+      }
+    }
+  });
+
+  it("opens-each-item-on-its-own-record", () => {
+    const href = (r: Role, title: string): string | undefined =>
+      [...inboxNotes(d, as(r)), ...inboxTasks(d, as(r)),
+        ...inboxNotices(d, as(r))].find((x) => x.title === title)?.href;
+    expect(href("gm", "Rashid Al Falasi's expense claim"))
+      .toBe("#/pay-run/expenses/exp-002");
+    expect(href("gm", "Final settlement for James Whitfield"))
+      .toBe("#/pay-run/settlements/emp-014");
+    expect(href("gm", "Annual review 2026 is open"))
+      .toBe("#/people/growth/appraisals/cyc-2026");
+    expect(href("hr", "Offer to Daniel Okafor"))
+      .toBe("#/people/moves/offers/offer-002");
+    expect(href("hr", "Faisal Chaudhry accepted the offer"))
+      .toBe("#/people/moves/offers/offer-003");
+    expect(href("hr", "Residence visa and Emirates ID application: " +
+      "Kavya Iyer")).toBe("#/people/papers/visas/vc-3");
+    expect(href("manager", "2 self-assessments to review"))
+      .toBe("#/me/team-reviews");
+    // The person's page, not the manager's own documents.
+    expect(href("manager", "Jose Reyes's residence visa expires soon"))
+      .toBe(`#/people/${d.documents().find((x) => x.id === "doc-001")!
+        .employeeId}`);
+    expect(href("employee", "October overtime recorded"))
+      .toBe("#/me/timecard");
+    expect(href("employee", "Self-assessment sent")).toBe("#/me/kpis");
+    expect(inboxNotes(d, as("employee")).find((x) =>
+      x.title === "Self-assessment sent")?.via).toMatch(/your goals/);
+    expect(href("hr", "Fire drill at the head office"))
+      .toBe("#/home/notices/notice-005");
+  });
+
+  it("links-every-bell-task-and-notice-row-for-every-role", () => {
+    // Pages a role may open whose view does not check the path again.
+    const views: Record<string, (r: Role) => boolean> = {
+      "pay-run": (r) => r === "hr" || r === "gm",
+      papers: (r) => r === "hr" || r === "gm",
+      moves: (r) => r === "hr" || r === "gm",
+      growth: (r) => r === "hr" || r === "gm",
+    };
+    for (const r of ROLES) {
+      const rows = [...inboxNotes(d, as(r)), ...inboxTasks(d, as(r)),
+        ...inboxNotices(d, as(r))];
+      for (const x of rows) {
+        expect(x.href, `${r}: ${x.title}`).toMatch(/^#\/[a-z-]+/);
+        expect(x.href, `${r}: ${x.title}`)
+          .not.toMatch(/^#\/(home|people)\/?$/);
+        const [section = "", ...rest] = x.href.slice(2).split("/");
+        expect(mayOpen(r, { section: section as Section, rest }),
+          `${r}: ${x.title} -> ${x.href}`).toBe(true);
+        const guard = views[section === "people" ? rest[0] ?? ""
+          : section];
+        if (guard !== undefined) expect(guard(r), x.href).toBe(true);
+        if (section === "people" && /^emp-/.test(rest[0] ?? "")) {
+          expect(visibleIds(d, as(r))).toContain(rest[0]);
+        }
+        // Me pages that exist (an unknown one shows My payslips).
+        if (section === "me") {
+          expect(["documents", "payslips", "timecard", "kpis",
+            "team-reviews", "calendar", "leave"]).toContain(rest[0]);
+        }
       }
     }
   });
