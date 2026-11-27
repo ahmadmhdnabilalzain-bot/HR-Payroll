@@ -19,6 +19,7 @@
  * Back button all take the same path.
  */
 
+import { settleAfter } from "../settle";
 import { slideRoute } from "../routeMotion";
 
 /** theme/motion.css: --dur-slow and --ease-in-out. */
@@ -149,11 +150,18 @@ function until(find: () => Parts | null, ms = 400): Promise<Parts | null> {
   });
 }
 
-/** The 120 ms dissolve: the page's content fades in, nothing moves. */
+/**
+ * The 120 ms dissolve: the page's content fades in, nothing moves.
+ * The path without View Transitions (Safari before 18) takes it on
+ * every list-to-record open, so it must never hold the page at its
+ * first frame: if the timeline stalls it is finished on a timer.
+ */
 function dissolve(): void {
   const main = document.querySelector("main");
-  main?.animate([{ opacity: 0 }, { opacity: 1 }],
+  if (main === null || typeof main.animate !== "function") return;
+  const a = main.animate([{ opacity: 0 }, { opacity: 1 }],
     { duration: FADE_MS, easing: "linear" });
+  settleAfter([a], FADE_MS);
 }
 
 /** The route listeners of one hash change, run as one change. */

@@ -379,6 +379,25 @@ with the rest when amounts are hidden or the viewer is IT.
   csvName="loans-2026-10.csv" />
 ```
 
+The head shows **Download PDF**, **Print** and **Share** on every
+report; the CSV stays in the "..." menu. `rowHref?(row)` makes a row's
+first cell a link to the row's item or area.
+
+- **PDF seam** (`ui/templates/reportPdf.ts`): the PDF generator
+  (`src/pdf/`, built separately) calls `registerReportPdf(fn)` once
+  it loads; `fn` gets `{ title, period, fileName, element }`. Until
+  one is registered, Download PDF opens the print sheet on the report
+  alone (Save as PDF there gives the same pages). Nothing else
+  changes when the generator lands.
+- **Share**: the system share sheet where there is one (Safari),
+  else the link is copied with a toast.
+- **Item links** (`reports/dash/itemSeam.ts`): `itemHref(type, id)`
+  and `areaHref(words)` decide where a dashboard tile, row, point or
+  Before sign-off item opens. Today: the Fix step, Home's Decisions
+  or the right report. When the item pages publish their own
+  `itemHref`/`<ItemLink>`, swap the body of `itemHref` there; callers
+  stay as they are.
+
 **ST, `SettingsPage`**: grouped settings with an edit sheet and a
 change log. Props: `title`, `lede?`, `groups: { title, items: { key,
 label, value, help?, editable? }[] }[]`, `log: { when, who, what }[]`,
@@ -712,6 +731,28 @@ e2e`. Screenshot, axe and recording scripts live outside the repo.
   hosted demo). Skip is not shown during that wait.
 - Headless Chromium logs "GPU stall due to ReadPixels" warnings from
   its own compositor; the page logs no errors.
+
+## Motion never gates content (Safari and slow devices)
+
+Every entrance, reveal and chart draw starts from content that is
+already visible and clickable; the motion only plays over it.
+
+- The fade layer (`[data-veil]::after`, `ui/templates/motion.module.css`)
+  rests at opacity 0 with `pointer-events: none`. Only its animation's
+  first frame (fill backwards) raises it, and a timer drops it after
+  the fade's length, so a stalled timeline (a background tab, Low
+  Power Mode), an engine that does not animate a pseudo-element, or a
+  missing finish event never leaves a card hidden.
+- `ui/settle.ts`: `settleAfter(anims, ms)` finishes whatever is still
+  running once it has had its time plus 600 ms (entrances, reveals,
+  chart draws); `observerWatchdog(fallback)` shows a section or chart
+  waiting for the IntersectionObserver if the observer never makes
+  its first callback.
+- Reproduced before the fix with the animation timeline paused (CDP
+  `Animation.setPlaybackRate 0`) and with `Element.animate` stubbed:
+  the Reports index showed only the head and the tabs, every card
+  under its layer and none clickable. After it, all cards show and
+  open in both cases, at 1440 and 393 wide.
 
 ## Data in motion (figures, charts, rails)
 
