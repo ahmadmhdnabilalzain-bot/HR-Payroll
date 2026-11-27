@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState,
   type ComponentType } from "react";
 import { documentTitle } from "./brand";
 import { showArabic } from "./demo/flags";
-import { useRoute } from "./demo/route";
+import { navigate, useRoute } from "./demo/route";
 import { useDemo } from "./demo/state";
 import { useLocale } from "./i18n/LocaleProvider";
 import { CommandPalette, usePaletteHotkeys } from "./shell/CommandPalette";
@@ -24,6 +24,18 @@ function NoOpening(p: { onDone: (() => void) | undefined }) {
     else location.hash = "#/home";
   }, [onDone]);
   return null;
+}
+
+/** Before the opening's chunk arrives: its paper, and Skip in the
+ * same place as the film's own, from the very first frame. */
+function OpeningCover(p: { label: string; onSkip(): void }) {
+  return (
+    <div className={s.cover}>
+      <button type="button" className={s.skip} onClick={p.onSkip}>
+        {p.label}
+      </button>
+    </div>
+  );
 }
 
 /** The opening (#/welcome): three.js and its scenes load only here. */
@@ -99,7 +111,10 @@ export function App() {
   if (atWelcome) {
     return (
       <>
-        <Suspense fallback={null}><Welcome onDone={undefined} /></Suspense>
+        <Suspense fallback={<OpeningCover label={t("welcome.skip")}
+          onSkip={() => navigate("home")} />}>
+          <Welcome onDone={undefined} />
+        </Suspense>
         {paletteEl}
       </>
     );
@@ -125,7 +140,8 @@ export function App() {
         <PhoneTabs route={route} />
       </div>
       {first && (
-        <Suspense fallback={<div className={s.cover} />}>
+        <Suspense fallback={<OpeningCover label={t("welcome.skip")}
+          onSkip={() => setFirst(false)} />}>
           <Welcome onDone={() => setFirst(false)} />
         </Suspense>
       )}
