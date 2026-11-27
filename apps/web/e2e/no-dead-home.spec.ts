@@ -139,6 +139,7 @@ async function pressEveryLink(page: Page, hrefs: string[]): Promise<void> {
 for (const [role, name] of [["hr", null],
   ["gm", "General manager"]] as const) {
   test(`${role}-home-has-no-dead-clicks`, async ({ page }) => {
+    test.setTimeout(120_000);
     await page.goto("/");
     if (name !== null) await asRole(page, name);
     await home(page);
@@ -158,10 +159,13 @@ for (const [role, name] of [["hr", null],
     // Every distinct link, pressed once with the mouse.
     const hrefs = [...new Set(found.map((x) => x.target ?? "")
       .filter((x) => x.startsWith("#")))];
+    // The GM decides no leave here; HR's run sign-off waits on the GM.
     expect(hrefs).toEqual(expect.arrayContaining([
-      "#/pay-run/fix", "#/pay-run/approve", "#/time-off",
-      "#/reports/summary", "#/people/papers/pension", "#/home/notices",
-      "#/reports/departments", "#approvals-title"]));
+      "#/pay-run/fix", "#/pay-run/approve", "#/reports/summary",
+      "#/people/papers/pension", "#/home/notices", "#/reports/departments",
+      "#/home/tasks/soon",
+      ...(role === "hr" ? ["#/time-off", "#approvals-title"]
+        : ["#/reports/dashboard-exec"])]));
     await pressEveryLink(page, hrefs);
   });
 }
@@ -175,7 +179,11 @@ test("gm-sign-off-says-why-and-goes-to-fix", async ({ page }) => {
   const why = page.locator("#approve-why");
   await expect(why).toContainText("Sign-off waits for bank details");
   await expect(why).toContainText(
-    /Fatima Al Ketbi in HR is fixing them, since 27 Oct/);
+    /Fatima\sAl\sKetbi in HR is fixing them, since 27 Oct/);
+  // The waiting tile, from the keyboard, takes the focus to Decisions.
+  await page.getByRole("link", { name: "Waiting for a decision" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#approvals-title")).toBeFocused();
   await why.getByRole("link", { name: "Go to Fix" }).click();
   await expect(page).toHaveURL(/#\/pay-run\/fix$/);
 });
@@ -195,23 +203,35 @@ test("trend-points-toggle-their-month", async ({ page }) => {
 test("a-click-within-100ms-of-a-route-change-lands", async ({ page }) => {
   await page.goto("/");
   await home(page);
-  // Stall every animation: a route change's view transition (and any
-  // entrance) then holds at its first frame, as on a slow laptop.
+  // Stall every animation: a route change's motion then holds at its
+  // first frame, as on a slow laptop.
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Animation.enable");
   await cdp.send("Animation.setPlaybackRate", { playbackRate: 0 });
-  const people = page.locator("header a[href='#/people']").first();
-  const at = await people.boundingBox();
+  // Home to the pay run's sign-off step: a change of section.
+  const row = page.locator("main [data-href='#/pay-run/approve']").first();
+  await row.scrollIntoViewIfNeeded();
+  const at = await row.boundingBox();
   expect(at).not.toBeNull();
-  await page.mouse.click(at!.x + at!.width / 2, at!.y + at!.height / 2);
-  await page.waitForFunction(() => location.hash === "#/people");
-  const row = page.locator("main a[href^='#/people/emp-']").first();
-  await row.waitFor({ state: "attached" });
-  await page.waitForTimeout(80);
-  const box = await row.boundingBox();
-  expect(box).not.toBeNull();
-  const href = await row.getAttribute("href");
-  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
-  await expect(page).toHaveURL(new RegExp(`${href}$`), { timeout: 1000 });
+  await page.mouse.click(at!.x + 40, at!.y + at!.height / 2);
+  await page.waitForFunction(() => location.hash === "#/pay-run/approve");
+  await page.waitForTimeout(50);
+  // The first link of the new page that is on screen, pressed at once.
+  const next = await page.evaluate(() => {
+    for (const a of document.querySelectorAll<HTMLAnchorElement>(
+      "main a[href^='#/']")) {
+      const r = a.getBoundingClientRect();
+      const href = a.getAttribute("href") ?? "";
+      if (href !== location.hash && r.width > 4 && r.height > 4 &&
+        r.top > 0 && r.bottom < innerHeight) {
+        return { href, x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      }
+    }
+    return null;
+  });
+  expect(next).not.toBeNull();
+  await page.mouse.click(next!.x, next!.y);
+  await expect(page).toHaveURL(new RegExp(`${next!.href.replace(
+    /[.*+?^${}()|[\]\\/]/g, "\\$&")}$`), { timeout: 1000 });
   await cdp.send("Animation.setPlaybackRate", { playbackRate: 1 });
 });

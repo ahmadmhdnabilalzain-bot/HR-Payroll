@@ -7,7 +7,7 @@ import {
   type RunPhase,
 } from "./derive";
 import { reducedMotion } from "./motion";
-import { canMove, moveWithin } from "../ui/routeMotion";
+import { canMove, fadeIn, moveWithin } from "../ui/routeMotion";
 import { mayOpen } from "../nav/registry";
 import { hrefOf, parseHash } from "./route";
 import { useDemo, type Role, type Verdict } from "./state";
@@ -69,6 +69,7 @@ export function useSwitchRole(): (role: Role) => void {
     };
     if (!canMove()) {
       run();
+      fadeIn();
       return;
     }
     scrollTo({ top: 0, left: 0, behavior: "instant" });

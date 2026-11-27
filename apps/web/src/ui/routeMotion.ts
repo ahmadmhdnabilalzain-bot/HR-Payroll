@@ -1,5 +1,5 @@
 import { reducedMotion } from "../demo/motion";
-import { capTransition } from "./settle";
+import { capTransition, settleAfter } from "./settle";
 import { SECTIONS } from "../demo/route";
 
 /**
@@ -29,6 +29,36 @@ interface Transition {
 type Doc = Document & {
   startViewTransition?: (cb: () => Promise<void> | void) => Transition;
 };
+
+/**
+ * Snapshot motion (the View Transitions API) is off for route changes.
+ * While a view transition runs, its callback pending or its layers
+ * animating, Chromium sends every click to the root element whatever
+ * the layers' pointer-events say, so a click in the first 0.25 to
+ * 1.5 s after a change was swallowed (dead-click audit, 27 Nov). The
+ * page now changes at once and its live content fades in (`fadeIn`),
+ * pressable from the first frame. Turn this on only with a way to
+ * keep clicks live.
+ */
+export const SNAPSHOT_MOTION = false;
+
+/** How long the new page's content takes to fade in. */
+const FADE_IN_MS = 160;
+
+/**
+ * The new page fades in where it stands: opacity only, on the live
+ * `main` (nothing is copied, covered or made inert, so a click lands
+ * at once). Reduced motion: none. A stalled timeline is finished on a
+ * timer (ui/settle.ts).
+ */
+export function fadeIn(): void {
+  if (reducedMotion()) return;
+  const main = document.querySelector("main");
+  if (main === null || typeof main.animate !== "function") return;
+  const a = main.animate([{ opacity: 0.4 }, { opacity: 1 }],
+    { duration: FADE_IN_MS, easing: "ease-out" });
+  settleAfter([a], FADE_IN_MS);
+}
 
 /** The transition in flight, so only its own end clears the flags. */
 let running: Transition | null = null;
@@ -108,7 +138,8 @@ function run(dir: number, pace: Pace,
 /** Whether a route transition can play now. */
 export function canMove(): boolean {
   const doc = document as Doc;
-  return !reducedMotion() && typeof doc.startViewTransition === "function"
+  return SNAPSHOT_MOTION && !reducedMotion()
+    && typeof doc.startViewTransition === "function"
     && document.querySelector("main")?.closest("[inert]") == null;
 }
 
@@ -157,9 +188,16 @@ function until(ready: () => boolean, ms = 400): Promise<void> {
 export function slideRoute(from: string, to: string, render: () => void,
   trusted: boolean): boolean {
   // Script-sent changes and the opening (an inert product) just render.
-  if (!trusted || !canMove()) return false;
+  if (!trusted) return false;
   const dir = directionOf(from, to);
   if (dir === null) return false;
+  if (!canMove()) {
+    // No snapshot: the page changes at once and fades in, live.
+    render();
+    scrollTo({ top: 0, behavior: "instant" });
+    fadeIn();
+    return true;
+  }
   run(dir, "page", () => {
     render();
     scrollTo({ top: 0, behavior: "instant" });

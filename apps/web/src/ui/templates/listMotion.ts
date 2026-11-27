@@ -20,7 +20,7 @@
  */
 
 import { capTransition, settleAfter } from "../settle";
-import { slideRoute } from "../routeMotion";
+import { SNAPSHOT_MOTION, slideRoute } from "../routeMotion";
 
 /** theme/motion.css: --dur-slow and --ease-in-out. */
 export const LIST_MS = 320;
@@ -158,6 +158,7 @@ function until(find: () => Parts | null, ms = 400): Promise<Parts | null> {
  * first frame: if the timeline stalls it is finished on a timer.
  */
 function dissolve(): void {
+  if (reduced()) return;
   const main = document.querySelector("main");
   if (main === null || typeof main.animate !== "function") return;
   const a = main.animate([{ opacity: 0 }, { opacity: 1 }],
@@ -226,7 +227,10 @@ function runRoute(oldUrl: string, render: () => void,
     scrollTo({ top, behavior: "instant" });
   };
   const doc = document as Doc;
-  if (reduced() || typeof doc.startViewTransition !== "function") {
+  // Snapshot motion takes every click while it runs (ui/routeMotion.ts,
+  // SNAPSHOT_MOTION): the live dissolve instead.
+  if (!SNAPSHOT_MOTION || reduced() ||
+    typeof doc.startViewTransition !== "function") {
     swap();
     dissolve();
     return;
