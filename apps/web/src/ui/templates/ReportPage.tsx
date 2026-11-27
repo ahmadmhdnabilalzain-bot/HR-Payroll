@@ -11,6 +11,9 @@ import { Money } from "../Money";
 import { dur, easeOut, reduced, useEntrance, useReveal, veil }
   from "./listEnter";
 import { MoreMenu } from "./Menu";
+import { downloadReportPdf, shareReport } from "./reportPdf";
+import b from "../button.module.css";
+import { useToast } from "../Toast";
 import { PageFoot } from "./PageFoot";
 import { PageHead, type Crumb } from "./PageHead";
 import "./motion.module.css";
@@ -86,9 +89,12 @@ export function ReportPage(p: {
   id?: string;
   /** One more action before the menu (e.g. run a check). */
   actions?: ReactNode;
+  /** Where a row opens: its first cell becomes the link. */
+  rowHref?: (row: number) => string | undefined;
 }) {
   const { t } = useLocale();
   const { state } = useDemo();
+  const toast = useToast();
   const masked = amountsHidden(state);
   const money = [...p.rows, p.total ?? []].some((r) => r.some(isMoney));
   const hidden = masked && money;
@@ -153,10 +159,25 @@ export function ReportPage(p: {
       aria-labelledby={p.id ?? "report-title"} data-record-head="">
       <PageHead id={p.id ?? "report-title"} title={p.title}
         lede={p.period} meta={p.meta} crumbs={p.crumbs} actions={(
-          <>{p.actions}<MoreMenu items={[{ label: t("tpl.csv"),
-            onSelect: download, disabled: hidden,
-            hint: t("tpl.hiddenCsv") },
-          { label: t("tpl.print"), onSelect: () => print() }]} /></>
+          <>{p.actions}
+            <span className={s.reportActs}>
+              <button type="button" className={`${b.btn} ${b.secondary}`}
+                onClick={() => void downloadReportPdf({ title: p.title,
+                  period: p.period, element: page.current,
+                  fileName: p.csvName.replace(/\.csv$/, "") })}>
+                {t("tpl.pdf")}</button>
+              <button type="button" className={`${b.btn} ${b.quiet}`}
+                onClick={() => print()}>{t("tpl.print")}</button>
+              <button type="button" className={`${b.btn} ${b.quiet}`}
+                onClick={() => void shareReport(p.title).then((r) => {
+                  if (r === "copied") {
+                    toast.show(t("tpl.linkCopied", { title: p.title }));
+                  } else if (r === "none") toast.show(t("tpl.shareFailed"));
+                })}>{t("tpl.share")}</button>
+            </span>
+            <MoreMenu items={[{ label: t("tpl.csv"),
+              onSelect: download, disabled: hidden,
+              hint: t("tpl.hiddenCsv") }]} /></>
         )} />
       {p.figure !== undefined && (
         <div className={s.figure} ref={fig}>
@@ -183,7 +204,10 @@ export function ReportPage(p: {
               {r.map((v, j) => (
                 <td key={j} data-end={end(j)}
                   data-label={p.columns[j]?.label}>
-                  <Why e={p.explain?.(i, j)}><CellView c={v} /></Why>
+                  {j === 0 && p.rowHref?.(i) !== undefined ? (
+                    <a className={s.rowLink} href={p.rowHref(i)}>
+                      <CellView c={v} /></a>
+                  ) : <Why e={p.explain?.(i, j)}><CellView c={v} /></Why>}
                   {j === 0 && p.bars?.[i] !== undefined && (
                     <span className={s.bar} aria-hidden="true">
                       <span className={s.fill} style={{ transform:

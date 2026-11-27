@@ -65,11 +65,16 @@ function Meter(p: { part: number; whole: number }) {
   );
 }
 
-function Body(p: { t: TileModel; why?: Explanation | undefined }) {
+function Body(p: { t: TileModel; why?: Explanation | undefined;
+  /** The tile has a working and a page: the label is the link. */
+  labelHref?: string }) {
   const t = p.t;
   return (
     <>
-      <span className={s.tileLabel}>{t.label}</span>
+      {p.labelHref === undefined
+        ? <span className={s.tileLabel}>{t.label}</span>
+        : <a className={`${s.tileLabel} ${s.tileLink}`}
+          href={p.labelHref}>{t.label}</a>}
       {/* A linked tile is already a link: its working stays on the
           page it opens, never a button inside the link. */}
       {p.why === undefined || t.href !== undefined
@@ -81,8 +86,9 @@ function Body(p: { t: TileModel; why?: Explanation | undefined }) {
       <ChangeView c={t.change} />
       <span className={s.tileArt}>
         {t.series !== undefined && t.series.length > 1 && (
-          <Sparkline series={t.series} {...(t.compare === undefined ? {}
-            : { compare: t.compare })} />
+          <Sparkline series={t.series} zero={t.zero === true}
+            {...(t.compare === undefined ? {}
+              : { compare: t.compare })} />
         )}
         {t.meter !== undefined && <Meter {...t.meter} />}
       </span>
@@ -109,10 +115,17 @@ export function Tiles(p: { tiles: TileModel[]; label: string;
           data-money={t.figure.kind === "money"}
           data-card-box="">
           {t.href === undefined ? <div className={s.tileIn}>
-            <Body t={t} why={p.explain?.[t.id]} /></div> : (
-            <a className={s.tileIn} href={t.href} data-card="">
-              <Body t={t} /></a>
-          )}
+            <Body t={t} why={p.explain?.[t.id]} /></div>
+            : p.explain?.[t.id] !== undefined ? (
+              // A figure with its working stays its own button; the
+              // label opens the page (never a button inside a link).
+              <div className={s.tileIn}>
+                <Body t={t} why={p.explain[t.id]} labelHref={t.href} />
+              </div>
+            ) : (
+              <a className={s.tileIn} href={t.href} data-card="">
+                <Body t={t} /></a>
+            )}
         </li>
       ))}
     </ul>

@@ -14,6 +14,8 @@ export interface Point {
   meta?: ReactNode;
   /** A state word with its dot; colour never stands alone. */
   state?: { tone: Tone; word: string };
+  /** Where the point opens: the whole point is the link. */
+  href?: string;
 }
 
 export interface Column {
@@ -35,21 +37,30 @@ export function Summary(p: { columns: Column[]; label: string }) {
           aria-labelledby={`sum-${c.id}`}>
           <h2 id={`sum-${c.id}`} className={s.columnTitle}>{c.title}</h2>
           <ul className={s.points}>
-            {c.points.map((x) => (
-              <li key={x.key} className={s.point}>
-                {x.figure !== undefined && (
-                  <span className={s.pointFigure}>{x.figure}</span>
-                )}
-                <span className={s.pointText}>{x.text}</span>
-                {x.state !== undefined && (
-                  <span className={s.state} data-tone={x.state.tone}>
-                    {x.state.word}</span>
-                )}
-                {x.meta !== undefined && (
-                  <span className={s.pointMeta}>{x.meta}</span>
-                )}
-              </li>
-            ))}
+            {c.points.map((x) => {
+              const body = (
+                <>
+                  {x.figure !== undefined && (
+                    <span className={s.pointFigure}>{x.figure}</span>
+                  )}
+                  <span className={s.pointText}>{x.text}</span>
+                  {x.state !== undefined && (
+                    <span className={s.state} data-tone={x.state.tone}>
+                      {x.state.word}</span>
+                  )}
+                  {x.meta !== undefined && (
+                    <span className={s.pointMeta}>{x.meta}</span>
+                  )}
+                </>
+              );
+              return (
+                <li key={x.key} className={s.point}>
+                  {x.href === undefined ? body : (
+                    <a className={s.pointLink} href={x.href}>{body}</a>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
       ))}
@@ -89,4 +100,17 @@ export function useRunState(): { tone: Tone; word: string; who: string;
     return { tone: "wait", word: "Ready for sign-off", who, meta: decides };
   }
   return { tone: "bad", word: "Held by bank details", who, meta: decides };
+}
+
+/**
+ * Every point opens its page, found from its own words (itemSeam),
+ * except the keys given: a point whose figure is already a button
+ * (its working) stays as it is, never a button inside a link.
+ */
+export function linkPoints(columns: Column[], hrefOf: (words: string)
+  => string | undefined, keep: readonly string[] = []): Column[] {
+  return columns.map((c) => ({ ...c, points: c.points.map((x) => {
+    const href = keep.includes(x.key) ? undefined : hrefOf(x.text);
+    return href === undefined ? x : { ...x, href };
+  }) }));
 }

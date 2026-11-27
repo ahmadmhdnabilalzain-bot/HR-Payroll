@@ -136,6 +136,28 @@
   margin-block: calc((var(--text-title-lh) - 44px) / 2);
 }
 
+/* A report row that opens its item: the first cell is the link. */
+.rowLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--color-divider-strong);
+  text-underline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .rowLink:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* A report's own actions: Download PDF, Print, Share (ReportPage). */
+.reportActs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 /* The "..." menu: secondary page actions. */
 .menuWrap {
   position: relative;

@@ -42,7 +42,11 @@
 }
 
 /* The veil (listEnter.ts): a layer in the colour behind the element,
- * over it; only its opacity animates. */
+ * over it; only its opacity animates. It rests transparent: the
+ * animation's own first frame (fill backwards) raises it, so if the
+ * animation never starts or never ends (a stalled timeline, an engine
+ * that does not animate pseudo-elements) the content shows, never a
+ * blank card in the page colour. */
 :global([data-veil]) {
   position: relative;
 }
@@ -53,6 +57,7 @@
   inset: 0;
   border-radius: inherit;
   background: var(--veil, var(--color-surface));
+  opacity: 0;
   pointer-events: none;
   content: "";
 }

@@ -21,6 +21,8 @@ export interface HBar {
   value: { fils: Fils } | { n: number };
   /** Under the label: "8 people". */
   meta?: string;
+  /** Where the row opens (its name is the link). */
+  href?: string;
 }
 
 const size = (v: HBar["value"]): number =>
@@ -42,7 +44,10 @@ export function HBars(p: { rows: HBar[]; label: string }) {
         {p.rows.map((r, i) => (
           <li key={r.key} className={s.hbar}>
             <span className={s.hbarText}>
-              <span className={s.hbarName}>{r.label}</span>
+              {r.href === undefined
+                ? <span className={s.hbarName}>{r.label}</span>
+                : <a className={`${s.hbarName} ${s.rowLink}`}
+                  href={r.href}>{r.label}</a>}
               {r.meta !== undefined && (
                 <span className={s.hbarMeta}>{r.meta}</span>
               )}

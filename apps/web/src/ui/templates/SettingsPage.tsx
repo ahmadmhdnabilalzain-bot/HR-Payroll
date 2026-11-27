@@ -6,6 +6,7 @@ import { PageFoot } from "./PageFoot";
 import { maskNode, useMaskText } from "../mask";
 import { PageHead } from "./PageHead";
 import { Sheet } from "./Sheet";
+import { StatusPill, type StatusTone } from "./StatusPill";
 import s from "./templates.module.css";
 
 export interface Setting {
@@ -21,6 +22,8 @@ export interface Setting {
   linkLabel?: string;
   /** Read-only: the value as a short list under the label. */
   list?: string[];
+  /** The value is a state: drawn as a dot and the word (StatusPill). */
+  tone?: StatusTone;
 }
 
 export interface SettingsGroup {
@@ -45,7 +48,8 @@ export function SettingsPage(p: {
   title: string;
   lede?: string;
   groups: SettingsGroup[];
-  log: ChangeLogEntry[];
+  /** Left out: no "Changes" block (an index of areas, not settings). */
+  log?: ChangeLogEntry[];
   onSave?(key: string, value: string): string | null;
 }) {
   const { t } = useLocale();
@@ -74,7 +78,9 @@ export function SettingsPage(p: {
                     <small>{maskNode(mask, x.help)}</small>)}
                 </span>
                 <span className={s.rowValue}>
-                  {maskNode(mask, x.value)}</span>
+                  {x.tone === undefined ? maskNode(mask, x.value)
+                    : <StatusPill tone={x.tone}>{x.value}</StatusPill>}
+                </span>
                 <span className={s.rowAct}>
                   {x.editable === true && p.onSave !== undefined ? (
                     <button type="button"
@@ -96,6 +102,7 @@ export function SettingsPage(p: {
           </ul>
         </section>
       ))}
+      {p.log !== undefined && (
       <section className={s.block} aria-label={t("tpl.changes")}>
         <h2 className={s.blockTitle}>{t("tpl.changes")}</h2>
         {p.log.length === 0 ? <p className={s.empty}>{t("tpl.noChanges")}</p>
@@ -113,6 +120,7 @@ export function SettingsPage(p: {
             </ul>
           )}
       </section>
+      )}
       <Sheet open={edit !== null} title={edit?.label ?? ""}
         onClose={() => setEdit(null)}>
         <form className={s.form} onSubmit={(e) => {

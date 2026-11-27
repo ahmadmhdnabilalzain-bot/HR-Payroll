@@ -119,6 +119,8 @@ export function barFor(role: Role): SectionId[] {
 export function firstRoute(role: Role, section: SectionId, c: NavCtx)
   : AreaRoute {
   const a = areasFor(role, section)[0];
+  // Setup has its own first page: every area with its state.
+  if (section === "setup" && a !== undefined) return { section: "setup" };
   return a === undefined ? { section: "home" } : routeOf(a, c);
 }
 

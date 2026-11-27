@@ -13,6 +13,7 @@ import { SetupRules } from "./rules/SetupRules";
 import { SetupRuleChange } from "./rule-change";
 import { SetupMigration } from "./migration/SetupMigration";
 import { SetupStructure } from "./structure/SetupStructure";
+import { SetupHome } from "./home/SetupHome";
 
 /**
  * One Setup view for the registry. Rule screens live under
@@ -20,14 +21,19 @@ import { SetupStructure } from "./structure/SetupStructure";
  * prefixes (`access`, `connections`, `data`).
  */
 export function Setup(p: ViewProps) {
+  const { state } = useDemo();
+  if (p.rest.length === 0 && areasFor(state.role, "setup").length > 0) {
+    return <SetupHome />;
+  }
   const bare = p.rest.length === 0 ||
     (p.rest[0] === "access" && p.rest.length === 1);
   return bare ? <SetupFront /> : <SetupArea {...p} />;
 }
 
 /**
- * Bare `#/setup` and `#/setup/access` name no page: a role that may
- * open Setup goes to its first area (the hash is replaced, so Back
+ * Bare `#/setup` is the Setup home (every area and its state) for a
+ * role that may open Setup. `#/setup/access` names no page: such a
+ * role goes to its first area (the hash is replaced, so Back
  * does not land here again); any other role sees "not found".
  */
 function SetupFront() {
