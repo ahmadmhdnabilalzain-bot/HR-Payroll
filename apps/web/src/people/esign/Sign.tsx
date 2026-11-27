@@ -268,7 +268,7 @@ function Pad(p: { path: string; onChange(path: string): void }) {
 }
 
 /** "3ee2...4d83": the first and last four of the fingerprint. */
-const fold = (hex: string): string => `${hex.slice(0, 4)}…${hex.slice(-4)}`;
+const fold = (hex: string): string => `${hex.slice(0, 4)}...${hex.slice(-4)}`;
 
 const same = (a: string, b: string): boolean =>
   a.trim().replace(/\s+/g, " ").toLowerCase() ===
