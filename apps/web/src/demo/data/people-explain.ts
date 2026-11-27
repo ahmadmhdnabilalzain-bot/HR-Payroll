@@ -221,7 +221,8 @@ function roundingStep(line: TraceLine): ExplainStep | null {
     (Number(i["dailyDivisor"]) * Number(i["hoursPerDay"]));
   if (Number.isInteger(rate)) return null;
   return { text: "The hourly rate above is rounded to the fils; the sum " +
-    "uses the exact rate, then rounds the result to the nearest fils." };
+    "uses the exact rate, then rounds the result to the nearest fils.",
+  value: text("Rounded once, at the end") };
 }
 
 export function toExplanation(id: string, src: LineSource, x: {
