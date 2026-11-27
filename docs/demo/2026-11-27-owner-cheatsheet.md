@@ -24,7 +24,7 @@ IT manager.
 - Built and tested in the real system: pay run, bank check, salary file,
   gratuity, leave, roles, audit. Some panel screens are demo scenes only.
 - Numbers: net 933,730.94 (31 people); gross 938,680.94; file 908,430.94
-  with 25,300.00 held, then 933,730.94; Oct vs Sep net -19,669.06;
+  with 25,300.00 held, then 933,730.94; Oct vs Sep net −19,669.06;
   leaver settlement 191,702.27 "so far" (notice pay not yet added).
 
 ## Do NOT claim

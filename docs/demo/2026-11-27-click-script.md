@@ -114,7 +114,7 @@ next step. Every number can be opened to see how it was worked out."
 - Net pay AED 933,730.94 to 31 people, paid on 30 Oct.
 - Gross AED 938,680.94 less deductions AED 4,950.00.
 - October net against September: AED 19,669.06 lower (net change
-  -19,669.06), shown in the trend on Home. Read it off the screen.
+  −19,669.06), shown in the trend on Home. Read it off the screen.
 - In the salary file AED 908,430.94 (30 people); held out AED 25,300.00
   (1 person with no bank account on file).
 - Pension for the 14 UAE nationals is not included and says so on screen.
