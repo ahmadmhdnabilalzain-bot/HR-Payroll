@@ -165,8 +165,15 @@ for (const [role, name] of [["hr", null],
       "#/pay-run/fix", "#/pay-run/approve", "#/reports/summary",
       "#/people/papers/pension", "#/reports/departments",
       "#/home/tasks/soon",
-      ...(role === "hr" ? ["#/time-off", "#approvals-title"]
-        : ["#/reports/dashboard-exec"])]));
+      ...(role === "hr" ? ["#/time-off", "#approvals-title"] : [])]));
+    // Every department, the Executive office too, opens the same report.
+    const depts = page.locator("section[aria-labelledby='dept-title'] " +
+      "[data-rowlink]");
+    expect(await depts.count()).toBeGreaterThan(5);
+    for (const h of await depts.evaluateAll((xs) =>
+      xs.map((x) => x.getAttribute("data-href")))) {
+      expect(h).toBe("#/reports/departments");
+    }
     await pressEveryLink(page, hrefs);
   });
 }

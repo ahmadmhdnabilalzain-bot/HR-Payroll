@@ -4,7 +4,7 @@ import type { DepartmentRow } from "../demo/data/types";
 import { useFlip } from "../demo/motion";
 import { Count } from "../ui/Count";
 import { hrefOf } from "../demo/route";
-import { useDemo, type Role } from "../demo/state";
+import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
 import { Money } from "../ui/Money";
@@ -67,19 +67,17 @@ export function Departments() {
 }
 
 /**
- * Where a department opens: the departments report; the Executive
- * office opens the GM's executive dashboard (HR has none).
+ * Where a department opens: the departments report, for every
+ * department, the Executive office too (the report shows it).
  */
-export function deptHref(id: string, role: Role): string {
-  return id === "dept-exec" && role === "gm"
-    ? hrefOf("reports", "dashboard-exec") : hrefOf("reports", "departments");
+export function deptHref(): string {
+  return hrefOf("reports", "departments");
 }
 
 /** One department: the whole row opens its report. */
 function DeptItem(p: { d: DepartmentRow; top: DepartmentRow;
   metric: Metric }) {
-  const { state } = useDemo();
-  const link = useRowLink({ href: deptHref(p.d.id, state.role) });
+  const link = useRowLink({ href: deptHref() });
   return (
     <li data-flip={p.d.id}>
       <div {...link} className={`${s.row} ${link.className}`}>
