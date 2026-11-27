@@ -1002,3 +1002,16 @@ dashboards; the rest is the dc1 to dc3 and item2 branches.
 - saf1 (Safari and laptop fail-open): 13 commits; last two code commits not
   typechecked. Candidate "wave 1b" (branch wave1b) after wave 1, decided on
   its own gate.
+- dc3: two commits (RowLink copy, then 57f6089), unchecked in a browser and no
+  e2e: profile rows (pay, leave, documents, open items, history) and payslip
+  "Paid to" / "Paid on" and names on team reviews and My profile are links.
+  Not done: past-month payslip page, bank-details record, payment record,
+  appraisal record, help step rows, minimal card for people a role may not see,
+  employment and document detail records, the guard spec; two audit findings
+  need a browser (profile rows covered by another element; links with an href
+  that did nothing). Expect conflicts with bb3 in Profile.tsx.
+- Also Monday: HR/GM dead-click audit lower bound: HR 36 percent and GM 33
+  percent of clicked elements dead (87 and 68 surfaces); worst: People Skills,
+  Rosters, Signing profiles, ILOE, Goals, Leave liability. Transient dead
+  window after navigation (0.25 to 1.5 s). Wave 1b candidates: saf1 fail-open
+  fixes and home1 (HR and GM Home clickable).
