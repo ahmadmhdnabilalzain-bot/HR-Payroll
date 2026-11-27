@@ -94,7 +94,7 @@ describe("why this number: net pay and overtime", () => {
     const e = P.explain(jose.id, "earn.overtime.normal", "Overtime", "en");
     expect(e.summary).not.toMatch(/minutes/);
     expect(e.summary).toContain("6 hours");
-    expect(e.steps.some((x) => /rounded to the fils/.test(x.text)))
+    expect(e.steps.some((x) => /exact hourly rate/.test(x.text)))
       .toBe(true);
   });
 });
