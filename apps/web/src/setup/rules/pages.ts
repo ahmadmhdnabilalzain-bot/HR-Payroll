@@ -33,10 +33,9 @@ export function leavePage(d: DemoData): PageSpec {
           why: LAW_MIN } };
     }
     return { key: `type:${t.id}`, label: t.name.en,
-      value: t.paid ? "Paid, in steps" : "Not paid",
-      help: t.paid ? "Days used are counted, with no yearly balance. " +
-        "The steps are under Sick leave."
-        : "Days used are counted and taken out of the month's pay." };
+      value: t.paid ? t.rule.maxDays === null ? "Paid"
+        : `Paid, up to ${t.rule.maxDays} days` : "Not paid",
+      help: `${t.rule.text.en} ${t.rule.source.en}.` };
   });
   return { title: "Leave policies",
     lede: "Leave types, and the rules behind them.",

@@ -34,6 +34,8 @@ export const DEMO_LABELS_EN = {
   "job.systems-engineer": "Systems engineer",
   "leave.annual": "Annual leave", "leave.sick": "Sick leave",
   "leave.unpaid": "Unpaid leave",
+  "leave.maternity": "Maternity leave", "leave.parental": "Parental leave",
+  "leave.bereavement": "Bereavement leave", "leave.study": "Study leave",
   "reason.family": "Family visit", "reason.rest": "Rest",
   "reason.travel": "Travel", "reason.medical": "Medical appointment",
   "reason.personal": "Personal matters",

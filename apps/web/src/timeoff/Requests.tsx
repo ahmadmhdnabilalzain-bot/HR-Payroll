@@ -20,7 +20,9 @@ import s from "./timeoff.module.css";
 
 const TYPE: Record<LeaveTypeId, MessageKey> = {
   "lt-annual": "timeoff.annual", "lt-sick": "timeoff.sick",
-  "lt-unpaid": "timeoff.unpaid",
+  "lt-unpaid": "timeoff.unpaid", "lt-maternity": "timeoff.maternity",
+  "lt-parental": "timeoff.parental", "lt-bereavement": "timeoff.bereavement",
+  "lt-study": "timeoff.study",
 };
 
 /** The status as words, with the named person, role and date. */

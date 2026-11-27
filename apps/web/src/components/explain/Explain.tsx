@@ -379,7 +379,9 @@ export function ExplainPanel(p: { explanation: Explanation;
             </button>
           </div>
           <div className={s.result}>
-            <span className={s.resultLabel}>{e.result.label}</span>
+            {/* The title already names the figure: say it once. */}
+            <span className={e.result.label === e.title ? "visually-hidden"
+              : s.resultLabel}>{e.result.label}</span>
             <span className={s.resultFigure} ref={result}>
               <Value v={e.result.value} size="hero" />
             </span>
