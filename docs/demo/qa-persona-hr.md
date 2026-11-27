@@ -182,8 +182,8 @@ disabled with a reason. No page errors or console errors in any run.
 
 ## Ten wow moments that worked
 
-1. Home opens with one sentence and one button: "2 bank details hold
-   October pay / Enter bank details". I knew my next step in 2 seconds.
+1. Home opens with one sentence and one button: "2 bank details are
+   missing. Pay is held until they are fixed. / Enter bank details". I knew my next step in 2 seconds.
 2. "Why this number" adds up the net pay line by line and states what is
    left out (pension) on the same panel.
 3. Cmd K "Priya" offers "Enter bank details for Priya Nair" as the first

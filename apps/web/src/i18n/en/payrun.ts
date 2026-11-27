@@ -56,7 +56,7 @@ export const payrun = {
   colChange: "Against {month}",
   colFile: "Salary file",
   inFile: "In the file",
-  held: "Held: no IBAN",
+  held: "Held: bank details",
   newThisMonth: "New this month",
   noChange: "No change",
   settlement: "{name}'s final settlement is paid outside this run.",

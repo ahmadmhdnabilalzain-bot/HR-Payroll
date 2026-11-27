@@ -61,7 +61,7 @@ Hard rule: never touch `manar-erp`, `manar-erp-jobs`,
 - [ ] Top left says "MubinFlow demo: fictional data".
 - [ ] No text is cut off or runs off the right edge; no sideways scroll.
 - [ ] Portrait and landscape both work.
-- [ ] Home shows "2 bank details hold October pay".
+- [ ] Home shows "2 bank details are missing. Pay is held until they are fixed.".
 - [ ] Tap "Enter bank details", "Fill from bank letter", "Save and check"
       twice; the sentence changes to "ready for approval".
 - [ ] Tap the round initials, choose the General manager, tap "Approve
