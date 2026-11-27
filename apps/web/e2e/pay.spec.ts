@@ -28,10 +28,10 @@ test("loan-request-is-decided-by-the-gm", async ({ page }) => {
 
 test("fine-decision-has-an-undo", async ({ page }) => {
   await page.goto("/#/pay-run/fines/tf-1");
-  await page.getByRole("button", { name: "The bank pays" }).click();
-  await expect(page.getByText(/^The bank pays: /)).toBeVisible();
+  await page.getByRole("button", { name: "The company pays" }).click();
+  await expect(page.getByText(/^The company pays: /)).toBeVisible();
   await page.getByRole("button", { name: "Take back decision" }).click();
-  await expect(page.getByRole("button", { name: "The bank pays" }))
+  await expect(page.getByRole("button", { name: "The company pays" }))
     .toBeVisible();
 });
 

@@ -357,18 +357,18 @@ const FINE = (n: number): FakeIdentifier => ({
   masked: `DEMO-TF-26-****`, fake: true,
   note: "Fake: DEMO prefix, not an issued fine" });
 
-/** Fines on bank cars, waiting for a decision (fictional records). */
+/** Fines on company cars, waiting for a decision (fictional records). */
 export function trafficFines(c: DemoCompany): TrafficFine[] {
   const note = "Recovering a fine from pay is not computed: there " +
     "is no sourced rule for it, and any deduction would be checked " +
     "against the deduction limits.";
-  return [["emp-013", "2026-10-09", 60000n, "Speeding, bank car"],
-    ["emp-017", "2026-10-18", 40000n, "Parking, bank car"]].map(
+  return [["emp-013", "2026-10-09", 60000n, "Speeding, company car"],
+    ["emp-017", "2026-10-18", 40000n, "Parking, company car"]].map(
     ([id, date, amount, offence], i): TrafficFine => ({
       id: `tf-${i + 1}`, employeeId: id as string, date: date as string,
       amount: fils(amount as bigint), offence: offence as string,
       number: FINE(i + 1), status: "to-decide",
-      options: ["The bank pays", "Recover from the employee"],
+      options: ["The company pays", "Recover from the employee"],
       recoveryNote: note, display: { name: nameOf(c, id as string),
         date: displayDate(date as string),
         amount: formatAed(fils(amount as bigint)) } }));

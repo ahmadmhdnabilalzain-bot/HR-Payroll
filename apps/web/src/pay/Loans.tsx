@@ -150,7 +150,7 @@ export function Loans() {
               required: true, help: "For example 5000 or 5000.50" },
             { key: "months", label: "Months to repay", kind: "number",
               required: true, initial: "3",
-              help: "Whole months; the bank's own limits apply" },
+              help: "Whole months; the company's own limits apply" },
             { key: "first", label: "First deduction", kind: "select",
               initial: pay.firstMonths[0] ?? "",
               options: pay.firstMonths.map((m) => ({ value: m, label: m })) },
