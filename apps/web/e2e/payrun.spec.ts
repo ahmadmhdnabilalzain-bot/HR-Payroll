@@ -28,7 +28,16 @@ test("pay-run: fix both IBANs, the GM approves, the file opens",
     await page.getByRole("button", { name: "View as General Manager" })
       .click();
     await page.getByRole("button", { name: "Sign off pay run" }).click();
+    // Six checks are open: the GM signs over them knowingly.
+    await expect(page.getByRole("dialog"))
+      .toContainText("6 checks not reviewed");
+    await page.getByRole("button", { name: "Sign off anyway" }).click();
     await expect(page.getByText("Sign-off recorded")).toBeVisible();
+    // The stamp reads later than "Prepared ... at 09:30", on that day.
+    await expect(page.getByText(/^27 October 2026 at 09:(4\d|5\d)$/))
+      .toBeVisible();
+    // Undo: in the toast and under the stamp, nowhere else.
+    await expect(page.getByRole("button", { name: "Undo" })).toHaveCount(2);
     await page.getByRole("link", { name: "Continue to Pay" }).click();
     await expect(page.getByRole("button", { name: "Download salary file" }))
       .toBeEnabled();

@@ -2,6 +2,7 @@
 export const E = {
   sign: "Sign document electronically",
   signShort: "Sign",
+  view: "View",
   youSign: "You sign",
   signTitle: "Sign electronically",
   register: "E-signatures",

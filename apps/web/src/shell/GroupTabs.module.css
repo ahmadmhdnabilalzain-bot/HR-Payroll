@@ -53,3 +53,104 @@
     min-block-size: 44px;
   }
 }
+
+/* A folded row (Me): six tabs, then "More" with the rest in a list.
+ * "More" sits outside the scrolling row, so its list is never cut. */
+.line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.line > .tabs {
+  min-inline-size: 0;
+}
+
+.more {
+  position: relative;
+  flex: none;
+}
+
+.more > .tab {
+  gap: 2px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.more > .tab[aria-expanded="true"] {
+  color: var(--color-text);
+}
+
+.chev {
+  display: inline-flex;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.more > .tab[aria-expanded="true"] .chev {
+  transform: rotate(180deg);
+}
+
+.moreList {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+  z-index: 30;
+  display: grid;
+  min-inline-size: 200px;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 6%,
+      transparent),
+    0 8px 24px color-mix(in srgb, var(--color-shadow) 12%, transparent);
+  animation: more-in var(--dur-fast) var(--ease-out);
+}
+
+.moreList[hidden] {
+  display: none;
+}
+
+@keyframes more-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.moreLink {
+  display: flex;
+  align-items: center;
+  min-block-size: 36px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .moreLink:hover {
+    background: var(--color-button-secondary);
+  }
+}
+
+@media (pointer: coarse) {
+  .moreLink {
+    min-block-size: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moreList,
+  .chev {
+    animation: none;
+    transition: none;
+  }
+}

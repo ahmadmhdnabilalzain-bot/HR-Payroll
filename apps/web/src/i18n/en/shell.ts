@@ -64,6 +64,7 @@ export const shell = {
   panelWaiting: "Waiting",
   panelNothing: "Nothing is waiting here.",
   panelAreas: "Go to",
+  groupMore: "More",
   groupTabs: "In this group",
   phoneTools: "Notifications and display",
   outsideTitle: "This page is outside your view.",

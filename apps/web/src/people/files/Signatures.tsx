@@ -1,7 +1,7 @@
 import { hrefOf } from "../../demo/route";
 import { useDemo } from "../../demo/state";
 import { FilterList, RecordTabs } from "../../ui/templates";
-import { trailOf, type EsignRow } from "../esign/model";
+import { trailOf, waitingFor, type EsignRow } from "../esign/model";
 import { SignBlock, useEsign, useSigner, Word } from "../esign/Sign";
 import s from "../esign/esign.module.css";
 import { E } from "../esign/words";
@@ -21,6 +21,10 @@ export function Signatures(p: { rest: string[] }) {
     const row = rows.find((r) => r.doc.id === p.rest[0]);
     return row === undefined ? <Outside /> : <SignRecord row={row} />;
   }
+  const waiting = waitingFor(rows, me.by);
+  const toSign = waiting.length > 0;
+  const mine = { id: "mine", label: E.hrHome,
+    match: (r: EsignRow) => waiting.includes(r) };
   return (
     <FilterList title={E.register} lede={E.registerLede} rows={rows}
       rowKey={(r) => r.doc.id}
@@ -28,10 +32,13 @@ export function Signatures(p: { rest: string[] }) {
         r.doc.signers.map((x) => x.name).join(" ")}`}
       rowHref={(r) => hrefOf("people", "files", "signatures", r.doc.id)}
       segments={[
+        // What waits for the viewer opens first when there is any:
+        // Home's "Sign 5 documents" lands on those 5 (one count,
+        // waitingFor, on both).
+        ...(toSign ? [mine] : []),
         { id: "wait", label: E.waiting, match: (r) =>
           r.progress.word === "Awaiting signature" },
-        { id: "mine", label: E.hrHome, match: (r) =>
-          r.progress.next?.personId === me.by },
+        ...(toSign ? [] : [mine]),
         { id: "done", label: E.done, match: (r) =>
           r.progress.word === "Signed" },
         { id: "no", label: E.declined, match: (r) =>
