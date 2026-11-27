@@ -8,6 +8,7 @@ import { toCsv as csvOf, type Cell } from "../../lib/csv";
 import { downloadText } from "../../lib/download";
 import { amountsHidden, maskMoney, useMaskText } from "../mask";
 import { Money } from "../Money";
+import { rowClick } from "../rowClick";
 import { dur, easeOut, reduced, useEntrance, useReveal, veil }
   from "./listEnter";
 import { MoreMenu } from "./Menu";
@@ -90,8 +91,10 @@ export function ReportPage(p: {
   id?: string;
   /** One more action before the menu (e.g. run a check). */
   actions?: ReactNode;
-  /** Where a row opens: its first cell becomes the link. */
-  rowHref?: (row: number) => string | undefined;
+  /** Where a row opens: its first cell becomes the link, and a press
+   * anywhere else on the row opens it too (its figures keep their own
+   * working). */
+  rowHref?: ((row: number) => string | undefined) | undefined;
 }) {
   const { t } = useLocale();
   const { state } = useDemo();
@@ -201,13 +204,16 @@ export function ReportPage(p: {
           ))}</tr>
         </thead>
         <tbody>
-          {p.rows.map((r, i) => (
-            <tr key={i}>
+          {p.rows.map((r, i) => {
+            const href = p.rowHref?.(i);
+            return (
+            <tr key={i} onClick={rowClick(href)} data-href={href}
+              className={href === undefined ? undefined : s.linkRow}>
               {r.map((v, j) => (
                 <td key={j} data-end={end(j)}
                   data-label={p.columns[j]?.label}>
-                  {j === 0 && p.rowHref?.(i) !== undefined ? (
-                    <a className={s.rowLink} href={p.rowHref(i)}>
+                  {j === 0 && href !== undefined ? (
+                    <a className={s.rowLink} href={href}>
                       <CellView c={v} /></a>
                   ) : <Why e={p.explain?.(i, j)}><CellView c={v} /></Why>}
                   {j === 0 && p.bars?.[i] !== undefined && (
@@ -219,7 +225,8 @@ export function ReportPage(p: {
                 </td>
               ))}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
         {p.total !== undefined && (
           <tfoot>

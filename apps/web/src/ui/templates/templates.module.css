@@ -151,6 +151,21 @@
   }
 }
 
+/* The rest of that row opens it too (ReportPage, ui/rowClick.ts). */
+.linkRow {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .linkRow:hover > td {
+    background: var(--color-surface-secondary);
+  }
+
+  .linkRow:hover .rowLink {
+    text-decoration-color: currentColor;
+  }
+}
+
 /* A report's own actions: Download PDF, Print, Share (ReportPage). */
 .reportActs {
   display: flex;

@@ -21,7 +21,7 @@ import { Panel, useIssuePhrase, useIssueWords } from "../dash/Panel";
 import { Tiles } from "../dash/Tiles";
 import { ChangeBars } from "../dash/ChangeBars";
 import { BeforeSignOffItems } from "../dash/Items";
-import { areaHref } from "../dash/itemSeam";
+import { areaHref, deptHrefByName } from "../dash/itemSeam";
 import { hrefOf } from "../../demo/route";
 import s from "../dash/dash.module.css";
 import x from "./exec.module.css";
@@ -86,6 +86,7 @@ export function DashboardHr() {
           href="#/reports/nationality"
           note={`${nat.total} people, as of ${formatDate(nat.asOf, lang)}`}>
           <SplitBar label="People by nationality" unit={["person", "people"]}
+            href={hrefOf("reports", "nationality")}
             slices={topSlices(nat.rows.map((r) => ({ name: r.name,
               count: r.count })), 4)} />
         </Panel>
@@ -94,7 +95,8 @@ export function DashboardHr() {
           <HBars label="People by department" rows={[...src.departments]
             .sort((a, b) => b.now - a.now).map((d) => ({ key: d.name,
               label: d.name, value: { n: d.now },
-              href: "#/reports/headcount" }))} />
+              href: deptHrefByName(data.departments(), d.name)
+                ?? hrefOf("reports", "headcount") }))} />
         </Panel>
       </div>
     </div>
