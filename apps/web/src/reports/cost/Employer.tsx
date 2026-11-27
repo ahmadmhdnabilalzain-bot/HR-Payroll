@@ -26,7 +26,7 @@ export function EmployerCostScreen() {
     m(k.partialTotal)]);
   return (
     <ReportPage title="Employer cost" period={k.period}
-      figure={{ label: "Gross plus computed employer cost, partial",
+      figure={{ label: "Gross plus employer cost",
         value: <Money value={k.partialTotal} size="lg" tween={false} />,
         explanation: src.costExplain }}
       explain={(r, c) => r === k.rows.length && c === 4 ? src.costExplain

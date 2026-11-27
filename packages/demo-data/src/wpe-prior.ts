@@ -24,10 +24,10 @@ export const PRIOR_USE_NOTE = "A record of what a new joiner was paid at " +
   "with earlier pay. It does not change pay, probation or gratuity.";
 
 export const PRIOR_EVIDENCE: readonly { value: string; label: string }[] = [
-  { value: "certificate", label: "Salary certificate from the employer" },
+  { value: "certificate", label: "Salary certificate" },
   { value: "payslip", label: "A recent payslip" },
-  { value: "letter", label: "Letter of offer or contract" },
-  { value: "stated", label: "Told to HR, no paper yet" },
+  { value: "letter", label: "Offer or contract" },
+  { value: "stated", label: "Told to HR" },
 ];
 
 /** Joiners of the last twelve months, newest first. */

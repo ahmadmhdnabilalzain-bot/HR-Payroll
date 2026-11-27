@@ -39,7 +39,7 @@ export interface Tier { id: string; fromBps: bigint; toBps: bigint | null;
 /** SAMPLE tiers: each band of the target pays its own rate. */
 export const COMMISSION_TIERS: readonly Tier[] = [
   { id: "t0", fromBps: 0n, toBps: 8000n, rateBps: 0n,
-    label: "Up to 80% of target", rateText: "0%" },
+    label: "Up to 80%", rateText: "0%" },
   { id: "t1", fromBps: 8000n, toBps: 10000n, rateBps: 150n,
     label: "80% to 100% of target", rateText: "1.5%" },
   { id: "t2", fromBps: 10000n, toBps: 12000n, rateBps: 300n,
