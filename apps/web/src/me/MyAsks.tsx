@@ -83,7 +83,7 @@ export function MyAsks() {
   return (
     <>
       <FilterList title="My requests and letters"
-        lede={"Letters, tickets and questions you sent to HR, and what " +
+        lede={"Letters, travel and questions you sent to HR, and what " +
           "happened to each."}
         rows={items} rowKey={(i) => i.id}
         searchText={(i) => `${i.title} ${i.kind}`}
@@ -184,11 +184,11 @@ export function MyTicket(props: { id: string }) {
   const p = useRequests();
   const t = ticketRows(p.data, p.state).find((x) => x.id === props.id);
   if (t === undefined || t.employeeId !== p.me) {
-    return <NotFound what="ticket" back="My requests" href={LIST} />;
+    return <NotFound what="request" back="My requests" href={LIST} />;
   }
   const [word] = TICKET_STATUS[t.status];
   return (
-    <RecordTabs title={t.subject} lede={`Ticket ${t.id}`}
+    <RecordTabs title={t.subject} lede={`Request ${t.id}`}
       back={{ label: "My requests", href: LIST }}
       stats={[{ label: "Status", value: word },
         { label: "Opened", value: p.when(t.raisedOn) },
