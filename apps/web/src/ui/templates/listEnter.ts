@@ -88,10 +88,19 @@ export function veil(el: HTMLElement, o: { duration: number;
   el.style.setProperty("--veil", behind(el));
   el.dataset["veil"] = "";
   const kf = [{ opacity: 1 }, { opacity: 0 }];
-  const a = el.animate(o.out === true ? [...kf].reverse() : kf, {
-    duration: o.duration, delay: o.delay ?? 0,
-    easing: o.easing ?? "linear", pseudoElement: "::after",
-    fill: o.out === true ? "forwards" : "backwards" });
+  let a: Animation;
+  try {
+    a = el.animate(o.out === true ? [...kf].reverse() : kf, {
+      duration: o.duration, delay: o.delay ?? 0,
+      easing: o.easing ?? "linear", pseudoElement: "::after",
+      fill: o.out === true ? "forwards" : "backwards" });
+  } catch {
+    // An engine that refuses to animate a pseudo-element: no fade,
+    // the element simply shows (or, leaving, goes at once).
+    delete el.dataset["veil"];
+    el.style.removeProperty("--veil");
+    return el.animate([], { duration: 0 });
+  }
   const done = (): void => {
     if (o.out === true) return;
     if (el.getAnimations({ subtree: true }).some((x) => x !== a &&

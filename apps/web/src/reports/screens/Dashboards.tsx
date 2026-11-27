@@ -128,6 +128,7 @@ export function DashboardExec() {
   const { lang } = useLocale();
   const { m, signed } = useMoney();
   const words = useIssueWords();
+  const phrase = useIssuePhrase();
   const runWord = useRunWord();
   const now = src.months.at(-1)!;
   const before = src.months.at(-2)!;
@@ -162,6 +163,11 @@ export function DashboardExec() {
             paid: run.explain["run:people"] }} />
       </div>
       <div className={s.panels}>
+        <Panel id="dash-items" wide title="Before sign-off"
+          href="#/pay-run/fix"
+          note={phrase(beforeApproval(data, state))}>
+          <BeforeSignOffItems />
+        </Panel>
         <Panel id="dash-trend" wide title="Gross pay, month on month"
           href="#/reports/trend"
           note={`Change against the month before, ${src.months[1]!.label
