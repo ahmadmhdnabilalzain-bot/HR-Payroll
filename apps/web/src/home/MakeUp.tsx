@@ -1,10 +1,12 @@
 import { fils, type Fils } from "@payroll/engine";
 import { notes, runPhase } from "../demo/derive";
+import { hrefOf } from "../demo/route";
 import { useDemo } from "../demo/state";
 import { useRunDetail } from "../demo/useRunDetail";
 import { useLocale } from "../i18n/LocaleProvider";
 import { monthName, SignedMoney } from "../payrun/Change";
 import { Money } from "../ui/Money";
+import { useRowLink } from "../ui/RowLink";
 import { Sources } from "./Sources";
 import s from "./MakeUp.module.css";
 
@@ -30,13 +32,16 @@ export function MakeUp() {
       </header>
       <dl className={s.rows}>
         <Row label={t("home.gross")} now={h.grossTotalFils}
-          prev={run.prev.gross} />
+          prev={run.prev.gross} href={hrefOf("reports", "summary")} />
         <Row label={t("home.deductions")} now={h.deductionsFils}
-          prev={run.prev.deductions} />
+          prev={run.prev.deductions}
+          href={hrefOf("pay-run", "deductions")} />
         <Row label={t("home.net")} now={h.netTotalFils} prev={run.prev.net}
-          strong />
-        <Row label={t("home.inSif")} now={h.sifTotalFils} prev={null} />
-        <Row label={t("home.held")} now={h.heldNetFils} prev={null} />
+          strong href={hrefOf("reports", "summary")} />
+        <Row label={t("home.inSif")} now={h.sifTotalFils} prev={null}
+          href={hrefOf("pay-run", "pay")} />
+        <Row label={t("home.held")} now={h.heldNetFils} prev={null}
+          href={hrefOf("pay-run", "fix")} />
       </dl>
       <p className={s.people}>
         {t("home.preparedBy", { name: name(people.makerId) })}
@@ -55,10 +60,13 @@ export function MakeUp() {
   );
 }
 
+/** One line of the make-up; the whole line opens where it comes from. */
 function Row(p: { label: string; now: Fils; prev: Fils | null;
-  strong?: boolean }) {
+  strong?: boolean; href: string }) {
+  const link = useRowLink({ href: p.href });
   return (
-    <div className={s.row} data-strong={p.strong === true}>
+    <div {...link} className={`${s.row} ${link.className}`}
+      data-strong={p.strong === true}>
       <dt>{p.label}</dt>
       <dd className={s.delta}>
         {p.prev !== null && <SignedMoney value={fils(p.now - p.prev)} />}

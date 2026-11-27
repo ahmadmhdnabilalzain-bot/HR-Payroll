@@ -1,9 +1,11 @@
 import { fils, type Fils } from "@payroll/engine";
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useRef, useState, type ReactNode } from "react";
 import { runApprovalId } from "../demo/derive";
 import { formatDate, formatTime } from "../i18n/format";
 import { decisionTime, demoClockIso, nowMs } from "../payrun/model";
+import { hrefOf } from "../demo/route";
 import { useHeightTween } from "../ui/heightTween";
+import { useRowLink } from "../ui/RowLink";
 import { SignStamp } from "../ui/SignStamp";
 import { ExplainLink, Explainable } from "../components/explain";
 import { useDemo } from "../demo/state";
@@ -18,7 +20,8 @@ import { useFirstReveal } from "../ui/firstReveal";
 import { RollDigits } from "../ui/RollDigits";
 import { CardIban } from "./CardIban";
 import { StatusAction, StatusSentence } from "./StatusLead";
-import { StepTracker } from "./StepTracker";
+import { currentStepHref, StepTracker } from "./StepTracker";
+import tl from "./TextLink.module.css";
 import { usePhone } from "./usePhone";
 import { WaitingList } from "./WaitingList";
 import nt from "./NetTrend.module.css";
@@ -126,6 +129,7 @@ export function PayRunHero() {
  */
 function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
   const { t } = useLocale();
+  const { data, state } = useDemo();
   const run = useRunApproval();
   const blocked = run.blockedBy.length;
   const ready = p.total - blocked;
@@ -137,7 +141,8 @@ function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
         <span className={s.barReady} style={{ "--k":
           p.total === 0 ? 1 : ready / p.total } as object} />
       </div>
-      <p className={s.readyLine}>
+      <a className={`${s.readyLine} ${tl.link}`}
+        href={currentStepHref(data, state)}>
         <span className={s.readyCount}>
           {t("home.readyBar", { ready })}
         </span>
@@ -147,17 +152,28 @@ function ReadyBar(p: { total: number; file: Fils; held: Fils }) {
             {t("home.heldBar", { count: blocked })}
           </span>
         )}
-      </p>
+      </a>
       <dl className={s.totals}>
-        <div data-fly-target="">
+        <Total href={hrefOf("pay-run", "pay")} fly>
           <dt>{t("home.inFile")}</dt>
           <dd><RollDigits value={p.file} size="lg" /></dd>
-        </div>
-        <div>
+        </Total>
+        <Total href={hrefOf("pay-run", "fix")}>
           <dt>{t("home.heldOutLabel")}</dt>
           <dd><HeldOut value={p.held} /></dd>
-        </div>
+        </Total>
       </dl>
+    </div>
+  );
+}
+
+/** One total under the bar: the whole of it opens where it is made. */
+function Total(p: { href: string; fly?: boolean; children: ReactNode }) {
+  const link = useRowLink({ href: p.href });
+  return (
+    <div {...link} className={`${link.className} ${s.total}`}
+      data-fly-target={p.fly === true ? "" : undefined}>
+      {p.children}
     </div>
   );
 }
