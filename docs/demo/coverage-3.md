@@ -133,7 +133,8 @@ So live stays 183 of 207 (88.4 percent); partial 5, missing 19.
 
 Branch release = motion, features, ft4, then mfa, ft5 (with ft2), ft6, kit
 and mfb. ft5 and ft6 add two registry areas, reports.ask (X34, HR and GM)
-and me.policies (H15, every role): 195 + 2 = 197 areas, all live. E16 is a
+and me.policies (H15, every role): 195 + 2 = 197 areas, all live (read
+by importing ALL_AREAS in a throwaway vitest run, not committed). E16 is a
 sheet on the payslip, not an area. H12 has no new area: me.help gains the
 walkthroughs. Each was opened on a fresh vite build served the way
 render.live.yaml serves it (port 4881), at 1440 x 900, as the role named.
