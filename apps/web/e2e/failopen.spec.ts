@@ -225,7 +225,8 @@ async function clickAll(page: Page, hash: string, max: number)
       (el.getAttribute("aria-label") ?? (el as HTMLElement).innerText)
         .trim().replace(/\s+/g, " ").slice(0, 40)}"`).catch(() => "?");
     await page.evaluate(() => {
-      const w = window as unknown as { __muts: number; __mo?: MutationObserver };
+      const w = window as unknown as { __muts: number;
+        __mo?: MutationObserver };
       w.__muts = 0;
       w.__mo?.disconnect();
       w.__mo = new MutationObserver((rs) => { w.__muts += rs.length; });
@@ -327,8 +328,15 @@ for (const [w, h] of SIZES) {
         await page.getByRole("heading", { level: 1 }).first()
           .waitFor({ timeout: 5000 }).catch(() => undefined);
         await page.waitForTimeout(150);
-        for (const f of await settledAudit(page)) {
-          hard.push(`${role} ${w}x${h} ${hash} [${f.kind}] ${f.what}`);
+        const found = (await settledAudit(page)).map((f) =>
+          `${role} ${w}x${h} ${hash} [${f.kind}] ${f.what}`);
+        hard.push(...found);
+        // Written as it goes, so a long walk cut short still reports.
+        if (OUT !== undefined) {
+          appendFileSync(`${OUT}.prog`, `${role} ${w}x${h} ${hash}\n`);
+          if (found.length > 0) {
+            appendFileSync(`${OUT}.live.txt`, found.join("\n") + "\n");
+          }
         }
         const n = focus(hash) ? 40 : CLICKS;
         if (n > 0) {

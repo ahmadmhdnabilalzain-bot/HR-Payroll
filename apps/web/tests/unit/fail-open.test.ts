@@ -65,11 +65,13 @@ describe("view transitions fail open", () => {
     const ios = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) " +
       "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 " +
       "Mobile/15E148 Safari/604.1";
-    vi.stubGlobal("navigator", { userAgent: ios, vendor: "Apple Computer, Inc." });
+    vi.stubGlobal("navigator", { userAgent: ios,
+      vendor: "Apple Computer, Inc." });
     expect(isWebKit()).toBe(true);
     expect(hasViewTransitions()).toBe(false);
-    const edge = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" +
-      " (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0";
+    const edge = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+      "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 " +
+      "Safari/537.36 Edg/131.0.0.0";
     vi.stubGlobal("navigator", { userAgent: edge, vendor: "Google Inc." });
     expect(isWebKit()).toBe(false);
   });
