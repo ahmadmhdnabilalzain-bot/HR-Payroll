@@ -242,6 +242,7 @@ a.tileIn:focus-visible {
 /* ---- Trend chart ------------------------------------------------- */
 
 .trendBox {
+  position: relative;
   display: grid;
   gap: var(--space-3);
   min-inline-size: 0;
@@ -595,4 +596,131 @@ a.tileIn:focus-visible {
   color: var(--color-text-muted);
   font-size: 15px;
   line-height: 20px;
+}
+
+/* ---- Links: every figure, row and point opens its page ---------- */
+
+.tileLink,
+.panelLink,
+.rowLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--color-divider-strong);
+  text-underline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .tileLink:hover,
+  .panelLink:hover,
+  .rowLink:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.tileLink:focus-visible,
+.panelLink:focus-visible,
+.rowLink:focus-visible,
+.pointLink:focus-visible,
+.barLink:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* A point is one link: the figure, the words and the state word. */
+.pointLink {
+  display: grid;
+  gap: 2px;
+  margin: calc(-1 * var(--space-1));
+  padding: var(--space-1);
+  border-radius: var(--radius-control);
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .pointLink:hover {
+    background: var(--color-surface-2);
+  }
+}
+
+/* The month-on-month bars: one link a month over the chart. */
+.trendLinks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  margin: 0;
+  padding: 0 0 0 8px;
+  list-style: none;
+}
+
+.trendLinks > li {
+  flex: 1;
+}
+
+.barLink {
+  display: block;
+  block-size: 100%;
+  border-radius: var(--radius-control);
+}
+
+@media (hover: hover) {
+  .barLink:hover {
+    background: color-mix(in srgb, var(--color-text) 4%, transparent);
+  }
+}
+
+/* Before sign-off, item by item. */
+.items {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 48px;
+  padding-block: var(--space-2);
+  border-block-start: 1px solid var(--color-divider);
+  color: inherit;
+  text-decoration: none;
+}
+
+.items > li:first-child > .item {
+  border-block-start: 0;
+}
+
+@media (hover: hover) {
+  .item:hover .itemTitle {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.itemText {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.itemTitle {
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.itemMeta {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 18px;
 }

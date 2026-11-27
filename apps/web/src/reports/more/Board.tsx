@@ -9,7 +9,14 @@ import { Money } from "../../ui/Money";
 import { ReportPage } from "../../ui/templates";
 import { beforeApproval } from "../dash/model";
 import { useIssuePhrase, useIssueWords } from "../dash/Panel";
-import { Count, Summary, useRunState, type Column } from "../dash/Summary";
+import {
+  Count,
+  linkPoints,
+  Summary,
+  useRunState,
+  type Column,
+} from "../dash/Summary";
+import { areaHref } from "../dash/itemSeam";
 import { useReportCrumbs } from "../fmt";
 import { useReportsSource } from "../load";
 import { useTableMoney } from "./nb";
@@ -73,11 +80,14 @@ export function BoardPackScreen() {
   return (
     <ReportPage title="Board report" period={board.period}
       crumbs={useReportCrumbs()}
-      chart={<Summary label="The period in brief" columns={columns} />}
+      chart={<Summary label="The period in brief"
+        columns={linkPoints(columns, areaHref,
+        ["ytd"])} />}
       explain={(r, c) => c !== 2 ? undefined
         : board.rows[r]?.live === "issues-open" ? issuesWhy : boardExplain[r]}
       columns={[{ label: "Measure" }, { label: "Note" },
         { label: "Figure", end: true }]}
+      rowHref={(r) => areaHref(board.rows[r]?.measure ?? "")}
       rows={boardRows(board, figures(data, state), m).map((x, i) =>
         board.rows[i]?.live === "issues-open"
           ? [x[0]!, x[1]!, phrase(b)] : x)}

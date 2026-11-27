@@ -20,6 +20,9 @@ import {
 import { Panel, useIssuePhrase, useIssueWords } from "../dash/Panel";
 import { Tiles } from "../dash/Tiles";
 import { ChangeBars } from "../dash/ChangeBars";
+import { BeforeSignOffItems } from "../dash/Items";
+import { areaHref } from "../dash/itemSeam";
+import { hrefOf } from "../../demo/route";
 import s from "../dash/dash.module.css";
 import x from "./exec.module.css";
 import { useFirstReveal } from "../../ui/firstReveal";
@@ -74,17 +77,24 @@ export function DashboardHr() {
     <div className={s.board}>
       <Tiles label="Key figures" tiles={hrTiles(src, data, state, words)} />
       <div className={s.panels}>
+        <Panel id="dash-items" wide title="Before sign-off"
+          href="#/pay-run/fix"
+          note={phrase(beforeApproval(data, state))}>
+          <BeforeSignOffItems />
+        </Panel>
         <Panel id="dash-nat" wide title="People by nationality"
+          href="#/reports/nationality"
           note={`${nat.total} people, as of ${formatDate(nat.asOf, lang)}`}>
           <SplitBar label="People by nationality" unit={["person", "people"]}
             slices={topSlices(nat.rows.map((r) => ({ name: r.name,
               count: r.count })), 4)} />
         </Panel>
         <Panel id="dash-dept" wide title="People by department"
-          note="Employed on the report date">
+          href="#/reports/headcount" note="Employed on the report date">
           <HBars label="People by department" rows={[...src.departments]
             .sort((a, b) => b.now - a.now).map((d) => ({ key: d.name,
-              label: d.name, value: { n: d.now } }))} />
+              label: d.name, value: { n: d.now },
+              href: "#/reports/headcount" }))} />
         </Panel>
       </div>
     </div>
@@ -95,6 +105,7 @@ export function DashboardHr() {
       `${last.label} run`}
       chart={board}
       explain={(r, c) => c === 1 ? why[r] : undefined}
+      rowHref={(r) => areaHref(String(rows[r]?.[0] ?? ""))}
       columns={COLUMNS} rows={rows} csvName="hr-dashboard-2026-10.csv"
       note={"Each figure comes from the same data as the pay run, the " +
         "headcount, leave and documents reports and the decisions inbox. " +
@@ -152,17 +163,21 @@ export function DashboardExec() {
       </div>
       <div className={s.panels}>
         <Panel id="dash-trend" wide title="Gross pay, month on month"
+          href="#/reports/trend"
           note={`Change against the month before, ${src.months[1]!.label
             .slice(0, 3)} to ${now.label}`}>
-          <ChangeBars months={src.months} label={"Change in gross pay " +
+          <ChangeBars months={src.months}
+            hrefOf={(month) => hrefOf("reports", "variance", month)}
+            label={"Change in gross pay " +
             "against the month before, February to October; October " +
             runWord.toLowerCase()} />
         </Panel>
         <Panel id="dash-cost" wide title="Cost per head by department"
+          href="#/reports/departments"
           note={`Gross pay over people, ${now.label}; highest first`}>
           <HBars label="Cost per head by department" rows={deptView(data)
             .map((d) => ({ key: d.id, label: d.row.name[lang],
-              value: { fils: d.perHead },
+              value: { fils: d.perHead }, href: "#/reports/departments",
               meta: `${plural(d.row.headcount, "person", "people")} · ` +
                 `${d.share}% of gross` }))} />
         </Panel>
@@ -175,6 +190,7 @@ export function DashboardExec() {
       period={`${now.label} run against ${before.label}`}
       chart={board}
       explain={(r, c) => c === 1 ? why[r] : undefined}
+      rowHref={(r) => areaHref(String(rows[r]?.[0] ?? ""))}
       columns={COLUMNS} rows={rows}
       csvName="executive-dashboard-2026-10.csv"
       note={"Figures are the run as it stands today, including any pay " +

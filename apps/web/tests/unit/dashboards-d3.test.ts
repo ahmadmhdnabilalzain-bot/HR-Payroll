@@ -192,3 +192,37 @@ describe("the details table and the department view", () => {
     expect(Math.abs(total - 100)).toBeLessThanOrEqual(v.length);
   });
 });
+
+describe("every dashboard line opens a page", () => {
+  it("each row of both dashboards, the brief and the board has one",
+    async () => {
+      const { areaHref } = await import("../../src/reports/dash/itemSeam");
+      const { execDashboardRows, hrDashboardRows } = await import(
+        "../../src/reports/screens/dashboard-rows");
+      const { buildMoreSource } = await import(
+        "../../src/reports/more/source");
+      const { brief, board } = buildMoreSource();
+      const d = demo.at({});
+      const m = (f: bigint): string => String(f);
+      const words = [
+        ...hrDashboardRows(src, d, INITIAL).map((r) => String(r[0])),
+        ...execDashboardRows(src, d, INITIAL, m, m)
+          .map((r) => String(r[0])),
+        ...brief.items.map((i) => `${i.area}: ${i.item}`),
+        ...board.rows.map((r) => r.measure)];
+      for (const w of words) expect(areaHref(w), w).toMatch(/^#\//);
+      expect(areaHref("Before sign-off")).toBe("#/pay-run/fix");
+      expect(areaHref("Leave requests waiting"))
+        .toBe("#/reports/leave");
+      expect(areaHref("Gratuity if everyone left today"))
+        .toBe("#/reports/gratuity-liability");
+    });
+
+  it("every tile links", () => {
+    const d = demo.at({});
+    for (const t of [...hrTiles(src, d, INITIAL, words),
+      ...execTiles(src, d, INITIAL, words)]) {
+      expect(t.href, t.id).toMatch(/^#\//);
+    }
+  });
+});

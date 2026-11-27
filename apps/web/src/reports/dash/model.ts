@@ -85,7 +85,7 @@ function paidTile(now: MonthRow, before: MonthRow, ms: MonthRow[])
   : TileModel {
   return { ...countTile("paid", "People paid", now.headcount,
     before.headcount, short(before), ms.map((m) => m.headcount)),
-  zero: true };
+  zero: true, href: "#/reports/headcount" };
 }
 
 /** Fix's own words for the counts: the unit after the figure, and
@@ -114,10 +114,12 @@ export function execTiles(src: ReportsSource, d: DemoData, s: DemoState,
   const h = d.headline();
   const ms = src.months;
   return [
-    moneyTile("net", `Net pay, ${short(now)}`, h.netTotalFils, before.net,
-      short(before), ms.map((m) => m.net)),
-    moneyTile("gross", `Gross pay, ${short(now)}`, h.grossTotalFils,
+    { ...moneyTile("net", `Net pay, ${short(now)}`, h.netTotalFils,
+      before.net, short(before), ms.map((m) => m.net)),
+    href: "#/pay-run/review" },
+    { ...moneyTile("gross", `Gross pay, ${short(now)}`, h.grossTotalFils,
       before.gross, short(before), ms.map((m) => m.gross)),
+    href: "#/reports/summary" },
     paidTile(now, before, ms),
     issuesTile(beforeApproval(d, s), words),
   ];
@@ -132,11 +134,13 @@ export function hrTiles(src: ReportsSource, d: DemoData, s: DemoState,
   return [
     paidTile(now, before, ms),
     issuesTile(beforeApproval(d, s), words),
-    countTile("leave", `Leave days, ${short(now)}`, leaveDays(now),
+    { ...countTile("leave", `Leave days, ${short(now)}`, leaveDays(now),
       leaveDays(before), short(before), ms.map(leaveDays), "days"),
-    countTile("overtime", `Overtime hours, ${short(now)}`,
+    href: "#/reports/leave" },
+    { ...countTile("overtime", `Overtime hours, ${short(now)}`,
       hrs(now.overtimeMinutes), hrs(before.overtimeMinutes),
       short(before), ms.map((m) => hrs(m.overtimeMinutes)), "hours"),
+    href: "#/reports/overtime" },
   ];
 }
 

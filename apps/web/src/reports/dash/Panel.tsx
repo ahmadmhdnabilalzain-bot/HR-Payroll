@@ -5,12 +5,17 @@ import s from "./dash.module.css";
 
 /** A white panel with a 17 px title and an optional quiet note. */
 export function Panel(p: { id: string; title: string; note?: string;
-  children: ReactNode; wide?: boolean }) {
+  children: ReactNode; wide?: boolean;
+  /** The page behind the panel: the title opens it. */
+  href?: string }) {
   return (
     <section className={s.panel} aria-labelledby={p.id} data-reveal-part=""
       style={p.wide === true ? { gridColumn: "1 / -1" } : undefined}>
       <div className={s.panelHead}>
-        <h2 id={p.id} className={s.panelTitle}>{p.title}</h2>
+        <h2 id={p.id} className={s.panelTitle}>
+          {p.href === undefined ? p.title
+            : <a className={s.panelLink} href={p.href}>{p.title}</a>}
+        </h2>
         {p.note !== undefined && <p className={s.panelNote}>{p.note}</p>}
       </div>
       {p.children}

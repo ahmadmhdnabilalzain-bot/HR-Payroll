@@ -89,6 +89,8 @@ export function ReportPage(p: {
   id?: string;
   /** One more action before the menu (e.g. run a check). */
   actions?: ReactNode;
+  /** Where a row opens: its first cell becomes the link. */
+  rowHref?: (row: number) => string | undefined;
 }) {
   const { t } = useLocale();
   const { state } = useDemo();
@@ -202,7 +204,10 @@ export function ReportPage(p: {
               {r.map((v, j) => (
                 <td key={j} data-end={end(j)}
                   data-label={p.columns[j]?.label}>
-                  <Why e={p.explain?.(i, j)}><CellView c={v} /></Why>
+                  {j === 0 && p.rowHref?.(i) !== undefined ? (
+                    <a className={s.rowLink} href={p.rowHref(i)}>
+                      <CellView c={v} /></a>
+                  ) : <Why e={p.explain?.(i, j)}><CellView c={v} /></Why>}
                   {j === 0 && p.bars?.[i] !== undefined && (
                     <span className={s.bar} aria-hidden="true">
                       <span className={s.fill} style={{ transform:
