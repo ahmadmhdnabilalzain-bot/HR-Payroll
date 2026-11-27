@@ -944,3 +944,20 @@ any new deploy; video last.
 
 Rule held: nothing unfinished is shown half-built; nothing is deployed that
 has not passed the full gate on the exact commit.
+
+### 23a. Audit findings carried to Monday (live build before wave 1)
+
+IT, bell and charts audit (partial; reports not walked): 4 of 29 bell items
+dead (GM: Rashid Al Falasi's expense claim; manager: 2 self-assessments to
+review; employee: October overtime recorded, self-assessment sent). Many bell
+items land on a generic list (all five IT items and several HR and GM items go
+to `#/people`) instead of the record. Home: the "Waiting for a decision" link
+does nothing for HR and GM; notice rows are plain text for every role. IT:
+14 real dead controls (audit chain "Check again", Jobs tab, KPI Library tab,
+Auditor access tab, ERP regions, GL Test connection, Teams Test connection).
+Charts: no tooltips on the 38 HR marks and tiles hovered; all 68 IT kiosk
+marks dead. Audit-trail, access-review and key rows are plain list items.
+HR and GM full audit is not complete. Manager and employee audit: 42 to 46
+percent dead, cause is missing click handlers on plain elements.
+Files: scratchpad/deadclick (CSV and summaries). Wave 1 fixes Reports and the
+dashboards; the rest is the dc1 to dc3 and item2 branches.
