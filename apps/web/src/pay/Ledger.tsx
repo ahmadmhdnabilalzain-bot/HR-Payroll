@@ -60,7 +60,7 @@ export function OffCycle() {
         `${r.totals.count === 1 ? "person" : "people"}`,
       when: bonusStatus(r) === "signed" ? `Signed off, pays ${payday}`
         : bonusStatus(r) === "declined" ? "Declined"
-          : bonusStatus(r) === "waiting" ? "Waiting for sign off"
+          : bonusStatus(r) === "waiting" ? "Waiting for sign-off"
             : "Draft", amount: r.totals.gross, outside: true,
       href: hrefOf("pay-run", "bonus", r.id) })),
     ...pay.settlements.map((x) => ({ key: `fs-${x.employeeId}`,

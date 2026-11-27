@@ -29,9 +29,9 @@ import {
 import h from "./hiring.module.css";
 
 export const BUDGET_TONE: Record<BudgetStatus, Tone> = { budgeted: "neutral",
-  open: "info", "in-hiring": "info", filled: "ok" };
+  open: "info", "in-hiring": "info", filled: "neutral" };
 const PILL: Record<BudgetStatus, StatusTone> = { budgeted: "neutral",
-  open: "warn", "in-hiring": "warn", filled: "ok" };
+  open: "warn", "in-hiring": "warn", filled: "neutral" };
 
 const signWord = (r: BudgetRow): string => r.pending !== null
   ? "Change waiting" : r.budgetState === "waiting" ? "Waiting"

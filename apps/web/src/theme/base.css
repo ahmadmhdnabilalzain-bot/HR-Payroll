@@ -56,6 +56,20 @@ button {
   cursor: pointer;
 }
 
+/* No browser-blue link anywhere: a bare link is ink, underlined, and
+ * stays ink visited and hovered. Zero specificity, so any class wins. */
+:where(a),
+:where(a:visited),
+:where(a:hover),
+:where(a:active) {
+  color: inherit;
+}
+
+:where(a) {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 /* Touch: no grey flash on tap, no double-tap zoom delay. */
 a,
 button,
