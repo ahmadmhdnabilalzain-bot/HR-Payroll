@@ -5,8 +5,9 @@ import { useDemo } from "../../demo/state";
 import { FilterList, PageHead } from "../../ui/templates";
 import t from "../../ui/templates/templates.module.css";
 import { Outside } from "../team/common";
-import { packCount, waitingFor } from "./model";
-import { SignBlock, useEsign, useSigner, type Signer } from "./Sign";
+import { packCount, waitingFor, type EsignRow } from "./model";
+import { PaperRow, type PaperKind } from "./PaperRow";
+import { useEsign, useSigner, type Signer } from "./Sign";
 import s from "./esign.module.css";
 import { E } from "./words";
 
@@ -114,12 +115,12 @@ function LinkPage(p: { k: string }) {
 }
 
 /**
- * Papers for one signer: those waiting for them first (each with its
- * SignBlock), then the ones they signed. Used by the Me page and by a
- * signing link.
+ * Papers for one signer, on the page grid: those waiting for them
+ * first, then those waiting for someone else, then the ones signed or
+ * declined, each a one-line row on a white grouped list (PaperRow).
+ * Used by the Me page and by a signing link.
  */
 export function ToSign(p: { signer: Signer; title: string; lede: string }) {
-  const { data } = useDemo();
   const { rows } = useEsign();
   const mine = rows.filter((r) => r.doc.signers.some((x) =>
     x.personId === p.signer.by));
@@ -128,52 +129,37 @@ export function ToSign(p: { signer: Signer; title: string; lede: string }) {
   const others = rest.filter((r) =>
     r.progress.word === "Awaiting signature");
   const closed = rest.filter((r) => !others.includes(r));
-  // A paper just signed moves from "waiting" to "finished": the cards
+  // A paper just signed moves from "waiting" to "finished": the rows
   // and headings slide to their new places instead of jumping. The
   // signed one is new in its list (its stamp lands there), so it does
   // not travel over the others.
   const page = useRef<HTMLDivElement>(null);
   useFlip(page, [rows]);
+  const list = (id: string, title: string, flip: string,
+    papers: EsignRow[], kind: PaperKind, key = (r: EsignRow) => r.doc.id) =>
+    papers.length === 0 ? null : (
+      <section className={s.section} aria-labelledby={id}>
+        <h2 id={id} className={s.sectionTitle} data-flip={flip}>{title}</h2>
+        <ul className={s.papers}>
+          {papers.map((r) => (
+            <PaperRow key={r.doc.id} row={r} as={p.signer} kind={kind}
+              flip={key(r)} />))}
+        </ul>
+      </section>);
   return (
-    <div className={`${t.page} ${s.page}`} ref={page}>
-      <header className={s.section}>
-        <h1 className={s.title}>{p.title}</h1>
-        <p className={s.lede}>{p.lede}</p>
-        <p className={s.note}>{data.esign.note}</p>
-      </header>
-      <section className={s.section} aria-labelledby="ts-wait">
-        <h2 id="ts-wait" className={s.sectionTitle} data-flip="h-wait">
-          {E.waitingYou(waiting.length)}</h2>
-        {waiting.length === 0 ? <p className={s.note}>{E.nothing}</p> : (
-          <ul className={s.cards}>
-            {waiting.map((r) => (
-              <li key={r.doc.id} data-flip={r.doc.id}>
-                <SignBlock docId={r.doc.id}
-                  as={p.signer} compact /></li>))}
-          </ul>)}
-      </section>
-      {others.length > 0 && (
-        <section className={s.section} aria-labelledby="ts-others">
-          <h2 id="ts-others" className={s.sectionTitle}
-            data-flip="h-others">{E.others}</h2>
-          <ul className={s.cards}>
-            {others.map((r) => (
-              <li key={r.doc.id} data-flip={r.doc.id}>
-                <SignBlock docId={r.doc.id}
-                  as={p.signer} compact /></li>))}
-          </ul>
-        </section>)}
-      {closed.length > 0 && (
-        <section className={s.section} aria-labelledby="ts-done">
-          <h2 id="ts-done" className={s.sectionTitle}
-            data-flip="h-done">{E.finished}</h2>
-          <ul className={s.cards}>
-            {closed.map((r) => (
-              <li key={r.doc.id} data-flip={`done:${r.doc.id}`}>
-                <SignBlock docId={r.doc.id}
-                  as={p.signer} /></li>))}
-          </ul>
-        </section>)}
+    <div className={`${t.page} ${s.signPage}`} ref={page}>
+      <PageHead title={p.title} lede={p.lede} />
+      {waiting.length === 0 ? (
+        <section className={s.section} aria-labelledby="ts-wait">
+          <h2 id="ts-wait" className={s.sectionTitle} data-flip="h-wait">
+            {E.waitingYou(0)}</h2>
+          <p className={s.note}>{E.nothing}</p>
+        </section>
+      ) : list("ts-wait", E.waitingYou(waiting.length), "h-wait", waiting,
+        "mine")}
+      {list("ts-others", E.others, "h-others", others, "others")}
+      {list("ts-done", E.finished, "h-done", closed, "closed",
+        (r) => `done:${r.doc.id}`)}
     </div>
   );
 }
