@@ -44,6 +44,13 @@ export const T = {
     ackNote: "Recording a read here is a note by HR. It is not a " +
       "signature." },
   report: { title: "Safety incidents report",
+    period: "Safety incidents logged each month from {first} to {last}, " +
+      "by how serious they were, and how many are still open.",
+    show: "Show months", allMonths: "All months",
+    withOpen: "With open incidents", withHigh: "With high severity",
+    none: "No safety incident has been logged this year.",
+    noneOpen: "No month has an open incident: every one is closed.",
+    noneHigh: "No incident this year was logged as high severity.",
     month: "Month", low: "Low", medium: "Medium", high: "High",
     total: "Total", open: "Still open", figure: "Incidents logged",
     note: "Reports sent by staff are counted from the day they are " +
