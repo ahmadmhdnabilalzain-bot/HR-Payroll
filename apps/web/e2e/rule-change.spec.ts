@@ -8,7 +8,7 @@ async function asRole(page: Page, name: string): Promise<void> {
 
 test("rule-change-preview-hr-then-gm", async ({ page }) => {
   await page.goto("/#/setup/rules/packs");
-  await page.getByRole("link", { name: "Pending change" }).click();
+  await page.getByRole("link", { name: "Waiting", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1,
     name: "Rule change preview" })).toBeVisible();
   await expect(page.getByText(/Hypothetical, for demonstration/).first())

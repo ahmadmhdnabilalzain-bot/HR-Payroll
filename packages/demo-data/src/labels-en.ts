@@ -37,8 +37,8 @@ export const DEMO_LABELS_EN = {
   "reason.family": "Family visit", "reason.rest": "Rest",
   "reason.travel": "Travel", "reason.medical": "Medical appointment",
   "reason.personal": "Personal matters",
-  "status.approved": "Approved", "status.pending": "Pending",
-  "status.rejected": "Rejected",
+  "status.approved": "Signed off", "status.pending": "Waiting",
+  "status.rejected": "Declined",
   "status.awaiting-approval": "Waiting for sign-off",
   "case.probation": "New hire on probation",
   "case.leaver": "Leaving this month", "case.unpaid-leave": "Unpaid " +

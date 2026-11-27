@@ -48,7 +48,7 @@ export function RuleList() {
         ]}
         empty="No rule matches. Clear the search or choose All."
         actions={<><a className={`${b.btn} ${b.secondary}`}
-          href={hrefOf("setup", "rule-change")}>Pending change</a>
+          href={hrefOf("setup", "rule-change")}>Waiting</a>
         <button type="button" className={`${b.btn} ${b.secondary}`}
           onClick={() => setOpen(true)}>Change log</button></>} />
       <Sheet open={open} title="Change log" onClose={() => setOpen(false)}>

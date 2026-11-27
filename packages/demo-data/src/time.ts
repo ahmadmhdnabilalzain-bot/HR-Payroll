@@ -78,7 +78,7 @@ function cellOf(c: DemoCompany, e: DemoEmployee, date: string)
   if (leave !== undefined) {
     return { date, kind: "leave", shiftId: null,
       pending: leave.status === "pending",
-      label: leave.status === "pending" ? "Leave (pending)" : "Leave" };
+      label: leave.status === "pending" ? "Leave (waiting)" : "Leave" };
   }
   const s = slotFor(e);
   return { date, kind: "shift", shiftId: s.id, pending: false,

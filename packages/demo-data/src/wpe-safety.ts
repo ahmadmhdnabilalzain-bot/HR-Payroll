@@ -64,7 +64,7 @@ export interface InsuranceCoverRow {
 }
 
 const WORD: Record<CoverStatus, string> = { covered: "Covered",
-  "card-pending": "Card pending", ended: "Cover ended" };
+  "card-pending": "Card waiting", ended: "Cover ended" };
 
 /** Four digits from the employee number: sample, never a real card. */
 const lastFour = (e: DemoEmployee): string =>
