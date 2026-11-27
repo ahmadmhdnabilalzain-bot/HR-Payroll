@@ -4,8 +4,8 @@ import { tooSlow, GATE_FRAMES, GATE_SKIP } from "../../src/welcome/gate";
 import { hasViewTransitions, isWebKit, safeTransition, TRANSITION_LIMIT_MS }
   from "../../src/ui/viewTransition";
 
-type Doc = Document & { startViewTransition?: unknown };
-const doc = document as Doc;
+/** The test's own stand-in for the API, shaped loosely on purpose. */
+const doc = document as unknown as { startViewTransition?: unknown };
 const never = (): Promise<never> => new Promise<never>(() => undefined);
 
 describe("view transitions fail open", () => {
