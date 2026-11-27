@@ -32,8 +32,8 @@ const PLAIN: Record<string, string> = {
   endDateInclusive: "The last working day counts as a day of service.",
   leapDayAnniversary: "A 29 February joiner's anniversary falls on the " +
     "last day of February in other years.",
-  roundingMode: "Amounts are rounded once, at the end, to two " +
-    "decimal places.",
+  roundingMode: "Each line is rounded once, to the fils; " +
+    "totals add the rounded lines.",
   gccNationalGratuity: "Gratuity for other Gulf nationals has no source " +
     "yet, so no value is held.",
   // Pay: overtime and rest days
@@ -50,9 +50,9 @@ const PLAIN: Record<string, string> = {
     "hours in three weeks. Shown, not checked.",
   maxNormalHoursPerDay: "A normal working day is 8 hours.",
   restDayUpliftBps: "Work on a rest day earns a day's wage plus at " +
-    "least 50%.",
+    "least 50% of the day's basic wage.",
   holidayUpliftBps: "Work on an official holiday earns a day's wage " +
-    "plus at least 50%.",
+    "plus at least 50% of the day's basic wage.",
   restDayPayMode: "Our reading: the monthly salary already pays the " +
     "rest day, so the extra is a day's wage plus the premium.",
   restDayWageBase: "The wage for a rest day is basic plus cash " +
@@ -116,7 +116,8 @@ const PLAIN: Record<string, string> = {
   timeHolidayWorkCompensated: "Work on an official holiday earns a " +
     "rest day or extra pay.",
   timeAnnualLeaveMinDays: "At least 30 days of annual leave a year. " +
-    "The leave form counts working days.",
+    "This sample policy counts working days, which is more generous than " +
+    "the law's default (Art 29(7), as we read it).",
   timeFirstYearDaysPerMonth: "Between six months and a year of " +
     "service: 2 days of leave for each month.",
   timeCarryOverMaxShareBps: "Up to half of the annual leave may be " +
@@ -155,8 +156,8 @@ const PLAIN: Record<string, string> = {
   empSettlementTrigger: "Our reading: the 14 days run from the last " +
     "working day.",
   // Salary file dates
-  wpsDueDayOfNextMonth: "The salary for a month is due on the 1st of " +
-    "the next month.",
+  wpsDueDayOfNextMonth: "As we read it, the salary for a month is " +
+    "due on the 1st of the next month.",
   wpsLateAlertDayOfNextMonth: "We alert from the 2nd of the next " +
     "month if the salary is still unpaid.",
   wpsFinePerWorkerFils: "A fine per worker for late pay: no source " +

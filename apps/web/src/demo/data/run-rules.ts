@@ -35,7 +35,8 @@ const PLAIN: Record<string, [string, string | null]> = {
   capBase: ["That two-year limit is measured on basic wage. The law " +
     "does not say which wage.", null],
   monthsPerYear: ["A year's wage is 12 months of wage.", null],
-  roundingMode: ["Rounded once, at the end, to two decimal places.", null],
+  roundingMode: ["Each line is rounded once, to the fils; totals add " +
+    "the rounded lines.", null],
   leavePayBase: ["Unused annual leave is paid on basic wage.", null],
   leavePayDivisor: ["A day of leave pay is the monthly basic divided by " +
     "30.", null],
