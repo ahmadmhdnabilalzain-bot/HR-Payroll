@@ -44,7 +44,7 @@ export const BONUS_DEPARTMENTS: readonly string[] = ["retail", "corp",
 
 export const BONUS_BASIS = "Sample scheme for Retail, Corporate banking " +
   "and Operations: a share of monthly basic by the mid-year 2026 " +
-  "rating, 15 percent at 5 and 10 percent at 4. People who joined " +
+  "rating, 15% at 5 and 10% at 4. People who joined " +
   "after 30 June, are on probation or have left are left out. Paid " +
   `off-cycle on ${shortDateText(BONUS_PAY_DATE)}, outside the ` +
   "monthly run.";
@@ -118,7 +118,7 @@ export interface BonusPlan {
   scopes: { id: "all" | "top"; label: string; count: number }[];
 }
 
-const pct = (bps: bigint): string => `${Number(bps) / 100} percent`;
+const pct = (bps: bigint): string => `${Number(bps) / 100}%`;
 
 export function bonusPlan(c: DemoCompany): BonusPlan {
   const mid = appraisalViews(c, { cycleId: "cyc-2026-mid" });

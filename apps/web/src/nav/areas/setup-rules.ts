@@ -31,7 +31,7 @@ export const AREAS: readonly Area[] = [
   area("setup.eos", "pay", "End-of-service rules",
     "قواعد نهاية الخدمة", "ST", ["end-of-service"],
     "gratuity notice probation settlement"),
-  area("setup.deductions", "pay", "Deductions rules", "قواعد الاستقطاعات",
+  area("setup.deductions", "pay", "Deduction rules", "قواعد الاستقطاعات",
     "ST", ["deductions"], "deduction limit loan fine cap half wage"),
   area("setup.calendar", "pay", "Pay calendar", "تقويم الرواتب", "CA",
     ["calendar"], "cut-off payday approve date month"),
