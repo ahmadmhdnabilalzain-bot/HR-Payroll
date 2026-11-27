@@ -73,6 +73,14 @@ for (const [role, name] of ROLES) {
     if (role !== "hr") await asRole(page, name);
     const failed: string[] = [];
     await go(page, "#/home");
+    // Home's To do and Notices rows, and the leave request rows, are
+    // links too.
+    for (const id of ["todo-title", "notices-title"]) {
+      await expect(page.locator(`section[aria-labelledby="${id}"] ` +
+        "li:not(:has(a[href]))")).toHaveCount(0);
+    }
+    await expect(page.locator("main section[aria-label] ul > li" +
+      ":not([data-rowlink]):not(:has(a[href]))")).toHaveCount(0);
     const n = await (await bellItems(page)).count();
     expect(n).toBeGreaterThan(0);
     await page.keyboard.press("Escape");
@@ -109,4 +117,26 @@ test("manager-visa-note-opens-the-person-not-my-documents", async ({
   await expect(page).toHaveURL(/#\/people\/emp-\d+$/);
   await expect(page.getByRole("heading", { level: 1 }).first())
     .toContainText("Jose Reyes");
+  // The person's documents, with the visa, are on that page.
+  const docs = page.locator("section[aria-labelledby='docs-title']");
+  await expect(docs).toBeVisible();
+  await expect(docs).toContainText(/residence visa/i);
+});
+
+test("bell-sheet-at-1366", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+  await asRole(page, "General manager");
+  await go(page, "#/home");
+  const items = await bellItems(page);
+  const first = await items.first().boundingBox();
+  // Each item is a full-width target of at least 44px.
+  const li = await page.getByRole("dialog", { name: "Notifications" })
+    .locator("li").first().boundingBox();
+  expect(first).not.toBeNull();
+  expect(li!.height).toBeGreaterThanOrEqual(44);
+  if (process.env["BELL_SHOT"] !== undefined) {
+    await page.waitForTimeout(1200);
+    await page.screenshot({ path: process.env["BELL_SHOT"] });
+  }
 });
